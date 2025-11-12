@@ -44,14 +44,14 @@ export class CustomWorld extends World {
 
   // Shared Test State
   currentUser!: { id: string; email: string; name: string };
-  currentAsset: any = null;
-  currentSession: any = null; // Added: Dedicated field for GameSession
-  currentEncounterId?: string; // Added: For Encounter Management tests
-  currentAssetInstanceId?: string; // Added: For asset placement tests
-  createdAssets: any[] = [];
-  createdSessions: any[] = []; // Added: Track sessions for cleanup
-  createdTestUsers: string[] = []; // Added: Track test users created via DB for cleanup
-  createdUserIds: string[] = []; // Added: Track precondition users for cleanup (registration tests)
+  currentAsset: Record<string, unknown> | null = null;
+  currentSession: Record<string, unknown> | null = null;
+  currentEncounterId?: string;
+  currentAssetInstanceId?: string;
+  createdAssets: Array<Record<string, unknown>> = [];
+  createdSessions: Array<Record<string, unknown>> = [];
+  createdTestUsers: string[] = [];
+  createdUserIds: string[] = [];
   uploadedResourceIds: string[] = [];
   lastApiResponse: APIResponse | null = null;
 

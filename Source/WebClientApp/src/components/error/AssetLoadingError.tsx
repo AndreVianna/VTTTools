@@ -264,7 +264,7 @@ interface SafeImageProps {
   maxRetries?: number;
   width?: number | string;
   height?: number | string;
-  [key: string]: any; // For other img props
+  [key: string]: unknown;
 }
 
 export const SafeImage: React.FC<SafeImageProps> = ({
@@ -412,7 +412,9 @@ export const AssetGridError: React.FC<AssetGridErrorProps> = ({
           color='inherit'
           size='small'
           onClick={() => {
-            failedAssets.forEach((id) => onRetryAsset(id));
+            for (const id of failedAssets) {
+              void onRetryAsset(id);
+            }
           }}
         >
           Retry All ({failedCount})

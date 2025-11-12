@@ -81,7 +81,7 @@ export const AssetLibraryPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // Build query params from selected kind and filters
-  const queryParams: any = {};
+  const queryParams: Record<string, unknown> = {};
 
   // Kind from Tabs (always set now, no 'all' option)
   queryParams.kind = selectedKind;
@@ -219,8 +219,8 @@ export const AssetLibraryPage: React.FC = () => {
           {/* Loading State */}
           {isLoading && (
             <Grid container spacing={3}>
-              {[...Array(12)].map((_, index) => (
-                <Grid key={index} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
+              {Array.from({ length: 12 }, (_, index) => `loading-skeleton-${index}`).map((key) => (
+                <Grid key={key} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                   <Card>
                     <Box sx={{ paddingTop: '100%', position: 'relative' }}>
                       <Skeleton

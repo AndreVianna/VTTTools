@@ -31,7 +31,7 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertice
           if (!nextVertex) return null;
           return (
             <Line
-              key={`segment-${index}`}
+              key={`segment-${vertex.x}-${vertex.y}-${nextVertex.x}-${nextVertex.y}`}
               points={[vertex.x, vertex.y, nextVertex.x, nextVertex.y]}
               stroke={strokeColor}
               strokeWidth={2}
@@ -103,9 +103,9 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertice
           );
         })()}
 
-      {vertices.map((vertex, index) => (
+      {vertices.map((vertex) => (
         <Circle
-          key={`vertex-${index}`}
+          key={`vertex-${vertex.x}-${vertex.y}`}
           x={vertex.x}
           y={vertex.y}
           radius={5}

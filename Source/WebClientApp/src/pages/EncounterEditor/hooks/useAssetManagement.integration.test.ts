@@ -29,16 +29,16 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
   let mockEncounter: Encounter;
   let mockAsset: Asset;
   let mockPlacedAsset: PlacedAsset;
-  let mockAddEncounterAsset: ReturnType<any>[0];
-  let mockRemoveEncounterAsset: ReturnType<any>[0];
-  let mockUpdateEncounterAsset: ReturnType<any>[0];
-  let mockBulkUpdateEncounterAssets: ReturnType<any>[0];
-  let mockBulkDeleteEncounterAssets: ReturnType<any>[0];
-  let mockBulkAddEncounterAssets: ReturnType<any>[0];
+  let mockAddEncounterAsset: ReturnType<typeof useAddEncounterAssetMutation>[0];
+  let mockRemoveEncounterAsset: ReturnType<typeof useRemoveEncounterAssetMutation>[0];
+  let mockUpdateEncounterAsset: ReturnType<typeof useUpdateEncounterAssetMutation>[0];
+  let mockBulkUpdateEncounterAssets: ReturnType<typeof useBulkUpdateEncounterAssetsMutation>[0];
+  let mockBulkDeleteEncounterAssets: ReturnType<typeof useBulkDeleteEncounterAssetsMutation>[0];
+  let mockBulkAddEncounterAssets: ReturnType<typeof useBulkAddEncounterAssetsMutation>[0];
   let mockRefetch: () => Promise<{ data?: Encounter }>;
   let mockSetEncounter: (encounter: Encounter) => void;
-  let mockExecute: (command: any) => void;
-  let mockDispatch: any;
+  let mockExecute: (command: unknown) => void;
+  let mockDispatch: unknown;
   let mockCopyAssets: (assets: PlacedAsset[], encounterId: string) => void;
   let mockCutAssets: (assets: PlacedAsset[], encounterId: string) => void;
   let mockGetClipboardAssets: () => PlacedAsset[];
@@ -496,7 +496,9 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       expect(storedData).toBeTruthy();
 
       localStorage.clear();
-      localStorage.setItem('encounter-mappings', storedData!);
+      if (storedData) {
+        localStorage.setItem('encounter-mappings', storedData);
+      }
 
       const retrievedIndex = getIndexByDomId(testEncounterId, 'assets', tempDomId);
       expect(retrievedIndex).toBe(backendIndex);
@@ -601,7 +603,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       setEntityMapping(testEncounterId, 'assets', asset1.id, 0);
       setEntityMapping(testEncounterId, 'assets', asset2.id, 1);
 
-      const commands: any[] = [];
+      const commands: unknown[] = [];
       const trackingExecute = vi.fn((command) => {
         commands.push(command);
         command.execute();

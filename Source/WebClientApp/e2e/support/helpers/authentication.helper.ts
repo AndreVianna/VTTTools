@@ -319,12 +319,18 @@ export async function simulateServerError(page: Page, endpoint: 'login' | 'regis
   );
 }
 
+interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
 /**
  * Verify Redux auth state
  */
 export async function verifyReduxAuthState(
   page: Page,
-  expectedState: { isAuthenticated: boolean; user: any | null },
+  expectedState: { isAuthenticated: boolean; user: AuthUser | null },
 ): Promise<void> {
   const authState = await page.evaluate(() => {
     return window.store?.getState()?.auth;

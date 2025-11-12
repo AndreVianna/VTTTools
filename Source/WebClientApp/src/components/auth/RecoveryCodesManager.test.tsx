@@ -692,8 +692,11 @@ describe('RecoveryCodesManager', () => {
 
       // Assert
       await waitFor(() => {
-        const codeElement = screen.getByText(mockRecoveryCodes[0]!);
-        expect(codeElement).toHaveStyle({ fontFamily: 'monospace' });
+        const firstCode = mockRecoveryCodes[0];
+        if (firstCode) {
+          const codeElement = screen.getByText(firstCode);
+          expect(codeElement).toHaveStyle({ fontFamily: 'monospace' });
+        }
       });
     });
   });

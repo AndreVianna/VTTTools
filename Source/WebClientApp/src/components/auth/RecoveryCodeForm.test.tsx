@@ -365,7 +365,7 @@ describe('RecoveryCodeForm', () => {
   describe('error display', () => {
     it('should display invalid recovery code error', () => {
       // Arrange
-      mockVerifyRecoveryCodeReturnValue.error = 'Invalid recovery code' as any;
+      mockVerifyRecoveryCodeReturnValue.error = 'Invalid recovery code' as unknown as null;
 
       // Act
       render(<RecoveryCodeForm />);
@@ -377,7 +377,7 @@ describe('RecoveryCodeForm', () => {
 
     it('should display already used code error', () => {
       // Arrange
-      mockVerifyRecoveryCodeReturnValue.error = 'This recovery code has already been used' as any;
+      mockVerifyRecoveryCodeReturnValue.error = 'This recovery code has already been used' as unknown as null;
 
       // Act
       render(<RecoveryCodeForm />);
@@ -388,7 +388,7 @@ describe('RecoveryCodeForm', () => {
 
     it('should display rate limit error', () => {
       // Arrange
-      mockVerifyRecoveryCodeReturnValue.error = 'Too many attempts. Try again in 5 minutes.' as any;
+      mockVerifyRecoveryCodeReturnValue.error = 'Too many attempts. Try again in 5 minutes.' as unknown as null;
 
       // Act
       render(<RecoveryCodeForm />);
@@ -399,7 +399,7 @@ describe('RecoveryCodeForm', () => {
 
     it('should display session expired error', () => {
       // Arrange
-      mockVerifyRecoveryCodeReturnValue.error = 'Session expired. Please log in again.' as any;
+      mockVerifyRecoveryCodeReturnValue.error = 'Session expired. Please log in again.' as unknown as null;
 
       // Act
       render(<RecoveryCodeForm />);
@@ -410,7 +410,7 @@ describe('RecoveryCodeForm', () => {
 
     it('should display connection error', () => {
       // Arrange
-      mockVerifyRecoveryCodeReturnValue.error = 'Connection error. Please try again.' as any;
+      mockVerifyRecoveryCodeReturnValue.error = 'Connection error. Please try again.' as unknown as null;
 
       // Act
       render(<RecoveryCodeForm />);
@@ -421,7 +421,7 @@ describe('RecoveryCodeForm', () => {
 
     it('should display 2FA not enabled error', () => {
       // Arrange
-      mockVerifyRecoveryCodeReturnValue.error = 'Two-factor authentication is not enabled.' as any;
+      mockVerifyRecoveryCodeReturnValue.error = 'Two-factor authentication is not enabled.' as unknown as null;
 
       // Act
       render(<RecoveryCodeForm />);

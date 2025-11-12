@@ -220,7 +220,7 @@ describe('encounterEntityMapping', () => {
       });
 
       it('should throw error for invalid encounterId type', () => {
-        expect(() => setEntityMapping(null as any, testEntityType, testDomId, testIndex)).toThrow(
+        expect(() => setEntityMapping(null as unknown as string, testEntityType, testDomId, testIndex)).toThrow(
           'Invalid encounterId: must be non-empty string',
         );
       });
@@ -252,9 +252,9 @@ describe('encounterEntityMapping', () => {
       });
 
       it('should throw error for invalid domId type', () => {
-        expect(() => setEntityMapping(testEncounterId, testEntityType, undefined as any, testIndex)).toThrow(
-          'Invalid domId: must be non-empty string',
-        );
+        expect(() =>
+          setEntityMapping(testEncounterId, testEntityType, undefined as unknown as string, testIndex),
+        ).toThrow('Invalid domId: must be non-empty string');
       });
 
       it('should throw error for domId with illegal characters', () => {
@@ -391,7 +391,7 @@ describe('encounterEntityMapping', () => {
       const stored = localStorage.getItem('encounter-mappings');
       expect(stored).toBeTruthy();
 
-      const parsed = JSON.parse(stored!);
+      const parsed = JSON.parse(stored ?? '{}');
       expect(parsed[testEncounterId][testEntityType]).toEqual({
         'dom-1': 0,
         'dom-2': 1,

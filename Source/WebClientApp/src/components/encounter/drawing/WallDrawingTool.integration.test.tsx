@@ -40,7 +40,8 @@ vi.mock('react-konva', () => ({
       cancelBubble: false,
     };
     return (
-      <div
+      <button
+        type='button'
         data-testid='konva-rect'
         onClick={() => onClick?.(mockKonvaEvent)}
         onDoubleClick={() => onDblClick?.(mockKonvaEvent)}
@@ -411,7 +412,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       vi.mock('react-konva', () => ({
         Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
         Rect: ({ onClick }: { onClick?: (e: any) => void }) => (
-          <div data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
+          <button type='button' data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
         ),
       }));
 

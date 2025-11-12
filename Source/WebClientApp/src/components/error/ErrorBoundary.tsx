@@ -123,9 +123,12 @@ export class ErrorBoundary extends Component<Props, State> {
       const { fallback: FallbackComponent } = this.props;
 
       if (FallbackComponent) {
+        const { error } = this.state;
+        if (!error) return null;
+
         return (
           <FallbackComponent
-            error={this.state.error!}
+            error={error}
             retry={this.handleRetry}
             goHome={this.handleGoHome}
             reportError={this.handleReportError}

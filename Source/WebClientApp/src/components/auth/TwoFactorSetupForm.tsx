@@ -413,9 +413,9 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({ onComple
             }}
           >
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              {recoveryCodes.map((code, index) => (
+              {recoveryCodes.map((code) => (
                 <Paper
-                  key={index}
+                  key={code}
                   elevation={0}
                   sx={{
                     p: 1.5,

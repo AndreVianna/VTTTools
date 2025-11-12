@@ -59,61 +59,49 @@ describe('TokenDragHandle Logic Tests', () => {
 
   describe('Placement Behavior', () => {
     it('should allow creatures to move', () => {
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       expect(behavior.canMove).toBe(true);
     });
 
     it('should not allow creatures to rotate in Phase 6', () => {
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       expect(behavior.canRotate).toBe(false);
     });
 
     it('should not allow creatures to resize', () => {
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       expect(behavior.canResize).toBe(false);
     });
 
     it('should allow creatures to be deleted', () => {
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       expect(behavior.canDelete).toBe(true);
     });
 
     it('should require grid alignment for creatures', () => {
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       expect(behavior.requiresGridAlignment).toBe(true);
     });
 
     it('should not allow creatures to overlap', () => {
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       expect(behavior.allowOverlap).toBe(false);
     });
@@ -150,11 +138,9 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should validate non-overlapping placement', () => {
       const position = { x: 200, y: 200 };
       const size = { width: 50, height: 50 };
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       const validation = validatePlacement(
         position,
@@ -179,11 +165,9 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should reject overlapping placement when overlap not allowed', () => {
       const position = { x: 100, y: 100 };
       const size = { width: 50, height: 50 };
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       const validation = validatePlacement(
         position,
@@ -208,11 +192,9 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should validate size constraints', () => {
       const position = { x: 100, y: 100 };
       const size = { width: 1, height: 1 };
-      const behavior = getPlacementBehavior(
-        mockCreatureAsset.asset.kind,
-        undefined,
-        (mockCreatureAsset.asset as any).properties,
-      );
+      const creatureProperties =
+        mockCreatureAsset.asset.kind === 'Creature' ? mockCreatureAsset.asset.category : undefined;
+      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
 
       const validation = validatePlacement(position, size, behavior, [], mockGridConfig);
 
@@ -326,11 +308,14 @@ describe('TokenDragHandle Logic Tests', () => {
     };
 
     it('should not allow immovable objects to move', () => {
-      const behavior = getPlacementBehavior(
-        immovableObjectAsset.asset.kind,
-        (immovableObjectAsset.asset as any).properties,
-        undefined,
-      );
+      const objectProperties =
+        immovableObjectAsset.asset.kind === 'Object'
+          ? {
+              isMovable: (immovableObjectAsset.asset as ObjectAsset).isMovable,
+              isOpaque: (immovableObjectAsset.asset as ObjectAsset).isOpaque,
+            }
+          : undefined;
+      const behavior = getPlacementBehavior(immovableObjectAsset.asset.kind, objectProperties, undefined);
 
       expect(behavior.canMove).toBe(false);
     });
@@ -340,29 +325,32 @@ describe('TokenDragHandle Logic Tests', () => {
         ...immovableObjectAsset,
         asset: {
           ...immovableObjectAsset.asset,
-          properties: {
-            size: { width: 1, height: 1, isSquare: true },
-            isMovable: true,
-            isOpaque: false,
-          },
+          isMovable: true,
+          isOpaque: false,
         },
       };
 
-      const behavior = getPlacementBehavior(
-        movableObjectAsset.asset.kind,
-        (movableObjectAsset.asset as any).properties,
-        undefined,
-      );
+      const objectProperties =
+        movableObjectAsset.asset.kind === 'Object'
+          ? {
+              isMovable: (movableObjectAsset.asset as ObjectAsset).isMovable,
+              isOpaque: (movableObjectAsset.asset as ObjectAsset).isOpaque,
+            }
+          : undefined;
+      const behavior = getPlacementBehavior(movableObjectAsset.asset.kind, objectProperties, undefined);
 
       expect(behavior.canMove).toBe(true);
     });
 
     it('should not allow overlap for opaque objects', () => {
-      const behavior = getPlacementBehavior(
-        immovableObjectAsset.asset.kind,
-        (immovableObjectAsset.asset as any).properties,
-        undefined,
-      );
+      const objectProperties =
+        immovableObjectAsset.asset.kind === 'Object'
+          ? {
+              isMovable: (immovableObjectAsset.asset as ObjectAsset).isMovable,
+              isOpaque: (immovableObjectAsset.asset as ObjectAsset).isOpaque,
+            }
+          : undefined;
+      const behavior = getPlacementBehavior(immovableObjectAsset.asset.kind, objectProperties, undefined);
 
       expect(behavior.allowOverlap).toBe(false);
     });
@@ -372,19 +360,19 @@ describe('TokenDragHandle Logic Tests', () => {
         ...immovableObjectAsset,
         asset: {
           ...immovableObjectAsset.asset,
-          properties: {
-            size: { width: 1, height: 1, isSquare: true },
-            isMovable: true,
-            isOpaque: false,
-          },
+          isMovable: true,
+          isOpaque: false,
         },
       };
 
-      const behavior = getPlacementBehavior(
-        transparentObjectAsset.asset.kind,
-        (transparentObjectAsset.asset as any).properties,
-        undefined,
-      );
+      const objectProperties =
+        transparentObjectAsset.asset.kind === 'Object'
+          ? {
+              isMovable: (transparentObjectAsset.asset as ObjectAsset).isMovable,
+              isOpaque: (transparentObjectAsset.asset as ObjectAsset).isOpaque,
+            }
+          : undefined;
+      const behavior = getPlacementBehavior(transparentObjectAsset.asset.kind, objectProperties, undefined);
 
       expect(behavior.allowOverlap).toBe(true);
     });
@@ -460,16 +448,17 @@ describe('TokenDragHandle Logic Tests', () => {
 
   describe('Event Handler Cleanup', () => {
     it('should track event listeners properly', () => {
-      const listeners = new Map<string, Function[]>();
+      type EventHandler = (...args: never[]) => unknown;
+      const listeners = new Map<string, EventHandler[]>();
 
-      const mockOn = (event: string, handler: Function) => {
+      const mockOn = (event: string, handler: EventHandler) => {
         if (!listeners.has(event)) {
           listeners.set(event, []);
         }
         listeners.get(event)?.push(handler);
       };
 
-      const mockOff = (event: string, handler: Function) => {
+      const mockOff = (event: string, handler: EventHandler) => {
         const eventListeners = listeners.get(event);
         if (eventListeners) {
           const index = eventListeners.indexOf(handler);

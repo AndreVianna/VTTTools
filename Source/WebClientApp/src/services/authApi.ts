@@ -47,13 +47,12 @@ export const authApi = createApi({
     getCurrentUser: builder.query<User, void>({
       query: () => '/me',
       providesTags: ['User'],
-      transformResponse: (response: any) => {
-        // Backend returns AuthResponse { Success, User }, extract User
-        if (response?.User || response?.user) {
-          return response.User || response.user;
+      transformResponse: (response: unknown) => {
+        const resp = response as { User?: User; user?: User } | User;
+        if (resp && typeof resp === 'object' && ('User' in resp || 'user' in resp)) {
+          return (resp as { User?: User; user?: User }).User || (resp as { User?: User; user?: User }).user;
         }
-        // If response is already a User object (direct format)
-        return response;
+        return resp as User;
       },
       transformErrorResponse: (response, _meta, _arg) => {
         return response;

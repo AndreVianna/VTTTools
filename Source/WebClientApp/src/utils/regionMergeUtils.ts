@@ -161,17 +161,30 @@ export function findMergeableRegions(
 
 export function mergePolygons(verticesList: Point[][], gridConfig?: GridConfig): Point[] {
   if (verticesList.length === 0) return [];
-  if (verticesList.length === 1) return verticesList[0] || [];
+  const firstVertices = verticesList[0];
+  if (verticesList.length === 1) return firstVertices || [];
 
   try {
     const polygons = verticesList.map((vertices) => [vertices.map((p) => [p.x, p.y] as [number, number])]);
-    const unioned = polygonClipping.union(polygons[0]!, ...polygons.slice(1));
+    const firstPolygon = polygons[0];
+    if (!firstPolygon) {
+      return firstVertices || [];
+    }
+    const unioned = polygonClipping.union(firstPolygon, ...polygons.slice(1));
 
-    if (unioned.length === 0 || !unioned[0] || !unioned[0][0]) {
-      return verticesList[0] || [];
+    if (unioned.length === 0) {
+      return firstVertices || [];
     }
 
-    const outerRing = unioned[0][0];
+    const unionedFirst = unioned[0];
+    if (!unionedFirst) {
+      return firstVertices || [];
+    }
+
+    const outerRing = unionedFirst[0];
+    if (!outerRing) {
+      return firstVertices || [];
+    }
     let mergedVertices: Point[] = outerRing.map(([x, y]) => ({
       x: x as number,
       y: y as number,
@@ -279,7 +292,10 @@ function insertIntersectionVertices(vertices: Point[], intersections: Point[]): 
 function deduplicateVertices(vertices: Point[], tolerance = 0.001): Point[] {
   if (vertices.length === 0) return [];
 
-  const result: Point[] = [vertices[0]!];
+  const firstVertex = vertices[0];
+  if (!firstVertex) return [];
+
+  const result: Point[] = [firstVertex];
 
   for (let i = 1; i < vertices.length; i++) {
     const current = vertices[i];
@@ -317,7 +333,11 @@ function calculatePolygonBounds(vertices: Point[]): Bounds {
     return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
   }
 
-  const first = vertices[0]!;
+  const first = vertices[0];
+  if (!first) {
+    return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+  }
+
   let minX = first.x;
   let maxX = first.x;
   let minY = first.y;

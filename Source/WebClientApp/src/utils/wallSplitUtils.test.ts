@@ -1012,7 +1012,7 @@ describe('complex integration', () => {
     expect(splitOnExisting).toBeDefined();
 
     const segments = splitWallAtPoints({
-      wall: existingWalls[0]!,
+      wall: existingWalls[0] as EncounterWall,
       wallIndex: 0,
       splitPoints: splitResult.splits,
     });
@@ -1030,7 +1030,7 @@ describe('complex integration', () => {
     expect(splitResult.needsSplit).toBe(true);
 
     const segments = splitWallAtPoints({
-      wall: existingWalls[0]!,
+      wall: existingWalls[0] as EncounterWall,
       wallIndex: 0,
       splitPoints: splitResult.splits,
     });
@@ -1138,12 +1138,12 @@ describe('complex integration', () => {
     expect(splitResult.affectedWallIndices.length).toBeGreaterThan(0);
 
     const segments0 = splitWallAtPoints({
-      wall: existingWalls[0]!,
+      wall: existingWalls[0] as EncounterWall,
       wallIndex: 0,
       splitPoints: splitResult.splits,
     });
     const segments1 = splitWallAtPoints({
-      wall: existingWalls[1]!,
+      wall: existingWalls[1] as EncounterWall,
       wallIndex: 1,
       splitPoints: splitResult.splits,
     });

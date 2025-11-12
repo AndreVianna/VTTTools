@@ -11,7 +11,7 @@
  * - Independent validation of application behavior
  */
 
-import { Given, Then, When } from '@cucumber/cucumber';
+import { type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { AssetKind } from '../../support/fixtures/AssetBuilder.js';
 import type { CustomWorld } from '../../support/world.js';
@@ -22,7 +22,7 @@ import type { CustomWorld } from '../../support/world.js';
 
 Given(
   'I own an asset {string} with {int} uploaded images:',
-  async function (this: CustomWorld, assetName: string, _count: number, dataTable: any) {
+  async function (this: CustomWorld, assetName: string, _count: number, dataTable: DataTable) {
     const rows = dataTable.hashes();
     const builder = this.assetBuilder().withName(assetName);
 
@@ -195,7 +195,7 @@ Given('I am editing an asset', async function (this: CustomWorld) {
   await this.assetEditDialog.clickEdit();
 });
 
-Given('I own asset {string} with:', async function (this: CustomWorld, assetName: string, dataTable: any) {
+Given('I own asset {string} with:', async function (this: CustomWorld, assetName: string, dataTable: DataTable) {
   const data = dataTable.rowsHash();
   const builder = this.assetBuilder()
     .withName(data.name || assetName)
@@ -225,7 +225,7 @@ Given('I own asset {string} with:', async function (this: CustomWorld, assetName
   this.currentAsset = asset;
 });
 
-Given('the database contains pre-seeded asset:', async function (this: CustomWorld, dataTable: any) {
+Given('the database contains pre-seeded asset:', async function (this: CustomWorld, dataTable: DataTable) {
   const data = dataTable.rowsHash();
   const assetId = data.Id;
   const ownerId = data.OwnerId === '{my user ID}' ? this.currentUser.id : data.OwnerId;
@@ -445,7 +445,7 @@ When('I attempt to save changes', async function (this: CustomWorld) {
   await this.assetEditDialog.clickSave();
 });
 
-When('I update to:', async function (this: CustomWorld, dataTable: any) {
+When('I update to:', async function (this: CustomWorld, dataTable: DataTable) {
   const data = dataTable.rowsHash();
 
   if (data.name) {
@@ -620,8 +620,10 @@ Then('I should NOT receive {int} Forbidden error', async function (this: CustomW
 });
 
 Then('the update should succeed without {int} error', async function (this: CustomWorld, errorCode: number) {
-  const response = this.lastApiResponse!;
-  expect(response.status()).not.toBe(errorCode);
+  expect(this.lastApiResponse).toBeDefined();
+  if (this.lastApiResponse) {
+    expect(this.lastApiResponse.status()).not.toBe(errorCode);
+  }
 });
 
 Then('the description should be saved', async function (this: CustomWorld) {
@@ -633,8 +635,10 @@ Then('the description should be saved', async function (this: CustomWorld) {
 });
 
 Then('I should receive {int} Forbidden error', async function (this: CustomWorld, statusCode: number) {
-  const response = this.lastApiResponse!;
-  expect(response.status()).toBe(statusCode);
+  expect(this.lastApiResponse).toBeDefined();
+  if (this.lastApiResponse) {
+    expect(this.lastApiResponse.status()).toBe(statusCode);
+  }
 });
 
 Then('the backend error message should be {string}', async function (this: CustomWorld, errorMessage: string) {
@@ -670,10 +674,9 @@ Then('the asset name should be updated in the library', async function (this: Cu
 
 Then('I should NOT receive authorization errors', async function (this: CustomWorld) {
   // No 403 or 401 errors
-  const response = this.lastApiResponse!;
-  if (response) {
-    expect(response.status()).not.toBe(403);
-    expect(response.status()).not.toBe(401);
+  if (this.lastApiResponse) {
+    expect(this.lastApiResponse.status()).not.toBe(403);
+    expect(this.lastApiResponse.status()).not.toBe(401);
   }
 });
 
@@ -832,7 +835,7 @@ Then('error should be {string}', async function (this: CustomWorld, errorMessage
 
 // Database Persistence Assertions
 
-Then('the database Asset record should be updated:', async function (this: CustomWorld, dataTable: any) {
+Then('the database Asset record should be updated:', async function (this: CustomWorld, dataTable: DataTable) {
   const expectedFields = dataTable.hashes()[0];
   const asset = await this.db.queryTable('Assets', {
     Id: this.currentAsset.id,
@@ -855,7 +858,7 @@ Then('AssetResources table should have {int} records', async function (this: Cus
   expect(resources.length).toBe(count);
 });
 
-Then('AssetResources should contain:', async function (this: CustomWorld, dataTable: any) {
+Then('AssetResources should contain:', async function (this: CustomWorld, dataTable: DataTable) {
   const expectedRecords = dataTable.hashes();
   const actualRecords = await this.db.queryTable('AssetResources', {
     AssetId: this.currentAsset.id,

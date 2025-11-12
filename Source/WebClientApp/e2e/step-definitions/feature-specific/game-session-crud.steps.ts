@@ -135,7 +135,7 @@ async function deleteGameSession(world: CustomWorld, sessionId: string): Promise
 /**
  * Helper: Verify session exists in database
  */
-async function verifySessionInDatabase(world: CustomWorld, sessionId: string): Promise<any> {
+async function verifySessionInDatabase(world: CustomWorld, sessionId: string): Promise<Record<string, unknown> | null> {
   const sessions = await world.db.queryTable('GameSessions', { Id: sessionId });
   return sessions.length > 0 ? sessions[0] : null;
 }
@@ -744,7 +744,7 @@ Then('my session active encounter is set to {string}', async function (this: Cus
   // TODO: Validate encounterName if encounter lookup is implemented
   const session = getCurrentSession(this);
   const updatedSession = await getGameSession(this, session.id);
-  expect(updatedSession?.encounterId).toBe(this.currentEncounterId!);
+  expect(updatedSession?.encounterId).toBe(this.currentEncounterId);
 });
 
 Then('participants can view the active encounter', async function (this: CustomWorld) {

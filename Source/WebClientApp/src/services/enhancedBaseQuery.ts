@@ -191,28 +191,32 @@ export const createSafeQuery = <TArgs, TResult>(
 };
 
 // Handle RTK Query mutation errors gracefully
-export const handleMutationError = (error: any, operationName: string) => {
+export const handleMutationError = (error: unknown, operationName: string) => {
   devUtils.error(`Mutation failed: ${operationName}`, error);
 
-  // Extract user-friendly error message
   let message = 'An error occurred. Please try again.';
 
-  if (error?.data?.message) {
-    message = error.data.message;
-  } else if (error?.error) {
-    message = error.error;
-  } else if (error?.message) {
-    message = error.message;
+  const err = error as {
+    data?: { message?: string; isRecoverable?: boolean };
+    error?: string;
+    message?: string;
+  };
+
+  if (err?.data?.message) {
+    message = err.data.message;
+  } else if (err?.error) {
+    message = err.error;
+  } else if (err?.message) {
+    message = err.message;
   }
 
-  // In development, show more details
   if (isDevelopment) {
     message += ` (${operationName})`;
   }
 
   return {
     message,
-    isRecoverable: !!error?.data?.isRecoverable,
+    isRecoverable: !!err?.data?.isRecoverable,
     originalError: isDevelopment ? error : undefined,
   };
 };

@@ -159,8 +159,8 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         listening={true}
       />
 
-      {vertices.map((vertex, index) => (
-        <VertexMarker key={index} position={vertex} />
+      {vertices.map((vertex) => (
+        <VertexMarker key={`vertex-${vertex.x}-${vertex.y}`} position={vertex} />
       ))}
 
       <RegionPreview

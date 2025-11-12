@@ -1,15 +1,15 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { LabelPosition, LabelVisibility } from '../../types/domain';
+import { LabelPosition, LabelVisibility, type PlacedAsset } from '../../types/domain';
 import { AssetContextMenu } from './AssetContextMenu';
 
 describe('AssetContextMenu', () => {
-  const mockAsset = {
+  const mockAsset: Partial<PlacedAsset> = {
     id: '123',
     name: 'Test Asset',
     displayName: LabelVisibility.Default,
     labelPosition: LabelPosition.Default,
-  } as any;
+  };
 
   it('renders menu when open', () => {
     render(
@@ -17,7 +17,7 @@ describe('AssetContextMenu', () => {
         anchorPosition={{ left: 100, top: 100 }}
         open={true}
         onClose={vi.fn()}
-        asset={mockAsset}
+        asset={mockAsset as PlacedAsset}
         onRename={vi.fn()}
         onUpdateDisplay={vi.fn()}
       />,

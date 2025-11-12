@@ -40,8 +40,21 @@ export abstract class BasePage {
   /**
    * Get element by role
    */
-  getByRole(role: string, options?: { name?: string }): Locator {
-    return this.page.getByRole(role as any, options);
+  getByRole(
+    role:
+      | 'alert'
+      | 'button'
+      | 'checkbox'
+      | 'dialog'
+      | 'link'
+      | 'textbox'
+      | 'heading'
+      | 'listitem'
+      | 'navigation'
+      | string,
+    options?: { name?: string },
+  ): Locator {
+    return this.page.getByRole(role as 'button', options);
   }
 
   /**

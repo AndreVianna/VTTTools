@@ -94,8 +94,8 @@ describe('useRegionTransaction', () => {
           result.current.startTransaction('placement');
         });
 
-        expect(result.current.transaction.localUndoStack).toEqual([]);
-        expect(result.current.transaction.localRedoStack).toEqual([]);
+        expect(result.current.transaction.localUndoStack.length).toBe(0);
+        expect(result.current.transaction.localRedoStack.length).toBe(0);
       });
     });
 
@@ -330,8 +330,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright' as any,
-          weather: 'Clear' as any,
+          light: 'Bright',
+          weather: 'Clear',
           elevation: 0,
           grid: {
             type: 0,
@@ -407,8 +407,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright' as any,
-          weather: 'Clear' as any,
+          light: 'Bright',
+          weather: 'Clear',
           elevation: 0,
           grid: {
             type: 0,
@@ -496,8 +496,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright' as any,
-          weather: 'Clear' as any,
+          light: 'Bright',
+          weather: 'Clear',
           elevation: 0,
           grid: {
             type: 0,
@@ -571,8 +571,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright' as any,
-          weather: 'Clear' as any,
+          light: 'Bright',
+          weather: 'Clear',
           elevation: 0,
           grid: {
             type: 0,
@@ -1427,7 +1427,9 @@ describe('useRegionTransaction', () => {
       expect(result.current.transaction.isActive).toBe(true);
 
       act(() => {
-        vertices.forEach((v) => result.current.addVertex(v));
+        for (const v of vertices) {
+          result.current.addVertex(v);
+        }
       });
 
       expect(result.current.transaction.segment?.vertices).toHaveLength(4);

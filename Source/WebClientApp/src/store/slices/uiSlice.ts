@@ -19,7 +19,7 @@ export interface UIState {
   modals: {
     [key: string]: {
       open: boolean;
-      data?: any;
+      data?: unknown;
     };
   };
 
@@ -123,7 +123,7 @@ const uiSlice = createSlice({
       state,
       action: PayloadAction<{
         id: string;
-        data?: any;
+        data?: unknown;
       }>,
     ) => {
       state.modals[action.payload.id] = {

@@ -4,7 +4,7 @@
  * Continuation: Removal, Multi-resource, Read-only, Integration, State, Database, Theme, Accessibility
  */
 
-import { Given, Then, When } from '@cucumber/cucumber';
+import { type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { uploadImage, uploadPortrait, uploadToken } from '../../support/helpers/upload.helper.js';
 import type { CustomWorld } from '../../support/world.js';
@@ -39,7 +39,7 @@ Then('the removal should be instant \\(no confirmation)', async function (this: 
   await expect(this.page.locator('[role="dialog"]')).not.toBeVisible();
 });
 
-Given('I have {int} images:', async function (this: CustomWorld, count: number, dataTable) {
+Given('I have {int} images:', async function (this: CustomWorld, count: number, dataTable: DataTable) {
   const rows = dataTable.hashes();
   expect(rows.length).toBe(count);
   for (const row of rows) {
@@ -400,10 +400,10 @@ Then('the grid should match the asset size', async function (this: CustomWorld) 
 // STATE MANAGEMENT
 // ============================================================================
 
-Given('the parent passes resources array:', async function (this: CustomWorld, dataTable) {
+Given('the parent passes resources array:', async function (this: CustomWorld, dataTable: DataTable) {
   const rows = dataTable.hashes();
   // Mock initial resources state
-  this.uploadedResourceIds = rows.map((row: any) => row.resourceId);
+  this.uploadedResourceIds = rows.map((row) => row.resourceId);
 });
 
 Then('I should display both images', async function (this: CustomWorld) {

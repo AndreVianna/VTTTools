@@ -386,11 +386,18 @@ export function createMultiMoveVertexAction(
     throw new Error('MultiMoveVertexAction: vertexIndices, oldVertices, and newVertices must have the same length');
   }
 
-  const moves = vertexIndices.map((vertexIndex, i) => ({
-    vertexIndex,
-    oldVertex: oldVertices[i]!,
-    newVertex: newVertices[i]!,
-  }));
+  const moves = vertexIndices.map((vertexIndex, i) => {
+    const oldVertex = oldVertices[i];
+    const newVertex = newVertices[i];
+    if (!oldVertex || !newVertex) {
+      throw new Error(`MultiMoveVertexAction: vertex at index ${i} is undefined`);
+    }
+    return {
+      vertexIndex,
+      oldVertex,
+      newVertex,
+    };
+  });
 
   return {
     type: 'MULTI_MOVE_VERTEX',

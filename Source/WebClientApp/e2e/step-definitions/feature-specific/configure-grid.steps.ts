@@ -249,7 +249,15 @@ When('I configure grid with:', async function (this: CustomWorld, dataTable: Dat
   const encounterId = this.currentEncounterId;
   const rows = dataTable.hashes();
 
-  const gridConfig: any = {
+  const gridConfig: {
+    type: number;
+    cellWidth: number;
+    cellHeight: number;
+    offsetX: number;
+    offsetY: number;
+    color: string;
+    snapToGrid: boolean;
+  } = {
     type: 1, // Default to Square
     cellWidth: 50,
     cellHeight: 50,
@@ -259,7 +267,7 @@ When('I configure grid with:', async function (this: CustomWorld, dataTable: Dat
     snapToGrid: false,
   };
 
-  rows.forEach((row: any) => {
+  rows.forEach((row: Record<string, string>) => {
     const property = row.Property;
     const value = row.Value || '';
 

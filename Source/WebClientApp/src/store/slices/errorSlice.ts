@@ -17,7 +17,7 @@ export interface VTTError {
   context?: {
     component?: string;
     operation?: string;
-    data?: any;
+    data?: unknown;
   };
   recovered?: boolean;
   retryable?: boolean;

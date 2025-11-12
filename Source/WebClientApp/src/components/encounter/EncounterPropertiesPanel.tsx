@@ -166,10 +166,10 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
 
   const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
     if (!encounter?.grid || !onGridChange) return;
-    const newType = e.target.value;
+    const newType = Number.parseInt(e.target.value, 10) as GridType;
 
     onGridChange({
-      type: newType as any,
+      type: newType,
       cellSize: encounter.grid.cellSize ?? { width: 50, height: 50 },
       offset: encounter.grid.offset ?? { left: 0, top: 0 },
       snap: encounter.grid.snap ?? true,

@@ -84,8 +84,8 @@ const StandardFormValidation: React.FC<{
     <Alert severity='error' sx={{ mb: 2 }} role='alert' aria-live='polite'>
       <AlertTitle>Please correct the following errors:</AlertTitle>
       <List dense>
-        {errors.map((error, index) => (
-          <ListItem key={index} sx={{ py: 0.5 }}>
+        {errors.map((error) => (
+          <ListItem key={error.field} sx={{ py: 0.5 }}>
             <ListItemIcon sx={{ minWidth: 32 }}>
               <ErrorIcon color='error' fontSize='small' />
             </ListItemIcon>
@@ -128,9 +128,9 @@ const DetailedFormValidation: React.FC<{
 
       <Collapse in={expanded}>
         <Box sx={{ display: 'grid', gap: 1 }}>
-          {errors.map((error, index) => (
+          {errors.map((error) => (
             <ValidationErrorItem
-              key={index}
+              key={error.field}
               error={error}
               {...(touched[error.field] !== undefined ? { isTouched: touched[error.field] } : {})}
             />
@@ -201,7 +201,7 @@ interface ValidatedTextFieldProps {
   touched?: boolean;
   helperText?: string;
   showValidationIcon?: boolean;
-  [key: string]: any; // For other TextField props
+  [key: string]: unknown;
 }
 
 export const ValidatedTextField: React.FC<ValidatedTextFieldProps> = ({
@@ -213,7 +213,7 @@ export const ValidatedTextField: React.FC<ValidatedTextFieldProps> = ({
   ...textFieldProps
 }) => {
   const hasError = Boolean(error && touched);
-  const errorMessage = hasError ? getErrorMessage(error!) : '';
+  const errorMessage = hasError && error ? getErrorMessage(error) : '';
   const displayHelperText = hasError ? errorMessage : helperText;
 
   return (
@@ -272,7 +272,7 @@ export const ValidatedFormControl: React.FC<ValidatedFormControlProps> = ({
   children,
 }) => {
   const hasError = Boolean(error && touched);
-  const errorMessage = hasError ? getErrorMessage(error!) : '';
+  const errorMessage = hasError && error ? getErrorMessage(error) : '';
 
   return (
     <FormControl error={hasError} fullWidth>

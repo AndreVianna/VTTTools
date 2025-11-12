@@ -1,4 +1,4 @@
-import type { Middleware, MiddlewareAPI } from '@reduxjs/toolkit';
+import type { Middleware, MiddlewareAPI, UnknownAction } from '@reduxjs/toolkit';
 import { storage } from '@/utils/storage';
 
 const RTK_QUERY_CACHE_KEY = 'rtkQueryCache';
@@ -7,11 +7,11 @@ const OFFLINE_MUTATIONS_KEY = 'offlineMutations';
 export interface OfflineMutation {
   id: string;
   endpoint: string;
-  args: any;
+  args: unknown;
   timestamp: number;
 }
 
-export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (action: any) => {
+export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (action: UnknownAction) => {
   const result = next(action);
 
   if (action?.type?.includes?.('/fulfilled') || action?.type?.includes?.('/rejected')) {
@@ -48,7 +48,7 @@ export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (
 
 export const hydrateFromStorage = () => {
   try {
-    const cached = storage.getItem<any>(RTK_QUERY_CACHE_KEY);
+    const cached = storage.getItem<{ queries?: unknown; mutations?: unknown; timestamp: number }>(RTK_QUERY_CACHE_KEY);
     if (!cached) return undefined;
 
     const age = Date.now() - cached.timestamp;
@@ -93,7 +93,15 @@ export const removeOfflineMutation = (id: string): void => {
   storage.setItem(OFFLINE_MUTATIONS_KEY, filtered);
 };
 
-export const syncOfflineMutations = async (api: any): Promise<void> => {
+interface ApiWithEndpoints {
+  endpoints: {
+    [key: string]: {
+      initiate: (args: unknown) => Promise<unknown>;
+    };
+  };
+}
+
+export const syncOfflineMutations = async (api: ApiWithEndpoints): Promise<void> => {
   const mutations = getOfflineMutations();
 
   if (mutations.length === 0) {
@@ -102,7 +110,7 @@ export const syncOfflineMutations = async (api: any): Promise<void> => {
 
   for (const mutation of mutations) {
     try {
-      await api.endpoints[mutation.endpoint].initiate(mutation.args);
+      await api.endpoints[mutation.endpoint]?.initiate(mutation.args);
       removeOfflineMutation(mutation.id);
     } catch (error) {
       console.error(`Failed to sync offline mutation: ${mutation.endpoint}`, error);

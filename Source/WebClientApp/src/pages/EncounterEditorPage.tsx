@@ -207,7 +207,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         description: string;
         isPublished: boolean;
         grid: {
-          type: any;
+          type: GridType;
           cellSize: { width: number; height: number };
           offset: { left: number; top: number };
           snap: boolean;
@@ -223,7 +223,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         description: encounter.description,
         isPublished: encounter.isPublished,
         grid: {
-          type: gridConfig.type as any,
+          type: gridConfig.type,
           cellSize: gridConfig.cellSize,
           offset: gridConfig.offset,
           snap: gridConfig.snap,
@@ -826,7 +826,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       const wallNumbers = existingWalls
         .map((w) => {
           const match = w.name.match(/^Wall (\d+)$/);
-          return match ? parseInt(match[1]!, 10) : null;
+          return match?.[1] ? parseInt(match[1], 10) : null;
         })
         .filter((n): n is number => n !== null);
 
@@ -1190,7 +1190,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                           onClearSelections={regionHandlers.handleFinishEditingRegion}
                           onFinish={regionHandlers.handleFinishEditingRegion}
                           onCancel={regionHandlers.handleCancelEditingRegion}
-                          onLocalAction={(action: any) => regionTransaction.pushLocalAction(action)}
+                          onLocalAction={(action: unknown) => regionTransaction.pushLocalAction(action)}
                           {...(regionTransaction.transaction.segment.color && {
                             color: regionTransaction.transaction.segment.color,
                           })}

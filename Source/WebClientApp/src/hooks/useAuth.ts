@@ -63,38 +63,52 @@ const mapToUserFriendlyMessage = (backendMessage: string): string => {
   }
 };
 
-// Helper to extract error messages from ASP.NET ValidationProblem responses
-// ValidationProblem structure: { errors: { "": ["msg1"], "field": ["msg2"] }, title, status }
-const extractErrorMessage = (error: any, defaultMessage: string = 'Operation failed'): string => {
+interface RTKQueryError {
+  status?: number;
+  data?: {
+    errors?: Record<string, string[]>;
+    message?: string;
+    error?: string;
+  };
+  message?: string;
+}
+
+const isRTKQueryError = (error: unknown): error is RTKQueryError => {
+  return typeof error === 'object' && error !== null;
+};
+
+const extractErrorMessage = (error: unknown, defaultMessage: string = 'Operation failed'): string => {
   let backendMessage: string | null = null;
 
-  // Try ValidationProblem errors format first
-  if (error?.data?.errors) {
+  if (!isRTKQueryError(error)) {
+    return mapToUserFriendlyMessage(defaultMessage);
+  }
+
+  if (error.data?.errors) {
     const errors = error.data.errors;
     const allErrors: string[] = [];
 
-    // Extract all error messages from all fields
-    Object.keys(errors).forEach((key) => {
+    for (const key of Object.keys(errors)) {
       const fieldErrors = errors[key];
       if (Array.isArray(fieldErrors)) {
         allErrors.push(...fieldErrors);
       }
-    });
+    }
 
     if (allErrors.length > 0) {
       backendMessage = allErrors[0] ?? null;
     }
   }
 
-  if (!backendMessage && error?.data?.message) {
+  if (!backendMessage && error.data?.message) {
     backendMessage = error.data.message;
   }
 
-  if (!backendMessage && error?.data?.error) {
+  if (!backendMessage && error.data?.error) {
     backendMessage = error.data.error;
   }
 
-  if (!backendMessage && error?.message) {
+  if (!backendMessage && error.message) {
     backendMessage = error.message;
   }
 
@@ -102,7 +116,6 @@ const extractErrorMessage = (error: any, defaultMessage: string = 'Operation fai
     backendMessage = defaultMessage;
   }
 
-  // Map to user-friendly message
   return mapToUserFriendlyMessage(backendMessage);
 };
 
@@ -232,7 +245,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, 'Login failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -263,8 +276,8 @@ export const useAuth = () => {
           email,
           password,
           confirmPassword,
-          name: displayName, // User's full name (e.g., "Andre Vianna")
-          displayName: displayName.split(' ')[0]!, // First word of name as display name (e.g., "Andre")
+          name: displayName,
+          displayName: displayName.split(' ')[0] || displayName,
         }).unwrap();
 
         if (result.success) {
@@ -279,7 +292,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('useAuth.register caught error:', error);
         console.error('Error details - status:', error?.status, 'data:', error?.data);
 
@@ -354,7 +367,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, 'Password reset request failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -443,7 +456,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, 'Password reset failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -469,7 +482,7 @@ export const useAuth = () => {
     try {
       const result = await setupTwoFactorMutation().unwrap();
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = extractErrorMessage(error, '2FA setup failed');
       dispatch(setAuthError(errorMessage));
       dispatch(
@@ -506,7 +519,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, '2FA enable failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -545,7 +558,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, '2FA disable failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -599,7 +612,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, '2FA verification failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -651,7 +664,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, 'Recovery code verification failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -684,7 +697,7 @@ export const useAuth = () => {
       );
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = extractErrorMessage(error, 'Failed to generate recovery codes');
       dispatch(setAuthError(errorMessage));
       dispatch(
@@ -722,7 +735,7 @@ export const useAuth = () => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, 'Password change failed');
         dispatch(setAuthError(errorMessage));
         dispatch(
@@ -757,7 +770,7 @@ export const useAuth = () => {
         );
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = extractErrorMessage(error, 'Profile update failed');
         dispatch(setAuthError(errorMessage));
         dispatch(

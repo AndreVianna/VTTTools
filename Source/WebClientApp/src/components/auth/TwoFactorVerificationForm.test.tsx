@@ -344,7 +344,7 @@ describe('TwoFactorVerificationForm', () => {
   describe('error display', () => {
     it('should display error message when verification fails', () => {
       // Arrange
-      mockAuthState.error = 'Invalid verification code. Please try again.' as any;
+      mockAuthState.error = 'Invalid verification code. Please try again.' as unknown as null;
 
       // Act
       render(<TwoFactorVerificationForm />);
@@ -356,7 +356,7 @@ describe('TwoFactorVerificationForm', () => {
 
     it('should display expired code error message', () => {
       // Arrange
-      mockAuthState.error = 'Code has expired. Please enter a new code from your app.' as any;
+      mockAuthState.error = 'Code has expired. Please enter a new code from your app.' as unknown as null;
 
       // Act
       render(<TwoFactorVerificationForm />);
@@ -367,7 +367,7 @@ describe('TwoFactorVerificationForm', () => {
 
     it('should display rate limit error message', () => {
       // Arrange
-      mockAuthState.error = 'Too many attempts. Please try again in 5 minutes.' as any;
+      mockAuthState.error = 'Too many attempts. Please try again in 5 minutes.' as unknown as null;
 
       // Act
       render(<TwoFactorVerificationForm />);
@@ -378,7 +378,7 @@ describe('TwoFactorVerificationForm', () => {
 
     it('should display session expired error message', () => {
       // Arrange
-      mockAuthState.error = 'Session expired. Please log in again.' as any;
+      mockAuthState.error = 'Session expired. Please log in again.' as unknown as null;
 
       // Act
       render(<TwoFactorVerificationForm />);

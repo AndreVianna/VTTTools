@@ -241,7 +241,9 @@ export const useRegionTransaction = () => {
       const mergedVertices = mergePolygons(allVertices, gridConfig);
 
       const regionsToDelete: number[] = [];
-      sortedRegions.slice(1).forEach((r) => regionsToDelete.push(r.index));
+      for (const r of sortedRegions.slice(1)) {
+        regionsToDelete.push(r.index);
+      }
 
       if (segment.regionIndex !== null && segment.regionIndex !== targetRegion.index) {
         regionsToDelete.push(segment.regionIndex);
@@ -357,14 +359,14 @@ export const useRegionTransaction = () => {
         }
 
         const validation = validateSegmentVertices(segment.vertices);
-        if (!validation.valid) {
+        if (!validation.valid || !validation.cleanedVertices) {
           return {
             success: false,
             error: validation.error || 'Invalid vertices',
           };
         }
 
-        const result = await persistRegionToBackend(encounterId, segment, validation.cleanedVertices!, apiHooks);
+        const result = await persistRegionToBackend(encounterId, segment, validation.cleanedVertices, apiHooks);
 
         clearTransactionState();
         return result;

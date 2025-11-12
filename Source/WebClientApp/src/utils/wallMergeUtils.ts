@@ -186,21 +186,35 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
         edges: new Map(),
       });
     }
-    return nodes.get(id)!;
+    const node = nodes.get(id);
+    if (!node) {
+      throw new Error(`Node ${id} should exist after setting`);
+    }
+    return node;
   };
 
   const involvedWallIndices = new Set(mergePoints.map((mp) => mp.wallIndex));
   const involvedWalls = existingWalls.filter((w) => involvedWallIndices.has(w.index));
 
-  const newWallStart = getNode(-1, true, newWallPoles[0]!);
-  const newWallEnd = getNode(-1, false, newWallPoles[newWallPoles.length - 1]!);
+  const firstPole = newWallPoles[0];
+  const lastPole = newWallPoles[newWallPoles.length - 1];
+  if (!firstPole || !lastPole) {
+    return newWallPoles;
+  }
+
+  const newWallStart = getNode(-1, true, firstPole);
+  const newWallEnd = getNode(-1, false, lastPole);
   newWallStart.edges.set(newWallEnd.id, newWallPoles);
   newWallEnd.edges.set(newWallStart.id, [...newWallPoles].reverse());
 
   for (const wall of involvedWalls) {
     const wallPoles = wall.poles.map((p) => ({ x: p.x, y: p.y }));
-    const startNode = getNode(wall.index, true, wallPoles[0]!);
-    const endNode = getNode(wall.index, false, wallPoles[wallPoles.length - 1]!);
+    const firstWallPole = wallPoles[0];
+    const lastWallPole = wallPoles[wallPoles.length - 1];
+    if (!firstWallPole || !lastWallPole) continue;
+
+    const startNode = getNode(wall.index, true, firstWallPole);
+    const endNode = getNode(wall.index, false, lastWallPole);
 
     startNode.edges.set(endNode.id, wallPoles);
     endNode.edges.set(startNode.id, [...wallPoles].reverse());
@@ -211,11 +225,10 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
     if (!wall) continue;
 
     const wallPoles = wall.poles.map((p) => ({ x: p.x, y: p.y }));
-    const existingNode = getNode(
-      mp.wallIndex,
-      mp.poleIndex === 0,
-      mp.poleIndex === 0 ? wallPoles[0]! : wallPoles[wallPoles.length - 1]!,
-    );
+    const targetPole = mp.poleIndex === 0 ? wallPoles[0] : wallPoles[wallPoles.length - 1];
+    if (!targetPole) continue;
+
+    const existingNode = getNode(mp.wallIndex, mp.poleIndex === 0, targetPole);
     const newNode = mp.isFirst ? newWallStart : newWallEnd;
 
     existingNode.edges.set(newNode.id, []);
@@ -227,7 +240,11 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
   if (leafNodes.length === 0) {
     return traversePath(nodes, newWallStart.id, new Set(), tolerance);
   } else if (leafNodes.length >= 2) {
-    return traversePath(nodes, leafNodes[0]?.id, new Set(), tolerance);
+    const firstLeafNode = leafNodes[0];
+    if (!firstLeafNode) {
+      return newWallPoles;
+    }
+    return traversePath(nodes, firstLeafNode.id, new Set(), tolerance);
   } else {
     return newWallPoles;
   }

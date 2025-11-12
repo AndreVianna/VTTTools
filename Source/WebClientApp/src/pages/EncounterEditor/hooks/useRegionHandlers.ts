@@ -42,7 +42,7 @@ interface UseRegionHandlersProps {
   setDrawingMode: (mode: 'region' | 'wall' | null) => void;
   setErrorMessage: (message: string | null) => void;
 
-  recordAction: (command: any) => void;
+  recordAction: (command: unknown) => void;
   refetch: () => Promise<{ data?: Encounter }>;
 }
 
@@ -187,9 +187,9 @@ export const useRegionHandlers = ({
       }
 
       await executeMerge({
-        targetRegionIndex: result.targetRegionIndex!,
+        targetRegionIndex: result.targetRegionIndex ?? 0,
         originalTargetRegion,
-        mergedVertices: result.mergedVertices!,
+        mergedVertices: result.mergedVertices ?? [],
         regionsToDelete: result.regionsToDelete || [],
         editingRegionIndex,
         originalEditedRegion: regionTransaction.transaction.originalRegion,
@@ -322,9 +322,9 @@ export const useRegionHandlers = ({
         }
 
         await executeMerge({
-          targetRegionIndex: result.targetRegionIndex!,
+          targetRegionIndex: result.targetRegionIndex ?? 0,
           originalTargetRegion,
-          mergedVertices: result.mergedVertices!,
+          mergedVertices: result.mergedVertices ?? [],
           regionsToDelete: result.regionsToDelete || [],
           editingRegionIndex: null,
           originalEditedRegion: null,

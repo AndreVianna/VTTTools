@@ -27,7 +27,9 @@ if (matches.length === 0) {
 
 if (matches.length > 1) {
   console.error(`Error: Multiple feature files found for "${featureName}":`);
-  matches.forEach((m) => console.error(`  - ${m}`));
+  for (const m of matches) {
+    console.error(`  - ${m}`);
+  }
   process.exit(1);
 }
 

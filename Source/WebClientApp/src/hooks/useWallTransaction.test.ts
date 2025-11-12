@@ -99,7 +99,9 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       });
 
       act(() => {
-        actions.forEach((action) => result.current.pushLocalAction(action));
+        for (const action of actions) {
+          result.current.pushLocalAction(action);
+        }
       });
 
       expect(result.current.transaction.localUndoStack).toHaveLength(3);
@@ -473,7 +475,9 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       });
 
       act(() => {
-        actions.forEach((action) => result.current.pushLocalAction(action));
+        for (const action of actions) {
+          result.current.pushLocalAction(action);
+        }
       });
 
       expect(result.current.canUndoLocal()).toBe(true);
@@ -537,7 +541,9 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       });
 
       act(() => {
-        actions.forEach((action) => result.current.pushLocalAction(action));
+        for (const action of actions) {
+          result.current.pushLocalAction(action);
+        }
       });
 
       act(() => {
@@ -552,7 +558,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
   describe('removeSegment', () => {
     it('should remove segment by tempId correctly', () => {
       const { result } = renderHook(() => useWallTransaction());
-      const mockWall: any = {
+      const mockWall = {
         index: 1,
         name: 'Wall 1',
         poles: [{ x: 0, y: 0, h: 10 }],
@@ -593,18 +599,18 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       expect(result.current.transaction.segments).toHaveLength(3);
 
       act(() => {
-        result.current.removeSegment(tempId1!);
+        result.current.removeSegment(tempId1);
       });
 
       expect(result.current.transaction.segments).toHaveLength(2);
-      expect(result.current.transaction.segments.find((s) => s.tempId === tempId1!)).toBeUndefined();
-      expect(result.current.transaction.segments.find((s) => s.tempId === tempId2!)).toBeDefined();
+      expect(result.current.transaction.segments.find((s) => s.tempId === tempId1)).toBeUndefined();
+      expect(result.current.transaction.segments.find((s) => s.tempId === tempId2)).toBeDefined();
       expect(result.current.transaction.segments.find((s) => s.tempId === initialTempId)).toBeDefined();
     });
 
     it('should not affect other segments', () => {
       const { result } = renderHook(() => useWallTransaction());
-      const mockWall: any = {
+      const mockWall = {
         index: 1,
         name: 'Wall 1',
         poles: [{ x: 0, y: 0, h: 10 }],
@@ -640,20 +646,20 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         });
       });
 
-      const segment2Before = result.current.transaction.segments.find((s) => s.tempId === tempId2!);
+      const segment2Before = result.current.transaction.segments.find((s) => s.tempId === tempId2);
 
       act(() => {
-        result.current.removeSegment(tempId1!);
+        result.current.removeSegment(tempId1);
       });
 
-      const segment2After = result.current.transaction.segments.find((s) => s.tempId === tempId2!);
+      const segment2After = result.current.transaction.segments.find((s) => s.tempId === tempId2);
 
       expect(segment2After).toEqual(segment2Before);
     });
 
     it('should return new segments array', () => {
       const { result } = renderHook(() => useWallTransaction());
-      const mockWall: any = {
+      const mockWall = {
         index: 1,
         name: 'Wall 1',
         poles: [{ x: 0, y: 0, h: 10 }],
@@ -681,7 +687,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       const segmentsBefore = result.current.transaction.segments;
 
       act(() => {
-        result.current.removeSegment(tempId!);
+        result.current.removeSegment(tempId);
       });
 
       const segmentsAfter = result.current.transaction.segments;
@@ -766,7 +772,9 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       });
 
       act(() => {
-        actions.forEach((action) => result.current.pushLocalAction(action));
+        for (const action of actions) {
+          result.current.pushLocalAction(action);
+        }
       });
 
       expect(result.current.transaction.localUndoStack).toHaveLength(3);
@@ -821,9 +829,11 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.startTransaction('placement');
       });
 
+      const [action1, action2, action3] = actions;
+
       act(() => {
-        result.current.pushLocalAction(actions[0]!);
-        result.current.pushLocalAction(actions[1]!);
+        if (action1) result.current.pushLocalAction(action1);
+        if (action2) result.current.pushLocalAction(action2);
       });
 
       act(() => {
@@ -834,7 +844,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
       expect(result.current.transaction.localRedoStack).toHaveLength(1);
 
       act(() => {
-        result.current.pushLocalAction(actions[2]!);
+        if (action3) result.current.pushLocalAction(action3);
       });
 
       expect(result.current.transaction.localUndoStack).toHaveLength(2);

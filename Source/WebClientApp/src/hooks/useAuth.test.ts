@@ -62,7 +62,7 @@ describe('useAuth', () => {
   };
 
   const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-    React.createElement(Provider, { store } as any, children);
+    React.createElement(Provider, { store, children });
 
   beforeEach(() => {
     store = createTestStore();
@@ -273,8 +273,7 @@ describe('useAuth', () => {
         expect(result.current.loginAttempts).toBe(5);
       });
 
-      // Get the last attempt time from state
-      const state: any = store.getState();
+      const state = store.getState();
       const authState = state.auth;
       const lastAttempt = authState.lastLoginAttempt;
 

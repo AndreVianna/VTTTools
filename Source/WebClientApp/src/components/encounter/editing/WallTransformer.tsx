@@ -137,7 +137,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     pole1: { x: number; y: number; h: number };
     pole2: { x: number; y: number; h: number };
   } | null>(null);
-  const circleRefs = useRef<Map<number, any>>(new Map());
+  const circleRefs = useRef<Map<number, Konva.Group>>(new Map());
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   const [insertPreviewPos, setInsertPreviewPos] = useState<{
     x: number;
@@ -231,7 +231,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
       }
     });
 
-    refsToDelete.forEach((index) => circleRefs.current.delete(index));
+    for (const index of refsToDelete) {
+      circleRefs.current.delete(index);
+    }
   }, [poles]);
 
   useEffect(() => {
@@ -356,7 +358,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     }
   };
 
-  const handleDragMove = (index: number, e: any) => {
+  const handleDragMove = (index: number, e: Konva.KonvaEventObject<DragEvent>) => {
     if (!dragStartPositionRef.current || !e || !e.target) {
       return;
     }
@@ -403,7 +405,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     setPreviewPoles(newPoles);
   };
 
-  const handleDragEnd = (index: number, e: any) => {
+  const handleDragEnd = (index: number, e: Konva.KonvaEventObject<DragEvent>) => {
     if (!dragStartPositionRef.current || !e || !e.target) {
       setDraggingIndex(null);
       dragStartPositionRef.current = null;
@@ -505,7 +507,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
   const polesToUse = previewPoles;
 
-  const handleLineClick = (lineIndex: number, e: any) => {
+  const handleLineClick = (lineIndex: number, e: Konva.KonvaEventObject<MouseEvent>) => {
     e.cancelBubble = true;
     setSelectedLines(new Set([lineIndex]));
     const pole1 = lineIndex;
@@ -768,7 +770,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
           if (!nextPole) return null;
           const isLineSelected = selectedLines.has(index);
           return (
-            <React.Fragment key={`line-segment-${index}`}>
+            <React.Fragment key={`line-${pole.x}-${pole.y}-${nextPole.x}-${nextPole.y}`}>
               {/* Visible line - shows selection state */}
               <Line
                 points={[pole.x, pole.y, nextPole.x, nextPole.y]}
@@ -840,7 +842,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                       y: (pointerPos.y - stage.y()) / scale,
                     };
 
-                    const projected = projectPointToLineSegment(worldPos, pole, nextPole!);
+                    const projected = nextPole ? projectPointToLineSegment(worldPos, pole, nextPole) : worldPos;
 
                     let insertPos = projected;
                     if (snapEnabled && gridConfig) {
@@ -924,7 +926,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     };
 
                     // Project onto line segment
-                    const projected = projectPointToLineSegment(worldPos, pole, nextPole!);
+                    const projected = nextPole ? projectPointToLineSegment(worldPos, pole, nextPole) : worldPos;
 
                     // Apply snap
                     let finalPos = projected;
@@ -961,10 +963,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
           const isSelected = selectedPoles.has(index);
           const isDragging = draggingIndex === index;
 
-          const groupProps: any = {
+          const groupProps: Record<string, unknown> = {
             draggable: true,
             listening: !isShiftPressed,
-            ref: (node: any) => {
+            ref: (node: Konva.Group | null) => {
               if (node) {
                 circleRefs.current.set(index, node);
               } else {
@@ -974,22 +976,22 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             dragBoundFunc: (pos: { x: number; y: number }) => {
               return pos;
             },
-            onDragStart: (e: any) => {
+            onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
               handleDragStart(index);
               const container = e.target.getStage()?.container();
               if (container) {
                 container.style.cursor = getGrabbingCursor();
               }
             },
-            onDragMove: (e: any) => handleDragMove(index, e),
-            onDragEnd: (e: any) => {
+            onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => handleDragMove(index, e),
+            onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
               handleDragEnd(index, e);
               const container = e.target.getStage()?.container();
               if (container) {
                 container.style.cursor = getMoveCursor();
               }
             },
-            onClick: (e: any) => {
+            onClick: (e: Konva.KonvaEventObject<MouseEvent>) => {
               e.cancelBubble = true;
 
               if (e.evt.shiftKey) {
@@ -1021,21 +1023,21 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
               }
               setSelectedLines(new Set());
             },
-            onMouseEnter: (e: any) => {
+            onMouseEnter: (e: Konva.KonvaEventObject<MouseEvent>) => {
               const container = e.target.getStage()?.container();
               if (container) {
                 const cursor = e.evt.shiftKey ? getCrosshairPlusCursor() : getMoveCursor();
                 container.style.cursor = cursor;
               }
             },
-            onMouseMove: (e: any) => {
+            onMouseMove: (e: Konva.KonvaEventObject<MouseEvent>) => {
               const container = e.target.getStage()?.container();
               if (container) {
                 const cursor = e.evt.shiftKey ? getCrosshairPlusCursor() : getMoveCursor();
                 container.style.cursor = cursor;
               }
             },
-            onMouseLeave: (e: any) => {
+            onMouseLeave: (e: Konva.KonvaEventObject<MouseEvent>) => {
               const container = e.target.getStage()?.container();
               if (container) {
                 container.style.cursor = 'default';
@@ -1049,7 +1051,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
           }
 
           return (
-            <Group key={`pole-${index}`} {...groupProps}>
+            <Group key={`pole-${pole.x}-${pole.y}-${index}`} {...groupProps}>
               {/* Large invisible circle - captures all events */}
               <Circle x={0} y={0} radius={25} fill='transparent' />
               {/* Small visible circle - visual representation only */}

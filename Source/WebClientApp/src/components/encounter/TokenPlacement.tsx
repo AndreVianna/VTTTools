@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva';
 import { getApiEndpoints } from '@/config/development';
 import { GroupName, LayerName } from '@/services/layerManager';
-import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
+import type { Asset, CreatureAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { getEffectiveLabelPosition, getEffectiveLabelVisibility } from '@/utils/displayHelpers';
@@ -82,8 +82,8 @@ const getAssetGroup = (asset: Asset): GroupName => {
   }
 
   if (asset.kind === 'Object') {
-    const objectAsset = asset as any;
-    if (objectAsset.properties?.isOpaque) {
+    const objectAsset = asset as ObjectAsset;
+    if (objectAsset.isOpaque) {
       return GroupName.Structure;
     }
   }
@@ -104,7 +104,10 @@ const measureTextWidth = (
   fontSize: number = LABEL_FONT_SIZE,
   fontFamily: string = LABEL_FONT_FAMILY,
 ): number => {
-  const ctx = document.createElement('canvas').getContext('2d')!;
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) {
+    return text.length * fontSize * 0.6;
+  }
   ctx.font = `${fontSize}px ${fontFamily}`;
   return ctx.measureText(text).width;
 };
@@ -247,7 +250,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null);
   const [hoveredAssetId, setHoveredAssetId] = useState<string | null>(null);
   const snapModeRef = useRef(snapMode);
-  const layerRef = useRef<any>(null);
+  const layerRef = useRef<Konva.Layer>(null);
 
   const labelColors = useMemo(
     () => ({
@@ -325,7 +328,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       if (newCache.size > 0) {
         setImageCache((prevCache) => {
           const updatedCache = new Map(prevCache);
-          newCache.forEach((img, key) => updatedCache.set(key, img));
+          for (const [key, img] of newCache) {
+            updatedCache.set(key, img);
+          }
           return updatedCache;
         });
       }
@@ -369,13 +374,14 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       setCursorPosition(position);
 
       // Validate placement for visual feedback
-      const assetWithProps = draggedAsset as any;
+      const objectProperties =
+        draggedAsset.kind === 'Object'
+          ? { isMovable: (draggedAsset as ObjectAsset).isMovable, isOpaque: (draggedAsset as ObjectAsset).isOpaque }
+          : undefined;
+      const creatureProperties =
+        draggedAsset.kind === 'Creature' ? (draggedAsset as CreatureAsset).category : undefined;
 
-      const behavior = getPlacementBehavior(
-        draggedAsset.kind,
-        draggedAsset.kind === 'Object' ? assetWithProps.properties : undefined,
-        draggedAsset.kind === 'Creature' ? assetWithProps.properties : undefined,
-      );
+      const behavior = getPlacementBehavior(draggedAsset.kind, objectProperties, creatureProperties);
 
       const size = {
         width: assetCellSize.width * gridConfig.cellSize.width,
@@ -389,17 +395,24 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         position,
         size,
         behavior,
-        placedAssets.map((a) => ({
-          x: a.position.x,
-          y: a.position.y,
-          width: a.size.width,
-          height: a.size.height,
-          allowOverlap: getPlacementBehavior(
-            a.asset.kind,
-            a.asset.kind === 'Object' ? (a.asset as any).properties : undefined,
-            a.asset.kind === 'Creature' ? (a.asset as any).properties : undefined,
-          ).allowOverlap,
-        })),
+        placedAssets.map((a) => {
+          const objectData =
+            a.asset.kind === 'Object' && 'size' in a.asset && 'isMovable' in a.asset && 'isOpaque' in a.asset
+              ? { size: a.asset.size, isMovable: a.asset.isMovable, isOpaque: a.asset.isOpaque }
+              : undefined;
+          const creatureData =
+            a.asset.kind === 'Creature' && 'size' in a.asset && 'category' in a.asset
+              ? { size: a.asset.size, category: a.asset.category }
+              : undefined;
+
+          return {
+            x: a.position.x,
+            y: a.position.y,
+            width: a.size.width,
+            height: a.size.height,
+            allowOverlap: getPlacementBehavior(a.asset.kind, objectData, creatureData).allowOverlap,
+          };
+        }),
         gridConfig,
         isShiftPressed,
       );

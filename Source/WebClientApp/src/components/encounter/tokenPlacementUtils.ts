@@ -4,12 +4,12 @@ const LABEL_FONT_FAMILY = 'Arial';
 let measurementCanvas: HTMLCanvasElement | null = null;
 let measurementCtx: CanvasRenderingContext2D | null = null;
 
-const getMeasurementContext = (): CanvasRenderingContext2D => {
+const getMeasurementContext = (): CanvasRenderingContext2D | null => {
   if (!measurementCanvas) {
     measurementCanvas = document.createElement('canvas');
-    measurementCtx = measurementCanvas.getContext('2d')!;
+    measurementCtx = measurementCanvas.getContext('2d');
   }
-  return measurementCtx!;
+  return measurementCtx;
 };
 
 const measureTextWidth = (
@@ -18,6 +18,9 @@ const measureTextWidth = (
   fontFamily: string = LABEL_FONT_FAMILY,
 ): number => {
   const ctx = getMeasurementContext();
+  if (!ctx) {
+    return text.length * fontSize * 0.6;
+  }
   ctx.font = `${fontSize}px ${fontFamily}`;
   return ctx.measureText(text).width;
 };

@@ -6,7 +6,7 @@ import {
 } from '@mui/icons-material';
 import { Alert, AlertTitle, Box, Button, Chip, CircularProgress, Snackbar, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addError, clearErrorsByType } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
@@ -48,7 +48,7 @@ const NetworkStatusComponent: React.FC = () => {
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Check network connectivity
-  const checkConnectivity = async (): Promise<{
+  const checkConnectivity = useCallback(async (): Promise<{
     connected: boolean;
     latency: number | null;
   }> => {
@@ -71,86 +71,89 @@ const NetworkStatusComponent: React.FC = () => {
         latency: null,
       };
     }
-  };
+  }, []);
 
   // Handle network status change
-  const updateNetworkStatus = async (isOnline: boolean, forceCheck = false) => {
-    if (!isOnline) {
-      // Definitely offline
-      setNetworkStatus((prev) => ({
-        ...prev,
-        isOnline: false,
-        isConnected: false,
-        lastChecked: Date.now(),
-      }));
+  const updateNetworkStatus = useCallback(
+    async (isOnline: boolean, forceCheck = false) => {
+      if (!isOnline) {
+        // Definitely offline
+        setNetworkStatus((prev) => ({
+          ...prev,
+          isOnline: false,
+          isConnected: false,
+          lastChecked: Date.now(),
+        }));
 
-      if (!showAlert) {
-        setShowAlert(true);
-        dispatch(
-          addError({
-            type: 'network',
-            message: 'Network connection lost',
-            userFriendlyMessage: 'You appear to be offline. Please check your internet connection.',
-            retryable: true,
-          }),
-        );
+        if (!showAlert) {
+          setShowAlert(true);
+          dispatch(
+            addError({
+              type: 'network',
+              message: 'Network connection lost',
+              userFriendlyMessage: 'You appear to be offline. Please check your internet connection.',
+              retryable: true,
+            }),
+          );
+        }
+        return;
       }
-      return;
-    }
 
-    // Online according to browser, but let's verify actual connectivity
-    if (forceCheck || Math.abs(Date.now() - networkStatus.lastChecked) > 30000) {
-      // Check every 30s max
-      const { connected, latency } = await checkConnectivity();
+      // Online according to browser, but let's verify actual connectivity
+      if (forceCheck || Math.abs(Date.now() - networkStatus.lastChecked) > 30000) {
+        // Check every 30s max
+        const { connected, latency } = await checkConnectivity();
 
-      setNetworkStatus((prev) => ({
-        ...prev,
-        isOnline: true,
-        isConnected: connected,
-        latency,
-        lastChecked: Date.now(),
-      }));
+        setNetworkStatus((prev) => ({
+          ...prev,
+          isOnline: true,
+          isConnected: connected,
+          latency,
+          lastChecked: Date.now(),
+        }));
 
-      if (!connected && !showAlert) {
-        setShowAlert(true);
-        dispatch(
-          addError({
-            type: 'network',
-            message: 'Server connectivity issues',
-            userFriendlyMessage: 'Cannot connect to VTT Tools servers. Please check your connection.',
-            retryable: true,
-          }),
-        );
-      } else if (connected && showAlert) {
-        // Connection restored
-        setShowAlert(false);
-        dispatch(clearErrorsByType('network'));
-        dispatch(
-          addNotification({
-            type: 'success',
-            message: 'Connection restored successfully!',
-            duration: 4000,
-          }),
-        );
+        if (!connected && !showAlert) {
+          setShowAlert(true);
+          dispatch(
+            addError({
+              type: 'network',
+              message: 'Server connectivity issues',
+              userFriendlyMessage: 'Cannot connect to VTT Tools servers. Please check your connection.',
+              retryable: true,
+            }),
+          );
+        } else if (connected && showAlert) {
+          // Connection restored
+          setShowAlert(false);
+          dispatch(clearErrorsByType('network'));
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Connection restored successfully!',
+              duration: 4000,
+            }),
+          );
+        }
       }
-    }
-  };
+    },
+    [dispatch, showAlert, networkStatus.lastChecked, checkConnectivity],
+  );
 
   // Handle online/offline events
   useEffect(() => {
-    const handleOnline = () => updateNetworkStatus(true, true);
-    const handleOffline = () => updateNetworkStatus(false);
+    const handleOnline = () => void updateNetworkStatus(true, true);
+    const handleOffline = () => void updateNetworkStatus(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
     // Initial check
-    updateNetworkStatus(navigator.onLine, true);
+    void updateNetworkStatus(navigator.onLine, true);
 
     // Periodic connectivity check
     const interval = setInterval(() => {
       if (navigator.onLine) {
-        updateNetworkStatus(true);
+        void updateNetworkStatus(true);
       }
     }, 60000); // Check every minute when online
 
@@ -159,13 +162,7 @@ const NetworkStatusComponent: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
       clearInterval(interval);
     };
-    // updateNetworkStatus recreated on each render but uses stable refs internally
-    // This effect should only run once on mount to set up event listeners
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // Initial check
-    updateNetworkStatus,
-  ]);
+  }, [updateNetworkStatus]);
 
   // Retry connection with exponential backoff
   const handleRetry = async () => {

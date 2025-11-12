@@ -1,6 +1,6 @@
 import type { WallBreakData } from '@components/encounter/editing/WallTransformer';
 import { useCallback } from 'react';
-import type { useWallTransaction } from '@/hooks/useWallTransaction';
+import type { useWallTransaction, WallSegment } from '@/hooks/useWallTransaction';
 import type {
   useAddEncounterWallMutation,
   useRemoveEncounterWallMutation,
@@ -36,7 +36,7 @@ interface UseWallHandlersProps {
   setActivePanel: (panel: string | null) => void;
   setErrorMessage: (message: string | null) => void;
 
-  execute: (command: any) => void;
+  execute: (command: unknown) => void;
   refetch: () => Promise<{ data?: Encounter }>;
 }
 
@@ -168,8 +168,9 @@ export const useWallHandlers = ({
     if (!encounterId || !encounter || selectedWallIndex === null) return;
 
     const activeSegments = wallTransaction.getActiveSegments();
-    console.log('[useWallHandlers.handleFinishEditing] Active segments before processing:',
-      activeSegments.map(s => ({
+    console.log(
+      '[useWallHandlers.handleFinishEditing] Active segments before processing:',
+      activeSegments.map((s) => ({
         tempId: s.tempId,
         wallIndex: s.wallIndex,
         name: s.name,
@@ -177,7 +178,7 @@ export const useWallHandlers = ({
         color: s.color,
         poleCount: s.poles.length,
         isClosed: s.isClosed,
-      }))
+      })),
     );
 
     const editedSegment = activeSegments[0];
@@ -229,8 +230,9 @@ export const useWallHandlers = ({
     }
 
     const updatedActiveSegments = wallTransaction.getActiveSegments();
-    console.log('[useWallHandlers.handleFinishEditing] Active segments after decomposition:',
-      updatedActiveSegments.map(s => ({
+    console.log(
+      '[useWallHandlers.handleFinishEditing] Active segments after decomposition:',
+      updatedActiveSegments.map((s) => ({
         tempId: s.tempId,
         wallIndex: s.wallIndex,
         name: s.name,
@@ -238,7 +240,7 @@ export const useWallHandlers = ({
         color: s.color,
         poleCount: s.poles.length,
         isClosed: s.isClosed,
-      }))
+      })),
     );
 
     const finalEditedSegment = updatedActiveSegments[0];
@@ -323,8 +325,8 @@ export const useWallHandlers = ({
           });
           await execute(command);
         } else if (result.segmentResults[0]?.wallIndex !== undefined) {
-          const segmentResult = result.segmentResults[0]!;
-          const wallIndex = segmentResult.wallIndex!;
+          const segmentResult = result.segmentResults[0];
+          const wallIndex = segmentResult.wallIndex ?? 0;
           const updatedWall = updatedEncounter.walls?.find((w) => w.index === wallIndex);
           if (updatedWall) {
             const command = new EditWallCommand({
@@ -412,8 +414,8 @@ export const useWallHandlers = ({
         breakingSegment.material,
         breakingSegment.color,
         (tempId: number) => wallTransaction.removeSegment(tempId),
-        (tempId: number, changes: any) => wallTransaction.updateSegment(tempId, changes),
-        (segment: any) => wallTransaction.addSegment(segment),
+        (tempId: number, changes: Partial<WallSegment>) => wallTransaction.updateSegment(tempId, changes),
+        (segment: WallSegment) => wallTransaction.addSegment(segment),
       );
 
       wallTransaction.pushLocalAction(breakAction);
@@ -433,8 +435,9 @@ export const useWallHandlers = ({
     if (drawingMode !== 'wall' || drawingWallIndex === null) return;
 
     const activeSegments = wallTransaction.getActiveSegments();
-    console.log('[useWallHandlers.handleWallPlacementFinish] Active segments before commit:',
-      activeSegments.map(s => ({
+    console.log(
+      '[useWallHandlers.handleWallPlacementFinish] Active segments before commit:',
+      activeSegments.map((s) => ({
         tempId: s.tempId,
         wallIndex: s.wallIndex,
         name: s.name,
@@ -442,7 +445,7 @@ export const useWallHandlers = ({
         color: s.color,
         poleCount: s.poles.length,
         isClosed: s.isClosed,
-      }))
+      })),
     );
 
     const result = await wallTransaction.commitTransaction(encounterId, {

@@ -42,8 +42,8 @@ export function CampaignDetailPage() {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const { data: campaign, isLoading: isLoadingCampaign, error: campaignError } = useGetCampaignQuery(campaignId!);
-  const { data: adventures = [], isLoading: isLoadingAdventures } = useGetAdventuresQuery(campaignId!);
+  const { data: campaign, isLoading: isLoadingCampaign, error: campaignError } = useGetCampaignQuery(campaignId ?? '');
+  const { data: adventures = [], isLoading: isLoadingAdventures } = useGetAdventuresQuery(campaignId ?? '');
   const [updateCampaign] = useUpdateCampaignMutation();
   const [createAdventure] = useCreateAdventureMutation();
   const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();

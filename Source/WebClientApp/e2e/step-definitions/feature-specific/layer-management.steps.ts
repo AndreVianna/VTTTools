@@ -195,7 +195,7 @@ Given('all layers are visible', async function (this: CustomWorld) {
     const stage = window.__konvaStage;
     if (stage) {
       const layers = stage.getLayers();
-      layers.forEach((layer: any) => {
+      layers.forEach((layer: { visible: (value?: boolean) => boolean | undefined }) => {
         layer.visible(true);
       });
       stage.batchDraw();
@@ -516,7 +516,7 @@ Then('the layers should have the following z-order:', async function (this: Cust
     if (!stage) return [];
 
     const layers = stage.getLayers();
-    return layers.map((layer: any) => ({
+    return layers.map((layer: { name: () => string; zIndex: () => number }) => ({
       'Layer Name': layer.name(),
       'Z-Index': layer.zIndex(),
     }));
@@ -719,7 +719,13 @@ Then('ui should not be obscured by any other layer', async function (this: Custo
     if (!stage) return false;
     const uiLayer = stage.findOne('.ui');
     const layers = stage.getLayers();
-    return uiLayer && layers.every((layer: any) => layer.name() === 'ui' || layer.zIndex() < uiLayer.zIndex());
+    return (
+      uiLayer &&
+      layers.every(
+        (layer: { name: () => string; zIndex: () => number }) =>
+          layer.name() === 'ui' || layer.zIndex() < uiLayer.zIndex(),
+      )
+    );
   });
 
   expect(isUIOnTop).toBe(true);
@@ -873,7 +879,7 @@ Then('each state should contain: name, visible, zIndex', async function (this: C
   const layerStates = this.currentAsset;
   expect(Array.isArray(layerStates)).toBe(true);
 
-  layerStates.forEach((state: any) => {
+  layerStates.forEach((state: { name?: string; visible?: boolean; zIndex?: number }) => {
     expect(state).toHaveProperty('name');
     expect(state).toHaveProperty('visible');
     expect(state).toHaveProperty('zIndex');
@@ -915,7 +921,7 @@ Then('each layer should have correct initial visibility \\(true\\)', async funct
     const stage = window.__konvaStage;
     if (!stage) return false;
     const layers = stage.getLayers();
-    return layers.every((layer: any) => layer.visible() === true);
+    return layers.every((layer: { visible: () => boolean }) => layer.visible() === true);
   });
 
   expect(allVisible).toBe(true);
@@ -949,7 +955,7 @@ Then('all layers should return to default visibility \\(all visible\\)', async f
     const stage = window.__konvaStage;
     if (!stage) return false;
     const layers = stage.getLayers();
-    return layers.every((layer: any) => layer.visible() === true);
+    return layers.every((layer: { visible: () => boolean }) => layer.visible() === true);
   });
 
   expect(allVisible).toBe(true);

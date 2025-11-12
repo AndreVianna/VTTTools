@@ -70,7 +70,7 @@ export interface LeftToolBarProps {
   onSourceSelect?: (index: number) => void;
   onSourceDelete?: (index: number) => void;
   onPlaceSource?: (properties: SourcePlacementProperties) => void;
-  onEditSource?: (index: number, updates: any) => void;
+  onEditSource?: (index: number, updates: Partial<PlacedSource>) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({

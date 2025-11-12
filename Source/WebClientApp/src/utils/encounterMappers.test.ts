@@ -84,7 +84,7 @@ describe('hydratePlacedAssets', () => {
 
     it('falls back to asset name when encounterAsset name is null', async () => {
       const encounterAssetWithNullName = createMockEncounterAsset({
-        name: null as any,
+        name: '',
       });
 
       const getAsset = async () => mockCreatureAssetData;
@@ -237,7 +237,7 @@ describe('hydratePlacedAssets', () => {
           asset: mockObjectAssetData,
           name: 'Magic Chest',
         },
-      ] as any[];
+      ];
 
       const getAsset = async (assetId: string) => {
         return assetId === 'asset-1' ? mockCreatureAssetData : mockObjectAssetData;
@@ -482,7 +482,7 @@ describe('hydratePlacedAssets', () => {
       const encounterAsset = createMockEncounterAsset({
         displayName: LabelVisibility.Never,
         labelPosition: LabelPosition.Top,
-      } as any);
+      });
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -499,7 +499,7 @@ describe('hydratePlacedAssets', () => {
       const encounterAsset = createMockEncounterAsset({
         displayName: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
-      } as any);
+      });
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -530,7 +530,7 @@ describe('hydratePlacedAssets', () => {
       const encounterAsset = createMockEncounterAsset({
         displayName: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
-      } as any);
+      });
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -556,7 +556,7 @@ describe('hydratePlacedAssets', () => {
         assetId: 'asset-2',
         displayName: LabelVisibility.Always,
         labelPosition: LabelPosition.Middle,
-      } as any);
+      });
 
       const getAsset = async () => mockObjectAssetData;
 
@@ -574,7 +574,7 @@ describe('hydratePlacedAssets', () => {
         assetId: 'asset-2',
         displayName: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
-      } as any);
+      });
 
       const getAsset = async () => mockObjectAssetData;
 
@@ -630,7 +630,7 @@ describe('hydratePlacedAssets', () => {
       const encounterAsset = createMockEncounterAsset({
         displayName: LabelVisibility.Always,
         labelPosition: LabelPosition.Bottom,
-      } as any);
+      });
 
       const getAsset = async () => mockCreatureAssetData;
 

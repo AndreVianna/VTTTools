@@ -44,7 +44,7 @@ const getSuggestedRegionName = (regions: PlacedRegion[]): string => {
   const maxIndex = Math.max(
     ...regions.map((r) => {
       const match = r.name.match(/Region (\d+)$/);
-      return match ? parseInt(match[1]!, 10) : 0;
+      return match && match[1] ? Number.parseInt(match[1], 10) : 0;
     }),
   );
   return `Region ${maxIndex + 1}`;

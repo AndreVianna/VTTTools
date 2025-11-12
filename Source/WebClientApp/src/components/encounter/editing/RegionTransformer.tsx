@@ -129,7 +129,9 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
         }
       });
 
-      refsToDelete.forEach((index) => vertexRefs.current.delete(index));
+      for (const index of refsToDelete) {
+        vertexRefs.current.delete(index);
+      }
     }, [segment.vertices]);
 
     const handleDeleteVertices = useCallback(() => {
@@ -315,11 +317,12 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             const vertex = segment.vertices[vIndex];
             if (!vertex) return;
             oldVertices.push({ x: vertex.x, y: vertex.y });
-            newVertices[vIndex] = {
+            const movedVertex = {
               x: vertex.x + deltaX,
               y: vertex.y + deltaY,
             };
-            newVerticesArray.push(newVertices[vIndex]!);
+            newVertices[vIndex] = movedVertex;
+            newVerticesArray.push(movedVertex);
           });
 
           if (onLocalAction && (deltaX !== 0 || deltaY !== 0)) {
@@ -622,7 +625,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             if (!nextVertex) return null;
             const isLineSelected = selectedLineIndex === index;
             return (
-              <React.Fragment key={`line-segment-${index}`}>
+              <React.Fragment key={`line-segment-${vertex.x}-${vertex.y}-${nextVertex.x}-${nextVertex.y}`}>
                 <Line
                   points={[vertex.x, vertex.y, nextVertex.x, nextVertex.y]}
                   stroke={isLineSelected ? theme.palette.error.main : fillColor}
@@ -847,7 +850,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             }
 
             return (
-              <Group key={`vertex-${index}`} {...groupProps}>
+              <Group key={`vertex-${vertex.x}-${vertex.y}-${index}`} {...groupProps}>
                 <Circle x={0} y={0} radius={25} fill='transparent' />
                 <Circle
                   x={0}
