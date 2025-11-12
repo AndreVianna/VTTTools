@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { EncounterWall, Pole } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 import { cleanWallPoles } from '@/utils/wallUtils';
@@ -77,7 +77,7 @@ function generateBrokenWallNames(originalName: string, segmentCount: number): st
 
 export const useWallTransaction = () => {
     const [transaction, setTransaction] = useState<WallTransaction>(INITIAL_TRANSACTION);
-    const [nextTempId, setNextTempId] = useState<number>(0);
+    const segmentsRef = useRef<WallSegment[]>([]);
 
     const startTransaction = useCallback((
         type: TransactionType,
@@ -90,6 +90,9 @@ export const useWallTransaction = () => {
             color?: string | undefined;
         }
     ) => {
+        // Clear ref when starting new transaction
+        segmentsRef.current = [];
+
         if (wall) {
             setTransaction({
                 type,
@@ -108,7 +111,6 @@ export const useWallTransaction = () => {
                 localUndoStack: [],
                 localRedoStack: []
             });
-            setNextTempId(1);
         } else {
             setTransaction({
                 type,
@@ -127,27 +129,133 @@ export const useWallTransaction = () => {
                 localUndoStack: [],
                 localRedoStack: []
             });
-            setNextTempId(0);
         }
     }, []);
 
     const addSegment = useCallback((segment: Omit<WallSegment, 'tempId'>): number => {
-        const newTempId = -(nextTempId + 1);
+        let newTempId: number = -1;
 
-        setTransaction(prev => ({
-            ...prev,
-            segments: [
-                ...prev.segments,
-                {
+        setTransaction(prev => {
+            console.log('[useWallTransaction.addSegment] Current state:', {
+                segmentCount: prev.segments.length,
+                tempIds: prev.segments.map(s => s.tempId)
+            });
+
+            const currentNextTempId = Math.max(...prev.segments.map(s => Math.abs(s.tempId)), 0);
+            newTempId = -(currentNextTempId + 1);
+
+            console.log('[useWallTransaction.addSegment] Calculated:', {
+                currentNextTempId,
+                newTempId
+            });
+
+            const newState = {
+                ...prev,
+                segments: [
+                    ...prev.segments,
+                    {
+                        ...segment,
+                        tempId: newTempId
+                    }
+                ]
+            };
+
+            console.log('[useWallTransaction.addSegment] New state:', {
+                segmentCount: newState.segments.length,
+                tempIds: newState.segments.map(s => s.tempId)
+            });
+
+            return newState;
+        });
+
+        console.log('[useWallTransaction.addSegment] Returning tempId:', newTempId);
+        return newTempId;
+    }, []);
+
+    const addSegments = useCallback((segments: Array<Omit<WallSegment, 'tempId'>>): void => {
+        setTransaction(prev => {
+            console.log('[useWallTransaction.addSegments] Current state:', {
+                segmentCount: prev.segments.length,
+                tempIds: prev.segments.map(s => s.tempId),
+                addingCount: segments.length
+            });
+
+            let currentNextTempId = Math.max(...prev.segments.map(s => Math.abs(s.tempId)), 0);
+
+            const newSegments = segments.map(segment => {
+                currentNextTempId += 1;
+                const newTempId = -currentNextTempId;
+
+                console.log('[useWallTransaction.addSegments] Creating segment:', {
+                    newTempId,
+                    poleCount: segment.poles.length,
+                    isClosed: segment.isClosed
+                });
+
+                return {
                     ...segment,
                     tempId: newTempId
-                }
-            ]
-        }));
+                };
+            });
 
-        setNextTempId(Math.abs(newTempId));
-        return newTempId;
-    }, [nextTempId]);
+            const newState = {
+                ...prev,
+                segments: [...prev.segments, ...newSegments]
+            };
+
+            console.log('[useWallTransaction.addSegments] New state:', {
+                segmentCount: newState.segments.length,
+                tempIds: newState.segments.map(s => s.tempId)
+            });
+
+            return newState;
+        });
+
+        console.log('[useWallTransaction.addSegments] Batch add initiated for', segments.length, 'segments');
+    }, []);
+
+    const setAllSegments = useCallback((segments: WallSegment[]): void => {
+        console.log('[useWallTransaction.setAllSegments] Replacing all segments:', {
+            newCount: segments.length
+        });
+
+        // Reassign tempIds to ensure uniqueness
+        const segmentsWithTempIds = segments.map((segment, index) => {
+            const newTempId = -(index + 1);
+            console.log('[useWallTransaction.setAllSegments] Segment', index, ':', {
+                tempId: newTempId,
+                poleCount: segment.poles.length,
+                isClosed: segment.isClosed
+            });
+
+            return {
+                ...segment,
+                tempId: newTempId
+            };
+        });
+
+        // Update ref SYNCHRONOUSLY
+        segmentsRef.current = segmentsWithTempIds;
+        console.log('[useWallTransaction.setAllSegments] Updated segmentsRef:', {
+            count: segmentsRef.current.length,
+            tempIds: segmentsRef.current.map(s => s.tempId)
+        });
+
+        // Update state ASYNCHRONOUSLY
+        setTransaction(prev => {
+            const newState = {
+                ...prev,
+                segments: segmentsWithTempIds
+            };
+
+            console.log('[useWallTransaction.setAllSegments] New state:', {
+                segmentCount: newState.segments.length,
+                tempIds: newState.segments.map(s => s.tempId)
+            });
+
+            return newState;
+        });
+    }, []);
 
     const updateSegment = useCallback((tempId: number, changes: Partial<WallSegment>) => {
         setTransaction(prev => ({
@@ -169,13 +277,46 @@ export const useWallTransaction = () => {
 
     const commitTransaction = useCallback(async (
         encounterId: string,
-        apiHooks: ApiHooks
+        apiHooks: ApiHooks,
+        segmentsOverride?: WallSegment[]
     ): Promise<CommitResult> => {
         const { addEncounterWall, updateEncounterWall } = apiHooks;
         const results: CommitResult['segmentResults'] = [];
 
+        // Use provided segments, ref, or state (in that order)
+        let currentTransaction: WallTransaction;
+        if (segmentsOverride) {
+            console.log('[useWallTransaction.commitTransaction] Using provided segments:', segmentsOverride.length);
+            currentTransaction = {
+                ...transaction,
+                segments: segmentsOverride
+            };
+        } else if (segmentsRef.current.length > 0) {
+            // Read from ref (updated synchronously by setAllSegments)
+            console.log('[useWallTransaction.commitTransaction] Reading from ref:', {
+                segmentCount: segmentsRef.current.length,
+                tempIds: segmentsRef.current.map(s => s.tempId)
+            });
+            currentTransaction = {
+                ...transaction,
+                segments: segmentsRef.current
+            };
+        } else {
+            // Fallback to state
+            currentTransaction = transaction;
+            console.log('[useWallTransaction.commitTransaction] Reading from state:', {
+                segmentCount: currentTransaction.segments.length,
+                tempIds: currentTransaction.segments.map(s => s.tempId)
+            });
+        }
+
+        console.log('[useWallTransaction.commitTransaction] Processing transaction:', {
+            segmentCount: currentTransaction.segments.length,
+            tempIds: currentTransaction.segments.map(s => s.tempId)
+        });
+
         try {
-            const segmentsToProcess = transaction.segments.map(segment => {
+            const segmentsToProcess = currentTransaction.segments.map(segment => {
                 const cleaned = cleanWallPoles(segment.poles, segment.isClosed);
                 return {
                     ...segment,
@@ -184,23 +325,49 @@ export const useWallTransaction = () => {
                 };
             });
 
-            const needsNaming = transaction.type === 'editing' &&
-                                transaction.originalWall !== null &&
-                                segmentsToProcess.length > 1;
+            console.log('[useWallTransaction.commitTransaction] Segments to process:', segmentsToProcess.length);
 
-            const names = needsNaming
-                ? generateBrokenWallNames(
-                    transaction.originalWall!.name,
-                    segmentsToProcess.length
-                  )
-                : segmentsToProcess.map(s => s.name);
+            // Generate unique names for multiple segments
+            let names: string[];
+            if (segmentsToProcess.length > 1) {
+                if (currentTransaction.type === 'editing' && currentTransaction.originalWall !== null) {
+                    // Editing: Use broken wall naming (e.g., "Wall1.1", "Wall1.2")
+                    names = generateBrokenWallNames(
+                        currentTransaction.originalWall.name,
+                        segmentsToProcess.length
+                    );
+                    console.log('[useWallTransaction.commitTransaction] Generated broken wall names:', names);
+                } else {
+                    // Placement: Generate sequential names based on first segment's name
+                    const baseName = segmentsToProcess[0]?.name || 'Wall';
+                    names = segmentsToProcess.map((_, index) => {
+                        if (segmentsToProcess.length === 1) {
+                            return baseName;
+                        }
+                        return `${baseName} ${index + 1}`;
+                    });
+                    console.log('[useWallTransaction.commitTransaction] Generated placement names:', names);
+                }
+            } else {
+                // Single segment: use existing name
+                names = segmentsToProcess.map(s => s.name);
+            }
 
             for (let i = 0; i < segmentsToProcess.length; i++) {
                 const segment = segmentsToProcess[i];
                 const assignedName = names[i];
 
+                console.log(`[useWallTransaction.commitTransaction] Processing segment ${i}:`, {
+                    tempId: segment?.tempId,
+                    wallIndex: segment?.wallIndex,
+                    poleCount: segment?.poles.length,
+                    isClosed: segment?.isClosed,
+                    name: assignedName
+                });
+
                 try {
                     if (segment?.wallIndex !== null) {
+                        console.log(`[useWallTransaction.commitTransaction] Updating wall ${segment?.wallIndex}`);
                         await updateEncounterWall({
                             encounterId,
                             wallIndex: segment?.wallIndex || 1,
@@ -216,7 +383,9 @@ export const useWallTransaction = () => {
                             tempId: segment?.tempId || 0,
                             wallIndex: segment?.wallIndex || 0
                         });
+                        console.log(`[useWallTransaction.commitTransaction] Updated wall ${segment?.wallIndex} successfully`);
                     } else {
+                        console.log(`[useWallTransaction.commitTransaction] Adding new wall`);
                         const result = await addEncounterWall({
                             encounterId,
                             name: assignedName || '',
@@ -231,8 +400,10 @@ export const useWallTransaction = () => {
                             tempId: segment.tempId,
                             wallIndex: result.index
                         });
+                        console.log(`[useWallTransaction.commitTransaction] Added new wall with index ${result.index}`);
                     }
                 } catch (error) {
+                    console.error(`[useWallTransaction.commitTransaction] Error processing segment ${i}:`, error);
                     results.push({
                         tempId: segment?.tempId || 0,
                         error: error instanceof Error ? error.message : 'Unknown error'
@@ -240,11 +411,21 @@ export const useWallTransaction = () => {
                 }
             }
 
+            console.log('[useWallTransaction.commitTransaction] All segments processed:', {
+                totalResults: results.length,
+                results: results.map(r => ({
+                    tempId: r.tempId,
+                    wallIndex: r.wallIndex,
+                    error: r.error
+                }))
+            });
+
             const hasErrors = results.some(r => r.error !== undefined);
 
             if (!hasErrors) {
                 setTransaction(INITIAL_TRANSACTION);
-                setNextTempId(0);
+                segmentsRef.current = []; // Clear ref after successful commit
+                console.log('[useWallTransaction.commitTransaction] Cleared segmentsRef after successful commit');
             }
 
             return {
@@ -260,11 +441,11 @@ export const useWallTransaction = () => {
                 }]
             };
         }
-    }, [transaction]);
+    }, [transaction]); // Need transaction for fallback path
 
     const rollbackTransaction = useCallback(() => {
         setTransaction(INITIAL_TRANSACTION);
-        setNextTempId(0);
+        segmentsRef.current = [];
     }, []);
 
     const getActiveSegments = useCallback((): WallSegment[] => {
@@ -345,6 +526,8 @@ export const useWallTransaction = () => {
         transaction,
         startTransaction,
         addSegment,
+        addSegments,
+        setAllSegments,
         updateSegment,
         removeSegment,
         commitTransaction,

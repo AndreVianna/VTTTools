@@ -1202,8 +1202,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                                     defaultHeight={drawingWallDefaultHeight}
                                     onCancel={handleStructurePlacementCancel}
                                     onFinish={handleStructurePlacementFinish}
-                                    onFinishWithMerge={wallHandlers.handleWallPlacementFinishWithMerge}
-                                    onFinishWithSplit={wallHandlers.handleWallPlacementFinishWithSplit}
                                     onPolesChange={(newPoles) => {
                                         wallTransaction.updateSegment(-1, { poles: newPoles });
 

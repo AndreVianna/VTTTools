@@ -167,6 +167,14 @@ export function canMergeWalls(params: CanMergeWallsParams): MergeResult {
     };
 }
 
+interface GraphNode {
+    id: string;
+    wallIndex: number;
+    isStart: boolean;
+    point: Point;
+    edges: Map<string, Point[]>;
+}
+
 export function mergeWalls(params: MergeWallsParams): Point[] {
     const { newWallPoles, existingWalls, mergePoints, tolerance = 5 } = params;
 
@@ -174,93 +182,88 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
         return newWallPoles;
     }
 
-    const mergePointsByWall = new Map<number, MergePoint[]>();
-    for (const point of mergePoints) {
-        if (!mergePointsByWall.has(point.wallIndex)) {
-            mergePointsByWall.set(point.wallIndex, []);
+    const nodes = new Map<string, GraphNode>();
+
+    const getNode = (wallIndex: number, isStart: boolean, point: Point): GraphNode => {
+        const id = `W${wallIndex}_${isStart ? 'START' : 'END'}`;
+        if (!nodes.has(id)) {
+            nodes.set(id, {
+                id,
+                wallIndex,
+                isStart,
+                point,
+                edges: new Map()
+            });
         }
-        mergePointsByWall.get(point.wallIndex)!.push(point);
+        return nodes.get(id)!;
+    };
+
+    const involvedWallIndices = new Set(mergePoints.map(mp => mp.wallIndex));
+    const involvedWalls = existingWalls.filter(w => involvedWallIndices.has(w.index));
+
+    const newWallStart = getNode(-1, true, newWallPoles[0]!);
+    const newWallEnd = getNode(-1, false, newWallPoles[newWallPoles.length - 1]!);
+    newWallStart.edges.set(newWallEnd.id, newWallPoles);
+    newWallEnd.edges.set(newWallStart.id, [...newWallPoles].reverse());
+
+    for (const wall of involvedWalls) {
+        const wallPoles = wall.poles.map(p => ({ x: p.x, y: p.y }));
+        const startNode = getNode(wall.index, true, wallPoles[0]!);
+        const endNode = getNode(wall.index, false, wallPoles[wallPoles.length - 1]!);
+
+        startNode.edges.set(endNode.id, wallPoles);
+        endNode.edges.set(startNode.id, [...wallPoles].reverse());
     }
 
-    const hasFirstMerge = mergePoints.some(p => p.isFirst);
-    const hasLastMerge = mergePoints.some(p => !p.isFirst);
+    for (const mp of mergePoints) {
+        const wall = existingWalls.find(w => w.index === mp.wallIndex);
+        if (!wall) continue;
 
-    if (mergePoints.length === 2 && hasFirstMerge && hasLastMerge) {
-        const firstMerge = mergePoints.find(p => p.isFirst)!;
-        const lastMerge = mergePoints.find(p => !p.isFirst)!;
+        const wallPoles = wall.poles.map(p => ({ x: p.x, y: p.y }));
+        const existingNode = getNode(
+            mp.wallIndex,
+            mp.poleIndex === 0,
+            mp.poleIndex === 0 ? wallPoles[0]! : wallPoles[wallPoles.length - 1]!
+        );
+        const newNode = mp.isFirst ? newWallStart : newWallEnd;
 
-        if (firstMerge.wallIndex === lastMerge.wallIndex) {
-            const existingWall = existingWalls[firstMerge.wallIndex];
-            if (!existingWall) {
-                return newWallPoles;
-            }
-
-            const existingPoles = existingWall.poles.map(pole => ({ x: pole.x, y: pole.y }));
-
-            const startIndex = Math.min(firstMerge.poleIndex, lastMerge.poleIndex);
-            const endIndex = Math.max(firstMerge.poleIndex, lastMerge.poleIndex);
-
-            const segmentPoles = existingPoles.slice(startIndex, endIndex + 1);
-
-            const newWallMiddle = newWallPoles.slice(1, newWallPoles.length - 1);
-
-            let orderedPoles: Point[];
-            if (firstMerge.poleIndex < lastMerge.poleIndex) {
-                orderedPoles = [...segmentPoles, ...newWallMiddle];
-            } else {
-                orderedPoles = [...segmentPoles.reverse(), ...newWallMiddle];
-            }
-
-            return removeDuplicatePoles(orderedPoles, tolerance);
-        }
+        existingNode.edges.set(newNode.id, []);
+        newNode.edges.set(existingNode.id, []);
     }
 
-    const targetWallIndex = Math.min(...mergePoints.map(p => p.wallIndex));
-    const targetWall = existingWalls.find(w => w.index === targetWallIndex);
+    const leafNodes = Array.from(nodes.values()).filter(n => n.edges.size === 1);
 
-    if (!targetWall) {
+    if (leafNodes.length === 0) {
+        return traversePath(nodes, newWallStart.id, new Set(), tolerance);
+    } else if (leafNodes.length >= 2) {
+        return traversePath(nodes, leafNodes[0]!.id, new Set(), tolerance);
+    } else {
         return newWallPoles;
     }
+}
 
+function traversePath(
+    nodes: Map<string, GraphNode>,
+    currentId: string,
+    visited: Set<string>,
+    tolerance: number
+): Point[] {
+    const current = nodes.get(currentId);
+    if (!current) return [];
+
+    visited.add(currentId);
     const result: Point[] = [];
-    const targetWallPoles = targetWall.poles.map(pole => ({ x: pole.x, y: pole.y }));
 
-    const targetMergePoints = mergePoints.filter(p => p.wallIndex === targetWallIndex);
+    for (const [neighborId, poles] of current.edges) {
+        if (visited.has(neighborId)) continue;
 
-    if (targetMergePoints.length === 0) {
-        result.push(...targetWallPoles);
-    } else {
-        const targetMerge = targetMergePoints[0];
+        result.push(...poles);
 
-        if (targetMerge!.poleIndex === 0) {
-            const newWallReversed = [...newWallPoles].reverse();
-            result.push(...newWallReversed.slice(1));
-            result.push(...targetWallPoles);
-        } else {
-            result.push(...targetWallPoles);
-            result.push(...newWallPoles.slice(1));
-        }
+        const remaining = traversePath(nodes, neighborId, visited, tolerance);
+        result.push(...remaining);
+
+        return removeDuplicatePoles(result, tolerance);
     }
 
-    for (const [wallIndex, points] of mergePointsByWall.entries()) {
-        if (wallIndex === targetWallIndex) {
-            continue;
-        }
-
-        const wall = existingWalls.find(w => w.index === wallIndex);
-        if (!wall) {
-            continue;
-        }
-
-        const wallPoles = wall.poles.map(pole => ({ x: pole.x, y: pole.y }));
-        const mergePoint = points[0];
-
-        if (mergePoint!.poleIndex === 0) {
-            result.push(...wallPoles.slice(1));
-        } else {
-            result.push(...wallPoles.slice(0, wallPoles.length - 1).reverse());
-        }
-    }
-
-    return removeDuplicatePoles(result, tolerance);
+    return result;
 }

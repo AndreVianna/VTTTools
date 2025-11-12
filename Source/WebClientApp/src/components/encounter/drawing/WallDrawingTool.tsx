@@ -9,10 +9,7 @@ import type { Point, Pole } from '@/types/domain';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { snapToNearest } from '@/utils/structureSnapping';
 import type { GridConfig } from '@/utils/gridCalculator';
-import type { MergeResult } from '@/utils/wallMergeUtils';
-import { canMergeWalls } from '@/utils/wallMergeUtils';
-import type { SplitResult } from '@/utils/wallSplitUtils';
-import { detectSplitPoints } from '@/utils/wallSplitUtils';
+import { decomposeSelfIntersectingPath } from '@/utils/wallPlanarUtils';
 
 import type { useWallTransaction } from '@/hooks/useWallTransaction';
 
@@ -29,8 +26,6 @@ export interface WallDrawingToolProps {
     defaultHeight: number;
     onCancel: () => void;
     onFinish: () => void;
-    onFinishWithMerge?: (mergeResult: MergeResult) => void;
-    onFinishWithSplit?: (splitResult: SplitResult) => void;
     onPolesChange?: (poles: Pole[]) => void;
     wallTransaction: ReturnType<typeof useWallTransaction>;
 }
@@ -42,8 +37,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     defaultHeight,
     onCancel,
     onFinish,
-    onFinishWithMerge,
-    onFinishWithSplit,
     onPolesChange,
     wallTransaction
 }) => {
@@ -57,41 +50,43 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         if (poles.length < 2) return;
         if (!encounter) return;
 
-        const newWallPoles = poles.map(p => ({ x: p.x, y: p.y }));
-        const existingWalls = (encounter.walls || []).filter(w => w.index !== wallIndex);
+        const TOLERANCE = 5;
+        const polePoints = poles.map(p => ({ x: p.x, y: p.y }));
+        const { closedWalls, openSegments } = decomposeSelfIntersectingPath(polePoints, TOLERANCE);
 
-        const mergeResult = canMergeWalls({
-            newWallPoles,
-            existingWalls,
-            tolerance: 5
-        });
+        // Create all segments from decomposition
+        if (closedWalls.length > 0 || openSegments.length > 0) {
+            const allSegments = [
+                ...closedWalls.map(wallPoles => ({
+                    tempId: -1,
+                    wallIndex: null as number | null,
+                    name: wall?.name || '',
+                    poles: wallPoles.map(p => ({ x: p.x, y: p.y, h: defaultHeight })),
+                    isClosed: true,
+                    visibility: wall?.visibility || 0,
+                    material: wall?.material,
+                    color: wall?.color
+                })),
+                ...openSegments.map(segmentPoles => ({
+                    tempId: -1,
+                    wallIndex: null as number | null,
+                    name: wall?.name || '',
+                    poles: segmentPoles.map(p => ({ x: p.x, y: p.y, h: defaultHeight })),
+                    isClosed: false,
+                    visibility: wall?.visibility || 0,
+                    material: wall?.material,
+                    color: wall?.color
+                }))
+            ];
 
-        if (mergeResult.canMerge) {
-            if (onFinishWithMerge) {
-                onFinishWithMerge(mergeResult);
-            } else {
-                onFinish();
-            }
+            wallTransaction.setAllSegments(allSegments);
+            onFinish();
             return;
         }
 
-        const splitResult = detectSplitPoints({
-            newWallPoles,
-            existingWalls,
-            tolerance: 5
-        });
-
-        if (splitResult.needsSplit) {
-            if (onFinishWithSplit) {
-                onFinishWithSplit(splitResult);
-            } else {
-                onFinish();
-            }
-            return;
-        }
-
+        // Fallback: no decomposition needed, just finish
         onFinish();
-    }, [poles, encounter, wallIndex, onFinish, onFinishWithMerge, onFinishWithSplit]);
+    }, [poles, encounter, wall, wallTransaction, defaultHeight, onFinish]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -156,31 +151,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         const poleIndex = poles.length;
         const newPoles = [...poles, newPole];
 
-        const AUTO_CLOSE_TOLERANCE = 15 / scale;
-
-        if (newPoles.length >= 3) {
-            const firstPole = newPoles[0];
-            const lastPole = newPoles[newPoles.length - 1];
-
-            if (firstPole && lastPole) {
-                const distance = Math.sqrt(
-                    (lastPole.x - firstPole.x) ** 2 +
-                    (lastPole.y - firstPole.y) ** 2
-                );
-
-                if (distance <= AUTO_CLOSE_TOLERANCE) {
-                    const closedPoles = newPoles.slice(0, -1);
-                    setPoles(closedPoles);
-                    onPolesChange?.(closedPoles);
-
-                    wallTransaction.updateSegment(-1, { isClosed: true });
-
-                    setTimeout(() => handleFinish(), 0);
-                    return;
-                }
-            }
-        }
-
         setPoles(newPoles);
         onPolesChange?.(newPoles);
 
@@ -202,7 +172,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             () => false
         );
         wallTransaction.pushLocalAction(action);
-    }, [poles, gridConfig, defaultHeight, onPolesChange, wallTransaction, handleFinish]);
+    }, [poles, gridConfig, defaultHeight, onPolesChange, wallTransaction]);
 
     const handleDoubleClick = useCallback(() => {
         if (poles.length >= 1) {

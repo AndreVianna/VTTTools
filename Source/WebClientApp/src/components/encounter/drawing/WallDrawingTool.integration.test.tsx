@@ -64,8 +64,6 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     let onPolesChangeSpy: ReturnType<typeof vi.fn>;
     let onCancelSpy: ReturnType<typeof vi.fn>;
     let onFinishSpy: ReturnType<typeof vi.fn>;
-    let onFinishWithMergeSpy: ReturnType<typeof vi.fn>;
-    let onFinishWithSplitSpy: ReturnType<typeof vi.fn>;
 
     const defaultGridConfig: GridConfig = {
         type: GridType.Square,
@@ -97,8 +95,6 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         onPolesChangeSpy = vi.fn();
         onCancelSpy = vi.fn();
         onFinishSpy = vi.fn();
-        onFinishWithMergeSpy = vi.fn();
-        onFinishWithSplitSpy = vi.fn();
     });
 
     const createStoreWithEncounter = (encounter: any) => {
@@ -437,128 +433,6 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
             expect(capturedPoles.length).toBe(3);
             expect(onFinishSpy).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('Scenario 3: Merge Walls', () => {
-        it('should detect merge when connecting to one existing wall endpoint', () => {
-            const mockEncounterWithWall = createMockEncounter([
-                {
-                    index: 0,
-                    name: 'Wall 0',
-                    poles: [],
-                    isClosed: false,
-                    visibility: 0,
-                    encounterId: 'encounter-1',
-                },
-                {
-                    index: 1,
-                    name: 'Existing Wall',
-                    poles: [
-                        { x: 0, y: 0, h: 10 },
-                        { x: 100, y: 0, h: 10 }
-                    ],
-                    isClosed: false,
-                    visibility: 0,
-                    encounterId: 'encounter-1',
-                }
-            ]);
-
-            const store = createStoreWithEncounter(mockEncounterWithWall);
-
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={10}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onFinishWithMerge={onFinishWithMergeSpy}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.dispatchEvent(new Event('dblclick'));
-            });
-
-            expect(onFinishWithMergeSpy).toHaveBeenCalled();
-        });
-    });
-
-    describe('Scenario 6: Edge-on-Edge Split', () => {
-        it('should detect split when wall crosses existing wall', () => {
-            const mockEncounterWithWall = createMockEncounter([
-                {
-                    index: 0,
-                    name: 'Wall 0',
-                    poles: [],
-                    isClosed: false,
-                    visibility: 0,
-                    encounterId: 'encounter-1',
-                },
-                {
-                    index: 1,
-                    name: 'Existing Wall',
-                    poles: [
-                        { x: 50, y: 0, h: 10 },
-                        { x: 50, y: 100, h: 10 }
-                    ],
-                    isClosed: false,
-                    visibility: 0,
-                    encounterId: 'encounter-1',
-                }
-            ]);
-
-            const store = createStoreWithEncounter(mockEncounterWithWall);
-
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={10}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onFinishWithSplit={onFinishWithSplitSpy}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.dispatchEvent(new Event('dblclick'));
-            });
-
-            expect(onFinishWithSplitSpy).toHaveBeenCalled();
         });
     });
 
