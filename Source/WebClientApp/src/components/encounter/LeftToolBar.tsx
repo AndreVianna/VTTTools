@@ -3,6 +3,8 @@ import {
   AutoAwesome as EffectsIcon,
   VisibilityOff as FogOfWarIcon,
   GridOn as GridIcon,
+  Lock as LockIcon,
+  LockOpen as LockOpenIcon,
   ViewInAr as ObjectsIcon,
   MeetingRoom as OpeningsIcon,
   Person as PlayersIcon,
@@ -16,12 +18,10 @@ import { useEffect, useRef, useState } from 'react';
 import { AssetPicker } from '@/components/common';
 import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
 import type { SourcePlacementProperties } from './panels';
-import { CreaturesPanel, GridPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import { CreaturesPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 
 export type PanelType =
-  | 'grid'
   | 'regions'
   | 'walls'
   | 'openings'
@@ -35,8 +35,6 @@ export type PanelType =
 export interface LeftToolBarProps {
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
-  gridConfig?: GridConfig | undefined;
-  onGridChange?: (grid: GridConfig) => void;
   encounterId?: string | undefined;
   encounterWalls?: PlacedWall[] | undefined;
   selectedWallIndex?: number | null | undefined;
@@ -76,8 +74,6 @@ export interface LeftToolBarProps {
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   activePanel: externalActivePanel,
   onPanelChange,
-  gridConfig,
-  onGridChange,
   encounterId,
   encounterWalls,
   selectedWallIndex,
@@ -110,6 +106,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
+  const [isPanelLocked, setIsPanelLocked] = useState(false);
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [assetPickerOpen, setAssetPickerOpen] = useState<{
     open: boolean;
     kind?: AssetKind;
@@ -119,22 +117,44 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
 
   const activePanel =
     externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
-  const expanded = activePanel !== null;
+  const expanded = isPanelVisible && activePanel !== null;
+
+  useEffect(() => {
+    if (activePanel === null) {
+      setIsPanelVisible(false);
+    }
+  }, [activePanel]);
 
   const handlePanelClick = (panel: PanelType) => {
-    const newPanel = activePanel === panel ? null : panel;
+    const isSamePanel = activePanel === panel;
 
-    if (externalActivePanel !== undefined) {
-      onPanelChange?.(newPanel);
+    if (isSamePanel) {
+      if (isPanelVisible) {
+        const newPanel = null;
+        if (externalActivePanel !== undefined) {
+          onPanelChange?.(newPanel);
+        } else {
+          setInternalActivePanel(newPanel);
+          onPanelChange?.(newPanel);
+        }
+        setIsPanelVisible(false);
+      } else {
+        setIsPanelVisible(true);
+      }
     } else {
-      setInternalActivePanel(newPanel);
-      onPanelChange?.(newPanel);
+      if (externalActivePanel !== undefined) {
+        onPanelChange?.(panel);
+      } else {
+        setInternalActivePanel(panel);
+        onPanelChange?.(panel);
+      }
+      setIsPanelVisible(true);
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!expanded) return;
+      if (!expanded || isPanelLocked) return;
 
       const target = event.target as Node;
       const targetElement = target as Element;
@@ -145,12 +165,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       const isInsideMenu = targetElement.closest?.('.MuiMenu-root, .MuiPopover-paper') !== null;
 
       if (!isInsideToolbar && !isInsideDrawer && !isInsideDialog && !isInsideMenu) {
-        if (externalActivePanel !== undefined) {
-          onPanelChange?.(null);
-        } else {
-          setInternalActivePanel(null);
-          onPanelChange?.(null);
-        }
+        setIsPanelVisible(false);
 
         if (activePanel === 'walls' && selectedWallIndex !== null) {
           onWallSelect?.(null);
@@ -165,8 +180,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [
     expanded,
-    externalActivePanel,
-    onPanelChange,
+    isPanelLocked,
     activePanel,
     selectedWallIndex,
     onWallSelect,
@@ -179,7 +193,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     icon: typeof GridIcon;
     label: string;
   }> = [
-    { key: 'grid', icon: GridIcon, label: 'Grid' },
     { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
     { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
@@ -212,27 +225,68 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           overflowX: 'hidden',
         }}
       >
-        {panelConfigs.map(({ key, icon: Icon, label }) => (
-          <Tooltip key={key} title={label} placement='right'>
-            <IconButton
-              size='small'
-              onClick={() => handlePanelClick(key)}
-              sx={{
-                width: 28,
-                height: 28,
-                borderRadius: 0,
-                mx: 'auto',
-                flexShrink: 0,
-                backgroundColor: activePanel === key ? theme.palette.action.selected : 'transparent',
-                '&:hover': {
-                  backgroundColor: theme.palette.action.hover,
-                },
-              }}
-            >
-              <Icon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Tooltip>
-        ))}
+        <Tooltip title={isPanelLocked ? 'Panel Locked - Click to unlock' : 'Panel Unlocked - Click to lock'} placement='right'>
+          <IconButton
+            size='small'
+            onClick={() => setIsPanelLocked(!isPanelLocked)}
+            sx={{
+              width: 28,
+              height: 28,
+              borderRadius: 0,
+              mx: 'auto',
+              flexShrink: 0,
+              mb: 1,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              backgroundColor: 'transparent',
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }}
+          >
+            {isPanelLocked ? <LockIcon sx={{ fontSize: 18 }} /> : <LockOpenIcon sx={{ fontSize: 18 }} />}
+          </IconButton>
+        </Tooltip>
+
+        {panelConfigs.map(({ key, icon: Icon, label }) => {
+          const isActive = activePanel === key;
+          return (
+            <Tooltip key={key} title={`${label}${isActive ? ' (Active)' : ''}`} placement='right'>
+              <IconButton
+                size='small'
+                onClick={() => handlePanelClick(key)}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 1,
+                  mx: 'auto',
+                  flexShrink: 0,
+                  position: 'relative',
+                  backgroundColor: isActive ? theme.palette.primary.main : 'transparent',
+                  color: isActive ? theme.palette.primary.contrastText : theme.palette.text.primary,
+                  border: isActive ? `2px solid ${theme.palette.primary.light}` : '2px solid transparent',
+                  '&:hover': {
+                    backgroundColor: isActive ? theme.palette.primary.dark : theme.palette.action.hover,
+                  },
+                  '&::after': isActive
+                    ? {
+                        content: '""',
+                        position: 'absolute',
+                        right: -2,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 3,
+                        height: 16,
+                        backgroundColor: theme.palette.primary.light,
+                        borderRadius: '0 2px 2px 0',
+                      }
+                    : {},
+                }}
+              >
+                <Icon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          );
+        })}
       </Box>
 
       <Drawer
@@ -253,9 +307,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         }}
       >
         <Box ref={drawerRef} sx={{ p: 2 }}>
-          {activePanel === 'grid' && gridConfig && (
-            <GridPanel gridConfig={gridConfig} {...(onGridChange ? { onGridChange } : {})} />
-          )}
           {activePanel === 'regions' && (
             <RegionsPanel
               encounterId={encounterId || ''}

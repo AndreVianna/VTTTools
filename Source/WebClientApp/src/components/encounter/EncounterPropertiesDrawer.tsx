@@ -2,6 +2,7 @@ import { PhotoCamera as PhotoCameraIcon } from '@mui/icons-material';
 import {
   Box,
   CircularProgress,
+  Divider,
   Drawer,
   FormControl,
   FormControlLabel,
@@ -17,6 +18,8 @@ import {
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
 import { type Encounter, Light, Weather } from '@/types/domain';
+import type { GridConfig } from '@/utils/gridCalculator';
+import { GridType } from '@/utils/gridCalculator';
 
 const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
@@ -30,6 +33,8 @@ export interface EncounterPropertiesDrawerProps {
   onLightChange?: (light: Light) => void;
   onWeatherChange?: (weather: Weather) => void;
   onElevationChange?: (elevation: number) => void;
+  gridConfig?: GridConfig;
+  onGridChange?: (grid: GridConfig) => void;
   backgroundUrl?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
@@ -45,6 +50,8 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
   onLightChange,
   onWeatherChange,
   onElevationChange,
+  gridConfig,
+  onGridChange,
   backgroundUrl,
   isUploadingBackground,
   onBackgroundUpload,
@@ -162,6 +169,76 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
     if (file && onBackgroundUpload) {
       onBackgroundUpload(file);
     }
+  };
+
+  const handleGridTypeChange = (e: SelectChangeEvent<number>) => {
+    if (!onGridChange || !gridConfig) return;
+    const newType = Number(e.target.value) as GridType;
+
+    onGridChange({
+      type: newType,
+      cellSize: gridConfig.cellSize ?? { width: 50, height: 50 },
+      offset: gridConfig.offset ?? { left: 0, top: 0 },
+      snap: gridConfig.snap ?? true,
+    });
+  };
+
+  const handleCellWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onGridChange || !gridConfig) return;
+    const value = parseFloat(e.target.value);
+    if (Number.isNaN(value) || value < 10) return;
+    onGridChange({
+      type: gridConfig.type as GridType,
+      cellSize: { ...gridConfig.cellSize, width: value },
+      offset: gridConfig.offset,
+      snap: gridConfig.snap,
+    });
+  };
+
+  const handleCellHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onGridChange || !gridConfig) return;
+    const value = parseFloat(e.target.value);
+    if (Number.isNaN(value) || value < 10) return;
+    onGridChange({
+      type: gridConfig.type as GridType,
+      cellSize: { ...gridConfig.cellSize, height: value },
+      offset: gridConfig.offset,
+      snap: gridConfig.snap,
+    });
+  };
+
+  const handleOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onGridChange || !gridConfig) return;
+    const value = parseFloat(e.target.value);
+    if (Number.isNaN(value)) return;
+    onGridChange({
+      type: gridConfig.type as GridType,
+      cellSize: gridConfig.cellSize,
+      offset: { ...gridConfig.offset, left: value },
+      snap: gridConfig.snap,
+    });
+  };
+
+  const handleOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onGridChange || !gridConfig) return;
+    const value = parseFloat(e.target.value);
+    if (Number.isNaN(value)) return;
+    onGridChange({
+      type: gridConfig.type as GridType,
+      cellSize: gridConfig.cellSize,
+      offset: { ...gridConfig.offset, top: value },
+      snap: gridConfig.snap,
+    });
+  };
+
+  const handleSnapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onGridChange || !gridConfig) return;
+    onGridChange({
+      type: gridConfig.type as GridType,
+      cellSize: gridConfig.cellSize,
+      offset: gridConfig.offset,
+      snap: e.target.checked,
+    });
   };
 
   return (
@@ -449,6 +526,105 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
             InputProps={{ inputProps: { step: 0.1 } }}
           />
         </Box>
+
+        {/* Grid Configuration */}
+        {gridConfig && onGridChange && (
+          <>
+            <Divider sx={{ my: 1.5 }} />
+
+            <Box sx={{ mb: 2 }}>
+              <Typography sx={compactStyles.sectionHeader}>Grid Configuration</Typography>
+
+              <FormControl fullWidth size='small' sx={{ mb: 1.5 }}>
+                <InputLabel id='label-grid-type' sx={compactStyles.inputLabel}>
+                  Type
+                </InputLabel>
+                <Select
+                  id='select-grid-type'
+                  labelId='label-grid-type'
+                  value={gridConfig.type ?? GridType.NoGrid}
+                  label='Type'
+                  onChange={handleGridTypeChange}
+                  sx={compactStyles.select}
+                >
+                  <MenuItem sx={compactStyles.menuItem} value={GridType.NoGrid}>
+                    No Grid
+                  </MenuItem>
+                  <MenuItem sx={compactStyles.menuItem} value={GridType.Square}>
+                    Square
+                  </MenuItem>
+                  <MenuItem sx={compactStyles.menuItem} value={GridType.HexV}>
+                    Hex (V)
+                  </MenuItem>
+                  <MenuItem sx={compactStyles.menuItem} value={GridType.HexH}>
+                    Hex (H)
+                  </MenuItem>
+                  <MenuItem sx={compactStyles.menuItem} value={GridType.Isometric}>
+                    Isometric
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
+              <Box sx={{ display: 'flex', gap: 0.75, mb: 1.5 }}>
+                <TextField
+                  id='input-cell-width'
+                  label='Width'
+                  type='number'
+                  value={gridConfig.cellSize.width ?? 50}
+                  onChange={handleCellWidthChange}
+                  size='small'
+                  fullWidth
+                  InputProps={{ inputProps: { min: 10, max: 200, step: 1 } }}
+                  sx={compactStyles.textField}
+                />
+                <TextField
+                  id='input-cell-height'
+                  label='Height'
+                  type='number'
+                  value={gridConfig.cellSize.height ?? 50}
+                  onChange={handleCellHeightChange}
+                  size='small'
+                  fullWidth
+                  InputProps={{ inputProps: { min: 10, max: 200, step: 1 } }}
+                  sx={compactStyles.textField}
+                />
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 0.75, mb: 1.5 }}>
+                <TextField
+                  id='input-offset-x'
+                  label='Offset X'
+                  type='number'
+                  value={gridConfig.offset.left ?? 0}
+                  onChange={handleOffsetXChange}
+                  size='small'
+                  fullWidth
+                  InputProps={{ inputProps: { step: 1 } }}
+                  sx={compactStyles.textField}
+                />
+                <TextField
+                  id='input-offset-y'
+                  label='Offset Y'
+                  type='number'
+                  value={gridConfig.offset.top ?? 0}
+                  onChange={handleOffsetYChange}
+                  size='small'
+                  fullWidth
+                  InputProps={{ inputProps: { step: 1 } }}
+                  sx={compactStyles.textField}
+                />
+              </Box>
+
+              <FormControlLabel
+                control={
+                  <Switch id='switch-snap-grid' size='small' checked={gridConfig.snap ?? false} onChange={handleSnapChange} />
+                }
+                label={<Typography sx={compactStyles.toggleLabel}>Snap to Grid</Typography>}
+                sx={{ margin: 0 }}
+              />
+            </Box>
+          </>
+        )}
 
         {/* Display Settings - Removed: defaultDisplayName and defaultLabelPosition are now handled in localStorage */}
       </Box>

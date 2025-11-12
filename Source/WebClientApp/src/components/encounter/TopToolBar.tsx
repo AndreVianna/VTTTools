@@ -1,23 +1,39 @@
 import {
+  AutoAwesome as EffectsIcon,
   Clear as ClearIcon,
   GridOn as GridIcon,
-  Lightbulb as LightIcon,
+  MeetingRoom as OpeningsIcon,
+  Person as PlayersIcon,
+  Pets as CreaturesIcon,
   Redo as RedoIcon,
-  Polyline as RegionIcon,
+  Layers as RegionsIcon,
+  LightMode as SourcesIcon,
   Undo as UndoIcon,
-  BorderStyle as WallIcon,
+  ViewInAr as ObjectsIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  VisibilityOff as FogOfWarIcon,
+  BorderAll as WallsIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
   ZoomOutMap as ZoomResetIcon,
 } from '@mui/icons-material';
-import { Box, ButtonGroup, Collapse, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Box, Collapse, IconButton, Tooltip, useTheme } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import type { DrawingMode } from './StructureToolbar';
+
+export type LayerVisibilityType =
+  | 'regions'
+  | 'walls'
+  | 'openings'
+  | 'objects'
+  | 'creatures'
+  | 'players'
+  | 'effects'
+  | 'lightSources'
+  | 'fogOfWar';
 
 export interface TopToolBarProps {
-  drawingMode?: DrawingMode;
-  onDrawingModeChange?: (mode: DrawingMode) => void;
   onUndoClick?: () => void;
   onRedoClick?: () => void;
   onZoomIn?: () => void;
@@ -28,11 +44,13 @@ export interface TopToolBarProps {
   canUndo?: boolean;
   canRedo?: boolean;
   gridVisible?: boolean;
+  layerVisibility?: Record<LayerVisibilityType, boolean>;
+  onLayerVisibilityToggle?: (layer: LayerVisibilityType) => void;
+  onShowAllLayers?: () => void;
+  onHideAllLayers?: () => void;
 }
 
 export const TopToolBar: React.FC<TopToolBarProps> = ({
-  drawingMode,
-  onDrawingModeChange,
   onUndoClick,
   onRedoClick,
   onZoomIn,
@@ -43,9 +61,29 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   canUndo = false,
   canRedo = false,
   gridVisible = true,
+  layerVisibility,
+  onLayerVisibilityToggle,
+  onShowAllLayers,
+  onHideAllLayers,
 }) => {
   const theme = useTheme();
   const [expanded] = useState(true);
+
+  const visibilityLayers: Array<{
+    key: LayerVisibilityType;
+    icon: typeof RegionsIcon;
+    label: string;
+  }> = [
+    { key: 'regions', icon: RegionsIcon, label: 'Regions' },
+    { key: 'walls', icon: WallsIcon, label: 'Walls' },
+    { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
+    { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
+    { key: 'creatures', icon: CreaturesIcon, label: 'Creatures' },
+    { key: 'players', icon: PlayersIcon, label: 'Players' },
+    { key: 'effects', icon: EffectsIcon, label: 'Effects' },
+    { key: 'lightSources', icon: SourcesIcon, label: 'Sources' },
+    { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
+  ];
 
   return (
     <Box
@@ -66,75 +104,74 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
             display: 'flex',
             alignItems: 'center',
             px: 1,
-            gap: 1,
+            gap: 0.5,
           }}
         >
-          <ButtonGroup variant='contained' size='small' sx={{ height: 28 }}>
-            <Tooltip title='Wall (W)'>
-              <IconButton
-                size='small'
-                onClick={() => onDrawingModeChange?.('wall')}
-                sx={{
-                  width: 28,
-                  height: 28,
-                  backgroundColor: drawingMode === 'wall' ? theme.palette.primary.main : theme.palette.action.hover,
-                  color: drawingMode === 'wall' ? theme.palette.primary.contrastText : theme.palette.text.primary,
-                  '&:hover': {
-                    backgroundColor:
-                      drawingMode === 'wall' ? theme.palette.primary.dark : theme.palette.action.selected,
-                  },
-                }}
-              >
-                <WallIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
+          {/* Visibility Controls */}
+          {layerVisibility && onLayerVisibilityToggle && (
+            <>
+              <Tooltip title='Show All'>
+                <IconButton
+                  size='small'
+                  onClick={onShowAllLayers}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 1,
+                  }}
+                >
+                  <VisibilityIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
 
-            <Tooltip title='Region (R)'>
-              <IconButton
-                size='small'
-                onClick={() => onDrawingModeChange?.('region')}
-                sx={{
-                  width: 28,
-                  height: 28,
-                  backgroundColor: drawingMode === 'region' ? theme.palette.primary.main : theme.palette.action.hover,
-                  color: drawingMode === 'region' ? theme.palette.primary.contrastText : theme.palette.text.primary,
-                  '&:hover': {
-                    backgroundColor:
-                      drawingMode === 'region' ? theme.palette.primary.dark : theme.palette.action.selected,
-                  },
-                }}
-              >
-                <RegionIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
+              {visibilityLayers.map(({ key, icon: Icon, label }) => {
+                const isVisible = layerVisibility[key] ?? true;
+                return (
+                  <Tooltip key={key} title={`${label} ${isVisible ? 'Visible' : 'Hidden'}`}>
+                    <IconButton
+                      size='small'
+                      onClick={() => onLayerVisibilityToggle(key)}
+                      sx={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 1,
+                        opacity: isVisible ? 1 : 0.4,
+                        backgroundColor: isVisible ? theme.palette.action.selected : 'transparent',
+                        '&:hover': {
+                          backgroundColor: isVisible ? theme.palette.action.hover : theme.palette.action.hover,
+                        },
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Tooltip>
+                );
+              })}
 
-            <Tooltip title='Light Source (L)'>
-              <IconButton
-                size='small'
-                onClick={() => onDrawingModeChange?.('source')}
-                sx={{
-                  width: 28,
-                  height: 28,
-                  backgroundColor: drawingMode === 'source' ? theme.palette.primary.main : theme.palette.action.hover,
-                  color: drawingMode === 'source' ? theme.palette.primary.contrastText : theme.palette.text.primary,
-                  '&:hover': {
-                    backgroundColor:
-                      drawingMode === 'source' ? theme.palette.primary.dark : theme.palette.action.selected,
-                  },
-                }}
-              >
-                <LightIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
-          </ButtonGroup>
+              <Tooltip title='Hide All'>
+                <IconButton
+                  size='small'
+                  onClick={onHideAllLayers}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 1,
+                  }}
+                >
+                  <VisibilityOffIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
 
-          <Box
-            sx={{
-              width: 1,
-              height: 20,
-              backgroundColor: theme.palette.divider,
-            }}
-          />
+              <Box
+                sx={{
+                  width: 1,
+                  height: 20,
+                  backgroundColor: theme.palette.divider,
+                  mx: 0.5,
+                }}
+              />
+            </>
+          )}
 
           <Tooltip title='Undo'>
             <span>

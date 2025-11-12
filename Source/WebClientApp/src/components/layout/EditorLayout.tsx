@@ -12,6 +12,7 @@ import { EncounterPropertiesDrawer } from '@/components/encounter';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectTheme, toggleTheme } from '@/store/slices/uiSlice';
 import type { Encounter, Light, Weather } from '@/types/domain';
+import type { GridConfig } from '@/utils/gridCalculator';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
@@ -21,6 +22,8 @@ interface EditorLayoutProps {
   onEncounterDescriptionChange?: (description: string) => void;
   onEncounterPublishedChange?: (published: boolean) => void;
   onEncounterUpdate?: (updates: Partial<Encounter>) => void;
+  gridConfig?: GridConfig;
+  onGridChange?: (grid: GridConfig) => void;
   backgroundUrl?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
@@ -34,6 +37,8 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onEncounterDescriptionChange,
   onEncounterPublishedChange,
   onEncounterUpdate,
+  gridConfig,
+  onGridChange,
   backgroundUrl,
   isUploadingBackground,
   onBackgroundUpload,
@@ -207,6 +212,8 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
             onWeatherChange: (weather: Weather) => onEncounterUpdate({ weather }),
             onElevationChange: (elevation: number) => onEncounterUpdate({ elevation }),
           })}
+          {...(gridConfig && { gridConfig })}
+          {...(onGridChange && { onGridChange })}
           {...(backgroundUrl && { backgroundUrl })}
           {...(isUploadingBackground !== undefined && {
             isUploadingBackground,
