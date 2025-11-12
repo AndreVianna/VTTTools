@@ -153,7 +153,7 @@ Before({ timeout: 30000 }, async function (this: CustomWorld, testCase) {
     await this.init();
 
     // Clear any custom route flags from previous scenarios
-    (this as any)._customRouteSet = false;
+    this._customRouteSet = false;
 
     debugLog(`Scenario started: ${testCase.pickle.name}`);
     return;
@@ -172,7 +172,7 @@ Before({ timeout: 30000 }, async function (this: CustomWorld, testCase) {
   await this.init();
 
   // Clear any custom route flags from previous scenarios
-  (this as any)._customRouteSet = false;
+  this._customRouteSet = false;
 
   debugLog(`Scenario started: ${testCase.pickle.name}`);
 });

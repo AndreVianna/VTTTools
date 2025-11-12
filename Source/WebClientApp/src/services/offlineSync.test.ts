@@ -1,3 +1,4 @@
+import type { Dispatch, MiddlewareAPI, UnknownAction } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { storage } from '@/utils/storage';
 import {
@@ -25,18 +26,19 @@ describe('offlineSync', () => {
 
   describe('persistMiddleware', () => {
     it('should persist cache on fulfilled actions', () => {
-      const api = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: {
             queries: { test: 'data' },
             mutations: {},
           },
         }),
+        dispatch: vi.fn(),
       };
       const next = vi.fn((action) => action);
       const action = { type: 'encounterApi/getEncounter/fulfilled' };
 
-      const middleware = persistMiddleware(api as any);
+      const middleware = persistMiddleware(api);
       middleware(next)(action);
 
       expect(storage.setItem).toHaveBeenCalledWith(
@@ -50,39 +52,44 @@ describe('offlineSync', () => {
     });
 
     it('should persist cache on rejected actions', () => {
-      const api = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: {
             queries: {},
             mutations: { test: 'mutation' },
           },
         }),
+        dispatch: vi.fn(),
       };
       const next = vi.fn((action) => action);
       const action = { type: 'encounterApi/updateEncounter/rejected' };
 
-      const middleware = persistMiddleware(api as any);
+      const middleware = persistMiddleware(api);
       middleware(next)(action);
 
       expect(storage.setItem).toHaveBeenCalled();
     });
 
     it('should not persist on non-RTK actions', () => {
-      const api = { getState: vi.fn() };
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
+        getState: vi.fn(),
+        dispatch: vi.fn(),
+      };
       const next = vi.fn((action) => action);
       const action = { type: 'some/other/action' };
 
-      const middleware = persistMiddleware(api as any);
+      const middleware = persistMiddleware(api);
       middleware(next)(action);
 
       expect(storage.setItem).not.toHaveBeenCalled();
     });
 
     it('should queue offline mutations on network errors', () => {
-      const api = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),
+        dispatch: vi.fn(),
       };
       const next = vi.fn((action) => action);
       const action = {
@@ -101,7 +108,7 @@ describe('offlineSync', () => {
 
       vi.mocked(storage.getItem).mockReturnValue([]);
 
-      const middleware = persistMiddleware(api as any);
+      const middleware = persistMiddleware(api);
       middleware(next)(action);
 
       const calls = vi.mocked(storage.setItem).mock.calls;
@@ -123,10 +130,11 @@ describe('offlineSync', () => {
         { id: 'existing', endpoint: 'test', args: {}, timestamp: Date.now() },
       ];
 
-      const api = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),
+        dispatch: vi.fn(),
       };
       const next = vi.fn((action) => action);
       const action = {
@@ -145,7 +153,7 @@ describe('offlineSync', () => {
 
       vi.mocked(storage.getItem).mockReturnValue(existingMutations);
 
-      const middleware = persistMiddleware(api as any);
+      const middleware = persistMiddleware(api);
       middleware(next)(action);
 
       const calls = vi.mocked(storage.setItem).mock.calls;

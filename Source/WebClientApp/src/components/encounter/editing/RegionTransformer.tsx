@@ -85,7 +85,7 @@ export interface RegionTransformerProps {
 }
 
 export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
-  ({ segment, gridConfig, onVerticesChange, onClearSelections, onFinish, onCancel, onLocalAction, color }) => {
+  ({ segment, gridConfig, onVerticesChange, onFinish, onCancel, onLocalAction, color }) => {
     const theme = useTheme();
 
     const [selectedVertices, setSelectedVertices] = useState<Set<number>>(new Set());

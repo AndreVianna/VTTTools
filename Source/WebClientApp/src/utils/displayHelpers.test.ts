@@ -1,55 +1,199 @@
 import { describe, expect, it } from 'vitest';
-import { DisplayName, LabelPosition } from '../types/domain';
-import { getEffectiveDisplayName, getEffectiveLabelPosition } from './displayHelpers';
+import { AssetKind, LabelPosition, LabelVisibility, type PlacedAsset } from '../types/domain';
+import { getEffectiveLabelPosition, getEffectiveLabelVisibility } from './displayHelpers';
 
 describe('displayHelpers', () => {
-  describe('getEffectiveDisplayName', () => {
+  describe('getEffectiveLabelVisibility', () => {
     it('returns asset override when not Default', () => {
-      const asset = {
-        displayName: DisplayName.Never,
-        asset: { kind: 'Creature' },
-      } as any;
+      const asset: PlacedAsset = {
+        id: '1',
+        assetId: '1',
+        index: 1,
+        number: 1,
+        name: 'Object',
+        visible: true,
+        locked: false,
+        labelPosition: LabelPosition.Bottom,
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        rotation: 0,
+        layer: 'objects',
+        labelVisibility: LabelVisibility.Never,
+        asset: {
+          id: '1',
+          ownerId: '1',
+          name: 'Object',
+          description: 'Object',
+          isPublished: true,
+          isPublic: true,
+          tokens: [],
+          portrait: undefined,
+          size: { width: 1, height: 1, isSquare: true },
+          kind: AssetKind.Creature,
+        },
+      };
 
-      expect(getEffectiveDisplayName(asset)).toBe(DisplayName.Never);
+      expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.Never);
     });
 
     it('returns encounter default for Creatures when asset is Default', () => {
-      const asset = {
-        displayName: DisplayName.Default,
-        asset: { kind: 'Creature' },
-      } as any;
+      const asset: PlacedAsset = {
+        id: '1',
+        assetId: '1',
+        index: 1,
+        number: 1,
+        name: 'Object',
+        visible: true,
+        locked: false,
+        labelPosition: LabelPosition.Bottom,
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        rotation: 0,
+        layer: 'objects',
+        labelVisibility: LabelVisibility.Default,
+        asset: {
+          id: '1',
+          ownerId: '1',
+          name: 'Object',
+          description: 'Object',
+          isPublished: true,
+          isPublic: true,
+          tokens: [],
+          portrait: undefined,
+          size: { width: 1, height: 1, isSquare: true },
+          kind: AssetKind.Creature,
+        },
+      };
 
-      expect(getEffectiveDisplayName(asset)).toBe(DisplayName.OnHover);
+      expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.OnHover);
     });
 
     it('returns OnHover for Objects when asset is Default (ignores encounter default)', () => {
-      const asset = {
-        displayName: DisplayName.Default,
-        asset: { kind: 'Object' },
-      } as any;
+      const asset: PlacedAsset = {
+        id: '1',
+        assetId: '1',
+        index: 1,
+        number: 1,
+        name: 'Object',
+        visible: true,
+        locked: false,
+        labelPosition: LabelPosition.Bottom,
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        rotation: 0,
+        layer: 'objects',
+        labelVisibility: LabelVisibility.Default,
+        asset: {
+          id: '1',
+          ownerId: '1',
+          name: 'Object',
+          description: 'Object',
+          isPublished: true,
+          isPublic: true,
+          tokens: [],
+          portrait: undefined,
+          size: { width: 1, height: 1, isSquare: true },
+          kind: AssetKind.Object,
+        },
+      };
 
-      expect(getEffectiveDisplayName(asset)).toBe(DisplayName.OnHover);
+      expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.OnHover);
     });
 
     it('returns asset override for Objects when not Default', () => {
-      const asset = {
-        displayName: DisplayName.Always,
-        asset: { kind: 'Object' },
-      } as any;
+      const asset: PlacedAsset = {
+        id: '1',
+        assetId: '1',
+        index: 1,
+        number: 1,
+        name: 'Object',
+        visible: true,
+        locked: false,
+        labelPosition: LabelPosition.Bottom,
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        rotation: 0,
+        layer: 'objects',
+        labelVisibility: LabelVisibility.Always,
+        asset: {
+          id: '1',
+          ownerId: '1',
+          name: 'Object',
+          description: 'Object',
+          isPublished: true,
+          isPublic: true,
+          tokens: [],
+          portrait: undefined,
+          size: { width: 1, height: 1, isSquare: true },
+          kind: AssetKind.Object,
+        },
+      };
 
-      expect(getEffectiveDisplayName(asset)).toBe(DisplayName.Always);
+      expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.Always);
     });
   });
 
   describe('getEffectiveLabelPosition', () => {
     it('returns asset override when not Default', () => {
-      const asset = { labelPosition: LabelPosition.Top } as any;
+      const asset: PlacedAsset = {
+        id: '1',
+        assetId: '1',
+        index: 1,
+        number: 1,
+        name: 'Object',
+        visible: true,
+        locked: false,
+        labelPosition: LabelPosition.Top,
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        rotation: 0,
+        layer: 'objects',
+        labelVisibility: LabelVisibility.Always,
+        asset: {
+          id: '1',
+          ownerId: '1',
+          name: 'Object',
+          description: 'Object',
+          isPublished: true,
+          isPublic: true,
+          tokens: [],
+          portrait: undefined,
+          size: { width: 1, height: 1, isSquare: true },
+          kind: AssetKind.Creature,
+        },
+      };
 
       expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Top);
     });
 
     it('returns encounter default when asset is Default', () => {
-      const asset = { labelPosition: LabelPosition.Default } as any;
+      const asset: PlacedAsset = {
+        id: '1',
+        assetId: '1',
+        index: 1,
+        number: 1,
+        name: 'Object',
+        visible: true,
+        locked: false,
+        labelPosition: LabelPosition.Default,
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        rotation: 0,
+        layer: 'objects',
+        labelVisibility: LabelVisibility.Always,
+        asset: {
+          id: '1',
+          ownerId: '1',
+          name: 'Object',
+          description: 'Object',
+          isPublished: true,
+          isPublic: true,
+          tokens: [],
+          portrait: undefined,
+          size: { width: 1, height: 1, isSquare: true },
+          kind: AssetKind.Creature,
+        },
+      };
 
       expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Middle);
     });

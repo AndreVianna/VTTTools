@@ -61,8 +61,8 @@ export const mediaApi = createApi({
         };
       },
       transformResponse: (response, _meta, _arg) => {
-        // Extract ID from response or use the one we sent
-        return { id: (response as any).id || crypto.randomUUID() };
+        const responseObject = response as { id: string };
+        return { id: responseObject.id || crypto.randomUUID() };
       },
       invalidatesTags: ['MediaResource'],
     }),

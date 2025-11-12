@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { ObjectAsset, PlacedAsset } from '../types/domain';
-import { AssetKind, DisplayName, LabelPosition } from '../types/domain';
+import { AssetKind, LabelPosition, LabelVisibility } from '../types/domain';
 import { ClipboardProvider } from './ClipboardContext';
 import { useClipboard } from './useClipboard';
 
@@ -32,7 +32,7 @@ const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => 
   name,
   visible: true,
   locked: false,
-  displayName: DisplayName.Always,
+  labelVisibility: LabelVisibility.Always,
   labelPosition: LabelPosition.Bottom,
 });
 

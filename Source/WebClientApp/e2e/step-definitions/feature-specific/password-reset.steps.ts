@@ -269,7 +269,7 @@ When('I submit the reset request form', async function (this: CustomWorld) {
 
   await this.page.click('button[type="submit"]:has-text("Send Reset Instructions")');
 
-  this.lastApiResponse = (await responsePromise) as any;
+  this.lastApiResponse = await responsePromise;
 });
 
 When('I attempt to submit the reset request form', async function (this: CustomWorld) {
@@ -393,7 +393,7 @@ When('I submit the password reset form', async function (this: CustomWorld) {
 
   await this.page.click('button[type="submit"]');
 
-  this.lastApiResponse = (await responsePromise) as any;
+  this.lastApiResponse = await responsePromise;
 });
 
 When('I attempt to submit the password reset form', async function (this: CustomWorld) {

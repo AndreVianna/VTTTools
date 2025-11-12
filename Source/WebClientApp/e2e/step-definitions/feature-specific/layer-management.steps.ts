@@ -42,11 +42,11 @@ Given('the Konva Stage is initialized', async function (this: CustomWorld) {
 Given('the background layer has an image', async function (this: CustomWorld) {
   // Simulate background image on background layer
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const backgroundLayer = stage.findOne('.background');
       if (backgroundLayer) {
-        const image = new (window as any).Konva.Image({
+        const image = new window.Konva.Image({
           x: 0,
           y: 0,
           width: 800,
@@ -65,7 +65,7 @@ Given('the grid layer has grid lines', async function (this: CustomWorld) {
   // Wait for grid lines to be present
   await this.page.waitForFunction(
     () => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       if (!stage) return false;
       const gridLayer = stage.findOne('.grid');
       return gridLayer && gridLayer.getChildren().length > 0;
@@ -77,11 +77,11 @@ Given('the grid layer has grid lines', async function (this: CustomWorld) {
 Given('the agents layer has token images', async function (this: CustomWorld) {
   // Add token images to agents layer
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const agentsLayer = stage.findOne('.agents');
       if (agentsLayer) {
-        const token = new (window as any).Konva.Circle({
+        const token = new window.Konva.Circle({
           x: 100,
           y: 100,
           radius: 30,
@@ -98,13 +98,13 @@ Given('the agents layer has token images', async function (this: CustomWorld) {
 Given('the encounter has background, grid, and tokens', async function (this: CustomWorld) {
   // Composite setup - use helpers from previous steps
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return;
 
     // Background image
     const backgroundLayer = stage.findOne('.background');
     if (backgroundLayer) {
-      const bgImage = new (window as any).Konva.Rect({
+      const bgImage = new window.Konva.Rect({
         x: 0,
         y: 0,
         width: 800,
@@ -119,7 +119,7 @@ Given('the encounter has background, grid, and tokens', async function (this: Cu
     // Tokens
     const agentsLayer = stage.findOne('.agents');
     if (agentsLayer) {
-      const token = new (window as any).Konva.Circle({
+      const token = new window.Konva.Circle({
         x: 100,
         y: 100,
         radius: 30,
@@ -135,11 +135,11 @@ Given('the encounter has background, grid, and tokens', async function (this: Cu
 Given('the ui layer has controls/overlays', async function (this: CustomWorld) {
   // Add UI elements to UI layer
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const uiLayer = stage.findOne('.ui');
       if (uiLayer) {
-        const controlButton = new (window as any).Konva.Rect({
+        const controlButton = new window.Konva.Rect({
           x: 10,
           y: 10,
           width: 100,
@@ -157,7 +157,7 @@ Given('the ui layer has controls/overlays', async function (this: CustomWorld) {
 Given('the grid layer is visible', async function (this: CustomWorld) {
   // Ensure grid layer visibility is true
   const isVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     return gridLayer ? gridLayer.visible() : false;
@@ -165,7 +165,7 @@ Given('the grid layer is visible', async function (this: CustomWorld) {
 
   if (!isVisible) {
     await this.page.evaluate(() => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       const gridLayer = stage.findOne('.grid');
       if (gridLayer) {
         gridLayer.visible(true);
@@ -178,7 +178,7 @@ Given('the grid layer is visible', async function (this: CustomWorld) {
 Given('the grid layer is hidden', async function (this: CustomWorld) {
   // Set grid layer visibility to false
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const gridLayer = stage.findOne('.grid');
       if (gridLayer) {
@@ -192,7 +192,7 @@ Given('the grid layer is hidden', async function (this: CustomWorld) {
 Given('all layers are visible', async function (this: CustomWorld) {
   // Set all layers to visible
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const layers = stage.getLayers();
       layers.forEach((layer: any) => {
@@ -206,7 +206,7 @@ Given('all layers are visible', async function (this: CustomWorld) {
 Given('layers have been manually reordered by some operation', async function (this: CustomWorld) {
   // Simulate manual layer reordering (break z-order)
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const uiLayer = stage.findOne('.ui');
       const backgroundLayer = stage.findOne('.background');
@@ -225,7 +225,7 @@ Given('layers have been manually reordered by some operation', async function (t
 Given('layers have been modified \\(visibility changed, reordered\\)', async function (this: CustomWorld) {
   // Modify layers in various ways
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       const gridLayer = stage.findOne('.grid');
       const agentsLayer = stage.findOne('.agents');
@@ -243,9 +243,9 @@ Given('layers have been modified \\(visibility changed, reordered\\)', async fun
 Given('a Square grid is configured', async function (this: CustomWorld) {
   // Configure square grid (should be handled by GridRenderer component)
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
-    if (stage && (window as any).__gridRenderer) {
-      (window as any).__gridRenderer.setGridType('square');
+    const stage = window.__konvaStage;
+    if (stage && window.__gridRenderer) {
+      window.__gridRenderer.setGridType('square');
     }
   });
 });
@@ -254,7 +254,7 @@ Given('a grid is rendered and visible', async function (this: CustomWorld) {
   // Ensure grid is rendered and visible
   await this.page.waitForFunction(
     () => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       if (!stage) return false;
       const gridLayer = stage.findOne('.grid');
       return gridLayer?.visible() && gridLayer.getChildren().length > 0;
@@ -266,14 +266,14 @@ Given('a grid is rendered and visible', async function (this: CustomWorld) {
 Given('the encounter has all 7 layers with content', async function (this: CustomWorld) {
   // Add content to all 7 layers
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return;
 
     const layerNames = ['background', 'grid', 'structure', 'objects', 'agents', 'foreground', 'ui'];
     layerNames.forEach((name) => {
       const layer = stage.findOne(`.${name}`);
       if (layer) {
-        const rect = new (window as any).Konva.Rect({
+        const rect = new window.Konva.Rect({
           x: 0,
           y: 0,
           width: 50,
@@ -293,7 +293,7 @@ Given(
     // Add multiple elements to each layer
     await this.page.evaluate(
       ({ perLayer, total: _total }) => {
-        const stage = (window as any).__konvaStage;
+        const stage = window.__konvaStage;
         if (!stage) return;
 
         const layerNames = ['background', 'grid', 'structure', 'objects', 'agents', 'foreground', 'ui'];
@@ -301,7 +301,7 @@ Given(
           const layer = stage.findOne(`.${name}`);
           if (layer) {
             for (let i = 0; i < perLayer; i++) {
-              const rect = new (window as any).Konva.Rect({
+              const rect = new window.Konva.Rect({
                 x: i * 10,
                 y: i * 10,
                 width: 20,
@@ -328,7 +328,7 @@ When('the layer manager initializes', async function (this: CustomWorld) {
   // Wait for initialization to complete
   await this.page.waitForFunction(
     () => {
-      return (window as any).__layerManager?.initialized;
+      return window.__layerManager?.initialized;
     },
     { timeout: 5000 },
   );
@@ -337,7 +337,7 @@ When('the layer manager initializes', async function (this: CustomWorld) {
 When('the layerManager.enforceZOrder\\(\\) method is called', async function (this: CustomWorld) {
   // Call enforceZOrder method programmatically
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.enforceZOrder();
     }
@@ -347,7 +347,7 @@ When('the layerManager.enforceZOrder\\(\\) method is called', async function (th
 When('both layers render', async function (this: CustomWorld) {
   // Trigger batch draw
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       stage.batchDraw();
     }
@@ -360,7 +360,7 @@ When('both layers render', async function (this: CustomWorld) {
 When('all layers render', async function (this: CustomWorld) {
   // Trigger batch draw for all layers
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (stage) {
       stage.batchDraw();
     }
@@ -380,7 +380,7 @@ When('I toggle grid layer visibility', async function (this: CustomWorld) {
 When('I hide the grid layer', async function (this: CustomWorld) {
   // Hide grid layer programmatically
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.setLayerVisibility('grid', false);
     }
@@ -390,7 +390,7 @@ When('I hide the grid layer', async function (this: CustomWorld) {
 When('I hide the structure layer', async function (this: CustomWorld) {
   // Hide structure layer programmatically
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.setLayerVisibility('structure', false);
     }
@@ -404,7 +404,7 @@ When(
 
     await this.page.evaluate(
       ({ layer, vis }) => {
-        const layerManager = (window as any).__layerManager;
+        const layerManager = window.__layerManager;
         if (layerManager) {
           layerManager.setLayerVisibility(layer, vis);
         }
@@ -417,7 +417,7 @@ When(
 When('I query layerManager.getLayerStates\\(\\)', async function (this: CustomWorld) {
   // Store query result in world state
   this.currentAsset = await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     return layerManager ? layerManager.getLayerStates() : null;
   });
 });
@@ -425,7 +425,7 @@ When('I query layerManager.getLayerStates\\(\\)', async function (this: CustomWo
 When('I query layerManager.getLayer\\({string}\\)', async function (this: CustomWorld, layerName: string) {
   // Store layer instance reference in world state
   this.currentAsset = await this.page.evaluate((layer) => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (!layerManager) return null;
 
     const layerInstance = layerManager.getLayer(layer);
@@ -436,8 +436,8 @@ When('I query layerManager.getLayer\\({string}\\)', async function (this: Custom
 When('I initialize the layer manager with the Stage', async function (this: CustomWorld) {
   // Initialize layer manager with Konva Stage
   await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
-    const layerManager = (window as any).__layerManager;
+    const stage = window.__konvaStage;
+    const layerManager = window.__layerManager;
     if (stage && layerManager) {
       layerManager.initialize(stage);
     }
@@ -447,7 +447,7 @@ When('I initialize the layer manager with the Stage', async function (this: Cust
 When('I call layerManager.reset\\(\\)', async function (this: CustomWorld) {
   // Reset layer manager to defaults
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.reset();
     }
@@ -459,7 +459,7 @@ When('the GridRenderer component renders', async function (this: CustomWorld) {
   // Wait for grid lines to appear on grid layer
   await this.page.waitForFunction(
     () => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       if (!stage) return false;
       const gridLayer = stage.findOne('.grid');
       return gridLayer && gridLayer.getChildren().length > 0;
@@ -471,7 +471,7 @@ When('the GridRenderer component renders', async function (this: CustomWorld) {
 When('I hide the grid layer via layerManager', async function (this: CustomWorld) {
   // Hide grid using layerManager service
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.setLayerVisibility('grid', false);
     }
@@ -481,7 +481,7 @@ When('I hide the grid layer via layerManager', async function (this: CustomWorld
 When('I toggle layer visibility', async function (this: CustomWorld) {
   // Toggle any layer visibility
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.toggleLayerVisibility('grid');
     }
@@ -493,7 +493,7 @@ When('I call enforceZOrder\\(\\)', async function (this: CustomWorld) {
   const startTime = Date.now();
 
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.enforceZOrder();
     }
@@ -512,7 +512,7 @@ Then('the layers should have the following z-order:', async function (this: Cust
 
   // Get actual z-order from stage
   const actualOrder = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return [];
 
     const layers = stage.getLayers();
@@ -524,7 +524,7 @@ Then('the layers should have the following z-order:', async function (this: Cust
 
   // Verify each layer has correct z-index
   expectedOrder.forEach((expected, _index) => {
-    const actual = actualOrder.find((a: any) => a['Layer Name'] === expected['Layer Name']);
+    const actual = actualOrder.find((a) => a['Layer Name'] === expected['Layer Name']);
     expect(actual).toBeDefined();
     expect(actual?.['Z-Index']).toBe(parseInt(expected['Z-Index'] ?? '0', 10));
   });
@@ -532,7 +532,7 @@ Then('the layers should have the following z-order:', async function (this: Cust
 
 Then('background should render first \\(bottom\\)', async function (this: CustomWorld) {
   const zIndex = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return -1;
     const bgLayer = stage.findOne('.background');
     return bgLayer ? bgLayer.zIndex() : -1;
@@ -543,7 +543,7 @@ Then('background should render first \\(bottom\\)', async function (this: Custom
 
 Then('ui should render last \\(top\\)', async function (this: CustomWorld) {
   const zIndex = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return -1;
     const uiLayer = stage.findOne('.ui');
     return uiLayer ? uiLayer.zIndex() : -1;
@@ -555,7 +555,7 @@ Then('ui should render last \\(top\\)', async function (this: CustomWorld) {
 Then('all layers should return to correct z-order', async function (this: CustomWorld) {
   // Verify z-order is correct for all layers
   const zOrders = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return null;
 
     const expected = {
@@ -585,7 +585,7 @@ Then('all layers should return to correct z-order', async function (this: Custom
 
 Then('background should be behind all other layers', async function (this: CustomWorld) {
   const isBackgroundBottom = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const bgLayer = stage.findOne('.background');
     return bgLayer ? bgLayer.zIndex() === 0 : false;
@@ -596,10 +596,10 @@ Then('background should be behind all other layers', async function (this: Custo
 
 Then('ui should be above all other layers', async function (this: CustomWorld) {
   const isUITop = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const uiLayer = stage.findOne('.ui');
-    const maxZIndex = Math.max(...stage.getLayers().map((l: any) => l.zIndex()));
+    const maxZIndex = Math.max(...stage.getLayers().map((l) => l.zIndex()));
     return uiLayer ? uiLayer.zIndex() === maxZIndex : false;
   });
 
@@ -610,7 +610,7 @@ Then('the Stage should batch draw for performance', async function (this: Custom
   // Verify batchDraw was called (check via event or flag)
   // This is verified implicitly - we can check that layers are rendered
   const isRendered = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     return stage && stage.getChildren().length > 0;
   });
 
@@ -619,7 +619,7 @@ Then('the Stage should batch draw for performance', async function (this: Custom
 
 Then('the background image should be visible', async function (this: CustomWorld) {
   const hasBackground = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const bgLayer = stage.findOne('.background');
     return bgLayer?.visible() && bgLayer.getChildren().length > 0;
@@ -630,7 +630,7 @@ Then('the background image should be visible', async function (this: CustomWorld
 
 Then('the grid lines should appear on top of the background', async function (this: CustomWorld) {
   const zOrderCorrect = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const bgLayer = stage.findOne('.background');
     const gridLayer = stage.findOne('.grid');
@@ -644,7 +644,7 @@ Then(
   'the z-order should be: background \\({int}\\) < grid \\({int}\\)',
   async function (this: CustomWorld, bgZIndex: number, gridZIndex: number) {
     const zOrders = await this.page.evaluate(() => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       if (!stage) return null;
       return {
         background: stage.findOne('.background')?.zIndex() ?? -1,
@@ -661,7 +661,7 @@ Then(
 
 Then('grid lines should be visible', async function (this: CustomWorld) {
   const isGridVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     return gridLayer?.visible() && gridLayer.getChildren().length > 0;
@@ -672,7 +672,7 @@ Then('grid lines should be visible', async function (this: CustomWorld) {
 
 Then('tokens should appear on top of grid lines', async function (this: CustomWorld) {
   const zOrderCorrect = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     const agentsLayer = stage.findOne('.agents');
@@ -686,7 +686,7 @@ Then(
   'the z-order should be: grid \\({int}\\) < agents \\({int}\\)',
   async function (this: CustomWorld, gridZIndex: number, agentsZIndex: number) {
     const zOrders = await this.page.evaluate(() => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       if (!stage) return null;
       return {
         grid: stage.findOne('.grid')?.zIndex() ?? -1,
@@ -703,10 +703,10 @@ Then(
 
 Then('the ui layer elements should be on top', async function (this: CustomWorld) {
   const isUIOnTop = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const uiLayer = stage.findOne('.ui');
-    const maxZIndex = Math.max(...stage.getLayers().map((l: any) => l.zIndex()));
+    const maxZIndex = Math.max(...stage.getLayers().map((l) => l.zIndex()));
     return uiLayer && uiLayer.zIndex() === maxZIndex;
   });
 
@@ -715,7 +715,7 @@ Then('the ui layer elements should be on top', async function (this: CustomWorld
 
 Then('ui should not be obscured by any other layer', async function (this: CustomWorld) {
   const isUIOnTop = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const uiLayer = stage.findOne('.ui');
     const layers = stage.getLayers();
@@ -727,7 +727,7 @@ Then('ui should not be obscured by any other layer', async function (this: Custo
 
 Then('the grid layer should become hidden', async function (this: CustomWorld) {
   const isHidden = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     return gridLayer ? !gridLayer.visible() : false;
@@ -738,7 +738,7 @@ Then('the grid layer should become hidden', async function (this: CustomWorld) {
 
 Then('the grid lines should not be visible on canvas', async function (this: CustomWorld) {
   const isVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return true;
     const gridLayer = stage.findOne('.grid');
     return gridLayer ? gridLayer.visible() : true;
@@ -749,7 +749,7 @@ Then('the grid lines should not be visible on canvas', async function (this: Cus
 
 Then('other layers should remain visible', async function (this: CustomWorld) {
   const otherLayersVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
 
     const otherLayers = ['background', 'structure', 'objects', 'agents', 'foreground', 'ui'];
@@ -764,7 +764,7 @@ Then('other layers should remain visible', async function (this: CustomWorld) {
 
 Then('the grid layer should become visible', async function (this: CustomWorld) {
   const isVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     return gridLayer ? gridLayer.visible() : false;
@@ -775,7 +775,7 @@ Then('the grid layer should become visible', async function (this: CustomWorld) 
 
 Then('grid lines should reappear on canvas', async function (this: CustomWorld) {
   const isVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     return gridLayer?.visible() && gridLayer.getChildren().length > 0;
@@ -787,7 +787,7 @@ Then('grid lines should reappear on canvas', async function (this: CustomWorld) 
 Then('the grid configuration should be preserved', async function (this: CustomWorld) {
   // Verify grid config hasn't changed after hide/show
   const hasGridConfig = await this.page.evaluate(() => {
-    const gridRenderer = (window as any).__gridRenderer;
+    const gridRenderer = window.__gridRenderer;
     return gridRenderer && gridRenderer.config !== null;
   });
 
@@ -796,7 +796,7 @@ Then('the grid configuration should be preserved', async function (this: CustomW
 
 Then('grid and structure should be hidden', async function (this: CustomWorld) {
   const areHidden = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     const structureLayer = stage.findOne('.structure');
@@ -808,7 +808,7 @@ Then('grid and structure should be hidden', async function (this: CustomWorld) {
 
 Then('background, objects, agents should remain visible', async function (this: CustomWorld) {
   const areVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const bgLayer = stage.findOne('.background');
     const objectsLayer = stage.findOne('.objects');
@@ -821,7 +821,7 @@ Then('background, objects, agents should remain visible', async function (this: 
 
 Then('layer z-order should be maintained', async function (this: CustomWorld) {
   const isCorrectOrder = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
 
     const expected = {
@@ -844,7 +844,7 @@ Then('layer z-order should be maintained', async function (this: CustomWorld) {
 
 Then('the grid layer should be hidden', async function (this: CustomWorld) {
   const isHidden = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     const gridLayer = stage?.findOne('.grid');
     return gridLayer ? !gridLayer.visible() : false;
   });
@@ -854,7 +854,7 @@ Then('the grid layer should be hidden', async function (this: CustomWorld) {
 
 Then('the grid layer should be visible', async function (this: CustomWorld) {
   const isVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     const gridLayer = stage?.findOne('.grid');
     return gridLayer ? gridLayer.visible() : false;
   });
@@ -903,7 +903,7 @@ Then('the layer should have name {string}', async function (this: CustomWorld, e
 
 Then('all {int} default layers should be initialized', async function (this: CustomWorld, count: number) {
   const layerCount = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     return stage ? stage.getLayers().length : 0;
   });
 
@@ -912,7 +912,7 @@ Then('all {int} default layers should be initialized', async function (this: Cus
 
 Then('each layer should have correct initial visibility \\(true\\)', async function (this: CustomWorld) {
   const allVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const layers = stage.getLayers();
     return layers.every((layer: any) => layer.visible() === true);
@@ -923,7 +923,7 @@ Then('each layer should have correct initial visibility \\(true\\)', async funct
 
 Then('each layer should have correct z-index', async function (this: CustomWorld) {
   const hasCorrectZIndex = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
 
     const expected = {
@@ -946,7 +946,7 @@ Then('each layer should have correct z-index', async function (this: CustomWorld
 
 Then('all layers should return to default visibility \\(all visible\\)', async function (this: CustomWorld) {
   const allVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const layers = stage.getLayers();
     return layers.every((layer: any) => layer.visible() === true);
@@ -957,7 +957,7 @@ Then('all layers should return to default visibility \\(all visible\\)', async f
 
 Then('all layers should return to default z-order', async function (this: CustomWorld) {
   const hasCorrectZOrder = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
 
     const expected = {
@@ -980,7 +980,7 @@ Then('all layers should return to default z-order', async function (this: Custom
 
 Then('grid lines should be drawn on the {string} layer', async function (this: CustomWorld, layerName: string) {
   const hasGridLines = await this.page.evaluate((name) => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const layer = stage.findOne(`.${name}`);
     return layer && layer.getChildren().length > 0;
@@ -991,7 +991,7 @@ Then('grid lines should be drawn on the {string} layer', async function (this: C
 
 Then('the grid layer should have z-index {int}', async function (this: CustomWorld, expectedZIndex: number) {
   const actualZIndex = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return -1;
     const gridLayer = stage.findOne('.grid');
     return gridLayer ? gridLayer.zIndex() : -1;
@@ -1004,7 +1004,7 @@ Then(
   'grid should appear above background \\({int}\\) and below structure \\({int}\\)',
   async function (this: CustomWorld, bgZIndex: number, structureZIndex: number) {
     const zOrders = await this.page.evaluate(() => {
-      const stage = (window as any).__konvaStage;
+      const stage = window.__konvaStage;
       if (!stage) return null;
       return {
         background: stage.findOne('.background')?.zIndex() ?? -1,
@@ -1023,7 +1023,7 @@ Then(
 
 Then('the GridRenderer should not be visible', async function (this: CustomWorld) {
   const isHidden = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return true;
     const gridLayer = stage.findOne('.grid');
     return gridLayer ? !gridLayer.visible() : true;
@@ -1034,7 +1034,7 @@ Then('the GridRenderer should not be visible', async function (this: CustomWorld
 
 Then('the grid layer should still exist \\(just hidden\\)', async function (this: CustomWorld) {
   const layerExists = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
     const gridLayer = stage.findOne('.grid');
     return gridLayer !== undefined && gridLayer !== null;
@@ -1046,7 +1046,7 @@ Then('the grid layer should still exist \\(just hidden\\)', async function (this
 Then('showing the layer again should restore grid visibility', async function (this: CustomWorld) {
   // Show layer
   await this.page.evaluate(() => {
-    const layerManager = (window as any).__layerManager;
+    const layerManager = window.__layerManager;
     if (layerManager) {
       layerManager.setLayerVisibility('grid', true);
     }
@@ -1054,7 +1054,7 @@ Then('showing the layer again should restore grid visibility', async function (t
 
   // Verify visibility restored
   const isVisible = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     const gridLayer = stage?.findOne('.grid');
     return gridLayer ? gridLayer.visible() : false;
   });
@@ -1071,7 +1071,7 @@ Then('the Stage should batch draw efficiently', async function (this: CustomWorl
   // Verify batchDraw was used (not individual draw calls)
   // This is implicit - check that rendering completed
   const isRendered = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     return stage !== null && stage !== undefined;
   });
 
@@ -1080,7 +1080,7 @@ Then('the Stage should batch draw efficiently', async function (this: CustomWorl
 
 Then('all elements should maintain correct z-order', async function (this: CustomWorld) {
   const isCorrectOrder = await this.page.evaluate(() => {
-    const stage = (window as any).__konvaStage;
+    const stage = window.__konvaStage;
     if (!stage) return false;
 
     const expected = {

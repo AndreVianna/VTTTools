@@ -37,7 +37,7 @@ import type { CustomWorld } from '../../support/world.js';
 
 Given('I have opened the encounter editor', async function (this: CustomWorld) {
   // Navigate to encounter editor page
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   if (!encounterId) {
     throw new Error('No encounter exists. Create an encounter first.');
   }
@@ -47,7 +47,7 @@ Given('I have opened the encounter editor', async function (this: CustomWorld) {
 });
 
 Given('the encounter has a configured stage', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -78,7 +78,7 @@ Given('I set tile size to {int}x{int} pixels', async function (this: CustomWorld
 });
 
 Given('the encounter has a Square grid configured', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
     GridCellWidth: 50,
@@ -97,7 +97,7 @@ Given('the GridConfigPanel is open', async function (this: CustomWorld) {
 });
 
 Given('a Square grid is configured with black color', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
     GridCellWidth: 50,
@@ -110,7 +110,7 @@ Given('a Square grid is configured with black color', async function (this: Cust
 });
 
 Given('a Square grid is configured', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
     GridCellWidth: 50,
@@ -122,7 +122,7 @@ Given('a Square grid is configured', async function (this: CustomWorld) {
 });
 
 Given('I configure a Hexagonal grid', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 2, // HexH
     GridCellWidth: 50,
@@ -131,7 +131,7 @@ Given('I configure a Hexagonal grid', async function (this: CustomWorld) {
 });
 
 Given('a Square grid with {int}px cells is configured', async function (this: CustomWorld, cellSize: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
     GridCellWidth: cellSize,
@@ -161,7 +161,7 @@ Given('the canvas is at position \\({int}, {int}\\)', async function (this: Cust
 Given(
   'a grid is configured with offsetX: {int}, offsetY: {int}',
   async function (this: CustomWorld, offsetX: number, offsetY: number) {
-    const encounterId = (this as any).currentEncounterId;
+    const encounterId = this.currentEncounterId;
     await this.db.updateRecord('Encounters', encounterId, {
       GridType: 1, // Square
       GridOffsetX: offsetX,
@@ -176,7 +176,7 @@ Given(
 // Given('I have dark mode enabled') available in theme.steps.ts
 
 Given('no custom grid color is set', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridColor: null, // Use theme default
   });
@@ -276,7 +276,7 @@ When('I pan the canvas by \\({int}, {int}\\)', async function (this: CustomWorld
 });
 
 When('a grid is configured', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
     GridCellWidth: 50,
@@ -326,7 +326,7 @@ Then('I should see flat-top hexagons arranged horizontally', async function (thi
   await verifyGridVisible(this.page);
 
   // Verify grid type in database
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -335,7 +335,7 @@ Then('I should see flat-top hexagons arranged horizontally', async function (thi
 
 Then('hexagons should have correct spacing \\(width × {float}\\)', async function (this: CustomWorld, _ratio: number) {
   // This is a visual property - we can verify the configuration was applied
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -350,7 +350,7 @@ Then('alternating rows should be offset correctly', async function (this: Custom
 Then('I should see pointy-top hexagons arranged vertically', async function (this: CustomWorld) {
   await verifyGridVisible(this.page);
 
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -358,7 +358,7 @@ Then('I should see pointy-top hexagons arranged vertically', async function (thi
 });
 
 Then('hexagons should have correct spacing \\(height × {float}\\)', async function (this: CustomWorld, _ratio: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -372,7 +372,7 @@ Then('alternating columns should be offset correctly', async function (this: Cus
 Then('I should see diamond-shaped grid cells', async function (this: CustomWorld) {
   await verifyGridVisible(this.page);
 
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -417,7 +417,7 @@ Then('the canvas should show the new grid configuration', async function (this: 
 
 Then('the grid lines should change to red immediately', async function (this: CustomWorld) {
   // Verify grid color was updated in database
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -432,7 +432,7 @@ Then('the grid should re-render smoothly', async function (this: CustomWorld) {
 
 Then('the entire grid should shift {int} pixels right and down', async function (this: CustomWorld, offset: number) {
   // Verify offset was applied in database
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -490,7 +490,7 @@ Then('a PATCH request should be sent to update the encounter', async function (t
 });
 
 Then('the encounter record should be updated with new grid config', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -500,7 +500,7 @@ Then('the encounter record should be updated with new grid config', async functi
 Then('the Hexagonal grid should be restored', async function (this: CustomWorld) {
   await verifyGridVisible(this.page);
 
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -567,7 +567,7 @@ Then('grid intersection should align with background features', async function (
 });
 
 Then('the grid offset should remain at {int}, {int}', async function (this: CustomWorld, x: number, y: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -580,7 +580,7 @@ Then('the grid should pan as a unit with its offset', async function (this: Cust
 });
 
 Then('the grid should use a theme-appropriate default color', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -595,7 +595,7 @@ Then('grid should be visible against dark background', async function (this: Cus
 });
 
 Then('the grid color should remain magenta', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -604,7 +604,7 @@ Then('the grid color should remain magenta', async function (this: CustomWorld) 
 
 Then('the custom color should override theme defaults', async function (this: CustomWorld) {
   // Custom color persists regardless of theme
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });

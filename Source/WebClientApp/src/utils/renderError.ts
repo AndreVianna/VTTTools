@@ -1,8 +1,3 @@
-/**
- * Utility to safely render error messages in React components
- * Ensures objects are not rendered as React children
- */
-
 export const renderError = (error: unknown, fallbackMessage = 'An error occurred. Please try again.'): string => {
   if (!error) return '';
 
@@ -16,16 +11,16 @@ export const renderError = (error: unknown, fallbackMessage = 'An error occurred
 
   if (typeof error === 'object' && error !== null) {
     // Handle RTK Query errors
-    if ('data' in error && typeof (error as any).data === 'object') {
-      const errorData = (error as any).data;
+    if ('data' in error && typeof error.data === 'object') {
+      const errorData = error.data as { message?: string };
       if (errorData?.message && typeof errorData.message === 'string') {
         return errorData.message;
       }
     }
 
     // Handle other error objects with message property
-    if ('message' in error && typeof (error as any).message === 'string') {
-      return (error as any).message;
+    if ('message' in error && typeof error.message === 'string') {
+      return error.message;
     }
   }
 

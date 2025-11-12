@@ -11,15 +11,8 @@ import type {
   PlacedSource,
   PlacedWall,
 } from '@/types/domain';
-import { DisplayName as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
+import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityEnum } from '@/types/domain';
 import { getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
-
-/**
- * Encounter Asset Mappers - Convert between backend and frontend representations
- *
- * Backend (EncounterAsset): Stores asset references only (assetId)
- * Frontend (PlacedAsset): Needs full Asset objects with images and properties
- */
 
 function getAssetLayer(asset: Asset): GroupName {
   if (asset.kind === 'Creature') {
@@ -47,15 +40,10 @@ export async function hydratePlacedAssets(
       const asset = assets[arrayIndex];
       if (!asset) return null;
 
-      const position =
-        'position' in sa ? { x: (sa as any).position.x, y: (sa as any).position.y } : { x: sa.x, y: sa.y };
+      const position = { x: sa.x, y: sa.y };
+      const size = { width: sa.width, height: sa.height };
 
-      const size =
-        'size' in sa
-          ? { width: (sa as any).size.width, height: (sa as any).size.height }
-          : { width: sa.width, height: sa.height };
-
-      const encounterAssetAny = sa as any;
+      const encounterAssetAny = sa;
       const backendIndex = encounterAssetAny.index !== undefined ? encounterAssetAny.index : arrayIndex;
 
       let domId = getDomIdByIndex(encounterId, 'assets', backendIndex);
@@ -64,6 +52,26 @@ export async function hydratePlacedAssets(
         domId = `encounter-asset-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
         setEntityMapping(encounterId, 'assets', domId, backendIndex);
       }
+
+      const isCreature = asset.kind === 'Creature';
+      const visibilityKey = isCreature ? 'vtt-creatures-label-visibility' : 'vtt-objects-label-visibility';
+      const positionKey = isCreature ? 'vtt-creatures-label-position' : 'vtt-objects-label-position';
+
+      const storedVisibility = localStorage.getItem(visibilityKey);
+      const storedPosition = localStorage.getItem(positionKey);
+
+      const defaultVisibility = isCreature ? LabelVisibilityEnum.Always : LabelVisibilityEnum.OnHover;
+      const defaultPosition = LabelPositionEnum.Bottom;
+
+      const labelVisibility =
+        storedVisibility && storedVisibility !== LabelVisibilityEnum.Default
+          ? (storedVisibility as LabelVisibilityEnum)
+          : defaultVisibility;
+
+      const labelPosition =
+        storedPosition && storedPosition !== LabelVisibilityEnum.Default
+          ? (storedPosition as LabelPositionEnum)
+          : defaultPosition;
 
       const placedAsset: PlacedAsset = {
         id: domId,
@@ -78,8 +86,8 @@ export async function hydratePlacedAssets(
         name: encounterAssetAny.name || asset.name,
         visible: encounterAssetAny.visible !== undefined ? encounterAssetAny.visible : true,
         locked: encounterAssetAny.locked !== undefined ? encounterAssetAny.locked : false,
-        displayName: encounterAssetAny.displayName || DisplayNameEnum.Default,
-        labelPosition: encounterAssetAny.labelPosition || LabelPositionEnum.Default,
+        labelVisibility,
+        labelPosition,
       };
       return placedAsset;
     })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Asset, PlacedAsset } from '@/types/domain';
-import { AssetKind, DisplayName, LabelPosition } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility } from '@/types/domain';
 import { GridType } from '@/utils/gridCalculator';
 import { calculateAngleFromCenter, rotatePointAroundOrigin } from '@/utils/rotationUtils';
 
@@ -30,7 +30,7 @@ const mockAsset: PlacedAsset = {
   name: 'Test Asset #1',
   visible: true,
   locked: false,
-  displayName: DisplayName.Default,
+  labelVisibility: LabelVisibility.Default,
   labelPosition: LabelPosition.Default,
 };
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ObjectAsset, PlacedAsset } from '@/types/domain';
-import { AssetKind, DisplayName, LabelPosition } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility } from '@/types/domain';
 import {
   createBatchCommand,
   createCopyAssetsCommand,
@@ -42,7 +42,7 @@ const createMockPlacedAsset = (id: string): PlacedAsset => ({
   name: `Asset ${id}`,
   visible: true,
   locked: false,
-  displayName: DisplayName.Default,
+  labelVisibility: LabelVisibility.Default,
   labelPosition: LabelPosition.Default,
 });
 

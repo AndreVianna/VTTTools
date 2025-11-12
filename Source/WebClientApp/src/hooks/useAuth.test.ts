@@ -14,6 +14,10 @@ import authReducer from '@/store/slices/authSlice';
 import type { User } from '@/types/domain';
 import { useAuth } from './useAuth';
 
+declare global {
+  var globalAuthInitialized: boolean;
+}
+
 // Mock dependencies
 vi.mock('react-router-dom', () => ({
   useLocation: () => ({ pathname: '/', state: null }),
@@ -76,8 +80,7 @@ describe('useAuth', () => {
       createdAt: '2025-01-01T00:00:00Z',
     };
 
-    // Reset global auth initialization flag
-    (globalThis as any).globalAuthInitialized = false;
+    globalThis.globalAuthInitialized = false;
   });
 
   afterEach(() => {

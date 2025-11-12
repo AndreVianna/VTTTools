@@ -64,7 +64,7 @@ When('I submit the login form', async function (this: CustomWorld) {
 
   await this.page.locator('button[type="submit"]').click();
 
-  this.lastApiResponse = (await responsePromise) as any;
+  this.lastApiResponse = await responsePromise;
 });
 
 When('I attempt to submit the login form', async function (this: CustomWorld) {

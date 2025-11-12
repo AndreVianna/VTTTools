@@ -1,4 +1,4 @@
-import type { DisplayName, LabelPosition, PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
+import type { LabelPosition, LabelVisibility, PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
 
 export interface Command {
   execute: () => void | Promise<void>;
@@ -297,21 +297,21 @@ export const createRenameAssetCommand = (params: RenameAssetCommandParams): Comm
 
 export interface UpdateAssetDisplayCommandParams {
   assetId: string;
-  oldDisplay: { displayName?: DisplayName; labelPosition?: LabelPosition };
-  newDisplay: { displayName?: DisplayName; labelPosition?: LabelPosition };
-  onUpdate: (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => Promise<void>;
+  oldDisplay: { labelVisibility?: LabelVisibility; labelPosition?: LabelPosition };
+  newDisplay: { labelVisibility?: LabelVisibility; labelPosition?: LabelPosition };
+  onUpdate: (assetId: string, labelVisibility?: LabelVisibility, labelPosition?: LabelPosition) => Promise<void>;
 }
 
 export const createUpdateAssetDisplayCommand = (params: UpdateAssetDisplayCommandParams): Command => {
-  const { assetId, oldDisplay, newDisplay, onUpdate } = params;
+  const { assetId, oldDisplay: oldLabel, newDisplay: newLabel, onUpdate } = params;
 
   return {
     description: 'Update display settings',
     execute: async () => {
-      await onUpdate(assetId, newDisplay.displayName, newDisplay.labelPosition);
+      await onUpdate(assetId, newLabel.labelVisibility, newLabel.labelPosition);
     },
     undo: async () => {
-      await onUpdate(assetId, oldDisplay.displayName, oldDisplay.labelPosition);
+      await onUpdate(assetId, oldLabel.labelVisibility, oldLabel.labelPosition);
     },
   };
 };

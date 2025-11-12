@@ -10,7 +10,14 @@ import type {
   useUpdateEncounterAssetMutation,
 } from '@/services/encounterApi';
 import type { AppDispatch } from '@/store';
-import type { Asset, DisplayName, Encounter, LabelPosition, PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
+import type {
+  Asset,
+  Encounter,
+  LabelPosition,
+  LabelVisibility,
+  PlacedAsset,
+  PlacedAssetSnapshot,
+} from '@/types/domain';
 import { createAssetSnapshot } from '@/types/domain';
 import {
   createBatchCommand,
@@ -123,14 +130,14 @@ export const useAssetManagement = ({
               if (updatedEncounter) {
                 setEncounter(updatedEncounter);
 
-                const oldIndices = new Set(encounter.assets.map((a) => (a as any).index));
+                const oldIndices = new Set(encounter.assets.map((a) => a.index));
                 const newBackendAsset = updatedEncounter.assets.find((sa) => {
-                  const saIndex = (sa as any).index;
+                  const saIndex = sa.index;
                   return !oldIndices.has(saIndex);
                 });
 
                 if (newBackendAsset) {
-                  const backendIndex = (newBackendAsset as any).index;
+                  const backendIndex = newBackendAsset.index;
 
                   setEntityMapping(encounterId, 'assets', placedAsset.id, backendIndex);
                 } else {
@@ -139,9 +146,9 @@ export const useAssetManagement = ({
 
                 const hydratedAssets = await hydratePlacedAssets(
                   updatedEncounter.assets,
-                  encounterId || '',
+                  encounterId,
                   async (assetId: string) => {
-                    const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                    const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                     return result;
                   },
                 );
@@ -433,7 +440,7 @@ export const useAssetManagement = ({
                 updatedEncounter.assets,
                 encounterId || '',
                 async (assetId: string) => {
-                  const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                   return result;
                 },
               );
@@ -464,7 +471,7 @@ export const useAssetManagement = ({
                 updatedEncounter.assets,
                 encounterId || '',
                 async (assetId: string) => {
-                  const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                   return result;
                 },
               );
@@ -538,7 +545,7 @@ export const useAssetManagement = ({
                 updatedEncounter.assets,
                 encounterId || '',
                 async (assetId: string) => {
-                  const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                   return result;
                 },
               );
@@ -569,7 +576,7 @@ export const useAssetManagement = ({
                 updatedEncounter.assets,
                 encounterId || '',
                 async (assetId: string) => {
-                  const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                   return result;
                 },
               );
@@ -638,7 +645,7 @@ export const useAssetManagement = ({
                 updatedEncounter.assets,
                 encounterId || '',
                 async (assetId: string) => {
-                  const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                   return result;
                 },
               );
@@ -680,7 +687,7 @@ export const useAssetManagement = ({
                 updatedEncounter.assets,
                 encounterId || '',
                 async (assetId: string) => {
-                  const result = await dispatch((assetsApi as any).endpoints.getAsset.initiate(assetId)).unwrap();
+                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
                   return result;
                 },
               );
@@ -751,32 +758,32 @@ export const useAssetManagement = ({
     setSelectedAssetIds([assetId]);
   }, []);
 
-  const handleAssetDisplayUpdate = useCallback(
-    async (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => {
+  const handleAssetLabelUpdate = useCallback(
+    async (assetId: string, labelVisibility?: LabelVisibility, labelPosition?: LabelPosition) => {
       const asset = placedAssets.find((a) => a.id === assetId);
       if (!asset) return;
 
-      const newDisplay: {
-        displayName?: DisplayName;
+      const newLabel: {
+        labelVisibility?: LabelVisibility;
         labelPosition?: LabelPosition;
       } = {};
-      if (displayName !== undefined) newDisplay.displayName = displayName;
-      if (labelPosition !== undefined) newDisplay.labelPosition = labelPosition;
+      if (labelVisibility !== undefined) newLabel.labelVisibility = labelVisibility;
+      if (labelPosition !== undefined) newLabel.labelPosition = labelPosition;
 
       const command = createUpdateAssetDisplayCommand({
         assetId,
         oldDisplay: {
-          displayName: asset.displayName,
+          labelVisibility: asset.labelVisibility,
           labelPosition: asset.labelPosition,
         },
-        newDisplay,
-        onUpdate: async (id, newDisplayName, newLabelPosition) => {
+        newDisplay: newLabel,
+        onUpdate: async (id, newlabelVisibility, newLabelPosition) => {
           setPlacedAssets((prev) =>
             prev.map((a) =>
               a.id === id
                 ? {
                     ...a,
-                    displayName: newDisplayName ?? a.displayName,
+                    labelVisibility: newlabelVisibility ?? a.labelVisibility,
                     labelPosition: newLabelPosition ?? a.labelPosition,
                   }
                 : a,
@@ -785,7 +792,7 @@ export const useAssetManagement = ({
         },
       });
 
-      await execute(command);
+      execute(command);
     },
     [placedAssets, execute],
   );
@@ -816,6 +823,6 @@ export const useAssetManagement = ({
     handleDragComplete,
     handleAssetRename,
     handlePlacedAssetSelect,
-    handleAssetDisplayUpdate,
+    handleAssetDisplayUpdate: handleAssetLabelUpdate,
   };
 };

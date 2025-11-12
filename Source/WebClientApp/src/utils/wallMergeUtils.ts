@@ -82,7 +82,7 @@ export function canMergeWalls(params: CanMergeWallsParams): MergeResult {
 
   const endpointCollisions = collisionResult.collisions.filter((collision) => {
     const wall = existingWalls[collision.existingWallIndex];
-    return wall && isEndpoint(collision.existingPoleIndex, wall);
+    return !!wall && isEndpoint(collision.existingPoleIndex, wall);
   });
 
   if (endpointCollisions.length === 0) {

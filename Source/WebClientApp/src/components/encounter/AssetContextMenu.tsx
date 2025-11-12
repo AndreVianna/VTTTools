@@ -3,7 +3,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { Divider, ListItemIcon, ListItemText, Menu, MenuItem, TextField } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import { DisplayName, LabelPosition, type PlacedAsset } from '../../types/domain';
+import { LabelPosition, LabelVisibility, type PlacedAsset } from '../../types/domain';
 
 interface AssetContextMenuProps {
   anchorPosition: { left: number; top: number } | null;
@@ -11,7 +11,7 @@ interface AssetContextMenuProps {
   onClose: () => void;
   asset: PlacedAsset | null;
   onRename: (assetId: string, newName: string) => Promise<void>;
-  onUpdateDisplay: (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => Promise<void>;
+  onUpdateDisplay: (assetId: string, displayName?: LabelVisibility, labelPosition?: LabelPosition) => Promise<void>;
 }
 
 export const AssetContextMenu: React.FC<AssetContextMenuProps> = ({
@@ -56,7 +56,7 @@ export const AssetContextMenu: React.FC<AssetContextMenuProps> = ({
     }
   };
 
-  const handleDisplayNameClick = async (displayName: DisplayName) => {
+  const handleDisplayNameClick = async (displayName: LabelVisibility) => {
     if (!asset) return;
     await onUpdateDisplay(asset.id, displayName, undefined);
     setDisplayNameAnchorEl(null);
@@ -137,9 +137,9 @@ export const AssetContextMenu: React.FC<AssetContextMenuProps> = ({
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
-          {Object.values(DisplayName).map((value) => (
+          {Object.values(LabelVisibility).map((value) => (
             <MenuItem key={value} onClick={() => handleDisplayNameClick(value)}>
-              <ListItemIcon>{asset.displayName === value && <CheckIcon fontSize='small' />}</ListItemIcon>
+              <ListItemIcon>{asset.labelVisibility === value && <CheckIcon fontSize='small' />}</ListItemIcon>
               <ListItemText>{value}</ListItemText>
             </MenuItem>
           ))}

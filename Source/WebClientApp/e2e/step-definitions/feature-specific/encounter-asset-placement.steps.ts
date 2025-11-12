@@ -494,9 +494,9 @@ When('I place the asset at position X={int}, Y={int}', async function (this: Cus
   await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
 
   // Wait for API response
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-  )) as any;
+  );
 
   this.attach(`Placed asset at (${x}, ${y})`, 'text/plain');
 });
@@ -510,9 +510,9 @@ When('I place the asset at:', async function (this: CustomWorld, dataTable: any)
   await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-  )) as any;
+  );
 });
 
 When('I place the asset with:', async function (this: CustomWorld, dataTable: any) {
@@ -530,9 +530,9 @@ When('I place the asset with:', async function (this: CustomWorld, dataTable: an
   // TODO: Apply width, height, zIndex, rotation via properties panel
   // For now, just place at position
 
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-  )) as any;
+  );
 
   this.attach(`Placed asset with properties`, 'text/plain');
 });
@@ -548,9 +548,9 @@ When('I place all {int} assets at different positions', async function (this: Cu
       y: 100 + i * 150,
     });
 
-    (await this.page.waitForResponse(
+    await this.page.waitForResponse(
       (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-    )) as any;
+    );
   }
 
   this.attach(`Placed ${count} assets at different positions`, 'text/plain');
@@ -566,9 +566,9 @@ When('I attempt to place asset on encounter {string}', async function (this: Cus
       y: 500,
     });
 
-    this.lastApiResponse = (await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
+    this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
       timeout: 5000,
-    })) as any;
+    });
   } catch (_error) {
     this.attach('Placement failed as expected', 'text/plain');
   }
@@ -582,9 +582,9 @@ When('I attempt to place asset on that encounter', async function (this: CustomW
       x: 500,
       y: 500,
     });
-    this.lastApiResponse = (await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
+    this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
       timeout: 5000,
-    })) as any;
+    });
   } catch (_error) {
     this.attach('Placement failed as expected', 'text/plain');
   }
@@ -599,9 +599,9 @@ When('I attempt to place asset with non-existent template ID', async function (t
   try {
     await dragAssetToCanvas(this.page, fakeAssetId, { x: 500, y: 500 });
 
-    this.lastApiResponse = (await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
+    this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
       timeout: 5000,
-    })) as any;
+    });
   } catch (_error) {
     this.attach('Placement with invalid template failed as expected', 'text/plain');
   }
@@ -615,9 +615,9 @@ When('I place the asset with Z-index of {int}', async function (this: CustomWorl
     x: 500,
     y: 500,
   });
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-  )) as any;
+  );
 
   // TODO: Set Z-index via properties panel
   await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
@@ -635,9 +635,9 @@ When(
       x: 500,
       y: 500,
     });
-    this.lastApiResponse = (await this.page.waitForResponse(
+    this.lastApiResponse = await this.page.waitForResponse(
       (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-    )) as any;
+    );
 
     // TODO: Set dimensions via properties panel
     await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
@@ -654,9 +654,9 @@ When('I move the asset to position X={int}, Y={int}', async function (this: Cust
   // Move asset on canvas using drag
   await moveAssetOnCanvas(this.page, this.currentAssetInstanceId!, { x, y });
 
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'PUT',
-  )) as any;
+  );
 
   this.attach(`Moved asset to (${x}, ${y})`, 'text/plain');
 });
@@ -736,9 +736,9 @@ When('I attempt to move asset {string}', async function (this: CustomWorld, asse
     await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
     await moveAssetOnCanvas(this.page, assetId, { x: 600, y: 600 });
 
-    this.lastApiResponse = (await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
+    this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
       timeout: 5000,
-    })) as any;
+    });
   } catch (_error) {
     this.attach('Move failed as expected', 'text/plain');
   }
@@ -783,9 +783,9 @@ When('I move the first asset to new position', async function (this: CustomWorld
     x: 1000,
     y: 1000,
   });
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'PUT',
-  )) as any;
+  );
 });
 
 When('I remove asset {string} from the encounter', async function (this: CustomWorld, assetId: string) {
@@ -794,9 +794,9 @@ When('I remove asset {string} from the encounter', async function (this: CustomW
 
   await deleteAssetFromCanvas(this.page, assetId);
 
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
-  )) as any;
+  );
 
   this.attach(`Removed asset ${assetId}`, 'text/plain');
 });
@@ -811,9 +811,9 @@ When('I remove all assets from the encounter', async function (this: CustomWorld
 
   for (const asset of assets) {
     await deleteAssetFromCanvas(this.page, asset.Id);
-    (await this.page.waitForResponse(
+    await this.page.waitForResponse(
       (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
-    )) as any;
+    );
   }
 
   this.attach(`Removed all ${assets.length} assets`, 'text/plain');
@@ -825,7 +825,7 @@ When('I remove the {string} asset', async function (this: CustomWorld, assetName
     EncounterId: this.currentEncounterId,
   });
 
-  const assetInstance = assets.find((a: any) => {
+  const assetInstance = assets.find((a) => {
     const assetTemplate = this.createdAssets.find((ca) => ca.id === a.AssetId);
     return assetTemplate?.name === assetName;
   });
@@ -836,9 +836,9 @@ When('I remove the {string} asset', async function (this: CustomWorld, assetName
   await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, assetInstance.Id);
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
-  )) as any;
+  );
 });
 
 When('I attempt to remove asset {string}', async function (this: CustomWorld, assetId: string) {
@@ -846,9 +846,9 @@ When('I attempt to remove asset {string}', async function (this: CustomWorld, as
     await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
     await deleteAssetFromCanvas(this.page, assetId);
 
-    this.lastApiResponse = (await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
+    this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
       timeout: 5000,
-    })) as any;
+    });
   } catch (_error) {
     this.attach('Remove failed as expected', 'text/plain');
   }
@@ -878,9 +878,9 @@ When('I remove that asset', async function (this: CustomWorld) {
   await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, this.currentAssetInstanceId!);
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
-  )) as any;
+  );
 });
 
 When('I remove one asset', async function (this: CustomWorld) {
@@ -892,9 +892,9 @@ When('I remove one asset', async function (this: CustomWorld) {
   await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, assets[0].Id);
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
-  )) as any;
+  );
 });
 
 When('I remove asset {string}', async function (this: CustomWorld, assetId: string) {
@@ -902,9 +902,9 @@ When('I remove asset {string}', async function (this: CustomWorld, assetId: stri
   await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, assetId);
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
-  )) as any;
+  );
 });
 
 When(
@@ -914,9 +914,9 @@ When(
     await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
     await expandEncounterCanvas(this.page);
     await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
-    this.lastApiResponse = (await this.page.waitForResponse(
+    this.lastApiResponse = await this.page.waitForResponse(
       (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-    )) as any;
+    );
   },
 );
 
@@ -928,9 +928,9 @@ When('I place the new asset on the encounter', async function (this: CustomWorld
     x: 700,
     y: 700,
   });
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
-  )) as any;
+  );
 });
 
 // ============================================================================
@@ -998,7 +998,7 @@ Then('each should have unique position', async function (this: CustomWorld) {
     EncounterId: this.currentEncounterId,
   });
 
-  const positions = new Set(assets.map((a: any) => `${a.X},${a.Y}`));
+  const positions = new Set(assets.map((a) => `${a.X},${a.Y}`));
   expect(positions.size).toBe(assets.length);
 });
 
@@ -1123,7 +1123,7 @@ Then('the other {int} assets should remain unchanged', async function (this: Cus
     EncounterId: this.currentEncounterId,
   });
 
-  const unchangedAssets = assets.filter((a: any) => a.Id !== this.currentAssetInstanceId!);
+  const unchangedAssets = assets.filter((a) => a.Id !== this.currentAssetInstanceId!);
   expect(unchangedAssets.length).toBe(count);
 });
 

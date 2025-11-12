@@ -15,8 +15,8 @@ Given('I own a encounter in my library', async function (this: CustomWorld) {
 
   if (!encounterId) {
     // Insert test encounter
-    const pool = await (this.db as any).pool;
-    const newEncounterId = (this.db as any).generateGuidV7();
+    const pool = await this.db.pool;
+    const newEncounterId = this.db.generateGuidV7();
 
     await pool
       .request()
@@ -41,15 +41,15 @@ Given('I own a encounter in my library', async function (this: CustomWorld) {
                         GETUTCDATE(), GETUTCDATE())
             `);
 
-    (this as any).currentEncounterId = newEncounterId;
+    this.currentEncounterId = newEncounterId;
   } else {
-    (this as any).currentEncounterId = encounterId;
+    this.currentEncounterId = encounterId;
   }
 });
 
 Given('my encounter exists', async function (this: CustomWorld) {
   // Verify encounter exists from previous step
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   if (!encounterId) {
     throw new Error('No encounter has been created. Use "I own a encounter in my library" first.');
   }
@@ -61,7 +61,7 @@ Given('my encounter exists', async function (this: CustomWorld) {
 });
 
 Given('my encounter has square grid with size {int}', async function (this: CustomWorld, size: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
@@ -71,7 +71,7 @@ Given('my encounter has square grid with size {int}', async function (this: Cust
 });
 
 Given('my encounter has square grid', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square
@@ -81,7 +81,7 @@ Given('my encounter has square grid', async function (this: CustomWorld) {
 });
 
 Given('my encounter has configured grid', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   await this.db.updateRecord('Encounters', encounterId, {
     GridType: 1, // Square by default
@@ -93,7 +93,7 @@ Given('my encounter has configured grid', async function (this: CustomWorld) {
 Given(
   'my encounter has configured stage and {int} placed assets',
   async function (this: CustomWorld, assetCount: number) {
-    const encounterId = (this as any).currentEncounterId;
+    const encounterId = this.currentEncounterId;
 
     // Verify encounter has stage configured
     const encounters = await this.db.queryTable('Encounters', {
@@ -104,8 +104,8 @@ Given(
 
     // Create placed assets (AssetPlacements table)
     for (let i = 0; i < assetCount; i++) {
-      const assetId = (this.db as any).generateGuidV7();
-      const pool = await (this.db as any).pool;
+      const assetId = this.db.generateGuidV7();
+      const pool = await this.db.pool;
 
       await pool
         .request()
@@ -131,9 +131,9 @@ Given('no encounter exists with ID {string}', async function (this: CustomWorld,
 
 Given('a encounter exists owned by another user', async function (this: CustomWorld) {
   // Create encounter owned by different user
-  const otherUserId = (this.db as any).generateGuidV7();
-  const encounterId = (this.db as any).generateGuidV7();
-  const pool = await (this.db as any).pool;
+  const otherUserId = this.db.generateGuidV7();
+  const encounterId = this.db.generateGuidV7();
+  const pool = await this.db.pool;
 
   await pool
     .request()
@@ -158,7 +158,7 @@ Given('a encounter exists owned by another user', async function (this: CustomWo
                     GETUTCDATE(), GETUTCDATE())
         `);
 
-  (this as any).otherUserEncounterId = encounterId;
+  this.otherUserEncounterId = encounterId;
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -168,7 +168,7 @@ Given('a encounter exists owned by another user', async function (this: CustomWo
 When(
   'I configure grid with type {string} and size {int}',
   async function (this: CustomWorld, gridType: string, size: number) {
-    const encounterId = (this as any).currentEncounterId;
+    const encounterId = this.currentEncounterId;
 
     // Make PATCH request to update grid configuration
     const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
@@ -188,14 +188,14 @@ When(
         },
       },
     });
-    this.lastApiResponse = apiResponse as any;
+    this.lastApiResponse = apiResponse;
   },
 );
 
 When(
   'I configure grid with type {string} and hexagonal parameters',
   async function (this: CustomWorld, gridType: string) {
-    const encounterId = (this as any).currentEncounterId;
+    const encounterId = this.currentEncounterId;
 
     const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
       headers: {
@@ -214,14 +214,14 @@ When(
         },
       },
     });
-    this.lastApiResponse = apiResponse as any;
+    this.lastApiResponse = apiResponse;
   },
 );
 
 When(
   'I attempt to configure grid with type {string} and incompatible parameters',
   async function (this: CustomWorld, gridType: string) {
-    const encounterId = (this as any).currentEncounterId;
+    const encounterId = this.currentEncounterId;
 
     // Send invalid configuration (e.g., negative cell dimensions)
     const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
@@ -241,12 +241,12 @@ When(
         },
       },
     });
-    this.lastApiResponse = apiResponse as any;
+    this.lastApiResponse = apiResponse;
   },
 );
 
 When('I configure grid with:', async function (this: CustomWorld, dataTable: DataTable) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const rows = dataTable.hashes();
 
   const gridConfig: any = {
@@ -290,12 +290,12 @@ When('I configure grid with:', async function (this: CustomWorld, dataTable: Dat
     },
     data: { grid: gridConfig },
   });
-  this.lastApiResponse = apiResponse as any;
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I update grid size to {int}', async function (this: CustomWorld, newSize: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   // Get current grid config
   const encounters = await this.db.queryTable('Encounters', {
@@ -320,11 +320,11 @@ When('I update grid size to {int}', async function (this: CustomWorld, newSize: 
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I change grid type to {string}', async function (this: CustomWorld, gridType: string) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
@@ -348,8 +348,8 @@ When('I change grid type to {string}', async function (this: CustomWorld, gridTy
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I provide appropriate hexagonal parameters', async function (this: CustomWorld) {
@@ -357,7 +357,7 @@ When('I provide appropriate hexagonal parameters', async function (this: CustomW
 });
 
 When('I set grid type to {string}', async function (this: CustomWorld, gridType: string) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
@@ -381,13 +381,13 @@ When('I set grid type to {string}', async function (this: CustomWorld, gridType:
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
 });
 
 When(
   'I configure grid with offsetX {int} and offsetY {int}',
   async function (this: CustomWorld, offsetX: number, offsetY: number) {
-    const encounterId = (this as any).currentEncounterId;
+    const encounterId = this.currentEncounterId;
 
     const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
       headers: {
@@ -406,12 +406,12 @@ When(
         },
       },
     });
-    this.lastApiResponse = apiResponse as any;
+    this.lastApiResponse = apiResponse;
   },
 );
 
 When('I update the grid configuration', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
     headers: {
@@ -430,7 +430,7 @@ When('I update the grid configuration', async function (this: CustomWorld) {
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I attempt to configure grid for encounter {string}', async function (this: CustomWorld, encounterId: string) {
@@ -451,11 +451,11 @@ When('I attempt to configure grid for encounter {string}', async function (this:
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I attempt to configure grid for that encounter', async function (this: CustomWorld) {
-  const encounterId = (this as any).otherUserEncounterId;
+  const encounterId = this.otherUserEncounterId;
 
   const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
     headers: {
@@ -474,11 +474,11 @@ When('I attempt to configure grid for that encounter', async function (this: Cus
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I configure grid with type {string}', async function (this: CustomWorld, gridType: string) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
     headers: {
@@ -497,7 +497,7 @@ When('I configure grid with type {string}', async function (this: CustomWorld, g
       },
     },
   });
-  this.lastApiResponse = apiResponse as any;
+  this.lastApiResponse = apiResponse;
 });
 
 When('I provide appropriate configuration for {string}', async function (this: CustomWorld, _gridType: string) {
@@ -513,7 +513,7 @@ Then('the grid is updated successfully', async function (this: CustomWorld) {
 });
 
 Then('the grid type should be {string}', async function (this: CustomWorld, gridType: string) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -522,7 +522,7 @@ Then('the grid type should be {string}', async function (this: CustomWorld, grid
 });
 
 Then('the grid size should be {int}', async function (this: CustomWorld, size: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -536,7 +536,7 @@ Then('I should see error with validation error', async function (this: CustomWor
 });
 
 Then('all grid properties should be set correctly', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -551,7 +551,7 @@ Then('all grid properties should be set correctly', async function (this: Custom
 });
 
 Then('the encounter should have no grid overlay', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -568,7 +568,7 @@ Then('I should see error with forbidden error', async function (this: CustomWorl
 });
 
 Then('the offsets should be zero', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -578,7 +578,7 @@ Then('the offsets should be zero', async function (this: CustomWorld) {
 });
 
 Then('the negative offsets should be preserved', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -592,7 +592,7 @@ Then('the grid is updated', async function (this: CustomWorld) {
 });
 
 Then('the stage configuration should remain unchanged', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -603,10 +603,10 @@ Then('the stage configuration should remain unchanged', async function (this: Cu
 });
 
 Then('all asset placements should remain intact', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   // Query asset placements
-  const pool = await (this.db as any).pool;
+  const pool = await this.db.pool;
   const result = await pool
     .request()
     .input('encounterId', encounterId)

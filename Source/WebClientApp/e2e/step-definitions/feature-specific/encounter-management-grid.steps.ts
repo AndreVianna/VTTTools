@@ -18,37 +18,37 @@ import type { CustomWorld } from '../../support/world.js';
 // ═══════════════════════════════════════════════════════════════
 
 Given('I provide encounter name {string}', async function (this: CustomWorld, encounterName: string) {
-  (this as any).encounterName = encounterName;
+  this.encounterName = encounterName;
 });
 
 Given(
   'I provide encounter with stage width {int} and height {int}',
   async function (this: CustomWorld, width: number, height: number) {
-    (this as any).stageWidth = width;
-    (this as any).stageHeight = height;
+    this.stageWidth = width;
+    this.stageHeight = height;
   },
 );
 
 Given('I provide encounter with grid type {string}', async function (this: CustomWorld, gridType: string) {
-  (this as any).gridType = mapGridType(gridType);
+  this.gridType = mapGridType(gridType);
 });
 
 Given('I provide square grid size {int}', async function (this: CustomWorld, size: number) {
-  (this as any).gridCellWidth = size;
-  (this as any).gridCellHeight = size;
+  this.gridCellWidth = size;
+  this.gridCellHeight = size;
 });
 
 Given('I provide incompatible grid parameters', async function (this: CustomWorld) {
   // Set invalid parameters (e.g., zero dimensions for hexagonal grid)
-  (this as any).gridCellWidth = 0;
-  (this as any).gridCellHeight = 0;
+  this.gridCellWidth = 0;
+  this.gridCellHeight = 0;
 });
 
 Given('my encounter is not referenced by any active game session', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   // Verify no active game sessions reference this encounter
-  const pool = await (this.db as any).pool;
+  const pool = await this.db.pool;
   const result = await pool
     .request()
     .input('encounterId', encounterId)
@@ -62,11 +62,11 @@ Given('my encounter is not referenced by any active game session', async functio
 });
 
 Given('my encounter is referenced by an active game session', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   // Create an active game session referencing this encounter
-  const sessionId = (this.db as any).generateGuidV7();
-  const pool = await (this.db as any).pool;
+  const sessionId = this.db.generateGuidV7();
+  const pool = await this.db.pool;
 
   await pool
     .request()
@@ -83,42 +83,42 @@ Given('my encounter is referenced by an active game session', async function (th
             VALUES (@id, @title, @ownerId, @encounterId, @status, @createdAt, @updatedAt)
         `);
 
-  (this as any).activeSessionId = sessionId;
+  this.activeSessionId = sessionId;
 });
 
 Given('I provide valid encounter data', async function (this: CustomWorld) {
-  (this as any).encounterName = 'Test Encounter';
-  (this as any).stageWidth = 1920;
-  (this as any).stageHeight = 1080;
-  (this as any).gridType = 1; // Square
-  (this as any).gridCellWidth = 50;
-  (this as any).gridCellHeight = 50;
+  this.encounterName = 'Test Encounter';
+  this.stageWidth = 1920;
+  this.stageHeight = 1080;
+  this.gridType = 1; // Square
+  this.gridCellWidth = 50;
+  this.gridCellHeight = 50;
 });
 
 Given('I configure stage with background image and dimensions', async function (this: CustomWorld) {
-  (this as any).stageBackgroundUrl = 'https://example.com/background.jpg';
-  (this as any).stageWidth = 1920;
-  (this as any).stageHeight = 1080;
+  this.stageBackgroundUrl = 'https://example.com/background.jpg';
+  this.stageWidth = 1920;
+  this.stageHeight = 1080;
 });
 
 Given(
   'I configure grid with type {string} and size {int}',
   async function (this: CustomWorld, gridType: string, size: number) {
-    (this as any).gridType = mapGridType(gridType);
-    (this as any).gridCellWidth = size;
-    (this as any).gridCellHeight = size;
+    this.gridType = mapGridType(gridType);
+    this.gridCellWidth = size;
+    this.gridCellHeight = size;
   },
 );
 
 Given('I place {int} assets on the encounter', async function (this: CustomWorld, assetCount: number) {
-  (this as any).assetPlacementCount = assetCount;
+  this.assetPlacementCount = assetCount;
 });
 
 Given(
   'I have a encounter with stage, grid, and {int} placed assets',
   async function (this: CustomWorld, assetCount: number) {
-    const encounterId = (this.db as any).generateGuidV7();
-    const pool = await (this.db as any).pool;
+    const encounterId = this.db.generateGuidV7();
+    const pool = await this.db.pool;
 
     // Create encounter
     await pool
@@ -148,7 +148,7 @@ Given(
 
     // Place assets on encounter
     for (let i = 0; i < assetCount; i++) {
-      const assetId = (this.db as any).generateGuidV7();
+      const assetId = this.db.generateGuidV7();
       await pool
         .request()
         .input('encounterId', encounterId)
@@ -161,7 +161,7 @@ Given(
             `);
     }
 
-    (this as any).sourceEncounterId = encounterId;
+    this.sourceEncounterId = encounterId;
   },
 );
 
@@ -171,8 +171,8 @@ Given('I create encounters with each grid type:', async function (this: CustomWo
 
   for (const row of rows) {
     const gridType = mapGridType(row.GridType ?? 'Square');
-    const encounterId = (this.db as any).generateGuidV7();
-    const pool = await (this.db as any).pool;
+    const encounterId = this.db.generateGuidV7();
+    const pool = await this.db.pool;
 
     await pool
       .request()
@@ -202,18 +202,18 @@ Given('I create encounters with each grid type:', async function (this: CustomWo
     createdEncounterIds.push(encounterId);
   }
 
-  (this as any).createdEncounterIds = createdEncounterIds;
+  this.createdEncounterIds = createdEncounterIds;
 });
 
 Given('I provide empty encounter name', async function (this: CustomWorld) {
-  (this as any).encounterName = '';
+  this.encounterName = '';
 });
 
 Given(
   'I provide encounter with stage width {int} and height {int}',
   async function (this: CustomWorld, width: number, height: number) {
-    (this as any).stageWidth = width;
-    (this as any).stageHeight = height;
+    this.stageWidth = width;
+    this.stageHeight = height;
   },
 );
 
@@ -222,12 +222,12 @@ Given(
 // ═══════════════════════════════════════════════════════════════
 
 When('I create the encounter', async function (this: CustomWorld) {
-  const encounterName = (this as any).encounterName || 'Test Encounter';
-  const stageWidth = (this as any).stageWidth || 1920;
-  const stageHeight = (this as any).stageHeight || 1080;
-  const gridType = (this as any).gridType || 1;
-  const gridCellWidth = (this as any).gridCellWidth || 50;
-  const gridCellHeight = (this as any).gridCellHeight || 50;
+  const encounterName = this.encounterName || 'Test Encounter';
+  const stageWidth = this.stageWidth || 1920;
+  const stageHeight = this.stageHeight || 1080;
+  const gridType = this.gridType || 1;
+  const gridCellWidth = this.gridCellWidth || 50;
+  const gridCellHeight = this.gridCellHeight || 50;
 
   this.lastApiResponse = await this.page.request.post('/api/library/encounters', {
     headers: {
@@ -239,7 +239,7 @@ When('I create the encounter', async function (this: CustomWorld) {
       stage: {
         width: stageWidth,
         height: stageHeight,
-        backgroundUrl: (this as any).stageBackgroundUrl || null,
+        backgroundUrl: this.stageBackgroundUrl || null,
       },
       grid: {
         type: gridType,
@@ -256,17 +256,17 @@ When('I create the encounter', async function (this: CustomWorld) {
 
   if (this.lastApiResponse?.ok()) {
     const response = await this.lastApiResponse?.json();
-    (this as any).currentEncounterId = response.id;
+    this.currentEncounterId = response.id;
   }
 });
 
 When('I attempt to create the encounter', async function (this: CustomWorld) {
-  const encounterName = (this as any).encounterName || '';
-  const stageWidth = (this as any).stageWidth || 1920;
-  const stageHeight = (this as any).stageHeight || 1080;
-  const gridType = (this as any).gridType || 1;
-  const gridCellWidth = (this as any).gridCellWidth || 50;
-  const gridCellHeight = (this as any).gridCellHeight || 50;
+  const encounterName = this.encounterName || '';
+  const stageWidth = this.stageWidth || 1920;
+  const stageHeight = this.stageHeight || 1080;
+  const gridType = this.gridType || 1;
+  const gridCellWidth = this.gridCellWidth || 50;
+  const gridCellHeight = this.gridCellHeight || 50;
 
   this.lastApiResponse = await this.page.request.post('/api/library/encounters', {
     headers: {
@@ -293,7 +293,7 @@ When('I attempt to create the encounter', async function (this: CustomWorld) {
 });
 
 When('I delete the encounter', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   this.lastApiResponse = await this.page.request.delete(`/api/library/encounters/${encounterId}`, {
     headers: {
@@ -303,7 +303,7 @@ When('I delete the encounter', async function (this: CustomWorld) {
 });
 
 When('I attempt to delete the encounter', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
 
   this.lastApiResponse = await this.page.request.delete(`/api/library/encounters/${encounterId}`, {
     headers: {
@@ -313,7 +313,7 @@ When('I attempt to delete the encounter', async function (this: CustomWorld) {
 });
 
 When('I clone the encounter', async function (this: CustomWorld) {
-  const sourceEncounterId = (this as any).sourceEncounterId;
+  const sourceEncounterId = this.sourceEncounterId;
 
   this.lastApiResponse = await this.page.request.post(`/api/library/encounters/${sourceEncounterId}/clone`, {
     headers: {
@@ -327,7 +327,7 @@ When('I clone the encounter', async function (this: CustomWorld) {
 
   if (this.lastApiResponse?.ok()) {
     const response = await this.lastApiResponse?.json();
-    (this as any).clonedEncounterId = response.id;
+    this.clonedEncounterId = response.id;
   }
 });
 
@@ -340,7 +340,7 @@ Then('the encounter is created', async function (this: CustomWorld) {
 });
 
 Then('I should see the encounter in my library', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
     OwnerId: this.currentUser.id,
@@ -350,17 +350,17 @@ Then('I should see the encounter in my library', async function (this: CustomWor
 });
 
 Then('the stage dimensions should be set correctly', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
 
-  expect(encounters[0].StageWidth).toBe((this as any).stageWidth);
-  expect(encounters[0].StageHeight).toBe((this as any).stageHeight);
+  expect(encounters[0].StageWidth).toBe(this.stageWidth);
+  expect(encounters[0].StageHeight).toBe(this.stageHeight);
 });
 
 Then('the grid should be configured as square', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -378,7 +378,7 @@ Then('I should see error', async function (this: CustomWorld) {
 Then('the encounter is removed successfully', async function (this: CustomWorld) {
   expect(this.lastApiResponse?.status()).toBe(204);
 
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -386,7 +386,7 @@ Then('the encounter is removed successfully', async function (this: CustomWorld)
 });
 
 Then('the stage should be configured correctly', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -396,7 +396,7 @@ Then('the stage should be configured correctly', async function (this: CustomWor
 });
 
 Then('the grid should be configured correctly', async function (this: CustomWorld) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: encounterId,
   });
@@ -407,14 +407,14 @@ Then('the grid should be configured correctly', async function (this: CustomWorl
 });
 
 Then('all {int} assets should be placed', async function (this: CustomWorld, count: number) {
-  const encounterId = (this as any).currentEncounterId;
+  const encounterId = this.currentEncounterId;
   await this.db.verifyEncounterAssetPlacementCount(encounterId, count);
 });
 
 Then('a new encounter should be created', async function (this: CustomWorld) {
   expect(this.lastApiResponse?.status()).toBe(201);
 
-  const clonedEncounterId = (this as any).clonedEncounterId;
+  const clonedEncounterId = this.clonedEncounterId;
   const encounters = await this.db.queryTable('Encounters', {
     Id: clonedEncounterId,
   });
@@ -422,8 +422,8 @@ Then('a new encounter should be created', async function (this: CustomWorld) {
 });
 
 Then('the stage configuration should be duplicated', async function (this: CustomWorld) {
-  const sourceEncounterId = (this as any).sourceEncounterId;
-  const clonedEncounterId = (this as any).clonedEncounterId;
+  const sourceEncounterId = this.sourceEncounterId;
+  const clonedEncounterId = this.clonedEncounterId;
 
   const sourceEncounters = await this.db.queryTable('Encounters', {
     Id: sourceEncounterId,
@@ -437,8 +437,8 @@ Then('the stage configuration should be duplicated', async function (this: Custo
 });
 
 Then('the grid configuration should be duplicated', async function (this: CustomWorld) {
-  const sourceEncounterId = (this as any).sourceEncounterId;
-  const clonedEncounterId = (this as any).clonedEncounterId;
+  const sourceEncounterId = this.sourceEncounterId;
+  const clonedEncounterId = this.clonedEncounterId;
 
   const sourceEncounters = await this.db.queryTable('Encounters', {
     Id: sourceEncounterId,
@@ -453,11 +453,11 @@ Then('the grid configuration should be duplicated', async function (this: Custom
 });
 
 Then('all {int} assets should be duplicated with new IDs', async function (this: CustomWorld, count: number) {
-  const clonedEncounterId = (this as any).clonedEncounterId;
+  const clonedEncounterId = this.clonedEncounterId;
   await this.db.verifyEncounterAssetPlacementCount(clonedEncounterId, count);
 
   // Verify asset IDs are different from source
-  const sourceEncounterId = (this as any).sourceEncounterId;
+  const sourceEncounterId = this.sourceEncounterId;
   const sourcePlacements = await this.db.queryTable('EncounterAssets', {
     EncounterId: sourceEncounterId,
   });
@@ -465,8 +465,8 @@ Then('all {int} assets should be duplicated with new IDs', async function (this:
     EncounterId: clonedEncounterId,
   });
 
-  const sourceAssetIds = sourcePlacements.map((p: any) => p.AssetId);
-  const clonedAssetIds = clonedPlacements.map((p: any) => p.AssetId);
+  const sourceAssetIds = sourcePlacements.map((p) => p.AssetId);
+  const clonedAssetIds = clonedPlacements.map((p) => p.AssetId);
 
   // No asset IDs should be the same
   const intersection = sourceAssetIds.filter((id: string) => clonedAssetIds.includes(id));
@@ -474,7 +474,7 @@ Then('all {int} assets should be duplicated with new IDs', async function (this:
 });
 
 Then('all encounters are created', async function (this: CustomWorld) {
-  const encounterIds = (this as any).createdEncounterIds || [];
+  const encounterIds = this.createdEncounterIds || [];
 
   for (const encounterId of encounterIds) {
     const encounters = await this.db.queryTable('Encounters', {
@@ -485,7 +485,7 @@ Then('all encounters are created', async function (this: CustomWorld) {
 });
 
 Then('each should have the correct grid configuration', async function (this: CustomWorld) {
-  const encounterIds = (this as any).createdEncounterIds || [];
+  const encounterIds = this.createdEncounterIds || [];
 
   const expectedGridTypes = [1, 2, 4, 0]; // Square, HexH, Isometric, NoGrid
 

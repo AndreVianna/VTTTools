@@ -221,7 +221,7 @@ When('I attempt to delete asset {string}', async function (this: CustomWorld, as
   this.lastApiResponse = {
     status: () => response.status(),
     body: async () => await response.text(),
-  } as any;
+  };
 });
 
 When('I confirm delete', async function (this: CustomWorld) {

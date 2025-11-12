@@ -197,7 +197,7 @@ export interface PlacedAsset {
   name: string;
   visible: boolean;
   locked: boolean;
-  displayName: DisplayName;
+  labelVisibility: LabelVisibility;
   labelPosition: LabelPosition;
 }
 
@@ -451,9 +451,9 @@ export interface EncounterAsset {
   index: number;
   number: number;
   name: string;
-  notes?: string; // Renamed from description
-  token?: MediaResource; // Changed from resourceId (string) to full MediaResource object
-  portrait?: MediaResource; // New: separate portrait reference
+  notes?: string;
+  token?: MediaResource;
+  portrait?: MediaResource;
   x: number;
   y: number;
   width: number;
@@ -465,9 +465,7 @@ export interface EncounterAsset {
   elevation: number;
   visible: boolean;
   locked: boolean;
-  // displayName and labelPosition removed - now handled in frontend localStorage
   asset: Asset;
-  // Placement behavior derived from asset.category but can be customized
   customBehavior?: Partial<import('./placement').PlacementBehavior>;
 }
 
@@ -643,7 +641,7 @@ export interface UpdateProfileRequest {
   profilworldtureUrl?: string;
 }
 
-export enum DisplayName {
+export enum LabelVisibility {
   Default = 'Default',
   Always = 'Always',
   OnHover = 'OnHover',

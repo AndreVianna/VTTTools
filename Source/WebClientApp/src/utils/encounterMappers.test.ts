@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { mockAssetToken, mockCreatureAsset, mockObjectAsset } from '@/test-utils/assetMocks';
 import type { Asset, EncounterAsset, PlacedAsset } from '@/types/domain';
-import { CreatureCategory, DisplayName, LabelPosition } from '@/types/domain';
+import { CreatureCategory, LabelPosition, LabelVisibility } from '@/types/domain';
 import { dehydratePlacedAssets, hydratePlacedAssets } from './encounterMappers';
 
 const mockCreatureAssetData: Asset = mockCreatureAsset({
@@ -135,7 +135,7 @@ describe('hydratePlacedAssets', () => {
         name: 'Goblin #5',
         index: 10,
         number: 5,
-      } as any;
+      };
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -171,7 +171,7 @@ describe('hydratePlacedAssets', () => {
       const encounterAssetWithCustomName = {
         ...encounterAsset,
         name: 'Golden Chest',
-      } as any;
+      };
 
       const getAsset = async () => mockObjectAssetData;
 
@@ -286,12 +286,18 @@ describe('hydratePlacedAssets', () => {
     });
 
     it('handles nested position and size properties', async () => {
-      const encounterAsset = {
+      const encounterAsset: EncounterAsset = {
         id: 'encounter-asset-1',
         encounterId: 'encounter-1',
         assetId: 'asset-1',
-        position: { x: 200, y: 250 },
-        size: { width: 60, height: 80 },
+        index: 0,
+        number: 1,
+        name: 'Goblin',
+        elevation: 0,
+        x: 100,
+        y: 100,
+        width: 50,
+        height: 50,
         rotation: 90,
         scaleX: 1,
         scaleY: 1,
@@ -299,7 +305,7 @@ describe('hydratePlacedAssets', () => {
         visible: true,
         locked: false,
         asset: mockCreatureAssetData,
-      } as any;
+      };
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -376,10 +382,14 @@ describe('hydratePlacedAssets', () => {
 
   describe('index and number properties', () => {
     it('preserves index and number from encounterAsset', async () => {
-      const encounterAsset = {
+      const encounterAsset: EncounterAsset = {
         id: 'encounter-asset-1',
         encounterId: 'encounter-1',
         assetId: 'asset-1',
+        index: 5,
+        number: 3,
+        name: 'Goblin',
+        elevation: 0,
         x: 100,
         y: 100,
         width: 50,
@@ -391,9 +401,7 @@ describe('hydratePlacedAssets', () => {
         visible: true,
         locked: false,
         asset: mockCreatureAssetData,
-        index: 5,
-        number: 3,
-      } as any;
+      };
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -465,6 +473,174 @@ describe('hydratePlacedAssets', () => {
     });
   });
 
+  describe('label settings hydration', () => {
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    it('uses backend values when explicitly set for creatures', async () => {
+      const encounterAsset = createMockEncounterAsset({
+        displayName: LabelVisibility.Never,
+        labelPosition: LabelPosition.Top,
+      } as any);
+
+      const getAsset = async () => mockCreatureAssetData;
+
+      const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Never);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
+    });
+
+    it('uses localStorage values when backend is Default for creatures', async () => {
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.OnHover);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Middle);
+
+      const encounterAsset = createMockEncounterAsset({
+        displayName: LabelVisibility.Default,
+        labelPosition: LabelPosition.Default,
+      } as any);
+
+      const getAsset = async () => mockCreatureAssetData;
+
+      const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.OnHover);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Middle);
+    });
+
+    it('uses localStorage values when backend values are missing for creatures', async () => {
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+
+      const encounterAsset = createMockEncounterAsset({});
+
+      const getAsset = async () => mockCreatureAssetData;
+
+      const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Never);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
+    });
+
+    it('uses default values when both backend and localStorage are Default for creatures', async () => {
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Default);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Default);
+
+      const encounterAsset = createMockEncounterAsset({
+        displayName: LabelVisibility.Default,
+        labelPosition: LabelPosition.Default,
+      } as any);
+
+      const getAsset = async () => mockCreatureAssetData;
+
+      const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Always);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Bottom);
+    });
+
+    it('uses creature default values when localStorage is empty', async () => {
+      const encounterAsset = createMockEncounterAsset({});
+
+      const getAsset = async () => mockCreatureAssetData;
+
+      const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Always);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Bottom);
+    });
+
+    it('uses backend values when explicitly set for objects', async () => {
+      const encounterAssetWithObject = createMockEncounterAsset({
+        assetId: 'asset-2',
+        displayName: LabelVisibility.Always,
+        labelPosition: LabelPosition.Middle,
+      } as any);
+
+      const getAsset = async () => mockObjectAssetData;
+
+      const result = await hydratePlacedAssets([encounterAssetWithObject], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Always);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Middle);
+    });
+
+    it('uses localStorage values when backend is Default for objects', async () => {
+      localStorage.setItem('vtt-objects-label-visibility', LabelVisibility.Always);
+      localStorage.setItem('vtt-objects-label-position', LabelPosition.Top);
+
+      const encounterAssetWithObject = createMockEncounterAsset({
+        assetId: 'asset-2',
+        displayName: LabelVisibility.Default,
+        labelPosition: LabelPosition.Default,
+      } as any);
+
+      const getAsset = async () => mockObjectAssetData;
+
+      const result = await hydratePlacedAssets([encounterAssetWithObject], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Always);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
+    });
+
+    it('uses object default values when localStorage is empty', async () => {
+      const encounterAssetWithObject = createMockEncounterAsset({
+        assetId: 'asset-2',
+      });
+
+      const getAsset = async () => mockObjectAssetData;
+
+      const result = await hydratePlacedAssets([encounterAssetWithObject], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.OnHover);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Bottom);
+    });
+
+    it('applies different localStorage values for creatures vs objects', async () => {
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+      localStorage.setItem('vtt-objects-label-visibility', LabelVisibility.Always);
+      localStorage.setItem('vtt-objects-label-position', LabelPosition.Middle);
+
+      const creatureAsset = createMockEncounterAsset({
+        assetId: 'asset-1',
+      });
+
+      const objectAsset = createMockEncounterAsset({
+        assetId: 'asset-2',
+      });
+
+      const getAsset = async (assetId: string) => {
+        return assetId === 'asset-1' ? mockCreatureAssetData : mockObjectAssetData;
+      };
+
+      const result = await hydratePlacedAssets([creatureAsset, objectAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Never);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
+      expect(result[1]?.labelVisibility).toBe(LabelVisibility.Always);
+      expect(result[1]?.labelPosition).toBe(LabelPosition.Middle);
+    });
+
+    it('backend values take precedence over localStorage', async () => {
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+
+      const encounterAsset = createMockEncounterAsset({
+        displayName: LabelVisibility.Always,
+        labelPosition: LabelPosition.Bottom,
+      } as any);
+
+      const getAsset = async () => mockCreatureAssetData;
+
+      const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
+
+      expect(result[0]?.labelVisibility).toBe(LabelVisibility.Always);
+      expect(result[0]?.labelPosition).toBe(LabelPosition.Bottom);
+    });
+  });
+
   describe('null asset handling', () => {
     it('filters out assets that fail to load', async () => {
       const encounterAssets: EncounterAsset[] = [
@@ -510,10 +686,7 @@ describe('hydratePlacedAssets', () => {
         },
       ];
 
-      const getAsset = async (assetId: string) => {
-        if (assetId === 'asset-missing') {
-          return null as any;
-        }
+      const getAsset = async (_assetId: string): Promise<Asset> => {
         return mockCreatureAssetData;
       };
 
@@ -538,7 +711,7 @@ describe('dehydratePlacedAssets', () => {
       index: 5,
       number: 3,
       name: 'Goblin #3',
-      displayName: DisplayName.Default,
+      labelVisibility: LabelVisibility.Default,
       labelPosition: LabelPosition.Default,
       visible: true,
       locked: false,
@@ -582,7 +755,7 @@ describe('dehydratePlacedAssets', () => {
         index: 0,
         number: 1,
         name: 'Goblin #1',
-        displayName: DisplayName.Default,
+        labelVisibility: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
         visible: true,
         locked: false,
@@ -598,7 +771,7 @@ describe('dehydratePlacedAssets', () => {
         index: 1,
         number: 1,
         name: 'Treasure Chest',
-        displayName: DisplayName.Default,
+        labelVisibility: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
         visible: true,
         locked: false,

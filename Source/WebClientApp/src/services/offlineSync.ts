@@ -15,7 +15,7 @@ export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (
   const result = next(action);
 
   if (action?.type?.includes?.('/fulfilled') || action?.type?.includes?.('/rejected')) {
-    const state = api.getState() as any;
+    const state = api.getState();
 
     if (state?.encounterApi) {
       storage.setItem(RTK_QUERY_CACHE_KEY, {
@@ -29,7 +29,7 @@ export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (
   const mutation = action?.meta?.arg;
   const isRejectedMutation = action?.type?.includes?.('/rejected');
   const hasRejectedWithValue = action?.meta?.rejectedWithValue === true;
-  const isFetchError = (action?.payload as any)?.status === 'FETCH_ERROR';
+  const isFetchError = action?.payload?.status === 'FETCH_ERROR';
 
   if (isRejectedMutation && hasRejectedWithValue && mutation?.type === 'mutation' && isFetchError) {
     const offlineMutation: OfflineMutation = {

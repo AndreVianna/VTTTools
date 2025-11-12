@@ -6,9 +6,9 @@ import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'rea
 import { getApiEndpoints } from '@/config/development';
 import { GroupName, LayerName } from '@/services/layerManager';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
-import { DisplayName as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
+import { LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
-import { getEffectiveDisplayName, getEffectiveLabelPosition } from '@/utils/displayHelpers';
+import { getEffectiveLabelPosition, getEffectiveLabelVisibility } from '@/utils/displayHelpers';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { formatCreatureLabel } from './tokenPlacementUtils';
@@ -447,7 +447,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         name: draggedAsset.name,
         visible: true,
         locked: false,
-        displayName: DisplayNameEnum.Default,
+        labelVisibility: DisplayNameEnum.Default,
         labelPosition: LabelPositionEnum.Default,
       };
 
@@ -478,7 +478,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         if (isCreature) {
           const isHovered = hoveredAssetId === placedAsset.id;
           const isExpanded = expandedAssetId === placedAsset.id;
-          const effectiveDisplay = getEffectiveDisplayName(placedAsset);
+          const effectiveDisplay = getEffectiveLabelVisibility(placedAsset);
           const effectivePosition = getEffectiveLabelPosition(placedAsset);
 
           const showLabel =
@@ -620,7 +620,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const isHovered = hoveredAssetId === placedAsset.id;
         const isExpanded = expandedAssetId === placedAsset.id;
 
-        const effectiveDisplay = getEffectiveDisplayName(placedAsset);
+        const effectiveDisplay = getEffectiveLabelVisibility(placedAsset);
         const effectivePosition = getEffectiveLabelPosition(placedAsset);
 
         const showLabel =

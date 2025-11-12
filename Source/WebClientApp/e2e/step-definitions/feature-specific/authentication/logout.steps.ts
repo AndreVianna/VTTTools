@@ -114,7 +114,7 @@ Given('I submit the logout request', async function (this: CustomWorld) {
 
 Given('I have loaded sensitive user data in the application', async function (this: CustomWorld) {
   const user = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.user;
+    return window.store?.getState()?.auth?.user;
   });
   expect(user).toBeDefined();
   expect(user).not.toBeNull();
@@ -170,10 +170,10 @@ When('I click the logout button', async function (this: CustomWorld) {
 });
 
 When('the logout request completes successfully', async function (this: CustomWorld) {
-  this.lastApiResponse = (await this.page.waitForResponse(
+  this.lastApiResponse = await this.page.waitForResponse(
     (response) => response.url().includes('/api/auth/logout') && response.status() === 200,
     { timeout: 10000 },
-  )) as any;
+  );
 });
 
 When('I confirm logout', async function (this: CustomWorld) {
@@ -248,7 +248,7 @@ Then('the authentication token should be cleared from storage', async function (
 
 Then('the Auth Context should be reset', async function (this: CustomWorld) {
   const authState = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth;
+    return window.store?.getState()?.auth;
   });
 
   expect(authState?.isAuthenticated).toBeFalsy();
@@ -265,7 +265,7 @@ Then('the authentication token should be cleared anyway', async function (this: 
   // (Playwright route mocking intercepts BEFORE backend), but Redux state should be cleared
 
   const authState = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth;
+    return window.store?.getState()?.auth;
   });
 
   // Verify Redux state is cleared (this is what matters for client-side behavior)
@@ -332,7 +332,7 @@ Then('no logout should occur', async function (this: CustomWorld) {
 
 Then('I should remain authenticated', async function (this: CustomWorld) {
   const authState = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.isAuthenticated;
+    return window.store?.getState()?.auth?.isAuthenticated;
   });
   expect(authState).toBe(true);
 });
@@ -370,14 +370,14 @@ Then('the session cookie should be cleared by the server', async function (this:
 
 Then('Redux authSlice.isAuthenticated should be false', async function (this: CustomWorld) {
   const isAuthenticated = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.isAuthenticated;
+    return window.store?.getState()?.auth?.isAuthenticated;
   });
   expect(isAuthenticated).toBeFalsy();
 });
 
 Then('Redux authSlice.user should be null', async function (this: CustomWorld) {
   const user = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.user;
+    return window.store?.getState()?.auth?.user;
   });
   expect(user).toBeNull();
 });
@@ -395,7 +395,7 @@ Then('I should not be able to access protected routes', async function (this: Cu
 
 Then('the Auth Context user should be set to null', async function (this: CustomWorld) {
   const user = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.user;
+    return window.store?.getState()?.auth?.user;
   });
   expect(user).toBeNull();
 });
@@ -513,7 +513,7 @@ Then('only one logout request should be sent', async function (this: CustomWorld
 
 Then('all user-specific data should be cleared from state', async function (this: CustomWorld) {
   const authState = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth;
+    return window.store?.getState()?.auth;
   });
 
   expect(authState?.user).toBeNull();
@@ -567,7 +567,7 @@ Then('I receive response with in less than 200ms', async function (this: CustomW
 
 Then('the client-side state should clear immediately', async function (this: CustomWorld) {
   const user = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.user;
+    return window.store?.getState()?.auth?.user;
   });
   expect(user).toBeNull();
 });

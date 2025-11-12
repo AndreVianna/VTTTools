@@ -110,7 +110,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   gridConfig,
   snapEnabled = true,
   snapMode: externalSnapMode,
-  onClearSelections,
   isAltPressed = false,
   encounterId: _encounterId,
   wallIndex: _wallIndex,

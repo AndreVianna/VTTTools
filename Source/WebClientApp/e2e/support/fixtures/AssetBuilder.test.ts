@@ -96,7 +96,7 @@ describe('AssetBuilder (New Schema)', () => {
     const asset = await builder.withName('Wall').immovable().opaque().build();
 
     expect(asset.kind).toBe(AssetKind.Object);
-    const props = asset.properties as any;
+    const props = asset.properties;
     expect(props.isMovable).toBe(false);
     expect(props.isOpaque).toBe(true);
   });

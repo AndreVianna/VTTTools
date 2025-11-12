@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { DisplayName, LabelPosition } from '../../types/domain';
+import { LabelPosition, LabelVisibility } from '../../types/domain';
 import { AssetContextMenu } from './AssetContextMenu';
 
 describe('AssetContextMenu', () => {
   const mockAsset = {
     id: '123',
     name: 'Test Asset',
-    displayName: DisplayName.Default,
+    displayName: LabelVisibility.Default,
     labelPosition: LabelPosition.Default,
   } as any;
 
@@ -176,7 +176,7 @@ describe('AssetContextMenu', () => {
   it('shows checkmark for current display name', () => {
     const assetWithDisplay = {
       ...mockAsset,
-      displayName: DisplayName.Always,
+      displayName: LabelVisibility.Always,
     };
 
     render(
@@ -215,7 +215,7 @@ describe('AssetContextMenu', () => {
     fireEvent.click(screen.getByText('Always'));
 
     await waitFor(() => {
-      expect(onUpdateDisplay).toHaveBeenCalledWith('123', DisplayName.Always, undefined);
+      expect(onUpdateDisplay).toHaveBeenCalledWith('123', LabelVisibility.Always, undefined);
     });
     expect(onClose).toHaveBeenCalled();
   });

@@ -82,7 +82,7 @@ export const encounterApi = createApi({
         } catch (error) {
           patchResult.undo();
 
-          const err = error as any;
+          const err = error as { error: { data: VersionConflictError } };
           if (err?.error?.data?.conflictType === 'version_mismatch') {
             console.error('Version conflict detected', err.error.data);
           }

@@ -2,7 +2,7 @@ import { ConfirmDialog } from '@components/common';
 import { AssetContextMenu, WallContextMenu } from '@components/encounter';
 import { Alert, Snackbar } from '@mui/material';
 import type React from 'react';
-import type { DisplayName, EncounterWall, LabelPosition, PlacedAsset } from '@/types/domain';
+import type { EncounterWall, LabelPosition, LabelVisibility, PlacedAsset } from '@/types/domain';
 
 interface EditorDialogsProps {
   deleteConfirmOpen: boolean;
@@ -13,7 +13,11 @@ interface EditorDialogsProps {
   assetContextMenuAsset: PlacedAsset | null;
   onAssetContextMenuClose: () => void;
   onAssetRename: (assetId: string, newName: string) => Promise<void>;
-  onAssetDisplayUpdate: (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => Promise<void>;
+  onAssetDisplayUpdate: (
+    assetId: string,
+    displayName?: LabelVisibility,
+    labelPosition?: LabelPosition,
+  ) => Promise<void>;
   wallContextMenuPosition: { left: number; top: number } | null;
   wallContextMenuWall: EncounterWall | null;
   onWallContextMenuClose: () => void;

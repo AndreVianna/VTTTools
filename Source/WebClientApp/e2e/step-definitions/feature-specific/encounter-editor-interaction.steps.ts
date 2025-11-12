@@ -51,26 +51,18 @@ Given('the encounter canvas is loaded', async function (this: CustomWorld) {
   // Verify canvas element exists and is interactive
   const canvasElem = this.page.locator('canvas').first();
   await expect(canvasElem).toBeVisible();
-
-  // Store canvas locator for interactions
-  const ctx = this as any;
-  ctx.encounterCanvas = canvasElem;
+  this.encounterCanvas = canvasElem;
 });
 
 Given(
   'the viewport is at position X={int} Y={int} with scale {float}',
   async function (this: CustomWorld, x: number, y: number, scale: number) {
-    // Set viewport programmatically via canvas API if exposed
-    // For now, store expected initial state
-    const ctx = this as any;
-    ctx.initialViewport = { x, y, scale };
+    this.initialViewport = { x, y, scale };
   },
 );
 
 Given('I have a encounter with background image', async function (this: CustomWorld) {
-  // Create encounter with background
-  const ctx = this as any;
-  const backgroundResourceId = ctx.testImageResourceId || (await (this as any).createTestImageResource());
+  const backgroundResourceId = this.testImageResourceId || awaitthis.createTestImageResource();
 
   const encounter = await this.page.request.post('/api/library/encounters', {
     data: {
@@ -106,7 +98,7 @@ Given('I have placed {int} assets on the encounter', async function (this: Custo
   for (let i = 0; i < assetCount; i++) {
     const asset = await this.assetBuilder()
       .withName(`Asset ${i + 1}`)
-      .withKind(1 as any) // Character
+      .withKind(1) // Character
       .build();
 
     await this.page.request.post(`/api/library/encounters/${encounterId}/assets`, {
@@ -119,9 +111,7 @@ Given('I have placed {int} assets on the encounter', async function (this: Custo
       },
     });
   }
-
-  const ctx = this as any;
-  ctx.placedAssetCount = assetCount;
+  this.placedAssetCount = assetCount;
 });
 
 // ============================================================================
@@ -271,10 +261,7 @@ When(
 
     // Click at specific position (relative to canvas)
     await this.page.mouse.click(bbox.x + x, bbox.y + y, { button: 'left' });
-
-    // Store click position for verification
-    const ctx = this as any;
-    ctx.lastClickPosition = { x, y };
+    this.lastClickPosition = { x, y };
   },
 );
 
@@ -312,8 +299,7 @@ When('I perform a rapid pan gesture', async function (this: CustomWorld) {
 
   // Calculate approximate FPS (20 movements)
   const fps = Math.round((20 / duration) * 1000);
-  const ctx = this as any;
-  ctx.measuredFPS = fps;
+  this.measuredFPS = fps;
 });
 
 When('I zoom continuously {int} times in rapid succession', async function (this: CustomWorld, zoomCount: number) {
@@ -371,18 +357,13 @@ Then('the zoom level should be capped at {float}x', async function (this: Custom
   // For now, verify canvas remains responsive
   const canvasElem = this.page.locator('canvas').first();
   await expect(canvasElem).toBeVisible();
-
-  // Store expected max zoom
-  const ctx = this as any;
-  ctx.expectedMaxZoom = maxZoom;
+  this.expectedMaxZoom = maxZoom;
 });
 
 Then('the zoom level should be capped at {float}x minimum', async function (this: CustomWorld, minZoom: number) {
   const canvasElem = this.page.locator('canvas').first();
   await expect(canvasElem).toBeVisible();
-
-  const ctx = this as any;
-  ctx.expectedMinZoom = minZoom;
+  this.expectedMinZoom = minZoom;
 });
 
 Then('the background image should be visible', async function (this: CustomWorld) {
@@ -399,15 +380,11 @@ Then('all {int} assets should remain visible', async function (this: CustomWorld
   // In Konva, this would be checking layer children
   const canvasElem = this.page.locator('canvas').first();
   await expect(canvasElem).toBeVisible();
-
-  // Store expected asset count for verification
-  const ctx = this as any;
-  expect(assetCount).toBe(ctx.placedAssetCount);
+  expect(assetCount).toBe(this.placedAssetCount);
 });
 
 Then('the pan operation should maintain {int} FPS or higher', async function (this: CustomWorld, targetFPS: number) {
-  const ctx = this as any;
-  const measuredFPS = ctx.measuredFPS;
+  const measuredFPS = this.measuredFPS;
 
   // AC-01: Right-click panning must achieve 60 FPS
   if (measuredFPS !== undefined) {
@@ -487,5 +464,5 @@ async function createTestImageResource(this: CustomWorld): Promise<string> {
 }
 
 // Export helper for use in Given step
-const proto = CustomWorld.prototype as any;
+const proto = CustomWorld.prototype;
 proto.createTestImageResource = createTestImageResource;

@@ -346,19 +346,6 @@ export class UndoRedoManager {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-
-    // Store cleanup function (needs to be called when manager is destroyed)
-    (this as any)._keydownHandler = handleKeyDown;
-  }
-
-  /**
-   * Remove keyboard shortcuts
-   * Call this when component unmounts
-   */
-  public destroy(): void {
-    if (this.enableKeyboardShortcuts && (this as any)._keydownHandler) {
-      window.removeEventListener('keydown', (this as any)._keydownHandler);
-    }
   }
 
   /**

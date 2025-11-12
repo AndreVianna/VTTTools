@@ -18,12 +18,6 @@ import { worldsApi } from '../services/worldsApi';
 import authSlice from './slices/authSlice';
 import errorSlice from './slices/errorSlice';
 import uiSlice from './slices/uiSlice';
-// Offline sync temporarily disabled - causes cache invalidation errors
-// import { persistMiddleware, hydrateFromStorage } from '../services/offlineSync';
-
-// const preloadedState = {
-//   [encounterApi.reducerPath]: hydrateFromStorage()
-// };
 
 export const store = configureStore({
   reducer: {
@@ -73,23 +67,25 @@ export const store = configureStore({
       .concat(securityApi.middleware)
       .concat(twoFactorApi.middleware)
       .concat(recoveryCodesApi.middleware),
-  // .concat(persistMiddleware), // Disabled - causes cache invalidation errors
   devTools: process.env.NODE_ENV !== 'production',
 });
 
-// Expose store to window for E2E testing
-if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
-  (window as any).store = store;
+declare global {
+  interface Window {
+    store: typeof store;
+  }
 }
 
-// Enable listener behavior for the store
+if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+  window.store = store;
+}
+
 setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 import type { TypedUseSelectorHook } from 'react-redux';
-// Typed hooks for use throughout the app
 import { useDispatch, useSelector } from 'react-redux';
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();

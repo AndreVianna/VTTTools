@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupName } from '@/services/layerManager';
 import { mockAssetToken, mockCreatureAsset, mockMediaResource, mockObjectAsset } from '@/test-utils/assetMocks';
 import type { Asset, CreatureAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory, DisplayName, LabelPosition, Light, Weather } from '@/types/domain';
+import { AssetKind, CreatureCategory, LabelPosition, LabelVisibility, Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { TokenPlacement } from './TokenPlacement';
@@ -80,7 +80,7 @@ const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
   name: `Asset ${id}`,
   visible: true,
   locked: false,
-  displayName: DisplayName.Always,
+  labelVisibility: LabelVisibility.Always,
   labelPosition: LabelPosition.Bottom,
 });
 

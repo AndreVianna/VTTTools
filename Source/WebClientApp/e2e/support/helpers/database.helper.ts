@@ -154,7 +154,7 @@ export class DatabaseHelper {
     }
 
     const tokens = asset.Tokens ? JSON.parse(asset.Tokens) : [];
-    const hasDefault = tokens.some((t: any) => t.isDefault === true);
+    const hasDefault = tokens.some((t) => t.isDefault === true);
 
     if (!hasDefault) {
       throw new Error(`Asset ${assetId} has no default token`);
@@ -681,7 +681,7 @@ export class DatabaseHelper {
     }
 
     const players = JSON.parse(session.Players || '[]');
-    const participant = players.find((p: any) => p.userId === userId);
+    const participant = players.find((p) => p.userId === userId);
 
     if (!participant) {
       throw new Error(`Participant with userId ${userId} not found in session ${sessionId}`);

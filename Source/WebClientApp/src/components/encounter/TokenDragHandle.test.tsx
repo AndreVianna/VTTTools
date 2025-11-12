@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CreatureAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory, DisplayName, LabelPosition, TokenShape } from '@/types/domain';
+import { AssetKind, CreatureCategory, LabelPosition, LabelVisibility, TokenShape } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { GridType, snapToGrid } from '@/utils/gridCalculator';
 
@@ -53,7 +53,7 @@ describe('TokenDragHandle Logic Tests', () => {
     name: 'Test Token',
     visible: true,
     locked: false,
-    displayName: DisplayName.Always,
+    labelVisibility: LabelVisibility.Always,
     labelPosition: LabelPosition.Bottom,
   };
 
@@ -321,7 +321,7 @@ describe('TokenDragHandle Logic Tests', () => {
       name: 'Immovable Wall',
       visible: true,
       locked: false,
-      displayName: DisplayName.Always,
+      labelVisibility: LabelVisibility.Always,
       labelPosition: LabelPosition.Bottom,
     };
 

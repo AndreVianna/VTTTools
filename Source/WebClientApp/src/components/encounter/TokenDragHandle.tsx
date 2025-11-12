@@ -132,7 +132,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
   onAssetDeleted,
   gridConfig,
   stageRef,
-  stageReady = false,
   enableDragMove = true,
   onReady,
   snapMode,

@@ -80,7 +80,7 @@ export async function submitLoginForm(world: CustomWorld): Promise<void> {
   );
 
   await submitButton.click();
-  world.lastApiResponse = (await responsePromise) as any;
+  world.lastApiResponse = await responsePromise;
 }
 
 /**
@@ -135,7 +135,7 @@ Button disabled: ${isButtonDisabled}`,
   await submitButton.click();
   world.attach('Submit button clicked, waiting for API response...', 'text/plain');
 
-  world.lastApiResponse = (await responsePromise) as any;
+  world.lastApiResponse = await responsePromise;
   if (world.lastApiResponse) {
     world.attach(`API response received: ${world.lastApiResponse.status()}`, 'text/plain');
   }
@@ -175,7 +175,7 @@ export async function verifyAuthenticated(world: CustomWorld): Promise<void> {
 
   // Check Redux state
   const isAuthenticated = await world.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.isAuthenticated;
+    return window.store?.getState()?.auth?.isAuthenticated;
   });
   expect(isAuthenticated).toBe(true);
 }
@@ -327,7 +327,7 @@ export async function verifyReduxAuthState(
   expectedState: { isAuthenticated: boolean; user: any | null },
 ): Promise<void> {
   const authState = await page.evaluate(() => {
-    return (window as any).store?.getState()?.auth;
+    return window.store?.getState()?.auth;
   });
 
   expect(authState?.isAuthenticated).toBe(expectedState.isAuthenticated);

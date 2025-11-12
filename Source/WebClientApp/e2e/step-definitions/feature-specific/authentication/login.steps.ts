@@ -184,7 +184,7 @@ When('I leave the password field empty', async function (this: CustomWorld) {
 
 When('I submit valid credentials for that account', async function (this: CustomWorld) {
   await this.page.getByLabel(/email/i).fill(this.currentUser.email);
-  await this.page.getByRole('textbox', { name: /password/i }).fill(process.env.BDD_TEST_PASSWORD!);
+  await this.page.getByRole('textbox', { name: /password/i }).fill(process.env.BDD_TEST_PASSWORD);
 
   const responsePromise = this.page.waitForResponse(
     (response) => response.url().includes('/api/auth/login') && response.status() !== 0,
@@ -193,7 +193,7 @@ When('I submit valid credentials for that account', async function (this: Custom
 
   await this.page.locator('button[type="submit"]').click();
 
-  this.lastApiResponse = (await responsePromise) as any;
+  this.lastApiResponse = await responsePromise;
 
   await this.page.waitForTimeout(1500);
 });
@@ -324,7 +324,7 @@ Then('I should see my user information in the header', async function (this: Cus
 
 Then('my auth state should be stored in Redux', async function (this: CustomWorld) {
   const isAuthenticated = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.isAuthenticated;
+    return window.store?.getState()?.auth?.isAuthenticated;
   });
 
   expect(isAuthenticated).toBe(true);
@@ -368,7 +368,7 @@ Then('I should see a link to resend confirmation email', async function (this: C
 
 Then('Redux authSlice.isAuthenticated should be true', async function (this: CustomWorld) {
   const isAuthenticated = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.isAuthenticated;
+    return window.store?.getState()?.auth?.isAuthenticated;
   });
 
   expect(isAuthenticated).toBe(true);
@@ -376,7 +376,7 @@ Then('Redux authSlice.isAuthenticated should be true', async function (this: Cus
 
 Then('Redux authSlice.user should contain my user data', async function (this: CustomWorld) {
   const user = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth?.user;
+    return window.store?.getState()?.auth?.user;
   });
 
   expect(user).toBeDefined();
@@ -386,7 +386,7 @@ Then('Redux authSlice.user should contain my user data', async function (this: C
 Then('my authentication status should be available app-wide', async function (this: CustomWorld) {
   // Verify auth context is set
   const authState = await this.page.evaluate(() => {
-    return (window as any).store?.getState()?.auth;
+    return window.store?.getState()?.auth;
   });
 
   expect(authState).toBeDefined();
@@ -453,7 +453,7 @@ Given('I am using a screen reader', async function (this: CustomWorld) {
 
 When('I log in with valid credentials', async function (this: CustomWorld) {
   await this.page.getByLabel(/email/i).fill(this.currentUser.email);
-  await this.page.getByRole('textbox', { name: /password/i }).fill(process.env.BDD_TEST_PASSWORD!);
+  await this.page.getByRole('textbox', { name: /password/i }).fill(process.env.BDD_TEST_PASSWORD);
   await this.page.locator('button[type="submit"]').click();
 });
 

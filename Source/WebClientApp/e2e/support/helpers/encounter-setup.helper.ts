@@ -41,7 +41,7 @@ export async function createTestEncounter(world: CustomWorld): Promise<{ id: str
  * @returns Resource ID
  */
 export async function createTestImageResource(world: CustomWorld): Promise<string> {
-  const imagePath = (world.page.context() as any).testDataDir || 'e2e/test-data/images/test-background.png';
+  const imagePath = world.page.context().testDataDir || 'e2e/test-data/images/test-background.png';
 
   const uploadResponse = await world.page.request.post('/api/resources', {
     multipart: {

@@ -25,7 +25,7 @@ import {
   useTheme,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { AssetKind, DisplayName, LabelPosition, type PlacedAsset } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility, type PlacedAsset } from '@/types/domain';
 
 const STORAGE_KEY_VISIBILITY = 'vtt-objects-label-visibility';
 const STORAGE_KEY_POSITION = 'vtt-objects-label-position';
@@ -53,12 +53,12 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
   const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
   const [editedNames, setEditedNames] = useState<Map<string, string>>(new Map());
 
-  const [labelVisibility, setLabelVisibility] = useState<DisplayName>(() => {
+  const [labelVisibility, setLabelVisibility] = useState<LabelVisibility>(() => {
     const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
-    if (stored === DisplayName.Default || !stored) {
-      return DisplayName.OnHover;
+    if (stored === LabelVisibility.Default || !stored) {
+      return LabelVisibility.OnHover;
     }
-    return stored as DisplayName;
+    return stored as LabelVisibility;
   });
   const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
     const stored = localStorage.getItem(STORAGE_KEY_POSITION);
@@ -152,17 +152,17 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
           <InputLabel sx={{ fontSize: '11px' }}>Visibility</InputLabel>
           <Select
             value={labelVisibility}
-            onChange={(e) => setLabelVisibility(e.target.value as DisplayName)}
+            onChange={(e) => setLabelVisibility(e.target.value as LabelVisibility)}
             label='Visibility'
             sx={{ fontSize: '11px' }}
           >
-            <MenuItem value={DisplayName.Always} sx={{ fontSize: '11px' }}>
+            <MenuItem value={LabelVisibility.Always} sx={{ fontSize: '11px' }}>
               Always
             </MenuItem>
-            <MenuItem value={DisplayName.OnHover} sx={{ fontSize: '11px' }}>
+            <MenuItem value={LabelVisibility.OnHover} sx={{ fontSize: '11px' }}>
               On Hover
             </MenuItem>
-            <MenuItem value={DisplayName.Never} sx={{ fontSize: '11px' }}>
+            <MenuItem value={LabelVisibility.Never} sx={{ fontSize: '11px' }}>
               Never
             </MenuItem>
           </Select>

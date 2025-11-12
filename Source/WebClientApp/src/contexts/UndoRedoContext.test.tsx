@@ -65,6 +65,7 @@ describe('UndoRedoContext', () => {
     });
 
     expect(mockExecute).toHaveBeenCalledTimes(1);
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(true);
     expect(context?.canRedo).toBe(false);
   });
@@ -88,6 +89,7 @@ describe('UndoRedoContext', () => {
       context?.execute(command);
     });
 
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(true);
     expect(context?.canRedo).toBe(false);
 
@@ -132,6 +134,7 @@ describe('UndoRedoContext', () => {
     });
 
     expect(mockExecute).toHaveBeenCalledTimes(1);
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(true);
     expect(context?.canRedo).toBe(false);
   });
@@ -164,6 +167,7 @@ describe('UndoRedoContext', () => {
       context?.execute(command2);
     });
 
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(true);
     expect(context?.canRedo).toBe(false);
   });
@@ -199,6 +203,7 @@ describe('UndoRedoContext', () => {
     });
 
     expect(mockUndo).toHaveBeenCalledTimes(3);
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(false);
   });
 
@@ -220,6 +225,7 @@ describe('UndoRedoContext', () => {
     });
 
     expect(mockUndo).not.toHaveBeenCalled();
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(false);
   });
 
@@ -241,6 +247,7 @@ describe('UndoRedoContext', () => {
     });
 
     expect(mockExecute).not.toHaveBeenCalled();
+    expect(context).not.toBeNull();
     expect(context?.canRedo).toBe(false);
   });
 
@@ -267,6 +274,7 @@ describe('UndoRedoContext', () => {
       context?.clear();
     });
 
+    expect(context).not.toBeNull();
     expect(context?.canUndo).toBe(false);
     expect(context?.canRedo).toBe(false);
   });

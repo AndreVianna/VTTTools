@@ -221,7 +221,7 @@ When('I call getResourceUrl\\(resourceId)', async function (this: CustomWorld) {
   const resourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
   const url = `/api/resources/${resourceId}/download`;
   // Store URL for later verification
-  this.lastApiResponse = (await this.page.request.get(url)) as any;
+  this.lastApiResponse = await this.page.request.get(url);
 });
 
 Then('the URL should be {string}', async function (this: CustomWorld, _expectedUrl: string) {

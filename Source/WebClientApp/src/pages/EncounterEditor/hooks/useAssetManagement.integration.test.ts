@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
-import { AssetKind, DisplayName, LabelPosition, ResourceType, Weather } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility, ResourceType, Weather } from '@/types/domain';
 import {
   clearEncounterMappings,
   getIndexByDomId,
@@ -93,7 +93,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       layer: 'objects',
       visible: true,
       locked: false,
-      displayName: DisplayName.Default,
+      labelVisibility: LabelVisibility.Default,
       labelPosition: LabelPosition.Default,
       asset: mockAsset,
     };

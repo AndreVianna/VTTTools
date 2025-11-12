@@ -321,6 +321,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.transaction.localUndoStack).toEqual([]);
       expect(transaction?.transaction.localRedoStack).toEqual([]);
       expect(transaction?.canUndoLocal()).toBe(false);
@@ -479,6 +480,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.transaction.localUndoStack.length).toBe(0);
 
       act(() => {
@@ -569,6 +571,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       expect(capturedPoles.length).toBe(1);
+      expect(transaction).not.toBeNull();
       expect(transaction?.canUndoLocal()).toBe(true);
 
       act(() => {
@@ -631,6 +634,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(capturedPoles.length).toBe(1);
       expect(capturedPoles[0]).toEqual(originalPole);
+      expect(transaction).not.toBeNull();
       expect(transaction?.canUndoLocal()).toBe(true);
       expect(transaction?.canRedoLocal()).toBe(false);
     });
@@ -675,6 +679,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         rect.click();
       });
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.transaction.localUndoStack.length).toBe(3);
       expect(transaction?.transaction.localRedoStack.length).toBe(0);
 
@@ -740,6 +745,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         transaction?.undoLocal();
       });
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.canRedoLocal()).toBe(true);
 
       act(() => {
@@ -778,6 +784,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.canUndoLocal()).toBe(false);
       expect(transaction?.canRedoLocal()).toBe(false);
 
@@ -831,6 +838,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.transaction.isActive).toBe(true);
       expect(transaction?.transaction.type).toBe('placement');
       expect(transaction?.transaction.originalWall).toBeNull();
@@ -868,6 +876,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         rect.click();
       });
 
+      expect(transaction).not.toBeNull();
       expect(transaction?.transaction.localUndoStack.length).toBe(1);
 
       act(() => {

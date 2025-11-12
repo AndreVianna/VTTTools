@@ -6,35 +6,39 @@ export interface CollisionConfig {
   useSpatialHash?: boolean;
 }
 
+export interface PoleCollision {
+  newPoleIndex: number;
+  existingWallIndex: number;
+  existingPoleIndex: number;
+  distance: number;
+}
 export interface PoleCollisionResult {
   hasCollision: boolean;
-  collisions: Array<{
-    newPoleIndex: number;
-    existingWallIndex: number;
-    existingPoleIndex: number;
-    distance: number;
-  }>;
+  collisions: PoleCollision[];
+}
+
+export interface EdgeCollision {
+  newEdgeIndex: number;
+  existingWallIndex: number;
+  existingEdgeIndex: number;
+  intersectionPoint: Point;
 }
 
 export interface EdgeCollisionResult {
   hasCollision: boolean;
-  intersections: Array<{
-    newEdgeIndex: number;
-    existingWallIndex: number;
-    existingEdgeIndex: number;
-    intersectionPoint: Point;
-  }>;
+  intersections: EdgeCollision[];
 }
 
+export interface PoleOnEdgeCollision {
+  poleIndex: number;
+  existingWallIndex: number;
+  existingEdgeIndex: number;
+  distance: number;
+  projectionPoint: Point;
+}
 export interface PoleOnEdgeCollisionResult {
   hasCollision: boolean;
-  collisions: Array<{
-    poleIndex: number;
-    existingWallIndex: number;
-    existingEdgeIndex: number;
-    distance: number;
-    projectionPoint: Point;
-  }>;
+  collisions: PoleOnEdgeCollision[];
 }
 
 export interface BoundingBox {

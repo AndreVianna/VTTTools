@@ -1,4 +1,4 @@
-import { DisplayName, LabelPosition, type MediaResource, type PlacedAsset } from '@/types/domain';
+import { LabelPosition, LabelVisibility, type MediaResource, type PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface Point {
@@ -118,7 +118,7 @@ export const mapEncounterAssetToPlaced = async (
     name: encounterAsset.name || asset.name,
     visible: encounterAsset.isVisible,
     locked: encounterAsset.isLocked,
-    displayName: DisplayName.Always,
+    labelVisibility: LabelVisibility.Always,
     labelPosition: LabelPosition.Bottom,
   };
 };

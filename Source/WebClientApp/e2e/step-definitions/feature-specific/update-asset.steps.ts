@@ -465,7 +465,7 @@ When('I save the changes', async function (this: CustomWorld) {
   await this.assetEditDialog.clickSave();
 
   const response = await responsePromise;
-  this.lastApiResponse = response as any;
+  this.lastApiResponse = response;
 });
 
 When('I upload new image and assign Token role', async function (this: CustomWorld) {

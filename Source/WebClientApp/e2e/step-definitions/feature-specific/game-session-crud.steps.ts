@@ -311,7 +311,7 @@ Given('the session status is Draft', async function (this: CustomWorld) {
 Given('the session status is Scheduled', async function (this: CustomWorld) {
   // Update session status to Scheduled (requires implementation)
   const session = getCurrentSession(this);
-  await updateSessionStatus(this, session.id, 'schedule' as any);
+  await updateSessionStatus(this, session.id, 'schedule');
   this.currentSession = await getGameSession(this, session.id);
 });
 
@@ -512,7 +512,7 @@ When('I schedule my session for next Friday at 7 PM', async function (this: Cust
   // Scheduling requires additional implementation
   // For now, mark as pending or implement schedule API
   const session = getCurrentSession(this);
-  await updateSessionStatus(this, session.id, 'schedule' as any);
+  await updateSessionStatus(this, session.id, 'schedule');
 });
 
 Then('my session status changes to {string}', async function (this: CustomWorld, expectedStatus: string) {
@@ -556,7 +556,7 @@ Given('I have a game session in {string} status', async function (this: CustomWo
       // Already Draft
       break;
     case 'Scheduled':
-      await updateSessionStatus(this, session.id, 'schedule' as any);
+      await updateSessionStatus(this, session.id, 'schedule');
       break;
     case 'InProgress':
       await updateSessionStatus(this, session.id, 'start');
@@ -579,7 +579,7 @@ Given('I have a game session in {string} status', async function (this: CustomWo
 
 When('I schedule my session for tomorrow at 6 PM', async function (this: CustomWorld) {
   const session = getCurrentSession(this);
-  await updateSessionStatus(this, session.id, 'schedule' as any);
+  await updateSessionStatus(this, session.id, 'schedule');
 });
 
 Then('my scheduled start time is set to tomorrow at 6 PM', async function (this: CustomWorld) {
@@ -767,7 +767,7 @@ Given(
       if (status === 'InProgress') {
         await updateSessionStatus(this, session.id, 'start');
       } else if (status === 'Scheduled') {
-        await updateSessionStatus(this, session.id, 'schedule' as any);
+        await updateSessionStatus(this, session.id, 'schedule');
       }
     }
   },

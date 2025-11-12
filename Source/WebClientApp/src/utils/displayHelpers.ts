@@ -1,15 +1,15 @@
-import { DisplayName, LabelPosition, type PlacedAsset } from '../types/domain';
+import { LabelPosition, LabelVisibility, type PlacedAsset } from '../types/domain';
 
-export const getEffectiveDisplayName = (asset: PlacedAsset): DisplayName => {
-  if (asset.displayName !== DisplayName.Default) {
-    return asset.displayName;
+export const getEffectiveLabelVisibility = (asset: PlacedAsset): LabelVisibility => {
+  if (asset.labelVisibility !== LabelVisibility.Default) {
+    return asset.labelVisibility;
   }
 
   if (asset.asset.kind === 'Creature') {
-    return DisplayName.Always;
+    return LabelVisibility.Always;
   }
 
-  return DisplayName.OnHover;
+  return LabelVisibility.OnHover;
 };
 
 export const getEffectiveLabelPosition = (asset: PlacedAsset): LabelPosition => {

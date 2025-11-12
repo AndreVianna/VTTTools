@@ -26,7 +26,7 @@ Given('I am not currently authenticated', async function (this: CustomWorld) {
 });
 
 Given('I am authenticated as {string}', { timeout: 30000 }, async function (this: CustomWorld, _displayName: string) {
-  const password = process.env.BDD_TEST_PASSWORD!;
+  const password = process.env.BDD_TEST_PASSWORD;
   await this.page.goto('/login');
   await this.page.getByLabel(/email/i).fill(this.currentUser.email);
   await this.page.getByRole('textbox', { name: /password/i }).fill(password);

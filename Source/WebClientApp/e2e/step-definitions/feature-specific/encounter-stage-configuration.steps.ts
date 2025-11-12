@@ -74,7 +74,7 @@ Given('my encounter has no stage background', async function (this: CustomWorld)
 
 Given('I have a valid image resource', async function (this: CustomWorld) {
   // Upload a test image resource
-  const imagePath = (this.page.context() as any).testDataDir || 'e2e/test-data/images/test-background.png';
+  const imagePath = this.page.context().testDataDir || 'e2e/test-data/images/test-background.png';
 
   const uploadResponse = await this.page.request.post('/api/resources', {
     multipart: {
@@ -87,8 +87,7 @@ Given('I have a valid image resource', async function (this: CustomWorld) {
   const resource = await uploadResponse.json();
 
   this.uploadedResourceIds.push(resource.id); // Track for cleanup
-  const ctx = this as any;
-  ctx.testImageResourceId = resource.id; // Store for scenario use
+  this.testImageResourceId = resource.id; // Store for scenario use
 });
 
 Given(
@@ -117,7 +116,7 @@ Given(
 
 Given('my encounter has stage with background resource', async function (this: CustomWorld) {
   // First, create an image resource
-  const imagePath = (this.page.context() as any).testDataDir || 'e2e/test-data/images/test-background.png';
+  const imagePath = this.page.context().testDataDir || 'e2e/test-data/images/test-background.png';
 
   const uploadResponse = await this.page.request.post('/api/resources', {
     multipart: {
@@ -130,12 +129,11 @@ Given('my encounter has stage with background resource', async function (this: C
   const resource = await uploadResponse.json();
 
   this.uploadedResourceIds.push(resource.id); // Track for cleanup
-  const ctx = this as any;
-  ctx.testImageResourceId = resource.id; // Store for scenario use
+  this.testImageResourceId = resource.id; // Store for scenario use
 
   // Then configure stage with that background
   const encounterId = this.currentAsset.id;
-  const backgroundResourceId = ctx.testImageResourceId;
+  const backgroundResourceId = this.testImageResourceId;
 
   const patchResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}/stage`, {
     data: {
@@ -175,7 +173,7 @@ Given(
       // Create test asset
       const asset = await this.assetBuilder()
         .withName(`Test Asset ${i + 1}`)
-        .withKind(1 as any) // Character kind
+        .withKind(1) // Character kind
         .build();
 
       // Place asset on encounter
@@ -189,11 +187,8 @@ Given(
         },
       });
     }
-
-    // Store for verification
-    const ctx = this as any;
-    ctx.initialGridConfig = { cellSize: 50, offsetX: 0, offsetY: 0 };
-    ctx.placedAssetCount = assetCount;
+    this.initialGridConfig = { cellSize: 50, offsetX: 0, offsetY: 0 };
+    this.placedAssetCount = assetCount;
   },
 );
 
@@ -207,9 +202,7 @@ Given('a encounter exists owned by another user', async function (this: CustomWo
     OwnerId: differentUserId,
     IsPublished: false,
   });
-
-  const ctx = this as any;
-  ctx.otherUserEncounterId = '019639ea-c7de-7a01-8548-41edfccde888';
+  this.otherUserEncounterId = '019639ea-c7de-7a01-8548-41edfccde888';
 });
 
 Given('no encounter exists with ID {string}', async function (this: CustomWorld, encounterId: string) {
@@ -263,8 +256,7 @@ When(
 
 When('I configure stage with that background resource', async function (this: CustomWorld) {
   const encounterId = this.currentAsset.id;
-  const ctx = this as any;
-  const backgroundResourceId = ctx.testImageResourceId;
+  const backgroundResourceId = this.testImageResourceId;
 
   this.lastApiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}/stage`, {
     data: {
@@ -363,8 +355,7 @@ When('I attempt to configure stage with non-existent background resource', async
 });
 
 When('I attempt to configure stage for that encounter', async function (this: CustomWorld) {
-  const ctx = this as any;
-  const otherEncounterId = ctx.otherUserEncounterId;
+  const otherEncounterId = this.otherUserEncounterId;
 
   this.lastApiResponse = await this.page.request.patch(`/api/library/encounters/${otherEncounterId}/stage`, {
     data: {
@@ -450,8 +441,7 @@ Then('the stage height should be {int}', async function (this: CustomWorld, expe
 
 Then('the background resource should be associated', async function (this: CustomWorld) {
   const encounterId = this.currentAsset.id;
-  const ctx = this as any;
-  const expectedResourceId = ctx.testImageResourceId;
+  const expectedResourceId = this.testImageResourceId;
 
   // Query database
   const dbEncounter = await this.db.queryTable('Encounters', {
@@ -536,8 +526,7 @@ Then('the stage is updated', async function (this: CustomWorld) {
 
 Then('the grid configuration should remain unchanged', async function (this: CustomWorld) {
   const encounterId = this.currentAsset.id;
-  const ctx = this as any;
-  const initialGridConfig = ctx.initialGridConfig;
+  const initialGridConfig = this.initialGridConfig;
 
   // Query database to verify grid unchanged
   const dbEncounter = await this.db.queryTable('Encounters', {
@@ -552,8 +541,7 @@ Then('the grid configuration should remain unchanged', async function (this: Cus
 
 Then('all asset placements should remain intact', async function (this: CustomWorld) {
   const encounterId = this.currentAsset.id;
-  const ctx = this as any;
-  const expectedAssetCount = ctx.placedAssetCount;
+  const expectedAssetCount = this.placedAssetCount;
 
   // Query database for asset placements
   const placements = await this.db.queryTable('EncounterAssets', {
