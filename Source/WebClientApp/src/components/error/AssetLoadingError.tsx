@@ -1,25 +1,15 @@
-import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Alert,
-  AlertTitle,
-  Skeleton,
-  Stack,
-  Chip,
-} from '@mui/material';
-import {
-  BrokenImage as BrokenImageIcon,
-  Refresh as RefreshIcon,
-  Image as ImageIcon,
-  Movie as VideoIcon,
   AudioFile as AudioIcon,
+  BrokenImage as BrokenImageIcon,
   InsertDriveFile as FileIcon,
+  Image as ImageIcon,
+  Refresh as RefreshIcon,
+  Movie as VideoIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
+import { Alert, AlertTitle, Box, Button, Card, CardContent, Chip, Skeleton, Stack, Typography } from '@mui/material';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { handleAssetLoadingError, retryOperation } from '@/utils/errorHandling';
 
 /**
@@ -65,7 +55,7 @@ export const AssetLoadingError: React.FC<AssetErrorProps> = ({
     if (!onRetry || isRetrying) return;
 
     setIsRetrying(true);
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
 
     try {
       await retryOperation(onRetry, {
@@ -91,27 +81,37 @@ export const AssetLoadingError: React.FC<AssetErrorProps> = ({
 
   const getAssetIcon = () => {
     switch (assetType) {
-      case 'image': return <ImageIcon sx={{ fontSize: 48 }} />;
-      case 'video': return <VideoIcon sx={{ fontSize: 48 }} />;
-      case 'audio': return <AudioIcon sx={{ fontSize: 48 }} />;
-      case 'model': return <FileIcon sx={{ fontSize: 48 }} />;
-      default: return <BrokenImageIcon sx={{ fontSize: 48 }} />;
+      case 'image':
+        return <ImageIcon sx={{ fontSize: 48 }} />;
+      case 'video':
+        return <VideoIcon sx={{ fontSize: 48 }} />;
+      case 'audio':
+        return <AudioIcon sx={{ fontSize: 48 }} />;
+      case 'model':
+        return <FileIcon sx={{ fontSize: 48 }} />;
+      default:
+        return <BrokenImageIcon sx={{ fontSize: 48 }} />;
     }
   };
 
   const getErrorTitle = () => {
     switch (assetType) {
-      case 'image': return 'Image failed to load';
-      case 'video': return 'Video failed to load';
-      case 'audio': return 'Audio failed to load';
-      case 'model': return '3D model failed to load';
-      default: return 'Asset failed to load';
+      case 'image':
+        return 'Image failed to load';
+      case 'video':
+        return 'Video failed to load';
+      case 'audio':
+        return 'Audio failed to load';
+      case 'model':
+        return '3D model failed to load';
+      default:
+        return 'Asset failed to load';
     }
   };
 
   return (
     <Card
-      variant="outlined"
+      variant='outlined'
       sx={{
         borderColor: 'error.main',
         backgroundColor: 'error.light',
@@ -134,56 +134,44 @@ export const AssetLoadingError: React.FC<AssetErrorProps> = ({
           {getAssetIcon()}
         </Box>
 
-        <Typography variant="h6" gutterBottom color="error">
+        <Typography variant='h6' gutterBottom color='error'>
           {getErrorTitle()}
         </Typography>
 
         {assetName && (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
             Asset: {assetName}
           </Typography>
         )}
 
         {lastError && (
-          <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
-            <Typography variant="caption">
-              {lastError}
-            </Typography>
+          <Alert severity='warning' sx={{ mb: 2, textAlign: 'left' }}>
+            <Typography variant='caption'>{lastError}</Typography>
           </Alert>
         )}
 
-        <Stack spacing={1} alignItems="center">
+        <Stack spacing={1} alignItems='center'>
           {canRetry && (
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               startIcon={<RefreshIcon />}
               onClick={handleRetry}
               disabled={isRetrying}
-              size="small"
+              size='small'
             >
               {isRetrying ? 'Retrying...' : `Retry (${maxRetries - retryCount} left)`}
             </Button>
           )}
 
           {showFallback && (
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={onFallback}
-              size="small"
-            >
+            <Button variant='outlined' color='secondary' onClick={onFallback} size='small'>
               Use Fallback
             </Button>
           )}
 
           {retryCount >= maxRetries && (
-            <Chip
-              label="Max retries reached"
-              color="error"
-              size="small"
-              icon={<WarningIcon />}
-            />
+            <Chip label='Max retries reached' color='error' size='small' icon={<WarningIcon />} />
           )}
         </Stack>
 
@@ -196,11 +184,13 @@ export const AssetLoadingError: React.FC<AssetErrorProps> = ({
 /**
  * Specialized image loading error component
  */
-export const ImageLoadingError: React.FC<Omit<AssetErrorProps, 'assetType'> & {
-  width?: number | string;
-  height?: number | string;
-  alt?: string;
-}> = ({ width = '100%', height = 200, alt, ...props }) => {
+export const ImageLoadingError: React.FC<
+  Omit<AssetErrorProps, 'assetType'> & {
+    width?: number | string;
+    height?: number | string;
+    alt?: string;
+  }
+> = ({ width = '100%', height = 200, alt, ...props }) => {
   return (
     <Box
       sx={{
@@ -216,12 +206,9 @@ export const ImageLoadingError: React.FC<Omit<AssetErrorProps, 'assetType'> & {
         color: 'error.contrastText',
       }}
     >
-      <AssetLoadingError
-        {...props}
-        assetType="image"
-      >
+      <AssetLoadingError {...props} assetType='image'>
         {alt && (
-          <Typography variant="caption" sx={{ mt: 1 }}>
+          <Typography variant='caption' sx={{ mt: 1 }}>
             Alt: {alt}
           </Typography>
         )}
@@ -253,14 +240,7 @@ export const AssetSkeleton: React.FC<AssetSkeletonProps> = ({
   children,
 }) => {
   if (isLoading) {
-    return (
-      <Skeleton
-        variant={variant}
-        width={width}
-        height={height}
-        animation="wave"
-      />
-    );
+    return <Skeleton variant={variant} width={width} height={height} animation='wave' />;
   }
 
   if (hasError && errorProps) {
@@ -336,7 +316,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   };
 
   const handleRetry = async () => {
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
     setIsLoading(true);
     setHasError(false);
 
@@ -425,14 +405,14 @@ export const AssetGridError: React.FC<AssetGridErrorProps> = ({
 
   return (
     <Alert
-      severity="warning"
+      severity='warning'
       sx={{ mb: 2 }}
       action={
         <Button
-          color="inherit"
-          size="small"
+          color='inherit'
+          size='small'
           onClick={() => {
-            failedAssets.forEach(id => onRetryAsset(id));
+            failedAssets.forEach((id) => onRetryAsset(id));
           }}
         >
           Retry All ({failedCount})
@@ -440,9 +420,9 @@ export const AssetGridError: React.FC<AssetGridErrorProps> = ({
       }
     >
       <AlertTitle>Asset Loading Issues</AlertTitle>
-      <Typography variant="body2">
-        {failedCount} of {totalCount} assets failed to load.
-        You can retry individual assets or use the &quot;Retry All&quot; button.
+      <Typography variant='body2'>
+        {failedCount} of {totalCount} assets failed to load. You can retry individual assets or use the &quot;Retry
+        All&quot; button.
       </Typography>
     </Alert>
   );

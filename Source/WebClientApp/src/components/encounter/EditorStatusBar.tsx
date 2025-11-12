@@ -1,5 +1,5 @@
-import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
+import type React from 'react';
 
 export interface EditorStatusBarProps {
   cursorPosition?: { x: number; y: number };
@@ -16,13 +16,13 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
   selectedCount = 0,
   zoomPercentage = 100,
   activeTool,
-  gridSnapEnabled
+  gridSnapEnabled,
 }) => {
   const theme = useTheme();
 
   return (
     <Box
-      component="footer"
+      component='footer'
       sx={{
         height: 20,
         backgroundColor: theme.palette.background.paper,
@@ -31,16 +31,16 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
         alignItems: 'center',
         px: 1,
         gap: 2,
-        flexShrink: 0
+        flexShrink: 0,
       }}
     >
       {cursorPosition && (
         <Typography
-          variant="caption"
+          variant='caption'
           sx={{
             fontSize: 9,
             color: theme.palette.text.secondary,
-            fontFamily: 'monospace'
+            fontFamily: 'monospace',
           }}
         >
           ({cursorPosition.x}, {cursorPosition.y})
@@ -48,10 +48,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
       )}
 
       <Typography
-        variant="caption"
+        variant='caption'
         sx={{
           fontSize: 9,
-          color: theme.palette.text.secondary
+          color: theme.palette.text.secondary,
         }}
       >
         Assets: {totalAssets}
@@ -59,10 +59,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
 
       {selectedCount > 0 && (
         <Typography
-          variant="caption"
+          variant='caption'
           sx={{
             fontSize: 9,
-            color: theme.palette.text.secondary
+            color: theme.palette.text.secondary,
           }}
         >
           Selected: {selectedCount}
@@ -73,10 +73,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
 
       {activeTool && (
         <Typography
-          variant="caption"
+          variant='caption'
           sx={{
             fontSize: 9,
-            color: theme.palette.text.secondary
+            color: theme.palette.text.secondary,
           }}
         >
           Tool: {activeTool}
@@ -85,10 +85,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
 
       {gridSnapEnabled !== undefined && (
         <Typography
-          variant="caption"
+          variant='caption'
           sx={{
             fontSize: 9,
-            color: theme.palette.text.secondary
+            color: theme.palette.text.secondary,
           }}
         >
           Snap: {gridSnapEnabled ? 'ON' : 'OFF'}
@@ -96,11 +96,11 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
       )}
 
       <Typography
-        variant="caption"
+        variant='caption'
         sx={{
           fontSize: 9,
           color: theme.palette.text.secondary,
-          fontFamily: 'monospace'
+          fontFamily: 'monospace',
         }}
       >
         {Math.round(zoomPercentage)}%

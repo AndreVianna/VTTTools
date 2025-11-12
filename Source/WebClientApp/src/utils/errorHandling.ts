@@ -1,7 +1,7 @@
-import { store } from '@/store';
-import { addError, VTTError } from '@/store/slices/errorSlice';
-import { addNotification } from '@/store/slices/uiSlice';
 import React from 'react';
+import { store } from '@/store';
+import { addError, type VTTError } from '@/store/slices/errorSlice';
+import { addNotification } from '@/store/slices/uiSlice';
 
 // Error types for better categorization
 export type ErrorType = VTTError['type'];
@@ -34,7 +34,7 @@ export const setupGlobalErrorHandling = () => {
       context: {
         component: 'global',
         operation: 'unhandledRejection',
-        reason: event.reason
+        reason: event.reason,
       },
       userFriendlyMessage: 'An unexpected error occurred. Please try refreshing the page.',
     });
@@ -46,11 +46,12 @@ export const setupGlobalErrorHandling = () => {
   // Handle unhandled errors
   window.addEventListener('error', (event) => {
     // Ignore errors from browser extensions (React DevTools, etc.)
-    if (event.filename && (
-      event.filename.includes('chrome-extension://') ||
-      event.filename.includes('moz-extension://') ||
-      event.filename.includes('safari-extension://')
-    )) {
+    if (
+      event.filename &&
+      (event.filename.includes('chrome-extension://') ||
+        event.filename.includes('moz-extension://') ||
+        event.filename.includes('safari-extension://'))
+    ) {
       return;
     }
 
@@ -68,7 +69,7 @@ export const setupGlobalErrorHandling = () => {
         operation: 'unhandledError',
         filename: event.filename,
         lineno: event.lineno,
-        colno: event.colno
+        colno: event.colno,
       },
       userFriendlyMessage: 'An unexpected error occurred. Please try refreshing the page.',
     });
@@ -76,15 +77,18 @@ export const setupGlobalErrorHandling = () => {
 };
 
 // Main error handler function
-export const handleError = (error: unknown, options: {
-  type?: ErrorType;
-  context?: any;
-  showNotification?: boolean;
-  userFriendlyMessage?: string;
-  retryable?: boolean;
-  component?: string;
-  operation?: string;
-} = {}) => {
+export const handleError = (
+  error: unknown,
+  options: {
+    type?: ErrorType;
+    context?: any;
+    showNotification?: boolean;
+    userFriendlyMessage?: string;
+    retryable?: boolean;
+    component?: string;
+    operation?: string;
+  } = {},
+) => {
   const processedError = processError(error, options);
 
   // Add to error store
@@ -107,11 +111,13 @@ export const handleError = (error: unknown, options: {
 
   // Show user notification if requested
   if (options.showNotification !== false) {
-    store.dispatch(addNotification({
-      type: 'error',
-      message: processedError.userFriendlyMessage || processedError.message,
-      duration: 8000, // Longer duration for errors
-    }));
+    store.dispatch(
+      addNotification({
+        type: 'error',
+        message: processedError.userFriendlyMessage || processedError.message,
+        duration: 8000, // Longer duration for errors
+      }),
+    );
   }
 
   // Log to console for development
@@ -127,14 +133,17 @@ export const handleError = (error: unknown, options: {
 };
 
 // Process different types of errors into a consistent format
-const processError = (error: unknown, options: {
-  type?: ErrorType;
-  context?: any;
-  userFriendlyMessage?: string;
-  retryable?: boolean;
-  component?: string;
-  operation?: string;
-}): {
+const processError = (
+  error: unknown,
+  options: {
+    type?: ErrorType;
+    context?: any;
+    userFriendlyMessage?: string;
+    retryable?: boolean;
+    component?: string;
+    operation?: string;
+  },
+): {
   type: ErrorType;
   message: string;
   details?: string;
@@ -165,7 +174,7 @@ const processError = (error: unknown, options: {
       component: options.component,
       operation: options.operation,
     };
-    if (Object.keys(context).length > 0 && Object.values(context).some(v => v !== undefined)) {
+    if (Object.keys(context).length > 0 && Object.values(context).some((v) => v !== undefined)) {
       result.context = context;
     }
 
@@ -208,16 +217,19 @@ const processError = (error: unknown, options: {
 };
 
 // Process API errors with proper typing and error mapping
-const processApiError = (error: {
-  status?: number;
-  data?: ApiErrorResponse;
-  message?: string;
-}, options: {
-  type?: ErrorType;
-  context?: any;
-  userFriendlyMessage?: string;
-  retryable?: boolean;
-}): {
+const processApiError = (
+  error: {
+    status?: number;
+    data?: ApiErrorResponse;
+    message?: string;
+  },
+  options: {
+    type?: ErrorType;
+    context?: any;
+    userFriendlyMessage?: string;
+    retryable?: boolean;
+  },
+): {
   type: ErrorType;
   message: string;
   details?: string;
@@ -248,7 +260,7 @@ const processApiError = (error: {
       case 403:
         type = 'authorization';
         retryable = false;
-        userFriendlyMessage = userFriendlyMessage || 'You don\'t have permission to perform this action.';
+        userFriendlyMessage = userFriendlyMessage || "You don't have permission to perform this action.";
         break;
       case 404:
         type = 'network';
@@ -295,7 +307,7 @@ const processApiError = (error: {
     context.apiErrors = data.errors;
   }
 
-  if (Object.keys(context).length > 0 && Object.values(context).some(v => v !== undefined)) {
+  if (Object.keys(context).length > 0 && Object.values(context).some((v) => v !== undefined)) {
     result.context = context;
   }
 
@@ -312,7 +324,7 @@ const getDefaultUserMessage = (type: ErrorType): string => {
     case 'authentication':
       return 'Authentication required. Please log in and try again.';
     case 'authorization':
-      return 'You don\'t have permission to perform this action.';
+      return "You don't have permission to perform this action.";
     case 'asset_loading':
       return 'Failed to load asset. Please try again.';
     case 'encounter_save':
@@ -334,14 +346,9 @@ export const retryOperation = async <T>(
     delay?: number;
     exponentialBackoff?: boolean;
     onRetry?: (attempt: number, error: unknown) => void;
-  } = {}
+  } = {},
 ): Promise<T> => {
-  const {
-    maxRetries = 3,
-    delay = 1000,
-    exponentialBackoff = true,
-    onRetry
-  } = options;
+  const { maxRetries = 3, delay = 1000, exponentialBackoff = true, onRetry } = options;
 
   let lastError: unknown;
 
@@ -364,11 +371,9 @@ export const retryOperation = async <T>(
       onRetry?.(attempt + 1, error);
 
       // Calculate delay with optional exponential backoff
-      const currentDelay = exponentialBackoff
-        ? delay * Math.pow(2, attempt)
-        : delay;
+      const currentDelay = exponentialBackoff ? delay * 2 ** attempt : delay;
 
-      await new Promise(resolve => setTimeout(resolve, currentDelay));
+      await new Promise((resolve) => setTimeout(resolve, currentDelay));
     }
   }
 
@@ -376,9 +381,7 @@ export const retryOperation = async <T>(
 };
 
 // Error boundary helper for React components
-export const withErrorBoundary = <P extends object>(
-  Component: React.ComponentType<P>
-) => {
+export const withErrorBoundary = <P extends object>(Component: React.ComponentType<P>) => {
   const WrappedComponent = (props: P) => {
     // This would typically use React Error Boundary
     // For now, just return the component
@@ -391,11 +394,7 @@ export const withErrorBoundary = <P extends object>(
 };
 
 // Validation error helper
-export const createValidationError = (
-  field: string,
-  message: string,
-  context?: any
-): EnhancedError => {
+export const createValidationError = (field: string, message: string, context?: any): EnhancedError => {
   const error = new Error(`Validation error: ${field} - ${message}`) as EnhancedError;
   error.type = 'validation';
   error.code = 'VALIDATION_ERROR';
@@ -406,10 +405,7 @@ export const createValidationError = (
 };
 
 // Network error helper
-export const createNetworkError = (
-  message: string,
-  context?: any
-): EnhancedError => {
+export const createNetworkError = (message: string, context?: any): EnhancedError => {
   const error = new Error(message) as EnhancedError;
   error.type = 'network';
   error.code = 'NETWORK_ERROR';
@@ -424,7 +420,12 @@ export const handleApiError = (error: unknown, context?: any) =>
   handleError(error, { type: 'network', context, showNotification: true });
 
 export const handleValidationError = (error: unknown, context?: any) =>
-  handleError(error, { type: 'validation', context, showNotification: true, retryable: false });
+  handleError(error, {
+    type: 'validation',
+    context,
+    showNotification: true,
+    retryable: false,
+  });
 
 export const handleSystemError = (error: unknown, context?: any) =>
   handleError(error, { type: 'system', context, showNotification: true });
@@ -434,7 +435,7 @@ export const handleAssetLoadingError = (error: unknown, context?: any) =>
     type: 'asset_loading',
     context,
     showNotification: true,
-    userFriendlyMessage: 'Failed to load asset. Please try again.'
+    userFriendlyMessage: 'Failed to load asset. Please try again.',
   });
 
 export const handleEncounterError = (error: unknown, operation: 'save' | 'load', context?: any) =>
@@ -442,5 +443,5 @@ export const handleEncounterError = (error: unknown, operation: 'save' | 'load',
     type: operation === 'save' ? 'encounter_save' : 'encounter_load',
     context: { ...context, operation },
     showNotification: true,
-    userFriendlyMessage: `Failed to ${operation} encounter. Please try again.`
+    userFriendlyMessage: `Failed to ${operation} encounter. Please try again.`,
   });

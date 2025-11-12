@@ -5,12 +5,12 @@
  */
 
 import { Given } from '@cucumber/cucumber';
-import { CustomWorld } from '../../support/world.js';
+import type { CustomWorld } from '../../support/world.js';
 
 Given('I have dark mode enabled', async function (this: CustomWorld) {
-    await this.page.emulateMedia({ colorScheme: 'dark' });
+  await this.page.emulateMedia({ colorScheme: 'dark' });
 });
 
 Given('I have light mode enabled', async function (this: CustomWorld) {
-    await this.page.emulateMedia({ colorScheme: 'light' });
+  await this.page.emulateMedia({ colorScheme: 'light' });
 });

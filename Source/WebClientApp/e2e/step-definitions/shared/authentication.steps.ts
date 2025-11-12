@@ -6,87 +6,96 @@
  */
 
 import { Given, Then } from '@cucumber/cucumber';
-import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
 import { performPoolUserLogin } from '../../support/helpers/authentication.helper.js';
+import type { CustomWorld } from '../../support/world.js';
 
 Given('I am authenticated as a Game Master', { timeout: 30000 }, async function (this: CustomWorld) {
-    await performPoolUserLogin(this);
+  await performPoolUserLogin(this);
 });
 
 Given('I am authenticated with user ID {string}', async function (this: CustomWorld, userId: string) {
-    this.currentUser.id = userId;
+  this.currentUser.id = userId;
 });
 
 Given('I am not authenticated', async function (this: CustomWorld) {
-    // Clear authentication state without destroying the page
-    await this.context.clearCookies();
+  // Clear authentication state without destroying the page
+  await this.context.clearCookies();
 
-    // Wait for page to be in a stable state before evaluating
-    await this.page.waitForLoadState('domcontentloaded');
+  // Wait for page to be in a stable state before evaluating
+  await this.page.waitForLoadState('domcontentloaded');
 
-    await this.page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
-    });
+  await this.page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
 });
 
 Given('I am authenticated as user {string}', async function (this: CustomWorld, userId: string) {
-    this.currentUser.id = userId;
+  this.currentUser.id = userId;
 });
 
 Given('an account exists with email {string}', async function (this: CustomWorld, email: string) {
-    if (!this.currentUser) {
-        throw new Error('No pool user assigned. The Before hook should have assigned a user from the pool.');
+  if (!this.currentUser) {
+    throw new Error('No pool user assigned. The Before hook should have assigned a user from the pool.');
+  }
+
+  // Check if user exists by ID
+  const users = await this.db.queryTable('Users', {
+    Id: this.currentUser.id,
+  });
+  if (users.length === 0) {
+    // Also check by userName to avoid duplicate key errors
+    const usersByName = await this.db.queryTable('Users', {
+      UserName: this.currentUser.email,
+    });
+    if (usersByName.length > 0) {
+      // User exists with this userName but different ID - use existing user
+      this.currentUser.id = usersByName[0].Id;
+      this.attach(
+        `Found existing user with userName ${this.currentUser.email}, updated current ID to: ${this.currentUser.id}`,
+        'text/plain',
+      );
+    } else {
+      // User truly doesn't exist - create it
+      const passwordHash = process.env.BDD_TEST_PASSWORD_HASH;
+      if (!passwordHash) {
+        throw new Error('CRITICAL: BDD_TEST_PASSWORD_HASH environment variable is not set.');
+      }
+
+      this.attach(`Pool user ${this.currentUser.email} was missing, recreating it...`, 'text/plain');
+
+      const newUserId = await this.db.insertUser({
+        email: this.currentUser.email,
+        userName: this.currentUser.email,
+        emailConfirmed: true,
+        passwordHash,
+        displayName: this.currentUser.name,
+      });
+
+      this.currentUser.id = newUserId;
+      this.attach(`Pool user recreated with ID: ${newUserId}`, 'text/plain');
     }
+  }
 
-    // Check if user exists by ID
-    const users = await this.db.queryTable('Users', { Id: this.currentUser.id });
-    if (users.length === 0) {
-        // Also check by userName to avoid duplicate key errors
-        const usersByName = await this.db.queryTable('Users', { UserName: this.currentUser.email });
-        if (usersByName.length > 0) {
-            // User exists with this userName but different ID - use existing user
-            this.currentUser.id = usersByName[0].Id;
-            this.attach(`Found existing user with userName ${this.currentUser.email}, updated current ID to: ${this.currentUser.id}`, 'text/plain');
-        } else {
-            // User truly doesn't exist - create it
-            const passwordHash = process.env.BDD_TEST_PASSWORD_HASH;
-            if (!passwordHash) {
-                throw new Error('CRITICAL: BDD_TEST_PASSWORD_HASH environment variable is not set.');
-            }
-
-            this.attach(`Pool user ${this.currentUser.email} was missing, recreating it...`, 'text/plain');
-
-            const newUserId = await this.db.insertUser({
-                email: this.currentUser.email,
-                userName: this.currentUser.email,
-                emailConfirmed: true,
-                passwordHash,
-                displayName: this.currentUser.name
-            });
-
-            this.currentUser.id = newUserId;
-            this.attach(`Pool user recreated with ID: ${newUserId}`, 'text/plain');
-        }
-    }
-
-    this.attach(`Test account email pattern: ${email} → using pool user: ${this.currentUser.email}`);
+  this.attach(`Test account email pattern: ${email} → using pool user: ${this.currentUser.email}`);
 });
 
 Given('no account exists with email {string}', async function (this: CustomWorld, email: string) {
-    const users = await this.db.queryTable('Users', { Email: email.toLowerCase() });
-    if (users.length > 0) {
-        // Auto-delete conflicting user to ensure clean test state
-        await this.db.deleteUser(users[0].Id);
-        this.attach(`Deleted conflicting account with email: ${email}`, 'text/plain');
-    }
+  const users = await this.db.queryTable('Users', {
+    Email: email.toLowerCase(),
+  });
+  if (users.length > 0) {
+    // Auto-delete conflicting user to ensure clean test state
+    await this.db.deleteUser(users[0].Id);
+    this.attach(`Deleted conflicting account with email: ${email}`, 'text/plain');
+  }
 });
 
 Then('I should be redirected to {string}', async function (this: CustomWorld, url: string) {
-    await expect(this.page).toHaveURL(new RegExp(url));
+  await expect(this.page).toHaveURL(new RegExp(url));
 });
 
 Then('I should be redirected to login', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/login/);
+  await expect(this.page).toHaveURL(/login/);
 });

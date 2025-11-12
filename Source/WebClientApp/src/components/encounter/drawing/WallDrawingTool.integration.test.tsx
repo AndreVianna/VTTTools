@@ -1,868 +1,882 @@
-import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, act } from '@testing-library/react';
-import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { WallDrawingTool } from './WallDrawingTool';
+import { act, render } from '@testing-library/react';
+import React from 'react';
+import { Provider } from 'react-redux';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { encounterApi } from '@/services/encounterApi';
 import type { Pole } from '@/types/domain';
-import { GridType, type GridConfig } from '@/utils/gridCalculator';
+import { type GridConfig, GridType } from '@/utils/gridCalculator';
+import { WallDrawingTool } from './WallDrawingTool';
 
 vi.mock('konva', () => ({
-    default: {
-        Group: vi.fn(),
-        Rect: vi.fn(),
-    }
+  default: {
+    Group: vi.fn(),
+    Rect: vi.fn(),
+  },
 }));
 
 vi.mock('react-konva', () => ({
-    Group: ({ children }: { children: React.ReactNode }) => <div data-testid="konva-group">{children}</div>,
-    Rect: ({ onClick, onDblClick, onMouseMove }: { onClick?: (e: any) => void; onDblClick?: (e: any) => void; onMouseMove?: (e: any) => void }) => {
-        const mockKonvaEvent = {
-            target: {
-                getStage: () => ({
-                    getPointerPosition: () => ({ x: 100, y: 100 }),
-                    x: () => 0,
-                    y: () => 0,
-                    scaleX: () => 1,
-                }),
-            },
-            evt: {},
-            cancelBubble: false,
-        };
-        return (
-            <div
-                data-testid="konva-rect"
-                onClick={() => onClick?.(mockKonvaEvent)}
-                onDoubleClick={() => onDblClick?.(mockKonvaEvent)}
-                onMouseMove={() => onMouseMove?.(mockKonvaEvent)}
-            />
-        );
-    },
+  Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
+  Rect: ({
+    onClick,
+    onDblClick,
+    onMouseMove,
+  }: {
+    onClick?: (e: any) => void;
+    onDblClick?: (e: any) => void;
+    onMouseMove?: (e: any) => void;
+  }) => {
+    const mockKonvaEvent = {
+      target: {
+        getStage: () => ({
+          getPointerPosition: () => ({ x: 100, y: 100 }),
+          x: () => 0,
+          y: () => 0,
+          scaleX: () => 1,
+        }),
+      },
+      evt: {},
+      cancelBubble: false,
+    };
+    return (
+      <div
+        data-testid='konva-rect'
+        onClick={() => onClick?.(mockKonvaEvent)}
+        onDoubleClick={() => onDblClick?.(mockKonvaEvent)}
+        onMouseMove={() => onMouseMove?.(mockKonvaEvent)}
+      />
+    );
+  },
 }));
 
 vi.mock('./VertexMarker', () => ({
-    VertexMarker: ({ position, preview }: { position: { x: number; y: number }; preview?: boolean }) => (
-        <div data-testid={preview ? 'vertex-marker-preview' : 'vertex-marker'} data-x={position.x} data-y={position.y} />
-    ),
+  VertexMarker: ({ position, preview }: { position: { x: number; y: number }; preview?: boolean }) => (
+    <div data-testid={preview ? 'vertex-marker-preview' : 'vertex-marker'} data-x={position.x} data-y={position.y} />
+  ),
 }));
 
 vi.mock('./WallPreview', () => ({
-    WallPreview: () => <div data-testid="wall-preview" />,
+  WallPreview: () => <div data-testid='wall-preview' />,
 }));
 
 vi.mock('@/utils/structureSnapping', () => ({
-    snapToNearest: (pos: { x: number; y: number }) => pos,
+  snapToNearest: (pos: { x: number; y: number }) => pos,
 }));
 
 vi.mock('@/utils/snapUtils', () => ({
-    getSnapModeFromEvent: () => 'grid',
+  getSnapModeFromEvent: () => 'grid',
 }));
 
 describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
-    let onPolesChangeSpy: ReturnType<typeof vi.fn>;
-    let onCancelSpy: ReturnType<typeof vi.fn>;
-    let onFinishSpy: ReturnType<typeof vi.fn>;
+  let onPolesChangeSpy: ReturnType<typeof vi.fn>;
+  let onCancelSpy: ReturnType<typeof vi.fn>;
+  let onFinishSpy: ReturnType<typeof vi.fn>;
 
-    const defaultGridConfig: GridConfig = {
-        type: GridType.Square,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        snap: true,
-    };
+  const defaultGridConfig: GridConfig = {
+    type: GridType.Square,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    snap: true,
+  };
 
-    const createMockEncounter = (walls: any[] = []) => ({
-        id: 'encounter-1',
-        name: 'Test Encounter',
-        walls,
-        regions: [],
-        sources: [],
-    });
+  const createMockEncounter = (walls: any[] = []) => ({
+    id: 'encounter-1',
+    name: 'Test Encounter',
+    walls,
+    regions: [],
+    sources: [],
+  });
 
-    const mockEncounterEmpty = createMockEncounter([
-        {
-            index: 0,
-            name: 'Wall 0',
-            poles: [],
-            isClosed: false,
-            visibility: 0,
-            encounterId: 'encounter-1',
-        },
-    ]);
+  const mockEncounterEmpty = createMockEncounter([
+    {
+      index: 0,
+      name: 'Wall 0',
+      poles: [],
+      isClosed: false,
+      visibility: 0,
+      encounterId: 'encounter-1',
+    },
+  ]);
 
-    beforeEach(() => {
-        onPolesChangeSpy = vi.fn();
-        onCancelSpy = vi.fn();
-        onFinishSpy = vi.fn();
-    });
+  beforeEach(() => {
+    onPolesChangeSpy = vi.fn();
+    onCancelSpy = vi.fn();
+    onFinishSpy = vi.fn();
+  });
 
-    const createStoreWithEncounter = (encounter: any) => {
-        return configureStore({
-            reducer: {
-                [encounterApi.reducerPath]: () => ({
-                    queries: {
-                        'getEncounter("encounter-1")': {
-                            status: 'fulfilled',
-                            data: encounter,
-                        },
-                    },
-                }),
+  const createStoreWithEncounter = (encounter: any) => {
+    return configureStore({
+      reducer: {
+        [encounterApi.reducerPath]: () => ({
+          queries: {
+            'getEncounter("encounter-1")': {
+              status: 'fulfilled',
+              data: encounter,
             },
-            middleware: (getDefaultMiddleware) =>
-                getDefaultMiddleware().concat(encounterApi.middleware as any),
-        });
-    };
+          },
+        }),
+      },
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware as any),
+    });
+  };
 
-    interface TestWrapperProps {
-        children: (params: { wallTransaction: ReturnType<typeof useWallTransaction> }) => React.ReactNode;
-    }
+  interface TestWrapperProps {
+    children: (params: { wallTransaction: ReturnType<typeof useWallTransaction> }) => React.ReactNode;
+  }
 
-    const TestWrapper: React.FC<TestWrapperProps> = ({ children }) => {
-        const wallTransaction = useWallTransaction();
+  const TestWrapper: React.FC<TestWrapperProps> = ({ children }) => {
+    const wallTransaction = useWallTransaction();
 
-        React.useEffect(() => {
-            wallTransaction.startTransaction('placement');
-        }, [wallTransaction]);
+    React.useEffect(() => {
+      wallTransaction.startTransaction('placement');
+    }, [wallTransaction]);
 
-        return <>{children({ wallTransaction })}</>;
-    };
+    return <>{children({ wallTransaction })}</>;
+  };
 
-    describe('Scenario 1: Normal Placement', () => {
-        it('should place open wall with 2 poles', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let capturedPoles: Pole[] = [];
+  describe('Scenario 1: Normal Placement', () => {
+    it('should place open wall with 2 poles', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let capturedPoles: Pole[] = [];
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={10}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onPolesChange={(poles) => { capturedPoles = poles; }}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => (
+              <WallDrawingTool
+                encounterId='encounter-1'
+                wallIndex={0}
+                gridConfig={defaultGridConfig}
+                defaultHeight={10}
+                onCancel={onCancelSpy}
+                onFinish={onFinishSpy}
+                onPolesChange={(poles) => {
+                  capturedPoles = poles;
+                }}
+                wallTransaction={wallTransaction}
+              />
+            )}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            act(() => {
-                rect.click();
-            });
+      act(() => {
+        rect.click();
+      });
 
-            expect(capturedPoles.length).toBe(1);
-            expect(capturedPoles[0]).toEqual({ x: 100, y: 100, h: 10 });
+      expect(capturedPoles.length).toBe(1);
+      expect(capturedPoles[0]).toEqual({ x: 100, y: 100, h: 10 });
 
-            act(() => {
-                rect.click();
-            });
+      act(() => {
+        rect.click();
+      });
 
-            expect(capturedPoles.length).toBe(2);
-            expect(capturedPoles[1]).toEqual({ x: 100, y: 100, h: 10 });
+      expect(capturedPoles.length).toBe(2);
+      expect(capturedPoles[1]).toEqual({ x: 100, y: 100, h: 10 });
 
-            act(() => {
-                rect.dispatchEvent(new Event('dblclick'));
-            });
+      act(() => {
+        rect.dispatchEvent(new Event('dblclick'));
+      });
 
-            expect(onFinishSpy).toHaveBeenCalled();
-        });
-
-        it('should place open wall with 5 poles', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let capturedPoles: Pole[] = [];
-
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={15}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onPolesChange={(poles) => { capturedPoles = poles; }}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            for (let i = 0; i < 5; i++) {
-                act(() => {
-                    rect.click();
-                });
-            }
-
-            expect(capturedPoles.length).toBe(5);
-            capturedPoles.forEach(pole => {
-                expect(pole.h).toBe(15);
-            });
-        });
-
-        it('should NOT auto-close with only 2 poles when clicking near first pole', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let capturedPoles: Pole[] = [];
-
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={10}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onPolesChange={(poles) => { capturedPoles = poles; }}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.click();
-            });
-
-            expect(capturedPoles.length).toBe(2);
-            expect(onFinishSpy).not.toHaveBeenCalled();
-        });
+      expect(onFinishSpy).toHaveBeenCalled();
     });
 
-    describe('Component Rendering with Real Hook', () => {
-        it('should render component with real wallTransaction hook', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
+    it('should place open wall with 5 poles', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let capturedPoles: Pole[] = [];
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => (
+              <WallDrawingTool
+                encounterId='encounter-1'
+                wallIndex={0}
+                gridConfig={defaultGridConfig}
+                defaultHeight={15}
+                onCancel={onCancelSpy}
+                onFinish={onFinishSpy}
+                onPolesChange={(poles) => {
+                  capturedPoles = poles;
+                }}
+                wallTransaction={wallTransaction}
+              />
+            )}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            expect(container.querySelector('[data-testid="konva-group"]')).toBeTruthy();
-            expect(transaction).not.toBeNull();
-            expect(transaction!.transaction.isActive).toBe(true);
-            expect(transaction!.transaction.type).toBe('placement');
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+      for (let i = 0; i < 5; i++) {
+        act(() => {
+          rect.click();
         });
+      }
 
-        it('should initialize real hook with empty undo/redo stacks', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
-
-            render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            expect(transaction!.transaction.localUndoStack).toEqual([]);
-            expect(transaction!.transaction.localRedoStack).toEqual([]);
-            expect(transaction!.canUndoLocal()).toBe(false);
-            expect(transaction!.canRedoLocal()).toBe(false);
-        });
+      expect(capturedPoles.length).toBe(5);
+      capturedPoles.forEach((pole) => {
+        expect(pole.h).toBe(15);
+      });
     });
 
-    describe('Scenario 4: Auto-Close', () => {
-        it('should auto-close when clicking near first pole with 3+ poles', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let capturedPoles: Pole[] = [];
-            let isClosedCalled = false;
+    it('should NOT auto-close with only 2 poles when clicking near first pole', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let capturedPoles: Pole[] = [];
 
-            const mockTransaction = {
-                startTransaction: vi.fn(),
-                updateSegment: vi.fn((_index, updates) => {
-                    if (updates.isClosed) {
-                        isClosedCalled = true;
-                    }
-                }),
-                pushLocalAction: vi.fn(),
-                transaction: {
-                    isActive: true,
-                    type: 'placement',
-                    originalWall: null,
-                    localUndoStack: [],
-                    localRedoStack: [],
-                    segments: []
-                },
-                canUndoLocal: () => false,
-                canRedoLocal: () => false,
-                undoLocal: vi.fn(),
-                redoLocal: vi.fn(),
-                rollbackTransaction: vi.fn(),
-                commitTransaction: vi.fn(),
-                getActiveSegments: vi.fn(() => []),
-            };
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => (
+              <WallDrawingTool
+                encounterId='encounter-1'
+                wallIndex={0}
+                gridConfig={defaultGridConfig}
+                defaultHeight={10}
+                onCancel={onCancelSpy}
+                onFinish={onFinishSpy}
+                onPolesChange={(poles) => {
+                  capturedPoles = poles;
+                }}
+                wallTransaction={wallTransaction}
+              />
+            )}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            const { container } = render(
-                <Provider store={store}>
-                    <WallDrawingTool
-                        encounterId="encounter-1"
-                        wallIndex={0}
-                        gridConfig={defaultGridConfig}
-                        defaultHeight={10}
-                        onCancel={onCancelSpy}
-                        onFinish={onFinishSpy}
-                        onPolesChange={(poles) => { capturedPoles = poles; }}
-                        wallTransaction={mockTransaction as any}
-                    />
-                </Provider>
-            );
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      act(() => {
+        rect.click();
+      });
+      act(() => {
+        rect.click();
+      });
 
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.click();
-            });
-            act(() => {
-                rect.click();
-            });
+      expect(capturedPoles.length).toBe(2);
+      expect(onFinishSpy).not.toHaveBeenCalled();
+    });
+  });
 
-            expect(capturedPoles.length).toBe(2);
-            expect(isClosedCalled).toBe(true);
-        });
+  describe('Component Rendering with Real Hook', () => {
+    it('should render component with real wallTransaction hook', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
-        it('should NOT auto-close when clicking 11px from first pole (outside tolerance)', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            const customKonvaEvent = {
-                target: {
-                    getStage: () => ({
-                        getPointerPosition: () => ({ x: 111, y: 100 }),
-                        x: () => 0,
-                        y: () => 0,
-                        scaleX: () => 1,
-                    }),
-                },
-                evt: {},
-                cancelBubble: false,
-            };
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            vi.mock('react-konva', () => ({
-                Group: ({ children }: { children: React.ReactNode }) => <div data-testid="konva-group">{children}</div>,
-                Rect: ({ onClick }: { onClick?: (e: any) => void }) => (
-                    <div
-                        data-testid="konva-rect"
-                        onClick={() => onClick?.(customKonvaEvent)}
-                    />
-                ),
-            }));
-
-            let capturedPoles: Pole[] = [];
-
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={10}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onPolesChange={(poles) => { capturedPoles = poles; }}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            for (let i = 0; i < 3; i++) {
-                act(() => {
-                    rect.click();
-                });
-            }
-
-            expect(capturedPoles.length).toBe(3);
-            expect(onFinishSpy).not.toHaveBeenCalled();
-        });
+      expect(container.querySelector('[data-testid="konva-group"]')).toBeTruthy();
+      expect(transaction).not.toBeNull();
+      expect(transaction?.transaction.isActive).toBe(true);
+      expect(transaction?.transaction.type).toBe('placement');
     });
 
-    describe('Pole Placement with Real Hook', () => {
-        it('should place pole and populate real undo stack', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
+    it('should initialize real hook with empty undo/redo stacks', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      expect(transaction?.transaction.localUndoStack).toEqual([]);
+      expect(transaction?.transaction.localRedoStack).toEqual([]);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(false);
+    });
+  });
 
-            expect(transaction!.transaction.localUndoStack.length).toBe(0);
+  describe('Scenario 4: Auto-Close', () => {
+    it('should auto-close when clicking near first pole with 3+ poles', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let capturedPoles: Pole[] = [];
+      let isClosedCalled = false;
 
-            act(() => {
-                rect.click();
-            });
+      const mockTransaction = {
+        startTransaction: vi.fn(),
+        updateSegment: vi.fn((_index, updates) => {
+          if (updates.isClosed) {
+            isClosedCalled = true;
+          }
+        }),
+        pushLocalAction: vi.fn(),
+        transaction: {
+          isActive: true,
+          type: 'placement',
+          originalWall: null,
+          localUndoStack: [],
+          localRedoStack: [],
+          segments: [],
+        },
+        canUndoLocal: () => false,
+        canRedoLocal: () => false,
+        undoLocal: vi.fn(),
+        redoLocal: vi.fn(),
+        rollbackTransaction: vi.fn(),
+        commitTransaction: vi.fn(),
+        getActiveSegments: vi.fn(() => []),
+      };
 
-            expect(transaction!.transaction.localUndoStack.length).toBe(1);
-            expect(transaction!.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
-            expect(transaction!.canUndoLocal()).toBe(true);
-        });
+      const { container } = render(
+        <Provider store={store}>
+          <WallDrawingTool
+            encounterId='encounter-1'
+            wallIndex={0}
+            gridConfig={defaultGridConfig}
+            defaultHeight={10}
+            onCancel={onCancelSpy}
+            onFinish={onFinishSpy}
+            onPolesChange={(poles) => {
+              capturedPoles = poles;
+            }}
+            wallTransaction={mockTransaction as any}
+          />
+        </Provider>,
+      );
 
-        it('should call onPolesChange when pole is placed', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => (
-                            <WallDrawingTool
-                                encounterId="encounter-1"
-                                wallIndex={0}
-                                gridConfig={defaultGridConfig}
-                                defaultHeight={10}
-                                onCancel={onCancelSpy}
-                                onFinish={onFinishSpy}
-                                onPolesChange={onPolesChangeSpy}
-                                wallTransaction={wallTransaction}
-                            />
-                        )}
-                    </TestWrapper>
-                </Provider>
-            );
+      act(() => {
+        rect.click();
+      });
+      act(() => {
+        rect.click();
+      });
+      act(() => {
+        rect.click();
+      });
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            act(() => {
-                rect.click();
-            });
-
-            expect(onPolesChangeSpy).toHaveBeenCalledWith(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        x: expect.any(Number),
-                        y: expect.any(Number),
-                        h: 10,
-                    }),
-                ])
-            );
-        });
+      expect(capturedPoles.length).toBe(2);
+      expect(isClosedCalled).toBe(true);
     });
 
-    describe('Real Undo/Redo Integration', () => {
-        it('should undo pole placement using real hook', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
-            let capturedPoles: Pole[] = [];
+    it('should NOT auto-close when clicking 11px from first pole (outside tolerance)', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      const customKonvaEvent = {
+        target: {
+          getStage: () => ({
+            getPointerPosition: () => ({ x: 111, y: 100 }),
+            x: () => 0,
+            y: () => 0,
+            scaleX: () => 1,
+          }),
+        },
+        evt: {},
+        cancelBubble: false,
+      };
 
-            const testOnPolesChange = (poles: Pole[]) => {
-                capturedPoles = [...poles];
-            };
+      vi.mock('react-konva', () => ({
+        Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
+        Rect: ({ onClick }: { onClick?: (e: any) => void }) => (
+          <div data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
+        ),
+      }));
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={testOnPolesChange}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      let capturedPoles: Pole[] = [];
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => (
+              <WallDrawingTool
+                encounterId='encounter-1'
+                wallIndex={0}
+                gridConfig={defaultGridConfig}
+                defaultHeight={10}
+                onCancel={onCancelSpy}
+                onFinish={onFinishSpy}
+                onPolesChange={(poles) => {
+                  capturedPoles = poles;
+                }}
+                wallTransaction={wallTransaction}
+              />
+            )}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            act(() => {
-                rect.click();
-            });
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            expect(capturedPoles.length).toBe(1);
-            expect(transaction!.canUndoLocal()).toBe(true);
-
-            act(() => {
-                transaction!.undoLocal();
-            });
-
-            expect(capturedPoles.length).toBe(0);
-            expect(transaction!.canUndoLocal()).toBe(false);
-            expect(transaction!.canRedoLocal()).toBe(true);
+      for (let i = 0; i < 3; i++) {
+        act(() => {
+          rect.click();
         });
+      }
 
-        it('should redo pole placement using real hook', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
-            let capturedPoles: Pole[] = [];
+      expect(capturedPoles.length).toBe(3);
+      expect(onFinishSpy).not.toHaveBeenCalled();
+    });
+  });
 
-            const testOnPolesChange = (poles: Pole[]) => {
-                capturedPoles = [...poles];
-            };
+  describe('Pole Placement with Real Hook', () => {
+    it('should place pole and populate real undo stack', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={testOnPolesChange}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            act(() => {
-                rect.click();
-            });
+      expect(transaction?.transaction.localUndoStack.length).toBe(0);
 
-            const originalPole = { ...capturedPoles[0] };
+      act(() => {
+        rect.click();
+      });
 
-            act(() => {
-                transaction!.undoLocal();
-            });
-
-            expect(capturedPoles.length).toBe(0);
-
-            act(() => {
-                transaction!.redoLocal();
-            });
-
-            expect(capturedPoles.length).toBe(1);
-            expect(capturedPoles[0]).toEqual(originalPole);
-            expect(transaction!.canUndoLocal()).toBe(true);
-            expect(transaction!.canRedoLocal()).toBe(false);
-        });
-
-        it('should handle multiple undo operations with real hook', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
-
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
-
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
-
-            act(() => {
-                rect.click();
-            });
-
-            act(() => {
-                rect.click();
-            });
-
-            act(() => {
-                rect.click();
-            });
-
-            expect(transaction!.transaction.localUndoStack.length).toBe(3);
-            expect(transaction!.transaction.localRedoStack.length).toBe(0);
-
-            act(() => {
-                transaction!.undoLocal();
-            });
-
-            expect(transaction!.transaction.localUndoStack.length).toBe(2);
-            expect(transaction!.transaction.localRedoStack.length).toBe(1);
-
-            act(() => {
-                transaction!.undoLocal();
-            });
-
-            expect(transaction!.transaction.localUndoStack.length).toBe(1);
-            expect(transaction!.transaction.localRedoStack.length).toBe(2);
-
-            act(() => {
-                transaction!.undoLocal();
-            });
-
-            expect(transaction!.transaction.localUndoStack.length).toBe(0);
-            expect(transaction!.transaction.localRedoStack.length).toBe(3);
-            expect(transaction!.canUndoLocal()).toBe(false);
-            expect(transaction!.canRedoLocal()).toBe(true);
-        });
+      expect(transaction?.transaction.localUndoStack.length).toBe(1);
+      expect(transaction?.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
+      expect(transaction?.canUndoLocal()).toBe(true);
     });
 
-    describe('Real Hook State Management', () => {
-        it('should clear redo stack when new pole is placed after undo', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
+    it('should call onPolesChange when pole is placed', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => (
+              <WallDrawingTool
+                encounterId='encounter-1'
+                wallIndex={0}
+                gridConfig={defaultGridConfig}
+                defaultHeight={10}
+                onCancel={onCancelSpy}
+                onFinish={onFinishSpy}
+                onPolesChange={onPolesChangeSpy}
+                wallTransaction={wallTransaction}
+              />
+            )}
+          </TestWrapper>
+        </Provider>,
+      );
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            act(() => {
-                rect.click();
-            });
+      act(() => {
+        rect.click();
+      });
 
-            act(() => {
-                transaction!.undoLocal();
-            });
+      expect(onPolesChangeSpy).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            x: expect.any(Number),
+            y: expect.any(Number),
+            h: 10,
+          }),
+        ]),
+      );
+    });
+  });
 
-            expect(transaction!.canRedoLocal()).toBe(true);
+  describe('Real Undo/Redo Integration', () => {
+    it('should undo pole placement using real hook', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+      let capturedPoles: Pole[] = [];
 
-            act(() => {
-                rect.click();
-            });
+      const testOnPolesChange = (poles: Pole[]) => {
+        capturedPoles = [...poles];
+      };
 
-            expect(transaction!.canRedoLocal()).toBe(false);
-            expect(transaction!.transaction.localRedoStack.length).toBe(0);
-        });
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={testOnPolesChange}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
 
-        it('should maintain correct canUndo/canRedo state throughout lifecycle', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      act(() => {
+        rect.click();
+      });
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      expect(capturedPoles.length).toBe(1);
+      expect(transaction?.canUndoLocal()).toBe(true);
 
-            expect(transaction!.canUndoLocal()).toBe(false);
-            expect(transaction!.canRedoLocal()).toBe(false);
+      act(() => {
+        transaction?.undoLocal();
+      });
 
-            act(() => {
-                rect.click();
-            });
-
-            expect(transaction!.canUndoLocal()).toBe(true);
-            expect(transaction!.canRedoLocal()).toBe(false);
-
-            act(() => {
-                transaction!.undoLocal();
-            });
-
-            expect(transaction!.canUndoLocal()).toBe(false);
-            expect(transaction!.canRedoLocal()).toBe(true);
-
-            act(() => {
-                transaction!.redoLocal();
-            });
-
-            expect(transaction!.canUndoLocal()).toBe(true);
-            expect(transaction!.canRedoLocal()).toBe(false);
-        });
+      expect(capturedPoles.length).toBe(0);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(true);
     });
 
-    describe('Transaction Lifecycle', () => {
-        it('should verify transaction is active after startTransaction', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
+    it('should redo pole placement using real hook', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+      let capturedPoles: Pole[] = [];
 
-            render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      const testOnPolesChange = (poles: Pole[]) => {
+        capturedPoles = [...poles];
+      };
 
-            expect(transaction!.transaction.isActive).toBe(true);
-            expect(transaction!.transaction.type).toBe('placement');
-            expect(transaction!.transaction.originalWall).toBeNull();
-        });
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={testOnPolesChange}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
 
-        it('should rollback transaction and clear stacks', () => {
-            const store = createStoreWithEncounter(mockEncounterEmpty);
-            let transaction: ReturnType<typeof useWallTransaction> | null = null;
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
-            const { container } = render(
-                <Provider store={store}>
-                    <TestWrapper>
-                        {({ wallTransaction }) => {
-                            transaction = wallTransaction;
-                            return (
-                                <WallDrawingTool
-                                    encounterId="encounter-1"
-                                    wallIndex={0}
-                                    gridConfig={defaultGridConfig}
-                                    defaultHeight={10}
-                                    onCancel={onCancelSpy}
-                                    onFinish={onFinishSpy}
-                                    onPolesChange={onPolesChangeSpy}
-                                    wallTransaction={wallTransaction}
-                                />
-                            );
-                        }}
-                    </TestWrapper>
-                </Provider>
-            );
+      act(() => {
+        rect.click();
+      });
 
-            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const originalPole = { ...capturedPoles[0] };
 
-            act(() => {
-                rect.click();
-            });
+      act(() => {
+        transaction?.undoLocal();
+      });
 
-            expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      expect(capturedPoles.length).toBe(0);
 
-            act(() => {
-                transaction!.rollbackTransaction();
-            });
+      act(() => {
+        transaction?.redoLocal();
+      });
 
-            expect(transaction!.transaction.isActive).toBe(false);
-            expect(transaction!.transaction.localUndoStack.length).toBe(0);
-            expect(transaction!.transaction.localRedoStack.length).toBe(0);
-        });
+      expect(capturedPoles.length).toBe(1);
+      expect(capturedPoles[0]).toEqual(originalPole);
+      expect(transaction?.canUndoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(false);
     });
+
+    it('should handle multiple undo operations with real hook', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
+
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+      act(() => {
+        rect.click();
+      });
+
+      act(() => {
+        rect.click();
+      });
+
+      act(() => {
+        rect.click();
+      });
+
+      expect(transaction?.transaction.localUndoStack.length).toBe(3);
+      expect(transaction?.transaction.localRedoStack.length).toBe(0);
+
+      act(() => {
+        transaction?.undoLocal();
+      });
+
+      expect(transaction?.transaction.localUndoStack.length).toBe(2);
+      expect(transaction?.transaction.localRedoStack.length).toBe(1);
+
+      act(() => {
+        transaction?.undoLocal();
+      });
+
+      expect(transaction?.transaction.localUndoStack.length).toBe(1);
+      expect(transaction?.transaction.localRedoStack.length).toBe(2);
+
+      act(() => {
+        transaction?.undoLocal();
+      });
+
+      expect(transaction?.transaction.localUndoStack.length).toBe(0);
+      expect(transaction?.transaction.localRedoStack.length).toBe(3);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(true);
+    });
+  });
+
+  describe('Real Hook State Management', () => {
+    it('should clear redo stack when new pole is placed after undo', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
+
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+      act(() => {
+        rect.click();
+      });
+
+      act(() => {
+        transaction?.undoLocal();
+      });
+
+      expect(transaction?.canRedoLocal()).toBe(true);
+
+      act(() => {
+        rect.click();
+      });
+
+      expect(transaction?.canRedoLocal()).toBe(false);
+      expect(transaction?.transaction.localRedoStack.length).toBe(0);
+    });
+
+    it('should maintain correct canUndo/canRedo state throughout lifecycle', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
+
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(false);
+
+      act(() => {
+        rect.click();
+      });
+
+      expect(transaction?.canUndoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(false);
+
+      act(() => {
+        transaction?.undoLocal();
+      });
+
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(true);
+
+      act(() => {
+        transaction?.redoLocal();
+      });
+
+      expect(transaction?.canUndoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(false);
+    });
+  });
+
+  describe('Transaction Lifecycle', () => {
+    it('should verify transaction is active after startTransaction', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+
+      render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
+
+      expect(transaction?.transaction.isActive).toBe(true);
+      expect(transaction?.transaction.type).toBe('placement');
+      expect(transaction?.transaction.originalWall).toBeNull();
+    });
+
+    it('should rollback transaction and clear stacks', () => {
+      const store = createStoreWithEncounter(mockEncounterEmpty);
+      let transaction: ReturnType<typeof useWallTransaction> | null = null;
+
+      const { container } = render(
+        <Provider store={store}>
+          <TestWrapper>
+            {({ wallTransaction }) => {
+              transaction = wallTransaction;
+              return (
+                <WallDrawingTool
+                  encounterId='encounter-1'
+                  wallIndex={0}
+                  gridConfig={defaultGridConfig}
+                  defaultHeight={10}
+                  onCancel={onCancelSpy}
+                  onFinish={onFinishSpy}
+                  onPolesChange={onPolesChangeSpy}
+                  wallTransaction={wallTransaction}
+                />
+              );
+            }}
+          </TestWrapper>
+        </Provider>,
+      );
+
+      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+      act(() => {
+        rect.click();
+      });
+
+      expect(transaction?.transaction.localUndoStack.length).toBe(1);
+
+      act(() => {
+        transaction?.rollbackTransaction();
+      });
+
+      expect(transaction?.transaction.isActive).toBe(false);
+      expect(transaction?.transaction.localUndoStack.length).toBe(0);
+      expect(transaction?.transaction.localRedoStack.length).toBe(0);
+    });
+  });
 });

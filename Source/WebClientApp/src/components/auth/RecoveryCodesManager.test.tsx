@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RecoveryCodesManager } from './RecoveryCodesManager';
 
 // Mock useAuth hook
@@ -12,8 +12,8 @@ vi.mock('@/hooks/useAuth', () => ({
     generateRecoveryCodes: mockGenerateRecoveryCodes,
     user: null,
     isLoading: false,
-    error: mockAuthError
-  })
+    error: mockAuthError,
+  }),
 }));
 
 describe('RecoveryCodesManager', () => {
@@ -25,7 +25,7 @@ describe('RecoveryCodesManager', () => {
     'ZXC34VBN56',
     'PLM78OKN90',
     'MNB23VCX45',
-    'JKL56HGF78'
+    'JKL56HGF78',
   ];
 
   beforeEach(() => {
@@ -120,7 +120,9 @@ describe('RecoveryCodesManager', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText(/generating new recovery codes will invalidate all of your existing/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/generating new recovery codes will invalidate all of your existing/i),
+        ).toBeInTheDocument();
       });
     });
 
@@ -166,7 +168,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /cancel/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /cancel/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -183,7 +189,9 @@ describe('RecoveryCodesManager', () => {
     it('should call generateRecoveryCodes when confirmed', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -193,7 +201,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -204,7 +216,9 @@ describe('RecoveryCodesManager', () => {
     it('should display success message after generation', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -213,7 +227,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -224,7 +242,9 @@ describe('RecoveryCodesManager', () => {
     it('should display all generated recovery codes', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -233,11 +253,15 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
-        mockRecoveryCodes.forEach(code => {
+        mockRecoveryCodes.forEach((code) => {
           expect(screen.getByText(code)).toBeInTheDocument();
         });
       });
@@ -246,7 +270,9 @@ describe('RecoveryCodesManager', () => {
     it('should display warning about old codes being invalidated', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -255,7 +281,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -266,7 +296,9 @@ describe('RecoveryCodesManager', () => {
     it('should close confirmation dialog after successful generation', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -275,7 +307,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -292,14 +328,20 @@ describe('RecoveryCodesManager', () => {
     it('should show download button after codes are generated', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -310,7 +352,9 @@ describe('RecoveryCodesManager', () => {
     it('should trigger download when download button is clicked', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       const createElementSpy = vi.spyOn(document, 'createElement');
       const clickSpy = vi.fn();
 
@@ -318,7 +362,7 @@ describe('RecoveryCodesManager', () => {
         click: clickSpy,
         href: '',
         download: '',
-        style: {}
+        style: {},
       } as unknown as HTMLAnchorElement);
 
       render(<RecoveryCodesManager />);
@@ -327,7 +371,11 @@ describe('RecoveryCodesManager', () => {
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /download codes/i })).toBeInTheDocument();
@@ -344,7 +392,9 @@ describe('RecoveryCodesManager', () => {
     it('should create text file with proper format', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
 
       vi.spyOn(document, 'createElement').mockImplementation((tag) => {
@@ -353,7 +403,7 @@ describe('RecoveryCodesManager', () => {
             click: vi.fn(),
             href: '',
             download: '',
-            style: {}
+            style: {},
           } as unknown as HTMLAnchorElement;
         }
         return document.createElement(tag);
@@ -365,7 +415,11 @@ describe('RecoveryCodesManager', () => {
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /download codes/i })).toBeInTheDocument();
@@ -397,11 +451,19 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
-        expect(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i })).toBeDisabled();
+        expect(
+          within(screen.getByRole('dialog')).getByRole('button', {
+            name: /generate new codes/i,
+          }),
+        ).toBeDisabled();
       });
     });
 
@@ -418,7 +480,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -433,7 +499,9 @@ describe('RecoveryCodesManager', () => {
 
       render(<RecoveryCodesManager />);
 
-      const mainButton = screen.getByRole('button', { name: /generate new recovery codes/i });
+      const mainButton = screen.getByRole('button', {
+        name: /generate new recovery codes/i,
+      });
       await user.click(mainButton);
 
       await waitFor(() => {
@@ -441,7 +509,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -469,7 +541,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -492,7 +568,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -516,13 +596,21 @@ describe('RecoveryCodesManager', () => {
       });
 
       // First attempt fails
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
       await waitFor(() => {
         expect(mockGenerateRecoveryCodes).toHaveBeenCalledTimes(1);
       });
 
       // Act - Retry
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -558,7 +646,9 @@ describe('RecoveryCodesManager', () => {
     it('should display recovery codes in grid layout', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -567,7 +657,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -579,7 +673,9 @@ describe('RecoveryCodesManager', () => {
     it('should use monospace font for recovery codes', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
       render(<RecoveryCodesManager />);
 
       await user.click(screen.getByRole('button', { name: /generate new recovery codes/i }));
@@ -588,7 +684,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -643,7 +743,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -686,7 +790,11 @@ describe('RecoveryCodesManager', () => {
       });
 
       // Act
-      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /generate new codes/i }));
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: /generate new codes/i,
+        }),
+      );
 
       // Assert
       await waitFor(() => {
@@ -697,7 +805,9 @@ describe('RecoveryCodesManager', () => {
     it('should handle rapid clicks on generate button', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockGenerateRecoveryCodes.mockResolvedValue({ recoveryCodes: mockRecoveryCodes });
+      mockGenerateRecoveryCodes.mockResolvedValue({
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<RecoveryCodesManager />);
 

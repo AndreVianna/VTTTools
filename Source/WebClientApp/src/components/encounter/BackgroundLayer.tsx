@@ -13,20 +13,20 @@
  * - Light mode: #F9FAFB (bright white/gray)
  */
 
-import React from 'react';
-import { Group, Rect, Image as KonvaImage } from 'react-konva';
-import useImage from 'use-image';
 import { GroupName } from '@services/layerManager';
+import type React from 'react';
+import { Group, Image as KonvaImage, Rect } from 'react-konva';
+import useImage from 'use-image';
 
 export interface BackgroundLayerProps {
-    /** Background image URL (optional) */
-    imageUrl?: string;
-    /** Fallback background color (hex format) */
-    backgroundColor?: string;
-    /** Stage width for background sizing */
-    stageWidth: number;
-    /** Stage height for background sizing */
-    stageHeight: number;
+  /** Background image URL (optional) */
+  imageUrl?: string;
+  /** Fallback background color (hex format) */
+  backgroundColor?: string;
+  /** Stage width for background sizing */
+  stageWidth: number;
+  /** Stage height for background sizing */
+  stageHeight: number;
 }
 
 /**
@@ -49,34 +49,20 @@ export interface BackgroundLayerProps {
  * ```
  */
 export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
-    imageUrl,
-    backgroundColor = '#f5f5f5',
-    stageWidth,
-    stageHeight
+  imageUrl,
+  backgroundColor = '#f5f5f5',
+  stageWidth,
+  stageHeight,
 }) => {
-    const [image, status] = useImage(imageUrl || '', 'anonymous');
+  const [image, status] = useImage(imageUrl || '', 'anonymous');
 
-    return (
-        <Group name={GroupName.Background}>
-            {image && status === 'loaded' ? (
-                <KonvaImage
-                    image={image}
-                    x={0}
-                    y={0}
-                    width={image.width}
-                    height={image.height}
-                    listening={false}
-                />
-            ) : (
-                <Rect
-                    x={0}
-                    y={0}
-                    width={stageWidth}
-                    height={stageHeight}
-                    fill={backgroundColor}
-                    listening={false}
-                />
-            )}
-        </Group>
-    );
+  return (
+    <Group name={GroupName.Background}>
+      {image && status === 'loaded' ? (
+        <KonvaImage image={image} x={0} y={0} width={image.width} height={image.height} listening={false} />
+      ) : (
+        <Rect x={0} y={0} width={stageWidth} height={stageHeight} fill={backgroundColor} listening={false} />
+      )}
+    </Group>
+  );
 };

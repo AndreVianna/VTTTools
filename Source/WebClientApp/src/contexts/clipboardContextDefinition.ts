@@ -21,5 +21,5 @@ export const ClipboardContext = createContext<ClipboardContextValue | undefined>
 export const INITIAL_CLIPBOARD_STATE: ClipboardState = {
   assets: [],
   operation: null,
-  sourceEncounterId: null
+  sourceEncounterId: null,
 };

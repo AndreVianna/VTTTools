@@ -1,20 +1,20 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type {
-  User,
+  ChangePasswordRequest,
+  ExternalLoginCallbackRequest,
+  ExternalLoginInfo,
+  ForgotPasswordRequest,
+  LinkExternalLoginRequest,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
-  ForgotPasswordRequest,
   ResetPasswordRequest,
+  TwoFactorRecoveryRequest,
   TwoFactorSetupResponse,
   TwoFactorVerificationRequest,
-  TwoFactorRecoveryRequest,
-  ExternalLoginInfo,
-  ExternalLoginCallbackRequest,
-  LinkExternalLoginRequest,
-  ChangePasswordRequest,
-  UpdateProfileRequest
+  UpdateProfileRequest,
+  User,
 } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 

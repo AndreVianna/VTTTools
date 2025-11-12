@@ -1,39 +1,32 @@
-import React, { useState } from 'react';
+import { Cancel, CheckCircle, Delete, Edit, PhotoCamera, Save, Warning } from '@mui/icons-material';
 import {
-  Box,
-  TextField,
-  Button,
-  Typography,
   Alert,
-  CircularProgress,
-  Paper,
   Avatar,
+  Box,
+  Button,
+  CircularProgress,
   IconButton,
-  Stack,
   InputAdornment,
+  Paper,
+  Stack,
+  TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
-import {
-  PhotoCamera,
-  Edit,
-  Save,
-  Cancel,
-  Delete,
-  CheckCircle,
-  Warning,
-} from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { useAuth } from '@/hooks/useAuth';
-import { handleValidationError } from '@/utils/errorHandling';
-import { renderAuthError } from '@/utils/renderError';
+import type React from 'react';
+import { useState } from 'react';
 import {
+  useDeleteAvatarMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
   useUploadAvatarMutation,
-  useDeleteAvatarMutation,
 } from '@/api/profileApi';
-import { useResendEmailConfirmationMutation } from '@/services/authApi';
 import { getApiEndpoints } from '@/config/development';
+import { useAuth } from '@/hooks/useAuth';
+import { useResendEmailConfirmationMutation } from '@/services/authApi';
+import { handleValidationError } from '@/utils/errorHandling';
+import { renderAuthError } from '@/utils/renderError';
 
 const getAvatarUrl = (avatarId?: string): string | undefined => {
   if (!avatarId) return undefined;
@@ -100,13 +93,11 @@ export const ProfileSettings: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleInputChange = (field: keyof typeof editedValues) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setEditedValues(prev => ({ ...prev, [field]: e.target.value }));
+  const handleInputChange = (field: keyof typeof editedValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedValues((prev) => ({ ...prev, [field]: e.target.value }));
 
     if (validationErrors[field as keyof typeof validationErrors]) {
-      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -114,7 +105,7 @@ export const ProfileSettings: React.FC = () => {
     if (!validateForm()) {
       handleValidationError(new Error('Form validation failed'), {
         component: 'ProfileSettings',
-        validationErrors
+        validationErrors,
       });
       return;
     }
@@ -219,22 +210,26 @@ export const ProfileSettings: React.FC = () => {
 
   return (
     <Paper sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" component="h2">
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 3,
+        }}
+      >
+        <Typography variant='h5' component='h2'>
           Profile Settings
         </Typography>
         {!isEditing && (
-          <Button
-            startIcon={<Edit />}
-            onClick={() => setIsEditing(true)}
-          >
+          <Button startIcon={<Edit />} onClick={() => setIsEditing(true)}>
             Edit Profile
           </Button>
         )}
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {typeof error === 'string' ? error : renderAuthError(error)}
         </Alert>
       )}
@@ -251,7 +246,7 @@ export const ProfileSettings: React.FC = () => {
             </Avatar>
             {isEditing && (
               <IconButton
-                component="label"
+                component='label'
                 sx={{
                   position: 'absolute',
                   bottom: 0,
@@ -265,20 +260,15 @@ export const ProfileSettings: React.FC = () => {
                 disabled={isUploadingAvatar}
               >
                 <PhotoCamera />
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={handleFileUpload}
-                />
+                <input type='file' accept='image/*' hidden onChange={handleFileUpload} />
               </IconButton>
             )}
           </Box>
           {isEditing && avatarUrl && (
             <Button
-              variant="outlined"
-              color="error"
-              size="small"
+              variant='outlined'
+              color='error'
+              size='small'
               startIcon={<Delete />}
               onClick={handleDeleteAvatar}
               disabled={isDeletingAvatar}
@@ -293,18 +283,15 @@ export const ProfileSettings: React.FC = () => {
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Email Address"
+              label='Email Address'
               value={user.email}
               disabled
-              helperText="Email cannot be changed. Contact support if you need to update your email."
-              margin="normal"
+              helperText='Email cannot be changed. Contact support if you need to update your email.'
+              margin='normal'
               InputProps={{
                 endAdornment: (
-                  <InputAdornment position="end">
-                    <Tooltip
-                      title={user.emailConfirmed ? 'Email verified' : 'Email not verified'}
-                      arrow
-                    >
+                  <InputAdornment position='end'>
+                    <Tooltip title={user.emailConfirmed ? 'Email verified' : 'Email not verified'} arrow>
                       {user.emailConfirmed ? (
                         <CheckCircle
                           sx={{
@@ -330,13 +317,13 @@ export const ProfileSettings: React.FC = () => {
           {!user.emailConfirmed && (
             <Box sx={{ mb: 2 }}>
               {confirmationEmailSent && (
-                <Alert severity="success" sx={{ mb: 2 }}>
+                <Alert severity='success' sx={{ mb: 2 }}>
                   Confirmation email sent to {user.email}. Please check your inbox.
                 </Alert>
               )}
               <Button
-                variant="outlined"
-                size="small"
+                variant='outlined'
+                size='small'
                 onClick={handleResendConfirmation}
                 disabled={isResendingConfirmation}
               >
@@ -348,59 +335,49 @@ export const ProfileSettings: React.FC = () => {
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Full Name"
+              label='Full Name'
               value={formData.name}
               onChange={handleInputChange('name')}
               error={!!validationErrors.name}
               helperText={validationErrors.name || 'Your full name (e.g., John Doe)'}
               disabled={!isEditing || isLoading}
-              margin="normal"
+              margin='normal'
             />
           </Box>
 
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Display Name"
+              label='Display Name'
               value={formData.displayName}
               onChange={handleInputChange('displayName')}
               error={!!validationErrors.displayName}
               helperText={validationErrors.displayName || 'Name shown to other users (e.g., John)'}
               disabled={!isEditing || isLoading}
-              margin="normal"
+              margin='normal'
             />
           </Box>
 
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Phone Number"
+              label='Phone Number'
               value={formData.phoneNumber}
               onChange={handleInputChange('phoneNumber')}
               error={!!validationErrors.phoneNumber}
               helperText={validationErrors.phoneNumber || 'Optional - used for account recovery'}
               disabled={!isEditing || isLoading}
-              margin="normal"
-              placeholder="+1 (555) 123-4567"
+              margin='normal'
+              placeholder='+1 (555) 123-4567'
             />
           </Box>
 
           {isEditing && (
             <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
-              <Button
-                variant="contained"
-                startIcon={<Save />}
-                onClick={handleSave}
-                disabled={isLoading}
-              >
+              <Button variant='contained' startIcon={<Save />} onClick={handleSave} disabled={isLoading}>
                 {isUpdating ? <CircularProgress size={20} /> : 'Save Changes'}
               </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Cancel />}
-                onClick={handleCancel}
-                disabled={isLoading}
-              >
+              <Button variant='outlined' startIcon={<Cancel />} onClick={handleCancel} disabled={isLoading}>
                 Cancel
               </Button>
             </Box>

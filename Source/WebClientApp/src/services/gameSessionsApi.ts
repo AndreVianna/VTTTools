@@ -1,9 +1,9 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type {
   CreateGameSessionRequest,
-  UpdateGameSessionRequest,
+  GameSession,
   JoinGameSessionRequest,
-  GameSession
+  UpdateGameSessionRequest,
 } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
@@ -14,12 +14,15 @@ export const gameSessionsApi = createApi({
   tagTypes: ['GameSession', 'SessionPlayer'],
   endpoints: (builder) => ({
     // Get all sessions
-    getSessions: builder.query<GameSession[], {
-      status?: string;
-      adventureId?: string;
-      limit?: number;
-      offset?: number;
-    }>({
+    getSessions: builder.query<
+      GameSession[],
+      {
+        status?: string;
+        adventureId?: string;
+        limit?: number;
+        offset?: number;
+      }
+    >({
       query: (params = {}) => ({
         url: '',
         params,
@@ -69,10 +72,7 @@ export const gameSessionsApi = createApi({
         method: 'POST',
         body: request, // Uses existing Domain.Game.Sessions.ApiContracts
       }),
-      invalidatesTags: (_result, _error, { sessionId }) => [
-        { type: 'GameSession', id: sessionId },
-        'SessionPlayer'
-      ],
+      invalidatesTags: (_result, _error, { sessionId }) => [{ type: 'GameSession', id: sessionId }, 'SessionPlayer'],
     }),
 
     // Leave session
@@ -81,32 +81,35 @@ export const gameSessionsApi = createApi({
         url: `/${sessionId}/leave`,
         method: 'POST',
       }),
-      invalidatesTags: (_result, _error, { sessionId }) => [
-        { type: 'GameSession', id: sessionId },
-        'SessionPlayer'
-      ],
+      invalidatesTags: (_result, _error, { sessionId }) => [{ type: 'GameSession', id: sessionId }, 'SessionPlayer'],
     }),
 
     // Get session players
-    getSessionPlayers: builder.query<Array<{
-      id: string;
-      userId: string;
-      email: string;
-      displayName: string;
-      role: string;
-      joinedAt: string;
-      isOnline: boolean;
-    }>, string>({
+    getSessionPlayers: builder.query<
+      Array<{
+        id: string;
+        userId: string;
+        email: string;
+        displayName: string;
+        role: string;
+        joinedAt: string;
+        isOnline: boolean;
+      }>,
+      string
+    >({
       query: (sessionId) => `/${sessionId}/players`,
       providesTags: ['SessionPlayer'],
     }),
 
     // Update player role
-    updatePlayerRole: builder.mutation<void, {
-      sessionId: string;
-      playerId: string;
-      role: string;
-    }>({
+    updatePlayerRole: builder.mutation<
+      void,
+      {
+        sessionId: string;
+        playerId: string;
+        role: string;
+      }
+    >({
       query: ({ sessionId, playerId, role }) => ({
         url: `/${sessionId}/players/${playerId}/role`,
         method: 'PUT',
@@ -116,10 +119,13 @@ export const gameSessionsApi = createApi({
     }),
 
     // Kick player
-    kickPlayer: builder.mutation<void, {
-      sessionId: string;
-      playerId: string;
-    }>({
+    kickPlayer: builder.mutation<
+      void,
+      {
+        sessionId: string;
+        playerId: string;
+      }
+    >({
       query: ({ sessionId, playerId }) => ({
         url: `/${sessionId}/players/${playerId}/kick`,
         method: 'POST',
@@ -175,10 +181,13 @@ export const gameSessionsApi = createApi({
     }),
 
     // Generate session invitation
-    generateSessionInvitation: builder.mutation<{ inviteCode: string; expiresAt: string }, {
-      sessionId: string;
-      expiresInHours?: number;
-    }>({
+    generateSessionInvitation: builder.mutation<
+      { inviteCode: string; expiresAt: string },
+      {
+        sessionId: string;
+        expiresInHours?: number;
+      }
+    >({
       query: ({ sessionId, expiresInHours = 24 }) => ({
         url: `/${sessionId}/invite`,
         method: 'POST',
@@ -187,12 +196,15 @@ export const gameSessionsApi = createApi({
     }),
 
     // Search public sessions
-    searchPublicSessions: builder.query<GameSession[], {
-      query?: string;
-      adventureType?: string;
-      maxPlayers?: number;
-      hasOpenSlots?: boolean;
-    }>({
+    searchPublicSessions: builder.query<
+      GameSession[],
+      {
+        query?: string;
+        adventureType?: string;
+        maxPlayers?: number;
+        hasOpenSlots?: boolean;
+      }
+    >({
       query: (params) => ({
         url: '/public/search',
         params,

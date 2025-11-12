@@ -1,16 +1,6 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Alert,
-  CircularProgress,
-  Link,
-  Paper,
-  Container,
-} from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Container, Link, Paper, TextField, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 // Reuse AuthCard from SimpleLoginForm (Theme-Aware)
@@ -19,22 +9,22 @@ const AuthCard = styled(Paper)(({ theme }) => ({
   margin: '0 auto',
   padding: '48px 40px',
   borderRadius: '16px',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
-    : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
+  boxShadow:
+    theme.palette.mode === 'dark'
+      ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
+      : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(37, 99, 235, 0.08)'}`,
-  background: theme.palette.mode === 'dark'
-    ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
-    : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
+  background:
+    theme.palette.mode === 'dark'
+      ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
+      : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
 }));
 
 const AuthTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.05)'
-      : 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
     '& fieldset': {
       borderColor: theme.palette.divider,
       borderWidth: '1.5px',
@@ -81,9 +71,7 @@ interface PasswordResetRequestFormProps {
   onSwitchToLogin?: () => void;
 }
 
-export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> = ({
-  onSwitchToLogin
-}) => {
+export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> = ({ onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
@@ -128,11 +116,11 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
+    <Container maxWidth='sm' sx={{ py: 8 }}>
       <AuthCard>
         <Typography
-          variant="h2"
-          component="h1"
+          variant='h2'
+          component='h1'
           sx={{
             fontSize: '1.75rem',
             fontWeight: 600,
@@ -144,10 +132,10 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
         </Typography>
 
         <Typography
-          variant="body1"
+          variant='body1'
           sx={{
             fontSize: '0.975rem',
-            color: theme => theme.palette.text.secondary,
+            color: (theme) => theme.palette.text.secondary,
             textAlign: 'center',
             mb: 4,
           }}
@@ -156,17 +144,17 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
         </Typography>
 
         {error && hasAttemptedSubmit && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity='error' sx={{ mb: 3 }}>
             {typeof error === 'string' ? error : 'Password reset request failed. Please try again.'}
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} noValidate>
+        <Box component='form' onSubmit={handleSubmit} noValidate>
           <AuthTextField
             fullWidth
-            id="email"
-            label="Email Address"
-            type="email"
+            id='email'
+            label='Email Address'
+            type='email'
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -178,39 +166,29 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
             helperText={validationErrors.email || 'Enter the email address for your account'}
             disabled={isLoading}
             required
-            autoComplete="email"
+            autoComplete='email'
             autoFocus
             sx={{ mb: 4 }}
           />
 
-          <AuthSubmitButton
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isLoading}
-            sx={{ mb: 3 }}
-          >
-            {isLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              'Send Reset Instructions'
-            )}
+          <AuthSubmitButton type='submit' fullWidth variant='contained' disabled={isLoading} sx={{ mb: 3 }}>
+            {isLoading ? <CircularProgress size={20} color='inherit' /> : 'Send Reset Instructions'}
           </AuthSubmitButton>
         </Box>
 
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             Remember your password?{' '}
             <Link
-              component="button"
-              variant="body2"
+              component='button'
+              variant='body2'
               onClick={(e) => {
                 e.preventDefault();
                 onSwitchToLogin?.();
               }}
               disabled={isLoading}
               sx={{
-                color: theme => theme.palette.primary.main,
+                color: (theme) => theme.palette.primary.main,
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {

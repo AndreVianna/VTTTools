@@ -1,25 +1,30 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { store } from '@/store';
-import { setupGlobalErrorHandling } from '@/utils/errorHandling';
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { LandingPage } from '@/pages/LandingPage';
-import { EncounterEditorPage } from '@/pages/EncounterEditorPage';
-import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { ProtectedRoute } from '@/components/auth';
+import { LoadingOverlay } from '@/components/common';
 import { ErrorBoundary, NetworkStatus, ServiceUnavailablePage } from '@/components/error';
 import { AppLayout } from '@/components/layout';
 import { VTTThemeProvider } from '@/components/theme';
-import { LoadingOverlay } from '@/components/common';
-import { ProtectedRoute } from '@/components/auth';
-import { useAuth } from '@/hooks/useAuth';
-import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
-import { ContentLibraryPage, WorldDetailPage, CampaignDetailPage, AdventureDetailPage } from '@/features/content-library/pages';
-import { WorldListView } from '@/features/content-library/components/worlds';
-import { CampaignListView } from '@/features/content-library/components/campaigns';
 import { AdventureListView } from '@/features/content-library/components/adventures';
-import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
+import { CampaignListView } from '@/features/content-library/components/campaigns';
+import { WorldListView } from '@/features/content-library/components/worlds';
+import {
+  AdventureDetailPage,
+  CampaignDetailPage,
+  ContentLibraryPage,
+  WorldDetailPage,
+} from '@/features/content-library/pages';
+import { useAuth } from '@/hooks/useAuth';
+import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
+import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
+import { EncounterEditorPage } from '@/pages/EncounterEditorPage';
+import { LandingPage } from '@/pages/LandingPage';
 import { ProfilePage } from '@/pages/settings/ProfilePage';
+import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
+import { store } from '@/store';
+import { setupGlobalErrorHandling } from '@/utils/errorHandling';
 
 function AppContent() {
   return (
@@ -34,136 +39,181 @@ function AppRoutes() {
 
   return (
     <>
-      <LoadingOverlay
-        open={isInitializing}
-        message="Loading..."
-      />
+      <LoadingOverlay open={isInitializing} message='Loading...' />
 
       {!isInitializing && (
         <Routes>
           {/* Public Routes - Anonymous access */}
-          <Route path="/" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="anonymous">
-                <LandingPage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='anonymous'>
+                  <LandingPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
           {/* Authentication routes */}
-          <Route path="/login" element={
-            <AppLayout>
-              <LoginPage />
-            </AppLayout>
-          } />
-          <Route path="/register" element={
-            <AppLayout>
-              <LoginPage />
-            </AppLayout>
-          } />
-          <Route path="/forgot-password" element={
-            <AppLayout>
-              <PasswordResetRequestPage />
-            </AppLayout>
-          } />
-          <Route path="/reset-password" element={
-            <AppLayout>
-              <LoginPage />
-            </AppLayout>
-          } />
+          <Route
+            path='/login'
+            element={
+              <AppLayout>
+                <LoginPage />
+              </AppLayout>
+            }
+          />
+          <Route
+            path='/register'
+            element={
+              <AppLayout>
+                <LoginPage />
+              </AppLayout>
+            }
+          />
+          <Route
+            path='/forgot-password'
+            element={
+              <AppLayout>
+                <PasswordResetRequestPage />
+              </AppLayout>
+            }
+          />
+          <Route
+            path='/reset-password'
+            element={
+              <AppLayout>
+                <LoginPage />
+              </AppLayout>
+            }
+          />
 
           {/* Protected Routes - Require authentication */}
-          <Route path="/assets" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <AssetLibraryPage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/assets'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <AssetLibraryPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
-          <Route path="/content-library" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <ContentLibraryPage />
-              </ProtectedRoute>
-            </AppLayout>
-          }>
-            <Route path="worlds" element={<WorldListView />} />
-            <Route path="campaigns" element={<CampaignListView />} />
-            <Route path="adventures" element={<AdventureListView />} />
-            <Route index element={<Navigate to="adventures" replace />} />
+          <Route
+            path='/content-library'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <ContentLibraryPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          >
+            <Route path='worlds' element={<WorldListView />} />
+            <Route path='campaigns' element={<CampaignListView />} />
+            <Route path='adventures' element={<AdventureListView />} />
+            <Route index element={<Navigate to='adventures' replace />} />
           </Route>
 
-          <Route path="/worlds/:worldId" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <WorldDetailPage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/worlds/:worldId'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <WorldDetailPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
-          <Route path="/campaigns/:campaignId" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <CampaignDetailPage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/campaigns/:campaignId'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <CampaignDetailPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
-          <Route path="/adventures/:adventureId" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <AdventureDetailPage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/adventures/:adventureId'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <AdventureDetailPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
-          <Route path="/encounter-editor/:encounterId?" element={
-            <ProtectedRoute authLevel="authorized">
-              <EncounterEditorPage />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/profile" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <ProfilePage />
+          <Route
+            path='/encounter-editor/:encounterId?'
+            element={
+              <ProtectedRoute authLevel='authorized'>
+                <EncounterEditorPage />
               </ProtectedRoute>
-            </AppLayout>
-          } />
+            }
+          />
 
-          <Route path="/settings" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <ProfilePage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/profile'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <ProfilePage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
-          <Route path="/settings/security" element={
-            <AppLayout>
-              <ProtectedRoute authLevel="authorized">
-                <SecuritySettingsPage />
-              </ProtectedRoute>
-            </AppLayout>
-          } />
+          <Route
+            path='/settings'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <ProfilePage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
+
+          <Route
+            path='/settings/security'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <SecuritySettingsPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
 
           {/* Dashboard redirect - landing page IS the dashboard for authenticated users */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute authLevel="authorized">
-              <Navigate to="/" replace />
-            </ProtectedRoute>
-          } />
+          <Route
+            path='/dashboard'
+            element={
+              <ProtectedRoute authLevel='authorized'>
+                <Navigate to='/' replace />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Error pages - Anonymous access */}
-          <Route path="/error/service-unavailable" element={
-            <ProtectedRoute authLevel="anonymous">
-              <ServiceUnavailablePage />
-            </ProtectedRoute>
-          } />
+          <Route
+            path='/error/service-unavailable'
+            element={
+              <ProtectedRoute authLevel='anonymous'>
+                <ServiceUnavailablePage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Default redirect to landing */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>
       )}
 

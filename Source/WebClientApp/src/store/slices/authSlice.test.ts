@@ -4,24 +4,24 @@
  * Coverage: Auth State Management BDD scenarios
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { User } from '@/types/domain';
 import authReducer, {
-  setLoading,
-  setAuthenticated,
-  setAuthError,
+  type AuthState,
   clearAuthError,
   logout,
-  updateUser,
   resetLoginAttempts,
   selectAuth,
-  selectUser,
-  selectIsAuthenticated,
-  selectAuthLoading,
   selectAuthError,
+  selectAuthLoading,
+  selectIsAuthenticated,
   selectLoginAttempts,
-  type AuthState
+  selectUser,
+  setAuthError,
+  setAuthenticated,
+  setLoading,
+  updateUser,
 } from './authSlice';
-import type { User } from '@/types/domain';
 
 describe('authSlice', () => {
   let initialState: AuthState;
@@ -49,7 +49,7 @@ describe('authSlice', () => {
       twoFactorEnabled: false,
       lockoutEnabled: false,
       accessFailedCount: 0,
-      createdAt: '2025-01-01T00:00:00Z'
+      createdAt: '2025-01-01T00:00:00Z',
     };
   });
 
@@ -110,7 +110,7 @@ describe('authSlice', () => {
       const previousState = {
         ...initialState,
         error: 'Previous error',
-        loginAttempts: 3
+        loginAttempts: 3,
       };
 
       // Act
@@ -129,7 +129,7 @@ describe('authSlice', () => {
         ...initialState,
         user: mockUser,
         isAuthenticated: true,
-        loginAttempts: 2
+        loginAttempts: 2,
       };
       const errorMessage = 'Invalid credentials';
 
@@ -150,7 +150,7 @@ describe('authSlice', () => {
       const previousState = {
         ...initialState,
         user: mockUser,
-        isAuthenticated: true
+        isAuthenticated: true,
       };
 
       // Act
@@ -169,7 +169,7 @@ describe('authSlice', () => {
         ...initialState,
         user: mockUser,
         isAuthenticated: true,
-        error: 'Some error'
+        error: 'Some error',
       };
 
       // Act
@@ -191,7 +191,7 @@ describe('authSlice', () => {
         isLoading: false,
         error: 'Some error',
         loginAttempts: 3,
-        lastLoginAttempt: Date.now()
+        lastLoginAttempt: Date.now(),
       };
 
       // Act
@@ -211,7 +211,7 @@ describe('authSlice', () => {
       const previousState = {
         ...initialState,
         user: mockUser,
-        isAuthenticated: true
+        isAuthenticated: true,
       };
 
       // Act - Logout must clear Redux state synchronously
@@ -229,10 +229,10 @@ describe('authSlice', () => {
       const previousState = {
         ...initialState,
         user: mockUser,
-        isAuthenticated: true
+        isAuthenticated: true,
       };
       const updates = {
-        phoneNumber: '+1234567890'
+        phoneNumber: '+1234567890',
       };
 
       // Act
@@ -240,8 +240,8 @@ describe('authSlice', () => {
 
       // Assert
       expect(result.user).not.toBeNull();
-      expect(result.user!.phoneNumber).toBe('+1234567890');
-      expect(result.user!.email).toBe(mockUser.email); // Unchanged fields preserved
+      expect(result.user?.phoneNumber).toBe('+1234567890');
+      expect(result.user?.email).toBe(mockUser.email); // Unchanged fields preserved
     });
 
     it('should not update when user is null', () => {
@@ -263,7 +263,7 @@ describe('authSlice', () => {
       const previousState = {
         ...initialState,
         loginAttempts: 5,
-        lastLoginAttempt: Date.now()
+        lastLoginAttempt: Date.now(),
       };
 
       // Act
@@ -287,8 +287,8 @@ describe('authSlice', () => {
           isLoading: false,
           error: 'Test error',
           loginAttempts: 2,
-          lastLoginAttempt: 1234567890
-        }
+          lastLoginAttempt: 1234567890,
+        },
       };
     });
 
@@ -347,7 +347,7 @@ describe('authSlice', () => {
       const cachedAuthenticatedState = {
         ...initialState,
         user: mockUser,
-        isAuthenticated: true
+        isAuthenticated: true,
       };
 
       // Act - Logout must clear Redux state immediately
@@ -377,7 +377,7 @@ describe('authSlice', () => {
       const invalidSessionState = {
         ...initialState,
         user: mockUser,
-        isAuthenticated: true
+        isAuthenticated: true,
       };
 
       // Act - Backend returns 401, error is set
@@ -411,7 +411,7 @@ describe('authSlice', () => {
         ...initialState,
         loginAttempts: 5,
         lastLoginAttempt: Date.now(),
-        error: 'Too many attempts'
+        error: 'Too many attempts',
       };
 
       // Act - Successful login resets attempts

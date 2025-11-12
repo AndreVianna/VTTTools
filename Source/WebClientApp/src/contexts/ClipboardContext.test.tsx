@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import type { ObjectAsset, PlacedAsset } from '../types/domain';
+import { AssetKind, DisplayName, LabelPosition } from '../types/domain';
 import { ClipboardProvider } from './ClipboardContext';
 import { useClipboard } from './useClipboard';
-import type { PlacedAsset, ObjectAsset } from '../types/domain';
-import { AssetKind, DisplayName, LabelPosition } from '../types/domain';
 
 const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => ({
   id,
@@ -21,7 +21,7 @@ const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => 
     size: { width: 1, height: 1, isSquare: true },
     isMovable: true,
     isOpaque: false,
-    triggerEffectId: undefined
+    triggerEffectId: undefined,
   } as ObjectAsset,
   position: { x: 100, y: 100 },
   size: { width: 50, height: 50 },
@@ -33,7 +33,7 @@ const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => 
   visible: true,
   locked: false,
   displayName: DisplayName.Always,
-  labelPosition: LabelPosition.Bottom
+  labelPosition: LabelPosition.Bottom,
 });
 
 describe('ClipboardContext', () => {
@@ -255,11 +255,7 @@ describe('ClipboardContext', () => {
         wrapper: ClipboardProvider,
       });
 
-      const assets = [
-        createMockPlacedAsset('1'),
-        createMockPlacedAsset('2'),
-        createMockPlacedAsset('3'),
-      ];
+      const assets = [createMockPlacedAsset('1'), createMockPlacedAsset('2'), createMockPlacedAsset('3')];
 
       act(() => {
         result.current.copyAssets(assets, 'encounter-123');
@@ -322,10 +318,7 @@ describe('ClipboardContext', () => {
         wrapper: ClipboardProvider,
       });
 
-      const assets = [
-        createMockPlacedAsset('1', 'Asset 1'),
-        createMockPlacedAsset('2', 'Asset 2'),
-      ];
+      const assets = [createMockPlacedAsset('1', 'Asset 1'), createMockPlacedAsset('2', 'Asset 2')];
 
       act(() => {
         result.current.copyAssets(assets, 'encounter-123');

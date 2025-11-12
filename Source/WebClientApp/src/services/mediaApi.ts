@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import type { UploadRequest, AddResourceRequest, UpdateResourceRequest, MediaResource } from '@/types/domain';
+import type { AddResourceRequest, MediaResource, UpdateResourceRequest, UploadRequest } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 export const mediaApi = createApi({
@@ -8,13 +8,16 @@ export const mediaApi = createApi({
   tagTypes: ['MediaResource'],
   endpoints: (builder) => ({
     // Get all media resources
-    getMediaResources: builder.query<MediaResource[], {
-      type?: string;
-      search?: string;
-      tags?: string[];
-      limit?: number;
-      offset?: number;
-    }>({
+    getMediaResources: builder.query<
+      MediaResource[],
+      {
+        type?: string;
+        search?: string;
+        tags?: string[];
+        limit?: number;
+        offset?: number;
+      }
+    >({
       query: (params = {}) => ({
         url: '',
         params,
@@ -29,12 +32,15 @@ export const mediaApi = createApi({
     }),
 
     // Upload file to /api/resources endpoint (matches backend ResourcesHandlers.UploadFileHandler)
-    uploadFile: builder.mutation<{ id: string }, {
-      file: File;
-      type?: string;
-      resource?: string;
-      entityId?: string;
-    }>({
+    uploadFile: builder.mutation<
+      { id: string },
+      {
+        file: File;
+        type?: string;
+        resource?: string;
+        entityId?: string;
+      }
+    >({
       query: ({ file, type = 'asset', resource = 'image', entityId }) => {
         const formData = new FormData();
 
@@ -49,9 +55,9 @@ export const mediaApi = createApi({
         }
 
         return {
-          url: '/resources',  // Changed from '/upload' to match backend mapping
+          url: '/resources', // Changed from '/upload' to match backend mapping
           method: 'POST',
-          body: formData
+          body: formData,
         };
       },
       transformResponse: (response, _meta, _arg) => {
@@ -97,12 +103,15 @@ export const mediaApi = createApi({
     }),
 
     // Search resources
-    searchResources: builder.query<MediaResource[], {
-      query: string;
-      type?: string;
-      tags?: string[];
-      limit?: number;
-    }>({
+    searchResources: builder.query<
+      MediaResource[],
+      {
+        query: string;
+        type?: string;
+        tags?: string[];
+        limit?: number;
+      }
+    >({
       query: (params) => ({
         url: '/resources/search',
         params,
@@ -116,22 +125,28 @@ export const mediaApi = createApi({
     }),
 
     // Get resource thumbnail URL
-    getResourceThumbnailUrl: builder.query<{ thumbnailUrl: string }, {
-      id: string;
-      size?: 'small' | 'medium' | 'large';
-    }>({
+    getResourceThumbnailUrl: builder.query<
+      { thumbnailUrl: string },
+      {
+        id: string;
+        size?: 'small' | 'medium' | 'large';
+      }
+    >({
       query: ({ id, size = 'medium' }) => `/resources/${id}/thumbnail?size=${size}`,
     }),
 
     // Bulk upload files
-    bulkUploadFiles: builder.mutation<Array<{
-      file: string;
-      resourceId?: string;
-      error?: string;
-    }>, {
-      files: File[];
-      metadata?: Partial<UploadRequest>;
-    }>({
+    bulkUploadFiles: builder.mutation<
+      Array<{
+        file: string;
+        resourceId?: string;
+        error?: string;
+      }>,
+      {
+        files: File[];
+        metadata?: Partial<UploadRequest>;
+      }
+    >({
       query: ({ files, metadata = {} }) => {
         const formData = new FormData();
 
@@ -162,12 +177,15 @@ export const mediaApi = createApi({
     }),
 
     // Get upload progress (for chunked uploads)
-    getUploadProgress: builder.query<{
-      uploadId: string;
-      progress: number;
-      status: 'uploading' | 'processing' | 'complete' | 'error';
-      error?: string;
-    }, string>({
+    getUploadProgress: builder.query<
+      {
+        uploadId: string;
+        progress: number;
+        status: 'uploading' | 'processing' | 'complete' | 'error';
+        error?: string;
+      },
+      string
+    >({
       query: (uploadId) => `/upload/${uploadId}/progress`,
     }),
 
@@ -180,25 +198,31 @@ export const mediaApi = createApi({
     }),
 
     // Get storage statistics
-    getStorageStats: builder.query<{
-      totalFiles: number;
-      totalSize: number;
-      usedStorage: number;
-      storageLimit: number;
-      fileTypes: Array<{ type: string; count: number; size: number }>;
-    }, void>({
+    getStorageStats: builder.query<
+      {
+        totalFiles: number;
+        totalSize: number;
+        usedStorage: number;
+        storageLimit: number;
+        fileTypes: Array<{ type: string; count: number; size: number }>;
+      },
+      void
+    >({
       query: () => '/stats',
     }),
 
     // Optimize resource (compress, resize, etc.)
-    optimizeResource: builder.mutation<MediaResource, {
-      id: string;
-      optimizations: {
-        resize?: { width: number; height: number };
-        compress?: { quality: number };
-        format?: string;
-      };
-    }>({
+    optimizeResource: builder.mutation<
+      MediaResource,
+      {
+        id: string;
+        optimizations: {
+          resize?: { width: number; height: number };
+          compress?: { quality: number };
+          format?: string;
+        };
+      }
+    >({
       query: ({ id, optimizations }) => ({
         url: `/resources/${id}/optimize`,
         method: 'POST',

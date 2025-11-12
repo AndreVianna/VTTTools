@@ -17,8 +17,8 @@
  * undo/redo logic for different region operations (add, move, delete, etc.).
  */
 
-import type { Point } from '@/types/domain';
 import type { RegionSegment } from '@/hooks/useRegionTransaction';
+import type { Point } from '@/types/domain';
 
 /**
  * Base interface for local undo/redo actions
@@ -27,10 +27,10 @@ import type { RegionSegment } from '@/hooks/useRegionTransaction';
  * in the transaction-scoped undo/redo system.
  */
 export interface LocalAction {
-    type: string;
-    description: string;
-    undo: () => void;
-    redo: () => void;
+  type: string;
+  description: string;
+  undo: () => void;
+  redo: () => void;
 }
 
 /**
@@ -41,9 +41,9 @@ export interface LocalAction {
  * Regions are always closed polygons requiring minimum 3 vertices.
  */
 export interface PlaceVertexAction extends LocalAction {
-    type: 'PLACE_VERTEX';
-    vertexIndex: number;
-    vertex: Point;
+  type: 'PLACE_VERTEX';
+  vertexIndex: number;
+  vertex: Point;
 }
 
 /**
@@ -53,10 +53,10 @@ export interface PlaceVertexAction extends LocalAction {
  * Undo restores the old position, redo applies the new position.
  */
 export interface MoveVertexAction extends LocalAction {
-    type: 'MOVE_VERTEX';
-    vertexIndex: number;
-    oldVertex: Point;
-    newVertex: Point;
+  type: 'MOVE_VERTEX';
+  vertexIndex: number;
+  oldVertex: Point;
+  newVertex: Point;
 }
 
 /**
@@ -66,9 +66,9 @@ export interface MoveVertexAction extends LocalAction {
  * Undo removes the inserted vertex, redo restores it.
  */
 export interface InsertVertexAction extends LocalAction {
-    type: 'INSERT_VERTEX';
-    insertIndex: number;
-    vertex: Point;
+  type: 'INSERT_VERTEX';
+  insertIndex: number;
+  vertex: Point;
 }
 
 /**
@@ -79,9 +79,9 @@ export interface InsertVertexAction extends LocalAction {
  * Validates minimum 3 vertices constraint - cannot undo deletion if it would create less than 3 vertices.
  */
 export interface DeleteVertexAction extends LocalAction {
-    type: 'DELETE_VERTEX';
-    deletedIndex: number;
-    deletedVertex: Point;
+  type: 'DELETE_VERTEX';
+  deletedIndex: number;
+  deletedVertex: Point;
 }
 
 /**
@@ -92,12 +92,12 @@ export interface DeleteVertexAction extends LocalAction {
  * Undo reverts ALL vertex positions in one action, redo reapplies ALL movements in one action.
  */
 export interface MultiMoveVertexAction extends LocalAction {
-    type: 'MULTI_MOVE_VERTEX';
-    moves: Array<{
-        vertexIndex: number;
-        oldVertex: Point;
-        newVertex: Point;
-    }>;
+  type: 'MULTI_MOVE_VERTEX';
+  moves: Array<{
+    vertexIndex: number;
+    oldVertex: Point;
+    newVertex: Point;
+  }>;
 }
 
 /**
@@ -109,14 +109,14 @@ export interface MultiMoveVertexAction extends LocalAction {
  * redo reapplies both vertex movements.
  */
 export interface MoveLineAction extends LocalAction {
-    type: 'MOVE_LINE';
-    lineIndex: number;
-    vertex1Index: number;
-    vertex2Index: number;
-    oldVertex1: Point;
-    oldVertex2: Point;
-    newVertex1: Point;
-    newVertex2: Point;
+  type: 'MOVE_LINE';
+  lineIndex: number;
+  vertex1Index: number;
+  vertex2Index: number;
+  oldVertex1: Point;
+  oldVertex2: Point;
+  newVertex1: Point;
+  newVertex2: Point;
 }
 
 /**
@@ -137,38 +137,38 @@ export interface MoveLineAction extends LocalAction {
  * action.redo();
  */
 export function createPlaceVertexAction(
-    _getSegment: () => RegionSegment | null,
-    setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
+  _getSegment: () => RegionSegment | null,
+  setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void,
 ): PlaceVertexAction {
-    const segment = _getSegment();
-    if (!segment) {
-        throw new Error('createPlaceVertexAction: segment is null');
-    }
+  const segment = _getSegment();
+  if (!segment) {
+    throw new Error('createPlaceVertexAction: segment is null');
+  }
 
-    const vertexIndex = segment.vertices.length - 1;
-    const vertex = segment.vertices[vertexIndex];
-    if (!vertex) {
-        throw new Error('createPlaceVertexAction: no vertex to place');
-    }
+  const vertexIndex = segment.vertices.length - 1;
+  const vertex = segment.vertices[vertexIndex];
+  if (!vertex) {
+    throw new Error('createPlaceVertexAction: no vertex to place');
+  }
 
-    return {
-        type: 'PLACE_VERTEX',
-        description: `Place vertex at (${vertex.x}, ${vertex.y})`,
-        vertexIndex,
-        vertex,
-        undo: () => {
-            setSegment(prev => ({
-                ...prev,
-                vertices: prev.vertices.slice(0, -1)
-            }));
-        },
-        redo: () => {
-            setSegment(prev => ({
-                ...prev,
-                vertices: [...prev.vertices, vertex]
-            }));
-        }
-    };
+  return {
+    type: 'PLACE_VERTEX',
+    description: `Place vertex at (${vertex.x}, ${vertex.y})`,
+    vertexIndex,
+    vertex,
+    undo: () => {
+      setSegment((prev) => ({
+        ...prev,
+        vertices: prev.vertices.slice(0, -1),
+      }));
+    },
+    redo: () => {
+      setSegment((prev) => ({
+        ...prev,
+        vertices: [...prev.vertices, vertex],
+      }));
+    },
+  };
 }
 
 /**
@@ -195,39 +195,39 @@ export function createPlaceVertexAction(
  * action.undo();
  */
 export function createMoveVertexAction(
-    vertexIndex: number,
-    oldVertex: Point,
-    newVertex: Point,
-    _getSegment: () => RegionSegment | null,
-    setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
+  vertexIndex: number,
+  oldVertex: Point,
+  newVertex: Point,
+  _getSegment: () => RegionSegment | null,
+  setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void,
 ): MoveVertexAction {
-    return {
-        type: 'MOVE_VERTEX',
-        description: `Move vertex ${vertexIndex} from (${oldVertex.x},${oldVertex.y}) to (${newVertex.x},${newVertex.y})`,
-        vertexIndex,
-        oldVertex,
-        newVertex,
-        undo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices[vertexIndex] = { ...oldVertex };
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        },
-        redo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices[vertexIndex] = { ...newVertex };
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        }
-    };
+  return {
+    type: 'MOVE_VERTEX',
+    description: `Move vertex ${vertexIndex} from (${oldVertex.x},${oldVertex.y}) to (${newVertex.x},${newVertex.y})`,
+    vertexIndex,
+    oldVertex,
+    newVertex,
+    undo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices[vertexIndex] = { ...oldVertex };
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+    redo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices[vertexIndex] = { ...newVertex };
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+  };
 }
 
 /**
@@ -252,37 +252,37 @@ export function createMoveVertexAction(
  * action.redo();
  */
 export function createInsertVertexAction(
-    insertIndex: number,
-    vertex: Point,
-    _getSegment: () => RegionSegment | null,
-    setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
+  insertIndex: number,
+  vertex: Point,
+  _getSegment: () => RegionSegment | null,
+  setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void,
 ): InsertVertexAction {
-    return {
-        type: 'INSERT_VERTEX',
-        description: `Insert vertex at line ${insertIndex}`,
-        insertIndex,
-        vertex,
-        undo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices.splice(insertIndex, 1);
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        },
-        redo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices.splice(insertIndex, 0, vertex);
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        }
-    };
+  return {
+    type: 'INSERT_VERTEX',
+    description: `Insert vertex at line ${insertIndex}`,
+    insertIndex,
+    vertex,
+    undo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices.splice(insertIndex, 1);
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+    redo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices.splice(insertIndex, 0, vertex);
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+  };
 }
 
 /**
@@ -308,40 +308,40 @@ export function createInsertVertexAction(
  * action.undo();
  */
 export function createDeleteVertexAction(
-    deletedIndex: number,
-    deletedVertex: Point,
-    _getSegment: () => RegionSegment | null,
-    setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
+  deletedIndex: number,
+  deletedVertex: Point,
+  _getSegment: () => RegionSegment | null,
+  setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void,
 ): DeleteVertexAction {
-    return {
-        type: 'DELETE_VERTEX',
-        description: `Delete vertex ${deletedIndex}`,
-        deletedIndex,
-        deletedVertex,
-        undo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices.splice(deletedIndex, 0, deletedVertex);
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        },
-        redo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                if (updatedVertices.length <= 3) {
-                    throw new Error('Cannot delete vertex: minimum 3 vertices required');
-                }
-                updatedVertices.splice(deletedIndex, 1);
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
+  return {
+    type: 'DELETE_VERTEX',
+    description: `Delete vertex ${deletedIndex}`,
+    deletedIndex,
+    deletedVertex,
+    undo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices.splice(deletedIndex, 0, deletedVertex);
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+    redo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        if (updatedVertices.length <= 3) {
+          throw new Error('Cannot delete vertex: minimum 3 vertices required');
         }
-    };
+        updatedVertices.splice(deletedIndex, 1);
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+  };
 }
 
 /**
@@ -372,55 +372,55 @@ export function createDeleteVertexAction(
  * action.redo();
  */
 export function createMultiMoveVertexAction(
-    vertexIndices: number[],
-    oldVertices: Point[],
-    newVertices: Point[],
-    _getSegment: () => RegionSegment | null,
-    setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
+  vertexIndices: number[],
+  oldVertices: Point[],
+  newVertices: Point[],
+  _getSegment: () => RegionSegment | null,
+  setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void,
 ): MultiMoveVertexAction {
-    if (vertexIndices.length === 0) {
-        throw new Error('MultiMoveVertexAction: vertexIndices array cannot be empty');
-    }
+  if (vertexIndices.length === 0) {
+    throw new Error('MultiMoveVertexAction: vertexIndices array cannot be empty');
+  }
 
-    if (vertexIndices.length !== oldVertices.length || vertexIndices.length !== newVertices.length) {
-        throw new Error('MultiMoveVertexAction: vertexIndices, oldVertices, and newVertices must have the same length');
-    }
+  if (vertexIndices.length !== oldVertices.length || vertexIndices.length !== newVertices.length) {
+    throw new Error('MultiMoveVertexAction: vertexIndices, oldVertices, and newVertices must have the same length');
+  }
 
-    const moves = vertexIndices.map((vertexIndex, i) => ({
-        vertexIndex,
-        oldVertex: oldVertices[i]!,
-        newVertex: newVertices[i]!
-    }));
+  const moves = vertexIndices.map((vertexIndex, i) => ({
+    vertexIndex,
+    oldVertex: oldVertices[i]!,
+    newVertex: newVertices[i]!,
+  }));
 
-    return {
-        type: 'MULTI_MOVE_VERTEX',
-        description: `Move ${moves.length} vertices together`,
-        moves,
-        undo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                for (const move of moves) {
-                    updatedVertices[move.vertexIndex] = { ...move.oldVertex };
-                }
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        },
-        redo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                for (const move of moves) {
-                    updatedVertices[move.vertexIndex] = { ...move.newVertex };
-                }
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
+  return {
+    type: 'MULTI_MOVE_VERTEX',
+    description: `Move ${moves.length} vertices together`,
+    moves,
+    undo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        for (const move of moves) {
+          updatedVertices[move.vertexIndex] = { ...move.oldVertex };
         }
-    };
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+    redo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        for (const move of moves) {
+          updatedVertices[move.vertexIndex] = { ...move.newVertex };
+        }
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+  };
 }
 
 /**
@@ -454,57 +454,57 @@ export function createMultiMoveVertexAction(
  * action.undo();
  */
 export function createMoveLineAction(
-    lineIndex: number,
-    oldVertex1: Point,
-    oldVertex2: Point,
-    newVertex1: Point,
-    newVertex2: Point,
-    _getSegment: () => RegionSegment | null,
-    setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
+  lineIndex: number,
+  oldVertex1: Point,
+  oldVertex2: Point,
+  newVertex1: Point,
+  newVertex2: Point,
+  _getSegment: () => RegionSegment | null,
+  setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void,
 ): MoveLineAction {
-    const segment = _getSegment();
-    if (!segment) {
-        throw new Error('createMoveLineAction: segment is null');
-    }
+  const segment = _getSegment();
+  if (!segment) {
+    throw new Error('createMoveLineAction: segment is null');
+  }
 
-    const vertex1Index = lineIndex;
-    const vertex2Index = (lineIndex + 1) % segment.vertices.length;
+  const vertex1Index = lineIndex;
+  const vertex2Index = (lineIndex + 1) % segment.vertices.length;
 
-    if (vertex1Index === vertex2Index) {
-        throw new Error('createMoveLineAction: vertex1Index and vertex2Index must be different');
-    }
+  if (vertex1Index === vertex2Index) {
+    throw new Error('createMoveLineAction: vertex1Index and vertex2Index must be different');
+  }
 
-    return {
-        type: 'MOVE_LINE',
-        description: `Move line segment ${lineIndex}`,
-        lineIndex,
-        vertex1Index,
-        vertex2Index,
-        oldVertex1,
-        oldVertex2,
-        newVertex1,
-        newVertex2,
-        undo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices[vertex1Index] = { ...oldVertex1 };
-                updatedVertices[vertex2Index] = { ...oldVertex2 };
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        },
-        redo: () => {
-            setSegment(prev => {
-                const updatedVertices = [...prev.vertices];
-                updatedVertices[vertex1Index] = { ...newVertex1 };
-                updatedVertices[vertex2Index] = { ...newVertex2 };
-                return {
-                    ...prev,
-                    vertices: updatedVertices
-                };
-            });
-        }
-    };
+  return {
+    type: 'MOVE_LINE',
+    description: `Move line segment ${lineIndex}`,
+    lineIndex,
+    vertex1Index,
+    vertex2Index,
+    oldVertex1,
+    oldVertex2,
+    newVertex1,
+    newVertex2,
+    undo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices[vertex1Index] = { ...oldVertex1 };
+        updatedVertices[vertex2Index] = { ...oldVertex2 };
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+    redo: () => {
+      setSegment((prev) => {
+        const updatedVertices = [...prev.vertices];
+        updatedVertices[vertex1Index] = { ...newVertex1 };
+        updatedVertices[vertex2Index] = { ...newVertex2 };
+        return {
+          ...prev,
+          vertices: updatedVertices,
+        };
+      });
+    },
+  };
 }

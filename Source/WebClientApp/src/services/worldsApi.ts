@@ -1,12 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
+import type { Campaign, CreateCampaignRequest, CreateWorldRequest, UpdateWorldRequest, World } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
-import type {
-  CreateWorldRequest,
-  UpdateWorldRequest,
-  World,
-  CreateCampaignRequest,
-  Campaign
-} from '@/types/domain';
 
 export const worldsApi = createApi({
   reducerPath: 'worldsApi',
@@ -60,9 +54,7 @@ export const worldsApi = createApi({
 
     getCampaigns: builder.query<Campaign[], string>({
       query: (worldId) => `/${worldId}/campaigns`,
-      providesTags: (_result, _error, worldId) => [
-        { type: 'WorldCampaigns', id: worldId }
-      ],
+      providesTags: (_result, _error, worldId) => [{ type: 'WorldCampaigns', id: worldId }],
     }),
 
     createCampaign: builder.mutation<Campaign, { worldId: string; request: CreateCampaignRequest }>({
@@ -71,9 +63,7 @@ export const worldsApi = createApi({
         method: 'POST',
         body: request,
       }),
-      invalidatesTags: (_result, _error, { worldId }) => [
-        { type: 'WorldCampaigns', id: worldId }
-      ],
+      invalidatesTags: (_result, _error, { worldId }) => [{ type: 'WorldCampaigns', id: worldId }],
     }),
 
     cloneCampaign: builder.mutation<Campaign, { worldId: string; campaignId: string; name?: string }>({
@@ -82,9 +72,7 @@ export const worldsApi = createApi({
         method: 'POST',
         body: name ? { name } : undefined,
       }),
-      invalidatesTags: (_result, _error, { worldId }) => [
-        { type: 'WorldCampaigns', id: worldId }
-      ],
+      invalidatesTags: (_result, _error, { worldId }) => [{ type: 'WorldCampaigns', id: worldId }],
     }),
 
     removeCampaign: builder.mutation<void, { worldId: string; campaignId: string }>({
@@ -92,9 +80,7 @@ export const worldsApi = createApi({
         url: `/${worldId}/campaigns/${campaignId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (_result, _error, { worldId }) => [
-        { type: 'WorldCampaigns', id: worldId }
-      ],
+      invalidatesTags: (_result, _error, { worldId }) => [{ type: 'WorldCampaigns', id: worldId }],
     }),
   }),
 });

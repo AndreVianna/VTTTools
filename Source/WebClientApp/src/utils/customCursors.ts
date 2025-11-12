@@ -1,5 +1,5 @@
 export const getCrosshairPlusCursor = (): string => {
-    const svg = `
+  const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
             <line x1="12" y1="0" x2="12" y2="24" stroke="white" stroke-width="1.5" />
             <line x1="0" y1="12" x2="24" y2="12" stroke="white" stroke-width="1.5" />
@@ -11,8 +11,8 @@ export const getCrosshairPlusCursor = (): string => {
         </svg>
     `;
 
-    const encoded = btoa(svg);
-    return `url('data:image/svg+xml;base64,${encoded}') 12 12, crosshair`;
+  const encoded = btoa(svg);
+  return `url('data:image/svg+xml;base64,${encoded}') 12 12, crosshair`;
 };
 
 export const getDefaultCursor = (): string => 'default';

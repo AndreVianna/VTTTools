@@ -9,6 +9,6 @@ public record EncounterWall {
     public bool IsClosed { get; init; }
     [MaxLength(32)]
     public string? Material { get; init; }
-    [MaxLength(16)]
+    [MaxLength(32)]
     public string? Color { get; init; }
 }

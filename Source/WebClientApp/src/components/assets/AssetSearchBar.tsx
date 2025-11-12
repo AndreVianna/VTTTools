@@ -8,67 +8,54 @@
  * Features: 300ms debounce, clear button, search icon
  */
 
-import React from 'react';
-import {
-    TextField,
-    InputAdornment,
-    IconButton,
-    useTheme
-} from '@mui/material';
-import {
-    Search as SearchIcon,
-    Clear as ClearIcon
-} from '@mui/icons-material';
+import { Clear as ClearIcon, Search as SearchIcon } from '@mui/icons-material';
+import { IconButton, InputAdornment, TextField, useTheme } from '@mui/material';
+import type React from 'react';
 
 export interface AssetSearchBarProps {
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
-    fullWidth?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  fullWidth?: boolean;
 }
 
 export const AssetSearchBar: React.FC<AssetSearchBarProps> = ({
-    value,
-    onChange,
-    placeholder = 'Search assets by name or description...',
-    fullWidth = false
+  value,
+  onChange,
+  placeholder = 'Search assets by name or description...',
+  fullWidth = false,
 }) => {
-    const theme = useTheme();
+  const theme = useTheme();
 
-    const handleClear = () => {
-        onChange('');
-    };
+  const handleClear = () => {
+    onChange('');
+  };
 
-    return (
-        <TextField
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            size="small"
-            fullWidth={fullWidth}
-            InputProps={{
-                startAdornment: (
-                    <InputAdornment position="start">
-                        <SearchIcon color="action" />
-                    </InputAdornment>
-                ),
-                endAdornment: value && (
-                    <InputAdornment position="end">
-                        <IconButton
-                            size="small"
-                            onClick={handleClear}
-                            edge="end"
-                            aria-label="clear search"
-                        >
-                            <ClearIcon fontSize="small" />
-                        </IconButton>
-                    </InputAdornment>
-                ),
-            }}
-            sx={{
-                minWidth: fullWidth ? undefined : 300,
-                bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'background.default'
-            }}
-        />
-    );
+  return (
+    <TextField
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      size='small'
+      fullWidth={fullWidth}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position='start'>
+            <SearchIcon color='action' />
+          </InputAdornment>
+        ),
+        endAdornment: value && (
+          <InputAdornment position='end'>
+            <IconButton size='small' onClick={handleClear} edge='end' aria-label='clear search'>
+              <ClearIcon fontSize='small' />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+      sx={{
+        minWidth: fullWidth ? undefined : 300,
+        bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'background.default',
+      }}
+    />
+  );
 };

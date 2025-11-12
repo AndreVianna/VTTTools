@@ -4,15 +4,15 @@
  * Coverage: Auth State Management + Session Restoration BDD scenarios
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { useAuth } from './useAuth';
-import authReducer from '@/store/slices/authSlice';
-import { authApi } from '@/services/authApi';
-import type { User } from '@/types/domain';
+import { renderHook, waitFor } from '@testing-library/react';
 import * as React from 'react';
+import { Provider } from 'react-redux';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { authApi } from '@/services/authApi';
+import authReducer from '@/store/slices/authSlice';
+import type { User } from '@/types/domain';
+import { useAuth } from './useAuth';
 
 // Mock dependencies
 vi.mock('react-router-dom', () => ({
@@ -33,14 +33,14 @@ vi.mock('@/config/development', () => ({
       twoFactorEnabled: false,
       roles: ['User'],
       createdAt: '2025-01-01T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z'
-    }
+      updatedAt: '2025-01-01T00:00:00Z',
+    },
   },
   devUtils: {
     log: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  }
+    error: vi.fn(),
+  },
 }));
 
 describe('useAuth', () => {
@@ -51,10 +51,9 @@ describe('useAuth', () => {
     return configureStore({
       reducer: {
         auth: authReducer,
-        [authApi.reducerPath]: authApi.reducer
+        [authApi.reducerPath]: authApi.reducer,
       },
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(authApi.middleware)
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(authApi.middleware),
     });
   };
 
@@ -74,7 +73,7 @@ describe('useAuth', () => {
       twoFactorEnabled: false,
       lockoutEnabled: false,
       accessFailedCount: 0,
-      createdAt: '2025-01-01T00:00:00Z'
+      createdAt: '2025-01-01T00:00:00Z',
     };
 
     // Reset global auth initialization flag
@@ -129,7 +128,7 @@ describe('useAuth', () => {
 
       store.dispatch({
         type: 'auth/setAuthenticated',
-        payload: { user: mockUser }
+        payload: { user: mockUser },
       });
 
       // Act & Assert - Wait for hook to reflect Redux state
@@ -162,7 +161,7 @@ describe('useAuth', () => {
         () => {
           expect(result.current.isInitializing).toBe(false);
         },
-        { timeout: 3000 }
+        { timeout: 3000 },
       );
 
       // Assert - BDD: globalAuthInitialized flag prevents redundant calls
@@ -177,7 +176,7 @@ describe('useAuth', () => {
         () => {
           expect(result1.current.isInitializing).toBe(false);
         },
-        { timeout: 3000 }
+        { timeout: 3000 },
       );
 
       // Act - Second hook instance mounts
@@ -212,15 +211,15 @@ describe('useAuth', () => {
       // Set 3 login attempts
       store.dispatch({
         type: 'auth/setAuthError',
-        payload: 'Invalid credentials'
+        payload: 'Invalid credentials',
       });
       store.dispatch({
         type: 'auth/setAuthError',
-        payload: 'Invalid credentials'
+        payload: 'Invalid credentials',
       });
       store.dispatch({
         type: 'auth/setAuthError',
-        payload: 'Invalid credentials'
+        payload: 'Invalid credentials',
       });
 
       // Act
@@ -238,7 +237,7 @@ describe('useAuth', () => {
       for (let i = 0; i < 5; i++) {
         store.dispatch({
           type: 'auth/setAuthError',
-          payload: 'Invalid credentials'
+          payload: 'Invalid credentials',
         });
       }
 
@@ -262,7 +261,7 @@ describe('useAuth', () => {
       for (let i = 0; i < 5; i++) {
         store.dispatch({
           type: 'auth/setAuthError',
-          payload: 'Invalid credentials'
+          payload: 'Invalid credentials',
         });
       }
 
@@ -281,7 +280,7 @@ describe('useAuth', () => {
       }
 
       // Mock time to 5 minutes after last attempt
-      const fiveMinutesLater = lastAttempt + (5 * 60 * 1000);
+      const fiveMinutesLater = lastAttempt + 5 * 60 * 1000;
       const spy = vi.spyOn(Date, 'now').mockReturnValue(fiveMinutesLater);
 
       // Act
@@ -304,7 +303,7 @@ describe('useAuth', () => {
       for (let i = 0; i < 5; i++) {
         store.dispatch({
           type: 'auth/setAuthError',
-          payload: 'Invalid credentials'
+          payload: 'Invalid credentials',
         });
       }
 
@@ -329,7 +328,7 @@ describe('useAuth', () => {
 
       store.dispatch({
         type: 'auth/setAuthError',
-        payload: 'Test error'
+        payload: 'Test error',
       });
 
       // Wait for state to propagate
@@ -354,7 +353,7 @@ describe('useAuth', () => {
 
       store.dispatch({
         type: 'auth/setAuthenticated',
-        payload: { user: mockUser }
+        payload: { user: mockUser },
       });
 
       // Act & Assert - Wait for state to propagate
@@ -381,7 +380,7 @@ describe('useAuth', () => {
       // Simulate corrupted session returning 401
       store.dispatch({
         type: 'auth/setAuthError',
-        payload: 'Invalid session'
+        payload: 'Invalid session',
       });
 
       // Act & Assert - Wait for state to propagate
@@ -401,7 +400,7 @@ describe('useAuth', () => {
 
       store.dispatch({
         type: 'auth/setAuthenticated',
-        payload: { user: mockUser }
+        payload: { user: mockUser },
       });
 
       // Act & Assert - Wait for state to propagate
@@ -441,7 +440,7 @@ describe('useAuth', () => {
 
       store.dispatch({
         type: 'auth/setAuthError',
-        payload: 'Failed attempt'
+        payload: 'Failed attempt',
       });
 
       // Act & Assert - Wait for state to propagate

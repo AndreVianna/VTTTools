@@ -13,24 +13,26 @@
  * - Real browser interactions
  */
 
-import { Page, expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 /**
  * Expand encounter canvas to full view
  * @param page Playwright page
  */
 export async function expandEncounterCanvas(page: Page): Promise<void> {
-    // Wait for encounter editor to load
-    await page.waitForSelector('[data-testid="encounter-editor-canvas"]', { timeout: 10000 });
+  // Wait for encounter editor to load
+  await page.waitForSelector('[data-testid="encounter-editor-canvas"]', {
+    timeout: 10000,
+  });
 
-    // Expand canvas if collapsed
-    const expandButton = page.locator('button:has-text("Expand Canvas")');
-    if (await expandButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await expandButton.click();
-    }
+  // Expand canvas if collapsed
+  const expandButton = page.locator('button:has-text("Expand Canvas")');
+  if (await expandButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await expandButton.click();
+  }
 
-    // Wait for canvas to be ready
-    await page.waitForTimeout(500);
+  // Wait for canvas to be ready
+  await page.waitForTimeout(500);
 }
 
 /**
@@ -40,37 +42,37 @@ export async function expandEncounterCanvas(page: Page): Promise<void> {
  * @param position Target position on canvas (stage coordinates)
  */
 export async function dragAssetToCanvas(
-    page: Page,
-    assetId: string,
-    position: { x: number; y: number }
+  page: Page,
+  assetId: string,
+  position: { x: number; y: number },
 ): Promise<void> {
-    // Locate asset in library panel
-    const assetTile = page.locator(`[data-asset-id="${assetId}"]`).first();
-    await expect(assetTile).toBeVisible({ timeout: 5000 });
+  // Locate asset in library panel
+  const assetTile = page.locator(`[data-asset-id="${assetId}"]`).first();
+  await expect(assetTile).toBeVisible({ timeout: 5000 });
 
-    // Get canvas element
-    const canvas = page.locator('[data-testid="encounter-editor-canvas"]');
-    await expect(canvas).toBeVisible();
+  // Get canvas element
+  const canvas = page.locator('[data-testid="encounter-editor-canvas"]');
+  await expect(canvas).toBeVisible();
 
-    // Get canvas bounding box for coordinate conversion
-    const canvasBounds = await canvas.boundingBox();
-    if (!canvasBounds) {
-        throw new Error('Canvas bounding box not found');
-    }
+  // Get canvas bounding box for coordinate conversion
+  const canvasBounds = await canvas.boundingBox();
+  if (!canvasBounds) {
+    throw new Error('Canvas bounding box not found');
+  }
 
-    // Convert stage coordinates to viewport coordinates
-    // Assuming 1:1 scale for simplicity (adjust if zoom/pan implemented)
+  // Convert stage coordinates to viewport coordinates
+  // Assuming 1:1 scale for simplicity (adjust if zoom/pan implemented)
 
-    // Drag asset from library to canvas position
-    await assetTile.dragTo(canvas, {
-        targetPosition: {
-            x: position.x,
-            y: position.y
-        }
-    });
+  // Drag asset from library to canvas position
+  await assetTile.dragTo(canvas, {
+    targetPosition: {
+      x: position.x,
+      y: position.y,
+    },
+  });
 
-    // Wait for placement animation
-    await page.waitForTimeout(300);
+  // Wait for placement animation
+  await page.waitForTimeout(300);
 }
 
 /**
@@ -80,37 +82,37 @@ export async function dragAssetToCanvas(
  * @param position New position (stage coordinates)
  */
 export async function moveAssetOnCanvas(
-    page: Page,
-    assetInstanceId: string,
-    position: { x: number; y: number }
+  page: Page,
+  assetInstanceId: string,
+  position: { x: number; y: number },
 ): Promise<void> {
-    // Select asset on canvas
-    const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
-    await expect(assetNode).toBeVisible({ timeout: 5000 });
+  // Select asset on canvas
+  const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
+  await expect(assetNode).toBeVisible({ timeout: 5000 });
 
-    // Click to select
-    await assetNode.click();
+  // Click to select
+  await assetNode.click();
 
-    // Wait for selection indicator
-    await page.waitForTimeout(200);
+  // Wait for selection indicator
+  await page.waitForTimeout(200);
 
-    // Get canvas for coordinate conversion
-    const canvas = page.locator('[data-testid="encounter-editor-canvas"]');
-    const canvasBounds = await canvas.boundingBox();
-    if (!canvasBounds) {
-        throw new Error('Canvas bounding box not found');
-    }
+  // Get canvas for coordinate conversion
+  const canvas = page.locator('[data-testid="encounter-editor-canvas"]');
+  const canvasBounds = await canvas.boundingBox();
+  if (!canvasBounds) {
+    throw new Error('Canvas bounding box not found');
+  }
 
-    // Drag asset to new position
-    await assetNode.dragTo(canvas, {
-        targetPosition: {
-            x: position.x,
-            y: position.y
-        }
-    });
+  // Drag asset to new position
+  await assetNode.dragTo(canvas, {
+    targetPosition: {
+      x: position.x,
+      y: position.y,
+    },
+  });
 
-    // Wait for drag to complete
-    await page.waitForTimeout(300);
+  // Wait for drag to complete
+  await page.waitForTimeout(300);
 }
 
 /**
@@ -119,17 +121,17 @@ export async function moveAssetOnCanvas(
  * @param assetInstanceId Placed asset instance ID
  */
 export async function selectAssetOnCanvas(page: Page, assetInstanceId: string): Promise<void> {
-    const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
-    await expect(assetNode).toBeVisible({ timeout: 5000 });
+  const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
+  await expect(assetNode).toBeVisible({ timeout: 5000 });
 
-    await assetNode.click();
+  await assetNode.click();
 
-    // Wait for selection
-    await page.waitForTimeout(200);
+  // Wait for selection
+  await page.waitForTimeout(200);
 
-    // Verify selection indicator appears
-    const transformer = page.locator('.konvajs-content .transformer-anchor');
-    await expect(transformer.first()).toBeVisible({ timeout: 2000 });
+  // Verify selection indicator appears
+  const transformer = page.locator('.konvajs-content .transformer-anchor');
+  await expect(transformer.first()).toBeVisible({ timeout: 2000 });
 }
 
 /**
@@ -138,14 +140,14 @@ export async function selectAssetOnCanvas(page: Page, assetInstanceId: string): 
  * @param assetInstanceId Placed asset instance ID
  */
 export async function deleteAssetFromCanvas(page: Page, assetInstanceId: string): Promise<void> {
-    // Select asset first
-    await selectAssetOnCanvas(page, assetInstanceId);
+  // Select asset first
+  await selectAssetOnCanvas(page, assetInstanceId);
 
-    // Press Delete key
-    await page.keyboard.press('Delete');
+  // Press Delete key
+  await page.keyboard.press('Delete');
 
-    // Wait for deletion animation
-    await page.waitForTimeout(300);
+  // Wait for deletion animation
+  await page.waitForTimeout(300);
 }
 
 /**
@@ -153,9 +155,9 @@ export async function deleteAssetFromCanvas(page: Page, assetInstanceId: string)
  * @param page Playwright page
  */
 export async function verifyAssetPlaced(page: Page): Promise<void> {
-    // Check for newly placed asset (any asset with placement indicator)
-    const placedAssets = page.locator('[data-asset-instance-id]');
-    await expect(placedAssets.first()).toBeVisible({ timeout: 5000 });
+  // Check for newly placed asset (any asset with placement indicator)
+  const placedAssets = page.locator('[data-asset-instance-id]');
+  await expect(placedAssets.first()).toBeVisible({ timeout: 5000 });
 }
 
 /**
@@ -166,25 +168,25 @@ export async function verifyAssetPlaced(page: Page): Promise<void> {
  * @param tolerance Position tolerance in pixels (for snap-to-grid)
  */
 export async function verifyAssetPosition(
-    page: Page,
-    assetInstanceId: string,
-    expectedPosition: { x: number; y: number },
-    tolerance: number = 5
+  page: Page,
+  assetInstanceId: string,
+  expectedPosition: { x: number; y: number },
+  tolerance: number = 5,
 ): Promise<void> {
-    const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
-    await expect(assetNode).toBeVisible({ timeout: 5000 });
+  const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
+  await expect(assetNode).toBeVisible({ timeout: 5000 });
 
-    // Get asset position attribute (set by Konva)
-    const positionAttr = await assetNode.getAttribute('data-position');
-    if (!positionAttr) {
-        throw new Error('Asset position attribute not found');
-    }
+  // Get asset position attribute (set by Konva)
+  const positionAttr = await assetNode.getAttribute('data-position');
+  if (!positionAttr) {
+    throw new Error('Asset position attribute not found');
+  }
 
-    const [actualX, actualY] = positionAttr.split(',').map(Number);
+  const [actualX, actualY] = positionAttr.split(',').map(Number);
 
-    // Verify within tolerance (for snap-to-grid behavior)
-    expect(Math.abs((actualX ?? 0) - expectedPosition.x)).toBeLessThanOrEqual(tolerance);
-    expect(Math.abs((actualY ?? 0) - expectedPosition.y)).toBeLessThanOrEqual(tolerance);
+  // Verify within tolerance (for snap-to-grid behavior)
+  expect(Math.abs((actualX ?? 0) - expectedPosition.x)).toBeLessThanOrEqual(tolerance);
+  expect(Math.abs((actualY ?? 0) - expectedPosition.y)).toBeLessThanOrEqual(tolerance);
 }
 
 /**
@@ -193,10 +195,10 @@ export async function verifyAssetPosition(
  * @param assetInstanceId Placed asset instance ID
  */
 export async function verifyAssetRemoved(page: Page, assetInstanceId: string): Promise<void> {
-    const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
+  const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
 
-    // Asset should not be visible after deletion
-    await expect(assetNode).not.toBeVisible({ timeout: 5000 });
+  // Asset should not be visible after deletion
+  await expect(assetNode).not.toBeVisible({ timeout: 5000 });
 }
 
 /**
@@ -206,12 +208,12 @@ export async function verifyAssetRemoved(page: Page, assetInstanceId: string): P
  * @returns Number of placed assets
  */
 export async function getPlacedAssetCount(page: Page, encounterId: string): Promise<number> {
-    // Query via API for accurate count
-    const response = await page.request.get(`/api/encounters/${encounterId}/assets`);
-    expect(response.ok()).toBeTruthy();
+  // Query via API for accurate count
+  const response = await page.request.get(`/api/encounters/${encounterId}/assets`);
+  expect(response.ok()).toBeTruthy();
 
-    const assets = await response.json();
-    return assets.length;
+  const assets = await response.json();
+  return assets.length;
 }
 
 /**
@@ -220,14 +222,10 @@ export async function getPlacedAssetCount(page: Page, encounterId: string): Prom
  * @param position Asset position
  * @param gridSize Grid cell size
  */
-export async function verifyGridSnap(
-    _page: Page,
-    position: { x: number; y: number },
-    gridSize: number
-): Promise<void> {
-    // Position should be aligned to grid
-    expect(position.x % gridSize).toBe(0);
-    expect(position.y % gridSize).toBe(0);
+export async function verifyGridSnap(_page: Page, position: { x: number; y: number }, gridSize: number): Promise<void> {
+  // Position should be aligned to grid
+  expect(position.x % gridSize).toBe(0);
+  expect(position.y % gridSize).toBe(0);
 }
 
 /**
@@ -238,31 +236,26 @@ export async function verifyGridSnap(
  * @returns True if assets overlap
  */
 export async function checkAssetOverlap(
-    _page: Page,
-    asset1: { x: number; y: number; width: number; height: number },
-    asset2: { x: number; y: number; width: number; height: number }
+  _page: Page,
+  asset1: { x: number; y: number; width: number; height: number },
+  asset2: { x: number; y: number; width: number; height: number },
 ): Promise<boolean> {
-    // Simple bounding box overlap check
-    const box1 = {
-        left: asset1.x - asset1.width / 2,
-        right: asset1.x + asset1.width / 2,
-        top: asset1.y - asset1.height / 2,
-        bottom: asset1.y + asset1.height / 2
-    };
+  // Simple bounding box overlap check
+  const box1 = {
+    left: asset1.x - asset1.width / 2,
+    right: asset1.x + asset1.width / 2,
+    top: asset1.y - asset1.height / 2,
+    bottom: asset1.y + asset1.height / 2,
+  };
 
-    const box2 = {
-        left: asset2.x - asset2.width / 2,
-        right: asset2.x + asset2.width / 2,
-        top: asset2.y - asset2.height / 2,
-        bottom: asset2.y + asset2.height / 2
-    };
+  const box2 = {
+    left: asset2.x - asset2.width / 2,
+    right: asset2.x + asset2.width / 2,
+    top: asset2.y - asset2.height / 2,
+    bottom: asset2.y + asset2.height / 2,
+  };
 
-    return !(
-        box1.right < box2.left ||
-        box1.left > box2.right ||
-        box1.bottom < box2.top ||
-        box1.top > box2.bottom
-    );
+  return !(box1.right < box2.left || box1.left > box2.right || box1.bottom < box2.top || box1.top > box2.bottom);
 }
 
 /**
@@ -271,19 +264,15 @@ export async function checkAssetOverlap(
  * @param assetInstanceId Placed asset instance ID
  * @param rotation Target rotation in degrees
  */
-export async function rotateAssetOnCanvas(
-    page: Page,
-    assetInstanceId: string,
-    _rotation: number
-): Promise<void> {
-    // Select asset
-    await selectAssetOnCanvas(page, assetInstanceId);
+export async function rotateAssetOnCanvas(page: Page, assetInstanceId: string, _rotation: number): Promise<void> {
+  // Select asset
+  await selectAssetOnCanvas(page, assetInstanceId);
 
-    // Use rotation handle or properties panel
-    // TODO: Implement rotation interaction when UI is ready
-    // For now, this is a placeholder
+  // Use rotation handle or properties panel
+  // TODO: Implement rotation interaction when UI is ready
+  // For now, this is a placeholder
 
-    await page.waitForTimeout(200);
+  await page.waitForTimeout(200);
 }
 
 /**
@@ -293,18 +282,18 @@ export async function rotateAssetOnCanvas(
  * @param size New size (width, height)
  */
 export async function resizeAssetOnCanvas(
-    page: Page,
-    assetInstanceId: string,
-    _size: { width: number; height: number }
+  page: Page,
+  assetInstanceId: string,
+  _size: { width: number; height: number },
 ): Promise<void> {
-    // Select asset
-    await selectAssetOnCanvas(page, assetInstanceId);
+  // Select asset
+  await selectAssetOnCanvas(page, assetInstanceId);
 
-    // Use resize handles or properties panel
-    // TODO: Implement resize interaction when UI is ready
-    // For now, this is a placeholder
+  // Use resize handles or properties panel
+  // TODO: Implement resize interaction when UI is ready
+  // For now, this is a placeholder
 
-    await page.waitForTimeout(200);
+  await page.waitForTimeout(200);
 }
 
 /**
@@ -313,13 +302,9 @@ export async function resizeAssetOnCanvas(
  * @param assetInstanceId Placed asset instance ID
  * @param expectedLayer Expected layer index
  */
-export async function verifyAssetLayer(
-    page: Page,
-    assetInstanceId: string,
-    expectedLayer: number
-): Promise<void> {
-    const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
-    const layerAttr = await assetNode.getAttribute('data-layer');
+export async function verifyAssetLayer(page: Page, assetInstanceId: string, expectedLayer: number): Promise<void> {
+  const assetNode = page.locator(`[data-asset-instance-id="${assetInstanceId}"]`);
+  const layerAttr = await assetNode.getAttribute('data-layer');
 
-    expect(Number(layerAttr)).toBe(expectedLayer);
+  expect(Number(layerAttr)).toBe(expectedLayer);
 }

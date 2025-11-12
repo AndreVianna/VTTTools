@@ -1,21 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 // ErrorBoundary exports both the error boundary component and utility functions (withErrorBoundary HOC, ErrorBoundaryFallbackProps interface)
 // These utilities are tightly coupled to the error boundary behavior and logically belong in the same file
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Stack,
-  Alert,
-  AlertTitle,
-} from '@mui/material';
-import {
-  Refresh as RefreshIcon,
-  BugReport as BugReportIcon,
-  Home as HomeIcon,
-} from '@mui/icons-material';
+
+import { BugReport as BugReportIcon, Home as HomeIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { Alert, AlertTitle, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import type React from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { handleSystemError } from '@/utils/errorHandling';
 
 interface Props {
@@ -76,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     this.setState({
       errorInfo,
-      errorId: processedError.type + '_' + Date.now(),
+      errorId: `${processedError.type}_${Date.now()}`,
     });
 
     // Call custom error handler if provided
@@ -194,76 +184,59 @@ const DefaultErrorFallback: React.FC<{
           textAlign: 'center',
         }}
       >
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity='error' sx={{ mb: 3 }}>
           <AlertTitle>System Error Occurred</AlertTitle>
           Something unexpected happened in VTT Tools. Don&apos;t worry - your data is safe.
         </Alert>
 
-        <Typography variant="h4" gutterBottom color="error" sx={{ mb: 2 }}>
+        <Typography variant='h4' gutterBottom color='error' sx={{ mb: 2 }}>
           Oops! Something went wrong
         </Typography>
 
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          We&apos;re sorry for the inconvenience. The VTT Tools application encountered an unexpected error.
-          Our team has been notified and will investigate the issue.
+        <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+          We&apos;re sorry for the inconvenience. The VTT Tools application encountered an unexpected error. Our team
+          has been notified and will investigate the issue.
         </Typography>
 
         {process.env.NODE_ENV === 'development' && error && (
-          <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
+          <Alert severity='warning' sx={{ mb: 3, textAlign: 'left' }}>
             <AlertTitle>Development Info</AlertTitle>
-            <Typography variant="body2" component="pre" sx={{ fontSize: '0.75rem', mt: 1 }}>
+            <Typography variant='body2' component='pre' sx={{ fontSize: '0.75rem', mt: 1 }}>
               {error.message}
             </Typography>
           </Alert>
         )}
 
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          justifyContent="center"
-          sx={{ mb: 3 }}
-        >
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent='center' sx={{ mb: 3 }}>
           {canRetry && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<RefreshIcon />}
-              onClick={handleRetry}
-              size="large"
-            >
+            <Button variant='contained' color='primary' startIcon={<RefreshIcon />} onClick={handleRetry} size='large'>
               Try Again ({maxRetries - retryCount} attempts left)
             </Button>
           )}
 
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<HomeIcon />}
-            onClick={handleGoHome}
-            size="large"
-          >
+          <Button variant='outlined' color='primary' startIcon={<HomeIcon />} onClick={handleGoHome} size='large'>
             Go to Home
           </Button>
 
           <Button
-            variant="text"
-            color="secondary"
+            variant='text'
+            color='secondary'
             startIcon={<BugReportIcon />}
             onClick={handleReportError}
-            size="large"
+            size='large'
           >
             Report Issue
           </Button>
         </Stack>
 
         {errorId && (
-          <Typography variant="caption" color="text.disabled">
+          <Typography variant='caption' color='text.disabled'>
             Error ID: {errorId}
           </Typography>
         )}
 
         {!canRetry && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
+          <Alert severity='warning' sx={{ mt: 2 }}>
             Multiple attempts failed. Please refresh the page or contact support if the problem persists.
           </Alert>
         )}
@@ -278,7 +251,7 @@ const DefaultErrorFallback: React.FC<{
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   fallback?: React.ComponentType<ErrorBoundaryFallbackProps> | undefined,
-  onError?: ((error: Error, errorInfo: ErrorInfo) => void) | undefined
+  onError?: ((error: Error, errorInfo: ErrorInfo) => void) | undefined,
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary {...(fallback ? { fallback } : {})} {...(onError ? { onError } : {})}>

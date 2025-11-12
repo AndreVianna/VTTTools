@@ -1,10 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import type {
-  CreateAssetRequest,
-  UpdateAssetRequest,
-  Asset,
-  AssetKind
-} from '@/types/domain';
+import type { Asset, AssetKind, CreateAssetRequest, UpdateAssetRequest } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 /**
@@ -21,23 +16,23 @@ export const assetsApi = createApi({
      * Get all assets with optional filtering (non-paginated)
      * Query params: kind, creatureCategory, search, published, owner
      */
-    getAssets: builder.query<Asset[], {
-      kind?: AssetKind;
-      creatureCategory?: string;
-      search?: string;
-      published?: boolean;
-      owner?: 'mine' | 'public' | 'all';
-    }>({
+    getAssets: builder.query<
+      Asset[],
+      {
+        kind?: AssetKind;
+        creatureCategory?: string;
+        search?: string;
+        published?: boolean;
+        owner?: 'mine' | 'public' | 'all';
+      }
+    >({
       query: (params = {}) => ({
         url: '',
         params,
       }),
       providesTags: (result) =>
         result
-          ? [
-              ...result.map(({ id }) => ({ type: 'Asset' as const, id })),
-              { type: 'Asset', id: 'LIST' },
-            ]
+          ? [...result.map(({ id }) => ({ type: 'Asset' as const, id })), { type: 'Asset', id: 'LIST' }]
           : [{ type: 'Asset', id: 'LIST' }],
     }),
 
@@ -45,31 +40,31 @@ export const assetsApi = createApi({
      * Get assets with pagination
      * Returns: { data, page, pageSize, totalCount, totalPages }
      */
-    getAssetsPaged: builder.query<{
-      data: Asset[];
-      page: number;
-      pageSize: number;
-      totalCount: number;
-      totalPages: number;
-    }, {
-      kind?: AssetKind;
-      creatureCategory?: string;
-      search?: string;
-      published?: boolean;
-      owner?: 'mine' | 'public' | 'all';
-      page: number;
-      pageSize: number;
-    }>({
+    getAssetsPaged: builder.query<
+      {
+        data: Asset[];
+        page: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+      },
+      {
+        kind?: AssetKind;
+        creatureCategory?: string;
+        search?: string;
+        published?: boolean;
+        owner?: 'mine' | 'public' | 'all';
+        page: number;
+        pageSize: number;
+      }
+    >({
       query: (params) => ({
         url: '',
         params,
       }),
       providesTags: (result) =>
         result?.data
-          ? [
-              ...result.data.map(({ id }) => ({ type: 'Asset' as const, id })),
-              { type: 'Asset', id: 'LIST' },
-            ]
+          ? [...result.data.map(({ id }) => ({ type: 'Asset' as const, id })), { type: 'Asset', id: 'LIST' }]
           : [{ type: 'Asset', id: 'LIST' }],
     }),
 
@@ -102,7 +97,7 @@ export const assetsApi = createApi({
     updateAsset: builder.mutation<void, { id: string; request: UpdateAssetRequest }>({
       query: ({ id, request }) => ({
         url: `/${id}`,
-        method: 'PATCH',  // Changed from PUT to match backend
+        method: 'PATCH', // Changed from PUT to match backend
         body: request,
       }),
       invalidatesTags: (_result, _error, { id }) => [
@@ -125,7 +120,6 @@ export const assetsApi = createApi({
         { type: 'Asset', id: 'LIST' },
       ],
     }),
-
   }),
 });
 

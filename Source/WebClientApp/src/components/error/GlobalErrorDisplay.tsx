@@ -1,31 +1,22 @@
-import React, { useCallback, useEffect } from 'react';
-import {
-  Alert,
-  Button,
-  Box,
-  Typography,
-  IconButton,
-  Collapse,
-  Stack,
-  Chip,
-} from '@mui/material';
 import {
   Close as CloseIcon,
-  ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  Refresh as RetryIcon,
+  ExpandMore as ExpandMoreIcon,
   BugReport as ReportIcon,
+  Refresh as RetryIcon,
 } from '@mui/icons-material';
+import { Alert, Box, Button, Chip, Collapse, IconButton, Stack, Typography } from '@mui/material';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectErrors,
-  selectGlobalError,
-  removeError,
-  markErrorRecovered,
   clearAllErrors,
   incrementRetryAttempt,
+  markErrorRecovered,
+  removeError,
   selectCanRetry,
-  VTTError,
+  selectErrors,
+  selectGlobalError,
+  type VTTError,
 } from '@/store/slices/errorSlice';
 
 /**
@@ -40,13 +31,12 @@ export const GlobalErrorDisplay: React.FC = () => {
   // Auto-dismiss non-critical errors after a delay
   useEffect(() => {
     const dismissibleErrors = errors.filter(
-      error => !['system', 'authentication'].includes(error.type) &&
-      Date.now() - error.timestamp > 10000 // 10 seconds
+      (error) => !['system', 'authentication'].includes(error.type) && Date.now() - error.timestamp > 10000, // 10 seconds
     );
 
     if (dismissibleErrors.length > 0) {
       const timer = setTimeout(() => {
-        dismissibleErrors.forEach(error => {
+        dismissibleErrors.forEach((error) => {
           dispatch(removeError(error.id));
         });
       }, 5000); // Additional 5 seconds grace period
@@ -70,7 +60,7 @@ export const GlobalErrorDisplay: React.FC = () => {
 
       {/* Non-critical errors stack */}
       <ErrorNotificationStack
-        errors={errors.filter(e => e.id !== globalError?.id)}
+        errors={errors.filter((e) => e.id !== globalError?.id)}
         onDismiss={(errorId) => dispatch(removeError(errorId))}
         onRetry={handleErrorRetry}
         onClearAll={() => dispatch(clearAllErrors())}
@@ -98,11 +88,7 @@ interface GlobalCriticalErrorProps {
   onRetry: () => void;
 }
 
-const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({
-  error,
-  onDismiss,
-  onRetry,
-}) => {
+const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({ error, onDismiss, onRetry }) => {
   const dispatch = useDispatch();
   const canRetry = useSelector(selectCanRetry(error.id));
   const [expanded, setExpanded] = React.useState(false);
@@ -122,11 +108,13 @@ const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({
 
     console.error('Error Report:', errorReport);
 
-    dispatch(addNotification({
-      type: 'info',
-      message: 'Error report sent. Thank you for helping improve VTT Tools!',
-      duration: 4000,
-    }));
+    dispatch(
+      addNotification({
+        type: 'info',
+        message: 'Error report sent. Thank you for helping improve VTT Tools!',
+        duration: 4000,
+      }),
+    );
   }, [error, dispatch]);
 
   return (
@@ -143,30 +131,30 @@ const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({
       }}
     >
       <Stack spacing={2}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6" component="div">
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Typography variant='h6' component='div'>
             🚨 Critical System Error
           </Typography>
 
-          <IconButton
-            size="small"
-            onClick={onDismiss}
-            sx={{ color: 'inherit' }}
-          >
+          <IconButton size='small' onClick={onDismiss} sx={{ color: 'inherit' }}>
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <Typography variant="body2">
-          {error.userFriendlyMessage || error.message}
-        </Typography>
+        <Typography variant='body2'>{error.userFriendlyMessage || error.message}</Typography>
 
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction='row' spacing={1} alignItems='center'>
           {canRetry && (
             <Button
-              size="small"
-              variant="contained"
-              color="inherit"
+              size='small'
+              variant='contained'
+              color='inherit'
               startIcon={<RetryIcon />}
               onClick={onRetry}
               sx={{ color: 'error.main' }}
@@ -175,20 +163,14 @@ const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({
             </Button>
           )}
 
-          <Button
-            size="small"
-            variant="outlined"
-            color="inherit"
-            startIcon={<ReportIcon />}
-            onClick={handleReport}
-          >
+          <Button size='small' variant='outlined' color='inherit' startIcon={<ReportIcon />} onClick={handleReport}>
             Report Issue
           </Button>
 
           <Button
-            size="small"
-            variant="text"
-            color="inherit"
+            size='small'
+            variant='text'
+            color='inherit'
             endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             onClick={() => setExpanded(!expanded)}
           >
@@ -206,7 +188,7 @@ const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({
               fontSize: '0.75rem',
             }}
           >
-            <Typography variant="caption" component="pre">
+            <Typography variant='caption' component='pre'>
               Error ID: {error.id}
               {'\n'}Type: {error.type}
               {'\n'}Timestamp: {new Date(error.timestamp).toISOString()}
@@ -229,12 +211,7 @@ interface ErrorNotificationStackProps {
   onClearAll: () => void;
 }
 
-const ErrorNotificationStack: React.FC<ErrorNotificationStackProps> = ({
-  errors,
-  onDismiss,
-  onRetry,
-  onClearAll,
-}) => {
+const ErrorNotificationStack: React.FC<ErrorNotificationStackProps> = ({ errors, onDismiss, onRetry, onClearAll }) => {
   if (errors.length === 0) {
     return null;
   }
@@ -252,9 +229,9 @@ const ErrorNotificationStack: React.FC<ErrorNotificationStackProps> = ({
     >
       {errors.length > 3 && (
         <Alert
-          severity="info"
+          severity='info'
           action={
-            <Button color="inherit" size="small" onClick={onClearAll}>
+            <Button color='inherit' size='small' onClick={onClearAll}>
               Clear All ({errors.length})
             </Button>
           }
@@ -275,7 +252,7 @@ const ErrorNotificationStack: React.FC<ErrorNotificationStackProps> = ({
         ))}
 
         {errors.length > 5 && (
-          <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', p: 1 }}>
+          <Typography variant='caption' color='text.secondary' sx={{ textAlign: 'center', p: 1 }}>
             ...and {errors.length - 5} more errors
           </Typography>
         )}
@@ -293,11 +270,7 @@ interface ErrorNotificationItemProps {
   onRetry: () => void;
 }
 
-const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({
-  error,
-  onDismiss,
-  onRetry,
-}) => {
+const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({ error, onDismiss, onRetry }) => {
   const canRetry = useSelector(selectCanRetry(error.id));
   const [expanded, setExpanded] = React.useState(false);
 
@@ -321,15 +294,24 @@ const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({
 
   const getErrorTypeLabel = (): string => {
     switch (error.type) {
-      case 'network': return 'Network';
-      case 'validation': return 'Validation';
-      case 'authentication': return 'Authentication';
-      case 'authorization': return 'Authorization';
-      case 'asset_loading': return 'Asset Loading';
-      case 'encounter_save': return 'Encounter Save';
-      case 'encounter_load': return 'Encounter Load';
-      case 'system': return 'System';
-      default: return 'Error';
+      case 'network':
+        return 'Network';
+      case 'validation':
+        return 'Validation';
+      case 'authentication':
+        return 'Authentication';
+      case 'authorization':
+        return 'Authorization';
+      case 'asset_loading':
+        return 'Asset Loading';
+      case 'encounter_save':
+        return 'Encounter Save';
+      case 'encounter_load':
+        return 'Encounter Load';
+      case 'system':
+        return 'System';
+      default:
+        return 'Error';
     }
   };
 
@@ -338,23 +320,15 @@ const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({
       severity={getSeverity()}
       onClose={onDismiss}
       action={
-        <Stack direction="row" spacing={1}>
+        <Stack direction='row' spacing={1}>
           {canRetry && error.retryable && (
-            <IconButton
-              size="small"
-              onClick={onRetry}
-              sx={{ color: 'inherit' }}
-            >
-              <RetryIcon fontSize="small" />
+            <IconButton size='small' onClick={onRetry} sx={{ color: 'inherit' }}>
+              <RetryIcon fontSize='small' />
             </IconButton>
           )}
 
-          <IconButton
-            size="small"
-            onClick={() => setExpanded(!expanded)}
-            sx={{ color: 'inherit' }}
-          >
-            {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+          <IconButton size='small' onClick={() => setExpanded(!expanded)} sx={{ color: 'inherit' }}>
+            {expanded ? <ExpandLessIcon fontSize='small' /> : <ExpandMoreIcon fontSize='small' />}
           </IconButton>
         </Stack>
       }
@@ -366,25 +340,25 @@ const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({
     >
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-          <Chip
-            label={getErrorTypeLabel()}
-            size="small"
-            color={getSeverity()}
-            variant="outlined"
-          />
+          <Chip label={getErrorTypeLabel()} size='small' color={getSeverity()} variant='outlined' />
 
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant='caption' color='text.secondary'>
             {new Date(error.timestamp).toLocaleTimeString()}
           </Typography>
         </Box>
 
-        <Typography variant="body2">
-          {error.userFriendlyMessage || error.message}
-        </Typography>
+        <Typography variant='body2'>{error.userFriendlyMessage || error.message}</Typography>
 
         <Collapse in={expanded}>
-          <Box sx={{ mt: 1, p: 1, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 1 }}>
-            <Typography variant="caption" component="pre" sx={{ fontSize: '0.7rem' }}>
+          <Box
+            sx={{
+              mt: 1,
+              p: 1,
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant='caption' component='pre' sx={{ fontSize: '0.7rem' }}>
               ID: {error.id}
               {'\n'}Message: {error.message}
               {error.context && '\n'}Context: {JSON.stringify(error.context, null, 2)}

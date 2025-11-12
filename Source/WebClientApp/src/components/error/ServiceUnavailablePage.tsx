@@ -1,12 +1,7 @@
-import React from 'react';
-import {
-  Button,
-  Paper,
-  Typography,
-  Container,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
+import { Button, Container, Paper, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import type React from 'react';
 
 // Professional Error Card
 const ErrorCard = styled(Paper)(() => ({
@@ -55,9 +50,7 @@ interface ServiceUnavailablePageProps {
   onRetry?: () => void;
 }
 
-export const ServiceUnavailablePage: React.FC<ServiceUnavailablePageProps> = ({
-  onRetry
-}) => {
+export const ServiceUnavailablePage: React.FC<ServiceUnavailablePageProps> = ({ onRetry }) => {
   const handleRetry = () => {
     if (onRetry) {
       onRetry();
@@ -68,15 +61,15 @@ export const ServiceUnavailablePage: React.FC<ServiceUnavailablePageProps> = ({
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
+    <Container maxWidth='sm' sx={{ py: 8 }}>
       <ErrorCard>
         <Typography
-          variant="h2"
-          component="h1"
+          variant='h2'
+          component='h1'
           sx={{
             fontSize: '1.875rem',
             fontWeight: 600,
-            color: theme => theme.palette.text.primary,
+            color: (theme) => theme.palette.text.primary,
             marginBottom: '16px',
           }}
         >
@@ -84,10 +77,10 @@ export const ServiceUnavailablePage: React.FC<ServiceUnavailablePageProps> = ({
         </Typography>
 
         <Typography
-          variant="body1"
+          variant='body1'
           sx={{
             fontSize: '1.125rem',
-            color: theme => theme.palette.text.secondary,
+            color: (theme) => theme.palette.text.secondary,
             lineHeight: 1.6,
             marginBottom: '40px',
             maxWidth: '400px',
@@ -97,12 +90,7 @@ export const ServiceUnavailablePage: React.FC<ServiceUnavailablePageProps> = ({
           Our servers are taking a short rest. Please try again in a moment while we prepare your next world campaign.
         </Typography>
 
-        <RetryButton
-          variant="contained"
-          startIcon={<RefreshIcon />}
-          onClick={handleRetry}
-          size="large"
-        >
+        <RetryButton variant='contained' startIcon={<RefreshIcon />} onClick={handleRetry} size='large'>
           Retry Connection
         </RetryButton>
       </ErrorCard>

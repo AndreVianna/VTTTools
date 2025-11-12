@@ -1,7 +1,7 @@
-import React from 'react';
+import type React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { LoadingOverlay } from '@/components/common';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -49,7 +49,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Show loading overlay during initial auth check
   if (isInitializing) {
-    return <LoadingOverlay open={true} message="Checking authorization..." />;
+    return <LoadingOverlay open={true} message='Checking authorization...' />;
   }
 
   // Anonymous routes - always allow access

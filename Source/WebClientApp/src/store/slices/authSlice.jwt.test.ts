@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import authReducer, { setAuthenticated, logout, type AuthState } from './authSlice';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { User } from '@/types/domain';
+import authReducer, { type AuthState, logout, setAuthenticated } from './authSlice';
 
 describe('authSlice - JWT Token Management', () => {
   let initialState: AuthState;
@@ -36,10 +36,7 @@ describe('authSlice - JWT Token Management', () => {
 
   describe('JWT Token Storage', () => {
     it('should store JWT token in state when provided', () => {
-      const result = authReducer(
-        initialState,
-        setAuthenticated({ user: mockUser, token: 'test-jwt-token' })
-      );
+      const result = authReducer(initialState, setAuthenticated({ user: mockUser, token: 'test-jwt-token' }));
 
       expect(result.token).toBe('test-jwt-token');
       expect(result.user).toEqual(mockUser);
@@ -47,19 +44,13 @@ describe('authSlice - JWT Token Management', () => {
     });
 
     it('should store JWT token in localStorage when provided', () => {
-      authReducer(
-        initialState,
-        setAuthenticated({ user: mockUser, token: 'test-jwt-token' })
-      );
+      authReducer(initialState, setAuthenticated({ user: mockUser, token: 'test-jwt-token' }));
 
       expect(localStorage.getItem('vtt_auth_token')).toBe('test-jwt-token');
     });
 
     it('should handle authentication without token (cookie-based)', () => {
-      const result = authReducer(
-        initialState,
-        setAuthenticated({ user: mockUser })
-      );
+      const result = authReducer(initialState, setAuthenticated({ user: mockUser }));
 
       expect(result.token).toBeNull();
       expect(result.user).toEqual(mockUser);
@@ -70,7 +61,7 @@ describe('authSlice - JWT Token Management', () => {
     it('should clear JWT token from state on logout', () => {
       const authenticatedState = authReducer(
         initialState,
-        setAuthenticated({ user: mockUser, token: 'test-jwt-token' })
+        setAuthenticated({ user: mockUser, token: 'test-jwt-token' }),
       );
 
       const result = authReducer(authenticatedState, logout());
@@ -83,7 +74,7 @@ describe('authSlice - JWT Token Management', () => {
     it('should clear JWT token from localStorage on logout', () => {
       const authenticatedState = authReducer(
         initialState,
-        setAuthenticated({ user: mockUser, token: 'test-jwt-token' })
+        setAuthenticated({ user: mockUser, token: 'test-jwt-token' }),
       );
 
       authReducer(authenticatedState, logout());

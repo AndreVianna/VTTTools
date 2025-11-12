@@ -4,16 +4,16 @@
  * Coverage: Landing Page BDD scenarios
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { Provider } from 'react-redux';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { configureStore } from '@reduxjs/toolkit';
+import { fireEvent, render, screen } from '@testing-library/react';
+import type * as React from 'react';
+import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { LandingPage } from './LandingPage';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import authReducer from '@/store/slices/authSlice';
 import type { User } from '@/types/domain';
-import * as React from 'react';
+import { LandingPage } from './LandingPage';
 
 // Mock useAuth hook
 const mockNavigate = vi.fn();
@@ -38,30 +38,28 @@ describe('LandingPage', () => {
         isLoading: false,
         error: null,
         loginAttempts: 0,
-        lastLoginAttempt: null
-      }
+        lastLoginAttempt: null,
+      },
     };
 
     return configureStore({
       reducer: { auth: authReducer },
-      preloadedState
+      preloadedState,
     });
   };
 
   const renderWithProviders = (
     component: React.ReactElement,
-    { themeMode = 'light' }: { themeMode?: 'light' | 'dark' } = {}
+    { themeMode = 'light' }: { themeMode?: 'light' | 'dark' } = {},
   ) => {
     const theme = createTheme({ palette: { mode: themeMode } });
 
     return render(
       <Provider store={store}>
         <BrowserRouter>
-          <ThemeProvider theme={theme}>
-            {component}
-          </ThemeProvider>
+          <ThemeProvider theme={theme}>{component}</ThemeProvider>
         </BrowserRouter>
-      </Provider>
+      </Provider>,
     );
   };
 
@@ -77,7 +75,7 @@ describe('LandingPage', () => {
       twoFactorEnabled: false,
       lockoutEnabled: false,
       accessFailedCount: 0,
-      createdAt: '2025-01-01T00:00:00Z'
+      createdAt: '2025-01-01T00:00:00Z',
     };
 
     mockNavigate.mockClear();
@@ -114,7 +112,9 @@ describe('LandingPage', () => {
       renderWithProviders(<LandingPage />);
 
       // Assert - BDD: Marketing content visible
-      const heading = screen.getByRole('heading', { name: /craft legendary adventures/i });
+      const heading = screen.getByRole('heading', {
+        name: /craft legendary adventures/i,
+      });
       expect(heading).toBeInTheDocument();
 
       const subtitle = screen.getByText(/professional virtual tabletop tools/i);
@@ -126,8 +126,12 @@ describe('LandingPage', () => {
       renderWithProviders(<LandingPage />);
 
       // Assert - BDD: CTAs prominently displayed
-      const startButton = screen.getByRole('button', { name: /start creating/i });
-      const exploreButton = screen.getByRole('button', { name: /explore features/i });
+      const startButton = screen.getByRole('button', {
+        name: /start creating/i,
+      });
+      const exploreButton = screen.getByRole('button', {
+        name: /explore features/i,
+      });
 
       expect(startButton).toBeInTheDocument();
       expect(exploreButton).toBeInTheDocument();
@@ -189,7 +193,9 @@ describe('LandingPage', () => {
     it('should navigate to registration when Start Creating is clicked', () => {
       // Arrange
       renderWithProviders(<LandingPage />);
-      const startButton = screen.getByRole('button', { name: /start creating/i });
+      const startButton = screen.getByRole('button', {
+        name: /start creating/i,
+      });
 
       // Act
       fireEvent.click(startButton);
@@ -201,7 +207,9 @@ describe('LandingPage', () => {
     it('should navigate to login when Explore Features is clicked', () => {
       // Arrange
       renderWithProviders(<LandingPage />);
-      const exploreButton = screen.getByRole('button', { name: /explore features/i });
+      const exploreButton = screen.getByRole('button', {
+        name: /explore features/i,
+      });
 
       // Act
       fireEvent.click(exploreButton);
@@ -219,7 +227,9 @@ describe('LandingPage', () => {
     it('should navigate to Encounter Editor when Open Editor is clicked', () => {
       // Arrange
       renderWithProviders(<LandingPage />);
-      const openEditorButton = screen.getByRole('button', { name: /open editor/i });
+      const openEditorButton = screen.getByRole('button', {
+        name: /open editor/i,
+      });
 
       // Act
       fireEvent.click(openEditorButton);
@@ -231,7 +241,9 @@ describe('LandingPage', () => {
     it('should navigate to Asset Library when Browse Assets is clicked', () => {
       // Arrange
       renderWithProviders(<LandingPage />);
-      const browseButton = screen.getByRole('button', { name: /browse assets/i });
+      const browseButton = screen.getByRole('button', {
+        name: /browse assets/i,
+      });
 
       // Act
       fireEvent.click(browseButton);
@@ -260,7 +272,9 @@ describe('LandingPage', () => {
       const assetCard = screen.getByText('Asset Library').closest('div[class*="MuiCard"]');
       expect(assetCard).toBeInTheDocument();
 
-      const browseButton = screen.getByRole('button', { name: /browse assets/i });
+      const browseButton = screen.getByRole('button', {
+        name: /browse assets/i,
+      });
       expect(browseButton).toBeEnabled();
     });
 
@@ -301,7 +315,12 @@ describe('LandingPage', () => {
   describe('BDD: Dashboard personalization', () => {
     it('should show personalized greeting with displayName', () => {
       // Arrange
-      const userWithDisplayName = { ...mockUser, email: 'alice@vtttools.com', name: 'Alice', displayName: 'Alice' };
+      const userWithDisplayName = {
+        ...mockUser,
+        email: 'alice@vtttools.com',
+        name: 'Alice',
+        displayName: 'Alice',
+      };
       store = createTestStore(true, userWithDisplayName);
 
       // Act
@@ -376,8 +395,12 @@ describe('LandingPage', () => {
       renderWithProviders(<LandingPage />);
 
       // Assert - BDD: Buttons have descriptive labels
-      const startButton = screen.getByRole('button', { name: /start creating/i });
-      const exploreButton = screen.getByRole('button', { name: /explore features/i });
+      const startButton = screen.getByRole('button', {
+        name: /start creating/i,
+      });
+      const exploreButton = screen.getByRole('button', {
+        name: /explore features/i,
+      });
 
       expect(startButton).toBeInTheDocument();
       expect(exploreButton).toBeInTheDocument();
@@ -403,7 +426,9 @@ describe('LandingPage', () => {
       renderWithProviders(<LandingPage />);
 
       // Assert - BDD: Disabled cards indicate status
-      const disabledButton1 = screen.getByRole('button', { name: /phase 7-8/i });
+      const disabledButton1 = screen.getByRole('button', {
+        name: /phase 7-8/i,
+      });
       const disabledButton2 = screen.getByRole('button', { name: /phase 10/i });
 
       expect(disabledButton1).toBeDisabled();
@@ -422,7 +447,7 @@ describe('LandingPage', () => {
       // Act - Update store to authenticated
       store.dispatch({
         type: 'auth/setAuthenticated',
-        payload: { user: mockUser }
+        payload: { user: mockUser },
       });
 
       rerender(
@@ -432,7 +457,7 @@ describe('LandingPage', () => {
               <LandingPage />
             </ThemeProvider>
           </BrowserRouter>
-        </Provider>
+        </Provider>,
       );
 
       // Assert - BDD: Page re-renders with dashboard
@@ -457,7 +482,7 @@ describe('LandingPage', () => {
               <LandingPage />
             </ThemeProvider>
           </BrowserRouter>
-        </Provider>
+        </Provider>,
       );
 
       // Assert - BDD: Page re-renders with hero section

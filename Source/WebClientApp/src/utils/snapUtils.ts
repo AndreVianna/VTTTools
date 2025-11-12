@@ -8,18 +8,18 @@ import { SnapMode } from './structureSnapping';
  * @returns Determined snap mode
  */
 export function getSnapModeFromEvent(
-    evt: { altKey: boolean; ctrlKey: boolean },
-    externalSnapMode?: SnapMode
+  evt: { altKey: boolean; ctrlKey: boolean },
+  externalSnapMode?: SnapMode,
 ): SnapMode {
-    if (externalSnapMode !== undefined) {
-        return externalSnapMode;
-    }
+  if (externalSnapMode !== undefined) {
+    return externalSnapMode;
+  }
 
-    if (evt.altKey && evt.ctrlKey) {
-        return SnapMode.QuarterSnap;
-    } else if (evt.altKey) {
-        return SnapMode.Free;
-    } else {
-        return SnapMode.HalfSnap;
-    }
+  if (evt.altKey && evt.ctrlKey) {
+    return SnapMode.QuarterSnap;
+  } else if (evt.altKey) {
+    return SnapMode.Free;
+  } else {
+    return SnapMode.HalfSnap;
+  }
 }

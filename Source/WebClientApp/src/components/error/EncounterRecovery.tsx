@@ -1,36 +1,37 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
+  Delete as DeleteIcon,
+  Restore as RestoreIcon,
+  Save as SaveIcon,
+  Schedule as ScheduleIcon,
+  CloudSync as SyncIcon,
+  Warning as WarningIcon,
+} from '@mui/icons-material';
+import {
   Alert,
   AlertTitle,
-  LinearProgress,
-  Stack,
+  Box,
+  Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
-  Tooltip,
+  LinearProgress,
   List,
   ListItem,
   ListItemIcon,
-  ListItemText,
   ListItemSecondaryAction,
+  ListItemText,
+  Stack,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import {
-  Save as SaveIcon,
-  Restore as RestoreIcon,
-  Warning as WarningIcon,
-  Delete as DeleteIcon,
-  Schedule as ScheduleIcon,
-  CloudSync as SyncIcon,
-} from '@mui/icons-material';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { handleEncounterError, retryOperation } from '@/utils/errorHandling';
 import { addNotification } from '@/store/slices/uiSlice';
+import { handleEncounterError, retryOperation } from '@/utils/errorHandling';
 
 /**
  * UC035 - Encounter Saving/Loading Error Recovery
@@ -69,14 +70,7 @@ export const EncounterRecoveryManager: React.FC<{
   onSave: (data: any, isAutoSave?: boolean) => Promise<void>;
   onLoad: (data: any) => void;
   isEnabled?: boolean;
-}> = ({
-  encounterId,
-  encounterName,
-  encounterData,
-  onSave,
-  onLoad,
-  isEnabled = true,
-}) => {
+}> = ({ encounterId, encounterName, encounterData, onSave, onLoad, isEnabled = true }) => {
   const dispatch = useDispatch();
   const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>(() => ({
     isEnabled,
@@ -106,7 +100,7 @@ export const EncounterRecoveryManager: React.FC<{
       const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}${encounterId}`);
       if (stored) {
         const snapshots: RecoverySnapshot[] = JSON.parse(stored);
-        setRecoverySnapshots(snapshots.filter(s => Date.now() - s.timestamp < 7 * 24 * 60 * 60 * 1000)); // Keep 7 days
+        setRecoverySnapshots(snapshots.filter((s) => Date.now() - s.timestamp < 7 * 24 * 60 * 60 * 1000)); // Keep 7 days
       }
     } catch (_error) {
       console.warn('Failed to load recovery snapshots:', _error);
@@ -118,68 +112,69 @@ export const EncounterRecoveryManager: React.FC<{
     loadRecoverySnapshots();
     // Run only once on mount - loadRecoverySnapshots is stable via useCallback
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadRecoverySnapshots]);
 
-  const saveRecoverySnapshot = useCallback((data: any, type: RecoverySnapshot['type']) => {
-    try {
-      const snapshot: RecoverySnapshot = {
-        id: Date.now().toString(),
-        encounterId,
-        encounterName,
-        data: JSON.parse(JSON.stringify(data)), // Deep clone
-        timestamp: Date.now(),
-        type,
-        size: JSON.stringify(data).length,
-      };
+  const saveRecoverySnapshot = useCallback(
+    (data: any, type: RecoverySnapshot['type']) => {
+      try {
+        const snapshot: RecoverySnapshot = {
+          id: Date.now().toString(),
+          encounterId,
+          encounterName,
+          data: JSON.parse(JSON.stringify(data)), // Deep clone
+          timestamp: Date.now(),
+          type,
+          size: JSON.stringify(data).length,
+        };
 
-      const updatedSnapshots = [snapshot, ...recoverySnapshots]
-        .slice(0, MAX_RECOVERY_SNAPSHOTS)
-        .sort((a, b) => b.timestamp - a.timestamp);
+        const updatedSnapshots = [snapshot, ...recoverySnapshots]
+          .slice(0, MAX_RECOVERY_SNAPSHOTS)
+          .sort((a, b) => b.timestamp - a.timestamp);
 
-      setRecoverySnapshots(updatedSnapshots);
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}${encounterId}`, JSON.stringify(updatedSnapshots));
-    } catch (_error) {
-      console.warn('Failed to save recovery snapshot:', _error);
-    }
-  }, [encounterId, encounterName, recoverySnapshots]);
+        setRecoverySnapshots(updatedSnapshots);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}${encounterId}`, JSON.stringify(updatedSnapshots));
+      } catch (_error) {
+        console.warn('Failed to save recovery snapshot:', _error);
+      }
+    },
+    [encounterId, encounterName, recoverySnapshots],
+  );
 
   const performAutoSave = useCallback(async () => {
     if (!encounterData || autoSaveState.isAutoSaving) return;
 
-    setAutoSaveState(prev => ({ ...prev, isAutoSaving: true }));
+    setAutoSaveState((prev) => ({ ...prev, isAutoSaving: true }));
 
     try {
-      await retryOperation(
-        () => onSave(encounterData, true),
-        {
-          maxRetries: 2,
-          delay: 1000,
-          exponentialBackoff: true,
-        }
-      );
+      await retryOperation(() => onSave(encounterData, true), {
+        maxRetries: 2,
+        delay: 1000,
+        exponentialBackoff: true,
+      });
 
       // Save recovery snapshot on successful auto-save
       saveRecoverySnapshot(encounterData, 'auto');
 
       lastSaveDataRef.current = JSON.stringify(encounterData);
-      setAutoSaveState(prev => ({
+      setAutoSaveState((prev) => ({
         ...prev,
         lastSave: Date.now(),
         pendingChanges: false,
         isAutoSaving: false,
       }));
 
-      dispatch(addNotification({
-        type: 'info',
-        message: 'Encounter auto-saved successfully',
-        duration: 2000,
-      }));
-
+      dispatch(
+        addNotification({
+          type: 'info',
+          message: 'Encounter auto-saved successfully',
+          duration: 2000,
+        }),
+      );
     } catch (_error) {
       // Auto-save failed, save recovery snapshot locally
       saveRecoverySnapshot(encounterData, 'recovery');
 
-      setAutoSaveState(prev => ({ ...prev, isAutoSaving: false }));
+      setAutoSaveState((prev) => ({ ...prev, isAutoSaving: false }));
 
       handleEncounterError(_error, 'save', {
         encounterId,
@@ -187,11 +182,13 @@ export const EncounterRecoveryManager: React.FC<{
         isAutoSave: true,
       });
 
-      dispatch(addNotification({
-        type: 'warning',
-        message: 'Auto-save failed, data saved locally for recovery',
-        duration: 5000,
-      }));
+      dispatch(
+        addNotification({
+          type: 'warning',
+          message: 'Auto-save failed, data saved locally for recovery',
+          duration: 5000,
+        }),
+      );
     }
   }, [encounterData, onSave, autoSaveState.isAutoSaving, saveRecoverySnapshot, dispatch, encounterId, encounterName]);
 
@@ -202,7 +199,7 @@ export const EncounterRecoveryManager: React.FC<{
     const currentDataString = JSON.stringify(encounterData);
     if (currentDataString === lastSaveDataRef.current) return;
 
-    setAutoSaveState(prev => ({ ...prev, pendingChanges: true }));
+    setAutoSaveState((prev) => ({ ...prev, pendingChanges: true }));
 
     // Clear existing timeout
     if (autoSaveTimeoutRef.current) {
@@ -221,36 +218,34 @@ export const EncounterRecoveryManager: React.FC<{
     };
     // performAutoSave is stable via useCallback and includes all necessary dependencies
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [encounterData, autoSaveState.isEnabled, autoSaveState.interval]);
+  }, [encounterData, autoSaveState.isEnabled, autoSaveState.interval, performAutoSave]);
 
   const performManualSave = useCallback(async () => {
     if (!encounterData) return;
 
     try {
-      await retryOperation(
-        () => onSave(encounterData, false),
-        {
-          maxRetries: 3,
-          delay: 1000,
-          exponentialBackoff: true,
-        }
-      );
+      await retryOperation(() => onSave(encounterData, false), {
+        maxRetries: 3,
+        delay: 1000,
+        exponentialBackoff: true,
+      });
 
       saveRecoverySnapshot(encounterData, 'manual');
       lastSaveDataRef.current = JSON.stringify(encounterData);
 
-      setAutoSaveState(prev => ({
+      setAutoSaveState((prev) => ({
         ...prev,
         lastSave: Date.now(),
         pendingChanges: false,
       }));
 
-      dispatch(addNotification({
-        type: 'success',
-        message: 'Encounter saved successfully',
-        duration: 3000,
-      }));
-
+      dispatch(
+        addNotification({
+          type: 'success',
+          message: 'Encounter saved successfully',
+          duration: 3000,
+        }),
+      );
     } catch (_error) {
       // Manual save failed, save recovery snapshot
       saveRecoverySnapshot(encounterData, 'recovery');
@@ -263,31 +258,39 @@ export const EncounterRecoveryManager: React.FC<{
     }
   }, [encounterData, onSave, saveRecoverySnapshot, dispatch, encounterId, encounterName]);
 
-  const restoreFromSnapshot = useCallback(async (snapshot: RecoverySnapshot) => {
-    try {
-      onLoad(snapshot.data);
+  const restoreFromSnapshot = useCallback(
+    async (snapshot: RecoverySnapshot) => {
+      try {
+        onLoad(snapshot.data);
 
-      dispatch(addNotification({
-        type: 'success',
-        message: `Encounter restored from ${snapshot.type} save`,
-        duration: 3000,
-      }));
+        dispatch(
+          addNotification({
+            type: 'success',
+            message: `Encounter restored from ${snapshot.type} save`,
+            duration: 3000,
+          }),
+        );
 
-      setShowRecoveryDialog(false);
-    } catch (_error) {
-      handleEncounterError(_error, 'load', {
-        encounterId,
-        encounterName,
-        snapshotId: snapshot.id,
-      });
-    }
-  }, [onLoad, dispatch, encounterId, encounterName]);
+        setShowRecoveryDialog(false);
+      } catch (_error) {
+        handleEncounterError(_error, 'load', {
+          encounterId,
+          encounterName,
+          snapshotId: snapshot.id,
+        });
+      }
+    },
+    [onLoad, dispatch, encounterId, encounterName],
+  );
 
-  const deleteSnapshot = useCallback((snapshotId: string) => {
-    const updatedSnapshots = recoverySnapshots.filter(s => s.id !== snapshotId);
-    setRecoverySnapshots(updatedSnapshots);
-    localStorage.setItem(`${STORAGE_KEY_PREFIX}${encounterId}`, JSON.stringify(updatedSnapshots));
-  }, [recoverySnapshots, encounterId]);
+  const deleteSnapshot = useCallback(
+    (snapshotId: string) => {
+      const updatedSnapshots = recoverySnapshots.filter((s) => s.id !== snapshotId);
+      setRecoverySnapshots(updatedSnapshots);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}${encounterId}`, JSON.stringify(updatedSnapshots));
+    },
+    [recoverySnapshots, encounterId],
+  );
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -312,31 +315,22 @@ export const EncounterRecoveryManager: React.FC<{
         hasRecoverySnapshots={recoverySnapshots.length > 0}
         onManualSave={performManualSave}
         onShowRecovery={() => setShowRecoveryDialog(true)}
-        onToggleAutoSave={(enabled) =>
-          setAutoSaveState(prev => ({ ...prev, isEnabled: enabled }))
-        }
+        onToggleAutoSave={(enabled) => setAutoSaveState((prev) => ({ ...prev, isEnabled: enabled }))}
       />
 
       {/* Recovery dialog */}
-      <Dialog
-        open={showRecoveryDialog}
-        onClose={() => setShowRecoveryDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Encounter Recovery - {encounterName}
-        </DialogTitle>
+      <Dialog open={showRecoveryDialog} onClose={() => setShowRecoveryDialog(false)} maxWidth='md' fullWidth>
+        <DialogTitle>Encounter Recovery - {encounterName}</DialogTitle>
 
         <DialogContent>
           {recoverySnapshots.length === 0 ? (
-            <Alert severity="info">
+            <Alert severity='info'>
               <AlertTitle>No Recovery Data Available</AlertTitle>
               No previous versions of this encounter are available for recovery.
             </Alert>
           ) : (
             <>
-              <Alert severity="info" sx={{ mb: 2 }}>
+              <Alert severity='info' sx={{ mb: 2 }}>
                 <AlertTitle>Available Recovery Points</AlertTitle>
                 Select a previous version to restore. Your current changes will be lost.
               </Alert>
@@ -345,44 +339,37 @@ export const EncounterRecoveryManager: React.FC<{
                 {recoverySnapshots.map((snapshot) => (
                   <ListItem key={snapshot.id} divider>
                     <ListItemIcon>
-                      {snapshot.type === 'auto' && <ScheduleIcon color="primary" />}
-                      {snapshot.type === 'manual' && <SaveIcon color="success" />}
-                      {snapshot.type === 'recovery' && <WarningIcon color="warning" />}
+                      {snapshot.type === 'auto' && <ScheduleIcon color='primary' />}
+                      {snapshot.type === 'manual' && <SaveIcon color='success' />}
+                      {snapshot.type === 'recovery' && <WarningIcon color='warning' />}
                     </ListItemIcon>
 
                     <ListItemText
                       primary={
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Typography variant="body1">
-                            {snapshot.type === 'auto' ? 'Auto-save' :
-                             snapshot.type === 'manual' ? 'Manual save' : 'Recovery save'}
+                        <Stack direction='row' spacing={1} alignItems='center'>
+                          <Typography variant='body1'>
+                            {snapshot.type === 'auto'
+                              ? 'Auto-save'
+                              : snapshot.type === 'manual'
+                                ? 'Manual save'
+                                : 'Recovery save'}
                           </Typography>
-                          <Chip
-                            label={formatFileSize(snapshot.size)}
-                            size="small"
-                            variant="outlined"
-                          />
+                          <Chip label={formatFileSize(snapshot.size)} size='small' variant='outlined' />
                         </Stack>
                       }
                       secondary={formatTimestamp(snapshot.timestamp)}
                     />
 
                     <ListItemSecondaryAction>
-                      <Stack direction="row" spacing={1}>
-                        <Tooltip title="Restore this version">
-                          <IconButton
-                            color="primary"
-                            onClick={() => restoreFromSnapshot(snapshot)}
-                          >
+                      <Stack direction='row' spacing={1}>
+                        <Tooltip title='Restore this version'>
+                          <IconButton color='primary' onClick={() => restoreFromSnapshot(snapshot)}>
                             <RestoreIcon />
                           </IconButton>
                         </Tooltip>
 
-                        <Tooltip title="Delete this recovery point">
-                          <IconButton
-                            color="error"
-                            onClick={() => deleteSnapshot(snapshot.id)}
-                          >
+                        <Tooltip title='Delete this recovery point'>
+                          <IconButton color='error' onClick={() => deleteSnapshot(snapshot.id)}>
                             <DeleteIcon />
                           </IconButton>
                         </Tooltip>
@@ -396,9 +383,7 @@ export const EncounterRecoveryManager: React.FC<{
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setShowRecoveryDialog(false)}>
-            Cancel
-          </Button>
+          <Button onClick={() => setShowRecoveryDialog(false)}>Cancel</Button>
         </DialogActions>
       </Dialog>
     </>
@@ -479,22 +464,18 @@ const EncounterRecoveryStatusBar: React.FC<EncounterRecoveryStatusBarProps> = ({
         }}
       />
 
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant='body2' color='text.secondary'>
         {getAutoSaveStatus()}
       </Typography>
 
-      {autoSaveState.isAutoSaving && (
-        <LinearProgress
-          sx={{ width: 60, height: 2, borderRadius: 1 }}
-        />
-      )}
+      {autoSaveState.isAutoSaving && <LinearProgress sx={{ width: 60, height: 2, borderRadius: 1 }} />}
 
-      <Stack direction="row" spacing={1} sx={{ ml: 'auto' }}>
-        <Tooltip title="Toggle auto-save">
+      <Stack direction='row' spacing={1} sx={{ ml: 'auto' }}>
+        <Tooltip title='Toggle auto-save'>
           <Button
-            size="small"
-            variant={autoSaveState.isEnabled ? "outlined" : "contained"}
-            color={autoSaveState.isEnabled ? "primary" : "warning"}
+            size='small'
+            variant={autoSaveState.isEnabled ? 'outlined' : 'contained'}
+            color={autoSaveState.isEnabled ? 'primary' : 'warning'}
             onClick={() => onToggleAutoSave(!autoSaveState.isEnabled)}
           >
             Auto-save {autoSaveState.isEnabled ? 'ON' : 'OFF'}
@@ -502,8 +483,8 @@ const EncounterRecoveryStatusBar: React.FC<EncounterRecoveryStatusBarProps> = ({
         </Tooltip>
 
         <Button
-          size="small"
-          variant="outlined"
+          size='small'
+          variant='outlined'
           startIcon={<SaveIcon />}
           onClick={onManualSave}
           disabled={autoSaveState.isAutoSaving}
@@ -512,13 +493,7 @@ const EncounterRecoveryStatusBar: React.FC<EncounterRecoveryStatusBarProps> = ({
         </Button>
 
         {hasRecoverySnapshots && (
-          <Button
-            size="small"
-            variant="outlined"
-            color="warning"
-            startIcon={<RestoreIcon />}
-            onClick={onShowRecovery}
-          >
+          <Button size='small' variant='outlined' color='warning' startIcon={<RestoreIcon />} onClick={onShowRecovery}>
             Recovery
           </Button>
         )}

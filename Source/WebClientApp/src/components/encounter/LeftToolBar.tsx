@@ -1,23 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, IconButton, Drawer, Tooltip, useTheme } from '@mui/material';
 import {
-  GridOn as GridIcon,
-  Layers as RegionsIcon,
-  BorderAll as WallsIcon,
-  MeetingRoom as OpeningsIcon,
-  ViewInAr as ObjectsIcon,
   Pets as CreaturesIcon,
-  Person as PlayersIcon,
   AutoAwesome as EffectsIcon,
+  VisibilityOff as FogOfWarIcon,
+  GridOn as GridIcon,
+  ViewInAr as ObjectsIcon,
+  MeetingRoom as OpeningsIcon,
+  Person as PlayersIcon,
+  Layers as RegionsIcon,
   LightMode as SourcesIcon,
-  VisibilityOff as FogOfWarIcon
+  BorderAll as WallsIcon,
 } from '@mui/icons-material';
-import { GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel, RegionsPanel } from './panels';
-import type { SourcePlacementProperties } from './panels';
+import { Box, Drawer, IconButton, Tooltip, useTheme } from '@mui/material';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AssetPicker } from '@/components/common';
-import { GridConfig } from '@/utils/gridCalculator';
+import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
-import type { PlacedWall, WallVisibility, Asset, PlacedAsset, PlacedSource, PlacedRegion } from '@/types/domain';
+import type { GridConfig } from '@/utils/gridCalculator';
+import type { SourcePlacementProperties } from './panels';
+import { CreaturesPanel, GridPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 
 export type PanelType =
   | 'grid'
@@ -39,6 +40,8 @@ export interface LeftToolBarProps {
   encounterId?: string | undefined;
   encounterWalls?: PlacedWall[] | undefined;
   selectedWallIndex?: number | null | undefined;
+  isEditingVertices?: boolean;
+  originalWallPoles?: import('@/types/domain').Pole[] | null;
   onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
@@ -48,17 +51,12 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
+  onCancelEditing?: () => void;
   encounterRegions?: PlacedRegion[] | undefined;
   selectedRegionIndex?: number | null | undefined;
   onRegionSelect?: (regionIndex: number | null) => void;
   onRegionDelete?: (regionIndex: number) => void;
-  onPlaceRegion?: (properties: {
-    name: string;
-    type: string;
-    value?: number;
-    label?: string;
-    color?: string;
-  }) => void;
+  onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
   onEditRegionVertices?: (regionIndex: number) => void;
   placedAssets?: PlacedAsset[] | undefined;
   selectedAssetIds?: string[] | undefined;
@@ -83,10 +81,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   encounterId,
   encounterWalls,
   selectedWallIndex,
+  isEditingVertices,
+  originalWallPoles,
   onWallSelect,
   onWallDelete,
   onPlaceWall,
   onEditVertices,
+  onCancelEditing,
   encounterRegions,
   selectedRegionIndex,
   onRegionSelect,
@@ -105,19 +106,23 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onSourceSelect,
   onSourceDelete,
   onPlaceSource,
-  onEditSource
+  onEditSource,
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
-  const [assetPickerOpen, setAssetPickerOpen] = useState<{ open: boolean; kind?: AssetKind }>({ open: false });
+  const [assetPickerOpen, setAssetPickerOpen] = useState<{
+    open: boolean;
+    kind?: AssetKind;
+  }>({ open: false });
   const toolbarRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  const activePanel = externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
+  const activePanel =
+    externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
   const expanded = activePanel !== null;
 
   const handlePanelClick = (panel: PanelType) => {
-    const newPanel = (activePanel === panel) ? null : panel;
+    const newPanel = activePanel === panel ? null : panel;
 
     if (externalActivePanel !== undefined) {
       onPanelChange?.(newPanel);
@@ -158,9 +163,22 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect, selectedRegionIndex, onRegionSelect]);
+  }, [
+    expanded,
+    externalActivePanel,
+    onPanelChange,
+    activePanel,
+    selectedWallIndex,
+    onWallSelect,
+    selectedRegionIndex,
+    onRegionSelect,
+  ]);
 
-  const panelConfigs: Array<{ key: PanelType; icon: typeof GridIcon; label: string }> = [
+  const panelConfigs: Array<{
+    key: PanelType;
+    icon: typeof GridIcon;
+    label: string;
+  }> = [
     { key: 'grid', icon: GridIcon, label: 'Grid' },
     { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
@@ -170,7 +188,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     { key: 'players', icon: PlayersIcon, label: 'Players' },
     { key: 'effects', icon: EffectsIcon, label: 'Effects' },
     { key: 'lightSources', icon: SourcesIcon, label: 'Sources' },
-    { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' }
+    { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
   ];
 
   return (
@@ -191,13 +209,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           py: 0.5,
           zIndex: 1000,
           overflowY: 'auto',
-          overflowX: 'hidden'
+          overflowX: 'hidden',
         }}
       >
         {panelConfigs.map(({ key, icon: Icon, label }) => (
-          <Tooltip key={key} title={label} placement="right">
+          <Tooltip key={key} title={label} placement='right'>
             <IconButton
-              size="small"
+              size='small'
               onClick={() => handlePanelClick(key)}
               sx={{
                 width: 28,
@@ -207,8 +225,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
                 flexShrink: 0,
                 backgroundColor: activePanel === key ? theme.palette.action.selected : 'transparent',
                 '&:hover': {
-                  backgroundColor: theme.palette.action.hover
-                }
+                  backgroundColor: theme.palette.action.hover,
+                },
               }}
             >
               <Icon sx={{ fontSize: 18 }} />
@@ -218,8 +236,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       </Box>
 
       <Drawer
-        variant="persistent"
-        anchor="left"
+        variant='persistent'
+        anchor='left'
         open={expanded}
         sx={{
           '& .MuiDrawer-paper': {
@@ -230,16 +248,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             boxSizing: 'border-box',
             backgroundColor: theme.palette.background.paper,
             borderRight: `1px solid ${theme.palette.divider}`,
-            zIndex: 999
-          }
+            zIndex: 999,
+          },
         }}
       >
         <Box ref={drawerRef} sx={{ p: 2 }}>
           {activePanel === 'grid' && gridConfig && (
-            <GridPanel
-              gridConfig={gridConfig}
-              {...(onGridChange ? { onGridChange } : {})}
-            />
+            <GridPanel gridConfig={gridConfig} {...(onGridChange ? { onGridChange } : {})} />
           )}
           {activePanel === 'regions' && (
             <RegionsPanel
@@ -257,10 +272,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               encounterId={encounterId || ''}
               encounterWalls={encounterWalls || []}
               selectedWallIndex={selectedWallIndex !== undefined ? selectedWallIndex : null}
+              isEditingVertices={isEditingVertices || false}
+              originalWallPoles={originalWallPoles || null}
               {...(onWallSelect ? { onWallSelect } : {})}
               {...(onWallDelete ? { onWallDelete } : {})}
               {...(onPlaceWall ? { onPlaceWall } : {})}
               {...(onEditVertices ? { onEditVertices } : {})}
+              {...(onCancelEditing ? { onCancelEditing } : {})}
             />
           )}
           {activePanel === 'openings' && (

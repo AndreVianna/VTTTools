@@ -4,9 +4,9 @@
 export interface User {
   id: string;
   email: string;
-  userName?: string;     // same as email
-  name: string;          // Maps to backend UserInfo.Name
-  displayName: string;   // Maps to backend UserInfo.DisplayName (returns Name if empty)
+  userName?: string; // same as email
+  name: string; // Maps to backend UserInfo.Name
+  displayName: string; // Maps to backend UserInfo.DisplayName (returns Name if empty)
   emailConfirmed: boolean;
   phoneNumber?: string;
   phoneNumberConfirmed: boolean;
@@ -70,17 +70,17 @@ export enum Weather {
 
 export enum AssetKind {
   Object = 'Object',
-  Creature = 'Creature'
+  Creature = 'Creature',
 }
 
 export enum CreatureCategory {
   Character = 'Character',
-  Monster = 'Monster'
+  Monster = 'Monster',
 }
 
 export enum TokenShape {
   Circle = 'Circle',
-  Square = 'Square'
+  Square = 'Square',
 }
 
 export interface TokenStyle {
@@ -91,8 +91,8 @@ export interface TokenStyle {
 
 // AssetToken replaces AssetResource in new backend schema
 export interface AssetToken {
-  token: MediaResource;  // Renamed from resource
-  isDefault: boolean;  // Simplified from role enum
+  token: MediaResource; // Renamed from resource
+  isDefault: boolean; // Simplified from role enum
 }
 
 export enum SizeName {
@@ -104,7 +104,7 @@ export enum SizeName {
   Large = 5,
   Huge = 6,
   Gargantuan = 7,
-  Custom = 99
+  Custom = 99,
 }
 
 export interface NamedSize {
@@ -132,25 +132,25 @@ export interface CreateAssetRequest {
   kind: AssetKind;
   name: string;
   description: string;
-  tokens: AssetToken[];  // Renamed from resources
-  portraitId?: string | undefined;  // New: separate portrait reference
-  size: NamedSize;  // New: moved from nested properties to root
+  tokens: AssetToken[]; // Renamed from resources
+  portraitId?: string | undefined; // New: separate portrait reference
+  size: NamedSize; // New: moved from nested properties to root
   isPublished: boolean;
   isPublic: boolean;
-  objectData?: ObjectData | undefined;  // Renamed from objectProps
-  creatureData?: CreatureData | undefined;  // Renamed from creatureProps
+  objectData?: ObjectData | undefined; // Renamed from objectProps
+  creatureData?: CreatureData | undefined; // Renamed from creatureProps
 }
 
 export interface UpdateAssetRequest {
   name?: string | undefined;
   description?: string | undefined;
-  tokens?: AssetToken[] | undefined;  // Renamed from resources
-  portraitId?: string | undefined;  // New: separate portrait reference
-  size?: NamedSize | undefined;  // New: moved from nested properties to root
+  tokens?: AssetToken[] | undefined; // Renamed from resources
+  portraitId?: string | undefined; // New: separate portrait reference
+  size?: NamedSize | undefined; // New: moved from nested properties to root
   isPublished?: boolean | undefined;
   isPublic?: boolean | undefined;
-  objectData?: ObjectData | undefined;  // Renamed from objectProps
-  creatureData?: CreatureData | undefined;  // Renamed from creatureProps
+  objectData?: ObjectData | undefined; // Renamed from objectProps
+  creatureData?: CreatureData | undefined; // Renamed from creatureProps
 }
 
 // Base Asset interface
@@ -213,13 +213,10 @@ export const createAssetSnapshot = (asset: PlacedAsset): PlacedAssetSnapshot => 
   position: { ...asset.position },
   size: { ...asset.size },
   rotation: asset.rotation,
-  layer: asset.layer
+  layer: asset.layer,
 });
 
-export const applyAssetSnapshot = (
-  asset: PlacedAsset,
-  snapshot: PlacedAssetSnapshot
-): PlacedAsset => ({
+export const applyAssetSnapshot = (asset: PlacedAsset, snapshot: PlacedAssetSnapshot): PlacedAsset => ({
   ...asset,
   position: { ...snapshot.position },
   size: { ...snapshot.size },
@@ -259,7 +256,7 @@ export enum EffectShape {
   Circle = 'Circle',
   Cone = 'Cone',
   Square = 'Square',
-  Line = 'Line'
+  Line = 'Line',
 }
 
 export interface Effect {
@@ -295,12 +292,12 @@ export interface StatBlock {
 
 // Adventures (from Domain.Library.Adventures.ApiContracts)
 export interface CreateAdventureRequest {
-  name: string;           // [MaxLength(128)]
-  description: string;    // [MaxLength(1024)]
+  name: string; // [MaxLength(128)]
+  description: string; // [MaxLength(1024)]
   style: AdventureStyle;
   isOneShot?: boolean;
-  campaignId?: string;    // Guid?
-  backgroundId?: string;  // Guid?
+  campaignId?: string; // Guid?
+  backgroundId?: string; // Guid?
 }
 
 export interface UpdateAdventureRequest {
@@ -319,13 +316,13 @@ export enum AdventureStyle {
   HackNSlash = 3,
   Survival = 4,
   GoalDriven = 5,
-  RandomlyGenerated = 6
+  RandomlyGenerated = 6,
 }
 
 export enum ContentType {
   Adventure = 0,
   Campaign = 1,
-  World = 2
+  World = 2,
 }
 
 export interface Adventure {
@@ -345,9 +342,9 @@ export interface Adventure {
 
 // Worlds (from Domain.Library.Worlds.ApiContracts)
 export interface CreateWorldRequest {
-  name: string;           // [MaxLength(128)]
-  description: string;    // [MaxLength(4096)]
-  backgroundId?: string;  // Guid?
+  name: string; // [MaxLength(128)]
+  description: string; // [MaxLength(4096)]
+  backgroundId?: string; // Guid?
 }
 
 export interface UpdateWorldRequest {
@@ -371,9 +368,9 @@ export interface World {
 
 // Campaigns (from Domain.Library.Campaigns.ApiContracts)
 export interface CreateCampaignRequest {
-  name: string;           // [MaxLength(128)]
-  description: string;    // [MaxLength(4096)]
-  backgroundId?: string;  // Guid?
+  name: string; // [MaxLength(128)]
+  description: string; // [MaxLength(4096)]
+  backgroundId?: string; // Guid?
 }
 
 export interface UpdateCampaignRequest {
@@ -454,9 +451,9 @@ export interface EncounterAsset {
   index: number;
   number: number;
   name: string;
-  notes?: string;  // Renamed from description
-  token?: MediaResource;  // Changed from resourceId (string) to full MediaResource object
-  portrait?: MediaResource;  // New: separate portrait reference
+  notes?: string; // Renamed from description
+  token?: MediaResource; // Changed from resourceId (string) to full MediaResource object
+  portrait?: MediaResource; // New: separate portrait reference
   x: number;
   y: number;
   width: number;
@@ -498,7 +495,7 @@ export enum GameSessionStatus {
   Waiting = 'Waiting',
   InProgress = 'InProgress',
   Completed = 'Completed',
-  Cancelled = 'Cancelled'
+  Cancelled = 'Cancelled',
 }
 
 export interface GameSession {
@@ -542,13 +539,13 @@ export enum ResourceType {
   Image = 'Image',
   Audio = 'Audio',
   Video = 'Video',
-  Document = 'Document'
+  Document = 'Document',
 }
 
 export interface MediaResource {
   id: string;
   type: ResourceType;
-  path: string;  // Blob storage path
+  path: string; // Blob storage path
   metadata: ResourceMetadata;
   tags: string[];
 }
@@ -581,8 +578,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirmPassword: string;
-  name: string;           // Maps to backend Name property
-  displayName: string;   // Optional display name
+  name: string; // Maps to backend Name property
+  displayName: string; // Optional display name
 }
 
 export interface RegisterResponse {
@@ -671,13 +668,13 @@ export interface Point {
 export interface Pole {
   x: number;
   y: number;
-  h: number;  // Height in feet
+  h: number; // Height in feet
 }
 
 export enum WallVisibility {
   Normal = 0,
   Fence = 1,
-  Invisible = 2
+  Invisible = 2,
 }
 
 export interface EncounterWall {
@@ -728,4 +725,3 @@ export interface EncounterSource {
 export interface PlacedSource extends EncounterSource {
   id: string;
 }
-

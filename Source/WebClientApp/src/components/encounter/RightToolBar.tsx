@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Box, IconButton, Drawer, Tooltip, useTheme } from '@mui/material';
 import {
+  Tune as SettingsIcon,
+  Visibility as VisibilityIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
-  Visibility as VisibilityIcon,
-  Tune as SettingsIcon
 } from '@mui/icons-material';
+import { Box, Drawer, IconButton, Tooltip, useTheme } from '@mui/material';
+import type React from 'react';
+import { useState } from 'react';
 
 export interface RightToolBarProps {
   onZoomIn?: () => void;
@@ -14,12 +15,7 @@ export interface RightToolBarProps {
   onSettingsClick?: () => void;
 }
 
-export const RightToolBar: React.FC<RightToolBarProps> = ({
-  onZoomIn,
-  onZoomOut,
-  onLayersClick,
-  onSettingsClick
-}) => {
+export const RightToolBar: React.FC<RightToolBarProps> = ({ onZoomIn, onZoomOut, onLayersClick, onSettingsClick }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [activePanel, setActivePanel] = useState<'layers' | 'settings' | null>(null);
@@ -50,12 +46,12 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
           flexDirection: 'column',
           gap: 0.25,
           py: 0.5,
-          zIndex: 1000
+          zIndex: 1000,
         }}
       >
-        <Tooltip title="Zoom In" placement="left">
+        <Tooltip title='Zoom In' placement='left'>
           <IconButton
-            size="small"
+            size='small'
             onClick={onZoomIn}
             sx={{
               width: 28,
@@ -63,17 +59,17 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
               borderRadius: 0,
               mx: 'auto',
               '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
+                backgroundColor: theme.palette.action.hover,
+              },
             }}
           >
             <ZoomInIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Zoom Out" placement="left">
+        <Tooltip title='Zoom Out' placement='left'>
           <IconButton
-            size="small"
+            size='small'
             onClick={onZoomOut}
             sx={{
               width: 28,
@@ -81,8 +77,8 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
               borderRadius: 0,
               mx: 'auto',
               '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
+                backgroundColor: theme.palette.action.hover,
+              },
             }}
           >
             <ZoomOutIcon sx={{ fontSize: 18 }} />
@@ -91,9 +87,9 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
 
         <Box sx={{ height: 1, backgroundColor: theme.palette.divider, my: 0.5 }} />
 
-        <Tooltip title="Layers" placement="left">
+        <Tooltip title='Layers' placement='left'>
           <IconButton
-            size="small"
+            size='small'
             onClick={() => handleToolClick('layers', onLayersClick)}
             sx={{
               width: 28,
@@ -102,17 +98,17 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
               mx: 'auto',
               backgroundColor: activePanel === 'layers' ? theme.palette.action.selected : 'transparent',
               '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
+                backgroundColor: theme.palette.action.hover,
+              },
             }}
           >
             <VisibilityIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Settings" placement="left">
+        <Tooltip title='Settings' placement='left'>
           <IconButton
-            size="small"
+            size='small'
             onClick={() => handleToolClick('settings', onSettingsClick)}
             sx={{
               width: 28,
@@ -121,8 +117,8 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
               mx: 'auto',
               backgroundColor: activePanel === 'settings' ? theme.palette.action.selected : 'transparent',
               '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
+                backgroundColor: theme.palette.action.hover,
+              },
             }}
           >
             <SettingsIcon sx={{ fontSize: 18 }} />
@@ -131,8 +127,8 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
       </Box>
 
       <Drawer
-        variant="persistent"
-        anchor="right"
+        variant='persistent'
+        anchor='right'
         open={expanded}
         sx={{
           '& .MuiDrawer-paper': {
@@ -143,17 +139,13 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
             boxSizing: 'border-box',
             backgroundColor: theme.palette.background.paper,
             borderLeft: `1px solid ${theme.palette.divider}`,
-            zIndex: 999
-          }
+            zIndex: 999,
+          },
         }}
       >
         <Box sx={{ p: 1 }}>
-          {activePanel === 'layers' && (
-            <Box>Layers Panel Content</Box>
-          )}
-          {activePanel === 'settings' && (
-            <Box>Settings Panel Content</Box>
-          )}
+          {activePanel === 'layers' && <Box>Layers Panel Content</Box>}
+          {activePanel === 'settings' && <Box>Settings Panel Content</Box>}
         </Box>
       </Drawer>
     </>

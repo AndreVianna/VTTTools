@@ -2,7 +2,7 @@
 // Export all shared form components for easier importing
 
 export * from './AssetBasicFields';
-export * from './ObjectPropertiesForm';
-export * from './CreaturePropertiesForm';
-export * from './AssetVisibilityFields';
 export * from './AssetResourceManager';
+export * from './AssetVisibilityFields';
+export * from './CreaturePropertiesForm';
+export * from './ObjectPropertiesForm';

@@ -1,21 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TwoFactorSetupForm } from './TwoFactorSetupForm';
 
 // Mock useAuth hook
 const mockSetupTwoFactor = vi.fn();
 const mockEnableTwoFactor = vi.fn();
-let mockAuthReturnValue = { user: null, isLoading: false, error: null };
+const mockAuthReturnValue = { user: null, isLoading: false, error: null };
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
     setupTwoFactor: mockSetupTwoFactor,
     enableTwoFactor: mockEnableTwoFactor,
-    get user() { return mockAuthReturnValue.user; },
-    get isLoading() { return mockAuthReturnValue.isLoading; },
-    get error() { return mockAuthReturnValue.error; }
-  })
+    get user() {
+      return mockAuthReturnValue.user;
+    },
+    get isLoading() {
+      return mockAuthReturnValue.isLoading;
+    },
+    get error() {
+      return mockAuthReturnValue.error;
+    },
+  }),
 }));
 
 describe('TwoFactorSetupForm', () => {
@@ -23,7 +29,7 @@ describe('TwoFactorSetupForm', () => {
     sharedKey: 'JBSWY3DPEHPK3PXP',
     authenticatorUri: 'otpauth://totp/VTTTools:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=VTTTools',
     qrCodeUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...',
-    recoveryCodes: []
+    recoveryCodes: [],
   };
 
   const mockRecoveryCodes = [
@@ -34,7 +40,7 @@ describe('TwoFactorSetupForm', () => {
     'ZXC34VBN56',
     'PLM78OKN90',
     'MNB23VCX45',
-    'JKL56HGF78'
+    'JKL56HGF78',
   ];
 
   beforeEach(() => {
@@ -234,7 +240,7 @@ describe('TwoFactorSetupForm', () => {
       // Arrange
       const user = userEvent.setup();
       const mockClipboard = {
-        writeText: vi.fn().mockResolvedValue(undefined)
+        writeText: vi.fn().mockResolvedValue(undefined),
       };
       Object.assign(navigator, { clipboard: mockClipboard });
 
@@ -352,7 +358,10 @@ describe('TwoFactorSetupForm', () => {
     it('should call enableTwoFactor with correct code', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockEnableTwoFactor.mockResolvedValue({ success: true, recoveryCodes: mockRecoveryCodes });
+      mockEnableTwoFactor.mockResolvedValue({
+        success: true,
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<TwoFactorSetupForm />);
 
@@ -379,7 +388,10 @@ describe('TwoFactorSetupForm', () => {
   describe('step 3: recovery codes', () => {
     beforeEach(async () => {
       const user = userEvent.setup();
-      mockEnableTwoFactor.mockResolvedValue({ success: true, recoveryCodes: mockRecoveryCodes });
+      mockEnableTwoFactor.mockResolvedValue({
+        success: true,
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<TwoFactorSetupForm />);
 
@@ -429,7 +441,10 @@ describe('TwoFactorSetupForm', () => {
   describe('recovery codes dialog', () => {
     beforeEach(async () => {
       const user = userEvent.setup();
-      mockEnableTwoFactor.mockResolvedValue({ success: true, recoveryCodes: mockRecoveryCodes });
+      mockEnableTwoFactor.mockResolvedValue({
+        success: true,
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<TwoFactorSetupForm />);
 
@@ -474,7 +489,7 @@ describe('TwoFactorSetupForm', () => {
 
       // Assert
       await waitFor(() => {
-        mockRecoveryCodes.forEach(code => {
+        mockRecoveryCodes.forEach((code) => {
           expect(screen.getByText(code)).toBeInTheDocument();
         });
       });
@@ -563,7 +578,10 @@ describe('TwoFactorSetupForm', () => {
   describe('download recovery codes', () => {
     beforeEach(async () => {
       const user = userEvent.setup();
-      mockEnableTwoFactor.mockResolvedValue({ success: true, recoveryCodes: mockRecoveryCodes });
+      mockEnableTwoFactor.mockResolvedValue({
+        success: true,
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<TwoFactorSetupForm />);
 
@@ -594,7 +612,7 @@ describe('TwoFactorSetupForm', () => {
         download: '',
         style: {},
         appendChild: vi.fn(),
-        removeChild: vi.fn()
+        removeChild: vi.fn(),
       } as unknown as HTMLAnchorElement);
 
       // Act
@@ -615,7 +633,10 @@ describe('TwoFactorSetupForm', () => {
       // Arrange
       const user = userEvent.setup();
       const mockOnComplete = vi.fn();
-      mockEnableTwoFactor.mockResolvedValue({ success: true, recoveryCodes: mockRecoveryCodes });
+      mockEnableTwoFactor.mockResolvedValue({
+        success: true,
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<TwoFactorSetupForm onComplete={mockOnComplete} />);
 
@@ -653,7 +674,10 @@ describe('TwoFactorSetupForm', () => {
     it('should show recovery codes dialog if complete is clicked without saving', async () => {
       // Arrange
       const user = userEvent.setup();
-      mockEnableTwoFactor.mockResolvedValue({ success: true, recoveryCodes: mockRecoveryCodes });
+      mockEnableTwoFactor.mockResolvedValue({
+        success: true,
+        recoveryCodes: mockRecoveryCodes,
+      });
 
       render(<TwoFactorSetupForm />);
 
@@ -782,7 +806,11 @@ describe('TwoFactorSetupForm', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /set up two-factor authentication/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', {
+            name: /set up two-factor authentication/i,
+          }),
+        ).toBeInTheDocument();
       });
     });
 

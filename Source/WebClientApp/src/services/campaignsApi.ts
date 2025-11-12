@@ -1,12 +1,12 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 import type {
-  CreateCampaignRequest,
-  UpdateCampaignRequest,
+  Adventure,
   Campaign,
   CreateAdventureRequest,
-  Adventure
+  CreateCampaignRequest,
+  UpdateCampaignRequest,
 } from '@/types/domain';
+import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 export const campaignsApi = createApi({
   reducerPath: 'campaignsApi',
@@ -60,9 +60,7 @@ export const campaignsApi = createApi({
 
     getAdventures: builder.query<Adventure[], string>({
       query: (campaignId) => `/${campaignId}/adventures`,
-      providesTags: (_result, _error, campaignId) => [
-        { type: 'CampaignAdventures', id: campaignId }
-      ],
+      providesTags: (_result, _error, campaignId) => [{ type: 'CampaignAdventures', id: campaignId }],
     }),
 
     createAdventure: builder.mutation<Adventure, { campaignId: string; request: CreateAdventureRequest }>({
@@ -71,9 +69,7 @@ export const campaignsApi = createApi({
         method: 'POST',
         body: request,
       }),
-      invalidatesTags: (_result, _error, { campaignId }) => [
-        { type: 'CampaignAdventures', id: campaignId }
-      ],
+      invalidatesTags: (_result, _error, { campaignId }) => [{ type: 'CampaignAdventures', id: campaignId }],
     }),
 
     cloneAdventure: builder.mutation<Adventure, { campaignId: string; adventureId: string; name?: string }>({
@@ -82,9 +78,7 @@ export const campaignsApi = createApi({
         method: 'POST',
         body: name ? { name } : undefined,
       }),
-      invalidatesTags: (_result, _error, { campaignId }) => [
-        { type: 'CampaignAdventures', id: campaignId }
-      ],
+      invalidatesTags: (_result, _error, { campaignId }) => [{ type: 'CampaignAdventures', id: campaignId }],
     }),
 
     removeAdventure: builder.mutation<void, { campaignId: string; adventureId: string }>({
@@ -92,9 +86,7 @@ export const campaignsApi = createApi({
         url: `/${campaignId}/adventures/${adventureId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (_result, _error, { campaignId }) => [
-        { type: 'CampaignAdventures', id: campaignId }
-      ],
+      invalidatesTags: (_result, _error, { campaignId }) => [{ type: 'CampaignAdventures', id: campaignId }],
     }),
   }),
 });

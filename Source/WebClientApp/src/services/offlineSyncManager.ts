@@ -22,40 +22,40 @@ import type { PlacedAsset } from '@/types/domain';
  * Encounter state for offline persistence
  */
 export interface OfflineEncounterState {
-    encounterId: string;
-    placedAssets: PlacedAsset[];
-    lastModified: string; // ISO timestamp
-    version: number; // Optimistic concurrency version
+  encounterId: string;
+  placedAssets: PlacedAsset[];
+  lastModified: string; // ISO timestamp
+  version: number; // Optimistic concurrency version
 }
 
 /**
  * Sync status
  */
 export enum SyncStatus {
-    Online = 'online',
-    Offline = 'offline',
-    Syncing = 'syncing',
-    Error = 'error',
+  Online = 'online',
+  Offline = 'offline',
+  Syncing = 'syncing',
+  Error = 'error',
 }
 
 /**
  * OfflineSyncManager Configuration
  */
 export interface OfflineSyncConfig {
-    /** Encounter ID for persistence */
-    encounterId: string;
-    /** API endpoint for encounter updates (default: /api/encounters/{encounterId}) */
-    apiEndpoint?: string;
-    /** Auto-save interval in milliseconds (default: 5000ms) */
-    autoSaveInterval?: number;
-    /** Enable connection monitoring (default: true) */
-    enableConnectionMonitoring?: boolean;
-    /** Callback when sync status changes */
-    onSyncStatusChange?: (status: SyncStatus) => void;
-    /** Callback when connection status changes */
-    onConnectionChange?: (online: boolean) => void;
-    /** Callback when sync error occurs */
-    onSyncError?: (error: Error) => void;
+  /** Encounter ID for persistence */
+  encounterId: string;
+  /** API endpoint for encounter updates (default: /api/encounters/{encounterId}) */
+  apiEndpoint?: string;
+  /** Auto-save interval in milliseconds (default: 5000ms) */
+  autoSaveInterval?: number;
+  /** Enable connection monitoring (default: true) */
+  enableConnectionMonitoring?: boolean;
+  /** Callback when sync status changes */
+  onSyncStatusChange?: (status: SyncStatus) => void;
+  /** Callback when connection status changes */
+  onConnectionChange?: (online: boolean) => void;
+  /** Callback when sync error occurs */
+  onSyncError?: (error: Error) => void;
 }
 
 /**
@@ -68,292 +68,292 @@ const STORAGE_KEY_PREFIX = 'vtttools_encounter_';
  * Manages offline persistence and sync for encounter editor
  */
 export class OfflineSyncManager {
-    private encounterId: string;
-    private apiEndpoint: string;
-    private autoSaveInterval: number;
-    private enableConnectionMonitoring: boolean;
-    private onSyncStatusChange: ((status: SyncStatus) => void) | undefined;
-    private onConnectionChange: ((online: boolean) => void) | undefined;
-    private onSyncError: ((error: Error) => void) | undefined;
+  private encounterId: string;
+  private apiEndpoint: string;
+  private autoSaveInterval: number;
+  private enableConnectionMonitoring: boolean;
+  private onSyncStatusChange: ((status: SyncStatus) => void) | undefined;
+  private onConnectionChange: ((online: boolean) => void) | undefined;
+  private onSyncError: ((error: Error) => void) | undefined;
 
-    private currentState: OfflineEncounterState | null = null;
-    private syncStatus: SyncStatus = SyncStatus.Online;
-    private isOnline: boolean = navigator.onLine;
-    private autoSaveTimer: number | null = null;
-    private syncInProgress: boolean = false;
-    private pendingChanges: boolean = false;
+  private currentState: OfflineEncounterState | null = null;
+  private syncStatus: SyncStatus = SyncStatus.Online;
+  private isOnline: boolean = navigator.onLine;
+  private autoSaveTimer: number | null = null;
+  private syncInProgress: boolean = false;
+  private pendingChanges: boolean = false;
 
-    constructor(config: OfflineSyncConfig) {
-        this.encounterId = config.encounterId;
-        this.apiEndpoint = config.apiEndpoint || `/api/encounters/${config.encounterId}`;
-        this.autoSaveInterval = config.autoSaveInterval ?? 5000;
-        this.enableConnectionMonitoring = config.enableConnectionMonitoring ?? true;
-        this.onSyncStatusChange = config.onSyncStatusChange;
-        this.onConnectionChange = config.onConnectionChange;
-        this.onSyncError = config.onSyncError;
+  constructor(config: OfflineSyncConfig) {
+    this.encounterId = config.encounterId;
+    this.apiEndpoint = config.apiEndpoint || `/api/encounters/${config.encounterId}`;
+    this.autoSaveInterval = config.autoSaveInterval ?? 5000;
+    this.enableConnectionMonitoring = config.enableConnectionMonitoring ?? true;
+    this.onSyncStatusChange = config.onSyncStatusChange;
+    this.onConnectionChange = config.onConnectionChange;
+    this.onSyncError = config.onSyncError;
 
-        this.initialize();
+    this.initialize();
+  }
+
+  /**
+   * Initialize manager
+   */
+  private initialize(): void {
+    // Load persisted state from localStorage
+    this.loadFromLocalStorage();
+
+    // Setup connection monitoring
+    if (this.enableConnectionMonitoring) {
+      this.setupConnectionMonitoring();
     }
 
-    /**
-     * Initialize manager
-     */
-    private initialize(): void {
-        // Load persisted state from localStorage
-        this.loadFromLocalStorage();
+    // Setup auto-save
+    this.startAutoSave();
+  }
 
-        // Setup connection monitoring
-        if (this.enableConnectionMonitoring) {
-            this.setupConnectionMonitoring();
-        }
+  /**
+   * Setup online/offline event listeners
+   */
+  private setupConnectionMonitoring(): void {
+    window.addEventListener('online', this.handleOnline);
+    window.addEventListener('offline', this.handleOffline);
 
-        // Setup auto-save
-        this.startAutoSave();
+    // Initial sync attempt if offline state was persisted
+    if (this.isOnline && this.pendingChanges) {
+      this.syncToServer();
     }
+  }
 
-    /**
-     * Setup online/offline event listeners
-     */
-    private setupConnectionMonitoring(): void {
-        window.addEventListener('online', this.handleOnline);
-        window.addEventListener('offline', this.handleOffline);
+  /**
+   * Handle online event
+   */
+  private handleOnline = (): void => {
+    this.isOnline = true;
+    this.onConnectionChange?.(true);
 
-        // Initial sync attempt if offline state was persisted
-        if (this.isOnline && this.pendingChanges) {
-            this.syncToServer();
-        }
+    // Auto-sync pending changes
+    if (this.pendingChanges) {
+      this.syncToServer();
+    } else {
+      this.setSyncStatus(SyncStatus.Online);
     }
+  };
 
-    /**
-     * Handle online event
-     */
-    private handleOnline = (): void => {
-        this.isOnline = true;
-        this.onConnectionChange?.(true);
+  /**
+   * Handle offline event
+   */
+  private handleOffline = (): void => {
+    console.warn('Connection lost');
+    this.isOnline = false;
+    this.setSyncStatus(SyncStatus.Offline);
+    this.onConnectionChange?.(false);
 
-        // Auto-sync pending changes
-        if (this.pendingChanges) {
-            this.syncToServer();
-        } else {
-            this.setSyncStatus(SyncStatus.Online);
-        }
+    // Save immediately to localStorage
+    if (this.currentState) {
+      this.saveToLocalStorage(this.currentState);
+    }
+  };
+
+  /**
+   * Update encounter state (called by parent component)
+   */
+  public updateState(placedAssets: PlacedAsset[]): void {
+    const newState: OfflineEncounterState = {
+      encounterId: this.encounterId,
+      placedAssets,
+      lastModified: new Date().toISOString(),
+      version: (this.currentState?.version || 0) + 1,
     };
 
-    /**
-     * Handle offline event
-     */
-    private handleOffline = (): void => {
-        console.warn('Connection lost');
-        this.isOnline = false;
-        this.setSyncStatus(SyncStatus.Offline);
-        this.onConnectionChange?.(false);
+    this.currentState = newState;
+    this.pendingChanges = true;
 
-        // Save immediately to localStorage
-        if (this.currentState) {
-            this.saveToLocalStorage(this.currentState);
-        }
-    };
+    // Save to localStorage if offline
+    if (!this.isOnline) {
+      this.saveToLocalStorage(newState);
+    }
+  }
 
-    /**
-     * Update encounter state (called by parent component)
-     */
-    public updateState(placedAssets: PlacedAsset[]): void {
-        const newState: OfflineEncounterState = {
-            encounterId: this.encounterId,
-            placedAssets,
-            lastModified: new Date().toISOString(),
-            version: (this.currentState?.version || 0) + 1,
-        };
+  /**
+   * Save state to localStorage
+   */
+  private saveToLocalStorage(state: OfflineEncounterState): void {
+    try {
+      const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
+      localStorage.setItem(key, JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+  }
 
-        this.currentState = newState;
+  /**
+   * Load state from localStorage
+   */
+  private loadFromLocalStorage(): OfflineEncounterState | null {
+    try {
+      const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
+      const data = localStorage.getItem(key);
+
+      if (data) {
+        const state = JSON.parse(data) as OfflineEncounterState;
+        this.currentState = state;
         this.pendingChanges = true;
-
-        // Save to localStorage if offline
-        if (!this.isOnline) {
-            this.saveToLocalStorage(newState);
-        }
+        return state;
+      }
+    } catch (error) {
+      console.error('Failed to load from localStorage:', error);
     }
 
-    /**
-     * Save state to localStorage
-     */
-    private saveToLocalStorage(state: OfflineEncounterState): void {
-        try {
-            const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
-            localStorage.setItem(key, JSON.stringify(state));
-        } catch (error) {
-            console.error('Failed to save to localStorage:', error);
-        }
+    return null;
+  }
+
+  /**
+   * Clear localStorage for this encounter
+   */
+  private clearLocalStorage(): void {
+    try {
+      const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error('Failed to clear localStorage:', error);
+    }
+  }
+
+  /**
+   * Sync current state to server
+   */
+  public async syncToServer(): Promise<void> {
+    if (!this.currentState || !this.pendingChanges || this.syncInProgress) {
+      return;
     }
 
-    /**
-     * Load state from localStorage
-     */
-    private loadFromLocalStorage(): OfflineEncounterState | null {
-        try {
-            const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
-            const data = localStorage.getItem(key);
-
-            if (data) {
-                const state = JSON.parse(data) as OfflineEncounterState;
-                this.currentState = state;
-                this.pendingChanges = true;
-                return state;
-            }
-        } catch (error) {
-            console.error('Failed to load from localStorage:', error);
-        }
-
-        return null;
+    if (!this.isOnline) {
+      console.warn('Cannot sync: offline');
+      return;
     }
 
-    /**
-     * Clear localStorage for this encounter
-     */
-    private clearLocalStorage(): void {
-        try {
-            const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
-            localStorage.removeItem(key);
-        } catch (error) {
-            console.error('Failed to clear localStorage:', error);
-        }
+    this.syncInProgress = true;
+    this.setSyncStatus(SyncStatus.Syncing);
+
+    try {
+      // Call API to update encounter
+      const response = await fetch(this.apiEndpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          placedAssets: this.currentState.placedAssets,
+          version: this.currentState.version,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sync failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Sync successful
+      this.pendingChanges = false;
+      this.clearLocalStorage();
+      this.setSyncStatus(SyncStatus.Online);
+    } catch (error) {
+      console.error('Sync error:', error);
+      this.setSyncStatus(SyncStatus.Error);
+      this.onSyncError?.(error as Error);
+
+      // Save to localStorage for retry
+      this.saveToLocalStorage(this.currentState);
+    } finally {
+      this.syncInProgress = false;
+    }
+  }
+
+  /**
+   * Start auto-save timer
+   */
+  private startAutoSave(): void {
+    if (this.autoSaveTimer !== null) {
+      window.clearInterval(this.autoSaveTimer);
     }
 
-    /**
-     * Sync current state to server
-     */
-    public async syncToServer(): Promise<void> {
-        if (!this.currentState || !this.pendingChanges || this.syncInProgress) {
-            return;
-        }
+    this.autoSaveTimer = window.setInterval(() => {
+      if (this.isOnline && this.pendingChanges && !this.syncInProgress) {
+        this.syncToServer();
+      } else if (!this.isOnline && this.currentState && this.pendingChanges) {
+        // Save to localStorage while offline
+        this.saveToLocalStorage(this.currentState);
+      }
+    }, this.autoSaveInterval);
+  }
 
-        if (!this.isOnline) {
-            console.warn('Cannot sync: offline');
-            return;
-        }
+  /**
+   * Stop auto-save timer
+   */
+  private stopAutoSave(): void {
+    if (this.autoSaveTimer !== null) {
+      window.clearInterval(this.autoSaveTimer);
+      this.autoSaveTimer = null;
+    }
+  }
 
-        this.syncInProgress = true;
-        this.setSyncStatus(SyncStatus.Syncing);
+  /**
+   * Set sync status and notify
+   */
+  private setSyncStatus(status: SyncStatus): void {
+    this.syncStatus = status;
+    this.onSyncStatusChange?.(status);
+  }
 
-        try {
-            // Call API to update encounter
-            const response = await fetch(this.apiEndpoint, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    placedAssets: this.currentState.placedAssets,
-                    version: this.currentState.version,
-                }),
-            });
+  /**
+   * Get current sync status
+   */
+  public getSyncStatus(): SyncStatus {
+    return this.syncStatus;
+  }
 
-            if (!response.ok) {
-                throw new Error(`Sync failed: ${response.status} ${response.statusText}`);
-            }
+  /**
+   * Check if online
+   */
+  public isConnected(): boolean {
+    return this.isOnline;
+  }
 
-            // Sync successful
-            this.pendingChanges = false;
-            this.clearLocalStorage();
-            this.setSyncStatus(SyncStatus.Online);
-        } catch (error) {
-            console.error('Sync error:', error);
-            this.setSyncStatus(SyncStatus.Error);
-            this.onSyncError?.(error as Error);
+  /**
+   * Check if there are pending changes
+   */
+  public hasPendingChanges(): boolean {
+    return this.pendingChanges;
+  }
 
-            // Save to localStorage for retry
-            this.saveToLocalStorage(this.currentState);
-        } finally {
-            this.syncInProgress = false;
-        }
+  /**
+   * Get persisted state (for initial load)
+   */
+  public getPersistedState(): OfflineEncounterState | null {
+    return this.currentState;
+  }
+
+  /**
+   * Force sync now
+   */
+  public forceSyncNow(): Promise<void> {
+    return this.syncToServer();
+  }
+
+  /**
+   * Destroy manager (cleanup)
+   */
+  public destroy(): void {
+    this.stopAutoSave();
+
+    if (this.enableConnectionMonitoring) {
+      window.removeEventListener('online', this.handleOnline);
+      window.removeEventListener('offline', this.handleOffline);
     }
 
-    /**
-     * Start auto-save timer
-     */
-    private startAutoSave(): void {
-        if (this.autoSaveTimer !== null) {
-            window.clearInterval(this.autoSaveTimer);
-        }
-
-        this.autoSaveTimer = window.setInterval(() => {
-            if (this.isOnline && this.pendingChanges && !this.syncInProgress) {
-                this.syncToServer();
-            } else if (!this.isOnline && this.currentState && this.pendingChanges) {
-                // Save to localStorage while offline
-                this.saveToLocalStorage(this.currentState);
-            }
-        }, this.autoSaveInterval);
+    // Final sync attempt if online
+    if (this.isOnline && this.pendingChanges) {
+      this.syncToServer();
     }
-
-    /**
-     * Stop auto-save timer
-     */
-    private stopAutoSave(): void {
-        if (this.autoSaveTimer !== null) {
-            window.clearInterval(this.autoSaveTimer);
-            this.autoSaveTimer = null;
-        }
-    }
-
-    /**
-     * Set sync status and notify
-     */
-    private setSyncStatus(status: SyncStatus): void {
-        this.syncStatus = status;
-        this.onSyncStatusChange?.(status);
-    }
-
-    /**
-     * Get current sync status
-     */
-    public getSyncStatus(): SyncStatus {
-        return this.syncStatus;
-    }
-
-    /**
-     * Check if online
-     */
-    public isConnected(): boolean {
-        return this.isOnline;
-    }
-
-    /**
-     * Check if there are pending changes
-     */
-    public hasPendingChanges(): boolean {
-        return this.pendingChanges;
-    }
-
-    /**
-     * Get persisted state (for initial load)
-     */
-    public getPersistedState(): OfflineEncounterState | null {
-        return this.currentState;
-    }
-
-    /**
-     * Force sync now
-     */
-    public forceSyncNow(): Promise<void> {
-        return this.syncToServer();
-    }
-
-    /**
-     * Destroy manager (cleanup)
-     */
-    public destroy(): void {
-        this.stopAutoSave();
-
-        if (this.enableConnectionMonitoring) {
-            window.removeEventListener('online', this.handleOnline);
-            window.removeEventListener('offline', this.handleOffline);
-        }
-
-        // Final sync attempt if online
-        if (this.isOnline && this.pendingChanges) {
-            this.syncToServer();
-        }
-    }
+  }
 }

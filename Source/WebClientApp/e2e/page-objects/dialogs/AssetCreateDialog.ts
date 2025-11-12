@@ -4,74 +4,70 @@
  * Encapsulates Asset Create Dialog interactions
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
 import { BasePage } from '../base/BasePage.js';
 
 export class AssetCreateDialog extends BasePage {
-    readonly dialog = (): Locator => this.page.locator('[role="dialog"]');
-    readonly dialogTitle = (): Locator => this.dialog().locator('h2');
-    readonly tabObject = (): Locator => this.page.locator('button[role="tab"]:has-text("Object")');
-    readonly tabCreature = (): Locator => this.page.locator('button[role="tab"]:has-text("Creature")');
-    readonly nameInput = (): Locator => this.page.locator('input[name="name"]');
-    readonly descriptionInput = (): Locator => this.page.locator('textarea[name="description"]');
-    readonly createButton = (): Locator => this.page.locator('button:has-text("Create Asset")');
-    readonly cancelButton = (): Locator => this.page.locator('button:has-text("Cancel")');
-    readonly identityAccordion = (): Locator => this.page.locator('button:has-text("Identity & Basics")');
-    readonly propertiesAccordion = (): Locator => this.page.locator('button:has-text("Properties")');
+  readonly dialog = (): Locator => this.page.locator('[role="dialog"]');
+  readonly dialogTitle = (): Locator => this.dialog().locator('h2');
+  readonly tabObject = (): Locator => this.page.locator('button[role="tab"]:has-text("Object")');
+  readonly tabCreature = (): Locator => this.page.locator('button[role="tab"]:has-text("Creature")');
+  readonly nameInput = (): Locator => this.page.locator('input[name="name"]');
+  readonly descriptionInput = (): Locator => this.page.locator('textarea[name="description"]');
+  readonly createButton = (): Locator => this.page.locator('button:has-text("Create Asset")');
+  readonly cancelButton = (): Locator => this.page.locator('button:has-text("Cancel")');
+  readonly identityAccordion = (): Locator => this.page.locator('button:has-text("Identity & Basics")');
+  readonly propertiesAccordion = (): Locator => this.page.locator('button:has-text("Properties")');
 
-    constructor(page: Page) {
-        super(page);
+  async waitForOpen(): Promise<void> {
+    await expect(this.dialog()).toBeVisible({ timeout: 5000 });
+  }
+
+  async waitForClose(): Promise<void> {
+    await expect(this.dialog()).not.toBeVisible({ timeout: 5000 });
+  }
+
+  async selectTab(tabName: 'Object' | 'Creature'): Promise<void> {
+    const tab = tabName === 'Object' ? this.tabObject() : this.tabCreature();
+    await tab.click();
+  }
+
+  async fillName(name: string): Promise<void> {
+    await this.nameInput().fill(name);
+  }
+
+  async fillDescription(description: string): Promise<void> {
+    await this.descriptionInput().fill(description);
+  }
+
+  async expandAccordion(accordionName: string): Promise<void> {
+    const header = this.page.locator(`button:has-text("${accordionName}")`);
+    const isExpanded = await header.getAttribute('aria-expanded');
+
+    if (isExpanded !== 'true') {
+      await header.click();
     }
+  }
 
-    async waitForOpen(): Promise<void> {
-        await expect(this.dialog()).toBeVisible({ timeout: 5000 });
-    }
+  async setSize(width: number, height: number): Promise<void> {
+    await this.fillInput('width', width.toString());
+    await this.fillInput('height', height.toString());
+  }
 
-    async waitForClose(): Promise<void> {
-        await expect(this.dialog()).not.toBeVisible({ timeout: 5000 });
-    }
+  async clickCreate(): Promise<void> {
+    await this.createButton().click();
+    await this.waitForApiResponse('/api/assets', 201);
+  }
 
-    async selectTab(tabName: 'Object' | 'Creature'): Promise<void> {
-        const tab = tabName === 'Object' ? this.tabObject() : this.tabCreature();
-        await tab.click();
-    }
+  async clickCancel(): Promise<void> {
+    await this.cancelButton().click();
+  }
 
-    async fillName(name: string): Promise<void> {
-        await this.nameInput().fill(name);
-    }
+  async verifyCreateButtonEnabled(): Promise<void> {
+    await expect(this.createButton()).toBeEnabled();
+  }
 
-    async fillDescription(description: string): Promise<void> {
-        await this.descriptionInput().fill(description);
-    }
-
-    async expandAccordion(accordionName: string): Promise<void> {
-        const header = this.page.locator(`button:has-text("${accordionName}")`);
-        const isExpanded = await header.getAttribute('aria-expanded');
-
-        if (isExpanded !== 'true') {
-            await header.click();
-        }
-    }
-
-    async setSize(width: number, height: number): Promise<void> {
-        await this.fillInput('width', width.toString());
-        await this.fillInput('height', height.toString());
-    }
-
-    async clickCreate(): Promise<void> {
-        await this.createButton().click();
-        await this.waitForApiResponse('/api/assets', 201);
-    }
-
-    async clickCancel(): Promise<void> {
-        await this.cancelButton().click();
-    }
-
-    async verifyCreateButtonEnabled(): Promise<void> {
-        await expect(this.createButton()).toBeEnabled();
-    }
-
-    async verifyCreateButtonDisabled(): Promise<void> {
-        await expect(this.createButton()).toBeDisabled();
-    }
+  async verifyCreateButtonDisabled(): Promise<void> {
+    await expect(this.createButton()).toBeDisabled();
+  }
 }

@@ -1,28 +1,28 @@
-import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import type { User } from '@/types/domain';
+import { isDevelopment } from '@/config/development';
 import {
+  authApi,
+  useChangePasswordMutation,
+  useConfirmResetPasswordMutation,
+  useDisableTwoFactorMutation,
+  useEnableTwoFactorMutation,
+  useGenerateRecoveryCodesMutation,
+  useGetCurrentUserQuery,
   useLoginMutation,
   useLogoutMutation,
-  useGetCurrentUserQuery,
   useRegisterMutation,
   useResetPasswordMutation,
-  useConfirmResetPasswordMutation,
   useSetupTwoFactorMutation,
-  useEnableTwoFactorMutation,
-  useDisableTwoFactorMutation,
-  useVerifyTwoFactorMutation,
-  useVerifyRecoveryCodeMutation,
-  useGenerateRecoveryCodesMutation,
-  useChangePasswordMutation,
   useUpdateProfileMutation,
-  authApi
+  useVerifyRecoveryCodeMutation,
+  useVerifyTwoFactorMutation,
 } from '@/services/authApi';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setAuthenticated, setAuthError, logout as logoutAction, clearAuthError } from '@/store/slices/authSlice';
+import { clearAuthError, logout as logoutAction, setAuthError, setAuthenticated } from '@/store/slices/authSlice';
 import { addError } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
-import { isDevelopment } from '@/config/development';
+import type { User } from '@/types/domain';
 
 // Global flag to track if we've checked for existing session (shared across all hook instances)
 let globalAuthInitialized = false;
@@ -74,7 +74,7 @@ const extractErrorMessage = (error: any, defaultMessage: string = 'Operation fai
     const allErrors: string[] = [];
 
     // Extract all error messages from all fields
-    Object.keys(errors).forEach(key => {
+    Object.keys(errors).forEach((key) => {
       const fieldErrors = errors[key];
       if (Array.isArray(fieldErrors)) {
         allErrors.push(...fieldErrors);
@@ -112,7 +112,7 @@ export const useAuth = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const authState = useAppSelector(state => state.auth);
+  const authState = useAppSelector((state) => state.auth);
 
   // Local state to track if initial auth check is complete
   const [initComplete, setInitComplete] = useState(globalAuthInitialized);
@@ -121,8 +121,13 @@ export const useAuth = () => {
   // 1. We haven't initialized yet (checking for existing session), OR
   // 2. Redux confirms we're authenticated
   // This prevents cached user data from showing after logout
-  const { data: currentUser, isLoading, error, refetch } = useGetCurrentUserQuery(undefined, {
-    skip: globalAuthInitialized && !authState.isAuthenticated,  // Skip after init unless authenticated
+  const {
+    data: currentUser,
+    isLoading,
+    error,
+    refetch,
+  } = useGetCurrentUserQuery(undefined, {
+    skip: globalAuthInitialized && !authState.isAuthenticated, // Skip after init unless authenticated
   });
 
   // Initialize authentication state from server session cookie (runs once globally)
@@ -180,106 +185,123 @@ export const useAuth = () => {
   }, [dispatch]);
 
   // Login with existing WebApp Identity
-  const login = useCallback(async (email: string, password: string, rememberMe?: boolean) => {
-    dispatch(clearAuthError());
+  const login = useCallback(
+    async (email: string, password: string, rememberMe?: boolean) => {
+      dispatch(clearAuthError());
 
-    try {
-      const result = await loginMutation({ email, password, rememberMe: rememberMe ?? false }).unwrap();
+      try {
+        const result = await loginMutation({
+          email,
+          password,
+          rememberMe: rememberMe ?? false,
+        }).unwrap();
 
-      if (result.success) {
-        if (result.requiresTwoFactor) {
-          dispatch(addNotification({
-            type: 'info',
-            message: 'Please enter your two-factor authentication code.',
-          }));
-          return { ...result, requiresTwoFactor: true };
-        }
-
-        if (result.user) {
-          const payload: { user: User; token?: string } = { user: result.user };
-          if (result.token) {
-            payload.token = result.token;
+        if (result.success) {
+          if (result.requiresTwoFactor) {
+            dispatch(
+              addNotification({
+                type: 'info',
+                message: 'Please enter your two-factor authentication code.',
+              }),
+            );
+            return { ...result, requiresTwoFactor: true };
           }
-          dispatch(setAuthenticated(payload));
-        } else {
-          throw new Error('Login succeeded but user data was not returned');
+
+          if (result.user) {
+            const payload: { user: User; token?: string } = {
+              user: result.user,
+            };
+            if (result.token) {
+              payload.token = result.token;
+            }
+            dispatch(setAuthenticated(payload));
+          } else {
+            throw new Error('Login succeeded but user data was not returned');
+          }
+
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Successfully logged in!',
+            }),
+          );
+
+          // Redirect to intended destination or dashboard
+          const from = location.state?.from?.pathname || '/dashboard';
+          navigate(from, { replace: true });
         }
 
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Successfully logged in!',
-        }));
-
-        // Redirect to intended destination or dashboard
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, 'Login failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'login',
+              data: { email },
+            },
+            userFriendlyMessage: 'Unable to sign in. Please check your credentials and try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, 'Login failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'login',
-          data: { email }
-        },
-        userFriendlyMessage: 'Unable to sign in. Please check your credentials and try again.',
-      }));
-      throw error;
-    }
-  }, [loginMutation, dispatch, location, navigate]);
+    },
+    [loginMutation, dispatch, location, navigate],
+  );
 
   // Register new user with existing WebApp Identity
-  const register = useCallback(async (
-    email: string,
-    password: string,
-    confirmPassword: string,
-    displayName: string
-  ) => {
-    dispatch(clearAuthError());
+  const register = useCallback(
+    async (email: string, password: string, confirmPassword: string, displayName: string) => {
+      dispatch(clearAuthError());
 
-    try {
-      const result = await registerMutation({
-        email,
-        password,
-        confirmPassword,
-        name: displayName,  // User's full name (e.g., "Andre Vianna")
-        displayName: displayName.split(' ')[0]! // First word of name as display name (e.g., "Andre")
-      }).unwrap();
+      try {
+        const result = await registerMutation({
+          email,
+          password,
+          confirmPassword,
+          name: displayName, // User's full name (e.g., "Andre Vianna")
+          displayName: displayName.split(' ')[0]!, // First word of name as display name (e.g., "Andre")
+        }).unwrap();
 
-      if (result.success) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Account created successfully! Please check your email for verification.',
-        }));
+        if (result.success) {
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Account created successfully! Please check your email for verification.',
+            }),
+          );
 
-        navigate('/login');
+          navigate('/login');
+        }
+
+        return result;
+      } catch (error: any) {
+        console.error('useAuth.register caught error:', error);
+        console.error('Error details - status:', error?.status, 'data:', error?.data);
+
+        const errorMessage = extractErrorMessage(error, 'Registration failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'register',
+              data: { email, displayName },
+            },
+            userFriendlyMessage: 'Unable to create account. Please try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      console.error('useAuth.register caught error:', error);
-      console.error('Error details - status:', error?.status, 'data:', error?.data);
-
-      const errorMessage = extractErrorMessage(error, 'Registration failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'register',
-          data: { email, displayName }
-        },
-        userFriendlyMessage: 'Unable to create account. Please try again.',
-      }));
-      throw error;
-    }
-  }, [registerMutation, dispatch, navigate]);
+    },
+    [registerMutation, dispatch, navigate],
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -289,60 +311,69 @@ export const useAuth = () => {
       globalAuthInitialized = false;
       setInitComplete(false);
 
-      dispatch(addNotification({
-        type: 'info',
-        message: 'You have been logged out.',
-      }));
+      dispatch(
+        addNotification({
+          type: 'info',
+          message: 'You have been logged out.',
+        }),
+      );
 
       navigate('/', { replace: true });
     } catch (_error) {
-      globalAuthInitialized = false;  // Still reset for next login attempt
+      globalAuthInitialized = false; // Still reset for next login attempt
       setInitComplete(false);
 
-      dispatch(addError({
-        type: 'authentication',
-        message: 'Logout request failed, but you have been signed out locally.',
-        context: {
-          component: 'useAuth',
-          operation: 'logout',
-        },
-      }));
+      dispatch(
+        addError({
+          type: 'authentication',
+          message: 'Logout request failed, but you have been signed out locally.',
+          context: {
+            component: 'useAuth',
+            operation: 'logout',
+          },
+        }),
+      );
 
       navigate('/', { replace: true });
     }
   }, [logoutMutation, dispatch, navigate]);
 
-  const resetPassword = useCallback(async (email: string) => {
-    dispatch(clearAuthError());
+  const resetPassword = useCallback(
+    async (email: string) => {
+      dispatch(clearAuthError());
 
-    try {
-      const result = await resetPasswordMutation({ email }).unwrap();
+      try {
+        const result = await resetPasswordMutation({ email }).unwrap();
 
-      if (result.success) {
-        navigate('/login', {
-          state: {
-            successMessage: 'If that email exists, reset instructions have been sent. Please check your email.'
-          }
-        });
+        if (result.success) {
+          navigate('/login', {
+            state: {
+              successMessage: 'If that email exists, reset instructions have been sent. Please check your email.',
+            },
+          });
+        }
+
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, 'Password reset request failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'resetPassword',
+              data: { email },
+            },
+            userFriendlyMessage: 'Unable to send password reset email. Please try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, 'Password reset request failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'resetPassword',
-          data: { email }
-        },
-        userFriendlyMessage: 'Unable to send password reset email. Please try again.',
-      }));
-      throw error;
-    }
-  }, [resetPasswordMutation, dispatch, navigate]);
+    },
+    [resetPasswordMutation, dispatch, navigate],
+  );
 
   // Check if user can retry login (rate limiting)
   const canRetryLogin = useCallback(() => {
@@ -391,47 +422,47 @@ export const useAuth = () => {
   }, [refetch, dispatch]);
 
   // Confirm password reset
-  const confirmResetPassword = useCallback(async (
-    email: string,
-    token: string,
-    newPassword: string,
-    confirmPassword: string
-  ) => {
-    dispatch(clearAuthError());
+  const confirmResetPassword = useCallback(
+    async (email: string, token: string, newPassword: string, confirmPassword: string) => {
+      dispatch(clearAuthError());
 
-    try {
-      const result = await confirmResetPasswordMutation({
-        email,
-        token,
-        newPassword,
-        confirmPassword
-      }).unwrap();
+      try {
+        const result = await confirmResetPasswordMutation({
+          email,
+          token,
+          newPassword,
+          confirmPassword,
+        }).unwrap();
 
-      if (result.success) {
-        navigate('/login', {
-          state: {
-            successMessage: 'Password updated successfully. Please log in with your new password.'
-          }
-        });
+        if (result.success) {
+          navigate('/login', {
+            state: {
+              successMessage: 'Password updated successfully. Please log in with your new password.',
+            },
+          });
+        }
+
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, 'Password reset failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'confirmResetPassword',
+              data: { email },
+            },
+            userFriendlyMessage: 'Unable to reset password. Please try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, 'Password reset failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'confirmResetPassword',
-          data: { email }
-        },
-        userFriendlyMessage: 'Unable to reset password. Please try again.',
-      }));
-      throw error;
-    }
-  }, [confirmResetPasswordMutation, dispatch, navigate]);
+    },
+    [confirmResetPasswordMutation, dispatch, navigate],
+  );
 
   // Setup Two-Factor Authentication
   const setupTwoFactor = useCallback(async () => {
@@ -441,267 +472,332 @@ export const useAuth = () => {
     } catch (error: any) {
       const errorMessage = extractErrorMessage(error, '2FA setup failed');
       dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'setupTwoFactor',
-        },
-        userFriendlyMessage: 'Unable to set up two-factor authentication. Please try again.',
-      }));
+      dispatch(
+        addError({
+          type: 'authentication',
+          message: errorMessage,
+          context: {
+            component: 'useAuth',
+            operation: 'setupTwoFactor',
+          },
+          userFriendlyMessage: 'Unable to set up two-factor authentication. Please try again.',
+        }),
+      );
       throw error;
     }
   }, [setupTwoFactorMutation, dispatch]);
 
   // Enable Two-Factor Authentication
-  const enableTwoFactor = useCallback(async (code: string) => {
-    try {
-      const result = await enableTwoFactorMutation({ code }).unwrap();
+  const enableTwoFactor = useCallback(
+    async (code: string) => {
+      try {
+        const result = await enableTwoFactorMutation({ code }).unwrap();
 
-      if (result.success) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Two-factor authentication enabled successfully!',
-        }));
+        if (result.success) {
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Two-factor authentication enabled successfully!',
+            }),
+          );
 
-        // Refresh user data
-        await refetch();
+          // Refresh user data
+          await refetch();
+        }
+
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, '2FA enable failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'enableTwoFactor',
+            },
+            userFriendlyMessage: 'Unable to enable two-factor authentication. Please verify the code and try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, '2FA enable failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'enableTwoFactor',
-        },
-        userFriendlyMessage: 'Unable to enable two-factor authentication. Please verify the code and try again.',
-      }));
-      throw error;
-    }
-  }, [enableTwoFactorMutation, dispatch, refetch]);
+    },
+    [enableTwoFactorMutation, dispatch, refetch],
+  );
 
   // Disable Two-Factor Authentication
-  const disableTwoFactor = useCallback(async (password: string) => {
-    try {
-      const result = await disableTwoFactorMutation({ password }).unwrap();
+  const disableTwoFactor = useCallback(
+    async (password: string) => {
+      try {
+        const result = await disableTwoFactorMutation({ password }).unwrap();
 
-      if (result.success) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Two-factor authentication disabled.',
-        }));
+        if (result.success) {
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Two-factor authentication disabled.',
+            }),
+          );
 
-        // Refresh user data
-        await refetch();
+          // Refresh user data
+          await refetch();
+        }
+
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, '2FA disable failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'disableTwoFactor',
+            },
+            userFriendlyMessage:
+              'Unable to disable two-factor authentication. Please verify your password and try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, '2FA disable failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'disableTwoFactor',
-        },
-        userFriendlyMessage: 'Unable to disable two-factor authentication. Please verify your password and try again.',
-      }));
-      throw error;
-    }
-  }, [disableTwoFactorMutation, dispatch, refetch]);
+    },
+    [disableTwoFactorMutation, dispatch, refetch],
+  );
 
   // Verify Two-Factor Code (during login)
-  const verifyTwoFactor = useCallback(async (code: string, rememberMachine?: boolean) => {
-    try {
-      const result = await verifyTwoFactorMutation({ code, rememberMachine: rememberMachine ?? false }).unwrap();
+  const verifyTwoFactor = useCallback(
+    async (code: string, rememberMachine?: boolean) => {
+      try {
+        const result = await verifyTwoFactorMutation({
+          code,
+          rememberMachine: rememberMachine ?? false,
+        }).unwrap();
 
-      if (result.success) {
-        const userResult = await refetch();
+        if (result.success) {
+          const userResult = await refetch();
 
-        if (userResult.data) {
-          const payload: { user: User; token?: string } = { user: userResult.data };
-          if (result.token) {
-            payload.token = result.token;
+          if (userResult.data) {
+            const payload: { user: User; token?: string } = {
+              user: userResult.data,
+            };
+            if (result.token) {
+              payload.token = result.token;
+            }
+            dispatch(setAuthenticated(payload));
+            dispatch(
+              addNotification({
+                type: 'success',
+                message: 'Successfully logged in!',
+              }),
+            );
+
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
           }
-          dispatch(setAuthenticated(payload));
-          dispatch(addNotification({
-            type: 'success',
-            message: 'Successfully logged in!',
-          }));
-
-          const from = location.state?.from?.pathname || '/dashboard';
-          navigate(from, { replace: true });
         }
-      }
 
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, '2FA verification failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'verifyTwoFactor',
-        },
-        userFriendlyMessage: 'Unable to verify two-factor code. Please try again.',
-      }));
-      throw error;
-    }
-  }, [verifyTwoFactorMutation, dispatch, refetch, location, navigate]);
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, '2FA verification failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'verifyTwoFactor',
+            },
+            userFriendlyMessage: 'Unable to verify two-factor code. Please try again.',
+          }),
+        );
+        throw error;
+      }
+    },
+    [verifyTwoFactorMutation, dispatch, refetch, location, navigate],
+  );
 
   // Verify Recovery Code (during login)
-  const verifyRecoveryCode = useCallback(async (recoveryCode: string) => {
-    try {
-      const result = await verifyRecoveryCodeMutation({ recoveryCode }).unwrap();
+  const verifyRecoveryCode = useCallback(
+    async (recoveryCode: string) => {
+      try {
+        const result = await verifyRecoveryCodeMutation({
+          recoveryCode,
+        }).unwrap();
 
-      if (result.success) {
-        const userResult = await refetch();
+        if (result.success) {
+          const userResult = await refetch();
 
-        if (userResult.data) {
-          const payload: { user: User; token?: string } = { user: userResult.data };
-          if (result.token) {
-            payload.token = result.token;
+          if (userResult.data) {
+            const payload: { user: User; token?: string } = {
+              user: userResult.data,
+            };
+            if (result.token) {
+              payload.token = result.token;
+            }
+            dispatch(setAuthenticated(payload));
+            dispatch(
+              addNotification({
+                type: 'success',
+                message: 'Successfully logged in!',
+              }),
+            );
+
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
           }
-          dispatch(setAuthenticated(payload));
-          dispatch(addNotification({
-            type: 'success',
-            message: 'Successfully logged in!',
-          }));
-
-          const from = location.state?.from?.pathname || '/dashboard';
-          navigate(from, { replace: true });
         }
-      }
 
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, 'Recovery code verification failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'verifyRecoveryCode',
-        },
-        userFriendlyMessage: 'Unable to verify recovery code. Please try again.',
-      }));
-      throw error;
-    }
-  }, [verifyRecoveryCodeMutation, dispatch, refetch, location, navigate]);
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, 'Recovery code verification failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'verifyRecoveryCode',
+            },
+            userFriendlyMessage: 'Unable to verify recovery code. Please try again.',
+          }),
+        );
+        throw error;
+      }
+    },
+    [verifyRecoveryCodeMutation, dispatch, refetch, location, navigate],
+  );
 
   // Generate new recovery codes
   const generateRecoveryCodes = useCallback(async () => {
     try {
       const result = await generateRecoveryCodesMutation().unwrap();
 
-      dispatch(addNotification({
-        type: 'success',
-        message: 'New recovery codes generated successfully!',
-      }));
+      dispatch(
+        addNotification({
+          type: 'success',
+          message: 'New recovery codes generated successfully!',
+        }),
+      );
 
       return result;
     } catch (error: any) {
       const errorMessage = extractErrorMessage(error, 'Failed to generate recovery codes');
       dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'generateRecoveryCodes',
-        },
-        userFriendlyMessage: 'Unable to generate new recovery codes. Please try again.',
-      }));
+      dispatch(
+        addError({
+          type: 'authentication',
+          message: errorMessage,
+          context: {
+            component: 'useAuth',
+            operation: 'generateRecoveryCodes',
+          },
+          userFriendlyMessage: 'Unable to generate new recovery codes. Please try again.',
+        }),
+      );
       throw error;
     }
   }, [generateRecoveryCodesMutation, dispatch]);
 
   // Change password
-  const changePassword = useCallback(async (
-    currentPassword: string,
-    newPassword: string,
-    confirmPassword: string
-  ) => {
-    try {
-      const result = await changePasswordMutation({
-        currentPassword,
-        newPassword,
-        confirmPassword
-      }).unwrap();
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string, confirmPassword: string) => {
+      try {
+        const result = await changePasswordMutation({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }).unwrap();
 
-      if (result.success) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Password changed successfully!',
-        }));
+        if (result.success) {
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Password changed successfully!',
+            }),
+          );
+        }
+
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, 'Password change failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'changePassword',
+            },
+            userFriendlyMessage: 'Unable to change password. Please try again.',
+          }),
+        );
+        throw error;
       }
-
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, 'Password change failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'changePassword',
-        },
-        userFriendlyMessage: 'Unable to change password. Please try again.',
-      }));
-      throw error;
-    }
-  }, [changePasswordMutation, dispatch]);
+    },
+    [changePasswordMutation, dispatch],
+  );
 
   // Update profile
-  const updateProfile = useCallback(async (updates: {
-    userName?: string;
-    phoneNumber?: string;
-    profilworldtureUrl?: string;
-  }) => {
-    try {
-      const result = await updateProfileMutation(updates).unwrap();
+  const updateProfile = useCallback(
+    async (updates: { userName?: string; phoneNumber?: string; profilworldtureUrl?: string }) => {
+      try {
+        const result = await updateProfileMutation(updates).unwrap();
 
-      dispatch(setAuthenticated({ user: result }));
-      dispatch(addNotification({
-        type: 'success',
-        message: 'Profile updated successfully!',
-      }));
+        dispatch(setAuthenticated({ user: result }));
+        dispatch(
+          addNotification({
+            type: 'success',
+            message: 'Profile updated successfully!',
+          }),
+        );
 
-      return result;
-    } catch (error: any) {
-      const errorMessage = extractErrorMessage(error, 'Profile update failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(addError({
-        type: 'authentication',
-        message: errorMessage,
-        context: {
-          component: 'useAuth',
-          operation: 'updateProfile',
-        },
-        userFriendlyMessage: 'Unable to update profile. Please try again.',
-      }));
-      throw error;
-    }
-  }, [updateProfileMutation, dispatch]);
+        return result;
+      } catch (error: any) {
+        const errorMessage = extractErrorMessage(error, 'Profile update failed');
+        dispatch(setAuthError(errorMessage));
+        dispatch(
+          addError({
+            type: 'authentication',
+            message: errorMessage,
+            context: {
+              component: 'useAuth',
+              operation: 'updateProfile',
+            },
+            userFriendlyMessage: 'Unable to update profile. Please try again.',
+          }),
+        );
+        throw error;
+      }
+    },
+    [updateProfileMutation, dispatch],
+  );
 
   return {
     // State - using enhanced values with fallbacks
     user: effectiveUser,
     isAuthenticated,
-    isLoading: isLoading || authState.isLoading || isLoggingIn || isRegistering || isResettingPassword || isConfirmingReset || isLoggingOut || isSettingUpTwoFactor || isEnablingTwoFactor || isDisablingTwoFactor || isVerifyingTwoFactor || isVerifyingRecoveryCode || isGeneratingRecoveryCodes || isChangingPassword || isUpdatingProfile,
-    isInitializing: !initComplete,  // True until initial auth check completes
+    isLoading:
+      isLoading ||
+      authState.isLoading ||
+      isLoggingIn ||
+      isRegistering ||
+      isResettingPassword ||
+      isConfirmingReset ||
+      isLoggingOut ||
+      isSettingUpTwoFactor ||
+      isEnablingTwoFactor ||
+      isDisablingTwoFactor ||
+      isVerifyingTwoFactor ||
+      isVerifyingRecoveryCode ||
+      isGeneratingRecoveryCodes ||
+      isChangingPassword ||
+      isUpdatingProfile,
+    isInitializing: !initComplete, // True until initial auth check completes
     error: authState.error || error,
     loginAttempts: authState.loginAttempts,
 

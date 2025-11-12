@@ -8,13 +8,13 @@
  * ACCEPTANCE_CRITERION: AC-01 - Token placement from asset library functional
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { Asset } from '@/types/domain';
 
 export interface UseAssetDragReturn {
-    draggedAsset: Asset | null;
-    startDrag: (asset: Asset) => void;
-    endDrag: () => void;
+  draggedAsset: Asset | null;
+  startDrag: (asset: Asset) => void;
+  endDrag: () => void;
 }
 
 /**
@@ -22,15 +22,15 @@ export interface UseAssetDragReturn {
  * Used to coordinate drag operations between asset library and encounter canvas
  */
 export const useAssetDrag = (): UseAssetDragReturn => {
-    const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
+  const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
 
-    const startDrag = useCallback((asset: Asset) => {
-        setDraggedAsset(asset);
-    }, []);
+  const startDrag = useCallback((asset: Asset) => {
+    setDraggedAsset(asset);
+  }, []);
 
-    const endDrag = useCallback(() => {
-        setDraggedAsset(null);
-    }, []);
+  const endDrag = useCallback(() => {
+    setDraggedAsset(null);
+  }, []);
 
-    return { draggedAsset, startDrag, endDrag };
+  return { draggedAsset, startDrag, endDrag };
 };

@@ -5,8 +5,7 @@
 
 // Development mode detection
 export const isDevelopment = import.meta.env.MODE === 'development';
-export const isStandalone = !window.location.origin.includes('aspire') &&
-                            !import.meta.env.VITE_ASPIRE_MODE;
+export const isStandalone = !window.location.origin.includes('aspire') && !import.meta.env.VITE_ASPIRE_MODE;
 
 // API configuration
 export const API_CONFIG = {
@@ -19,7 +18,7 @@ export const API_CONFIG = {
     encounters: '/api/encounters',
     sessions: '/api/sessions',
     media: '/api/resources',
-    health: '/health'
+    health: '/health',
   },
 
   // Standalone development mode - direct to microservices
@@ -31,8 +30,8 @@ export const API_CONFIG = {
     encounters: 'https://localhost:7172/api/encounters',
     sessions: 'https://localhost:7173/api/sessions',
     media: 'https://localhost:7174/api/resources',
-    health: 'https://localhost:7050/health'
-  }
+    health: 'https://localhost:7050/health',
+  },
 };
 
 // Get current API endpoints based on mode
@@ -78,7 +77,7 @@ export const MOCK_DATA = {
     accessFailedCount: 0,
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
-    profilworldtureUrl: null
+    profilworldtureUrl: null,
   },
 
   // Mock API responses
@@ -87,8 +86,8 @@ export const MOCK_DATA = {
     register: { success: true, message: 'Registration successful' },
     adventures: [],
     assets: [],
-    sessions: []
-  }
+    sessions: [],
+  },
 };
 
 // Development utilities
@@ -109,5 +108,5 @@ export const devUtils = {
     if (isDevelopment) {
       console.warn(`⚠️ VTT Tools Dev Warning: ${message}`, data || '');
     }
-  }
+  },
 };

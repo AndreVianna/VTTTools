@@ -1,13 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { createEnhancedBaseQuery } from './enhancedBaseQuery';
-import { contentApi } from './contentApi';
 import type {
-  CreateAdventureRequest,
-  UpdateAdventureRequest,
   Adventure,
+  CreateAdventureRequest,
   CreateEncounterRequest,
-  Encounter
+  Encounter,
+  UpdateAdventureRequest,
 } from '@/types/domain';
+import { contentApi } from './contentApi';
+import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 // Adventures API consuming existing Library microservice
 export const adventuresApi = createApi({
@@ -80,9 +80,7 @@ export const adventuresApi = createApi({
     // Uses 'AdventureEncounters' tag to avoid conflict with encounterApi's 'Encounter' tag
     getEncounters: builder.query<Encounter[], string>({
       query: (adventureId) => `/${adventureId}/encounters`,
-      providesTags: (_result, _error, adventureId) => [
-        { type: 'AdventureEncounters', id: adventureId }
-      ],
+      providesTags: (_result, _error, adventureId) => [{ type: 'AdventureEncounters', id: adventureId }],
     }),
 
     createEncounter: builder.mutation<Encounter, { adventureId: string; request: CreateEncounterRequest }>({
@@ -91,9 +89,7 @@ export const adventuresApi = createApi({
         method: 'POST',
         body: request,
       }),
-      invalidatesTags: (_result, _error, { adventureId }) => [
-        { type: 'AdventureEncounters', id: adventureId }
-      ],
+      invalidatesTags: (_result, _error, { adventureId }) => [{ type: 'AdventureEncounters', id: adventureId }],
     }),
 
     cloneEncounter: builder.mutation<Encounter, { adventureId: string; encounterId: string; name?: string }>({
@@ -102,18 +98,19 @@ export const adventuresApi = createApi({
         method: 'POST',
         body: name ? { name } : undefined,
       }),
-      invalidatesTags: (_result, _error, { adventureId }) => [
-        { type: 'AdventureEncounters', id: adventureId }
-      ],
+      invalidatesTags: (_result, _error, { adventureId }) => [{ type: 'AdventureEncounters', id: adventureId }],
     }),
 
     // Search adventures
-    searchAdventures: builder.query<Adventure[], {
-      query?: string;
-      type?: string;
-      tags?: string[];
-      limit?: number;
-    }>({
+    searchAdventures: builder.query<
+      Adventure[],
+      {
+        query?: string;
+        type?: string;
+        tags?: string[];
+        limit?: number;
+      }
+    >({
       query: (params) => ({
         url: '/search',
         params,

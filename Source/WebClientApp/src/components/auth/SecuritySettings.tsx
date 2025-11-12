@@ -1,39 +1,33 @@
-import React, { useState } from 'react';
+import { CheckCircle, Close, Error as ErrorIcon, Key, Password, Security } from '@mui/icons-material';
 import {
+  Alert,
   Box,
   Button,
-  Typography,
-  Alert,
   CircularProgress,
-  Paper,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
+  DialogContent,
+  DialogTitle,
   Divider,
+  IconButton,
   List,
   ListItem,
   ListItemIcon,
-  ListItemText,
   ListItemSecondaryAction,
-  IconButton,
+  ListItemText,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
-import {
-  Security,
-  Key,
-  Password,
-  Close,
-  CheckCircle,
-  Error as ErrorIcon,
-} from '@mui/icons-material';
+import type React from 'react';
+import { useState } from 'react';
+import { useDisableTwoFactorMutation } from '@/api/twoFactorApi';
 import { useAuth } from '@/hooks/useAuth';
-import { TwoFactorSetupForm } from './TwoFactorSetupForm';
-import { RecoveryCodesManager } from './RecoveryCodesManager';
+import { useResetPasswordMutation } from '@/services/authApi';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
-import { useResetPasswordMutation } from '@/services/authApi';
-import { useDisableTwoFactorMutation } from '@/api/twoFactorApi';
+import { RecoveryCodesManager } from './RecoveryCodesManager';
+import { TwoFactorSetupForm } from './TwoFactorSetupForm';
 
 export const SecuritySettings: React.FC = () => {
   const { user, error } = useAuth();
@@ -80,7 +74,7 @@ export const SecuritySettings: React.FC = () => {
     if (!validateDisablePassword()) {
       handleValidationError(new Error('Form validation failed'), {
         component: 'SecuritySettings',
-        validationErrors
+        validationErrors,
       });
       return;
     }
@@ -117,18 +111,18 @@ export const SecuritySettings: React.FC = () => {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant='h5' component='h2' gutterBottom>
           Security Settings
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity='error' sx={{ mb: 2 }}>
             {renderAuthError(error)}
           </Alert>
         )}
 
         {resetPasswordSuccess && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity='success' sx={{ mb: 2 }}>
             Password reset email sent to {user.email}. Please check your inbox.
           </Alert>
         )}
@@ -139,16 +133,9 @@ export const SecuritySettings: React.FC = () => {
             <ListItemIcon>
               <Password />
             </ListItemIcon>
-            <ListItemText
-              primary="Password"
-              secondary="Reset your account password via email"
-            />
+            <ListItemText primary='Password' secondary='Reset your account password via email' />
             <ListItemSecondaryAction>
-              <Button
-                variant="outlined"
-                onClick={handleResetPassword}
-                disabled={isResettingPassword}
-              >
+              <Button variant='outlined' onClick={handleResetPassword} disabled={isResettingPassword}>
                 {isResettingPassword ? <CircularProgress size={20} /> : 'Reset Password'}
               </Button>
             </ListItemSecondaryAction>
@@ -166,9 +153,9 @@ export const SecuritySettings: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   Two-Factor Authentication
                   {user.twoFactorEnabled ? (
-                    <CheckCircle color="success" fontSize="small" />
+                    <CheckCircle color='success' fontSize='small' />
                   ) : (
-                    <ErrorIcon color="error" fontSize="small" />
+                    <ErrorIcon color='error' fontSize='small' />
                   )}
                 </Box>
               }
@@ -180,18 +167,11 @@ export const SecuritySettings: React.FC = () => {
             />
             <ListItemSecondaryAction>
               {user.twoFactorEnabled ? (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => setShowDisable2FA(true)}
-                >
+                <Button variant='outlined' color='error' onClick={() => setShowDisable2FA(true)}>
                   Disable 2FA
                 </Button>
               ) : (
-                <Button
-                  variant="contained"
-                  onClick={() => setShowTwoFactorSetup(true)}
-                >
+                <Button variant='contained' onClick={() => setShowTwoFactorSetup(true)}>
                   Enable 2FA
                 </Button>
               )}
@@ -206,15 +186,9 @@ export const SecuritySettings: React.FC = () => {
                 <ListItemIcon>
                   <Key />
                 </ListItemIcon>
-                <ListItemText
-                  primary="Recovery Codes"
-                  secondary="Manage your backup recovery codes"
-                />
+                <ListItemText primary='Recovery Codes' secondary='Manage your backup recovery codes' />
                 <ListItemSecondaryAction>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setShowRecoveryManager(true)}
-                  >
+                  <Button variant='outlined' onClick={() => setShowRecoveryManager(true)}>
                     Manage Codes
                   </Button>
                 </ListItemSecondaryAction>
@@ -225,12 +199,7 @@ export const SecuritySettings: React.FC = () => {
       </Paper>
 
       {/* 2FA Setup Dialog */}
-      <Dialog
-        open={showTwoFactorSetup}
-        onClose={() => setShowTwoFactorSetup(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      <Dialog open={showTwoFactorSetup} onClose={() => setShowTwoFactorSetup(false)} maxWidth='md' fullWidth>
         <DialogContent sx={{ p: 0 }}>
           <TwoFactorSetupForm
             onComplete={() => setShowTwoFactorSetup(false)}
@@ -240,28 +209,22 @@ export const SecuritySettings: React.FC = () => {
       </Dialog>
 
       {/* Recovery Codes Manager Dialog */}
-      <Dialog
-        open={showRecoveryManager}
-        onClose={() => setShowRecoveryManager(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      <Dialog open={showRecoveryManager} onClose={() => setShowRecoveryManager(false)} maxWidth='md' fullWidth>
         <DialogContent sx={{ p: 0 }}>
-          <RecoveryCodesManager
-            onClose={() => setShowRecoveryManager(false)}
-          />
+          <RecoveryCodesManager onClose={() => setShowRecoveryManager(false)} />
         </DialogContent>
       </Dialog>
 
       {/* Disable 2FA Dialog */}
-      <Dialog
-        open={showDisable2FA}
-        onClose={resetDisableForm}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={showDisable2FA} onClose={resetDisableForm} maxWidth='sm' fullWidth>
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             Disable Two-Factor Authentication
             <IconButton onClick={resetDisableForm}>
               <Close />
@@ -269,36 +232,28 @@ export const SecuritySettings: React.FC = () => {
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            <Typography variant="body2">
-              Disabling two-factor authentication will make your account less secure.
-              Are you sure you want to continue?
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            <Typography variant='body2'>
+              Disabling two-factor authentication will make your account less secure. Are you sure you want to continue?
             </Typography>
           </Alert>
 
           <TextField
             fullWidth
-            type="password"
-            label="Confirm Password"
+            type='password'
+            label='Confirm Password'
             value={disablePassword}
             onChange={(e) => setDisablePassword(e.target.value)}
             error={!!validationErrors.disablePassword}
             helperText={validationErrors.disablePassword || 'Enter your password to confirm'}
-            margin="normal"
-            autoComplete="current-password"
+            margin='normal'
+            autoComplete='current-password'
             autoFocus
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={resetDisableForm}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleDisableTwoFactor}
-            disabled={isDisabling2FA}
-          >
+          <Button onClick={resetDisableForm}>Cancel</Button>
+          <Button variant='contained' color='error' onClick={handleDisableTwoFactor} disabled={isDisabling2FA}>
             {isDisabling2FA ? <CircularProgress size={20} /> : 'Disable 2FA'}
           </Button>
         </DialogActions>

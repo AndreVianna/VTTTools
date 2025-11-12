@@ -1,43 +1,32 @@
-import React, { useState } from 'react';
+import { CheckCircle, Close, Download, Key, Refresh, Warning } from '@mui/icons-material';
 import {
+  Alert,
   Box,
   Button,
-  Typography,
-  Alert,
   CircularProgress,
-  Paper,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
+  Paper,
   TextField,
+  Typography,
 } from '@mui/material';
-import {
-  Warning,
-  Download,
-  Close,
-  Refresh,
-  Key,
-  CheckCircle,
-} from '@mui/icons-material';
-import {
-  useGetRecoveryCodesStatusQuery,
-  useGenerateNewRecoveryCodesMutation,
-} from '@/api/recoveryCodesApi';
+import type React from 'react';
+import { useState } from 'react';
+import { useGenerateNewRecoveryCodesMutation, useGetRecoveryCodesStatusQuery } from '@/api/recoveryCodesApi';
 import { handleMutationError } from '@/services/enhancedBaseQuery';
 
 interface RecoveryCodesManagerProps {
   onClose?: () => void;
 }
 
-export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
-  onClose
-}) => {
+export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({ onClose }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [newRecoveryCodes, setNewRecoveryCodes] = useState<string[]>([]);
   const [password, setPassword] = useState('');
@@ -87,23 +76,23 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
 
   return (
     <Box>
-      <Typography variant="h5" component="h1" gutterBottom>
+      <Typography variant='h5' component='h1' gutterBottom>
         Recovery Codes Management
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+      <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
         Recovery codes are used to access your account when you don&apos;t have access to your authenticator device.
       </Typography>
 
       {apiError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {apiError}
         </Alert>
       )}
 
       {newRecoveryCodes.length > 0 && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          <Typography variant="body2" gutterBottom>
+        <Alert severity='success' sx={{ mb: 2 }}>
+          <Typography variant='body2' gutterBottom>
             New recovery codes have been generated successfully!
           </Typography>
         </Alert>
@@ -112,15 +101,13 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Key sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6">
-            Recovery Codes
-          </Typography>
+          <Typography variant='h6'>Recovery Codes</Typography>
         </Box>
 
         {newRecoveryCodes.length > 0 ? (
           <Box>
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <Typography variant="body2">
+            <Alert severity='warning' sx={{ mb: 2 }}>
+              <Typography variant='body2'>
                 Save these new recovery codes in a safe place. Your old recovery codes are no longer valid.
               </Typography>
             </Alert>
@@ -136,13 +123,10 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
                       borderRadius: 1,
                       border: '1px solid',
                       borderColor: 'grey.300',
-                      textAlign: 'center'
+                      textAlign: 'center',
                     }}
                   >
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: 'monospace' }}
-                    >
+                    <Typography variant='body2' sx={{ fontFamily: 'monospace' }}>
                       {code}
                     </Typography>
                   </Box>
@@ -152,7 +136,7 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
 
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="contained"
+                variant='contained'
                 startIcon={<Download />}
                 onClick={() => downloadRecoveryCodes(newRecoveryCodes)}
               >
@@ -169,9 +153,10 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
             ) : (
               <>
                 {statusData && (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    <Typography variant="body2">
-                      You have {statusData.remainingCount} recovery code{statusData.remainingCount !== 1 ? 's' : ''} remaining.
+                  <Alert severity='info' sx={{ mb: 2 }}>
+                    <Typography variant='body2'>
+                      You have {statusData.remainingCount} recovery code
+                      {statusData.remainingCount !== 1 ? 's' : ''} remaining.
                     </Typography>
                   </Alert>
                 )}
@@ -179,27 +164,27 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
                 <List>
                   <ListItem>
                     <ListItemIcon>
-                      <Warning color="warning" />
+                      <Warning color='warning' />
                     </ListItemIcon>
                     <ListItemText
-                      primary="Important Security Information"
-                      secondary="Each recovery code can only be used once. If you&apos;ve used some codes or suspect they may be compromised, generate new ones."
+                      primary='Important Security Information'
+                      secondary='Each recovery code can only be used once. If you&apos;ve used some codes or suspect they may be compromised, generate new ones.'
                     />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
-                      <CheckCircle color="success" />
+                      <CheckCircle color='success' />
                     </ListItemIcon>
                     <ListItemText
-                      primary="When to Generate New Codes"
-                      secondary="Generate new recovery codes if you&apos;ve used some of your existing codes, or if you believe they may have been compromised."
+                      primary='When to Generate New Codes'
+                      secondary='Generate new recovery codes if you&apos;ve used some of your existing codes, or if you believe they may have been compromised.'
                     />
                   </ListItem>
                 </List>
 
                 <Box sx={{ mt: 2 }}>
                   <Button
-                    variant="outlined"
+                    variant='outlined'
                     startIcon={<Refresh />}
                     onClick={() => setShowConfirmDialog(true)}
                     disabled={isGenerating}
@@ -215,21 +200,20 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
 
       {onClose && (
         <Box sx={{ textAlign: 'right' }}>
-          <Button onClick={onClose}>
-            Close
-          </Button>
+          <Button onClick={onClose}>Close</Button>
         </Box>
       )}
 
       {/* Confirmation Dialog */}
-      <Dialog
-        open={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)} maxWidth='sm' fullWidth>
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             Generate New Recovery Codes?
             <IconButton onClick={() => setShowConfirmDialog(false)}>
               <Close />
@@ -237,22 +221,22 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            <Typography variant="body2">
-              Generating new recovery codes will invalidate all of your existing recovery codes.
-              Make sure you&apos;ve saved the new codes before continuing.
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            <Typography variant='body2'>
+              Generating new recovery codes will invalidate all of your existing recovery codes. Make sure you&apos;ve
+              saved the new codes before continuing.
             </Typography>
           </Alert>
 
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            This action cannot be undone. Your current recovery codes will no longer work
-            and you&apos;ll need to save the new ones in a safe place.
+          <Typography variant='body2' color='text.secondary' gutterBottom>
+            This action cannot be undone. Your current recovery codes will no longer work and you&apos;ll need to save
+            the new ones in a safe place.
           </Typography>
 
           <TextField
             fullWidth
-            type="password"
-            label="Confirm Password"
+            type='password'
+            label='Confirm Password'
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -261,23 +245,25 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
             }}
             error={!!passwordError}
             helperText={passwordError || 'Enter your password to confirm'}
-            margin="normal"
-            autoComplete="current-password"
+            margin='normal'
+            autoComplete='current-password'
             autoFocus
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setShowConfirmDialog(false);
-            setPassword('');
-            setPasswordError('');
-            setApiError('');
-          }}>
+          <Button
+            onClick={() => {
+              setShowConfirmDialog(false);
+              setPassword('');
+              setPasswordError('');
+              setApiError('');
+            }}
+          >
             Cancel
           </Button>
           <Button
-            variant="contained"
-            color="warning"
+            variant='contained'
+            color='warning'
             onClick={handleGenerateNewCodes}
             disabled={isGenerating || !password}
           >

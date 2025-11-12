@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const isStandalone = process.env.VITE_STANDALONE === 'true' || mode === 'standalone';
@@ -32,102 +32,104 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       // Conditional proxy configuration based on mode
-      proxy: isStandalone ? {
-        '/api/auth': {
-          target: 'https://localhost:7050',
-          changeOrigin: true,
-          secure: false,
-          configure: (proxy, _options) => {
-            proxy.on('error', (err, _req, _res) => {
-              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
-            });
+      proxy: isStandalone
+        ? {
+            '/api/auth': {
+              target: 'https://localhost:7050',
+              changeOrigin: true,
+              secure: false,
+              configure: (proxy, _options) => {
+                proxy.on('error', (err, _req, _res) => {
+                  console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+                });
+              },
+            },
+            '/health': {
+              target: 'https://localhost:7001',
+              changeOrigin: true,
+              secure: false,
+            },
+          }
+        : {
+            // Aspire development mode - use actual service URLs
+            '/api/auth': {
+              target: 'https://localhost:7050',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/profile': {
+              target: 'https://localhost:7050',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/security': {
+              target: 'https://localhost:7050',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/two-factor': {
+              target: 'https://localhost:7050',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/recovery-codes': {
+              target: 'https://localhost:7050',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/assets': {
+              target: 'https://localhost:7171',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/adventures': {
+              target: 'https://localhost:7172',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/worlds': {
+              target: 'https://localhost:7172',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/campaigns': {
+              target: 'https://localhost:7172',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/library': {
+              target: 'https://localhost:7172',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/encounters': {
+              target: 'https://localhost:7172',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/sessions': {
+              target: 'https://localhost:7173',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/api/resources': {
+              target: 'https://localhost:7174',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/signalr': {
+              target: 'http://localhost:5173',
+              ws: true,
+              changeOrigin: true,
+              secure: false,
+            },
+            '/health': {
+              target: 'http://localhost:5173',
+              changeOrigin: true,
+              secure: false,
+            },
           },
-        },
-        '/health': {
-          target: 'https://localhost:7001',
-          changeOrigin: true,
-          secure: false,
-        },
-      } : {
-        // Aspire development mode - use actual service URLs
-        '/api/auth': {
-          target: 'https://localhost:7050',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/profile': {
-          target: 'https://localhost:7050',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/security': {
-          target: 'https://localhost:7050',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/two-factor': {
-          target: 'https://localhost:7050',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/recovery-codes': {
-          target: 'https://localhost:7050',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/assets': {
-          target: 'https://localhost:7171',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/adventures': {
-          target: 'https://localhost:7172',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/worlds': {
-          target: 'https://localhost:7172',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/campaigns': {
-          target: 'https://localhost:7172',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/library': {
-          target: 'https://localhost:7172',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/encounters': {
-          target: 'https://localhost:7172',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/sessions': {
-          target: 'https://localhost:7173',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/api/resources': {
-          target: 'https://localhost:7174',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/signalr': {
-          target: 'http://localhost:5173',
-          ws: true,
-          changeOrigin: true,
-          secure: false,
-        },
-        '/health': {
-          target: 'http://localhost:5173',
-          changeOrigin: true,
-          secure: false,
-        },
-      },
-      },
+    },
     build: {
       target: 'esnext',
       minify: 'esbuild', // Use esbuild instead of terser for faster builds

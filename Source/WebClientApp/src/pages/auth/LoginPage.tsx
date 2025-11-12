@@ -1,23 +1,17 @@
-import React, { useState, useMemo } from 'react';
-import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Alert } from '@mui/material';
+import { Alert, Box } from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { PasswordResetConfirmForm } from '@/components/auth/PasswordResetConfirmForm';
+import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
+import { RecoveryCodeForm } from '@/components/auth/RecoveryCodeForm';
 import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
-import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
-import { PasswordResetConfirmForm } from '@/components/auth/PasswordResetConfirmForm';
 import { TwoFactorVerificationForm } from '@/components/auth/TwoFactorVerificationForm';
-import { RecoveryCodeForm } from '@/components/auth/RecoveryCodeForm';
 
-type AuthMode =
-  | 'login'
-  | 'register'
-  | 'reset-request'
-  | 'reset-confirm'
-  | 'two-factor'
-  | 'recovery-code';
+type AuthMode = 'login' | 'register' | 'reset-request' | 'reset-confirm' | 'two-factor' | 'recovery-code';
 
 export const LoginPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [_searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -44,7 +38,7 @@ export const LoginPage: React.FC = () => {
       setSuccessMessage(message);
       window.history.replaceState({}, document.title);
     }
-  }, [location.pathname, location.state, searchParams]);
+  }, [location.pathname, location.state]);
 
   const handleSwitchToLogin = () => {
     navigate('/login');
@@ -77,41 +71,21 @@ export const LoginPage: React.FC = () => {
         );
 
       case 'register':
-        return (
-          <SimpleRegistrationForm
-            onSwitchToLogin={handleSwitchToLogin}
-          />
-        );
+        return <SimpleRegistrationForm onSwitchToLogin={handleSwitchToLogin} />;
 
       case 'reset-request':
-        return (
-          <PasswordResetRequestForm
-            onSwitchToLogin={handleSwitchToLogin}
-          />
-        );
+        return <PasswordResetRequestForm onSwitchToLogin={handleSwitchToLogin} />;
 
       case 'reset-confirm':
-        return (
-          <PasswordResetConfirmForm
-            onSwitchToLogin={handleSwitchToLogin}
-          />
-        );
+        return <PasswordResetConfirmForm onSwitchToLogin={handleSwitchToLogin} />;
 
       case 'two-factor':
         return (
-          <TwoFactorVerificationForm
-            onSwitchToRecovery={handleSwitchToRecoveryCode}
-            onBack={handleSwitchToLogin}
-          />
+          <TwoFactorVerificationForm onSwitchToRecovery={handleSwitchToRecoveryCode} onBack={handleSwitchToLogin} />
         );
 
       case 'recovery-code':
-        return (
-          <RecoveryCodeForm
-            onSwitchToTwoFactor={handleSwitchToTwoFactor}
-            onBack={handleSwitchToLogin}
-          />
-        );
+        return <RecoveryCodeForm onSwitchToTwoFactor={handleSwitchToTwoFactor} onBack={handleSwitchToLogin} />;
     }
   };
 
@@ -119,7 +93,7 @@ export const LoginPage: React.FC = () => {
     <Box>
       {successMessage && (
         <Alert
-          severity="success"
+          severity='success'
           onClose={() => setSuccessMessage(null)}
           sx={{
             maxWidth: '440px',

@@ -1,17 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RecoveryCodeForm } from './RecoveryCodeForm';
 
 // Mock useAuth hook
 const mockVerifyRecoveryCode = vi.fn();
-const mockVerifyRecoveryCodeReturnValue = { user: null, isLoading: false, error: null };
+const mockVerifyRecoveryCodeReturnValue = {
+  user: null,
+  isLoading: false,
+  error: null,
+};
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
     verifyRecoveryCode: mockVerifyRecoveryCode,
-    ...mockVerifyRecoveryCodeReturnValue
-  })
+    ...mockVerifyRecoveryCodeReturnValue,
+  }),
 }));
 
 describe('RecoveryCodeForm', () => {
@@ -84,7 +88,9 @@ describe('RecoveryCodeForm', () => {
       // Arrange
       const user = userEvent.setup();
       render(<RecoveryCodeForm />);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.click(submitButton);
@@ -101,7 +107,9 @@ describe('RecoveryCodeForm', () => {
       const user = userEvent.setup();
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'ABC@#$%');
@@ -120,7 +128,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockResolvedValue({ success: true });
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'ABC12DEF34');
@@ -137,7 +147,9 @@ describe('RecoveryCodeForm', () => {
       const user = userEvent.setup();
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act - Trigger validation error
       await user.click(submitButton);
@@ -193,7 +205,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockResolvedValue({ success: true });
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'abc12def34');
@@ -211,7 +225,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockResolvedValue({ success: true });
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, ' ABC12DEF34 ');
@@ -235,7 +251,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockResolvedValue({ success: true });
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'XYZ98WVU76');
@@ -251,7 +269,9 @@ describe('RecoveryCodeForm', () => {
       // Arrange
       const user = userEvent.setup();
       render(<RecoveryCodeForm />);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.click(submitButton);
@@ -265,7 +285,9 @@ describe('RecoveryCodeForm', () => {
       const user = userEvent.setup();
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, '123');
@@ -314,7 +336,9 @@ describe('RecoveryCodeForm', () => {
       render(<RecoveryCodeForm />);
 
       // Assert
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
       const spinner = submitButton.querySelector('svg[data-testid="circular-progress"], .MuiCircularProgress-root');
       expect(spinner).toBeInTheDocument();
     });
@@ -475,7 +499,9 @@ describe('RecoveryCodeForm', () => {
       // Arrange
       const user = userEvent.setup();
       render(<RecoveryCodeForm />);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.click(submitButton);
@@ -533,7 +559,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockRejectedValue(new Error('Connection error'));
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'ABC12DEF34');
@@ -551,7 +579,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockRejectedValue(new Error('Invalid code'));
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i) as HTMLInputElement;
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'ABC12DEF34');
@@ -569,7 +599,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockResolvedValue({ success: true });
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'ABC-12-DEF-34');
@@ -587,7 +619,9 @@ describe('RecoveryCodeForm', () => {
       mockVerifyRecoveryCode.mockResolvedValue({ success: true });
       render(<RecoveryCodeForm />);
       const input = screen.getByLabelText(/recovery code/i);
-      const submitButton = screen.getByRole('button', { name: /verify recovery code/i });
+      const submitButton = screen.getByRole('button', {
+        name: /verify recovery code/i,
+      });
 
       // Act
       await user.type(input, 'ABCD1234');

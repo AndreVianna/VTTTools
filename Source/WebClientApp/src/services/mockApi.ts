@@ -3,33 +3,27 @@
  * Provides fallback responses when backend services are unavailable
  */
 
-import { MOCK_DATA, devUtils } from '@/config/development';
-import {
-  AssetKind,
-  CreatureCategory,
-  TokenShape,
-  ContentType,
-  ResourceType
-} from '@/types/domain';
+import { devUtils, MOCK_DATA } from '@/config/development';
 import type {
-  User,
-  LoginRequest,
-  LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
   Adventure,
   Asset,
   AssetToken,
   CreatureAsset,
-  ObjectAsset,
   GameSession,
-  MediaResource
+  LoginRequest,
+  LoginResponse,
+  MediaResource,
+  ObjectAsset,
+  RegisterRequest,
+  RegisterResponse,
+  User,
 } from '@/types/domain';
+import { AssetKind, ContentType, CreatureCategory, ResourceType, TokenShape } from '@/types/domain';
 
 // Delay to simulate network latency in development
 const MOCK_DELAY = 500;
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class MockApiService {
   private static instance: MockApiService;
@@ -49,7 +43,7 @@ export class MockApiService {
     return {
       success: true,
       requiresTwoFactor: false,
-      message: 'Mock login successful'
+      message: 'Mock login successful',
     };
   }
 
@@ -59,7 +53,7 @@ export class MockApiService {
 
     return {
       success: true,
-      message: 'Mock registration successful'
+      message: 'Mock registration successful',
     };
   }
 
@@ -80,7 +74,7 @@ export class MockApiService {
       twoFactorEnabled: user.twoFactorEnabled,
       lockoutEnabled: user.lockoutEnabled,
       accessFailedCount: user.accessFailedCount,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     };
 
     // Only include optional properties if they have values
@@ -109,8 +103,8 @@ export class MockApiService {
         name: 'Demo Adventure',
         description: 'A mock adventure for development',
         isPublished: false,
-        ownerId: 'mock-owner'
-      }
+        ownerId: 'mock-owner',
+      },
     ];
   }
 
@@ -127,14 +121,14 @@ export class MockApiService {
         contentType: 'image/png',
         fileName: `${name.toLowerCase().replace(/\s+/g, '-')}.png`,
         fileLength: Math.floor(Math.random() * 50000) + 10000,
-        imageSize: { width: 256, height: 256 }
+        imageSize: { width: 256, height: 256 },
       },
-      tags: ['mock', 'development']
+      tags: ['mock', 'development'],
     });
 
     const createMockToken = (name: string, isDefault: boolean = true): AssetToken => ({
       token: createMockMediaResource(`${name}-token`),
-      isDefault
+      isDefault,
     });
 
     const creatureAssets: CreatureAsset[] = [
@@ -150,7 +144,7 @@ export class MockApiService {
         portrait: createMockMediaResource('hero-portrait'),
         size: { width: 1, height: 1, isSquare: true },
         category: CreatureCategory.Character,
-        tokenStyle: { shape: TokenShape.Circle }
+        tokenStyle: { shape: TokenShape.Circle },
       },
       {
         id: 'mock-asset-2',
@@ -164,7 +158,7 @@ export class MockApiService {
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
         category: CreatureCategory.Monster,
-        tokenStyle: { shape: TokenShape.Circle }
+        tokenStyle: { shape: TokenShape.Circle },
       },
       {
         id: 'mock-asset-3',
@@ -174,14 +168,11 @@ export class MockApiService {
         description: 'Large creature with multiple tokens',
         isPublished: true,
         isPublic: true,
-        tokens: [
-          createMockToken('ogre-default', true),
-          createMockToken('ogre-alt', false)
-        ],
+        tokens: [createMockToken('ogre-default', true), createMockToken('ogre-alt', false)],
         portrait: createMockMediaResource('ogre-portrait'),
         size: { width: 2, height: 2, isSquare: true },
         category: CreatureCategory.Monster,
-        tokenStyle: { shape: TokenShape.Circle }
+        tokenStyle: { shape: TokenShape.Circle },
       },
       {
         id: 'mock-asset-4',
@@ -195,7 +186,7 @@ export class MockApiService {
         portrait: createMockMediaResource('dragon-portrait'),
         size: { width: 4, height: 3, isSquare: false },
         category: CreatureCategory.Monster,
-        tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' }
+        tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' },
       },
       {
         id: 'mock-asset-5',
@@ -209,8 +200,8 @@ export class MockApiService {
         portrait: createMockMediaResource('npc-portrait'),
         size: { width: 1, height: 1, isSquare: true },
         category: CreatureCategory.Character,
-        tokenStyle: { shape: TokenShape.Square }
-      }
+        tokenStyle: { shape: TokenShape.Square },
+      },
     ];
 
     const objectAssets: ObjectAsset[] = [
@@ -226,7 +217,7 @@ export class MockApiService {
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
         isMovable: true,
-        isOpaque: false
+        isOpaque: false,
       },
       {
         id: 'mock-asset-7',
@@ -240,7 +231,7 @@ export class MockApiService {
         portrait: createMockMediaResource('chest-portrait'),
         size: { width: 1, height: 1, isSquare: true },
         isMovable: true,
-        isOpaque: false
+        isOpaque: false,
       },
       {
         id: 'mock-asset-8',
@@ -254,7 +245,7 @@ export class MockApiService {
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
         isMovable: false,
-        isOpaque: true
+        isOpaque: true,
       },
       {
         id: 'mock-asset-9',
@@ -268,7 +259,7 @@ export class MockApiService {
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
         isMovable: false,
-        isOpaque: true
+        isOpaque: true,
       },
       {
         id: 'mock-asset-10',
@@ -282,7 +273,7 @@ export class MockApiService {
         portrait: undefined,
         size: { width: 3, height: 3, isSquare: true },
         isMovable: false,
-        isOpaque: true
+        isOpaque: true,
       },
       {
         id: 'mock-asset-11',
@@ -296,7 +287,7 @@ export class MockApiService {
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
         isMovable: true,
-        isOpaque: false
+        isOpaque: false,
       },
       {
         id: 'mock-asset-12',
@@ -306,15 +297,12 @@ export class MockApiService {
         description: 'Edge case: multiple default tokens (should handle gracefully)',
         isPublished: false,
         isPublic: false,
-        tokens: [
-          createMockToken('multi-1', true),
-          createMockToken('multi-2', true)
-        ],
+        tokens: [createMockToken('multi-1', true), createMockToken('multi-2', true)],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
         isMovable: true,
-        isOpaque: false
-      }
+        isOpaque: false,
+      },
     ];
 
     return [...creatureAssets, ...objectAssets];
@@ -343,7 +331,7 @@ export class MockApiService {
 
     return {
       status: 'healthy',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -369,10 +357,11 @@ export const shouldUseMockApi = (error?: any): boolean => {
   }
 
   if (error) {
-    const isNetworkError = error.code === 'NETWORK_ERROR' ||
-                          error.message?.includes('fetch') ||
-                          error.message?.includes('network') ||
-                          error.message?.includes('CORS');
+    const isNetworkError =
+      error.code === 'NETWORK_ERROR' ||
+      error.message?.includes('fetch') ||
+      error.message?.includes('network') ||
+      error.message?.includes('CORS');
 
     if (isNetworkError) {
       devUtils.warn('Network error detected, falling back to mock API', error.message);

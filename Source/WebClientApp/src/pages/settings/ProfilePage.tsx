@@ -1,18 +1,7 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
-import {
-  AccountCircle,
-  Security,
-} from '@mui/icons-material';
+import { AccountCircle, Security } from '@mui/icons-material';
+import { Box, Container, Paper, Tab, Tabs, Typography, useMediaQuery, useTheme } from '@mui/material';
+import type React from 'react';
+import { useState } from 'react';
 import { ProfileSettings } from '@/components/auth/ProfileSettings';
 import { SecuritySettings } from '@/components/auth/SecuritySettings';
 
@@ -25,7 +14,7 @@ interface TabPanelProps {
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`settings-tabpanel-${index}`}
       aria-labelledby={`settings-tab-${index}`}
@@ -52,17 +41,12 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth='lg' sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          sx={{ color: theme.palette.text.primary }}
-        >
+        <Typography variant='h4' component='h1' gutterBottom sx={{ color: theme.palette.text.primary }}>
           Account Settings
         </Typography>
-        <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
+        <Typography variant='body1' sx={{ color: theme.palette.text.secondary }}>
           Manage your profile, security settings, and authentication preferences
         </Typography>
       </Box>
@@ -77,7 +61,7 @@ export const ProfilePage: React.FC = () => {
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
-            aria-label="account settings tabs"
+            aria-label='account settings tabs'
             variant={isMobile ? 'scrollable' : 'standard'}
             scrollButtons={isMobile ? 'auto' : false}
             sx={{
@@ -94,18 +78,8 @@ export const ProfilePage: React.FC = () => {
               },
             }}
           >
-            <Tab
-              icon={<AccountCircle />}
-              iconPosition="start"
-              label="Profile"
-              {...a11yProps(0)}
-            />
-            <Tab
-              icon={<Security />}
-              iconPosition="start"
-              label="Security"
-              {...a11yProps(1)}
-            />
+            <Tab icon={<AccountCircle />} iconPosition='start' label='Profile' {...a11yProps(0)} />
+            <Tab icon={<Security />} iconPosition='start' label='Security' {...a11yProps(1)} />
           </Tabs>
         </Box>
 

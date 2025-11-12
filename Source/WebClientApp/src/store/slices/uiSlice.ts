@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface UIState {
   // Layout state
@@ -108,18 +108,24 @@ const uiSlice = createSlice({
       state.loading.global = action.payload;
     },
 
-    setFeatureLoading: (state, action: PayloadAction<{
-      feature: keyof UIState['loading'];
-      loading: boolean;
-    }>) => {
+    setFeatureLoading: (
+      state,
+      action: PayloadAction<{
+        feature: keyof UIState['loading'];
+        loading: boolean;
+      }>,
+    ) => {
       state.loading[action.payload.feature] = action.payload.loading;
     },
 
     // Modal management
-    openModal: (state, action: PayloadAction<{
-      id: string;
-      data?: any;
-    }>) => {
+    openModal: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        data?: any;
+      }>,
+    ) => {
       state.modals[action.payload.id] = {
         open: true,
         data: action.payload.data,
@@ -138,11 +144,14 @@ const uiSlice = createSlice({
     },
 
     // Notification management
-    addNotification: (state, action: PayloadAction<{
-      type: 'success' | 'error' | 'warning' | 'info';
-      message: string;
-      duration?: number;
-    }>) => {
+    addNotification: (
+      state,
+      action: PayloadAction<{
+        type: 'success' | 'error' | 'warning' | 'info';
+        message: string;
+        duration?: number;
+      }>,
+    ) => {
       const notification = {
         id: Date.now().toString(),
         timestamp: Date.now(),
@@ -153,7 +162,7 @@ const uiSlice = createSlice({
     },
 
     removeNotification: (state, action: PayloadAction<string>) => {
-      state.notifications = state.notifications.filter(n => n.id !== action.payload);
+      state.notifications = state.notifications.filter((n) => n.id !== action.payload);
     },
 
     clearNotifications: (state) => {

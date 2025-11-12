@@ -3,15 +3,8 @@
   "compilerOptions": {
     "noEmit": true,
     "skipLibCheck": true,
-    "types": [
-        "node",
-        "@types/mssql",
-        "@cucumber/cucumber",
-        "@playwright/test"
-    ]
+    "types": ["node", "@types/mssql", "@cucumber/cucumber", "@playwright/test"]
   },
-  "include": [
-    "e2e/**/*.ts"
-  ],
+  "include": ["e2e/**/*.ts"],
   "exclude": []
 }

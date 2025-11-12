@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { ArrowBack, Visibility, VisibilityOff } from '@mui/icons-material';
 import {
-  Box,
-  TextField,
-  Button,
-  Typography,
   Alert,
+  Box,
+  Button,
   CircularProgress,
+  Container,
   IconButton,
   InputAdornment,
   LinearProgress,
-  Paper,
-  Container,
   Link,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import {
-  Visibility,
-  VisibilityOff,
-  ArrowBack,
-} from '@mui/icons-material';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
@@ -29,22 +26,22 @@ const AuthCard = styled(Paper)(({ theme }) => ({
   margin: '0 auto',
   padding: '48px 40px',
   borderRadius: '16px',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
-    : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
+  boxShadow:
+    theme.palette.mode === 'dark'
+      ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
+      : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(37, 99, 235, 0.08)'}`,
-  background: theme.palette.mode === 'dark'
-    ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
-    : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
+  background:
+    theme.palette.mode === 'dark'
+      ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
+      : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
 }));
 
 const AuthTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.05)'
-      : 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
     '& fieldset': {
       borderColor: theme.palette.divider,
       borderWidth: '1.5px',
@@ -97,9 +94,7 @@ interface PasswordStrength {
   color: 'error' | 'warning' | 'info' | 'success';
 }
 
-export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> = ({
-  onSwitchToLogin
-}) => {
+export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> = ({ onSwitchToLogin }) => {
   const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
@@ -128,7 +123,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsInvalidToken(true);
     } else {
-      setFormData(prev => ({ ...prev, email, token }));
+      setFormData((prev) => ({ ...prev, email, token }));
     }
     // Note: Intentionally syncing external state (URL params) with component state
     // This is a legitimate use case for setState in useEffect
@@ -198,7 +193,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     } else if (formData.newPassword.length < 6) {
       errors.newPassword = 'Password must be at least 6 characters';
     } else if (passwordStrength.score < 3) {
-      errors.newPassword = 'Password is too weak. Missing: ' + passwordStrength.feedback.join(', ');
+      errors.newPassword = `Password is too weak. Missing: ${passwordStrength.feedback.join(', ')}`;
     }
 
     if (!formData.confirmPassword) {
@@ -211,14 +206,12 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     return Object.keys(errors).length === 0;
   };
 
-  const handleInputChange = (field: keyof typeof formData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
-      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -228,18 +221,13 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     if (!validateForm()) {
       handleValidationError(new Error('Form validation failed'), {
         component: 'PasswordResetConfirmForm',
-        validationErrors
+        validationErrors,
       });
       return;
     }
 
     try {
-      await confirmResetPassword(
-        formData.email,
-        formData.token,
-        formData.newPassword,
-        formData.confirmPassword
-      );
+      await confirmResetPassword(formData.email, formData.token, formData.newPassword, formData.confirmPassword);
     } catch (_error) {
       // Error is already handled by the useAuth hook
       console.error('Password reset confirmation failed:', error);
@@ -248,25 +236,21 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
 
   if (isInvalidToken) {
     return (
-      <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Container maxWidth='sm' sx={{ py: 8 }}>
         <AuthCard>
-          <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+          <Typography variant='h4' component='h1' gutterBottom align='center' color='primary'>
             VTT Tools
           </Typography>
-          <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
+          <Typography variant='h6' component='h2' gutterBottom align='center' color='text.secondary'>
             Invalid Reset Link
           </Typography>
 
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity='error' sx={{ mb: 2 }}>
             Invalid reset link
           </Alert>
 
           <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<ArrowBack />}
-              onClick={onSwitchToLogin}
-            >
+            <Button variant='contained' startIcon={<ArrowBack />} onClick={onSwitchToLogin}>
               Back to Login
             </Button>
           </Box>
@@ -276,11 +260,11 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
+    <Container maxWidth='sm' sx={{ py: 8 }}>
       <AuthCard>
         <Typography
-          variant="h2"
-          component="h1"
+          variant='h2'
+          component='h1'
           sx={{
             fontSize: '1.75rem',
             fontWeight: 600,
@@ -292,10 +276,10 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
         </Typography>
 
         <Typography
-          variant="body1"
+          variant='body1'
           sx={{
             fontSize: '0.975rem',
-            color: theme => theme.palette.text.secondary,
+            color: (theme) => theme.palette.text.secondary,
             textAlign: 'center',
             mb: 4,
           }}
@@ -304,31 +288,31 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity='error' sx={{ mb: 3 }}>
             {renderAuthError(error)}
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} noValidate>
+        <Box component='form' onSubmit={handleSubmit} noValidate>
           <AuthTextField
             fullWidth
-            id="email"
-            name="email"
-            label="Email Address"
-            type="email"
+            id='email'
+            name='email'
+            label='Email Address'
+            type='email'
             value={formData.email}
             disabled={true}
-            helperText="Resetting password for this account"
+            helperText='Resetting password for this account'
             required
-            autoComplete="email"
+            autoComplete='email'
             sx={{ mb: 3 }}
           />
 
           <AuthTextField
             fullWidth
-            id="newPassword"
-            name="newPassword"
-            label="New Password"
+            id='newPassword'
+            name='newPassword'
+            label='New Password'
             type={showPassword ? 'text' : 'password'}
             value={formData.newPassword}
             onChange={handleInputChange('newPassword')}
@@ -336,15 +320,15 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
             helperText={validationErrors.newPassword || ''}
             disabled={isLoading}
             required
-            autoComplete="new-password"
+            autoComplete='new-password'
             autoFocus
             InputProps={{
               endAdornment: (
-                <InputAdornment position="end">
+                <InputAdornment position='end'>
                   <IconButton
-                    aria-label="toggle password visibility"
+                    aria-label='toggle password visibility'
                     onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
+                    edge='end'
                     disabled={isLoading}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -358,12 +342,12 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
           {formData.newPassword && (
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Password Strength:
                 </Typography>
                 <Box sx={{ ml: 1, flex: 1 }}>
                   <LinearProgress
-                    variant="determinate"
+                    variant='determinate'
                     value={(passwordStrength.score / 5) * 100}
                     color={passwordStrength.color}
                     sx={{ height: 4, borderRadius: 2 }}
@@ -371,7 +355,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
                 </Box>
               </Box>
               {passwordStrength.feedback.length > 0 && (
-                <Typography variant="caption" color={passwordStrength.color}>
+                <Typography variant='caption' color={passwordStrength.color}>
                   Missing: {passwordStrength.feedback.join(', ')}
                 </Typography>
               )}
@@ -380,9 +364,9 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
 
           <AuthTextField
             fullWidth
-            id="confirmPassword"
-            name="confirmPassword"
-            label="Confirm Password"
+            id='confirmPassword'
+            name='confirmPassword'
+            label='Confirm Password'
             type={showPassword ? 'text' : 'password'}
             value={formData.confirmPassword}
             onChange={handleInputChange('confirmPassword')}
@@ -390,38 +374,28 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
             helperText={validationErrors.confirmPassword || 'Re-enter your password to confirm'}
             disabled={isLoading}
             required
-            autoComplete="new-password"
+            autoComplete='new-password'
             sx={{ mb: 4 }}
           />
 
-          <AuthSubmitButton
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isLoading}
-            sx={{ mb: 3 }}
-          >
-            {isLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              'Reset Password'
-            )}
+          <AuthSubmitButton type='submit' fullWidth variant='contained' disabled={isLoading} sx={{ mb: 3 }}>
+            {isLoading ? <CircularProgress size={20} color='inherit' /> : 'Reset Password'}
           </AuthSubmitButton>
         </Box>
 
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             Remember your password?{' '}
             <Link
-              component="button"
-              variant="body2"
+              component='button'
+              variant='body2'
               onClick={(e) => {
                 e.preventDefault();
                 onSwitchToLogin?.();
               }}
               disabled={isLoading}
               sx={{
-                color: theme => theme.palette.primary.main,
+                color: (theme) => theme.palette.primary.main,
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {

@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import {
-  Box,
-  TextField,
-  Button,
-  Paper,
-  Typography,
   Alert,
+  Box,
+  Button,
   CircularProgress,
   Container,
-  Link,
   IconButton,
   InputAdornment,
+  Link,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 // Authentication Card Container - Professional Design (Theme-Aware)
@@ -22,16 +22,18 @@ const AuthCard = styled(Paper)(({ theme }) => ({
   margin: '0 auto',
   padding: '48px 40px',
   borderRadius: '16px',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
-    : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
+  boxShadow:
+    theme.palette.mode === 'dark'
+      ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
+      : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(37, 99, 235, 0.08)'}`,
 
   // Subtle background pattern
-  background: theme.palette.mode === 'dark'
-    ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
-    : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
+  background:
+    theme.palette.mode === 'dark'
+      ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
+      : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
 }));
 
 // Enhanced Form Field Styling (Theme-Aware)
@@ -39,9 +41,10 @@ const AuthTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
     // Subtle background that works on both dark and light card backgrounds
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.05)'  // Slight white tint in dark mode
-      : 'rgba(0, 0, 0, 0.02)',        // Slight gray tint in light mode
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? 'rgba(255, 255, 255, 0.05)' // Slight white tint in dark mode
+        : 'rgba(0, 0, 0, 0.02)', // Slight gray tint in light mode
     transition: 'all 0.2s ease-in-out',
 
     '& fieldset': {
@@ -124,9 +127,10 @@ const VTTAlert = styled(Alert)(({ theme, severity }) => ({
 
   // Error state with theme support
   ...(severity === 'error' && {
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(220, 38, 38, 0.1)'    // Dark red tint for dark mode
-      : '#FEF2F2',                   // Light red for light mode
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? 'rgba(220, 38, 38, 0.1)' // Dark red tint for dark mode
+        : '#FEF2F2', // Light red for light mode
     color: theme.palette.error.main,
 
     '& .MuiAlert-icon': {
@@ -145,12 +149,10 @@ interface SimpleRegistrationFormProps {
   onSwitchToLogin?: () => void;
 }
 
-export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
-  onSwitchToLogin
-}) => {
+export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
-    name: '',  // This is DisplayName (user's friendly name)
+    name: '', // This is DisplayName (user's friendly name)
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -229,21 +231,19 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
       }
     }
 
-    setValidationErrors(prev => ({ ...prev, [field]: errors[field] }));
+    setValidationErrors((prev) => ({ ...prev, [field]: errors[field] }));
   };
 
   const handleBlur = (field: keyof typeof formData) => () => {
     validateField(field);
   };
 
-  const handleInputChange = (field: keyof typeof formData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
-      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -258,22 +258,22 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
     await register(
       formData.email,
       formData.password,
-      formData.password,  // confirmPassword = password (backend still requires it)
-      formData.name  // Send name as displayName
+      formData.password, // confirmPassword = password (backend still requires it)
+      formData.name, // Send name as displayName
     );
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
+    <Container maxWidth='sm' sx={{ py: 8 }}>
       <AuthCard>
-        <div className="auth-header">
+        <div className='auth-header'>
           <Typography
-            variant="h2"
-            component="h1"
+            variant='h2'
+            component='h1'
             sx={{
               fontSize: '1.75rem',
               fontWeight: 600,
-              color: theme => theme.palette.text.primary,
+              color: (theme) => theme.palette.text.primary,
               marginBottom: '8px',
               textAlign: 'center',
             }}
@@ -281,10 +281,10 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             Start Your Journey
           </Typography>
           <Typography
-            variant="body1"
+            variant='body1'
             sx={{
               fontSize: '0.975rem',
-              color: theme => theme.palette.text.secondary,
+              color: (theme) => theme.palette.text.secondary,
               lineHeight: 1.5,
               textAlign: 'center',
               marginBottom: '32px',
@@ -295,17 +295,19 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
         </div>
 
         {error && hasAttemptedSubmit && (
-          <VTTAlert severity="error" sx={{ mb: 3 }}>
-            {typeof error === 'string' ? error : ('message' in error ? error.message : undefined) || 'Registration failed. Please try again.'}
+          <VTTAlert severity='error' sx={{ mb: 3 }}>
+            {typeof error === 'string'
+              ? error
+              : ('message' in error ? error.message : undefined) || 'Registration failed. Please try again.'}
           </VTTAlert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} noValidate className="auth-form">
+        <Box component='form' onSubmit={handleSubmit} noValidate className='auth-form'>
           <AuthTextField
             fullWidth
-            id="email"
-            label="Email Address"
-            type="email"
+            id='email'
+            label='Email Address'
+            type='email'
             value={formData.email}
             onChange={handleInputChange('email')}
             onBlur={handleBlur('email')}
@@ -313,16 +315,16 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             helperText={validationErrors.email || 'Please enter a valid email address'}
             disabled={isLoading}
             required
-            autoComplete="email"
+            autoComplete='email'
             autoFocus
             sx={{ mb: 3 }}
           />
 
           <AuthTextField
             fullWidth
-            id="name"
-            label="Name"
-            type="text"
+            id='name'
+            label='Name'
+            type='text'
             value={formData.name}
             onChange={handleInputChange('name')}
             onBlur={handleBlur('name')}
@@ -330,14 +332,14 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             helperText={validationErrors.name || 'Your display name (e.g., John Smith)'}
             disabled={isLoading}
             required
-            autoComplete="name"
+            autoComplete='name'
             sx={{ mb: 3 }}
           />
 
           <AuthTextField
             fullWidth
-            id="password"
-            label="Password"
+            id='password'
+            label='Password'
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange('password')}
@@ -346,17 +348,17 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             helperText={validationErrors.password || 'Password must be at least 6 characters'}
             disabled={isLoading}
             required
-            autoComplete="new-password"
+            autoComplete='new-password'
             sx={{ mb: 4 }}
             InputProps={{
               endAdornment: (
-                <InputAdornment position="end">
+                <InputAdornment position='end'>
                   <IconButton
-                    aria-label="toggle password visibility"
+                    aria-label='toggle password visibility'
                     onClick={() => setShowPassword(!showPassword)}
                     onMouseDown={(e) => e.preventDefault()}
-                    edge="end"
-                    size="small"
+                    edge='end'
+                    size='small'
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -365,41 +367,31 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             }}
           />
 
-          <AuthSubmitButton
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isLoading}
-            sx={{ mb: 3 }}
-          >
-            {isLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              'Create My Account'
-            )}
+          <AuthSubmitButton type='submit' fullWidth variant='contained' disabled={isLoading} sx={{ mb: 3 }}>
+            {isLoading ? <CircularProgress size={20} color='inherit' /> : 'Create My Account'}
           </AuthSubmitButton>
         </Box>
 
-        <div className="auth-footer">
+        <div className='auth-footer'>
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               fontSize: '0.875rem',
-              color: theme => theme.palette.text.secondary,
+              color: (theme) => theme.palette.text.secondary,
               textAlign: 'center',
             }}
           >
             Already have an account?{' '}
             <Link
-              component="button"
-              variant="body2"
+              component='button'
+              variant='body2'
               onClick={(e) => {
                 e.preventDefault();
                 onSwitchToLogin?.();
               }}
               disabled={isLoading}
               sx={{
-                color: theme => theme.palette.primary.main,
+                color: (theme) => theme.palette.primary.main,
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {

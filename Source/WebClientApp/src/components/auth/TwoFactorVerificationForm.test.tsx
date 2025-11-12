@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TwoFactorVerificationForm } from './TwoFactorVerificationForm';
 
 // Mock useAuth hook
@@ -10,10 +10,16 @@ let mockAuthState = { user: null, isLoading: false, error: null };
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
     verifyTwoFactor: mockVerifyTwoFactor,
-    get user() { return mockAuthState.user; },
-    get isLoading() { return mockAuthState.isLoading; },
-    get error() { return mockAuthState.error; }
-  })
+    get user() {
+      return mockAuthState.user;
+    },
+    get isLoading() {
+      return mockAuthState.isLoading;
+    },
+    get error() {
+      return mockAuthState.error;
+    },
+  }),
 }));
 
 describe('TwoFactorVerificationForm', () => {
@@ -40,7 +46,11 @@ describe('TwoFactorVerificationForm', () => {
       render(<TwoFactorVerificationForm />);
 
       // Assert
-      expect(screen.getByRole('checkbox', { name: /remember this device for 30 days/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', {
+          name: /remember this device for 30 days/i,
+        }),
+      ).toBeInTheDocument();
     });
 
     it('should render verify code button', () => {
@@ -239,7 +249,9 @@ describe('TwoFactorVerificationForm', () => {
       mockVerifyTwoFactor.mockResolvedValue({ success: true });
       render(<TwoFactorVerificationForm />);
       const input = screen.getByLabelText(/verification code/i);
-      const checkbox = screen.getByRole('checkbox', { name: /remember this device for 30 days/i });
+      const checkbox = screen.getByRole('checkbox', {
+        name: /remember this device for 30 days/i,
+      });
       const submitButton = screen.getByRole('button', { name: /verify code/i });
 
       // Act
@@ -281,7 +293,11 @@ describe('TwoFactorVerificationForm', () => {
 
       // Assert
       expect(screen.getByLabelText(/verification code/i)).toBeDisabled();
-      expect(screen.getByRole('checkbox', { name: /remember this device for 30 days/i })).toBeDisabled();
+      expect(
+        screen.getByRole('checkbox', {
+          name: /remember this device for 30 days/i,
+        }),
+      ).toBeDisabled();
     });
 
     it('should disable submit button during verification', () => {

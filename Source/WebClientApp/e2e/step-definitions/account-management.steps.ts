@@ -13,9 +13,9 @@
  * @coverage Account Management.feature scenarios
  */
 
-import { Given, When, Then, After } from '@cucumber/cucumber';
+import { After, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import { CustomWorld } from '../support/world.js';
+import type { CustomWorld } from '../support/world.js';
 
 // Extend CustomWorld interface for account management scenarios
 declare module '../support/world' {
@@ -80,7 +80,7 @@ Given('I am authenticated as a registered user', async function (this: CustomWor
   this.currentUser = {
     id: this.testUser.id,
     email: this.testUser.email,
-    name: this.testUser.userName || 'testuser'
+    name: this.testUser.userName || 'testuser',
   };
 });
 
@@ -103,7 +103,7 @@ Given('I have a profile with username, email, and phone', async function (this: 
   this.profileData = {
     userName: this.testUser.userName || 'testuser',
     email: this.testUser.email,
-    phoneNumber: '+1-555-0100'
+    phoneNumber: '+1-555-0100',
   };
 });
 
@@ -152,15 +152,11 @@ Then('I should see my email verification status', async function (this: CustomWo
   await expect(emailVerifiedLabel).toBeVisible();
 
   // Should show Yes/No status
-  await expect(
-    this.page.locator('text=/yes|no/i')
-  ).toBeVisible();
+  await expect(this.page.locator('text=/yes|no/i')).toBeVisible();
 });
 
 Then('I should see my profile picture', async function (this: CustomWorld) {
-  const avatar = this.page.locator('[alt*="profile"]').or(
-    this.page.locator('img[src*="avatar"]')
-  );
+  const avatar = this.page.locator('[alt*="profile"]').or(this.page.locator('img[src*="avatar"]'));
   await expect(avatar.first()).toBeVisible();
 });
 
@@ -224,9 +220,7 @@ When('I save the changes', async function (this: CustomWorld) {
 
 Then('profile is updated successfully', async function (this: CustomWorld) {
   // Wait for success message
-  await expect(
-    this.page.getByText(/profile updated successfully/i)
-  ).toBeVisible({ timeout: 5000 });
+  await expect(this.page.getByText(/profile updated successfully/i)).toBeVisible({ timeout: 5000 });
 });
 
 Then('I should see a confirmation message', async function (this: CustomWorld) {
@@ -289,7 +283,9 @@ Then('original username remains unchanged', async function (this: CustomWorld) {
 // ========================================
 
 Given('I have not enabled two-factor authentication', async function (this: CustomWorld) {
-  const response = await this.page.request.post(`/api/auth/test/set-two-factor?email=${this.currentUser.email}&enabled=false`);
+  const response = await this.page.request.post(
+    `/api/auth/test/set-two-factor?email=${this.currentUser.email}&enabled=false`,
+  );
   expect(response.ok()).toBeTruthy();
 
   await this.page.waitForTimeout(500);
@@ -301,7 +297,9 @@ Given('I have not enabled two-factor authentication', async function (this: Cust
 });
 
 Given('I have enabled two-factor authentication', async function (this: CustomWorld) {
-  const response = await this.page.request.post(`/api/auth/test/set-two-factor?email=${this.currentUser.email}&enabled=true`);
+  const response = await this.page.request.post(
+    `/api/auth/test/set-two-factor?email=${this.currentUser.email}&enabled=true`,
+  );
   expect(response.ok()).toBeTruthy();
 
   await this.page.waitForTimeout(500);
@@ -330,7 +328,9 @@ Then('I should see my password status', async function (this: CustomWorld) {
   const passwordSection = this.page.locator('text=/password/i');
   await expect(passwordSection).toBeVisible();
 
-  const changePasswordButton = this.page.getByRole('button', { name: /change password/i });
+  const changePasswordButton = this.page.getByRole('button', {
+    name: /change password/i,
+  });
   await expect(changePasswordButton).toBeVisible();
 });
 
@@ -340,7 +340,9 @@ Then('I should see {string} indicator', async function (this: CustomWorld, statu
 });
 
 Then('I should see {string} option', async function (this: CustomWorld, optionText: string) {
-  const button = this.page.getByRole('button', { name: new RegExp(optionText, 'i') });
+  const button = this.page.getByRole('button', {
+    name: new RegExp(optionText, 'i'),
+  });
   await expect(button).toBeVisible();
 });
 
@@ -354,9 +356,7 @@ Then('I should see {string} indicator with checkmark', async function (this: Cus
   await expect(indicator).toBeVisible();
 
   // Check for checkmark icon
-  const checkmark = this.page.locator('[data-testid="CheckCircleIcon"]').or(
-    this.page.locator('svg[class*="success"]')
-  );
+  const checkmark = this.page.locator('[data-testid="CheckCircleIcon"]').or(this.page.locator('svg[class*="success"]'));
   await expect(checkmark.first()).toBeVisible();
 });
 
@@ -412,9 +412,7 @@ When('I confirm new password {string}', async function (this: CustomWorld, passw
 
 Then('my password should be changed successfully', async function (this: CustomWorld) {
   // Success message should appear
-  await expect(
-    this.page.getByText(/password.*updated|changed.*successfully/i)
-  ).toBeVisible({ timeout: 5000 });
+  await expect(this.page.getByText(/password.*updated|changed.*successfully/i)).toBeVisible({ timeout: 5000 });
 
   // Dialog should close
   const dialog = this.page.getByRole('dialog');
@@ -450,7 +448,9 @@ When('I attempt to change my password', async function (this: CustomWorld) {
   const confirmField = this.page.getByLabel(/confirm.*password/i);
   await confirmField.fill('NewValid123!');
 
-  const submitButton = this.page.getByRole('button', { name: /change password/i });
+  const submitButton = this.page.getByRole('button', {
+    name: /change password/i,
+  });
   await submitButton.click();
 });
 
@@ -493,9 +493,9 @@ Then('I should see which requirements are not met', async function (this: Custom
 
 Given('the AuthStatus component is rendered in the application header', async function (this: CustomWorld) {
   await this.page.goto('/');
-  const authStatus = this.page.locator('[data-testid="auth-status"]').or(
-    this.page.locator('header').locator('text=/sign in|' + (this.testUser.userName || '') + '/i')
-  );
+  const authStatus = this.page
+    .locator('[data-testid="auth-status"]')
+    .or(this.page.locator('header').locator(`text=/sign in|${this.testUser.userName || ''}/i`));
   await expect(authStatus.first()).toBeVisible();
 });
 
@@ -520,7 +520,9 @@ When('the AuthStatus component renders', async function (this: CustomWorld) {
 });
 
 Then('I should see a {string} icon button', async function (this: CustomWorld, buttonLabel: string) {
-  const button = this.page.getByRole('button', { name: new RegExp(buttonLabel, 'i') });
+  const button = this.page.getByRole('button', {
+    name: new RegExp(buttonLabel, 'i'),
+  });
   await expect(button).toBeVisible();
 });
 
@@ -554,11 +556,11 @@ Then('I should not see login or register buttons', async function (this: CustomW
 
 Given('a network error occurs during submission', async function (this: CustomWorld) {
   // Mock network failure
-  await this.page.route('**/api/**', route => route.abort('failed'));
+  await this.page.route('**/api/**', (route) => route.abort('failed'));
 });
 
 When('a network error occurs during submission', async function (this: CustomWorld) {
-  await this.page.route('**/api/**', route => route.abort('failed'));
+  await this.page.route('**/api/**', (route) => route.abort('failed'));
 });
 
 Then('I should remain on the password change dialog', async function (this: CustomWorld) {
@@ -574,7 +576,9 @@ Then('I should be able to retry the operation', async function (this: CustomWorl
   await this.page.unroute('**/api/**');
 
   // Verify submit button is still enabled
-  const submitButton = this.page.getByRole('button', { name: /change password|save/i });
+  const submitButton = this.page.getByRole('button', {
+    name: /change password|save/i,
+  });
   await expect(submitButton).toBeEnabled();
 });
 
@@ -592,7 +596,9 @@ Then('I should be redirected to login', async function (this: CustomWorld) {
 });
 
 Then('I should not see any profile information', async function (this: CustomWorld) {
-  const profileHeading = this.page.getByRole('heading', { name: /profile settings/i });
+  const profileHeading = this.page.getByRole('heading', {
+    name: /profile settings/i,
+  });
   await expect(profileHeading).not.toBeVisible();
 });
 
@@ -636,4 +642,3 @@ After({ tags: '@account-management' }, async function (this: CustomWorld) {
   // Clear any network route mocks
   await this.page.unroute('**/api/**');
 });
-

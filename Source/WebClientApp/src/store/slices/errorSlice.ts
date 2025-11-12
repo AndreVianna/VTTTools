@@ -1,8 +1,16 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface VTTError {
   id: string;
-  type: 'network' | 'validation' | 'asset_loading' | 'encounter_save' | 'encounter_load' | 'system' | 'authentication' | 'authorization';
+  type:
+    | 'network'
+    | 'validation'
+    | 'asset_loading'
+    | 'encounter_save'
+    | 'encounter_load'
+    | 'system'
+    | 'authentication'
+    | 'authorization';
   message: string;
   details?: string;
   timestamp: number;
@@ -87,10 +95,10 @@ const errorSlice = createSlice({
     // Remove an error
     removeError: (state, action: PayloadAction<string>) => {
       const errorId = action.payload;
-      state.errors = state.errors.filter(e => e.id !== errorId);
-      state.networkErrors = state.networkErrors.filter(e => e.id !== errorId);
-      state.validationErrors = state.validationErrors.filter(e => e.id !== errorId);
-      state.systemErrors = state.systemErrors.filter(e => e.id !== errorId);
+      state.errors = state.errors.filter((e) => e.id !== errorId);
+      state.networkErrors = state.networkErrors.filter((e) => e.id !== errorId);
+      state.validationErrors = state.validationErrors.filter((e) => e.id !== errorId);
+      state.systemErrors = state.systemErrors.filter((e) => e.id !== errorId);
 
       // Clear global error if it was removed
       if (state.globalError?.id === errorId) {
@@ -104,7 +112,7 @@ const errorSlice = createSlice({
     // Mark error as recovered
     markErrorRecovered: (state, action: PayloadAction<string>) => {
       const errorId = action.payload;
-      const error = state.errors.find(e => e.id === errorId);
+      const error = state.errors.find((e) => e.id === errorId);
       if (error) {
         error.recovered = true;
       }
@@ -128,7 +136,7 @@ const errorSlice = createSlice({
     // Clear errors by type
     clearErrorsByType: (state, action: PayloadAction<VTTError['type']>) => {
       const type = action.payload;
-      state.errors = state.errors.filter(e => e.type !== type);
+      state.errors = state.errors.filter((e) => e.type !== type);
 
       switch (type) {
         case 'network':
@@ -141,7 +149,7 @@ const errorSlice = createSlice({
         case 'asset_loading':
         case 'encounter_save':
         case 'encounter_load':
-          state.systemErrors = state.systemErrors.filter(e => e.type !== type);
+          state.systemErrors = state.systemErrors.filter((e) => e.type !== type);
           break;
       }
 
@@ -190,14 +198,14 @@ const errorSlice = createSlice({
       const maxAge = action.payload; // milliseconds
       const cutoff = Date.now() - maxAge;
 
-      state.errors = state.errors.filter(e => e.timestamp > cutoff);
-      state.networkErrors = state.networkErrors.filter(e => e.timestamp > cutoff);
-      state.validationErrors = state.validationErrors.filter(e => e.timestamp > cutoff);
-      state.systemErrors = state.systemErrors.filter(e => e.timestamp > cutoff);
+      state.errors = state.errors.filter((e) => e.timestamp > cutoff);
+      state.networkErrors = state.networkErrors.filter((e) => e.timestamp > cutoff);
+      state.validationErrors = state.validationErrors.filter((e) => e.timestamp > cutoff);
+      state.systemErrors = state.systemErrors.filter((e) => e.timestamp > cutoff);
 
       // Clear retry attempts for old errors
-      const activeErrorIds = new Set(state.errors.map(e => e.id));
-      Object.keys(state.retryAttempts).forEach(errorId => {
+      const activeErrorIds = new Set(state.errors.map((e) => e.id));
+      Object.keys(state.retryAttempts).forEach((errorId) => {
         if (!activeErrorIds.has(errorId)) {
           delete state.retryAttempts[errorId];
         }
@@ -226,15 +234,14 @@ export default errorSlice.reducer;
 // Selectors
 export const selectErrors = (state: { error: ErrorState }) => state.error.errors;
 export const selectGlobalError = (state: { error: ErrorState }) => state.error.globalError;
-export const selectErrorsByType = (type: VTTError['type']) =>
-  (state: { error: ErrorState }) => state.error.errors.filter(e => e.type === type);
+export const selectErrorsByType = (type: VTTError['type']) => (state: { error: ErrorState }) =>
+  state.error.errors.filter((e) => e.type === type);
 export const selectNetworkErrors = (state: { error: ErrorState }) => state.error.networkErrors;
 export const selectValidationErrors = (state: { error: ErrorState }) => state.error.validationErrors;
 export const selectSystemErrors = (state: { error: ErrorState }) => state.error.systemErrors;
-export const selectRetryAttempts = (errorId: string) =>
-  (state: { error: ErrorState }) => state.error.retryAttempts[errorId] || 0;
-export const selectCanRetry = (errorId: string) =>
-  (state: { error: ErrorState }) =>
-    (state.error.retryAttempts[errorId] || 0) < state.error.maxRetryAttempts;
+export const selectRetryAttempts = (errorId: string) => (state: { error: ErrorState }) =>
+  state.error.retryAttempts[errorId] || 0;
+export const selectCanRetry = (errorId: string) => (state: { error: ErrorState }) =>
+  (state.error.retryAttempts[errorId] || 0) < state.error.maxRetryAttempts;
 export const selectUserErrorsVisible = (state: { error: ErrorState }) => state.error.userErrorsVisible;
 export const selectErrorReportingEnabled = (state: { error: ErrorState }) => state.error.errorReportingEnabled;

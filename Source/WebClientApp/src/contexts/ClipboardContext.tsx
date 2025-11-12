@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import type React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { PlacedAsset } from '../types/domain';
-import { ClipboardContext, INITIAL_CLIPBOARD_STATE, type ClipboardContextValue } from './clipboardContextDefinition';
+import { ClipboardContext, type ClipboardContextValue, INITIAL_CLIPBOARD_STATE } from './clipboardContextDefinition';
 
 interface ClipboardState {
   assets: PlacedAsset[];
@@ -15,7 +16,7 @@ export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setClipboard({
       assets: [...assets],
       operation: 'copy',
-      sourceEncounterId: encounterId
+      sourceEncounterId: encounterId,
     });
   }, []);
 
@@ -23,7 +24,7 @@ export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setClipboard({
       assets: [...assets],
       operation: 'cut',
-      sourceEncounterId: encounterId
+      sourceEncounterId: encounterId,
     });
   }, []);
 
@@ -45,12 +46,8 @@ export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     copyAssets,
     cutAssets,
     clearClipboard,
-    getClipboardAssets
+    getClipboardAssets,
   };
 
-  return (
-    <ClipboardContext.Provider value={value}>
-      {children}
-    </ClipboardContext.Provider>
-  );
+  return <ClipboardContext.Provider value={value}>{children}</ClipboardContext.Provider>;
 };

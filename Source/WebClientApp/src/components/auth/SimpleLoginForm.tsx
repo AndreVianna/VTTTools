@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import {
-  Box,
-  TextField,
-  Button,
-  Paper,
-  Typography,
   Alert,
+  Box,
+  Button,
+  Checkbox,
   CircularProgress,
-  Link,
   Container,
   FormControlLabel,
-  Checkbox,
   IconButton,
   InputAdornment,
+  Link,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 // Authentication Card Container - Professional Design (Theme-Aware)
@@ -24,16 +24,18 @@ const AuthCard = styled(Paper)(({ theme }) => ({
   margin: '0 auto',
   padding: '48px 40px',
   borderRadius: '16px',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
-    : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
+  boxShadow:
+    theme.palette.mode === 'dark'
+      ? '0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2)'
+      : '0 20px 25px rgba(17, 24, 39, 0.1), 0 10px 10px rgba(17, 24, 39, 0.04)',
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(37, 99, 235, 0.08)'}`,
 
   // Subtle background pattern
-  background: theme.palette.mode === 'dark'
-    ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
-    : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
+  background:
+    theme.palette.mode === 'dark'
+      ? `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%), ${theme.palette.background.paper}`
+      : `linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%), ${theme.palette.background.paper}`,
 }));
 
 // Enhanced Form Field Styling (Theme-Aware)
@@ -41,9 +43,10 @@ const AuthTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
     // Subtle background that works on both dark and light card backgrounds
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.05)'  // Slight white tint in dark mode
-      : 'rgba(0, 0, 0, 0.02)',        // Slight gray tint in light mode
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? 'rgba(255, 255, 255, 0.05)' // Slight white tint in dark mode
+        : 'rgba(0, 0, 0, 0.02)', // Slight gray tint in light mode
     transition: 'all 0.2s ease-in-out',
 
     '& fieldset': {
@@ -126,9 +129,10 @@ const VTTAlert = styled(Alert)(({ theme, severity }) => ({
 
   // Error state with theme support
   ...(severity === 'error' && {
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(220, 38, 38, 0.1)'    // Dark red tint for dark mode
-      : '#FEF2F2',                   // Light red for light mode
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? 'rgba(220, 38, 38, 0.1)' // Dark red tint for dark mode
+        : '#FEF2F2', // Light red for light mode
     color: theme.palette.error.main,
 
     '& .MuiAlert-icon': {
@@ -148,10 +152,7 @@ interface SimpleLoginFormProps {
   onSwitchToResetPassword?: () => void;
 }
 
-export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
-  onSwitchToRegister,
-  onSwitchToResetPassword
-}) => {
+export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({ onSwitchToRegister, onSwitchToResetPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -215,16 +216,16 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
+    <Container maxWidth='sm' sx={{ py: 8 }}>
       <AuthCard>
-        <div className="auth-header">
+        <div className='auth-header'>
           <Typography
-            variant="h2"
-            component="h1"
+            variant='h2'
+            component='h1'
             sx={{
               fontSize: '1.75rem',
               fontWeight: 600,
-              color: theme => theme.palette.text.primary,
+              color: (theme) => theme.palette.text.primary,
               marginBottom: '8px',
               textAlign: 'center',
             }}
@@ -232,10 +233,10 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
             Welcome Back, Game Master
           </Typography>
           <Typography
-            variant="body1"
+            variant='body1'
             sx={{
               fontSize: '0.975rem',
-              color: theme => theme.palette.text.secondary,
+              color: (theme) => theme.palette.text.secondary,
               lineHeight: 1.5,
               textAlign: 'center',
               marginBottom: '32px',
@@ -246,17 +247,17 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
         </div>
 
         {(error && hasAttemptedSubmit) || clientValidationError ? (
-          <VTTAlert severity="error" sx={{ mb: 3 }} role="alert">
+          <VTTAlert severity='error' sx={{ mb: 3 }} role='alert'>
             {clientValidationError || (typeof error === 'string' ? error : 'Login failed. Please try again.')}
           </VTTAlert>
         ) : null}
 
-        <Box component="form" onSubmit={handleSubmit} noValidate className="auth-form">
+        <Box component='form' onSubmit={handleSubmit} noValidate className='auth-form'>
           <AuthTextField
             fullWidth
-            id="email"
-            label="Email Address"
-            type="email"
+            id='email'
+            label='Email Address'
+            type='email'
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -267,15 +268,15 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
             helperText={validationErrors.email || 'Enter your registered email address'}
             disabled={isLoading}
             required
-            autoComplete="email"
+            autoComplete='email'
             autoFocus
             sx={{ mb: 3 }}
           />
 
           <AuthTextField
             fullWidth
-            id="password"
-            label="Password"
+            id='password'
+            label='Password'
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => {
@@ -287,17 +288,17 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
             helperText={validationErrors.password || 'Password must be at least 8 characters'}
             disabled={isLoading}
             required
-            autoComplete="current-password"
+            autoComplete='current-password'
             sx={{ mb: 2 }}
             InputProps={{
               endAdornment: (
-                <InputAdornment position="end">
+                <InputAdornment position='end'>
                   <IconButton
-                    aria-label="toggle password visibility"
+                    aria-label='toggle password visibility'
                     onClick={() => setShowPassword(!showPassword)}
                     onMouseDown={(e) => e.preventDefault()}
-                    edge="end"
-                    size="small"
+                    edge='end'
+                    size='small'
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -307,33 +308,40 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
           />
 
           {/* Remember Me and Forgot Password */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 3,
+            }}
+          >
             <FormControlLabel
               control={
                 <Checkbox
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   disabled={isLoading}
-                  size="small"
+                  size='small'
                 />
               }
               label={
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Remember me for 30 days
                 </Typography>
               }
             />
             {onSwitchToResetPassword && (
               <Link
-                component="button"
-                variant="body2"
+                component='button'
+                variant='body2'
                 onClick={(e) => {
                   e.preventDefault();
                   onSwitchToResetPassword();
                 }}
                 disabled={isLoading}
                 sx={{
-                  color: theme => theme.palette.primary.main,
+                  color: (theme) => theme.palette.primary.main,
                   textDecoration: 'none',
                   fontWeight: 500,
                   fontSize: '0.875rem',
@@ -347,42 +355,31 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
             )}
           </Box>
 
-          <AuthSubmitButton
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isLoading}
-            sx={{ mb: 3 }}
-          >
-            {isLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              'Sign In to VTT Tools'
-            )}
+          <AuthSubmitButton type='submit' fullWidth variant='contained' disabled={isLoading} sx={{ mb: 3 }}>
+            {isLoading ? <CircularProgress size={20} color='inherit' /> : 'Sign In to VTT Tools'}
           </AuthSubmitButton>
-
         </Box>
 
-        <div className="auth-footer">
+        <div className='auth-footer'>
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               fontSize: '0.875rem',
-              color: theme => theme.palette.text.secondary,
+              color: (theme) => theme.palette.text.secondary,
               textAlign: 'center',
             }}
           >
             New to VTT Tools?{' '}
             <Link
-              component="button"
-              variant="body2"
+              component='button'
+              variant='body2'
               onClick={(e) => {
                 e.preventDefault();
                 onSwitchToRegister?.();
               }}
               disabled={isLoading}
               sx={{
-                color: theme => theme.palette.primary.main,
+                color: (theme) => theme.palette.primary.main,
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {

@@ -8,13 +8,14 @@
  * TARGET_COVERAGE: 75%+
  */
 
-import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useAssetDrag } from './useAssetDrag';
+import { act, renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import type { Asset, CreatureAsset } from '@/types/domain';
 import { AssetKind, CreatureCategory } from '@/types/domain';
+import { useAssetDrag } from './useAssetDrag';
 
-const createMockAsset = (id: string): Asset => ({
+const createMockAsset = (id: string): Asset =>
+  ({
     id,
     ownerId: 'owner-123',
     kind: AssetKind.Creature,
@@ -31,79 +32,79 @@ const createMockAsset = (id: string): Asset => ({
     tokenStyle: undefined,
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
-} as CreatureAsset);
+  }) as CreatureAsset;
 
 describe('useAssetDrag', () => {
-    it('initializes with null draggedAsset', () => {
-        const { result } = renderHook(() => useAssetDrag());
+  it('initializes with null draggedAsset', () => {
+    const { result } = renderHook(() => useAssetDrag());
 
-        expect(result.current.draggedAsset).toBeNull();
+    expect(result.current.draggedAsset).toBeNull();
+  });
+
+  it('sets draggedAsset when startDrag is called', () => {
+    const { result } = renderHook(() => useAssetDrag());
+    const mockAsset = createMockAsset('asset-1');
+
+    act(() => {
+      result.current.startDrag(mockAsset);
     });
 
-    it('sets draggedAsset when startDrag is called', () => {
-        const { result } = renderHook(() => useAssetDrag());
-        const mockAsset = createMockAsset('asset-1');
+    expect(result.current.draggedAsset).toEqual(mockAsset);
+  });
 
-        act(() => {
-            result.current.startDrag(mockAsset);
-        });
+  it('clears draggedAsset when endDrag is called', () => {
+    const { result } = renderHook(() => useAssetDrag());
+    const mockAsset = createMockAsset('asset-1');
 
-        expect(result.current.draggedAsset).toEqual(mockAsset);
+    act(() => {
+      result.current.startDrag(mockAsset);
     });
 
-    it('clears draggedAsset when endDrag is called', () => {
-        const { result } = renderHook(() => useAssetDrag());
-        const mockAsset = createMockAsset('asset-1');
+    expect(result.current.draggedAsset).toEqual(mockAsset);
 
-        act(() => {
-            result.current.startDrag(mockAsset);
-        });
-
-        expect(result.current.draggedAsset).toEqual(mockAsset);
-
-        act(() => {
-            result.current.endDrag();
-        });
-
-        expect(result.current.draggedAsset).toBeNull();
+    act(() => {
+      result.current.endDrag();
     });
 
-    it('replaces draggedAsset when startDrag is called multiple times', () => {
-        const { result } = renderHook(() => useAssetDrag());
-        const asset1 = createMockAsset('asset-1');
-        const asset2 = createMockAsset('asset-2');
+    expect(result.current.draggedAsset).toBeNull();
+  });
 
-        act(() => {
-            result.current.startDrag(asset1);
-        });
+  it('replaces draggedAsset when startDrag is called multiple times', () => {
+    const { result } = renderHook(() => useAssetDrag());
+    const asset1 = createMockAsset('asset-1');
+    const asset2 = createMockAsset('asset-2');
 
-        expect(result.current.draggedAsset).toEqual(asset1);
-
-        act(() => {
-            result.current.startDrag(asset2);
-        });
-
-        expect(result.current.draggedAsset).toEqual(asset2);
+    act(() => {
+      result.current.startDrag(asset1);
     });
 
-    it('maintains stable function references', () => {
-        const { result, rerender } = renderHook(() => useAssetDrag());
-        const initialStartDrag = result.current.startDrag;
-        const initialEndDrag = result.current.endDrag;
+    expect(result.current.draggedAsset).toEqual(asset1);
 
-        rerender();
-
-        expect(result.current.startDrag).toBe(initialStartDrag);
-        expect(result.current.endDrag).toBe(initialEndDrag);
+    act(() => {
+      result.current.startDrag(asset2);
     });
 
-    it('handles endDrag when no asset is being dragged', () => {
-        const { result } = renderHook(() => useAssetDrag());
+    expect(result.current.draggedAsset).toEqual(asset2);
+  });
 
-        act(() => {
-            result.current.endDrag();
-        });
+  it('maintains stable function references', () => {
+    const { result, rerender } = renderHook(() => useAssetDrag());
+    const initialStartDrag = result.current.startDrag;
+    const initialEndDrag = result.current.endDrag;
 
-        expect(result.current.draggedAsset).toBeNull();
+    rerender();
+
+    expect(result.current.startDrag).toBe(initialStartDrag);
+    expect(result.current.endDrag).toBe(initialEndDrag);
+  });
+
+  it('handles endDrag when no asset is being dragged', () => {
+    const { result } = renderHook(() => useAssetDrag());
+
+    act(() => {
+      result.current.endDrag();
     });
+
+    expect(result.current.draggedAsset).toBeNull();
+  });
 });

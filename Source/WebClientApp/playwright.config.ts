@@ -22,7 +22,7 @@ export default defineConfig({
   /* Reporter to use */
   reporter: [
     ['html', { outputFile: 'tests/results/report.html' }],
-    ['json', { outputFile: 'tests/results/results.json' }]
+    ['json', { outputFile: 'tests/results/results.json' }],
   ],
 
   /* Shared settings for all tests */
@@ -37,7 +37,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
 
     /* Record video on failure */
-    video: 'retain-on-failure'
+    video: 'retain-on-failure',
   },
 
   /* Configure projects for major browsers */
@@ -63,7 +63,7 @@ export default defineConfig({
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
-    }
+    },
   ],
 
   /* Start dev server before running tests */

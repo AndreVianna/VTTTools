@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
+import { ArrowBack, Security } from '@mui/icons-material';
 import {
-  Box,
-  TextField,
-  Button,
-  Typography,
   Alert,
+  Box,
+  Button,
+  Checkbox,
   CircularProgress,
-  Link,
   Divider,
   FormControlLabel,
-  Checkbox,
+  Link,
+  TextField,
+  Typography,
 } from '@mui/material';
-import {
-  Security,
-  ArrowBack,
-} from '@mui/icons-material';
+import type React from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
@@ -24,10 +22,7 @@ interface TwoFactorVerificationFormProps {
   onBack?: () => void;
 }
 
-export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps> = ({
-  onSwitchToRecovery,
-  onBack
-}) => {
+export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps> = ({ onSwitchToRecovery, onBack }) => {
   const [verificationCode, setVerificationCode] = useState('');
   const [rememberMachine, setRememberMachine] = useState(false);
 
@@ -56,7 +51,7 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
     if (!validateForm()) {
       handleValidationError(new Error('Form validation failed'), {
         component: 'TwoFactorVerificationForm',
-        validationErrors
+        validationErrors,
       });
       return;
     }
@@ -71,32 +66,32 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+      <Typography variant='h4' component='h1' gutterBottom align='center' color='primary'>
         VTT Tools
       </Typography>
-      <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
+      <Typography variant='h6' component='h2' gutterBottom align='center' color='text.secondary'>
         Two-Factor Authentication
       </Typography>
 
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Security sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant='body2' color='text.secondary'>
           Enter the 6-digit code from your authenticator app to complete sign in.
         </Typography>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {renderAuthError(error)}
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+      <Box component='form' onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField
           fullWidth
-          id="verificationCode"
-          name="verificationCode"
-          label="Verification Code"
+          id='verificationCode'
+          name='verificationCode'
+          label='Verification Code'
           value={verificationCode}
           onChange={(e) => {
             // Format as XXX XXX for better readability
@@ -112,17 +107,17 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
           error={!!validationErrors.verificationCode}
           helperText={validationErrors.verificationCode}
           disabled={isLoading}
-          margin="normal"
+          margin='normal'
           required
           autoFocus
-          autoComplete="one-time-code"
+          autoComplete='one-time-code'
           inputProps={{
             style: {
               textAlign: 'center',
               fontSize: '1.5rem',
               letterSpacing: '0.5em',
-              fontFamily: 'monospace'
-            }
+              fontFamily: 'monospace',
+            },
           }}
         />
 
@@ -132,11 +127,11 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
               checked={rememberMachine}
               onChange={(e) => setRememberMachine(e.target.checked)}
               disabled={isLoading}
-              color="primary"
+              color='primary'
             />
           }
           label={
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Remember this device for 30 days
             </Typography>
           }
@@ -144,29 +139,25 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
         />
 
         <Button
-          type="submit"
+          type='submit'
           fullWidth
-          variant="contained"
+          variant='contained'
           disabled={isLoading || !verificationCode}
           sx={{ mt: 3, mb: 2, height: 48 }}
         >
-          {isLoading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            'Verify Code'
-          )}
+          {isLoading ? <CircularProgress size={24} color='inherit' /> : 'Verify Code'}
         </Button>
       </Box>
 
       <Divider sx={{ my: 2 }} />
 
       <Box sx={{ textAlign: 'center', mb: 2 }}>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography variant='body2' color='text.secondary' gutterBottom>
           Having trouble with your authenticator app?
         </Typography>
         <Link
-          component="button"
-          variant="body2"
+          component='button'
+          variant='body2'
           onClick={(e) => {
             e.preventDefault();
             onSwitchToRecovery?.();
@@ -179,8 +170,8 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
 
       <Box sx={{ textAlign: 'center' }}>
         <Link
-          component="button"
-          variant="body2"
+          component='button'
+          variant='body2'
           onClick={(e) => {
             e.preventDefault();
             onBack?.();
@@ -188,7 +179,7 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
           disabled={isLoading}
           sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
         >
-          <ArrowBack fontSize="small" />
+          <ArrowBack fontSize='small' />
           Back to Login
         </Link>
       </Box>

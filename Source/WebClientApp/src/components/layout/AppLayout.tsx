@@ -1,29 +1,24 @@
-import React from 'react';
+import { AccountCircle, ArrowDropDown, DarkMode, LightMode } from '@mui/icons-material';
 import {
-  Box,
   AppBar,
-  Toolbar,
-  Typography,
+  Box,
   Button,
+  Container,
   IconButton,
+  Link,
   Menu,
   MenuItem,
   Stack,
-  Container,
-  Link,
-  useTheme
+  Toolbar,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import {
-  LightMode,
-  DarkMode,
-  AccountCircle,
-  ArrowDropDown
-} from '@mui/icons-material';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ConnectionStatusBanner } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
-import { ConnectionStatusBanner } from '@/components/common';
+import { selectTheme, toggleTheme } from '@/store/slices/uiSlice';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -67,24 +62,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Header */}
       <AppBar
-        component="header"
-        position="static"
+        component='header'
+        position='static'
         elevation={0}
         sx={{
           backgroundColor: theme.palette.primary.main,
-          color: 'white'
+          color: 'white',
         }}
       >
         <Toolbar>
           {/* VTT Tools Branding */}
           <Typography
-            id="app-logo"
-            variant="h6"
-            component="div"
+            id='app-logo'
+            variant='h6'
+            component='div'
             sx={{
               fontWeight: 600,
               cursor: 'pointer',
-              mr: 4
+              mr: 4,
             }}
             onClick={() => navigate('/')}
           >
@@ -95,27 +90,27 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {isAuthenticated && user && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
               <Button
-                id="nav-library"
-                color="inherit"
+                id='nav-library'
+                color='inherit'
                 onClick={() => navigate('/content-library')}
                 sx={{
                   textTransform: 'none',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
+                  },
                 }}
               >
                 Library
               </Button>
               <Button
-                id="nav-assets"
-                color="inherit"
+                id='nav-assets'
+                color='inherit'
                 onClick={() => navigate('/assets')}
                 sx={{
                   textTransform: 'none',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
+                  },
                 }}
               >
                 Assets
@@ -129,8 +124,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <ConnectionStatusBanner />
 
           <IconButton
-            id="btn-theme-toggle"
-            color="inherit"
+            id='btn-theme-toggle'
+            color='inherit'
             onClick={handleThemeToggle}
             aria-label={`Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`}
             sx={{
@@ -138,7 +133,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              }
+              },
             }}
           >
             {currentTheme === 'light' ? <DarkMode /> : <LightMode />}
@@ -148,24 +143,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {isAuthenticated && user ? (
             <>
               <Button
-                id="btn-user-menu"
-                color="inherit"
+                id='btn-user-menu'
+                color='inherit'
                 startIcon={<AccountCircle />}
                 endIcon={<ArrowDropDown />}
                 onClick={handleUserMenuOpen}
-                aria-label="User menu"
+                aria-label='User menu'
                 sx={{
                   textTransform: 'none',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  }
+                  },
                 }}
               >
                 {user.displayName || user.name || user.email.split('@')[0]}
               </Button>
               <Menu
-                id="user-menu"
+                id='user-menu'
                 anchorEl={userMenuAnchor}
                 open={Boolean(userMenuAnchor)}
                 onClose={handleUserMenuClose}
@@ -178,42 +173,54 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   horizontal: 'right',
                 }}
               >
-                <MenuItem id="menu-profile" onClick={() => { handleUserMenuClose(); navigate('/profile'); }}>
+                <MenuItem
+                  id='menu-profile'
+                  onClick={() => {
+                    handleUserMenuClose();
+                    navigate('/profile');
+                  }}
+                >
                   Profile
                 </MenuItem>
-                <MenuItem id="menu-settings" onClick={() => { handleUserMenuClose(); navigate('/settings'); }}>
+                <MenuItem
+                  id='menu-settings'
+                  onClick={() => {
+                    handleUserMenuClose();
+                    navigate('/settings');
+                  }}
+                >
                   Settings
                 </MenuItem>
-                <MenuItem id="menu-signout" onClick={handleLogout}>
+                <MenuItem id='menu-signout' onClick={handleLogout}>
                   Sign Out
                 </MenuItem>
               </Menu>
             </>
           ) : (
             // Not logged in - show login/register buttons
-            <Stack direction="row" spacing={1}>
+            <Stack direction='row' spacing={1}>
               <Button
-                id="btn-header-login"
-                color="inherit"
+                id='btn-header-login'
+                color='inherit'
                 onClick={handleLogin}
                 sx={{
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  }
+                  },
                 }}
               >
                 Sign In
               </Button>
               <Button
-                id="btn-header-register"
-                variant="contained"
+                id='btn-header-register'
+                variant='contained'
                 onClick={handleRegister}
                 sx={{
                   backgroundColor: theme.palette.secondary.main,
                   '&:hover': {
                     backgroundColor: theme.palette.secondary.dark,
-                  }
+                  },
                 }}
               >
                 Sign Up
@@ -224,45 +231,39 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       </AppBar>
 
       {/* Main Content */}
-      <Box component="main" sx={{ flex: 1 }}>
+      <Box component='main' sx={{ flex: 1 }}>
         {children}
       </Box>
 
       {/* Footer */}
       <Box
-        id="app-footer"
-        component="footer"
+        id='app-footer'
+        component='footer'
         sx={{
           backgroundColor: theme.palette.primary.main,
           color: 'white',
           py: 2,
         }}
       >
-        <Container maxWidth="lg">
-          <Stack
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            spacing={2}
-            sx={{ fontSize: '0.875rem' }}
-          >
-            <Link id="footer-link-about" href="/about" color="inherit" underline="hover">
+        <Container maxWidth='lg'>
+          <Stack direction='row' justifyContent='center' alignItems='center' spacing={2} sx={{ fontSize: '0.875rem' }}>
+            <Link id='footer-link-about' href='/about' color='inherit' underline='hover'>
               About
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Link id="footer-link-contact" href="/contact" color="inherit" underline="hover">
+            <Link id='footer-link-contact' href='/contact' color='inherit' underline='hover'>
               Contact
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Link id="footer-link-terms" href="/terms" color="inherit" underline="hover">
+            <Link id='footer-link-terms' href='/terms' color='inherit' underline='hover'>
               Terms
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Link id="footer-link-privacy" href="/privacy" color="inherit" underline="hover">
+            <Link id='footer-link-privacy' href='/privacy' color='inherit' underline='hover'>
               Privacy
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Typography id="footer-copyright" variant="inherit" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+            <Typography id='footer-copyright' variant='inherit' sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
               © 2025 VTT Tools
             </Typography>
           </Stack>

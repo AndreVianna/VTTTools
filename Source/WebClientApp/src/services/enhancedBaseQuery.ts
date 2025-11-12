@@ -3,8 +3,8 @@
  * Provides fallback responses and proper error handling
  */
 
-import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { devUtils, isDevelopment } from '@/config/development';
 import type { RootState } from '@/store';
 
@@ -38,20 +38,20 @@ export function guidToByteArray(guidString: string): Uint8Array {
 
   // Data1 (4 bytes) - little endian
   const data1 = parseInt(parts[0] || '0', 16);
-  bytes[0] = data1 & 0xFF;
-  bytes[1] = (data1 >> 8) & 0xFF;
-  bytes[2] = (data1 >> 16) & 0xFF;
-  bytes[3] = (data1 >> 24) & 0xFF;
+  bytes[0] = data1 & 0xff;
+  bytes[1] = (data1 >> 8) & 0xff;
+  bytes[2] = (data1 >> 16) & 0xff;
+  bytes[3] = (data1 >> 24) & 0xff;
 
   // Data2 (2 bytes) - little endian
   const data2 = parseInt(parts[1] || '0', 16);
-  bytes[4] = data2 & 0xFF;
-  bytes[5] = (data2 >> 8) & 0xFF;
+  bytes[4] = data2 & 0xff;
+  bytes[5] = (data2 >> 8) & 0xff;
 
   // Data3 (2 bytes) - little endian
   const data3 = parseInt(parts[2] || '0', 16);
-  bytes[6] = data3 & 0xFF;
-  bytes[7] = (data3 >> 8) & 0xFF;
+  bytes[6] = data3 & 0xff;
+  bytes[7] = (data3 >> 8) & 0xff;
 
   // Data4 (8 bytes) - big endian
   const data4 = (parts[3] || '') + (parts[4] || '');
@@ -75,11 +75,7 @@ export function encodeGuidToBase64Url(guidString: string): string {
 }
 
 // Create a base query with enhanced error handling
-export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  EnhancedError
-> => {
+export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<string | FetchArgs, unknown, EnhancedError> => {
   const baseQuery = fetchBaseQuery({
     baseUrl,
     credentials: 'include',
@@ -114,7 +110,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
       const fetchError = result.error as FetchBaseQueryError;
       const enhancedError: EnhancedError = {
         status: fetchError.status,
-        data: fetchError.data
+        data: fetchError.data,
       };
 
       if ('error' in fetchError) {
@@ -138,8 +134,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
       }
 
       // Detect CORS errors
-      if (error.status === 'PARSING_ERROR' ||
-          (typeof error.status === 'number' && error.status === 0)) {
+      if (error.status === 'PARSING_ERROR' || (typeof error.status === 'number' && error.status === 0)) {
         error.isCorsError = true;
         devUtils.error('CORS error detected', error);
       }
@@ -158,10 +153,10 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
           status: 'CUSTOM_ERROR',
           data: {
             message: 'An unexpected error occurred',
-            isRecoverable: false
+            isRecoverable: false,
           },
-          error: String(unexpectedError)
-        } as EnhancedError
+          error: String(unexpectedError),
+        } as EnhancedError,
       };
     }
   };
@@ -171,7 +166,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
 export const withMockFallback = <T>(
   operation: () => Promise<T>,
   mockOperation: () => Promise<T>,
-  operationName: string
+  operationName: string,
 ): Promise<T> => {
   return operation().catch(async (error) => {
     // TODO: Re-enable mock API fallback when mockApi is needed
@@ -184,13 +179,13 @@ export const withMockFallback = <T>(
 export const createSafeQuery = <TArgs, TResult>(
   queryFn: (args: TArgs) => Promise<TResult>,
   mockFn: (args: TArgs) => Promise<TResult>,
-  operationName: string
+  operationName: string,
 ) => {
   return (args: TArgs): Promise<TResult> => {
     return withMockFallback(
       () => queryFn(args),
       () => mockFn(args),
-      operationName
+      operationName,
     );
   };
 };
@@ -218,6 +213,6 @@ export const handleMutationError = (error: any, operationName: string) => {
   return {
     message,
     isRecoverable: !!error?.data?.isRecoverable,
-    originalError: isDevelopment ? error : undefined
+    originalError: isDevelopment ? error : undefined,
   };
 };

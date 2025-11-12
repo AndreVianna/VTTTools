@@ -1,24 +1,14 @@
-import React from 'react';
 import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  useTheme,
-  Grid,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import {
-  Map as MapIcon,
-  LibraryBooks as LibraryIcon,
   Create as CreateIcon,
+  LibraryBooks as LibraryIcon,
+  Map as MapIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { useAuth } from '@/hooks/useAuth';
+import { Box, Button, Card, CardActions, CardContent, Container, Grid, Typography, useTheme } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import type React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 // Professional Hero Section with gradient background
 const HeroContainer = styled(Box)(({ theme }) => ({
@@ -120,26 +110,26 @@ export const LandingPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth='lg' sx={{ py: 4 }}>
       {isAuthenticated ? (
         // Dashboard Preview for authenticated users - Phase 2
         <Box>
           <Typography
-            id="dashboard-greeting"
-            variant="h2"
-            component="h1"
+            id='dashboard-greeting'
+            variant='h2'
+            component='h1'
             sx={{
               textAlign: 'center',
               mb: 2,
               color: theme.palette.text.primary,
             }}
           >
-            Welcome back, {user!.displayName}!
+            Welcome back, {user?.displayName}!
           </Typography>
 
           <Typography
-            id="dashboard-subtitle"
-            variant="h5"
+            id='dashboard-subtitle'
+            variant='h5'
             sx={{
               textAlign: 'center',
               color: theme.palette.text.secondary,
@@ -153,21 +143,29 @@ export const LandingPage: React.FC = () => {
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {/* Encounter Editor - Phase 3-4 Complete */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card id="card-encounter-editor" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card
+                id='card-encounter-editor'
+                elevation={2}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <MapIcon id="icon-encounter-editor" color="primary" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography id="title-encounter-editor" variant="h6" gutterBottom>
+                  <MapIcon id='icon-encounter-editor' color='primary' sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id='title-encounter-editor' variant='h6' gutterBottom>
                     Encounter Editor
                   </Typography>
-                  <Typography id="desc-encounter-editor" variant="body2" color="text.secondary">
+                  <Typography id='desc-encounter-editor' variant='body2' color='text.secondary'>
                     Create tactical maps with grids and tokens
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
                   <Button
-                    id="btn-open-editor"
-                    size="small"
-                    variant="contained"
+                    id='btn-open-editor'
+                    size='small'
+                    variant='contained'
                     onClick={() => navigate('/encounter-editor')}
                   >
                     Open Editor
@@ -178,21 +176,29 @@ export const LandingPage: React.FC = () => {
 
             {/* Library - Phase 7 Active */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card id="card-library" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card
+                id='card-library'
+                elevation={2}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <LibraryIcon id="icon-library" color="primary" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography id="title-library" variant="h6" gutterBottom>
+                  <LibraryIcon id='icon-library' color='primary' sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id='title-library' variant='h6' gutterBottom>
                     Library
                   </Typography>
-                  <Typography id="desc-library" variant="body2" color="text.secondary">
+                  <Typography id='desc-library' variant='body2' color='text.secondary'>
                     Manage encounters, adventures, campaigns
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
                   <Button
-                    id="btn-open-library"
-                    size="small"
-                    variant="contained"
+                    id='btn-open-library'
+                    size='small'
+                    variant='contained'
                     onClick={() => navigate('/content-library')}
                   >
                     Browse Library
@@ -203,23 +209,26 @@ export const LandingPage: React.FC = () => {
 
             {/* Asset Library - Active */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card id="card-asset-library" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card
+                id='card-asset-library'
+                elevation={2}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <CreateIcon id="icon-asset-library" color="primary" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography id="title-asset-library" variant="h6" gutterBottom>
+                  <CreateIcon id='icon-asset-library' color='primary' sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id='title-asset-library' variant='h6' gutterBottom>
                     Asset Library
                   </Typography>
-                  <Typography id="desc-asset-library" variant="body2" color="text.secondary">
+                  <Typography id='desc-asset-library' variant='body2' color='text.secondary'>
                     Browse creatures, characters, tokens
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                  <Button
-                    id="btn-browse-assets"
-                    size="small"
-                    variant="contained"
-                    onClick={() => navigate('/assets')}
-                  >
+                  <Button id='btn-browse-assets' size='small' variant='contained' onClick={() => navigate('/assets')}>
                     Browse Assets
                   </Button>
                 </CardActions>
@@ -228,18 +237,27 @@ export const LandingPage: React.FC = () => {
 
             {/* Account Settings - Phase 10 Planned */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card id="card-account-settings" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+              <Card
+                id='card-account-settings'
+                elevation={2}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  opacity: 0.6,
+                }}
+              >
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <SettingsIcon id="icon-account-settings" color="disabled" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography id="title-account-settings" variant="h6" gutterBottom>
+                  <SettingsIcon id='icon-account-settings' color='disabled' sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id='title-account-settings' variant='h6' gutterBottom>
                     Account Settings
                   </Typography>
-                  <Typography id="desc-account-settings" variant="body2" color="text.secondary">
+                  <Typography id='desc-account-settings' variant='body2' color='text.secondary'>
                     Profile, security, 2FA settings
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                  <Button id="btn-account-settings-disabled" size="small" disabled variant="outlined">
+                  <Button id='btn-account-settings-disabled' size='small' disabled variant='outlined'>
                     Coming Soon
                   </Button>
                 </CardActions>
@@ -249,26 +267,19 @@ export const LandingPage: React.FC = () => {
         </Box>
       ) : (
         // Hero section for non-authenticated users
-        <HeroContainer id="hero-section">
-          <HeroTitle id="hero-title" variant="h1">
+        <HeroContainer id='hero-section'>
+          <HeroTitle id='hero-title' variant='h1'>
             Craft Legendary Adventures
           </HeroTitle>
-          <HeroSubtitle id="hero-subtitle" variant="h5">
-            Professional Virtual Tabletop tools designed for Game Masters who create world campaigns and immersive worlds
+          <HeroSubtitle id='hero-subtitle' variant='h5'>
+            Professional Virtual Tabletop tools designed for Game Masters who create world campaigns and immersive
+            worlds
           </HeroSubtitle>
           <CTAContainer>
-            <PrimaryCTA
-              id="cta-start-creating"
-              variant="contained"
-              onClick={() => navigate('/register')}
-            >
+            <PrimaryCTA id='cta-start-creating' variant='contained' onClick={() => navigate('/register')}>
               Start Creating
             </PrimaryCTA>
-            <SecondaryCTA
-              id="cta-explore-features"
-              variant="outlined"
-              onClick={() => navigate('/login')}
-            >
+            <SecondaryCTA id='cta-explore-features' variant='outlined' onClick={() => navigate('/login')}>
               Explore Features
             </SecondaryCTA>
           </CTAContainer>

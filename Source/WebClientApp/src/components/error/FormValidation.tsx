@@ -1,27 +1,24 @@
 /* eslint-disable react-refresh/only-export-components */
 // FormValidation exports both validation components and utility functions (getErrorMessage, formatFieldName, useFormValidation hook)
 // These utilities are tightly coupled to form validation behavior and logically belong in the same file
-import React from 'react';
+
+import { Error as ErrorIcon, CheckCircle as SuccessIcon, Warning as WarningIcon } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
   Box,
+  Collapse,
   FormControl,
   FormHelperText,
-  TextField,
-  Typography,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Collapse,
+  TextField,
+  Typography,
 } from '@mui/material';
-import {
-  Error as ErrorIcon,
-  Warning as WarningIcon,
-  CheckCircle as SuccessIcon,
-} from '@mui/icons-material';
-import { FieldError, FieldErrors } from 'react-hook-form';
+import React from 'react';
+import type { FieldError, FieldErrors } from 'react-hook-form';
 
 /**
  * UC033 - Form Validation Error Display
@@ -65,22 +62,10 @@ export const FormValidation: React.FC<FormValidationProps> = ({
   }
 
   if (variant === 'detailed') {
-    return (
-      <DetailedFormValidation
-        errors={errorList}
-        touched={touched}
-        showSummary={showSummary}
-      />
-    );
+    return <DetailedFormValidation errors={errorList} touched={touched} showSummary={showSummary} />;
   }
 
-  return (
-    <StandardFormValidation
-      errors={errorList}
-      touched={touched}
-      showSummary={showSummary}
-    />
-  );
+  return <StandardFormValidation errors={errorList} touched={touched} showSummary={showSummary} />;
 };
 
 /**
@@ -96,23 +81,15 @@ const StandardFormValidation: React.FC<{
   }
 
   return (
-    <Alert
-      severity="error"
-      sx={{ mb: 2 }}
-      role="alert"
-      aria-live="polite"
-    >
+    <Alert severity='error' sx={{ mb: 2 }} role='alert' aria-live='polite'>
       <AlertTitle>Please correct the following errors:</AlertTitle>
       <List dense>
         {errors.map((error, index) => (
           <ListItem key={index} sx={{ py: 0.5 }}>
             <ListItemIcon sx={{ minWidth: 32 }}>
-              <ErrorIcon color="error" fontSize="small" />
+              <ErrorIcon color='error' fontSize='small' />
             </ListItemIcon>
-            <ListItemText
-              primary={error.message}
-              secondary={`Field: ${formatFieldName(error.field)}`}
-            />
+            <ListItemText primary={error.message} secondary={`Field: ${formatFieldName(error.field)}`} />
           </ListItem>
         ))}
       </List>
@@ -134,19 +111,18 @@ const DetailedFormValidation: React.FC<{
     <Box sx={{ mb: 2 }}>
       {showSummary && errors.length > 0 && (
         <Alert
-          severity="error"
+          severity='error'
           sx={{ mb: 2, cursor: 'pointer' }}
           onClick={() => setExpanded(!expanded)}
-          role="alert"
-          aria-live="polite"
+          role='alert'
+          aria-live='polite'
           aria-expanded={expanded}
         >
           <AlertTitle>
-            Form Validation ({errors.length} error{errors.length !== 1 ? 's' : ''})
+            Form Validation ({errors.length} error
+            {errors.length !== 1 ? 's' : ''})
           </AlertTitle>
-          <Typography variant="body2">
-            Click to {expanded ? 'hide' : 'show'} detailed error information
-          </Typography>
+          <Typography variant='body2'>Click to {expanded ? 'hide' : 'show'} detailed error information</Typography>
         </Alert>
       )}
 
@@ -174,19 +150,27 @@ const ValidationErrorItem: React.FC<{
 }> = ({ error, isTouched = true }) => {
   const getSeverityColor = () => {
     switch (error.type) {
-      case 'error': return 'error';
-      case 'warning': return 'warning';
-      case 'info': return 'info';
-      default: return 'error';
+      case 'error':
+        return 'error';
+      case 'warning':
+        return 'warning';
+      case 'info':
+        return 'info';
+      default:
+        return 'error';
     }
   };
 
   const getSeverityIcon = () => {
     switch (error.type) {
-      case 'error': return <ErrorIcon />;
-      case 'warning': return <WarningIcon />;
-      case 'info': return <SuccessIcon />;
-      default: return <ErrorIcon />;
+      case 'error':
+        return <ErrorIcon />;
+      case 'warning':
+        return <WarningIcon />;
+      case 'info':
+        return <SuccessIcon />;
+      default:
+        return <ErrorIcon />;
     }
   };
 
@@ -195,18 +179,12 @@ const ValidationErrorItem: React.FC<{
   }
 
   return (
-    <Alert
-      severity={getSeverityColor()}
-      variant="outlined"
-      icon={getSeverityIcon()}
-      role="alert"
-      aria-live="polite"
-    >
+    <Alert severity={getSeverityColor()} variant='outlined' icon={getSeverityIcon()} role='alert' aria-live='polite'>
       <Box>
-        <Typography variant="body2" fontWeight={500}>
+        <Typography variant='body2' fontWeight={500}>
           {formatFieldName(error.field)}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant='body2' color='text.secondary'>
           {error.message}
         </Typography>
       </Box>
@@ -250,9 +228,12 @@ export const ValidatedTextField: React.FC<ValidatedTextFieldProps> = ({
         ...textFieldProps.FormHelperTextProps,
       }}
       InputProps={{
-        endAdornment: showValidationIcon && hasError ? (
-          <ErrorIcon color="error" fontSize="small" />
-        ) : textFieldProps.InputProps?.endAdornment,
+        endAdornment:
+          showValidationIcon && hasError ? (
+            <ErrorIcon color='error' fontSize='small' />
+          ) : (
+            textFieldProps.InputProps?.endAdornment
+          ),
         ...textFieldProps.InputProps,
       }}
       sx={{
@@ -296,8 +277,8 @@ export const ValidatedFormControl: React.FC<ValidatedFormControlProps> = ({
   return (
     <FormControl error={hasError} fullWidth>
       <Typography
-        variant="body2"
-        component="label"
+        variant='body2'
+        component='label'
         htmlFor={name}
         sx={{
           mb: 1,
@@ -307,7 +288,7 @@ export const ValidatedFormControl: React.FC<ValidatedFormControlProps> = ({
       >
         {label}
         {required && (
-          <Typography component="span" color="error.main" sx={{ ml: 0.5 }}>
+          <Typography component='span' color='error.main' sx={{ ml: 0.5 }}>
             *
           </Typography>
         )}
@@ -317,8 +298,8 @@ export const ValidatedFormControl: React.FC<ValidatedFormControlProps> = ({
 
       {hasError && (
         <FormHelperText
-          role="alert"
-          aria-live="polite"
+          role='alert'
+          aria-live='polite'
           sx={{
             backgroundColor: 'error.light',
             color: 'error.contrastText',
@@ -329,7 +310,7 @@ export const ValidatedFormControl: React.FC<ValidatedFormControlProps> = ({
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <ErrorIcon fontSize="small" />
+            <ErrorIcon fontSize='small' />
             {errorMessage}
           </Box>
         </FormHelperText>
@@ -373,7 +354,7 @@ function formatFieldName(fieldName: string): string {
   // Convert camelCase to Title Case
   return fieldName
     .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, str => str.toUpperCase())
+    .replace(/^./, (str) => str.toUpperCase())
     .trim();
 }
 
@@ -384,15 +365,18 @@ export function useFormValidation() {
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
 
   const markAsTouched = React.useCallback((field: string) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
+    setTouched((prev) => ({ ...prev, [field]: true }));
   }, []);
 
   const markAllAsTouched = React.useCallback((fields: string[]) => {
-    const touchedFields = fields.reduce((acc, field) => {
-      acc[field] = true;
-      return acc;
-    }, {} as Record<string, boolean>);
-    setTouched(prev => ({ ...prev, ...touchedFields }));
+    const touchedFields = fields.reduce(
+      (acc, field) => {
+        acc[field] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    );
+    setTouched((prev) => ({ ...prev, ...touchedFields }));
   }, []);
 
   const resetTouched = React.useCallback(() => {

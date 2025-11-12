@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mockApi } from './mockApi';
-import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CreatureAsset, ObjectAsset } from '@/types/domain';
+import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
+import { mockApi } from './mockApi';
 
 describe('MockApiService', () => {
   beforeEach(() => {
@@ -29,12 +29,12 @@ describe('MockApiService', () => {
 
     it('should include assets with tokens', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithTokens = assets.filter(a => a.tokens.length > 0);
+      const assetsWithTokens = assets.filter((a) => a.tokens.length > 0);
 
       expect(assetsWithTokens.length).toBeGreaterThan(0);
 
-      assetsWithTokens.forEach(asset => {
-        asset.tokens.forEach(token => {
+      assetsWithTokens.forEach((asset) => {
+        asset.tokens.forEach((token) => {
           expect(token).toHaveProperty('tokenId');
           expect(token).toHaveProperty('isDefault');
           expect(token.isDefault).toBeTypeOf('boolean');
@@ -52,22 +52,22 @@ describe('MockApiService', () => {
 
     it('should include assets with portraits', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithPortrait = assets.filter(a => a.portrait !== undefined);
+      const assetsWithPortrait = assets.filter((a) => a.portrait !== undefined);
 
       expect(assetsWithPortrait.length).toBeGreaterThan(0);
 
-      assetsWithPortrait.forEach(asset => {
+      assetsWithPortrait.forEach((asset) => {
         expect(asset.portrait).toHaveProperty('id');
         expect(asset.portrait).toHaveProperty('type');
         expect(asset.portrait).toHaveProperty('path');
         expect(asset.portrait).toHaveProperty('metadata');
-        expect(asset.portrait!.type).toBe(ResourceType.Image);
+        expect(asset.portrait?.type).toBe(ResourceType.Image);
       });
     });
 
     it('should include assets without portraits', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithoutPortrait = assets.filter(a => a.portrait === undefined);
+      const assetsWithoutPortrait = assets.filter((a) => a.portrait === undefined);
 
       expect(assetsWithoutPortrait.length).toBeGreaterThan(0);
     });
@@ -75,7 +75,7 @@ describe('MockApiService', () => {
     it('should have size at root level', async () => {
       const assets = await mockApi.mockGetAssets();
 
-      assets.forEach(asset => {
+      assets.forEach((asset) => {
         expect(asset.size).toBeDefined();
         expect(asset.size).toHaveProperty('width');
         expect(asset.size).toHaveProperty('height');
@@ -88,11 +88,11 @@ describe('MockApiService', () => {
 
     it('should include creature assets with CreatureData', async () => {
       const assets = await mockApi.mockGetAssets();
-      const creatures = assets.filter(a => a.kind === AssetKind.Creature) as CreatureAsset[];
+      const creatures = assets.filter((a) => a.kind === AssetKind.Creature) as CreatureAsset[];
 
       expect(creatures.length).toBeGreaterThan(0);
 
-      creatures.forEach(creature => {
+      creatures.forEach((creature) => {
         expect(creature).toHaveProperty('category');
         expect(creature.category).toBeTypeOf('string');
         expect([CreatureCategory.Character, CreatureCategory.Monster]).toContain(creature.category);
@@ -102,11 +102,11 @@ describe('MockApiService', () => {
 
     it('should include object assets with ObjectData', async () => {
       const assets = await mockApi.mockGetAssets();
-      const objects = assets.filter(a => a.kind === AssetKind.Object) as ObjectAsset[];
+      const objects = assets.filter((a) => a.kind === AssetKind.Object) as ObjectAsset[];
 
       expect(objects.length).toBeGreaterThan(0);
 
-      objects.forEach(obj => {
+      objects.forEach((obj) => {
         expect(obj).toHaveProperty('isMovable');
         expect(obj).toHaveProperty('isOpaque');
         expect(typeof obj.isMovable).toBe('boolean');
@@ -118,40 +118,40 @@ describe('MockApiService', () => {
     it('should include diverse asset sizes', async () => {
       const assets = await mockApi.mockGetAssets();
 
-      const sizes = assets.map(a => `${a.size.width}x${a.size.height}`);
+      const sizes = assets.map((a) => `${a.size.width}x${a.size.height}`);
       const uniqueSizes = new Set(sizes);
 
       expect(uniqueSizes.size).toBeGreaterThan(2);
       expect(sizes).toContain('1x1');
-      expect(sizes.some(s => s !== '1x1')).toBe(true);
+      expect(sizes.some((s) => s !== '1x1')).toBe(true);
     });
 
     it('should include assets with multiple tokens', async () => {
       const assets = await mockApi.mockGetAssets();
-      const multiToken = assets.filter(a => a.tokens.length > 1);
+      const multiToken = assets.filter((a) => a.tokens.length > 1);
 
       expect(multiToken.length).toBeGreaterThan(0);
 
-      multiToken.forEach(asset => {
+      multiToken.forEach((asset) => {
         expect(asset.tokens.length).toBeGreaterThan(1);
       });
     });
 
     it('should include edge case: asset with no tokens', async () => {
       const assets = await mockApi.mockGetAssets();
-      const noTokens = assets.filter(a => a.tokens.length === 0);
+      const noTokens = assets.filter((a) => a.tokens.length === 0);
 
       expect(noTokens.length).toBeGreaterThan(0);
 
-      noTokens.forEach(asset => {
+      noTokens.forEach((asset) => {
         expect(asset.tokens).toEqual([]);
       });
     });
 
     it('should include edge case: asset with multiple default tokens', async () => {
       const assets = await mockApi.mockGetAssets();
-      const multiDefault = assets.filter(a => {
-        const defaultCount = a.tokens.filter(t => t.isDefault).length;
+      const multiDefault = assets.filter((a) => {
+        const defaultCount = a.tokens.filter((t) => t.isDefault).length;
         return defaultCount > 1;
       });
 
@@ -160,8 +160,8 @@ describe('MockApiService', () => {
 
     it('should include square and non-square assets', async () => {
       const assets = await mockApi.mockGetAssets();
-      const square = assets.filter(a => a.size.isSquare);
-      const nonSquare = assets.filter(a => !a.size.isSquare);
+      const square = assets.filter((a) => a.size.isSquare);
+      const nonSquare = assets.filter((a) => !a.size.isSquare);
 
       expect(square.length).toBeGreaterThan(0);
       expect(nonSquare.length).toBeGreaterThan(0);
@@ -169,9 +169,9 @@ describe('MockApiService', () => {
 
     it('should have realistic media resource metadata', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithTokens = assets.filter(a => a.tokens.length > 0 && a.tokens[0]?.token);
+      const assetsWithTokens = assets.filter((a) => a.tokens.length > 0 && a.tokens[0]?.token);
 
-      assetsWithTokens.forEach(asset => {
+      assetsWithTokens.forEach((asset) => {
         const token = asset.tokens[0]?.token;
         expect(token).toBeDefined();
         expect(token?.metadata.contentType).toBe('image/png');
