@@ -154,6 +154,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     size: { width: number; height: number };
   } | null>(null);
   const [invalidAssetPositions, setInvalidAssetPositions] = useState<Array<{ x: number; y: number }>>([]);
+  const [draggedAssetNodePositions, setDraggedAssetNodePositions] = useState<Map<string, { x: number; y: number }>>(
+    new Map(),
+  );
   const hasCalledReadyRef = useRef<boolean>(false);
   const snapModeRef = useRef(snapMode);
   const selectedAssetIdsRef = useRef(selectedAssetIds);
@@ -185,7 +188,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
           : undefined;
       const creatureProperties =
         asset.asset.kind === 'Creature'
-          ? { size: (asset.asset as CreatureAsset).size, category: (asset.asset as CreatureAsset).category }
+          ? {
+              size: (asset.asset as CreatureAsset).size,
+              category: (asset.asset as CreatureAsset).category,
+            }
           : undefined;
       return getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
     });
@@ -358,7 +364,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             : undefined;
         const creatureProperties =
           asset.asset.kind === 'Creature'
-            ? { size: (asset.asset as CreatureAsset).size, category: (asset.asset as CreatureAsset).category }
+            ? {
+                size: (asset.asset as CreatureAsset).size,
+                category: (asset.asset as CreatureAsset).category,
+              }
             : undefined;
         const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
 
@@ -375,7 +384,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 : undefined;
             const otherCreatureProperties =
               other.asset.kind === 'Creature'
-                ? { size: (other.asset as CreatureAsset).size, category: (other.asset as CreatureAsset).category }
+                ? {
+                    size: (other.asset as CreatureAsset).size,
+                    category: (other.asset as CreatureAsset).category,
+                  }
                 : undefined;
             const otherBehavior = getPlacementBehavior(
               other.asset.kind,
@@ -435,6 +447,15 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         position: snappedCenter,
         size: placedAsset.size,
       });
+
+      const newPositions = new Map<string, { x: number; y: number }>();
+      currentSelection.forEach((id) => {
+        const assetNode = stage.findOne(`#${id}`);
+        if (assetNode) {
+          newPositions.set(id, assetNode.position());
+        }
+      });
+      setDraggedAssetNodePositions(newPositions);
     },
     [gridConfig, stageRef],
   );
@@ -496,6 +517,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
       setIsDragValid(true);
       isDragValidRef.current = true;
       setInvalidAssetPositions([]);
+      setDraggedAssetNodePositions(new Map());
     },
     [onAssetMoved, stageRef],
   );
@@ -642,71 +664,64 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
     const handlersToCleanup = attachedHandlersRef.current;
 
-    // Wait for next frame to ensure Konva has rendered all nodes
-    const frameId = requestAnimationFrame(() => {
-      const currentAssetIds = new Set(placedAssets.map((a) => a.id));
+    const currentAssetIds = new Set(placedAssets.map((a) => a.id));
 
-      // Remove handlers from assets that no longer exist
-      attachedHandlersRef.current.forEach((assetId) => {
-        if (!currentAssetIds.has(assetId)) {
-          const node = stage.findOne(`#${assetId}`);
-          if (node) {
-            node.off('click', handleNodeClick);
-            node.off('dragstart', handleDragStart);
-            node.off('dragmove', handleDragMove);
-            node.off('dragend', handleDragEnd);
-          }
-          attachedHandlersRef.current.delete(assetId);
-        }
-      });
-
-      // Attach handlers to new assets
-      placedAssets.forEach((placedAsset) => {
-        if (attachedHandlersRef.current.has(placedAsset.id)) {
-          return;
-        }
-
-        const node = stage.findOne(`#${placedAsset.id}`);
-
+    attachedHandlersRef.current.forEach((assetId) => {
+      if (!currentAssetIds.has(assetId)) {
+        const node = stage.findOne(`#${assetId}`);
         if (node) {
-          const objectProperties =
-            placedAsset.asset.kind === 'Object'
-              ? {
-                  size: (placedAsset.asset as ObjectAsset).size,
-                  isMovable: (placedAsset.asset as ObjectAsset).isMovable,
-                  isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
-                }
-              : undefined;
-          const creatureProperties =
-            placedAsset.asset.kind === 'Creature'
-              ? {
-                  size: (placedAsset.asset as CreatureAsset).size,
-                  category: (placedAsset.asset as CreatureAsset).category,
-                }
-              : undefined;
-          const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, creatureProperties);
-
-          const isDraggable =
-            behavior.canMove &&
-            (selectedAssetIds.length === 0 || !selectedAssetIds.includes(placedAsset.id) || availableActions.canMove);
-          node.draggable(isDraggable);
-          node.on('click', handleNodeClick);
-          node.on('dragstart', handleDragStart);
-          node.on('dragmove', handleDragMove);
-          node.on('dragend', handleDragEnd);
-          attachedHandlersRef.current.add(placedAsset.id);
+          node.off('click', handleNodeClick);
+          node.off('dragstart', handleDragStart);
+          node.off('dragmove', handleDragMove);
+          node.off('dragend', handleDragEnd);
         }
-      });
-
-      if (!hasCalledReadyRef.current && onReady) {
-        hasCalledReadyRef.current = true;
-        onReady();
+        attachedHandlersRef.current.delete(assetId);
       }
     });
 
-    return () => {
-      cancelAnimationFrame(frameId);
+    placedAssets.forEach((placedAsset) => {
+      if (attachedHandlersRef.current.has(placedAsset.id)) {
+        return;
+      }
 
+      const node = stage.findOne(`#${placedAsset.id}`);
+
+      if (node) {
+        const objectProperties =
+          placedAsset.asset.kind === 'Object'
+            ? {
+                size: (placedAsset.asset as ObjectAsset).size,
+                isMovable: (placedAsset.asset as ObjectAsset).isMovable,
+                isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
+              }
+            : undefined;
+        const creatureProperties =
+          placedAsset.asset.kind === 'Creature'
+            ? {
+                size: (placedAsset.asset as CreatureAsset).size,
+                category: (placedAsset.asset as CreatureAsset).category,
+              }
+            : undefined;
+        const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, creatureProperties);
+
+        const isDraggable =
+          behavior.canMove &&
+          (selectedAssetIds.length === 0 || !selectedAssetIds.includes(placedAsset.id) || availableActions.canMove);
+        node.draggable(isDraggable);
+        node.on('click', handleNodeClick);
+        node.on('dragstart', handleDragStart);
+        node.on('dragmove', handleDragMove);
+        node.on('dragend', handleDragEnd);
+        attachedHandlersRef.current.add(placedAsset.id);
+      }
+    });
+
+    if (!hasCalledReadyRef.current && onReady) {
+      hasCalledReadyRef.current = true;
+      onReady();
+    }
+
+    return () => {
       handlersToCleanup.forEach((assetId) => {
         const node = stage?.findOne(`#${assetId}`);
         if (node) {
@@ -730,33 +745,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     availableActions.canMove,
     selectedAssetIds,
   ]);
-
-  // Helper to get actual node position (for selection borders during drag)
-  const [draggedAssetNodePositions, setDraggedAssetNodePositions] = useState<Map<string, { x: number; y: number }>>(
-    new Map(),
-  );
-
-  useEffect(() => {
-    if (!isDraggingAsset || !stageRef.current) {
-      return;
-    }
-
-    const frameId = requestAnimationFrame(() => {
-      const positions = new Map<string, { x: number; y: number }>();
-      selectedAssetIds.forEach((assetId) => {
-        const node = stageRef.current?.findOne(`#${assetId}`);
-        if (node) {
-          positions.set(assetId, node.position());
-        }
-      });
-      setDraggedAssetNodePositions(positions);
-    });
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      setDraggedAssetNodePositions(new Map());
-    };
-  }, [isDraggingAsset, stageRef, selectedAssetIds]);
 
   const getAssetRenderPosition = useCallback(
     (assetId: string) => {

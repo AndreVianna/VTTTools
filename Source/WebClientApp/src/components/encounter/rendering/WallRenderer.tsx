@@ -96,9 +96,9 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
         }}
       />
 
-      {encounterWall.poles.map((pole) => (
+      {encounterWall.poles.map((pole, index) => (
         <Circle
-          key={`pole-${pole.x}-${pole.y}`}
+          key={`pole-${pole.x}-${pole.y}-${index}`}
           x={pole.x}
           y={pole.y}
           radius={poleRadius}

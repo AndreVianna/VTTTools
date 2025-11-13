@@ -2,7 +2,7 @@ import {
   Clear as ClearIcon,
   Pets as CreaturesIcon,
   AutoAwesome as EffectsIcon,
-  VisibilityOff as FogOfWarIcon,
+  Cloud as FogOfWarIcon,
   GridOn as GridIcon,
   ViewInAr as ObjectsIcon,
   MeetingRoom as OpeningsIcon,
@@ -142,15 +142,6 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
                   <GridIcon sx={{ fontSize: 16 }} />
                 </IconButton>
               </Tooltip>
-
-              <Box
-                sx={{
-                  width: 1,
-                  height: 20,
-                  backgroundColor: theme.palette.divider,
-                  mx: 0.5,
-                }}
-              />
 
               {visibilityLayers.map(({ key, icon: Icon, label }) => {
                 const isVisible = layerVisibility[key] ?? true;

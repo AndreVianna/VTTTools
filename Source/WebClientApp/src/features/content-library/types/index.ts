@@ -19,6 +19,4 @@ export type {
 export {
   getDefaultGrid,
   getDefaultStage,
-  mapEncounterAssetToPlaced,
-  mapPlacedToEncounterAsset,
 } from './encounter';

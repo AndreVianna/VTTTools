@@ -139,21 +139,22 @@ export const useAssetManagement = ({
 
                 if (newBackendAsset) {
                   const backendIndex = newBackendAsset.index;
-
                   setEntityMapping(encounterId, 'assets', placedAsset.id, backendIndex);
+
+                  setPlacedAssets((prev) =>
+                    prev.map((a) =>
+                      a.id === placedAsset.id
+                        ? {
+                            ...a,
+                            index: backendIndex,
+                            number: newBackendAsset.number,
+                          }
+                        : a,
+                    ),
+                  );
                 } else {
                   console.warn('[PlaceAssetCommand] New backend asset not found - mapping not created!');
                 }
-
-                const hydratedAssets = await hydratePlacedAssets(
-                  updatedEncounter.assets,
-                  encounterId,
-                  async (assetId: string) => {
-                    const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                    return result;
-                  },
-                );
-                setPlacedAssets(hydratedAssets);
               }
             } catch (error) {
               console.error('Failed to persist placed asset:', error);
@@ -194,17 +195,7 @@ export const useAssetManagement = ({
       });
       execute(command);
     },
-    [
-      encounterId,
-      isOnline,
-      encounter,
-      addEncounterAsset,
-      removeEncounterAsset,
-      refetch,
-      setEncounter,
-      dispatch,
-      execute,
-    ],
+    [encounterId, isOnline, encounter, addEncounterAsset, removeEncounterAsset, refetch, setEncounter, execute],
   );
 
   const handleAssetMoved = useCallback(

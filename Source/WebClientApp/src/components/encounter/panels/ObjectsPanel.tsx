@@ -326,7 +326,8 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                         color: theme.palette.text.secondary,
                       }}
                     >
-                      Position: ({placedAsset.position.x.toFixed(0)}, {placedAsset.position.y.toFixed(0)})
+                      Position: ({placedAsset.position?.x?.toFixed(0) ?? '0'},{' '}
+                      {placedAsset.position?.y?.toFixed(0) ?? '0'})
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 2 }}>

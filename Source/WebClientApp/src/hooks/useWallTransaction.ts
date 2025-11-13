@@ -262,16 +262,6 @@ export const useWallTransaction = () => {
           const segment = segmentsToProcess[i];
           const assignedName = names[i];
 
-          console.log('[useWallTransaction.commitTransaction] Segment:', {
-            tempId: segment?.tempId,
-            wallIndex: segment?.wallIndex,
-            name: assignedName,
-            material: segment?.material,
-            color: segment?.color,
-            isClosed: segment?.isClosed,
-            poleCount: segment?.poles?.length,
-          });
-
           try {
             if (segment?.wallIndex !== null) {
               const updatePayload = {
@@ -284,8 +274,6 @@ export const useWallTransaction = () => {
                 material: segment?.material || undefined,
                 color: segment?.color || undefined,
               };
-
-              console.log('[useWallTransaction.commitTransaction] UPDATE API payload:', updatePayload);
 
               await updateEncounterWall(updatePayload).unwrap();
 
@@ -303,8 +291,6 @@ export const useWallTransaction = () => {
                 material: segment?.material || undefined,
                 color: segment?.color || undefined,
               };
-
-              console.log('[useWallTransaction.commitTransaction] ADD API payload:', addPayload);
 
               const result = await addEncounterWall(addPayload).unwrap();
 

@@ -279,17 +279,17 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   height,
   ...imgProps
 }) => {
-  const [prevSrc, setPrevSrc] = useState(src);
   const [imageState, setImageState] = useState({
+    prevSrc: src,
     currentSrc: src,
     isLoading: true,
     hasError: false,
     retryCount: 0,
   });
 
-  if (src !== prevSrc) {
-    setPrevSrc(src);
+  if (src !== imageState.prevSrc) {
     setImageState({
+      prevSrc: src,
       currentSrc: src,
       isLoading: true,
       hasError: false,
