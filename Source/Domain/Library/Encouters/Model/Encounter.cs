@@ -14,6 +14,7 @@ public record Encounter {
     public Grid Grid { get; init; } = new();
     public List<EncounterAsset> Assets { get; init; } = [];
     public List<EncounterWall> Walls { get; init; } = [];
+    public List<EncounterOpening> Openings { get; init; } = [];
     public List<EncounterRegion> Regions { get; init; } = [];
     public List<EncounterSource> Sources { get; init; } = [];
     public List<EncounterEffect> Effects { get; init; } = [];
