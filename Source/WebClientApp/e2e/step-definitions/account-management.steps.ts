@@ -36,7 +36,7 @@ declare module '../support/world' {
       userName: string;
       email: string;
       phoneNumber?: string;
-      profilworldtureUrl?: string;
+      profilePictureUrl?: string;
     };
     newUserName?: string;
     newPhoneNumber?: string;
@@ -109,7 +109,7 @@ Given('I have a profile with username, email, and phone', async function (this: 
 
 Given('I have uploaded a profile picture', async function (this: CustomWorld) {
   // Mock profile picture URL
-  this.profileData.profilworldtureUrl = '/test-data/images/avatar.jpg';
+  this.profileData.profilePictureUrl = '/test-data/images/avatar.jpg';
 });
 
 When('I navigate to profile settings', async function (this: CustomWorld) {

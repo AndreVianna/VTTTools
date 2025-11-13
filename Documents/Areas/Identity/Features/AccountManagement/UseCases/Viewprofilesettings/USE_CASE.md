@@ -136,7 +136,7 @@
     name: string
     displayName: string
     phoneNumber?: string
-    profilworldtureUrl?: string
+    profilePictureUrl?: string
     emailConfirmed: boolean
     twoFactorEnabled: boolean
     createdAt: Date

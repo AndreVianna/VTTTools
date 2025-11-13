@@ -16,7 +16,7 @@ export interface User {
   accessFailedCount: number;
   createdAt: string;
   lastLoginAt?: string;
-  profilworldtureUrl?: string;
+  profilePictureUrl?: string;
 }
 
 // Standard API response wrapper
@@ -638,7 +638,7 @@ export interface UpdateProfileRequest {
   name?: string;
   displayName?: string;
   phoneNumber?: string;
-  profilworldtureUrl?: string;
+  profilePictureUrl?: string;
 }
 
 export enum LabelVisibility {
