@@ -31,6 +31,9 @@ public record EncounterOpeningAddData
         if (string.IsNullOrWhiteSpace(Type) || Type.Length > 32)
             result += new Error("Opening type must be between 1 and 32 characters.", nameof(Type));
 
+        if (CenterPosition < 0)
+            result += new Error("Opening center position must be greater than or equal to 0.", nameof(CenterPosition));
+
         if (Width <= 0)
             result += new Error("Opening width must be greater than 0.", nameof(Width));
 
