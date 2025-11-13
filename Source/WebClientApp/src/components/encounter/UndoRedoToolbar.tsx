@@ -17,7 +17,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
-import { useUndoRedoContext } from '@/contexts/UndoRedoContext';
+import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 
 export const UndoRedoToolbar: React.FC = () => {
   const theme = useTheme();

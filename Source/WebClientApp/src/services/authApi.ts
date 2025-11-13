@@ -47,12 +47,18 @@ export const authApi = createApi({
     getCurrentUser: builder.query<User, void>({
       query: () => '/me',
       providesTags: ['User'],
-      transformResponse: (response: unknown) => {
+      transformResponse: (response: unknown): User => {
         const resp = response as { User?: User; user?: User } | User;
         if (resp && typeof resp === 'object' && ('User' in resp || 'user' in resp)) {
-          return (resp as { User?: User; user?: User }).User || (resp as { User?: User; user?: User }).user;
+          const user = (resp as { User?: User; user?: User }).User || (resp as { User?: User; user?: User }).user;
+          if (user) {
+            return user;
+          }
         }
-        return resp as User;
+        if (resp && typeof resp === 'object' && 'id' in resp) {
+          return resp as User;
+        }
+        throw new Error('Invalid user response format');
       },
       transformErrorResponse: (response, _meta, _arg) => {
         return response;

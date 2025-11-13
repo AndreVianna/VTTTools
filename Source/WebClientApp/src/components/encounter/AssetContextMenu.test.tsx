@@ -1,13 +1,24 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { mockCreatureAsset } from '@/test-utils/assetMocks';
 import { LabelPosition, LabelVisibility, type PlacedAsset } from '../../types/domain';
 import { AssetContextMenu } from './AssetContextMenu';
 
 describe('AssetContextMenu', () => {
-  const mockAsset: Partial<PlacedAsset> = {
+  const mockAsset: PlacedAsset = {
     id: '123',
+    assetId: 'asset-123',
+    asset: mockCreatureAsset({ id: 'asset-123', name: 'Test Asset' }),
+    position: { x: 100, y: 100 },
+    size: { width: 50, height: 50 },
+    rotation: 0,
+    layer: 'agents',
+    index: 0,
+    number: 1,
     name: 'Test Asset',
-    displayName: LabelVisibility.Default,
+    visible: true,
+    locked: false,
+    labelVisibility: LabelVisibility.Default,
     labelPosition: LabelPosition.Default,
   };
 
@@ -17,7 +28,7 @@ describe('AssetContextMenu', () => {
         anchorPosition={{ left: 100, top: 100 }}
         open={true}
         onClose={vi.fn()}
-        asset={mockAsset as PlacedAsset}
+        asset={mockAsset}
         onRename={vi.fn()}
         onUpdateDisplay={vi.fn()}
       />,
@@ -174,9 +185,9 @@ describe('AssetContextMenu', () => {
   });
 
   it('shows checkmark for current display name', () => {
-    const assetWithDisplay = {
+    const assetWithDisplay: PlacedAsset = {
       ...mockAsset,
-      displayName: LabelVisibility.Always,
+      labelVisibility: LabelVisibility.Always,
     };
 
     render(

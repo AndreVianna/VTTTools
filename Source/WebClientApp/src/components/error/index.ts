@@ -31,14 +31,14 @@ export {
 } from './AssetLoadingError';
 // UC035 - Encounter Saving/Loading Error Recovery
 export { EncounterRecoveryManager } from './EncounterRecovery';
-export type { ErrorBoundaryFallbackProps } from './ErrorBoundary';
 // UC036 - System Error Display
-export { ErrorBoundary, withErrorBoundary } from './ErrorBoundary';
+export { ErrorBoundary } from './ErrorBoundary';
+export type { ErrorBoundaryFallbackProps } from './errorBoundaryUtils';
+export { withErrorBoundary } from './errorBoundaryUtils';
 export type { FormValidationProps, ValidationError } from './FormValidation';
 // UC033 - Form Validation Error Display
 export {
   FormValidation,
-  useFormValidation,
   ValidatedFormControl,
   ValidatedTextField,
 } from './FormValidation';
@@ -47,3 +47,4 @@ export { GlobalErrorDisplay } from './GlobalErrorDisplay';
 // UC032 - Network Connection Error Handling
 export { NetworkStatus, NetworkStatusIndicator } from './NetworkStatus';
 export { ServiceUnavailablePage } from './ServiceUnavailablePage';
+export { useFormValidation } from './useFormValidation';

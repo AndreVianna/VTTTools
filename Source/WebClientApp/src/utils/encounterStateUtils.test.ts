@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Encounter, EncounterRegion, EncounterWall } from '@/types/domain';
+import { Light, WallVisibility, Weather } from '@/types/domain';
 import {
   addRegionOptimistic,
   addWallOptimistic,
@@ -19,8 +20,8 @@ const createMockEncounter = (overrides?: Partial<Encounter>): Encounter => ({
   name: 'Test Encounter',
   description: 'A test encounter',
   isPublished: false,
-  light: 'Bright' as 'Bright',
-  weather: 'Clear' as 'Clear',
+  light: Light.Bright,
+  weather: Weather.Clear,
   elevation: 0,
   grid: {
     type: 0,
@@ -45,7 +46,7 @@ const createMockWall = (overrides?: Partial<EncounterWall>): EncounterWall => ({
   index: 0,
   name: 'Wall',
   poles: [],
-  visibility: 'Normal' as 'Normal',
+  visibility: WallVisibility.Normal,
   isClosed: false,
   ...overrides,
 });

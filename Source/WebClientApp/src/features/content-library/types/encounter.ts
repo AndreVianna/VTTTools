@@ -1,4 +1,4 @@
-import { type MediaResource } from '@/types/domain';
+import type { MediaResource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface Point {

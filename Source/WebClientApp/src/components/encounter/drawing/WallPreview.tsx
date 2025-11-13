@@ -58,7 +58,14 @@ export const WallPreview: React.FC<WallPreviewProps> = ({ poles, previewPoint, w
 
       {/* Poles as 5px circles (blue) */}
       {poles.map((pole, index) => (
-        <Circle key={`pole-${pole.x}-${pole.y}-${index}`} x={pole.x} y={pole.y} radius={5} fill={blueColor} listening={false} />
+        <Circle
+          key={`pole-${pole.x}-${pole.y}-${index}`}
+          x={pole.x}
+          y={pole.y}
+          radius={5}
+          fill={blueColor}
+          listening={false}
+        />
       ))}
 
       {/* Preview line from last pole to cursor - solid blue (same as normal wall segments) */}

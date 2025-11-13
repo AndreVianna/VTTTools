@@ -40,7 +40,11 @@ export async function hydratePlacedAssets(
       const asset = assets[arrayIndex];
       if (!asset) return null;
 
-      const encounterAssetData = sa as any;
+      // Handle both old format (x, y, width, height) and new format (position, size)
+      const encounterAssetData = sa as EncounterAsset & {
+        position?: { x: number; y: number };
+        size?: { width: number; height: number };
+      };
       const position = encounterAssetData.position || { x: sa.x, y: sa.y };
       const size = encounterAssetData.size || { width: sa.width, height: sa.height };
 

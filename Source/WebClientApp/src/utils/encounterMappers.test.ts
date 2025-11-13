@@ -195,6 +195,7 @@ describe('hydratePlacedAssets', () => {
           scaleX: 1,
           scaleY: 1,
           layer: 0,
+          elevation: 0,
           visible: true,
           locked: false,
           asset: mockCreatureAssetData,
@@ -214,9 +215,11 @@ describe('hydratePlacedAssets', () => {
           scaleX: 1,
           scaleY: 1,
           layer: 0,
+          elevation: 0,
           visible: true,
           locked: false,
           asset: mockCreatureAssetData,
+          name: '',
           index: 1,
           number: 2,
         },
@@ -232,10 +235,13 @@ describe('hydratePlacedAssets', () => {
           scaleX: 1,
           scaleY: 1,
           layer: 0,
+          elevation: 0,
           visible: true,
           locked: false,
           asset: mockObjectAssetData,
           name: 'Magic Chest',
+          index: 2,
+          number: 1,
         },
       ];
 
@@ -479,10 +485,9 @@ describe('hydratePlacedAssets', () => {
     });
 
     it('uses backend values when explicitly set for creatures', async () => {
-      const encounterAsset = createMockEncounterAsset({
-        displayName: LabelVisibility.Never,
-        labelPosition: LabelPosition.Top,
-      });
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+      const encounterAsset = createMockEncounterAsset({});
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -496,10 +501,7 @@ describe('hydratePlacedAssets', () => {
       localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.OnHover);
       localStorage.setItem('vtt-creatures-label-position', LabelPosition.Middle);
 
-      const encounterAsset = createMockEncounterAsset({
-        displayName: LabelVisibility.Default,
-        labelPosition: LabelPosition.Default,
-      });
+      const encounterAsset = createMockEncounterAsset({});
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -527,10 +529,7 @@ describe('hydratePlacedAssets', () => {
       localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Default);
       localStorage.setItem('vtt-creatures-label-position', LabelPosition.Default);
 
-      const encounterAsset = createMockEncounterAsset({
-        displayName: LabelVisibility.Default,
-        labelPosition: LabelPosition.Default,
-      });
+      const encounterAsset = createMockEncounterAsset({});
 
       const getAsset = async () => mockCreatureAssetData;
 
@@ -552,10 +551,10 @@ describe('hydratePlacedAssets', () => {
     });
 
     it('uses backend values when explicitly set for objects', async () => {
+      localStorage.setItem('vtt-objects-label-visibility', LabelVisibility.Always);
+      localStorage.setItem('vtt-objects-label-position', LabelPosition.Middle);
       const encounterAssetWithObject = createMockEncounterAsset({
         assetId: 'asset-2',
-        displayName: LabelVisibility.Always,
-        labelPosition: LabelPosition.Middle,
       });
 
       const getAsset = async () => mockObjectAssetData;
@@ -572,8 +571,6 @@ describe('hydratePlacedAssets', () => {
 
       const encounterAssetWithObject = createMockEncounterAsset({
         assetId: 'asset-2',
-        displayName: LabelVisibility.Default,
-        labelPosition: LabelPosition.Default,
       });
 
       const getAsset = async () => mockObjectAssetData;
@@ -624,13 +621,10 @@ describe('hydratePlacedAssets', () => {
     });
 
     it('backend values take precedence over localStorage', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Always);
+      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Bottom);
 
-      const encounterAsset = createMockEncounterAsset({
-        displayName: LabelVisibility.Always,
-        labelPosition: LabelPosition.Bottom,
-      });
+      const encounterAsset = createMockEncounterAsset({});
 
       const getAsset = async () => mockCreatureAssetData;
 

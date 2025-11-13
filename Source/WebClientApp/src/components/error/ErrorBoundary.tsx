@@ -1,23 +1,14 @@
-// ErrorBoundary exports both the error boundary component and utility functions (withErrorBoundary HOC, ErrorBoundaryFallbackProps interface)
-// These utilities are tightly coupled to the error boundary behavior and logically belong in the same file
-
 import { BugReport as BugReportIcon, Home as HomeIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { Alert, AlertTitle, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { handleSystemError } from '@/utils/errorHandling';
+import type { ErrorBoundaryFallbackProps } from './errorBoundaryUtils';
 
 interface Props {
   children: ReactNode;
   fallback?: React.ComponentType<ErrorBoundaryFallbackProps>;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
-}
-
-export interface ErrorBoundaryFallbackProps {
-  error: Error;
-  retry: () => void;
-  goHome: () => void;
-  reportError: () => void;
 }
 
 interface State {
@@ -246,24 +237,5 @@ const DefaultErrorFallback: React.FC<{
     </Box>
   );
 };
-
-/**
- * Higher-order component to wrap components with error boundary
- */
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: React.ComponentType<ErrorBoundaryFallbackProps> | undefined,
-  onError?: ((error: Error, errorInfo: ErrorInfo) => void) | undefined,
-) {
-  const WrappedComponent = (props: P) => (
-    <ErrorBoundary {...(fallback ? { fallback } : {})} {...(onError ? { onError } : {})}>
-      <Component {...props} />
-    </ErrorBoundary>
-  );
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-
-  return WrappedComponent;
-}
 
 export default ErrorBoundary;

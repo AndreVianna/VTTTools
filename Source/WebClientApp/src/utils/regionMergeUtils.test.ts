@@ -777,7 +777,7 @@ describe('mergePolygons', () => {
       { x: 10, y: 10 },
     ];
 
-    vi.mocked(polygonClipping.union).mockReturnValue([[null as unknown as [number, number]]]);
+    vi.mocked(polygonClipping.union).mockReturnValue([[null as unknown as [number, number][]]]);
 
     const result = mergePolygons([v1, v1]);
     expect(result).toEqual(v1);

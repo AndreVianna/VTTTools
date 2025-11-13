@@ -20,6 +20,7 @@ import type {
 } from '@/types/domain';
 import { createAssetSnapshot } from '@/types/domain';
 import {
+  type Command,
   createBatchCommand,
   createBulkRemoveAssetsCommand,
   createCopyAssetsCommand,
@@ -39,7 +40,7 @@ interface UseAssetManagementProps {
   encounter: Encounter | null;
   isOnline: boolean;
   setEncounter: (encounter: Encounter) => void;
-  execute: (command: unknown) => void;
+  execute: (command: Command) => void | Promise<void>;
   dispatch: AppDispatch;
 
   copyAssets: (assets: PlacedAsset[], encounterId: string) => void;
@@ -194,17 +195,7 @@ export const useAssetManagement = ({
       });
       execute(command);
     },
-    [
-      encounterId,
-      isOnline,
-      encounter,
-      addEncounterAsset,
-      removeEncounterAsset,
-      refetch,
-      setEncounter,
-      dispatch,
-      execute,
-    ],
+    [encounterId, isOnline, encounter, addEncounterAsset, removeEncounterAsset, refetch, setEncounter, execute],
   );
 
   const handleAssetMoved = useCallback(

@@ -1,8 +1,8 @@
 import {
   Clear as ClearIcon,
-  Cloud as FogOfWarIcon,
   Pets as CreaturesIcon,
   AutoAwesome as EffectsIcon,
+  Cloud as FogOfWarIcon,
   GridOn as GridIcon,
   ViewInAr as ObjectsIcon,
   MeetingRoom as OpeningsIcon,

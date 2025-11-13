@@ -119,7 +119,8 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
           },
         }),
       },
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware),
+      // biome-ignore lint/suspicious/noExplicitAny: Test store has minimal state; middleware expects full RootState
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware as any),
     });
   };
 
@@ -293,8 +294,10 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(container.querySelector('[data-testid="konva-group"]')).toBeTruthy();
       expect(transaction).not.toBeNull();
-      expect(transaction?.transaction.isActive).toBe(true);
-      expect(transaction?.transaction.type).toBe('placement');
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.isActive).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.type).toBe('placement');
     });
 
     it('should initialize real hook with empty undo/redo stacks', () => {
@@ -324,10 +327,14 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       );
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.transaction.localUndoStack).toEqual([]);
-      expect(transaction?.transaction.localRedoStack).toEqual([]);
-      expect(transaction?.canUndoLocal()).toBe(false);
-      expect(transaction?.canRedoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack).toEqual([]);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack).toEqual([]);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(false);
     });
   });
 
@@ -487,15 +494,19 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.transaction.localUndoStack.length).toBe(0);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(0);
 
       act(() => {
         rect.click();
       });
 
-      expect(transaction?.transaction.localUndoStack.length).toBe(1);
-      expect(transaction?.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
-      expect(transaction?.canUndoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(true);
     });
 
     it('should call onPolesChange when pole is placed', () => {
@@ -578,15 +589,19 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(capturedPoles.length).toBe(1);
       expect(transaction).not.toBeNull();
-      expect(transaction?.canUndoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(true);
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
       expect(capturedPoles.length).toBe(0);
-      expect(transaction?.canUndoLocal()).toBe(false);
-      expect(transaction?.canRedoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(true);
     });
 
     it('should redo pole placement using real hook', () => {
@@ -629,20 +644,24 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       const originalPole = { ...capturedPoles[0] };
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
       expect(capturedPoles.length).toBe(0);
 
       act(() => {
-        transaction?.redoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.redoLocal();
       });
 
       expect(capturedPoles.length).toBe(1);
       expect(capturedPoles[0]).toEqual(originalPole);
       expect(transaction).not.toBeNull();
-      expect(transaction?.canUndoLocal()).toBe(true);
-      expect(transaction?.canRedoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(false);
     });
 
     it('should handle multiple undo operations with real hook', () => {
@@ -686,31 +705,44 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.transaction.localUndoStack.length).toBe(3);
-      expect(transaction?.transaction.localRedoStack.length).toBe(0);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(3);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack.length).toBe(0);
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
-      expect(transaction?.transaction.localUndoStack.length).toBe(2);
-      expect(transaction?.transaction.localRedoStack.length).toBe(1);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(2);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack.length).toBe(1);
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
-      expect(transaction?.transaction.localUndoStack.length).toBe(1);
-      expect(transaction?.transaction.localRedoStack.length).toBe(2);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack.length).toBe(2);
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
-      expect(transaction?.transaction.localUndoStack.length).toBe(0);
-      expect(transaction?.transaction.localRedoStack.length).toBe(3);
-      expect(transaction?.canUndoLocal()).toBe(false);
-      expect(transaction?.canRedoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(0);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack.length).toBe(3);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(true);
     });
   });
 
@@ -748,18 +780,22 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.canRedoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(true);
 
       act(() => {
         rect.click();
       });
 
-      expect(transaction?.canRedoLocal()).toBe(false);
-      expect(transaction?.transaction.localRedoStack.length).toBe(0);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack.length).toBe(0);
     });
 
     it('should maintain correct canUndo/canRedo state throughout lifecycle', () => {
@@ -791,29 +827,39 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.canUndoLocal()).toBe(false);
-      expect(transaction?.canRedoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(false);
 
       act(() => {
         rect.click();
       });
 
-      expect(transaction?.canUndoLocal()).toBe(true);
-      expect(transaction?.canRedoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(false);
 
       act(() => {
-        transaction?.undoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.undoLocal();
       });
 
-      expect(transaction?.canUndoLocal()).toBe(false);
-      expect(transaction?.canRedoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(true);
 
       act(() => {
-        transaction?.redoLocal();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.redoLocal();
       });
 
-      expect(transaction?.canUndoLocal()).toBe(true);
-      expect(transaction?.canRedoLocal()).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canUndoLocal()).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.canRedoLocal()).toBe(false);
     });
   });
 
@@ -845,9 +891,12 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       );
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.transaction.isActive).toBe(true);
-      expect(transaction?.transaction.type).toBe('placement');
-      expect(transaction?.transaction.originalWall).toBeNull();
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.isActive).toBe(true);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.type).toBe('placement');
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.originalWall).toBeNull();
     });
 
     it('should rollback transaction and clear stacks', () => {
@@ -883,15 +932,20 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       expect(transaction).not.toBeNull();
-      expect(transaction?.transaction.localUndoStack.length).toBe(1);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(1);
 
       act(() => {
-        transaction?.rollbackTransaction();
+        // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+        transaction!.rollbackTransaction();
       });
 
-      expect(transaction?.transaction.isActive).toBe(false);
-      expect(transaction?.transaction.localUndoStack.length).toBe(0);
-      expect(transaction?.transaction.localRedoStack.length).toBe(0);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.isActive).toBe(false);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localUndoStack.length).toBe(0);
+      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
+      expect(transaction!.transaction.localRedoStack.length).toBe(0);
     });
   });
 });

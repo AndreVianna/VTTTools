@@ -253,7 +253,7 @@ export const AssetSkeleton: React.FC<AssetSkeletonProps> = ({
 /**
  * Enhanced image component with loading states and error handling
  */
-interface SafeImageProps {
+interface SafeImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onError' | 'onLoad'> {
   src: string;
   alt: string;
   assetId?: string;
@@ -264,7 +264,6 @@ interface SafeImageProps {
   maxRetries?: number;
   width?: number | string;
   height?: number | string;
-  [key: string]: unknown;
 }
 
 export const SafeImage: React.FC<SafeImageProps> = ({

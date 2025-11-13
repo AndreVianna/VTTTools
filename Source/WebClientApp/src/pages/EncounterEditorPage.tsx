@@ -33,10 +33,11 @@ import { useParams } from 'react-router-dom';
 import type { SaveStatus } from '@/components/common';
 import { getApiEndpoints } from '@/config/development';
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
-import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
+import { UndoRedoProvider } from '@/contexts/UndoRedoContext';
 import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
+import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { assetsApi } from '@/services/assetsApi';
 import {
@@ -70,6 +71,7 @@ import {
   type Pole,
   type WallVisibility,
 } from '@/types/domain';
+import type { LocalAction } from '@/types/regionUndoActions';
 import {
   hydratePlacedAssets,
   hydratePlacedRegions,
@@ -1223,7 +1225,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       onClearSelections={regionHandlers.handleFinishEditingRegion}
                       onFinish={regionHandlers.handleFinishEditingRegion}
                       onCancel={regionHandlers.handleCancelEditingRegion}
-                      onLocalAction={(action: unknown) => regionTransaction.pushLocalAction(action)}
+                      onLocalAction={(action: LocalAction) => regionTransaction.pushLocalAction(action)}
                       {...(regionTransaction.transaction.segment.color && {
                         color: regionTransaction.transaction.segment.color,
                       })}

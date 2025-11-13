@@ -29,7 +29,7 @@ import {
 import { Box, Button, IconButton, Menu, Paper, Typography } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import { useUndoRedoContext } from '@/contexts/UndoRedoContext';
+import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { type Asset, AssetKind } from '@/types/domain';
 
 export interface EncounterEditorMenuBarProps {

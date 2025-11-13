@@ -1,6 +1,3 @@
-// FormValidation exports both validation components and utility functions (getErrorMessage, formatFieldName, useFormValidation hook)
-// These utilities are tightly coupled to form validation behavior and logically belong in the same file
-
 import { Error as ErrorIcon, CheckCircle as SuccessIcon, Warning as WarningIcon } from '@mui/icons-material';
 import {
   Alert,
@@ -14,6 +11,7 @@ import {
   ListItemIcon,
   ListItemText,
   TextField,
+  type TextFieldProps,
   Typography,
 } from '@mui/material';
 import React from 'react';
@@ -194,13 +192,12 @@ const ValidationErrorItem: React.FC<{
 /**
  * Enhanced TextField with built-in validation display
  */
-interface ValidatedTextFieldProps {
+interface ValidatedTextFieldProps extends Omit<TextFieldProps, 'name' | 'error' | 'helperText'> {
   name: string;
   error?: FieldError;
   touched?: boolean;
   helperText?: string;
   showValidationIcon?: boolean;
-  [key: string]: unknown;
 }
 
 export const ValidatedTextField: React.FC<ValidatedTextFieldProps> = ({
@@ -350,44 +347,10 @@ function getErrorMessage(error: FieldError): string {
 }
 
 function formatFieldName(fieldName: string): string {
-  // Convert camelCase to Title Case
   return fieldName
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase())
     .trim();
-}
-
-/**
- * Hook for form validation state management
- */
-export function useFormValidation() {
-  const [touched, setTouched] = React.useState<Record<string, boolean>>({});
-
-  const markAsTouched = React.useCallback((field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  }, []);
-
-  const markAllAsTouched = React.useCallback((fields: string[]) => {
-    const touchedFields = fields.reduce(
-      (acc, field) => {
-        acc[field] = true;
-        return acc;
-      },
-      {} as Record<string, boolean>,
-    );
-    setTouched((prev) => ({ ...prev, ...touchedFields }));
-  }, []);
-
-  const resetTouched = React.useCallback(() => {
-    setTouched({});
-  }, []);
-
-  return {
-    touched,
-    markAsTouched,
-    markAllAsTouched,
-    resetTouched,
-  };
 }
 
 export default FormValidation;
