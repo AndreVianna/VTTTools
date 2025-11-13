@@ -67,15 +67,15 @@ export function AdventureDetailPage() {
   const [cloneEncounter] = useCloneEncounterMutation();
   const [deleteEncounter, { isLoading: isDeleting }] = useDeleteEncounterMutation();
 
-  const [prevAdventureId, setPrevAdventureId] = useState(adventure?.id);
-  const [formState, setFormState] = useState({
-    adventureId: adventure?.id,
-    name: adventure?.name ?? '',
-    description: adventure?.description ?? '',
-    style: adventure?.style ?? AdventureStyle.Generic,
-    isOneShot: adventure?.isOneShot ?? false,
-    isPublished: adventure?.isPublished ?? false,
-  });
+  const [editedFields, setEditedFields] = useState<{
+    name?: string;
+    description?: string;
+    style?: AdventureStyle;
+    isOneShot?: boolean;
+    isPublished?: boolean;
+  }>({});
+
+  const [lastSyncedAdventureId, setLastSyncedAdventureId] = useState(adventure?.id);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [encounterToDelete, setEncounterToDelete] = useState<{
@@ -85,19 +85,16 @@ export function AdventureDetailPage() {
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
-  if (adventure && adventure.id !== prevAdventureId) {
-    setPrevAdventureId(adventure.id);
-    setFormState({
-      adventureId: adventure.id,
-      name: adventure.name,
-      description: adventure.description,
-      style: adventure.style ?? AdventureStyle.Generic,
-      isOneShot: adventure.isOneShot ?? false,
-      isPublished: adventure.isPublished ?? false,
-    });
+  if (adventure && adventure.id !== lastSyncedAdventureId) {
+    setLastSyncedAdventureId(adventure.id);
+    setEditedFields({});
   }
 
-  const { name, description, style, isOneShot, isPublished } = formState;
+  const name = editedFields.name ?? adventure?.name ?? '';
+  const description = editedFields.description ?? adventure?.description ?? '';
+  const style = editedFields.style ?? adventure?.style ?? AdventureStyle.Generic;
+  const isOneShot = editedFields.isOneShot ?? adventure?.isOneShot ?? false;
+  const isPublished = editedFields.isPublished ?? adventure?.isPublished ?? false;
 
   const hasUnsavedChanges = useCallback(() => {
     if (!adventure) return false;
@@ -150,6 +147,7 @@ export function AdventureDetailPage() {
           id: adventureId,
           request: currentData,
         }).unwrap();
+        setEditedFields({});
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 2000);
       } catch (_error) {
@@ -429,7 +427,9 @@ export function AdventureDetailPage() {
               <TextField
                 id='input-adventure-name'
                 value={name}
-                onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => {
+                  setEditedFields((prev) => ({ ...prev, name: e.target.value }));
+                }}
                 onBlur={() => saveChanges()}
                 variant='standard'
                 fullWidth
@@ -514,7 +514,7 @@ export function AdventureDetailPage() {
                     label='Style'
                     onChange={(e) => {
                       const newStyle = e.target.value as AdventureStyle;
-                      setFormState((prev) => ({ ...prev, style: newStyle }));
+                      setEditedFields((prev) => ({ ...prev, style: newStyle }));
                       saveChanges({ style: newStyle });
                     }}
                   >
@@ -533,7 +533,7 @@ export function AdventureDetailPage() {
                       checked={isOneShot}
                       onChange={(e) => {
                         const newValue = e.target.checked;
-                        setFormState((prev) => ({ ...prev, isOneShot: newValue }));
+                        setEditedFields((prev) => ({ ...prev, isOneShot: newValue }));
                         saveChanges({ isOneShot: newValue });
                       }}
                       size='small'
@@ -547,7 +547,7 @@ export function AdventureDetailPage() {
                       checked={isPublished}
                       onChange={(e) => {
                         const newValue = e.target.checked;
-                        setFormState((prev) => ({ ...prev, isPublished: newValue }));
+                        setEditedFields((prev) => ({ ...prev, isPublished: newValue }));
                         saveChanges({ isPublished: newValue });
                       }}
                       size='small'
@@ -561,7 +561,9 @@ export function AdventureDetailPage() {
               <TextField
                 id='input-adventure-description'
                 value={description}
-                onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => {
+                  setEditedFields((prev) => ({ ...prev, description: e.target.value }));
+                }}
                 onBlur={() => saveChanges()}
                 multiline
                 rows={5}

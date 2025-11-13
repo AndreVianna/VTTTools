@@ -8,30 +8,35 @@ import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 
 export const ConnectionStatusBanner: React.FC = () => {
   const { isOnline, lastSync } = useConnectionStatus();
-  const [showBanner, setShowBanner] = useState(false);
+  const [isOfflineDelayPassed, setIsOfflineDelayPassed] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const theme = useTheme();
 
   useEffect(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     if (!isOnline) {
       timeoutRef.current = setTimeout(() => {
-        setShowBanner(true);
+        setIsOfflineDelayPassed(true);
       }, 2000);
     } else {
-      if (timeoutRef.current !== null) {
-        clearTimeout(timeoutRef.current);
-      }
       timeoutRef.current = setTimeout(() => {
-        setShowBanner(false);
+        setIsOfflineDelayPassed(false);
       }, 0);
     }
 
     return () => {
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
   }, [isOnline]);
+
+  const showBanner = !isOnline && isOfflineDelayPassed;
 
   if (!showBanner) return null;
 
