@@ -242,7 +242,7 @@ export function createMovePoleAction(
       const updatedPoles = [...currentPoles];
       updatedPoles[poleIndex] = {
         ...oldPosition,
-        h: updatedPoles[poleIndex]?.h,
+        h: updatedPoles[poleIndex]?.h ?? 0,
       };
       onPolesChange(updatedPoles, getCurrentIsClosed());
     },
@@ -251,7 +251,7 @@ export function createMovePoleAction(
       const updatedPoles = [...currentPoles];
       updatedPoles[poleIndex] = {
         ...newPosition,
-        h: updatedPoles[poleIndex]?.h,
+        h: updatedPoles[poleIndex]?.h ?? 0,
       };
       onPolesChange(updatedPoles, getCurrentIsClosed());
     },
@@ -389,7 +389,7 @@ export function createMultiMovePoleAction(
       for (const move of moves) {
         updatedPoles[move.poleIndex] = {
           ...move.oldPosition,
-          h: updatedPoles[move.poleIndex]?.h,
+          h: updatedPoles[move.poleIndex]?.h ?? 0,
         };
       }
       onPolesChange(updatedPoles, getCurrentIsClosed());
@@ -400,7 +400,7 @@ export function createMultiMovePoleAction(
       for (const move of moves) {
         updatedPoles[move.poleIndex] = {
           ...move.newPosition,
-          h: updatedPoles[move.poleIndex]?.h,
+          h: updatedPoles[move.poleIndex]?.h ?? 0,
         };
       }
       onPolesChange(updatedPoles, getCurrentIsClosed());

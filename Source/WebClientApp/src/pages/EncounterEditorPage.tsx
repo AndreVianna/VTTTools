@@ -7,6 +7,7 @@ import {
   EncounterCanvas,
   type EncounterCanvasHandle,
   GridRenderer,
+  type LayerVisibilityType,
   LeftToolBar,
   RegionDrawingTool,
   RegionRenderer,
@@ -163,8 +164,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [isHydrating, setIsHydrating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
   const [selectedWallIndex, setSelectedWallIndex] = useState<number | null>(null);
   const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
   const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
@@ -198,7 +197,58 @@ const EncounterEditorPageInternal: React.FC = () => {
     creatures: true,
     overlays: true,
   });
+
+  const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
+    regions: true,
+    walls: true,
+    openings: true,
+    objects: true,
+    creatures: true,
+    players: true,
+    effects: true,
+    lightSources: true,
+    fogOfWar: true,
+  });
+
   const [activePanel, setActivePanel] = useState<string | null>(null);
+
+  const drawingMode: DrawingMode =
+    activePanel === 'walls' ? 'wall' : activePanel === 'regions' ? 'region' : activePanel === 'lightSources' ? 'source' : null;
+
+  const handleLayerVisibilityToggle = useCallback((layer: LayerVisibilityType) => {
+    setScopeVisibility((prev) => ({
+      ...prev,
+      [layer]: !prev[layer],
+    }));
+  }, []);
+
+  const handleShowAllLayers = useCallback(() => {
+    setScopeVisibility({
+      regions: true,
+      walls: true,
+      openings: true,
+      objects: true,
+      creatures: true,
+      players: true,
+      effects: true,
+      lightSources: true,
+      fogOfWar: true,
+    });
+  }, []);
+
+  const handleHideAllLayers = useCallback(() => {
+    setScopeVisibility({
+      regions: false,
+      walls: false,
+      openings: false,
+      objects: false,
+      creatures: false,
+      players: false,
+      effects: false,
+      lightSources: false,
+      fogOfWar: false,
+    });
+  }, []);
 
   const saveChanges = useCallback(
     async (
@@ -306,7 +356,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     setPlacedWalls,
     setSelectedWallIndex,
     setDrawingWallIndex,
-    setDrawingMode,
     setIsEditingVertices,
     setOriginalWallPoles,
     setActivePanel,
@@ -338,7 +387,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     setIsEditingRegionVertices,
     setOriginalRegionVertices,
     setDrawingRegionIndex,
-    setDrawingMode,
     setErrorMessage,
     recordAction,
     refetch: async () => {
@@ -562,10 +610,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                 }
               });
 
-              if (segments.length === 1) {
+              if (segments.length === 1 && segments[0]) {
                 syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  poles: segments[0]?.poles,
-                  isClosed: segments[0]?.isClosed,
+                  poles: segments[0].poles,
+                  isClosed: segments[0].isClosed,
                 });
               } else {
                 const mainSegment = segments.find((s) => s.wallIndex === selectedWallIndex || s.tempId === 0);
@@ -611,10 +659,10 @@ const EncounterEditorPageInternal: React.FC = () => {
               const selectedWall = currentEncounter.walls?.find((w) => w.index === selectedWallIndex);
               let syncedEncounter = currentEncounter;
 
-              if (segments.length === 1) {
+              if (segments.length === 1 && segments[0]) {
                 syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  poles: segments[0]?.poles,
-                  isClosed: segments[0]?.isClosed,
+                  poles: segments[0].poles,
+                  isClosed: segments[0].isClosed,
                 });
               } else {
                 segments.forEach((segment) => {
@@ -752,25 +800,20 @@ const EncounterEditorPageInternal: React.FC = () => {
     setEncounter(cleanEncounter);
 
     setDrawingRegionIndex(null);
-    setDrawingMode(null);
   }, [encounter, regionTransaction]);
 
   const handleStructurePlacementFinish = useCallback(async () => {
     try {
-      if (drawingMode === 'region') {
+      if (activePanel === 'regions') {
         await regionHandlers.handleStructurePlacementFinish();
-      } else if (drawingMode === 'wall') {
+      } else if (activePanel === 'walls') {
         await wallHandlers.handleWallPlacementFinish();
       }
     } catch (error) {
       console.error('Failed to finish structure placement:', error);
       setErrorMessage('Failed to complete structure placement. Please try again.');
     }
-  }, [drawingMode, regionHandlers, wallHandlers]);
-
-  const handleDrawingModeChange = (mode: DrawingMode) => {
-    setDrawingMode(mode);
-  };
+  }, [activePanel, regionHandlers, wallHandlers]);
 
   const handleStructurePlacementCancel = useCallback(async () => {
     if (!encounter) return;
@@ -781,7 +824,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     setEncounter(cleanEncounter);
 
     setDrawingWallIndex(null);
-    setDrawingMode(null);
   }, [encounter, wallTransaction]);
 
   const handlePlacedAssetUpdate = useCallback(
@@ -857,8 +899,6 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       setDrawingWallIndex(-1);
       setDrawingWallDefaultHeight(properties.defaultHeight);
-      setDrawingMode('wall');
-      setActivePanel(null);
     },
     [encounterId, encounter, wallTransaction],
   );
@@ -974,6 +1014,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       onEncounterDescriptionChange={encounterSettings.handleEncounterDescriptionChange}
       onEncounterPublishedChange={encounterSettings.handleEncounterPublishedChange}
       onEncounterUpdate={encounterSettings.handleEncounterUpdate}
+      gridConfig={gridConfig}
+      onGridChange={gridHandlers.handleGridChange}
       {...(backgroundUrl && { backgroundUrl })}
       isUploadingBackground={isUploadingBackground}
       onBackgroundUpload={handleBackgroundUpload}
@@ -989,8 +1031,6 @@ const EncounterEditorPageInternal: React.FC = () => {
         <EditingBlocker isBlocked={!isOnline} />
 
         <TopToolBar
-          drawingMode={drawingMode}
-          onDrawingModeChange={handleDrawingModeChange}
           onUndoClick={undo}
           onRedoClick={redo}
           onZoomIn={viewportControls.handleZoomIn}
@@ -1006,6 +1046,10 @@ const EncounterEditorPageInternal: React.FC = () => {
           canUndo={false}
           canRedo={false}
           gridVisible={gridConfig.type !== GridType.NoGrid}
+          layerVisibility={scopeVisibility}
+          onLayerVisibilityToggle={handleLayerVisibilityToggle}
+          onShowAllLayers={handleShowAllLayers}
+          onHideAllLayers={handleHideAllLayers}
         />
 
         <Box
@@ -1024,8 +1068,6 @@ const EncounterEditorPageInternal: React.FC = () => {
           <LeftToolBar
             activePanel={activePanel}
             onPanelChange={setActivePanel}
-            gridConfig={gridConfig}
-            onGridChange={gridHandlers.handleGridChange}
             encounterId={encounterId}
             encounterWalls={placedWalls}
             selectedWallIndex={selectedWallIndex}

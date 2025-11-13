@@ -49,12 +49,12 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     if (!encounter) return;
 
     const activeSegments = wallTransaction.getActiveSegments();
-    const currentSegment = activeSegments[0] || {};
+    const currentSegment = activeSegments[0];
 
-    const segmentName = wall?.name || currentSegment.name || '';
-    const segmentMaterial = wall?.material || currentSegment.material;
-    const segmentColor = wall?.color || currentSegment.color;
-    const segmentVisibility = wall?.visibility ?? currentSegment.visibility ?? 0;
+    const segmentName = wall?.name || currentSegment?.name || '';
+    const segmentMaterial = wall?.material || currentSegment?.material;
+    const segmentColor = wall?.color || currentSegment?.color;
+    const segmentVisibility = wall?.visibility ?? currentSegment?.visibility ?? 0;
 
     const TOLERANCE = 5;
     const polePoints = poles.map((p) => ({ x: p.x, y: p.y }));

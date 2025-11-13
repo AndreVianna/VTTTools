@@ -30,7 +30,6 @@ interface UseWallHandlersProps {
   setPlacedWalls: (walls: PlacedWall[]) => void;
   setSelectedWallIndex: (index: number | null) => void;
   setDrawingWallIndex: (index: number | null) => void;
-  setDrawingMode: (mode: 'wall' | 'region' | null) => void;
   setIsEditingVertices: (editing: boolean) => void;
   setOriginalWallPoles: (poles: Pole[] | null) => void;
   setActivePanel: (panel: string | null) => void;
@@ -54,7 +53,6 @@ export const useWallHandlers = ({
   setPlacedWalls,
   setSelectedWallIndex,
   setDrawingWallIndex,
-  setDrawingMode,
   setIsEditingVertices,
   setOriginalWallPoles,
   setActivePanel,
@@ -475,7 +473,6 @@ export const useWallHandlers = ({
     }
 
     setDrawingWallIndex(null);
-    setDrawingMode(null);
   }, [
     encounterId,
     encounter,
@@ -487,7 +484,6 @@ export const useWallHandlers = ({
     setEncounter,
     setPlacedWalls,
     setDrawingWallIndex,
-    setDrawingMode,
     setErrorMessage,
   ]);
 

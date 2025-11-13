@@ -39,7 +39,6 @@ interface UseRegionHandlersProps {
   setIsEditingRegionVertices: (editing: boolean) => void;
   setOriginalRegionVertices: (vertices: Point[] | null) => void;
   setDrawingRegionIndex: (index: number | null) => void;
-  setDrawingMode: (mode: 'region' | 'wall' | null) => void;
   setErrorMessage: (message: string | null) => void;
 
   recordAction: (command: unknown) => void;
@@ -66,7 +65,6 @@ export const useRegionHandlers = ({
   setIsEditingRegionVertices,
   setOriginalRegionVertices,
   setDrawingRegionIndex,
-  setDrawingMode,
   setErrorMessage,
   recordAction,
   refetch,
@@ -317,7 +315,6 @@ export const useRegionHandlers = ({
           setErrorMessage('Original target region not found');
           regionTransaction.rollbackTransaction();
           setDrawingRegionIndex(null);
-          setDrawingMode(null);
           return;
         }
 
@@ -331,12 +328,10 @@ export const useRegionHandlers = ({
           onSuccess: () => {
             regionTransaction.clearTransaction();
             setDrawingRegionIndex(null);
-            setDrawingMode(null);
           },
           onError: () => {
             regionTransaction.rollbackTransaction();
             setDrawingRegionIndex(null);
-            setDrawingMode(null);
           },
         });
         return;
@@ -397,12 +392,10 @@ export const useRegionHandlers = ({
       }
 
       setDrawingRegionIndex(null);
-      setDrawingMode(null);
     } catch (error) {
       console.error('Failed to process region placement:', error);
       setErrorMessage('Failed to process region placement. Please try again.');
       setDrawingRegionIndex(null);
-      setDrawingMode(null);
     }
   }, [
     encounterId,
@@ -416,7 +409,6 @@ export const useRegionHandlers = ({
     removeEncounterRegion,
     setEncounter,
     setDrawingRegionIndex,
-    setDrawingMode,
     setErrorMessage,
     executeMerge,
     recordAction,
@@ -428,7 +420,6 @@ export const useRegionHandlers = ({
       setEditingRegionIndex(null);
       setIsEditingRegionVertices(false);
       setOriginalRegionVertices(null);
-      setDrawingMode('region');
       setDrawingRegionIndex(-1);
       setSelectedRegionIndex(null);
 
@@ -458,7 +449,6 @@ export const useRegionHandlers = ({
       setEditingRegionIndex,
       setIsEditingRegionVertices,
       setOriginalRegionVertices,
-      setDrawingMode,
       setDrawingRegionIndex,
       setSelectedRegionIndex,
       regionTransaction,
@@ -480,7 +470,6 @@ export const useRegionHandlers = ({
         return;
       }
 
-      setDrawingMode(null);
       setDrawingRegionIndex(null);
       setOriginalRegionVertices([...region.vertices]);
       setEditingRegionIndex(regionIndex);
@@ -491,7 +480,6 @@ export const useRegionHandlers = ({
     },
     [
       encounter,
-      setDrawingMode,
       setDrawingRegionIndex,
       setOriginalRegionVertices,
       setEditingRegionIndex,
