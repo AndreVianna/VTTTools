@@ -1,4 +1,4 @@
-import { EditingBlocker } from '@components/common';
+import { AssetPicker, EditingBlocker } from '@components/common';
 import {
   BackgroundLayer,
   type DrawingMode,
@@ -26,6 +26,7 @@ import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
 import { GroupName, LayerName, layerManager } from '@services/layerManager';
 import { type GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
+import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Layer } from 'react-konva';
@@ -182,6 +183,8 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
+  const [activeScope, setActiveScope] = useState<InteractionScope>(null);
+
   const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
     regions: true,
     walls: true,
@@ -195,13 +198,17 @@ const EncounterEditorPageInternal: React.FC = () => {
   });
 
   const [activePanel, setActivePanel] = useState<string | null>(null);
+  const [assetPickerOpen, setAssetPickerOpen] = useState<{
+    open: boolean;
+    kind?: AssetKind;
+  }>({ open: false });
 
   const drawingMode: DrawingMode =
-    activePanel === 'walls'
+    activeScope === 'walls'
       ? 'wall'
-      : activePanel === 'regions'
+      : activeScope === 'regions'
         ? 'region'
-        : activePanel === 'lightSources'
+        : activeScope === 'sources'
           ? 'source'
           : null;
 
@@ -402,6 +409,8 @@ const EncounterEditorPageInternal: React.FC = () => {
             wallHandlers.handleCancelEditing();
           } else if (assetManagement?.draggedAsset) {
             assetManagement.setDraggedAsset(null);
+          } else if (activeScope !== null) {
+            setActiveScope(null);
           }
         },
         onEnterKey: () => {
@@ -538,6 +547,38 @@ const EncounterEditorPageInternal: React.FC = () => {
       setStageReady(true);
     }
   }, []);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const handleDblClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (e.target !== stage) return;
+      if (!activeScope) return;
+
+      switch (activeScope) {
+        case 'objects':
+          setAssetPickerOpen({ open: true, kind: AssetKind.Object });
+          break;
+        case 'creatures':
+          setAssetPickerOpen({ open: true, kind: AssetKind.Creature });
+          break;
+        case 'walls':
+          break;
+        case 'regions':
+          break;
+        case 'sources':
+          break;
+        default:
+          break;
+      }
+    };
+
+    stage.on('dblclick', handleDblClick);
+    return () => {
+      stage.off('dblclick', handleDblClick);
+    };
+  }, [activeScope]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -1064,6 +1105,8 @@ const EncounterEditorPageInternal: React.FC = () => {
           }}
         >
           <LeftToolBar
+            activeScope={activeScope}
+            onScopeChange={setActiveScope}
             activePanel={activePanel}
             onPanelChange={setActivePanel}
             encounterId={encounterId}
@@ -1360,6 +1403,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               onAssetRotated={assetManagement.handleAssetRotated}
               onRotationStart={assetManagement.handleRotationStart}
               onRotationEnd={assetManagement.handleRotationEnd}
+              activeScope={activeScope}
             />
           </EncounterCanvas>
         </Box>
@@ -1394,6 +1438,18 @@ const EncounterEditorPageInternal: React.FC = () => {
         errorMessage={errorMessage}
         onErrorMessageClose={() => setErrorMessage(null)}
       />
+
+      {assetPickerOpen.kind && (
+        <AssetPicker
+          open={assetPickerOpen.open}
+          onClose={() => setAssetPickerOpen({ open: false })}
+          onSelect={(asset) => {
+            setAssetPickerOpen({ open: false });
+            assetManagement.handleAssetSelectForPlacement(asset);
+          }}
+          kind={assetPickerOpen.kind}
+        />
+      )}
     </EditorLayout>
   );
 };

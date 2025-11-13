@@ -12,12 +12,13 @@ import {
   LightMode as SourcesIcon,
   BorderAll as WallsIcon,
 } from '@mui/icons-material';
-import { Box, Drawer, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Box, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { AssetPicker } from '@/components/common';
 import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
+import type { InteractionScope } from '@/utils/scopeFiltering';
 import type { SourcePlacementProperties } from './panels';
 import { CreaturesPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 
@@ -29,10 +30,12 @@ export type PanelType =
   | 'creatures'
   | 'players'
   | 'effects'
-  | 'lightSources'
+  | 'sources'
   | 'fogOfWar';
 
 export interface LeftToolBarProps {
+  activeScope?: InteractionScope;
+  onScopeChange?: (scope: InteractionScope) => void;
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
   encounterId?: string | undefined;
@@ -72,6 +75,8 @@ export interface LeftToolBarProps {
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
+  activeScope,
+  onScopeChange,
   activePanel: externalActivePanel,
   onPanelChange,
   encounterId,
@@ -120,10 +125,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   const expanded = isPanelVisible && activePanel !== null;
 
   const handlePanelClick = (panel: PanelType) => {
-    const isSamePanel = activePanel === panel;
+    const isSameScope = activeScope === panel;
 
-    if (isSamePanel) {
-      if (isPanelVisible) {
+    if (isSameScope) {
+      onScopeChange?.(null);
+
+      if (!isPanelLocked) {
+        setIsPanelVisible(false);
         const newPanel = null;
         if (externalActivePanel !== undefined) {
           onPanelChange?.(newPanel);
@@ -131,18 +139,17 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           setInternalActivePanel(newPanel);
           onPanelChange?.(newPanel);
         }
-        setIsPanelVisible(false);
-      } else {
-        setIsPanelVisible(true);
       }
     } else {
+      onScopeChange?.(panel as InteractionScope);
+      setIsPanelVisible(true);
+
       if (externalActivePanel !== undefined) {
         onPanelChange?.(panel);
       } else {
         setInternalActivePanel(panel);
         onPanelChange?.(panel);
       }
-      setIsPanelVisible(true);
     }
   };
 
@@ -186,7 +193,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     { key: 'creatures', icon: CreaturesIcon, label: 'Creatures' },
     { key: 'players', icon: PlayersIcon, label: 'Players' },
     { key: 'effects', icon: EffectsIcon, label: 'Effects' },
-    { key: 'lightSources', icon: SourcesIcon, label: 'Sources' },
+    { key: 'sources', icon: SourcesIcon, label: 'Sources' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
   ];
 
@@ -237,7 +244,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         </Tooltip>
 
         {panelConfigs.map(({ key, icon: Icon, label }) => {
-          const isActive = activePanel === key;
+          const isActive = activeScope === key;
           return (
             <Tooltip key={key} title={`${label}${isActive ? ' (Active)' : ''}`} placement='right'>
               <IconButton
@@ -296,7 +303,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         }}
       >
         <Box ref={drawerRef} sx={{ p: 2 }}>
-          {activePanel === 'regions' && (
+          {activeScope === null && isPanelLocked ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                Select a scope to start working.
+              </Typography>
+            </Box>
+          ) : activePanel === 'regions' ? (
             <RegionsPanel
               encounterId={encounterId || ''}
               encounterRegions={encounterRegions || []}
@@ -361,7 +374,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               <Box>Visual effects controls</Box>
             </Box>
           )}
-          {activePanel === 'lightSources' && (
+          {activePanel === 'sources' && (
             <SourcesPanel
               encounterId={encounterId || ''}
               encounterSources={encounterSources || []}
