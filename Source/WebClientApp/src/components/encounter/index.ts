@@ -95,7 +95,7 @@ export type { TokenDragHandleProps } from './TokenDragHandle';
 export { TokenDragHandle } from './TokenDragHandle';
 export type { TokenPlacementProps } from './TokenPlacement';
 export { TokenPlacement } from './TokenPlacement';
-export type { TopToolBarProps } from './TopToolBar';
+export type { LayerVisibilityType, TopToolBarProps } from './TopToolBar';
 export { TopToolBar } from './TopToolBar';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
 export { WallContextMenu } from './WallContextMenu';

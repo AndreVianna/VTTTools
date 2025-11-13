@@ -15,7 +15,6 @@ describe('Region Workflows - Integration Tests', () => {
   let mockSetIsEditingRegionVertices: ReturnType<typeof vi.fn>;
   let mockSetOriginalRegionVertices: ReturnType<typeof vi.fn>;
   let mockSetDrawingRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetDrawingMode: ReturnType<typeof vi.fn>;
   let mockSetErrorMessage: ReturnType<typeof vi.fn>;
   let mockRecordAction: ReturnType<typeof vi.fn>;
   let mockRefetch: ReturnType<typeof vi.fn>;
@@ -69,7 +68,6 @@ describe('Region Workflows - Integration Tests', () => {
     mockSetIsEditingRegionVertices = vi.fn();
     mockSetOriginalRegionVertices = vi.fn();
     mockSetDrawingRegionIndex = vi.fn();
-    mockSetDrawingMode = vi.fn();
     mockSetErrorMessage = vi.fn();
     mockRecordAction = vi.fn();
     mockRefetch = vi.fn().mockResolvedValue({ data: mockEncounter });
@@ -793,7 +791,6 @@ describe('Region Workflows - Integration Tests', () => {
           setIsEditingRegionVertices: mockSetIsEditingRegionVertices,
           setOriginalRegionVertices: mockSetOriginalRegionVertices,
           setDrawingRegionIndex: mockSetDrawingRegionIndex,
-          setDrawingMode: mockSetDrawingMode,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
           refetch: mockRefetch,

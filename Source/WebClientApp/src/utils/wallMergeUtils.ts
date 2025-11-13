@@ -125,8 +125,10 @@ export function canMergeWalls(params: CanMergeWallsParams): MergeResult {
 
   let isClosed = false;
   if (firstPoleCollisions.length === 1 && lastPoleCollisions.length === 1) {
-    const firstWall = existingWalls[firstPoleCollisions[0]?.existingWallIndex];
-    const lastWall = existingWalls[lastPoleCollisions[0]?.existingWallIndex];
+    const firstWallIndex = firstPoleCollisions[0]?.existingWallIndex ?? -1;
+    const lastWallIndex = lastPoleCollisions[0]?.existingWallIndex ?? -1;
+    const firstWall = firstWallIndex >= 0 ? existingWalls[firstWallIndex] : undefined;
+    const lastWall = lastWallIndex >= 0 ? existingWalls[lastWallIndex] : undefined;
 
     if (firstWall && lastWall && firstWall.index === lastWall.index) {
       const firstPoleIndex = firstPoleCollisions[0]?.existingPoleIndex;
@@ -227,7 +229,8 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
   if (leafNodes.length === 0) {
     return traversePath(nodes, newWallStart.id, new Set(), tolerance);
   } else if (leafNodes.length >= 2) {
-    return traversePath(nodes, leafNodes[0]?.id, new Set(), tolerance);
+    const startNodeId = leafNodes[0]?.id ?? newWallStart.id;
+    return traversePath(nodes, startNodeId, new Set(), tolerance);
   } else {
     return newWallPoles;
   }

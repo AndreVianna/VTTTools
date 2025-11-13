@@ -7,6 +7,7 @@ import {
   EncounterCanvas,
   type EncounterCanvasHandle,
   GridRenderer,
+  type LayerVisibilityType,
   LeftToolBar,
   RegionDrawingTool,
   RegionRenderer,
@@ -197,7 +198,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     overlays: true,
   });
 
-  const [scopeVisibility, setScopeVisibility] = useState<Record<import('@components/encounter').LayerVisibilityType, boolean>>({
+  const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
     regions: true,
     walls: true,
     openings: true,
@@ -214,7 +215,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const drawingMode: DrawingMode =
     activePanel === 'walls' ? 'wall' : activePanel === 'regions' ? 'region' : activePanel === 'lightSources' ? 'source' : null;
 
-  const handleLayerVisibilityToggle = useCallback((layer: import('@components/encounter').LayerVisibilityType) => {
+  const handleLayerVisibilityToggle = useCallback((layer: LayerVisibilityType) => {
     setScopeVisibility((prev) => ({
       ...prev,
       [layer]: !prev[layer],
@@ -346,7 +347,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     encounter,
     wallTransaction,
     selectedWallIndex,
-    drawingMode,
+    drawingMode: drawingMode === 'source' ? null : drawingMode,
     drawingWallIndex,
     addEncounterWall,
     updateEncounterWall,
@@ -374,7 +375,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     selectedRegionIndex,
     editingRegionIndex,
     originalRegionVertices,
-    drawingMode,
+    drawingMode: drawingMode === 'source' ? null : drawingMode,
     drawingRegionIndex,
     addEncounterRegion,
     updateEncounterRegion,
@@ -609,10 +610,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                 }
               });
 
-              if (segments.length === 1) {
+              if (segments.length === 1 && segments[0]) {
                 syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  poles: segments[0]?.poles,
-                  isClosed: segments[0]?.isClosed,
+                  poles: segments[0].poles,
+                  isClosed: segments[0].isClosed,
                 });
               } else {
                 const mainSegment = segments.find((s) => s.wallIndex === selectedWallIndex || s.tempId === 0);
@@ -658,10 +659,10 @@ const EncounterEditorPageInternal: React.FC = () => {
               const selectedWall = currentEncounter.walls?.find((w) => w.index === selectedWallIndex);
               let syncedEncounter = currentEncounter;
 
-              if (segments.length === 1) {
+              if (segments.length === 1 && segments[0]) {
                 syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  poles: segments[0]?.poles,
-                  isClosed: segments[0]?.isClosed,
+                  poles: segments[0].poles,
+                  isClosed: segments[0].isClosed,
                 });
               } else {
                 segments.forEach((segment) => {

@@ -124,6 +124,34 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
                 </IconButton>
               </Tooltip>
 
+              <Tooltip title='Toggle Grid'>
+                <IconButton
+                  size='small'
+                  onClick={onGridToggle}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 1,
+                    opacity: gridVisible ? 1 : 0.4,
+                    backgroundColor: gridVisible ? theme.palette.action.selected : 'transparent',
+                    '&:hover': {
+                      backgroundColor: gridVisible ? theme.palette.action.hover : theme.palette.action.hover,
+                    },
+                  }}
+                >
+                  <GridIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+
+              <Box
+                sx={{
+                  width: 1,
+                  height: 20,
+                  backgroundColor: theme.palette.divider,
+                  mx: 0.5,
+                }}
+              />
+
               {visibilityLayers.map(({ key, icon: Icon, label }) => {
                 const isVisible = layerVisibility[key] ?? true;
                 return (
@@ -222,20 +250,6 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
               backgroundColor: theme.palette.divider,
             }}
           />
-
-          <Tooltip title='Toggle Grid'>
-            <IconButton
-              size='small'
-              onClick={onGridToggle}
-              sx={{
-                width: 28,
-                height: 28,
-                backgroundColor: gridVisible ? theme.palette.action.selected : 'transparent',
-              }}
-            >
-              <GridIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
 
           <Tooltip title='Clear Selection (X)'>
             <IconButton size='small' onClick={onClearSelection} sx={{ width: 28, height: 28 }}>

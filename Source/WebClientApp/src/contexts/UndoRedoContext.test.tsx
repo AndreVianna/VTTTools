@@ -2,8 +2,9 @@ import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Command } from '@/utils/commands';
 import { UndoRedoProvider, useUndoRedoContext } from './UndoRedoContext';
+import type { UndoRedoContextValue } from './UndoRedoContext';
 
-const TestComponent = ({ onRender }: { onRender: (context: ReturnType<typeof useUndoRedoContext>) => void }) => {
+const TestComponent = ({ onRender }: { onRender: (context: UndoRedoContextValue) => void }) => {
   const context = useUndoRedoContext();
   onRender(context);
   return null;
@@ -28,7 +29,7 @@ describe('UndoRedoContext', () => {
   });
 
   it('provides initial state with no history', () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -41,12 +42,12 @@ describe('UndoRedoContext', () => {
     );
 
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(false);
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canUndo).toBe(false);
+    expect(context!.canRedo).toBe(false);
   });
 
   it('executes command and adds to history', () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -66,12 +67,12 @@ describe('UndoRedoContext', () => {
 
     expect(mockExecute).toHaveBeenCalledTimes(1);
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(true);
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canUndo).toBe(true);
+    expect(context!.canRedo).toBe(false);
   });
 
   it.skip('undoes command and moves to future - TODO: Fix async test handling', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -90,22 +91,22 @@ describe('UndoRedoContext', () => {
     });
 
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(true);
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canUndo).toBe(true);
+    expect(context!.canRedo).toBe(false);
 
     await act(async () => {
-      const undoPromise = context?.undo();
+      const undoPromise = context!.undo();
       await undoPromise;
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(context?.canUndo).toBe(false);
-    expect(context?.canRedo).toBe(true);
+    expect(context!.canUndo).toBe(false);
+    expect(context!.canRedo).toBe(true);
     expect(mockUndo).toHaveBeenCalledTimes(1);
   });
 
   it.skip('redoes command and moves back to past - TODO: Fix async test handling', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -124,23 +125,23 @@ describe('UndoRedoContext', () => {
     });
 
     await act(async () => {
-      await context?.undo();
+      await context!.undo();
     });
 
     mockExecute.mockClear();
 
     act(() => {
-      context?.redo();
+      context!.redo();
     });
 
     expect(mockExecute).toHaveBeenCalledTimes(1);
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(true);
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canUndo).toBe(true);
+    expect(context!.canRedo).toBe(false);
   });
 
   it('clears future when new command executed', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -160,7 +161,7 @@ describe('UndoRedoContext', () => {
     });
 
     await act(async () => {
-      await context?.undo();
+      await context!.undo();
     });
 
     act(() => {
@@ -168,12 +169,12 @@ describe('UndoRedoContext', () => {
     });
 
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(true);
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canUndo).toBe(true);
+    expect(context!.canRedo).toBe(false);
   });
 
   it.skip('limits history size to maxHistorySize - TODO: Fix async test handling', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider maxHistorySize={3}>
@@ -197,18 +198,18 @@ describe('UndoRedoContext', () => {
     mockUndo.mockClear();
 
     await act(async () => {
-      await context?.undo();
-      await context?.undo();
-      await context?.undo();
+      await context!.undo();
+      await context!.undo();
+      await context!.undo();
     });
 
     expect(mockUndo).toHaveBeenCalledTimes(3);
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(false);
+    expect(context!.canUndo).toBe(false);
   });
 
   it('does nothing when undo called with empty past', () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -226,11 +227,11 @@ describe('UndoRedoContext', () => {
 
     expect(mockUndo).not.toHaveBeenCalled();
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(false);
+    expect(context!.canUndo).toBe(false);
   });
 
   it('does nothing when redo called with empty future', () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -248,11 +249,11 @@ describe('UndoRedoContext', () => {
 
     expect(mockExecute).not.toHaveBeenCalled();
     expect(context).not.toBeNull();
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canRedo).toBe(false);
   });
 
   it('clears all history', () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -275,8 +276,8 @@ describe('UndoRedoContext', () => {
     });
 
     expect(context).not.toBeNull();
-    expect(context?.canUndo).toBe(false);
-    expect(context?.canRedo).toBe(false);
+    expect(context!.canUndo).toBe(false);
+    expect(context!.canRedo).toBe(false);
   });
 
   it('throws error when useUndoRedoContext used outside provider', () => {
@@ -316,7 +317,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
   });
 
   it.skip('handles Ctrl+Z for undo on Windows - TODO: Fix async test handling', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -349,7 +350,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
   });
 
   it.skip('handles Ctrl+Y for redo on Windows - TODO: Fix async test handling', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -385,7 +386,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
   });
 
   it.skip('handles Ctrl+Shift+Z for redo on Windows - TODO: Fix async test handling', async () => {
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
@@ -427,7 +428,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
       value: 'MacIntel',
     });
 
-    let context: ReturnType<typeof useUndoRedoContext> | null = null;
+    let context: UndoRedoContextValue | null = null;
 
     render(
       <UndoRedoProvider>
