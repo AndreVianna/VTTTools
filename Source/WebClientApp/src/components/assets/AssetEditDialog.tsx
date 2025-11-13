@@ -42,15 +42,13 @@ import {
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDeleteAssetMutation, useUpdateAssetMutation } from '@/services/assetsApi';
 import {
   type Asset,
   AssetKind,
-  type AssetToken,
   type CreatureAsset,
   type CreatureData,
-  type NamedSize,
   type ObjectAsset,
   type ObjectData,
   type UpdateAssetRequest,
@@ -72,94 +70,65 @@ export interface AssetEditDialogProps {
   onClose: () => void;
 }
 
+function createEditData(asset: Asset) {
+  return {
+    name: asset.name,
+    description: asset.description,
+    tokens: asset.tokens || [],
+    portraitId: asset.portrait?.id,
+    isPublic: asset.isPublic,
+    isPublished: asset.isPublished,
+    size: asset.size,
+    isMovable: (asset as ObjectAsset).isMovable,
+    isOpaque: (asset as ObjectAsset).isOpaque,
+    triggerEffectId: (asset as ObjectAsset).triggerEffectId,
+    statBlockId: (asset as CreatureAsset).statBlockId,
+    category: (asset as CreatureAsset).category,
+    tokenStyle: (asset as CreatureAsset).tokenStyle,
+  };
+}
+
 export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, onClose }) => {
   const theme = useTheme();
   const [editMode, setEditMode] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [modifiedFieldsByAssetId, setModifiedFieldsByAssetId] = useState<
+    Record<string, Partial<ReturnType<typeof createEditData>>>
+  >({});
 
-  // Editable fields
-  const [name, setName] = useState(asset.name);
-  const [description, setDescription] = useState(asset.description);
-  const [tokens, setTokens] = useState<AssetToken[]>(asset.tokens || []);
-  const [portraitId, setPortraitId] = useState<string | undefined>(asset.portrait?.id);
-  const [isPublic, setIsPublic] = useState(asset.isPublic);
-  const [isPublished, setIsPublished] = useState(asset.isPublished);
-  const [isMovable, setIsMovable] = useState((asset as ObjectAsset).isMovable);
-  const [isOpaque, setIsOpaque] = useState((asset as ObjectAsset).isOpaque);
-  const [triggerEffectId, setTriggerEffectId] = useState((asset as ObjectAsset).triggerEffectId);
-  const [statBlockId, setStatBlockId] = useState((asset as CreatureAsset).statBlockId);
-  const [category, setCategory] = useState((asset as CreatureAsset).category);
-  const [tokenStyle, setTokenStyle] = useState((asset as CreatureAsset).tokenStyle);
-  // Size state (at root level in new schema)
-  const [size, setSize] = useState<NamedSize>(asset.size);
-
-  // RTK Query mutations
   const [updateAsset, { isLoading: isSaving }] = useUpdateAssetMutation();
   const [deleteAsset, { isLoading: isDeleting }] = useDeleteAssetMutation();
 
-  // Track previous asset ID to detect asset switches
-  const prevAssetIdRef = useRef<string | null>(null);
+  const modifiedFields = useMemo(() => modifiedFieldsByAssetId[asset.id] || {}, [modifiedFieldsByAssetId, asset.id]);
+
+  const updateModifiedFields = (updates: Partial<ReturnType<typeof createEditData>>) => {
+    setModifiedFieldsByAssetId((prev) => ({
+      ...prev,
+      [asset.id]: { ...modifiedFields, ...updates },
+    }));
+  };
+
+  const editData = { ...createEditData(asset), ...modifiedFields };
 
   const objectData: ObjectData = {
-    isMovable: isMovable,
-    isOpaque: isOpaque,
-    triggerEffectId: triggerEffectId ?? undefined,
+    isMovable: editData.isMovable,
+    isOpaque: editData.isOpaque,
+    triggerEffectId: editData.triggerEffectId ?? undefined,
   };
   const creatureData: CreatureData = {
-    category: category,
-    statBlockId: statBlockId ?? undefined,
-    tokenStyle: tokenStyle ?? undefined,
+    category: editData.category,
+    statBlockId: editData.statBlockId ?? undefined,
+    tokenStyle: editData.tokenStyle ?? undefined,
   };
-
-  const setObjectData = (data: ObjectData) => {
-    setIsMovable(data.isMovable);
-    setIsOpaque(data.isOpaque);
-    setTriggerEffectId(data.triggerEffectId ?? undefined);
-  };
-  const setCreatureData = (data: CreatureData) => {
-    setCategory(data.category);
-    setStatBlockId(data.statBlockId ?? undefined);
-    setTokenStyle(data.tokenStyle ?? undefined);
-  };
-
-  // Reset state only when dialog opens or when switching to a different asset
-  // Do NOT reset when asset updates due to save operation (asset.updatedAt changes)
-  useEffect(() => {
-    const isDifferentAsset = prevAssetIdRef.current !== asset.id;
-
-    if (open && (isDifferentAsset || prevAssetIdRef.current === null)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setName(asset.name);
-      setDescription(asset.description);
-      setTokens(asset.tokens || []);
-      setPortraitId(asset.portrait?.id);
-      setIsPublic(asset.isPublic);
-      setIsPublished(asset.isPublished);
-      setSize(asset.size);
-      setEditMode(false);
-
-      if (isObjectAsset(asset)) {
-        setIsMovable(asset.isMovable);
-        setIsOpaque(asset.isOpaque);
-        setTriggerEffectId(asset.triggerEffectId);
-      } else if (isCreatureAsset(asset)) {
-        setCategory(asset.category);
-        setStatBlockId(asset.statBlockId);
-        setTokenStyle(asset.tokenStyle);
-      }
-
-      prevAssetIdRef.current = asset.id;
-    }
-  }, [open, asset]);
 
   const handleSave = async () => {
     try {
       const request: UpdateAssetRequest = {
-        isPublic,
-        isPublished,
-        description,
-        size,
-        tokens: tokens.map((t) => ({
+        isPublic: editData.isPublic,
+        isPublished: editData.isPublished,
+        description: editData.description,
+        size: editData.size,
+        tokens: editData.tokens.map((t) => ({
           token: {
             id: t.token.id,
             type: t.token.type,
@@ -169,26 +138,24 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
           },
           isDefault: t.isDefault,
         })),
-        portraitId,
+        portraitId: editData.portraitId,
       };
 
-      if (name.trim()) {
-        request.name = name;
+      if (editData.name.trim()) {
+        request.name = editData.name;
       }
 
       if (asset.kind === AssetKind.Object) {
-        const object = asset as ObjectAsset;
         request.objectData = {
-          isMovable: object.isMovable,
-          isOpaque: object.isOpaque,
-          triggerEffectId: object.triggerEffectId ?? undefined,
+          isMovable: editData.isMovable,
+          isOpaque: editData.isOpaque,
+          triggerEffectId: editData.triggerEffectId ?? undefined,
         };
       } else if (asset.kind === AssetKind.Creature) {
-        const creature = asset as CreatureAsset;
         request.creatureData = {
-          category: creature.category,
-          statBlockId: creature.statBlockId ?? undefined,
-          tokenStyle: creature.tokenStyle ?? undefined,
+          category: editData.category,
+          statBlockId: editData.statBlockId ?? undefined,
+          tokenStyle: editData.tokenStyle ?? undefined,
         };
       }
 
@@ -209,20 +176,11 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
   };
 
   const handleCancel = () => {
-    setName(asset.name);
-    setDescription(asset.description);
-    setTokens(asset.tokens || []);
-    setPortraitId(asset.portrait?.id);
-    setIsPublic(asset.isPublic);
-    setIsPublished(asset.isPublished);
-    setSize(asset.size);
-
-    if (isObjectAsset(asset)) {
-      setObjectData(objectData);
-    } else if (isCreatureAsset(asset)) {
-      setCreatureData(creatureData);
-    }
-
+    setModifiedFieldsByAssetId((prev) => {
+      const updated = { ...prev };
+      delete updated[asset.id];
+      return updated;
+    });
     setEditMode(false);
   };
 
@@ -252,11 +210,11 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
         <DialogContent>
           <AssetResourceManager
             entityId={asset.id}
-            tokens={tokens}
-            onTokensChange={setTokens}
-            portraitId={portraitId}
-            onPortraitIdChange={setPortraitId}
-            size={size}
+            tokens={editData.tokens}
+            onTokensChange={(tokens) => updateModifiedFields({ tokens })}
+            portraitId={editData.portraitId}
+            onPortraitIdChange={(portraitId) => updateModifiedFields({ portraitId })}
+            size={editData.size}
             readOnly={!editMode}
           />
 
@@ -297,14 +255,14 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                 <AccordionDetails sx={{ p: 3 }}>
                   <Stack spacing={2}>
                     <AssetBasicFields
-                      name={name}
-                      description={description}
-                      onNameChange={setName}
-                      onDescriptionChange={setDescription}
-                      isPublic={isPublic}
-                      isPublished={isPublished}
-                      onIsPublicChange={setIsPublic}
-                      onIsPublishedChange={setIsPublished}
+                      name={editData.name}
+                      description={editData.description}
+                      onNameChange={(name) => updateModifiedFields({ name })}
+                      onDescriptionChange={(description) => updateModifiedFields({ description })}
+                      isPublic={editData.isPublic}
+                      isPublished={editData.isPublished}
+                      onIsPublicChange={(isPublic) => updateModifiedFields({ isPublic })}
+                      onIsPublishedChange={(isPublished) => updateModifiedFields({ isPublished })}
                       readOnly={false}
                     />
                     {/* Kind (Read-only) */}
@@ -352,27 +310,44 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 3 }}>
                   {isObjectAsset(asset) && objectData && (
-                    <ObjectPropertiesForm objectData={objectData} onChange={setObjectData} />
+                    <ObjectPropertiesForm
+                      objectData={objectData}
+                      onChange={(data) =>
+                        updateModifiedFields({
+                          isMovable: data.isMovable,
+                          isOpaque: data.isOpaque,
+                          triggerEffectId: data.triggerEffectId,
+                        })
+                      }
+                    />
                   )}
 
                   {isCreatureAsset(asset) && creatureData && (
-                    <CreaturePropertiesForm creatureData={creatureData} onChange={setCreatureData} />
+                    <CreaturePropertiesForm
+                      creatureData={creatureData}
+                      onChange={(data) =>
+                        updateModifiedFields({
+                          category: data.category,
+                          statBlockId: data.statBlockId,
+                          tokenStyle: data.tokenStyle,
+                        })
+                      }
+                    />
                   )}
                 </AccordionDetails>
               </Accordion>
             </>
           ) : (
             <Stack spacing={2} sx={{ mt: 2 }}>
-              {/* View mode: Keep flat layout - no accordions */}
               <AssetBasicFields
-                name={name}
-                description={description}
-                onNameChange={setName}
-                onDescriptionChange={setDescription}
-                isPublic={isPublic}
-                isPublished={isPublished}
-                onIsPublicChange={setIsPublic}
-                onIsPublishedChange={setIsPublished}
+                name={editData.name}
+                description={editData.description}
+                onNameChange={(name) => updateModifiedFields({ name })}
+                onDescriptionChange={(description) => updateModifiedFields({ description })}
+                isPublic={editData.isPublic}
+                isPublished={editData.isPublished}
+                onIsPublicChange={(isPublic) => updateModifiedFields({ isPublic })}
+                onIsPublishedChange={(isPublished) => updateModifiedFields({ isPublished })}
                 readOnly={true}
               />
 
@@ -387,11 +362,29 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
               </Box>
 
               {isObjectAsset(asset) && objectData && (
-                <ObjectPropertiesForm objectData={objectData} onChange={setObjectData} />
+                <ObjectPropertiesForm
+                  objectData={objectData}
+                  onChange={(data) =>
+                    updateModifiedFields({
+                      isMovable: data.isMovable,
+                      isOpaque: data.isOpaque,
+                      triggerEffectId: data.triggerEffectId,
+                    })
+                  }
+                />
               )}
 
               {isCreatureAsset(asset) && creatureData && (
-                <CreaturePropertiesForm creatureData={creatureData} onChange={setCreatureData} />
+                <CreaturePropertiesForm
+                  creatureData={creatureData}
+                  onChange={(data) =>
+                    updateModifiedFields({
+                      category: data.category,
+                      statBlockId: data.statBlockId,
+                      tokenStyle: data.tokenStyle,
+                    })
+                  }
+                />
               )}
 
               {/* Metadata */}
@@ -428,7 +421,7 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                 variant='contained'
                 startIcon={isSaving ? <CircularProgress size={16} /> : <SaveIcon />}
                 onClick={handleSave}
-                disabled={isSaving || !name.trim()}
+                disabled={isSaving || !editData.name.trim()}
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>

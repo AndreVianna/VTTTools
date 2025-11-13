@@ -21,11 +21,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [dispatch, isAuthenticated, user]);
 
-  /* eslint-disable react-hooks/refs */
   const isCheckingAuth = token && !isAuthenticated && !checkedRef.current;
 
   if (isLoading || isCheckingAuth) {
-  /* eslint-enable react-hooks/refs */
     return (
       <Box
         id="loading-admin-auth"

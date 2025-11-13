@@ -6,7 +6,7 @@ import {
 } from '@mui/icons-material';
 import { Alert, AlertTitle, Box, Button, Chip, CircularProgress, Snackbar, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addError, clearErrorsByType } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
@@ -44,97 +44,102 @@ const NetworkStatusComponent: React.FC = () => {
     lastChecked: Date.now(),
     retryCount: 0,
   });
+  const networkStatusRef = useRef<NetworkStatusState>(networkStatus);
   const [showAlert, setShowAlert] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // Check network connectivity
-  const checkConnectivity = async (): Promise<{
-    connected: boolean;
-    latency: number | null;
-  }> => {
-    try {
-      const start = performance.now();
-      const response = await fetch('/health', {
-        method: 'HEAD',
-        cache: 'no-cache',
-        signal: AbortSignal.timeout(5000), // 5 second timeout
-      });
-      const latency = performance.now() - start;
+  useEffect(() => {
+    networkStatusRef.current = networkStatus;
+  }, [networkStatus]);
 
-      return {
-        connected: response.ok,
-        latency: Math.round(latency),
-      };
-    } catch (_error) {
-      return {
-        connected: false,
-        latency: null,
-      };
-    }
-  };
+  const checkConnectivity = useCallback(
+    async (): Promise<{
+      connected: boolean;
+      latency: number | null;
+    }> => {
+      try {
+        const start = performance.now();
+        const response = await fetch('/health', {
+          method: 'HEAD',
+          cache: 'no-cache',
+          signal: AbortSignal.timeout(5000),
+        });
+        const latency = performance.now() - start;
 
-  // Handle network status change
-  const updateNetworkStatus = async (isOnline: boolean, forceCheck = false) => {
-    if (!isOnline) {
-      // Definitely offline
-      setNetworkStatus((prev) => ({
-        ...prev,
-        isOnline: false,
-        isConnected: false,
-        lastChecked: Date.now(),
-      }));
-
-      if (!showAlert) {
-        setShowAlert(true);
-        dispatch(
-          addError({
-            type: 'network',
-            message: 'Network connection lost',
-            userFriendlyMessage: 'You appear to be offline. Please check your internet connection.',
-            retryable: true,
-          }),
-        );
+        return {
+          connected: response.ok,
+          latency: Math.round(latency),
+        };
+      } catch (_error) {
+        return {
+          connected: false,
+          latency: null,
+        };
       }
-      return;
-    }
+    },
+    [],
+  );
 
-    // Online according to browser, but let's verify actual connectivity
-    if (forceCheck || Math.abs(Date.now() - networkStatus.lastChecked) > 30000) {
-      // Check every 30s max
-      const { connected, latency } = await checkConnectivity();
+  const updateNetworkStatus = useCallback(
+    async (isOnline: boolean, forceCheck = false) => {
+      if (!isOnline) {
+        setNetworkStatus((prev) => ({
+          ...prev,
+          isOnline: false,
+          isConnected: false,
+          lastChecked: Date.now(),
+        }));
 
-      setNetworkStatus((prev) => ({
-        ...prev,
-        isOnline: true,
-        isConnected: connected,
-        latency,
-        lastChecked: Date.now(),
-      }));
-
-      if (!connected && !showAlert) {
-        setShowAlert(true);
-        dispatch(
-          addError({
-            type: 'network',
-            message: 'Server connectivity issues',
-            userFriendlyMessage: 'Cannot connect to VTT Tools servers. Please check your connection.',
-            retryable: true,
-          }),
-        );
-      } else if (connected && showAlert) {
-        // Connection restored
-        setShowAlert(false);
-        dispatch(clearErrorsByType('network'));
-        dispatch(
-          addNotification({
-            type: 'success',
-            message: 'Connection restored successfully!',
-            duration: 4000,
-          }),
-        );
+        if (!showAlert) {
+          setShowAlert(true);
+          dispatch(
+            addError({
+              type: 'network',
+              message: 'Network connection lost',
+              userFriendlyMessage: 'You appear to be offline. Please check your internet connection.',
+              retryable: true,
+            }),
+          );
+        }
+        return;
       }
-    }
-  };
+
+      if (forceCheck || Math.abs(Date.now() - networkStatusRef.current.lastChecked) > 30000) {
+        const { connected, latency } = await checkConnectivity();
+
+        setNetworkStatus((prev) => ({
+          ...prev,
+          isOnline: true,
+          isConnected: connected,
+          latency,
+          lastChecked: Date.now(),
+        }));
+
+        if (!connected && !showAlert) {
+          setShowAlert(true);
+          dispatch(
+            addError({
+              type: 'network',
+              message: 'Server connectivity issues',
+              userFriendlyMessage: 'Cannot connect to VTT Tools servers. Please check your connection.',
+              retryable: true,
+            }),
+          );
+        } else if (connected && showAlert) {
+          setShowAlert(false);
+          dispatch(clearErrorsByType('network'));
+          dispatch(
+            addNotification({
+              type: 'success',
+              message: 'Connection restored successfully!',
+              duration: 4000,
+            }),
+          );
+        }
+      }
+    },
+    [checkConnectivity, showAlert, dispatch],
+  );
 
   // Handle online/offline events
   useEffect(() => {
@@ -159,13 +164,7 @@ const NetworkStatusComponent: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
       clearInterval(interval);
     };
-    // updateNetworkStatus recreated on each render but uses stable refs internally
-    // This effect should only run once on mount to set up event listeners
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // Initial check
-    updateNetworkStatus,
-  ]);
+  }, [updateNetworkStatus]);
 
   // Retry connection with exponential backoff
   const handleRetry = async () => {

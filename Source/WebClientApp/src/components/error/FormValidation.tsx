@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 // FormValidation exports both validation components and utility functions (getErrorMessage, formatFieldName, useFormValidation hook)
 // These utilities are tightly coupled to form validation behavior and logically belong in the same file
 

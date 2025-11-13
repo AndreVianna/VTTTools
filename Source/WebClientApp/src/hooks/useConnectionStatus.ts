@@ -29,35 +29,51 @@ export const useConnectionStatus = (options: UseConnectionStatusOptions = {}): C
         signal: AbortSignal.timeout(3000),
       });
 
-      const wasOffline = !isOnline;
-      const nowOnline = response.ok;
+      setIsOnline((prevIsOnline) => {
+        const wasOffline = !prevIsOnline;
+        const nowOnline = response.ok;
 
-      setIsOnline(nowOnline);
+        if (nowOnline) {
+          setLastSync(new Date());
+        }
 
-      if (nowOnline) {
-        setLastSync(new Date());
-      }
+        if (wasOffline && nowOnline) {
+          onStatusChange?.(true);
+        } else if (!wasOffline && !nowOnline) {
+          onStatusChange?.(false);
+        }
 
-      if (wasOffline && nowOnline) {
-        onStatusChange?.(true);
-      } else if (!wasOffline && !nowOnline) {
-        onStatusChange?.(false);
-      }
+        return nowOnline;
+      });
     } catch (_error) {
-      const wasOnline = isOnline;
-      setIsOnline(false);
+      setIsOnline((prevIsOnline) => {
+        if (prevIsOnline) {
+          onStatusChange?.(false);
+        }
 
-      if (wasOnline) {
-        onStatusChange?.(false);
-      }
+        return false;
+      });
     }
-  }, [healthEndpoint, isOnline, onStatusChange]);
+  }, [healthEndpoint, onStatusChange]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const runCheck = async () => {
+      if (mounted) {
+        await checkConnection();
+      }
+    };
+
+    runCheck();
+
+    return () => {
+      mounted = false;
+    };
+  }, [checkConnection]);
 
   useEffect(() => {
     const interval = setInterval(checkConnection, pollInterval);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    checkConnection();
-
     return () => clearInterval(interval);
   }, [checkConnection, pollInterval]);
 
