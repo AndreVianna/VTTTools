@@ -74,7 +74,9 @@ interface RTKQueryError {
 }
 
 const isRTKQueryError = (error: unknown): error is RTKQueryError => {
-  return typeof error === 'object' && error !== null;
+  if (typeof error !== 'object' || error === null) return false;
+  const err = error as Partial<RTKQueryError>;
+  return 'status' in err || 'data' in err || 'message' in err;
 };
 
 const extractErrorMessage = (error: unknown, defaultMessage: string = 'Operation failed'): string => {
@@ -294,7 +296,9 @@ export const useAuth = () => {
         return result;
       } catch (error: unknown) {
         console.error('useAuth.register caught error:', error);
-        console.error('Error details - status:', error?.status, 'data:', error?.data);
+        if (isRTKQueryError(error)) {
+          console.error('Error details - status:', error.status, 'data:', error.data);
+        }
 
         const errorMessage = extractErrorMessage(error, 'Registration failed');
         dispatch(setAuthError(errorMessage));
@@ -757,7 +761,7 @@ export const useAuth = () => {
 
   // Update profile
   const updateProfile = useCallback(
-    async (updates: { userName?: string; phoneNumber?: string; profilworldtureUrl?: string }) => {
+    async (updates: { userName?: string; phoneNumber?: string; profilePictureUrl?: string }) => {
       try {
         const result = await updateProfileMutation(updates).unwrap();
 

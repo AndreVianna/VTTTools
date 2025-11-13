@@ -108,7 +108,7 @@ describe('Region Workflows - Integration Tests', () => {
 
       expect(transactionResult.current.transaction.segment?.vertices).toHaveLength(3);
 
-      let commitResult: CommitResult;
+      let commitResult!: CommitResult;
       await act(async () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
@@ -1052,7 +1052,7 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      let commitResult: CommitResult;
+      let commitResult!: CommitResult;
       await act(async () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,

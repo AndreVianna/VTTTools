@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import { Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
@@ -330,8 +331,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright',
-          weather: 'Clear',
+          light: Light.Bright,
+          weather: Weather.Clear,
           elevation: 0,
           grid: {
             type: 0,
@@ -407,8 +408,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright',
-          weather: 'Clear',
+          light: Light.Bright,
+          weather: Weather.Clear,
           elevation: 0,
           grid: {
             type: 0,
@@ -496,8 +497,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright',
-          weather: 'Clear',
+          light: Light.Bright,
+          weather: Weather.Clear,
           elevation: 0,
           grid: {
             type: 0,
@@ -571,8 +572,8 @@ describe('useRegionTransaction', () => {
           name: 'Test Encounter',
           description: '',
           isPublished: false,
-          light: 'Bright',
-          weather: 'Clear',
+          light: Light.Bright,
+          weather: Weather.Clear,
           elevation: 0,
           grid: {
             type: 0,

@@ -7,6 +7,7 @@ import {
   hydrateFromStorage,
   type OfflineMutation,
   persistMiddleware,
+  type RootState,
   removeOfflineMutation,
   syncOfflineMutations,
 } from './offlineSync';
@@ -26,7 +27,7 @@ describe('offlineSync', () => {
 
   describe('persistMiddleware', () => {
     it('should persist cache on fulfilled actions', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: {
             queries: { test: 'data' },
@@ -52,7 +53,7 @@ describe('offlineSync', () => {
     });
 
     it('should persist cache on rejected actions', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: {
             queries: {},
@@ -71,8 +72,13 @@ describe('offlineSync', () => {
     });
 
     it('should not persist on non-RTK actions', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
-        getState: vi.fn(),
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
+        getState: vi.fn().mockReturnValue({
+          encounterApi: {
+            queries: {},
+            mutations: {},
+          },
+        }),
         dispatch: vi.fn(),
       };
       const next = vi.fn((action) => action);
@@ -85,7 +91,7 @@ describe('offlineSync', () => {
     });
 
     it('should queue offline mutations on network errors', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),
@@ -130,7 +136,7 @@ describe('offlineSync', () => {
         { id: 'existing', endpoint: 'test', args: {}, timestamp: Date.now() },
       ];
 
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),

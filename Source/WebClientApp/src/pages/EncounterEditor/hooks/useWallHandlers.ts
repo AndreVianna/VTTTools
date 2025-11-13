@@ -8,6 +8,7 @@ import type {
 } from '@/services/encounterApi';
 import type { Encounter, EncounterWall, PlacedWall, Pole } from '@/types/domain';
 import { createBreakWallAction } from '@/types/wallUndoActions';
+import type { Command } from '@/utils/commands';
 import { BreakWallCommand, EditWallCommand } from '@/utils/commands/wallCommands';
 import { getDomIdByIndex, removeEntityMapping } from '@/utils/encounterEntityMapping';
 import { hydratePlacedWalls } from '@/utils/encounterMappers';
@@ -35,7 +36,7 @@ interface UseWallHandlersProps {
   setActivePanel: (panel: string | null) => void;
   setErrorMessage: (message: string | null) => void;
 
-  execute: (command: unknown) => void;
+  execute: (command: Command) => void | Promise<void>;
   refetch: () => Promise<{ data?: Encounter }>;
 }
 
@@ -413,7 +414,7 @@ export const useWallHandlers = ({
         breakingSegment.color,
         (tempId: number) => wallTransaction.removeSegment(tempId),
         (tempId: number, changes: Partial<WallSegment>) => wallTransaction.updateSegment(tempId, changes),
-        (segment: WallSegment) => wallTransaction.addSegment(segment),
+        (segment: Omit<WallSegment, 'tempId'>) => wallTransaction.addSegment(segment),
       );
 
       wallTransaction.pushLocalAction(breakAction);

@@ -1,23 +1,12 @@
 import type React from 'react';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Command } from '@/utils/commands';
+import { UndoRedoContext, type UndoRedoContextValue } from './undoRedoContextDefinition';
 
 interface UndoRedoState {
   past: Command[];
   future: Command[];
 }
-
-export interface UndoRedoContextValue {
-  canUndo: boolean;
-  canRedo: boolean;
-  execute: (command: Command) => Promise<void>;
-  recordAction: (command: Command) => void;
-  undo: () => Promise<void>;
-  redo: () => Promise<void>;
-  clear: () => void;
-}
-
-const UndoRedoContext = createContext<UndoRedoContextValue | null>(null);
 
 const MAX_HISTORY_SIZE = 100;
 
@@ -170,14 +159,4 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({ children, ma
   };
 
   return <UndoRedoContext.Provider value={value}>{children}</UndoRedoContext.Provider>;
-};
-
-export const useUndoRedoContext = (): UndoRedoContextValue => {
-  const context = useContext(UndoRedoContext);
-
-  if (context === null) {
-    throw new Error('useUndoRedoContext must be used within UndoRedoProvider');
-  }
-
-  return context;
 };

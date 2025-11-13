@@ -559,6 +559,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
     it('should remove segment by tempId correctly', () => {
       const { result } = renderHook(() => useWallTransaction());
       const mockWall = {
+        encounterId: 'encounter-1',
         index: 1,
         name: 'Wall 1',
         poles: [{ x: 0, y: 0, h: 10 }],
@@ -611,6 +612,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
     it('should not affect other segments', () => {
       const { result } = renderHook(() => useWallTransaction());
       const mockWall = {
+        encounterId: 'encounter-1',
         index: 1,
         name: 'Wall 1',
         poles: [{ x: 0, y: 0, h: 10 }],
@@ -660,6 +662,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
     it('should return new segments array', () => {
       const { result } = renderHook(() => useWallTransaction());
       const mockWall = {
+        encounterId: 'encounter-1',
         index: 1,
         name: 'Wall 1',
         poles: [{ x: 0, y: 0, h: 10 }],

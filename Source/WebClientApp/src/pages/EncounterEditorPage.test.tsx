@@ -15,13 +15,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as useConnectionStatusModule from '@/hooks/useConnectionStatus';
+import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { EncounterEditorPage } from './EncounterEditorPage';
 
 vi.mock('@/hooks/useConnectionStatus');
 
-const mockUseConnectionStatus = vi.fn();
-(useConnectionStatusModule as { useConnectionStatus: typeof vi.fn }).useConnectionStatus = mockUseConnectionStatus;
+const mockUseConnectionStatus = vi.mocked(useConnectionStatus);
 
 describe('EncounterEditorPage Integration', () => {
   beforeEach(() => {

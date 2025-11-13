@@ -1,7 +1,17 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type {
+  useAddEncounterAssetMutation,
+  useBulkAddEncounterAssetsMutation,
+  useBulkDeleteEncounterAssetsMutation,
+  useBulkUpdateEncounterAssetsMutation,
+  useRemoveEncounterAssetMutation,
+  useUpdateEncounterAssetMutation,
+} from '@/services/encounterApi';
+import type { AppDispatch } from '@/store';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
 import { AssetKind, LabelPosition, LabelVisibility, ResourceType, Weather } from '@/types/domain';
+import type { Command } from '@/utils/commands';
 import {
   clearEncounterMappings,
   getIndexByDomId,
@@ -38,7 +48,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
   let mockRefetch: () => Promise<{ data?: Encounter }>;
   let mockSetEncounter: (encounter: Encounter) => void;
   let mockExecute: (command: unknown) => void;
-  let mockDispatch: unknown;
+  let mockDispatch: AppDispatch;
   let mockCopyAssets: (assets: PlacedAsset[], encounterId: string) => void;
   let mockCutAssets: (assets: PlacedAsset[], encounterId: string) => void;
   let mockGetClipboardAssets: () => PlacedAsset[];
@@ -151,7 +161,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
     mockRefetch = vi.fn().mockResolvedValue({ data: mockEncounter });
     mockSetEncounter = vi.fn();
     mockExecute = vi.fn((command) => command.execute());
-    mockDispatch = vi.fn();
+    mockDispatch = vi.fn() as unknown as AppDispatch;
     mockCopyAssets = vi.fn();
     mockCutAssets = vi.fn();
     mockGetClipboardAssets = vi.fn().mockReturnValue([]);
@@ -603,11 +613,12 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       setEntityMapping(testEncounterId, 'assets', asset1.id, 0);
       setEntityMapping(testEncounterId, 'assets', asset2.id, 1);
 
-      const commands: unknown[] = [];
-      const trackingExecute = vi.fn((command) => {
-        commands.push(command);
-        command.execute();
-      });
+      const commands: Command[] = [];
+      const trackingExecute = vi.fn((command: unknown) => {
+        const cmd = command as Command;
+        commands.push(cmd);
+        cmd.execute();
+      }) as (command: unknown) => void;
 
       const { result } = renderHook(() =>
         useAssetManagement({
@@ -644,11 +655,11 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       expect(commands).toHaveLength(2);
 
       await act(async () => {
-        await commands[1].undo();
+        await commands[1]?.undo();
       });
 
       await act(async () => {
-        await commands[0].undo();
+        await commands[0]?.undo();
       });
 
       await waitFor(() => {

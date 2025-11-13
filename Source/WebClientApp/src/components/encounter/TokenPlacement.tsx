@@ -376,10 +376,16 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       // Validate placement for visual feedback
       const objectProperties =
         draggedAsset.kind === 'Object'
-          ? { isMovable: (draggedAsset as ObjectAsset).isMovable, isOpaque: (draggedAsset as ObjectAsset).isOpaque }
+          ? {
+              size: (draggedAsset as ObjectAsset).size,
+              isMovable: (draggedAsset as ObjectAsset).isMovable,
+              isOpaque: (draggedAsset as ObjectAsset).isOpaque,
+            }
           : undefined;
       const creatureProperties =
-        draggedAsset.kind === 'Creature' ? (draggedAsset as CreatureAsset).category : undefined;
+        draggedAsset.kind === 'Creature'
+          ? { size: (draggedAsset as CreatureAsset).size, category: (draggedAsset as CreatureAsset).category }
+          : undefined;
 
       const behavior = getPlacementBehavior(draggedAsset.kind, objectProperties, creatureProperties);
 
@@ -397,12 +403,16 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         behavior,
         placedAssets.map((a) => {
           const objectData =
-            a.asset.kind === 'Object' && 'size' in a.asset && 'isMovable' in a.asset && 'isOpaque' in a.asset
-              ? { size: a.asset.size, isMovable: a.asset.isMovable, isOpaque: a.asset.isOpaque }
+            a.asset.kind === 'Object'
+              ? {
+                  size: (a.asset as ObjectAsset).size,
+                  isMovable: (a.asset as ObjectAsset).isMovable,
+                  isOpaque: (a.asset as ObjectAsset).isOpaque,
+                }
               : undefined;
           const creatureData =
-            a.asset.kind === 'Creature' && 'size' in a.asset && 'category' in a.asset
-              ? { size: a.asset.size, category: a.asset.category }
+            a.asset.kind === 'Creature'
+              ? { size: (a.asset as CreatureAsset).size, category: (a.asset as CreatureAsset).category }
               : undefined;
 
           return {

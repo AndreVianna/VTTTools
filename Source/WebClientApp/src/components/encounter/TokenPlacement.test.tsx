@@ -106,7 +106,7 @@ describe('TokenPlacement', () => {
       zoomLevel: 1,
       panning: { x: 0, y: 0 },
     },
-    light: Light.Bright,
+    light: Light.Daylight,
     weather: Weather.Clear,
     elevation: 0,
     assets: [],
@@ -139,18 +139,20 @@ describe('TokenPlacement', () => {
     global.Image = MockImage as unknown as typeof Image;
 
     const mockCanvas = {
-      getContext: vi.fn(() => ({
-        measureText: vi.fn((text: string) => ({ width: text.length * 7 })),
-        font: '',
-        fillText: vi.fn(),
-        strokeText: vi.fn(),
-      })),
+      getContext: vi.fn((contextId: string) => {
+        if (contextId === '2d') {
+          return {
+            measureText: vi.fn((text: string) => ({ width: text.length * 7 })),
+            font: '',
+            fillText: vi.fn(),
+            strokeText: vi.fn(),
+          };
+        }
+        return null;
+      }),
     };
 
-    HTMLCanvasElement.prototype.getContext = mockCanvas.getContext as unknown as (
-      contextId: '2d',
-      options?: CanvasRenderingContext2DSettings,
-    ) => CanvasRenderingContext2D | null;
+    HTMLCanvasElement.prototype.getContext = mockCanvas.getContext as typeof HTMLCanvasElement.prototype.getContext;
   });
 
   it('renders without crashing', () => {

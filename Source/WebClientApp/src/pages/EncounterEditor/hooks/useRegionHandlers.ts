@@ -5,6 +5,7 @@ import type {
   useUpdateEncounterRegionMutation,
 } from '@/services/encounterApi';
 import type { Encounter, EncounterRegion, PlacedRegion, Point } from '@/types/domain';
+import type { Command } from '@/utils/commands';
 import { CreateRegionCommand, EditRegionCommand } from '@/utils/commands/regionCommands';
 import { getDomIdByIndex, removeEntityMapping } from '@/utils/encounterEntityMapping';
 import { hydratePlacedRegions } from '@/utils/encounterMappers';
@@ -41,7 +42,7 @@ interface UseRegionHandlersProps {
   setDrawingRegionIndex: (index: number | null) => void;
   setErrorMessage: (message: string | null) => void;
 
-  recordAction: (command: unknown) => void;
+  recordAction: (command: Command) => void;
   refetch: () => Promise<{ data?: Encounter }>;
 }
 

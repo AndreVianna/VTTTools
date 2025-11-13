@@ -439,38 +439,68 @@ export const createNetworkError = (message: string, context?: Record<string, unk
   const error = new Error(message) as EnhancedError;
   error.type = 'network';
   error.code = 'NETWORK_ERROR';
-  error.context = context;
+  if (context !== undefined) {
+    error.context = context;
+  }
   error.retryable = true;
   error.userFriendlyMessage = 'Network connection error. Please check your internet connection and try again.';
   return error;
 };
 
 export const handleApiError = (error: unknown, context?: Record<string, unknown>) =>
-  handleError(error, { type: 'network', context, showNotification: true });
+  handleError(
+    error,
+    context !== undefined
+      ? { type: 'network', context, showNotification: true }
+      : { type: 'network', showNotification: true },
+  );
 
 export const handleValidationError = (error: unknown, context?: Record<string, unknown>) =>
-  handleError(error, {
-    type: 'validation',
-    context,
-    showNotification: true,
-    retryable: false,
-  });
+  handleError(
+    error,
+    context !== undefined
+      ? {
+          type: 'validation',
+          context,
+          showNotification: true,
+          retryable: false,
+        }
+      : {
+          type: 'validation',
+          showNotification: true,
+          retryable: false,
+        },
+  );
 
 export const handleSystemError = (error: unknown, context?: Record<string, unknown>) =>
-  handleError(error, { type: 'system', context, showNotification: true });
+  handleError(
+    error,
+    context !== undefined
+      ? { type: 'system', context, showNotification: true }
+      : { type: 'system', showNotification: true },
+  );
 
 export const handleAssetLoadingError = (error: unknown, context?: Record<string, unknown>) =>
-  handleError(error, {
-    type: 'asset_loading',
-    context,
-    showNotification: true,
-    userFriendlyMessage: 'Failed to load asset. Please try again.',
-  });
+  handleError(
+    error,
+    context !== undefined
+      ? {
+          type: 'asset_loading',
+          context,
+          showNotification: true,
+          userFriendlyMessage: 'Failed to load asset. Please try again.',
+        }
+      : {
+          type: 'asset_loading',
+          showNotification: true,
+          userFriendlyMessage: 'Failed to load asset. Please try again.',
+        },
+  );
 
 export const handleEncounterError = (error: unknown, operation: 'save' | 'load', context?: Record<string, unknown>) =>
   handleError(error, {
     type: operation === 'save' ? 'encounter_save' : 'encounter_load',
-    context: { ...context, operation },
+    ...(context !== undefined ? { context: { ...context, operation } } : { context: { operation } }),
     showNotification: true,
     userFriendlyMessage: `Failed to ${operation} encounter. Please try again.`,
   });
