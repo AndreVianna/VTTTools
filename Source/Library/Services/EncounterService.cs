@@ -490,6 +490,8 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         var wall = encounter.Walls.FirstOrDefault(w => w.Index == data.WallIndex);
         if (wall is null)
             return Result.Failure($"Wall with index {data.WallIndex} not found");
+        if (wall.Poles.Count < 2)
+            return Result.Failure($"Wall with index {data.WallIndex} must have at least 2 poles");
 
         var (startPoleIndex, endPoleIndex, updatedPoles) = FindOrInsertPoles(wall.Poles, data.CenterPosition, data.Width);
 
@@ -543,17 +545,25 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
                 return (uint)i;
         }
 
+        if (poles.Count == 0)
+            throw new InvalidOperationException("Cannot create pole on wall with no existing poles");
+
         var newPole = new Pole(targetPosition, poles[0].Y, poles[0].H);
-        var insertIndex = poles.Count;
+
+        if (targetPosition < poles[0].X) {
+            poles.Insert(0, newPole);
+            return 0;
+        }
+
         for (var i = 0; i < poles.Count - 1; i++) {
             if (poles[i].X < targetPosition && targetPosition < poles[i + 1].X) {
-                insertIndex = i + 1;
-                break;
+                poles.Insert(i + 1, newPole);
+                return (uint)(i + 1);
             }
         }
 
-        poles.Insert(insertIndex, newPole);
-        return (uint)insertIndex;
+        poles.Add(newPole);
+        return (uint)(poles.Count - 1);
     }
 
     /// <inheritdoc />

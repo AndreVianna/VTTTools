@@ -261,6 +261,11 @@ public class EncounterStorage(ApplicationDbContext context)
     public async Task<bool> AddOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default) {
         var encounter = await context.Encounters.FindAsync([id], ct);
         if (encounter == null) return false;
+
+        var wallExists = await context.Set<EncounterWallEntity>()
+            .AnyAsync(w => w.EncounterId == id && w.Index == encounterOpening.WallIndex, ct);
+        if (!wallExists) return false;
+
         var entity = encounterOpening.ToEntity(id);
         await context.Set<EncounterOpeningEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
