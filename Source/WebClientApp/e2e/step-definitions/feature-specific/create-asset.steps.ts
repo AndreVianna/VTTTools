@@ -409,7 +409,8 @@ Then('the image should have no role badges', async function (this: CustomWorld) 
 
 Then('the image should show a {string} badge', async function (this: CustomWorld, badgeText: string) {
   const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-  await this.assetResourceManager.verifyImageHasRole(lastResourceId!, badgeText);
+  expect(lastResourceId).toBeDefined();
+  await this.assetResourceManager.verifyImageHasRole(lastResourceId, badgeText);
 });
 
 Then(
@@ -490,7 +491,8 @@ Given('I upload an image', async function (this: CustomWorld) {
 
 Then('the image should have Token role', async function (this: CustomWorld) {
   const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-  await this.assetResourceManager.verifyImageHasRole(lastResourceId!, 'Token');
+  expect(lastResourceId).toBeDefined();
+  await this.assetResourceManager.verifyImageHasRole(lastResourceId, 'Token');
 });
 
 Then('the Token role should be removed \\(toggled off\\)', async function (this: CustomWorld) {
@@ -568,7 +570,8 @@ Then('I should see {int} images in the Manage panel', async function (this: Cust
 
 Then('image{int} should have {string} badge', async function (this: CustomWorld, index: number, badgeText: string) {
   const resourceId = this.uploadedResourceIds[index - 1];
-  await this.assetResourceManager.verifyImageHasRole(resourceId!, badgeText);
+  expect(resourceId).toBeDefined();
+  await this.assetResourceManager.verifyImageHasRole(resourceId, badgeText);
 });
 
 Then('image{int} should have both badges', async function (this: CustomWorld, index: number) {

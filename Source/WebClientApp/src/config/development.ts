@@ -92,19 +92,19 @@ export const MOCK_DATA = {
 
 // Development utilities
 export const devUtils = {
-  log: (message: string, data?: any) => {
+  log: (message: string, data?: unknown) => {
     if (isDevelopment) {
       console.log(`🔧 VTT Tools Dev: ${message}`, data || '');
     }
   },
 
-  error: (message: string, error?: any) => {
+  error: (message: string, error?: unknown) => {
     if (isDevelopment) {
       console.error(`❌ VTT Tools Dev Error: ${message}`, error || '');
     }
   },
 
-  warn: (message: string, data?: any) => {
+  warn: (message: string, data?: unknown) => {
     if (isDevelopment) {
       console.warn(`⚠️ VTT Tools Dev Warning: ${message}`, data || '');
     }

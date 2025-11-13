@@ -1,11 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { act, render } from '@testing-library/react';
+import type Konva from 'konva';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { encounterApi } from '@/services/encounterApi';
-import type { Pole } from '@/types/domain';
+import type { Encounter, EncounterWall, Pole } from '@/types/domain';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import { WallDrawingTool } from './WallDrawingTool';
 
@@ -23,9 +24,9 @@ vi.mock('react-konva', () => ({
     onDblClick,
     onMouseMove,
   }: {
-    onClick?: (e: any) => void;
-    onDblClick?: (e: any) => void;
-    onMouseMove?: (e: any) => void;
+    onClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void;
+    onDblClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void;
+    onMouseMove?: (e: Konva.KonvaEventObject<MouseEvent>) => void;
   }) => {
     const mockKonvaEvent = {
       target: {
@@ -38,9 +39,10 @@ vi.mock('react-konva', () => ({
       },
       evt: {},
       cancelBubble: false,
-    };
+    } as Konva.KonvaEventObject<MouseEvent>;
     return (
-      <div
+      <button
+        type='button'
         data-testid='konva-rect'
         onClick={() => onClick?.(mockKonvaEvent)}
         onDoubleClick={() => onDblClick?.(mockKonvaEvent)}
@@ -80,7 +82,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     snap: true,
   };
 
-  const createMockEncounter = (walls: any[] = []) => ({
+  const createMockEncounter = (walls: EncounterWall[] = []): Partial<Encounter> => ({
     id: 'encounter-1',
     name: 'Test Encounter',
     walls,
@@ -105,7 +107,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     onFinishSpy = vi.fn();
   });
 
-  const createStoreWithEncounter = (encounter: any) => {
+  const createStoreWithEncounter = (encounter: Partial<Encounter>) => {
     return configureStore({
       reducer: {
         [encounterApi.reducerPath]: () => ({
@@ -117,7 +119,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
           },
         }),
       },
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware as any),
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware),
     });
   };
 
@@ -291,8 +293,8 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(container.querySelector('[data-testid="konva-group"]')).toBeTruthy();
       expect(transaction).not.toBeNull();
-      expect(transaction!.transaction.isActive).toBe(true);
-      expect(transaction!.transaction.type).toBe('placement');
+      expect(transaction?.transaction.isActive).toBe(true);
+      expect(transaction?.transaction.type).toBe('placement');
     });
 
     it('should initialize real hook with empty undo/redo stacks', () => {
@@ -322,10 +324,10 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       );
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.transaction.localUndoStack).toEqual([]);
-      expect(transaction!.transaction.localRedoStack).toEqual([]);
-      expect(transaction!.canUndoLocal()).toBe(false);
-      expect(transaction!.canRedoLocal()).toBe(false);
+      expect(transaction?.transaction.localUndoStack).toEqual([]);
+      expect(transaction?.transaction.localRedoStack).toEqual([]);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(false);
     });
   });
 
@@ -410,12 +412,12 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         },
         evt: {},
         cancelBubble: false,
-      };
+      } as Konva.KonvaEventObject<MouseEvent>;
 
       vi.mock('react-konva', () => ({
         Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
-        Rect: ({ onClick }: { onClick?: (e: any) => void }) => (
-          <div data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
+        Rect: ({ onClick }: { onClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void }) => (
+          <button type='button' data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
         ),
       }));
 
@@ -485,15 +487,15 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.transaction.localUndoStack.length).toBe(0);
+      expect(transaction?.transaction.localUndoStack.length).toBe(0);
 
       act(() => {
         rect.click();
       });
 
-      expect(transaction!.transaction.localUndoStack.length).toBe(1);
-      expect(transaction!.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
-      expect(transaction!.canUndoLocal()).toBe(true);
+      expect(transaction?.transaction.localUndoStack.length).toBe(1);
+      expect(transaction?.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
+      expect(transaction?.canUndoLocal()).toBe(true);
     });
 
     it('should call onPolesChange when pole is placed', () => {
@@ -576,15 +578,15 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(capturedPoles.length).toBe(1);
       expect(transaction).not.toBeNull();
-      expect(transaction!.canUndoLocal()).toBe(true);
+      expect(transaction?.canUndoLocal()).toBe(true);
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
       expect(capturedPoles.length).toBe(0);
-      expect(transaction!.canUndoLocal()).toBe(false);
-      expect(transaction!.canRedoLocal()).toBe(true);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(true);
     });
 
     it('should redo pole placement using real hook', () => {
@@ -627,20 +629,20 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       const originalPole = { ...capturedPoles[0] };
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
       expect(capturedPoles.length).toBe(0);
 
       act(() => {
-        transaction!.redoLocal();
+        transaction?.redoLocal();
       });
 
       expect(capturedPoles.length).toBe(1);
       expect(capturedPoles[0]).toEqual(originalPole);
       expect(transaction).not.toBeNull();
-      expect(transaction!.canUndoLocal()).toBe(true);
-      expect(transaction!.canRedoLocal()).toBe(false);
+      expect(transaction?.canUndoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(false);
     });
 
     it('should handle multiple undo operations with real hook', () => {
@@ -684,31 +686,31 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.transaction.localUndoStack.length).toBe(3);
-      expect(transaction!.transaction.localRedoStack.length).toBe(0);
+      expect(transaction?.transaction.localUndoStack.length).toBe(3);
+      expect(transaction?.transaction.localRedoStack.length).toBe(0);
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
-      expect(transaction!.transaction.localUndoStack.length).toBe(2);
-      expect(transaction!.transaction.localRedoStack.length).toBe(1);
+      expect(transaction?.transaction.localUndoStack.length).toBe(2);
+      expect(transaction?.transaction.localRedoStack.length).toBe(1);
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
-      expect(transaction!.transaction.localUndoStack.length).toBe(1);
-      expect(transaction!.transaction.localRedoStack.length).toBe(2);
+      expect(transaction?.transaction.localUndoStack.length).toBe(1);
+      expect(transaction?.transaction.localRedoStack.length).toBe(2);
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
-      expect(transaction!.transaction.localUndoStack.length).toBe(0);
-      expect(transaction!.transaction.localRedoStack.length).toBe(3);
-      expect(transaction!.canUndoLocal()).toBe(false);
-      expect(transaction!.canRedoLocal()).toBe(true);
+      expect(transaction?.transaction.localUndoStack.length).toBe(0);
+      expect(transaction?.transaction.localRedoStack.length).toBe(3);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(true);
     });
   });
 
@@ -746,18 +748,18 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.canRedoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(true);
 
       act(() => {
         rect.click();
       });
 
-      expect(transaction!.canRedoLocal()).toBe(false);
-      expect(transaction!.transaction.localRedoStack.length).toBe(0);
+      expect(transaction?.canRedoLocal()).toBe(false);
+      expect(transaction?.transaction.localRedoStack.length).toBe(0);
     });
 
     it('should maintain correct canUndo/canRedo state throughout lifecycle', () => {
@@ -789,29 +791,29 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.canUndoLocal()).toBe(false);
-      expect(transaction!.canRedoLocal()).toBe(false);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(false);
 
       act(() => {
         rect.click();
       });
 
-      expect(transaction!.canUndoLocal()).toBe(true);
-      expect(transaction!.canRedoLocal()).toBe(false);
+      expect(transaction?.canUndoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(false);
 
       act(() => {
-        transaction!.undoLocal();
+        transaction?.undoLocal();
       });
 
-      expect(transaction!.canUndoLocal()).toBe(false);
-      expect(transaction!.canRedoLocal()).toBe(true);
+      expect(transaction?.canUndoLocal()).toBe(false);
+      expect(transaction?.canRedoLocal()).toBe(true);
 
       act(() => {
-        transaction!.redoLocal();
+        transaction?.redoLocal();
       });
 
-      expect(transaction!.canUndoLocal()).toBe(true);
-      expect(transaction!.canRedoLocal()).toBe(false);
+      expect(transaction?.canUndoLocal()).toBe(true);
+      expect(transaction?.canRedoLocal()).toBe(false);
     });
   });
 
@@ -843,9 +845,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       );
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.transaction.isActive).toBe(true);
-      expect(transaction!.transaction.type).toBe('placement');
-      expect(transaction!.transaction.originalWall).toBeNull();
+      expect(transaction?.transaction.isActive).toBe(true);
+      expect(transaction?.transaction.type).toBe('placement');
+      expect(transaction?.transaction.originalWall).toBeNull();
     });
 
     it('should rollback transaction and clear stacks', () => {
@@ -881,15 +883,15 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       expect(transaction).not.toBeNull();
-      expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      expect(transaction?.transaction.localUndoStack.length).toBe(1);
 
       act(() => {
-        transaction!.rollbackTransaction();
+        transaction?.rollbackTransaction();
       });
 
-      expect(transaction!.transaction.isActive).toBe(false);
-      expect(transaction!.transaction.localUndoStack.length).toBe(0);
-      expect(transaction!.transaction.localRedoStack.length).toBe(0);
+      expect(transaction?.transaction.isActive).toBe(false);
+      expect(transaction?.transaction.localUndoStack.length).toBe(0);
+      expect(transaction?.transaction.localRedoStack.length).toBe(0);
     });
   });
 });

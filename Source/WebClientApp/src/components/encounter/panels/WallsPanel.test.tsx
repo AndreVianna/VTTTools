@@ -58,7 +58,8 @@ describe('WallsPanel', () => {
     const presetButtons = screen.getAllByRole('button');
     const firstPreset = presetButtons[0];
     expect(firstPreset).toBeTruthy();
-    fireEvent.click(firstPreset!);
+    if (!firstPreset) throw new Error('First preset button not found');
+    fireEvent.click(firstPreset);
 
     expect(onPresetSelect).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -120,7 +121,9 @@ describe('WallsPanel', () => {
     });
 
     const wallListItem = screen.getByText('Stone Wall').closest('button');
-    fireEvent.click(wallListItem!);
+    expect(wallListItem).toBeTruthy();
+    if (!wallListItem) throw new Error('Wall list item button not found');
+    fireEvent.click(wallListItem);
 
     expect(onWallSelect).toHaveBeenCalledWith(mockEncounterWall.index);
   });
@@ -154,7 +157,8 @@ describe('WallsPanel', () => {
 
     const deleteButton = screen.getAllByRole('button').find((b) => b.querySelector('[data-testid="DeleteIcon"]'));
     expect(deleteButton).toBeTruthy();
-    fireEvent.click(deleteButton!);
+    if (!deleteButton) throw new Error('Delete button not found');
+    fireEvent.click(deleteButton);
 
     expect(await screen.findByText('Unsaved Edits')).toBeInTheDocument();
     expect(onWallDelete).not.toHaveBeenCalled();
@@ -234,7 +238,8 @@ describe('WallsPanel', () => {
 
     const deleteButton = screen.getAllByRole('button').find((b) => b.querySelector('[data-testid="DeleteIcon"]'));
     expect(deleteButton).toBeTruthy();
-    fireEvent.click(deleteButton!);
+    if (!deleteButton) throw new Error('Delete button not found');
+    fireEvent.click(deleteButton);
 
     expect(onCancelEditing).toHaveBeenCalled();
     expect(await screen.findByText('Delete Wall')).toBeInTheDocument();
@@ -258,7 +263,8 @@ describe('WallsPanel', () => {
 
     const deleteButtons = screen.getAllByRole('button').filter((b) => b.querySelector('[data-testid="DeleteIcon"]'));
     expect(deleteButtons.length).toBeGreaterThanOrEqual(2);
-    fireEvent.click(deleteButtons[1]!);
+    if (!deleteButtons[1]) throw new Error('Second delete button not found');
+    fireEvent.click(deleteButtons[1]);
 
     expect(onCancelEditing).toHaveBeenCalled();
     expect(await screen.findByText('Delete Wall')).toBeInTheDocument();
@@ -293,7 +299,8 @@ describe('WallsPanel', () => {
 
     const deleteButtons = screen.getAllByRole('button').filter((b) => b.querySelector('[data-testid="DeleteIcon"]'));
     expect(deleteButtons.length).toBeGreaterThanOrEqual(2);
-    fireEvent.click(deleteButtons[1]!);
+    if (!deleteButtons[1]) throw new Error('Second delete button not found');
+    fireEvent.click(deleteButtons[1]);
 
     expect(await screen.findByText('Unsaved Edits')).toBeInTheDocument();
     expect(onCancelEditing).not.toHaveBeenCalled();

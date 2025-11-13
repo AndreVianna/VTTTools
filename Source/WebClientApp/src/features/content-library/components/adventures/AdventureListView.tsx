@@ -88,7 +88,7 @@ export function AdventureListView() {
     filters.after = cursor;
   }
 
-  const { data, isLoading, isFetching, error } = useGetContentQuery(filters as any);
+  const { data, isLoading, isFetching, error } = useGetContentQuery(filters);
   const adventures: Adventure[] = data?.data || [];
   const hasMore = data?.hasMore || false;
   const nextCursor = data?.nextCursor;

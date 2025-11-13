@@ -347,7 +347,7 @@ export class MockApiService {
 export const mockApi = MockApiService.getInstance();
 
 // Utility function to check if we should use mock responses
-export const shouldUseMockApi = (error?: any): boolean => {
+export const shouldUseMockApi = (error?: unknown): boolean => {
   // Use mock API if:
   // 1. In standalone development mode
   // 2. Network error occurred (likely backend not running)
@@ -357,14 +357,15 @@ export const shouldUseMockApi = (error?: any): boolean => {
   }
 
   if (error) {
+    const err = error as { code?: string; message?: string };
     const isNetworkError =
-      error.code === 'NETWORK_ERROR' ||
-      error.message?.includes('fetch') ||
-      error.message?.includes('network') ||
-      error.message?.includes('CORS');
+      err.code === 'NETWORK_ERROR' ||
+      err.message?.includes('fetch') ||
+      err.message?.includes('network') ||
+      err.message?.includes('CORS');
 
     if (isNetworkError) {
-      devUtils.warn('Network error detected, falling back to mock API', error.message);
+      devUtils.warn('Network error detected, falling back to mock API', err.message);
       return true;
     }
   }

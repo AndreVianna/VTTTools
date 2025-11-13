@@ -13,14 +13,14 @@ export interface OldAssetResource {
 export interface NewAssetToken {
   tokenId: string;
   isDefault: boolean;
-  token?: any;
+  token?: MediaResource;
 }
 
 export interface MediaResource {
   id: string;
   type: string;
   path: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   tags: string[];
 }
 
@@ -64,17 +64,48 @@ export function extractPortraitFromResources(oldResources: OldAssetResource[]): 
   return displayResource?.resourceId;
 }
 
+interface OldAsset {
+  id?: string;
+  ownerId?: string;
+  kind?: string;
+  name?: string;
+  description?: string;
+  isPublished?: boolean;
+  isPublic?: boolean;
+  resources?: OldAssetResource[];
+  objectProps?: { size?: unknown; [key: string]: unknown };
+  creatureProps?: { size?: unknown; [key: string]: unknown };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface NewAsset {
+  id?: string;
+  ownerId?: string;
+  kind?: string;
+  name?: string;
+  description: string;
+  isPublished: boolean;
+  isPublic: boolean;
+  tokens: NewAssetToken[];
+  portraitId?: string;
+  size: { width: number; height: number; isSquare: boolean };
+  properties?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 /**
  * Migrate complete old asset to new schema
  */
-export function migrateOldAssetToNew(oldAsset: any): any {
+export function migrateOldAssetToNew(oldAsset: OldAsset): NewAsset {
   const tokens = oldAsset.resources ? migrateResourcesToTokens(oldAsset.resources) : [];
 
   const portraitId = oldAsset.resources ? extractPortraitFromResources(oldAsset.resources) : undefined;
 
   const size = oldAsset.objectProps?.size || oldAsset.creatureProps?.size || { width: 1, height: 1, isSquare: true };
 
-  let properties;
+  let properties: Record<string, unknown> | undefined;
   if (oldAsset.kind === 'Object' && oldAsset.objectProps) {
     const { size: _size, ...rest } = oldAsset.objectProps;
     properties = rest;
@@ -93,17 +124,28 @@ export function migrateOldAssetToNew(oldAsset: any): any {
     isPublic: oldAsset.isPublic || false,
     tokens,
     portraitId,
-    size,
+    size: size as { width: number; height: number; isSquare: boolean },
     properties,
     createdAt: oldAsset.createdAt,
     updatedAt: oldAsset.updatedAt,
   };
 }
 
+interface OldEncounterAsset {
+  resourceId?: string;
+  [key: string]: unknown;
+}
+
+interface NewEncounterAsset {
+  token?: MediaResource;
+  resourceId?: undefined;
+  [key: string]: unknown;
+}
+
 /**
  * Migrate old encounter with EncounterAsset resourceId to new schema with token object
  */
-export function migrateOldEncounterAssetToNew(oldEncounterAsset: any): any {
+export function migrateOldEncounterAssetToNew(oldEncounterAsset: OldEncounterAsset): NewEncounterAsset {
   const token = oldEncounterAsset.resourceId
     ? {
         id: oldEncounterAsset.resourceId,

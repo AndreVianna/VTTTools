@@ -1,3 +1,4 @@
+import type Konva from 'konva';
 import type React from 'react';
 import { Circle, Group, Line } from 'react-konva';
 import { type EncounterWall, WallVisibility } from '@/types/domain';
@@ -38,15 +39,17 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
     }
   };
 
-  const handleContextMenu = (e: any) => {
+  const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
     if (onContextMenu) {
       const stage = e.target.getStage();
-      const pointerPosition = stage.getPointerPosition();
-      onContextMenu(encounterWall.index, {
-        x: pointerPosition.x,
-        y: pointerPosition.y,
-      });
+      const pointerPosition = stage?.getPointerPosition();
+      if (pointerPosition) {
+        onContextMenu(encounterWall.index, {
+          x: pointerPosition.x,
+          y: pointerPosition.y,
+        });
+      }
     }
   };
 
@@ -93,8 +96,15 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
         }}
       />
 
-      {encounterWall.poles.map((pole, index) => (
-        <Circle key={`pole-${index}`} x={pole.x} y={pole.y} radius={poleRadius} fill={poleColor} listening={false} />
+      {encounterWall.poles.map((pole) => (
+        <Circle
+          key={`pole-${pole.x}-${pole.y}`}
+          x={pole.x}
+          y={pole.y}
+          radius={poleRadius}
+          fill={poleColor}
+          listening={false}
+        />
       ))}
     </Group>
   );

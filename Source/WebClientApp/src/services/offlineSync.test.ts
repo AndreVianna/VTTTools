@@ -26,7 +26,7 @@ describe('offlineSync', () => {
 
   describe('persistMiddleware', () => {
     it('should persist cache on fulfilled actions', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: {
             queries: { test: 'data' },
@@ -52,7 +52,7 @@ describe('offlineSync', () => {
     });
 
     it('should persist cache on rejected actions', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: {
             queries: {},
@@ -71,7 +71,7 @@ describe('offlineSync', () => {
     });
 
     it('should not persist on non-RTK actions', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
         getState: vi.fn(),
         dispatch: vi.fn(),
       };
@@ -85,7 +85,7 @@ describe('offlineSync', () => {
     });
 
     it('should queue offline mutations on network errors', () => {
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),
@@ -130,7 +130,7 @@ describe('offlineSync', () => {
         { id: 'existing', endpoint: 'test', args: {}, timestamp: Date.now() },
       ];
 
-      const api: MiddlewareAPI<Dispatch<UnknownAction>, any> = {
+      const api: MiddlewareAPI<Dispatch<UnknownAction>, unknown> = {
         getState: vi.fn().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),

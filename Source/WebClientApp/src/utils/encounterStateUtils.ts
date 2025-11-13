@@ -36,10 +36,13 @@ export function syncWallIndices(encounter: Encounter, tempToRealMap: Map<number,
     ...encounter,
     walls: encounter.walls.map((wall) => {
       if (wall.index < 0 && tempToRealMap.has(wall.index)) {
-        return {
-          ...wall,
-          index: tempToRealMap.get(wall.index)!,
-        };
+        const realIndex = tempToRealMap.get(wall.index);
+        if (realIndex !== undefined) {
+          return {
+            ...wall,
+            index: realIndex,
+          };
+        }
       }
       return wall;
     }),
@@ -90,10 +93,13 @@ export function syncRegionIndices(encounter: Encounter, tempToRealMap: Map<numbe
     ...encounter,
     regions: encounter.regions.map((region) => {
       if (region.index < 0 && tempToRealMap.has(region.index)) {
-        return {
-          ...region,
-          index: tempToRealMap.get(region.index)!,
-        };
+        const realIndex = tempToRealMap.get(region.index);
+        if (realIndex !== undefined) {
+          return {
+            ...region,
+            index: realIndex,
+          };
+        }
       }
       return region;
     }),

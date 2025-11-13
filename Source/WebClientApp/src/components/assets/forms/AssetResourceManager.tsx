@@ -73,9 +73,13 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
       };
 
       onTokensChange([...tokens, newToken]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error?.data?.detail || error?.data?.title || error?.error || error?.message || JSON.stringify(error);
+        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.detail ||
+        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.title ||
+        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.error ||
+        (error as { message?: string })?.message ||
+        JSON.stringify(error);
       setUploadError(`Failed to upload token: ${errorMessage}`);
     }
     event.target.value = '';
@@ -93,9 +97,13 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
       }).unwrap();
 
       onPortraitIdChange(result.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error?.data?.detail || error?.data?.title || error?.error || error?.message || JSON.stringify(error);
+        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.detail ||
+        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.title ||
+        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.error ||
+        (error as { message?: string })?.message ||
+        JSON.stringify(error);
       setUploadError(`Failed to upload portrait: ${errorMessage}`);
     }
     event.target.value = '';

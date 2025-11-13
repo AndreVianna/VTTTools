@@ -46,7 +46,10 @@ export const RotationHandle: React.FC<RotationHandleProps> = ({
     return null;
   }
 
-  const asset = selectedAssets[0]!;
+  const asset = selectedAssets[0];
+  if (!asset) {
+    return null;
+  }
 
   let centerX: number;
   let centerY: number;

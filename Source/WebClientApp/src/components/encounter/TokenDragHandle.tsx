@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Layer, Line, Rect } from 'react-konva';
-import type { PlacedAsset } from '@/types/domain';
+import type { CreatureAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { getPlacementBehavior } from '@/types/placement';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
@@ -174,13 +174,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }
 
     const selectedAssets = placedAssets.filter((a) => selectedAssetIds.includes(a.id));
-    const behaviors = selectedAssets.map((asset) =>
-      getPlacementBehavior(
-        asset.asset.kind,
-        asset.asset.kind === 'Object' ? (asset.asset as any).properties : undefined,
-        asset.asset.kind === 'Creature' ? (asset.asset as any).properties : undefined,
-      ),
-    );
+    const behaviors = selectedAssets.map((asset) => {
+      const objectProperties =
+        asset.asset.kind === 'Object'
+          ? { isMovable: (asset.asset as ObjectAsset).isMovable, isOpaque: (asset.asset as ObjectAsset).isOpaque }
+          : undefined;
+      const creatureProperties = asset.asset.kind === 'Creature' ? (asset.asset as CreatureAsset).category : undefined;
+      return getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
+    });
 
     return {
       canMove: behaviors.every((b) => b.canMove),
@@ -340,19 +341,27 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         // Node is positioned at center (with offsets), so position IS the center
         const assetCenter = assetNode.position();
 
-        const behavior = getPlacementBehavior(
-          asset.asset.kind,
-          asset.asset.kind === 'Object' ? (asset.asset as any).properties : undefined,
-          asset.asset.kind === 'Creature' ? (asset.asset as any).properties : undefined,
-        );
+        const objectProperties =
+          asset.asset.kind === 'Object'
+            ? { isMovable: (asset.asset as ObjectAsset).isMovable, isOpaque: (asset.asset as ObjectAsset).isOpaque }
+            : undefined;
+        const creatureProperties =
+          asset.asset.kind === 'Creature' ? (asset.asset as CreatureAsset).category : undefined;
+        const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
 
         // Check collision with each other asset
         if (!behavior.allowOverlap) {
           for (const other of otherAssets) {
+            const otherObjectProperties =
+              other.asset.kind === 'Object'
+                ? { isMovable: (other.asset as ObjectAsset).isMovable, isOpaque: (other.asset as ObjectAsset).isOpaque }
+                : undefined;
+            const otherCreatureProperties =
+              other.asset.kind === 'Creature' ? (other.asset as CreatureAsset).category : undefined;
             const otherBehavior = getPlacementBehavior(
               other.asset.kind,
-              other.asset.kind === 'Object' ? (other.asset as any).properties : undefined,
-              other.asset.kind === 'Creature' ? (other.asset as any).properties : undefined,
+              otherObjectProperties,
+              otherCreatureProperties,
             );
 
             if (otherBehavior.allowOverlap) continue;
@@ -641,11 +650,16 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const node = stage.findOne(`#${placedAsset.id}`);
 
         if (node) {
-          const behavior = getPlacementBehavior(
-            placedAsset.asset.kind,
-            placedAsset.asset.kind === 'Object' ? (placedAsset.asset as any).properties : undefined,
-            placedAsset.asset.kind === 'Creature' ? (placedAsset.asset as any).properties : undefined,
-          );
+          const objectProperties =
+            placedAsset.asset.kind === 'Object'
+              ? {
+                  isMovable: (placedAsset.asset as ObjectAsset).isMovable,
+                  isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
+                }
+              : undefined;
+          const creatureProperties =
+            placedAsset.asset.kind === 'Creature' ? (placedAsset.asset as CreatureAsset).category : undefined;
+          const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, creatureProperties);
 
           const isDraggable =
             behavior.canMove &&
@@ -774,7 +788,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
           return null;
         }
 
-        const asset = selectedAssets[0]!;
+        const asset = selectedAssets[0];
+        if (!asset) return null;
 
         const renderPos = getAssetRenderPosition(asset.id);
         if (!renderPos) return null;
@@ -870,8 +885,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
       )}
 
       {/* Invalid placement indicators - show on each colliding asset */}
-      {invalidAssetPositions.map((pos, index) => (
-        <React.Fragment key={`invalid-${index}`}>{renderInvalidIndicator(pos)}</React.Fragment>
+      {invalidAssetPositions.map((pos) => (
+        <React.Fragment key={`invalid-${pos.x}-${pos.y}`}>{renderInvalidIndicator(pos)}</React.Fragment>
       ))}
     </Layer>
   );

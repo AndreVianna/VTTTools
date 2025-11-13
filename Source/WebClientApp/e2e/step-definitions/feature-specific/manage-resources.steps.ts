@@ -532,7 +532,7 @@ Given('I am editing an asset with {int} existing images', async function (this: 
 
 Given('entityId prop is set \\(indicating edit mode)', async function (this: CustomWorld) {
   expect(this.currentAsset).toBeDefined();
-  expect(this.currentAsset.id!).toBeDefined();
+  expect(this.currentAsset.id).toBeDefined();
 });
 
 When('the component mounts', async function (this: CustomWorld) {
@@ -613,8 +613,9 @@ Then('the Token preview should show {string} \\(first Token)', async function (t
   expect(tokenImages.length).toBeGreaterThan(0);
 
   const firstTokenId = await tokenImages[0]?.getAttribute('data-resource-id');
+  expect(firstTokenId).toBeDefined();
   const tokenPreview = this.page.getByTestId('token-preview');
-  await expect(tokenPreview.locator(`img[src*="${firstTokenId!}"]`)).toBeVisible();
+  await expect(tokenPreview.locator(`img[src*="${firstTokenId}"]`)).toBeVisible();
   // Verify it's the expected image name (stored in test context)
   expect(imageName).toBeDefined();
 });
@@ -637,8 +638,9 @@ Then('the Display preview should show the first Display image', async function (
   expect(displayImages.length).toBeGreaterThan(0);
 
   const firstDisplayId = await displayImages[0]?.getAttribute('data-resource-id');
+  expect(firstDisplayId).toBeDefined();
   const displayPreview = this.page.getByTestId('display-preview');
-  await expect(displayPreview.locator(`img[src*="${firstDisplayId!}"]`)).toBeVisible();
+  await expect(displayPreview.locator(`img[src*="${firstDisplayId}"]`)).toBeVisible();
 });
 
 Then('should render with DisplayPreview component', async function (this: CustomWorld) {

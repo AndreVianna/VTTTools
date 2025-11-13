@@ -69,17 +69,14 @@ export async function verifyStageInDatabase(
   encounterId: string,
   expectedConfig: Partial<StageConfigData>,
 ): Promise<void> {
-  // Query database
-  const dbEncounter = await world.db.queryTable('Library.Encounters', {
+  const dbEncounter = await world.db.queryTable('Encounters', {
     Id: encounterId,
   });
   expect(dbEncounter).toBeDefined();
   expect(dbEncounter[0].Stage).toBeDefined();
 
-  // Parse JSON stage configuration
-  const stageConfig: StageConfigData = JSON.parse(dbEncounter[0].Stage);
+  const stageConfig: StageConfigData = JSON.parse(dbEncounter[0].Stage as string);
 
-  // Verify expected properties
   if (expectedConfig.width !== undefined) {
     expect(stageConfig.width).toBe(expectedConfig.width);
   }
@@ -177,6 +174,14 @@ export async function verifyStageValidationErrors(page: Page, expectedErrors: st
   }
 }
 
+interface Encounter {
+  id: string;
+  name: string;
+  description: string;
+  isPublished: boolean;
+  [key: string]: unknown;
+}
+
 /**
  * Create test encounter with stage configuration for testing
  *
@@ -187,8 +192,7 @@ export async function verifyStageValidationErrors(page: Page, expectedErrors: st
 export async function createTestEncounterWithStage(
   world: CustomWorld,
   stageConfig?: Partial<StageConfigData>,
-): Promise<any> {
-  // Create encounter
+): Promise<Encounter> {
   const createResponse = await world.page.request.post('/api/library/encounters', {
     data: {
       name: 'Test Encounter with Stage',
@@ -198,15 +202,13 @@ export async function createTestEncounterWithStage(
   });
 
   expect(createResponse.ok()).toBeTruthy();
-  const encounter = await createResponse.json();
+  const encounter = (await createResponse.json()) as Encounter;
 
-  // Configure stage if provided
   if (stageConfig) {
     const configResponse = await configureStage(world, encounter.id, stageConfig);
     expect(configResponse.status()).toBe(204);
   }
 
-  // Track for cleanup
   world.createdAssets.push(encounter);
 
   return encounter;

@@ -40,7 +40,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({ grid, stageWidth, st
     const cellHeight = grid.cellSize.height;
     const offsetX = grid.offset.left;
     const offsetY = grid.offset.top;
-    const gridColor = (grid as any).color || DEFAULT_GRID_COLOR;
+    const gridColor = 'color' in grid && typeof grid.color === 'string' ? grid.color : DEFAULT_GRID_COLOR;
 
     switch (grid.type) {
       case GridType.Square:

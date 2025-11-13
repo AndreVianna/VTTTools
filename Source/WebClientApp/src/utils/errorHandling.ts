@@ -10,17 +10,16 @@ export type ErrorType = VTTError['type'];
 export interface EnhancedError extends Error {
   type?: ErrorType;
   code?: string;
-  context?: any;
+  context?: Record<string, unknown>;
   retryable?: boolean;
   userFriendlyMessage?: string;
 }
 
-// API Error response structure
 export interface ApiErrorResponse {
   message: string;
   code?: string;
   errors?: string[];
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 // Global error handler for unhandled errors
@@ -81,7 +80,7 @@ export const handleError = (
   error: unknown,
   options: {
     type?: ErrorType;
-    context?: any;
+    context?: Record<string, unknown>;
     showNotification?: boolean;
     userFriendlyMessage?: string;
     retryable?: boolean;
@@ -91,8 +90,14 @@ export const handleError = (
 ) => {
   const processedError = processError(error, options);
 
-  // Add to error store
-  const errorPayload: any = {
+  const errorPayload: {
+    type: ErrorType;
+    message: string;
+    retryable: boolean;
+    userFriendlyMessage: string;
+    details?: string;
+    context?: Record<string, unknown>;
+  } = {
     type: processedError.type,
     message: processedError.message,
     retryable: processedError.retryable,
@@ -137,7 +142,7 @@ const processError = (
   error: unknown,
   options: {
     type?: ErrorType;
-    context?: any;
+    context?: Record<string, unknown>;
     userFriendlyMessage?: string;
     retryable?: boolean;
     component?: string;
@@ -147,18 +152,23 @@ const processError = (
   type: ErrorType;
   message: string;
   details?: string;
-  context?: any;
+  context?: Record<string, unknown>;
   retryable: boolean;
   userFriendlyMessage: string;
 } => {
-  // Handle API/fetch errors
   if (error && typeof error === 'object' && 'status' in error) {
-    return processApiError(error as any, options);
+    return processApiError(error as { status?: number; data?: ApiErrorResponse; message?: string }, options);
   }
 
-  // Handle Error objects
   if (error instanceof Error) {
-    const result: any = {
+    const result: {
+      type: ErrorType;
+      message: string;
+      details?: string;
+      context?: Record<string, unknown>;
+      retryable: boolean;
+      userFriendlyMessage: string;
+    } = {
       type: options.type || 'system',
       message: error.message,
       retryable: options.retryable ?? false,
@@ -181,9 +191,14 @@ const processError = (
     return result;
   }
 
-  // Handle string errors
   if (typeof error === 'string') {
-    const result: any = {
+    const result: {
+      type: ErrorType;
+      message: string;
+      context?: Record<string, unknown>;
+      retryable: boolean;
+      userFriendlyMessage: string;
+    } = {
       type: options.type || 'system',
       message: error,
       retryable: options.retryable ?? false,
@@ -197,8 +212,14 @@ const processError = (
     return result;
   }
 
-  // Handle unknown errors
-  const result: any = {
+  const result: {
+    type: ErrorType;
+    message: string;
+    details?: string;
+    context?: Record<string, unknown>;
+    retryable: boolean;
+    userFriendlyMessage: string;
+  } = {
     type: options.type || 'system',
     message: 'An unknown error occurred',
     retryable: options.retryable ?? false,
@@ -225,7 +246,7 @@ const processApiError = (
   },
   options: {
     type?: ErrorType;
-    context?: any;
+    context?: Record<string, unknown>;
     userFriendlyMessage?: string;
     retryable?: boolean;
   },
@@ -233,14 +254,13 @@ const processApiError = (
   type: ErrorType;
   message: string;
   details?: string;
-  context?: any;
+  context?: Record<string, unknown>;
   retryable: boolean;
   userFriendlyMessage: string;
 } => {
   const status = error.status;
   const data = error.data;
 
-  // Determine error type based on HTTP status
   let type: ErrorType = options.type || 'network';
   let retryable = options.retryable ?? true;
   let userFriendlyMessage = options.userFriendlyMessage;
@@ -286,7 +306,14 @@ const processApiError = (
     }
   }
 
-  const result: any = {
+  const result: {
+    type: ErrorType;
+    message: string;
+    details?: string;
+    context?: Record<string, unknown>;
+    retryable: boolean;
+    userFriendlyMessage: string;
+  } = {
     type,
     message: data?.message || error.message || `HTTP ${status} Error`,
     retryable,
@@ -297,7 +324,7 @@ const processApiError = (
     result.details = JSON.stringify(data.details);
   }
 
-  const context: any = {
+  const context: Record<string, unknown> = {
     ...options.context,
   };
   if (status !== undefined) {
@@ -394,7 +421,11 @@ export const withErrorBoundary = <P extends object>(Component: React.ComponentTy
 };
 
 // Validation error helper
-export const createValidationError = (field: string, message: string, context?: any): EnhancedError => {
+export const createValidationError = (
+  field: string,
+  message: string,
+  context?: Record<string, unknown>,
+): EnhancedError => {
   const error = new Error(`Validation error: ${field} - ${message}`) as EnhancedError;
   error.type = 'validation';
   error.code = 'VALIDATION_ERROR';
@@ -404,8 +435,7 @@ export const createValidationError = (field: string, message: string, context?: 
   return error;
 };
 
-// Network error helper
-export const createNetworkError = (message: string, context?: any): EnhancedError => {
+export const createNetworkError = (message: string, context?: Record<string, unknown>): EnhancedError => {
   const error = new Error(message) as EnhancedError;
   error.type = 'network';
   error.code = 'NETWORK_ERROR';
@@ -415,11 +445,10 @@ export const createNetworkError = (message: string, context?: any): EnhancedErro
   return error;
 };
 
-// Export commonly used error handlers
-export const handleApiError = (error: unknown, context?: any) =>
+export const handleApiError = (error: unknown, context?: Record<string, unknown>) =>
   handleError(error, { type: 'network', context, showNotification: true });
 
-export const handleValidationError = (error: unknown, context?: any) =>
+export const handleValidationError = (error: unknown, context?: Record<string, unknown>) =>
   handleError(error, {
     type: 'validation',
     context,
@@ -427,10 +456,10 @@ export const handleValidationError = (error: unknown, context?: any) =>
     retryable: false,
   });
 
-export const handleSystemError = (error: unknown, context?: any) =>
+export const handleSystemError = (error: unknown, context?: Record<string, unknown>) =>
   handleError(error, { type: 'system', context, showNotification: true });
 
-export const handleAssetLoadingError = (error: unknown, context?: any) =>
+export const handleAssetLoadingError = (error: unknown, context?: Record<string, unknown>) =>
   handleError(error, {
     type: 'asset_loading',
     context,
@@ -438,7 +467,7 @@ export const handleAssetLoadingError = (error: unknown, context?: any) =>
     userFriendlyMessage: 'Failed to load asset. Please try again.',
   });
 
-export const handleEncounterError = (error: unknown, operation: 'save' | 'load', context?: any) =>
+export const handleEncounterError = (error: unknown, operation: 'save' | 'load', context?: Record<string, unknown>) =>
   handleError(error, {
     type: operation === 'save' ? 'encounter_save' : 'encounter_load',
     context: { ...context, operation },

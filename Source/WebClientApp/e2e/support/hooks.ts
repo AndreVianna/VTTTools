@@ -86,8 +86,13 @@ BeforeAll({ timeout: 60000 }, async () => {
     throw new Error('CRITICAL: BDD_TEST_PASSWORD_HASH environment variable is not set. Check your .env file.');
   }
 
+  const connectionString = process.env.DATABASE_CONNECTION_STRING;
+  if (!connectionString) {
+    throw new Error('CRITICAL: DATABASE_CONNECTION_STRING environment variable is not set. Check your .env file.');
+  }
+
   debugLog(`Initializing test user pool (size: ${poolSize})`);
-  const db = new DatabaseHelper(process.env.DATABASE_CONNECTION_STRING!);
+  const db = new DatabaseHelper(connectionString);
   await db.cleanupAllTestUsers();
 
   for (let i = 1; i <= poolSize; i++) {
@@ -131,7 +136,12 @@ AfterAll({ timeout: 30000 }, async () => {
 
   if (userPool.length > 0) {
     debugLog(`Cleaning up ${userPool.length} test users...`);
-    const db = new DatabaseHelper(process.env.DATABASE_CONNECTION_STRING!);
+    const connectionString = process.env.DATABASE_CONNECTION_STRING;
+    if (!connectionString) {
+      console.error('WARNING: DATABASE_CONNECTION_STRING not set, skipping cleanup');
+      return;
+    }
+    const db = new DatabaseHelper(connectionString);
     await db.cleanupAllTestUsers();
     debugLog('User pool cleaned up');
   }

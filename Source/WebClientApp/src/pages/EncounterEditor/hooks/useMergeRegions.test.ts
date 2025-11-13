@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import { Light, Weather } from '@/types/domain';
 import type { Command } from '@/utils/commands';
 import * as commands from '@/utils/commands';
 import * as regionCommands from '@/utils/commands/regionCommands';
@@ -74,8 +75,8 @@ describe('useMergeRegions', () => {
       name: 'Test Encounter',
       description: '',
       isPublished: false,
-      light: 'Bright' as any,
-      weather: 'Clear' as any,
+      light: Light.Bright,
+      weather: Weather.Clear,
       elevation: 0,
       grid: {
         type: 0,

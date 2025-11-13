@@ -8,7 +8,7 @@
  * ANTI-PATTERNS: No step-to-step calls, no mocks (black-box testing)
  */
 
-import { Given, Then, When } from '@cucumber/cucumber';
+import { type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { AssetKind } from '../../support/fixtures/AssetBuilder.js';
 import type { CustomWorld } from '../../support/world.js';
@@ -43,7 +43,7 @@ Given(
   },
 );
 
-Given('assets exist with names:', async function (this: CustomWorld, dataTable: any) {
+Given('assets exist with names:', async function (this: CustomWorld, dataTable: DataTable) {
   const rows = dataTable.hashes();
   for (const row of rows) {
     const asset = await this.assetBuilder().withName(row.name).withKind(AssetKind.Object).create();
@@ -63,7 +63,7 @@ Given(
   },
 );
 
-Given('an Object asset exists with:', async function (this: CustomWorld, dataTable: any) {
+Given('an Object asset exists with:', async function (this: CustomWorld, dataTable: DataTable) {
   const data = dataTable.rowsHash();
   const builder = this.assetBuilder().withName(data.name).withKind(AssetKind.Object);
 
@@ -300,7 +300,7 @@ Given('I filter to show {string} only', async function (this: CustomWorld, visib
 
 Given('I filter to show only {int} assets', async function (this: CustomWorld, _count: number) {
   throw new Error(
-    'NOT IMPLEMENTED: Step needs to set filters to show only ${count} assets. Check AssetLibraryPage filters (showPublic, showPrivate, showMine, showOthers) and use page.check/uncheck to match exactly ${count} visible assets',
+    `NOT IMPLEMENTED: Step needs to set filters to show only ${_count} assets. Check AssetLibraryPage filters (showPublic, showPrivate, showMine, showOthers) and use page.check/uncheck to match exactly ${_count} visible assets`,
   );
 });
 
@@ -631,7 +631,7 @@ Then(
   'the asset cards should show assets {int}-{int}',
   async function (this: CustomWorld, _start: number, _end: number) {
     throw new Error(
-      'NOT IMPLEMENTED: Step needs to verify asset cards display items ${start} through ${end} based on pagination. Get visible asset names and verify they match expected range from Asset Library API response or database',
+      `NOT IMPLEMENTED: Step needs to verify asset cards display items ${_start} through ${_end} based on pagination. Get visible asset names and verify they match expected range from Asset Library API response or database`,
     );
   },
 );
@@ -664,7 +664,7 @@ Then('pagination should not be visible', async function (this: CustomWorld) {
 // THEN: Asset Card Details
 // ═══════════════════════════════════════════════════════════════
 
-Then('the asset card should show:', async function (this: CustomWorld, dataTable: any) {
+Then('the asset card should show:', async function (this: CustomWorld, dataTable: DataTable) {
   const expected = dataTable.rowsHash();
   const card = this.assetLibrary.assetCards().first();
 

@@ -53,6 +53,7 @@ export const contentApi = createApi({
             ]
           : [{ type: 'Content', id: 'LIST' }],
       serializeQueryArgs: ({ queryArgs }) => {
+        // biome-ignore lint/correctness/noUnusedVariables: after and limit are intentionally excluded from cache key
         const { after, limit, ...cacheKey } = queryArgs;
         return JSON.stringify(cacheKey);
       },
@@ -70,8 +71,8 @@ export const contentApi = createApi({
 
         if (currentArg?.after !== previousArg?.after) return true;
 
-        const { after: ca, limit: cl, ...currFilters } = currentArg || {};
-        const { after: pa, limit: pl, ...prevFilters } = previousArg || {};
+        const { after: _ca, limit: _cl, ...currFilters } = currentArg || {};
+        const { after: _pa, limit: _pl, ...prevFilters } = previousArg || {};
 
         return JSON.stringify(currFilters) !== JSON.stringify(prevFilters);
       },

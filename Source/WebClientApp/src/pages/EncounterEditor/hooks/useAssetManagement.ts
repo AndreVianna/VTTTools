@@ -39,7 +39,7 @@ interface UseAssetManagementProps {
   encounter: Encounter | null;
   isOnline: boolean;
   setEncounter: (encounter: Encounter) => void;
-  execute: (command: any) => void;
+  execute: (command: unknown) => void;
   dispatch: AppDispatch;
 
   copyAssets: (assets: PlacedAsset[], encounterId: string) => void;

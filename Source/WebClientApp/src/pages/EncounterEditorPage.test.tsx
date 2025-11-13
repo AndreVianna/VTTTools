@@ -21,7 +21,7 @@ import { EncounterEditorPage } from './EncounterEditorPage';
 vi.mock('@/hooks/useConnectionStatus');
 
 const mockUseConnectionStatus = vi.fn();
-(useConnectionStatusModule as any).useConnectionStatus = mockUseConnectionStatus;
+(useConnectionStatusModule as { useConnectionStatus: typeof vi.fn }).useConnectionStatus = mockUseConnectionStatus;
 
 describe('EncounterEditorPage Integration', () => {
   beforeEach(() => {
@@ -123,7 +123,9 @@ describe('EncounterEditorPage Integration', () => {
 
     const stored = localStorage.getItem('encounter-placed-assets');
     expect(stored).toBeTruthy();
-    expect(JSON.parse(stored!)).toHaveLength(1);
+    if (stored) {
+      expect(JSON.parse(stored)).toHaveLength(1);
+    }
   });
 
   it('cancels drag mode on ESC key', async () => {

@@ -153,11 +153,12 @@ export class BatchCommand implements Command {
   }
 
   execute(): void {
-    this.commands.forEach((cmd) => cmd.execute());
+    for (const cmd of this.commands) {
+      cmd.execute();
+    }
   }
 
   undo(): void {
-    // Undo in reverse order
     for (let i = this.commands.length - 1; i >= 0; i--) {
       const command = this.commands[i];
       if (command) {
@@ -230,25 +231,25 @@ export class UndoRedoManager {
       return;
     }
 
-    const command = this.undoStack.pop()!;
+    const command = this.undoStack.pop();
+    if (!command) return;
+
     command.undo();
 
-    // Move to redo stack
     this.redoStack.push(command);
 
     this.notifyStateChange();
   }
 
-  /**
-   * Redo last undone command
-   */
   public redo(): void {
     if (this.redoStack.length === 0) {
       console.warn('Nothing to redo');
       return;
     }
 
-    const command = this.redoStack.pop()!;
+    const command = this.redoStack.pop();
+    if (!command) return;
+
     command.execute();
 
     // Move back to undo stack

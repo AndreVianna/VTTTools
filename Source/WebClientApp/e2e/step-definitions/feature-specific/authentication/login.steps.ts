@@ -53,7 +53,7 @@ async function createTestUser(
     email,
     userName: email, // CRITICAL: userName is ALWAYS email per AuthService.cs:81
     emailConfirmed: options?.emailConfirmed ?? true, // Default confirmed unless specified
-    passwordHash: process.env.BDD_TEST_PASSWORD_HASH!,
+    passwordHash: process.env.BDD_TEST_PASSWORD_HASH || '',
   };
 
   // Only add optional properties if they have values
@@ -68,7 +68,7 @@ async function createTestUser(
 
   // Apply additional settings if provided
   if (options?.lockoutEnd || options?.accessFailedCount !== undefined || options?.twoFactorEnabled !== undefined) {
-    const updates: Record<string, any> = {};
+    const updates: Record<string, string | number | boolean> = {};
     if (options.lockoutEnd) {
       updates.LockoutEnd = options.lockoutEnd.toISOString();
       updates.LockoutEnabled = true;

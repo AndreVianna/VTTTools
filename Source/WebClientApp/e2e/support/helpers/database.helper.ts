@@ -63,13 +63,16 @@ function debugLog(message: string): void {
   console.log(`[DEBUG] ${message}`);
 }
 
+type SqlValue = string | number | boolean | Date | null;
+type SqlRow = Record<string, SqlValue>;
+
 export class DatabaseHelper {
   constructor(private connectionString: string) {}
 
   /**
    * Execute query with promisified callback
    */
-  private executeQuery(query: string, params: any[] = []): Promise<any[]> {
+  private executeQuery(query: string, params: SqlValue[] = []): Promise<SqlRow[]> {
     return new Promise((resolve, reject) => {
       sql.query(this.connectionString, query, params, (err, rows) => {
         if (err) {
@@ -85,7 +88,7 @@ export class DatabaseHelper {
    * Query table with optional WHERE conditions
    * SECURITY: Table name must be in whitelist to prevent SQL injection
    */
-  async queryTable(tableName: AllowedTable, where?: Record<string, any>): Promise<any[]> {
+  async queryTable(tableName: AllowedTable, where?: Record<string, SqlValue>): Promise<SqlRow[]> {
     // Validate table name against whitelist
     if (!ALLOWED_TABLES.includes(tableName)) {
       throw new Error(
@@ -94,7 +97,7 @@ export class DatabaseHelper {
       );
     }
 
-    const params: any[] = [];
+    const params: SqlValue[] = [];
     const conditions = where
       ? 'WHERE ' +
         Object.keys(where)
@@ -112,7 +115,7 @@ export class DatabaseHelper {
   /**
    * Verify asset exists with expected fields
    */
-  async verifyAssetExists(assetId: string, expectedFields: Partial<any>): Promise<void> {
+  async verifyAssetExists(assetId: string, expectedFields: Record<string, SqlValue>): Promise<void> {
     const [asset] = await this.queryTable('Assets', { Id: assetId });
 
     if (!asset) {
@@ -164,8 +167,8 @@ export class DatabaseHelper {
   /**
    * Insert test asset into database (NEW SCHEMA)
    */
-  async insertAsset(asset: Partial<any>): Promise<string> {
-    const assetId = asset.id || this.generateGuidV7();
+  async insertAsset(asset: Record<string, unknown>): Promise<string> {
+    const assetId = (asset.id as string | undefined) || this.generateGuidV7();
     const query = `
             INSERT INTO Assets
             (Id, Name, Description, OwnerId, Kind, IsPublic, IsPublished, Tokens, Portrait, Size, ObjectData, CreatureData, CreatedAt, UpdatedAt)
@@ -179,14 +182,14 @@ export class DatabaseHelper {
     const objectData = asset.kind === 'Object' ? asset.properties : null;
     const creatureData = asset.kind === 'Creature' ? asset.properties : null;
 
-    const params = [
+    const params: SqlValue[] = [
       assetId,
-      asset.name,
-      asset.description || '',
-      asset.ownerId,
-      asset.kind || 'Object',
-      asset.isPublic || false,
-      asset.isPublished || false,
+      asset.name as string,
+      (asset.description as string) || '',
+      asset.ownerId as string,
+      (asset.kind as string) || 'Object',
+      (asset.isPublic as boolean) || false,
+      (asset.isPublished as boolean) || false,
       JSON.stringify(tokens),
       portrait ? JSON.stringify(portrait) : null,
       JSON.stringify(size),
@@ -238,17 +241,17 @@ export class DatabaseHelper {
   /**
    * Update asset properties (NEW SCHEMA)
    */
-  async updateAsset(assetId: string, updates: Partial<any>): Promise<void> {
+  async updateAsset(assetId: string, updates: Record<string, unknown>): Promise<void> {
     const setClauses: string[] = [];
-    const params: any[] = [];
+    const params: SqlValue[] = [];
 
     if (updates.name) {
       setClauses.push('Name = ?');
-      params.push(updates.name);
+      params.push(updates.name as string);
     }
     if (updates.description !== undefined) {
       setClauses.push('Description = ?');
-      params.push(updates.description);
+      params.push(updates.description as string);
     }
     if (updates.tokens) {
       setClauses.push('Tokens = ?');
@@ -389,20 +392,20 @@ export class DatabaseHelper {
   /**
    * Update record in any allowed table
    */
-  async updateRecord(tableName: AllowedTable, id: string, updates: Record<string, any>): Promise<void> {
+  async updateRecord(tableName: AllowedTable, id: string, updates: Record<string, SqlValue>): Promise<void> {
     if (!ALLOWED_TABLES.includes(tableName)) {
       throw new Error(`SECURITY: Table '${tableName}' is not in the allowed list for testing.`);
     }
 
     const setClauses: string[] = [];
-    const params: any[] = [];
+    const params: SqlValue[] = [];
 
     for (const [key, value] of Object.entries(updates)) {
       setClauses.push(`${key} = ?`);
       params.push(value);
     }
 
-    params.push(id); // WHERE Id = ?
+    params.push(id);
     const query = `UPDATE ${tableName} SET ${setClauses.join(', ')} WHERE Id = ?`;
 
     await this.executeQuery(query, params);
@@ -411,7 +414,7 @@ export class DatabaseHelper {
   /**
    * Insert test record into any allowed table (generic)
    */
-  async insertRecord(tableName: AllowedTable, record: Record<string, any>): Promise<void> {
+  async insertRecord(tableName: AllowedTable, record: Record<string, SqlValue>): Promise<void> {
     if (!ALLOWED_TABLES.includes(tableName)) {
       throw new Error(`SECURITY: Table '${tableName}' is not in the allowed list for testing.`);
     }
@@ -445,7 +448,7 @@ export class DatabaseHelper {
   /**
    * Verify encounter stage configuration in database
    */
-  async verifyEncounterStage(encounterId: string, expectedStage: Partial<any>): Promise<void> {
+  async verifyEncounterStage(encounterId: string, expectedStage: Record<string, unknown>): Promise<void> {
     const [encounter] = await this.queryTable('Encounters', {
       Id: encounterId,
     });
@@ -458,7 +461,7 @@ export class DatabaseHelper {
       throw new Error(`Encounter ${encounterId} has no stage configuration`);
     }
 
-    const stageConfig = JSON.parse(encounter.Stage);
+    const stageConfig = JSON.parse(encounter.Stage as string) as Record<string, unknown>;
 
     for (const [key, expectedValue] of Object.entries(expectedStage)) {
       if (stageConfig[key] !== expectedValue) {
@@ -470,7 +473,7 @@ export class DatabaseHelper {
   /**
    * Verify encounter grid configuration in database
    */
-  async verifyEncounterGrid(encounterId: string, expectedGrid: Partial<any>): Promise<void> {
+  async verifyEncounterGrid(encounterId: string, expectedGrid: Record<string, unknown>): Promise<void> {
     const [encounter] = await this.queryTable('Encounters', {
       Id: encounterId,
     });
@@ -483,7 +486,7 @@ export class DatabaseHelper {
       throw new Error(`Encounter ${encounterId} has no grid configuration`);
     }
 
-    const gridConfig = JSON.parse(encounter.Grid);
+    const gridConfig = JSON.parse(encounter.Grid as string) as Record<string, unknown>;
 
     for (const [key, expectedValue] of Object.entries(expectedGrid)) {
       if (gridConfig[key] !== expectedValue) {
@@ -644,7 +647,7 @@ export class DatabaseHelper {
   /**
    * Verify game session exists with expected fields
    */
-  async verifyGameSessionExists(sessionId: string, expectedFields: Partial<any>): Promise<void> {
+  async verifyGameSessionExists(sessionId: string, expectedFields: Record<string, SqlValue>): Promise<void> {
     const [session] = await this.queryTable('GameSessions', { Id: sessionId });
 
     if (!session) {
@@ -695,7 +698,7 @@ export class DatabaseHelper {
   /**
    * Find all BDD test users (pattern: bdd-test-user-%)
    */
-  async findAllTestUsers(): Promise<any[]> {
+  async findAllTestUsers(): Promise<SqlRow[]> {
     const query = `SELECT * FROM Users WHERE Email LIKE 'bdd-test-user-%@test.local'`;
     return await this.executeQuery(query, []);
   }

@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CommitResult } from '@/hooks/useRegionTransaction';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import { Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { useMergeRegions } from '../useMergeRegions';
 import { useRegionHandlers } from '../useRegionHandlers';
@@ -35,7 +37,7 @@ describe('Region Workflows - Integration Tests', () => {
       adventure: null,
       isPublished: false,
       light: 0,
-      weather: 'Clear' as any,
+      weather: Weather.Clear,
       elevation: 0,
       grid: {
         type: 0,
@@ -106,7 +108,7 @@ describe('Region Workflows - Integration Tests', () => {
 
       expect(transactionResult.current.transaction.segment?.vertices).toHaveLength(3);
 
-      let commitResult: any;
+      let commitResult: CommitResult;
       await act(async () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
@@ -1050,7 +1052,7 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      let commitResult: any;
+      let commitResult: CommitResult;
       await act(async () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
@@ -1072,9 +1074,9 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         await mergeResult.current.executeMerge({
-          targetRegionIndex: commitResult.targetRegionIndex!,
+          targetRegionIndex: commitResult.targetRegionIndex ?? 0,
           originalTargetRegion: existingRegion,
-          mergedVertices: commitResult.mergedVertices!,
+          mergedVertices: commitResult.mergedVertices ?? [],
           regionsToDelete: commitResult.regionsToDelete || [],
           onSuccess,
           onError,

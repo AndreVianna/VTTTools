@@ -52,11 +52,15 @@ export function AdventureDetailPage() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  const { data: adventure, isLoading: isLoadingAdventure, error: adventureError } = useGetAdventureQuery(adventureId!);
+  const {
+    data: adventure,
+    isLoading: isLoadingAdventure,
+    error: adventureError,
+  } = useGetAdventureQuery(adventureId ?? '');
   const { data: campaign } = useGetCampaignQuery(adventure?.campaignId ?? '', {
     skip: !adventure?.campaignId,
   });
-  const { data: encounters = [], isLoading: isLoadingEncounters } = useGetEncountersQuery(adventureId!);
+  const { data: encounters = [], isLoading: isLoadingEncounters } = useGetEncountersQuery(adventureId ?? '');
   const [updateAdventure] = useUpdateAdventureMutation();
   const [createEncounter] = useCreateEncounterMutation();
   const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();

@@ -114,9 +114,9 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({ onCl
 
             <Paper sx={{ p: 2, backgroundColor: 'grey.50', mb: 2 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                {newRecoveryCodes.map((code, index) => (
+                {newRecoveryCodes.map((code) => (
                   <Box
-                    key={index}
+                    key={code}
                     sx={{
                       p: 1,
                       backgroundColor: 'white',

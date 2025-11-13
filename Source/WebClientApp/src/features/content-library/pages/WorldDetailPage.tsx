@@ -41,8 +41,8 @@ export function WorldDetailPage() {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const { data: world, isLoading: isLoadingWorld, error: worldError } = useGetWorldQuery(worldId!);
-  const { data: campaigns = [], isLoading: isLoadingCampaigns } = useGetCampaignsQuery(worldId!);
+  const { data: world, isLoading: isLoadingWorld, error: worldError } = useGetWorldQuery(worldId ?? '');
+  const { data: campaigns = [], isLoading: isLoadingCampaigns } = useGetCampaignsQuery(worldId ?? '');
   const [updateWorld] = useUpdateWorldMutation();
   const [createCampaign] = useCreateCampaignMutation();
   const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();

@@ -6,7 +6,7 @@
  * CRITICAL: Uses REAL database queries (not mocks) per BDD best practices
  */
 
-import { Given, Then, When } from '@cucumber/cucumber';
+import { type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import type { CustomWorld } from '../../support/world.js';
 
@@ -148,7 +148,7 @@ When('I save the asset', async function (this: CustomWorld) {
 
 Then(
   'AssetResources table should contain {int} records:',
-  async function (this: CustomWorld, _count: number, _dataTable: any) {
+  async function (this: CustomWorld, _count: number, _dataTable: DataTable) {
     // NOTE: AssetResources table doesn't exist - Resources is JSON column in Assets
     throw new Error('NOT IMPLEMENTED: Need to query Assets table and parse Resources JSON column');
   },
@@ -207,7 +207,7 @@ When('I upload img-{int} and assign Token role \\(INSERT)', async function (this
   await this.keyboard.altClick(selector);
 });
 
-Then('AssetResources table should show:', async function (this: CustomWorld, _dataTable: any) {
+Then('AssetResources table should show:', async function (this: CustomWorld, _dataTable: DataTable) {
   // NOTE: AssetResources table doesn't exist - Resources is JSON column in Assets
   throw new Error('NOT IMPLEMENTED: Need to query Assets table and parse Resources JSON column');
 });

@@ -15,7 +15,7 @@
  * - No catch-all regex
  */
 
-import { Given, Then, When } from '@cucumber/cucumber';
+import { type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import {
   deleteAssetFromCanvas,
@@ -29,6 +29,31 @@ import {
   verifyAssetRemoved,
 } from '../../support/helpers/encounter-placement.helper.js';
 import type { CustomWorld } from '../../support/world.js';
+
+// ============================================================================
+// Helper Functions - Validate Required State
+// ============================================================================
+
+function ensureEncounterId(world: CustomWorld): string {
+  if (!world.currentEncounterId) {
+    throw new Error('No encounter ID found. Ensure a previous step creates an encounter.');
+  }
+  return world.currentEncounterId;
+}
+
+function ensureAssetId(world: CustomWorld): string {
+  if (!world.currentAsset?.id) {
+    throw new Error('No asset ID found. Ensure a previous step creates an asset template.');
+  }
+  return world.currentAsset.id;
+}
+
+function ensureAssetInstanceId(world: CustomWorld): string {
+  if (!world.currentAssetInstanceId) {
+    throw new Error('No asset instance ID found. Ensure a previous step places an asset on the encounter.');
+  }
+  return world.currentAssetInstanceId;
+}
 
 // ============================================================================
 // GIVEN - Setup Preconditions
@@ -146,8 +171,8 @@ Given('the encounter has placed assets', async function (this: CustomWorld) {
   // Place 3 default assets on the encounter
   for (let i = 0; i < 3; i++) {
     await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x: 100 + i * 200,
       y: 100 + i * 100,
       width: 50,
@@ -163,8 +188,8 @@ Given('the encounter has placed assets', async function (this: CustomWorld) {
 Given('my encounter has {int} placed assets', async function (this: CustomWorld, count: number) {
   for (let i = 0; i < count; i++) {
     await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x: 100 + i * 150,
       y: 100,
       width: 50,
@@ -179,8 +204,8 @@ Given('my encounter has {int} placed assets', async function (this: CustomWorld,
 
 Given('my encounter has asset at position X={int}, Y={int}', async function (this: CustomWorld, x: number, y: number) {
   const assetInstanceId = await this.db.insertEncounterAsset({
-    encounterId: this.currentEncounterId!,
-    assetId: this.currentAsset.id!,
+    encounterId: ensureEncounterId(this),
+    assetId: ensureAssetId(this),
     x,
     y,
     width: 50,
@@ -197,8 +222,8 @@ Given(
   'my encounter has asset with width {int} and height {int}',
   async function (this: CustomWorld, width: number, height: number) {
     const assetInstanceId = await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x: 500,
       y: 500,
       width,
@@ -214,8 +239,8 @@ Given(
 
 Given('my encounter has asset with Z-index {int}', async function (this: CustomWorld, zIndex: number) {
   const assetInstanceId = await this.db.insertEncounterAsset({
-    encounterId: this.currentEncounterId!,
-    assetId: this.currentAsset.id!,
+    encounterId: ensureEncounterId(this),
+    assetId: ensureAssetId(this),
     x: 500,
     y: 500,
     width: 50,
@@ -230,8 +255,8 @@ Given('my encounter has asset with Z-index {int}', async function (this: CustomW
 
 Given('my encounter has asset with rotation {int}', async function (this: CustomWorld, rotation: number) {
   const assetInstanceId = await this.db.insertEncounterAsset({
-    encounterId: this.currentEncounterId!,
-    assetId: this.currentAsset.id!,
+    encounterId: ensureEncounterId(this),
+    assetId: ensureAssetId(this),
     x: 500,
     y: 500,
     width: 50,
@@ -246,8 +271,8 @@ Given('my encounter has asset with rotation {int}', async function (this: Custom
 
 Given('my encounter has placed asset', async function (this: CustomWorld) {
   const assetInstanceId = await this.db.insertEncounterAsset({
-    encounterId: this.currentEncounterId!,
-    assetId: this.currentAsset.id!,
+    encounterId: ensureEncounterId(this),
+    assetId: ensureAssetId(this),
     x: 500,
     y: 500,
     width: 50,
@@ -263,7 +288,7 @@ Given('my encounter has placed asset', async function (this: CustomWorld) {
 Given(
   'my encounter has stage width {int} and height {int}',
   async function (this: CustomWorld, width: number, height: number) {
-    await this.db.updateRecord('Encounters', this.currentEncounterId!, {
+    await this.db.updateRecord('Encounters', ensureEncounterId(this), {
       width,
       height,
     });
@@ -290,8 +315,8 @@ Given('my encounter has exactly {int} placed asset', async function (this: Custo
   // Place specified number of assets
   for (let i = 0; i < count; i++) {
     await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x: 100 + i * 150,
       y: 100,
       width: 50,
@@ -315,15 +340,15 @@ Given('my encounter has configured stage and grid', async function (this: Custom
   this.attach('Stage and grid configured: 1920x1080', 'text/plain');
 });
 
-Given('my encounter has {int} placed assets:', async function (this: CustomWorld, count: number, dataTable: any) {
+Given('my encounter has {int} placed assets:', async function (this: CustomWorld, count: number, dataTable: DataTable) {
   const rows = dataTable.hashes();
 
   for (const row of rows) {
     const [x, y] = row.Position.split(',').map((v: string) => parseInt(v.trim(), 10));
 
     await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x,
       y,
       width: 50,
@@ -358,8 +383,8 @@ Given(
     }
 
     const assetInstanceId = await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x,
       y,
       width: 50,
@@ -429,8 +454,8 @@ Given('that encounter has placed assets', async function (this: CustomWorld) {
   // Place 3 default assets on the encounter
   for (let i = 0; i < 3; i++) {
     await this.db.insertEncounterAsset({
-      encounterId: this.currentEncounterId!,
-      assetId: this.currentAsset.id!,
+      encounterId: ensureEncounterId(this),
+      assetId: ensureAssetId(this),
       x: 100 + i * 200,
       y: 100 + i * 100,
       width: 50,
@@ -487,11 +512,11 @@ Given('I have a new asset template', async function (this: CustomWorld) {
 
 When('I place the asset at position X={int}, Y={int}', async function (this: CustomWorld, x: number, y: number) {
   // Navigate to encounter editor
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
   // Drag asset from library to canvas
-  await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
+  await dragAssetToCanvas(this.page, ensureAssetId(this), { x, y });
 
   // Wait for API response
   this.lastApiResponse = await this.page.waitForResponse(
@@ -501,31 +526,31 @@ When('I place the asset at position X={int}, Y={int}', async function (this: Cus
   this.attach(`Placed asset at (${x}, ${y})`, 'text/plain');
 });
 
-When('I place the asset at:', async function (this: CustomWorld, dataTable: any) {
+When('I place the asset at:', async function (this: CustomWorld, dataTable: DataTable) {
   const rows = dataTable.rowsHash();
   const x = parseInt(rows.X, 10);
   const y = parseInt(rows.Y, 10);
 
   // Fixed: Call helper directly, not step
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
-  await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
+  await dragAssetToCanvas(this.page, ensureAssetId(this), { x, y });
   this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
   );
 });
 
-When('I place the asset with:', async function (this: CustomWorld, dataTable: any) {
+When('I place the asset with:', async function (this: CustomWorld, dataTable: DataTable) {
   const rows = dataTable.rowsHash();
   const x = parseInt(rows.X, 10);
   const y = parseInt(rows.Y, 10);
 
   // Navigate to encounter editor
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
   // Drag asset to canvas
-  await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
+  await dragAssetToCanvas(this.page, ensureAssetId(this), { x, y });
 
   // TODO: Apply width, height, zIndex, rotation via properties panel
   // For now, just place at position
@@ -538,7 +563,7 @@ When('I place the asset with:', async function (this: CustomWorld, dataTable: an
 });
 
 When('I place all {int} assets at different positions', async function (this: CustomWorld, count: number) {
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
   for (let i = 0; i < count; i++) {
@@ -561,7 +586,7 @@ When('I attempt to place asset on encounter {string}', async function (this: Cus
     await this.page.goto(`/encounters/${encounterId}/edit`);
 
     // Try to place asset (will fail)
-    await dragAssetToCanvas(this.page, this.currentAsset.id, {
+    await dragAssetToCanvas(this.page, ensureAssetId(this), {
       x: 500,
       y: 500,
     });
@@ -577,8 +602,8 @@ When('I attempt to place asset on encounter {string}', async function (this: Cus
 When('I attempt to place asset on that encounter', async function (this: CustomWorld) {
   // Fixed: Inline logic instead of step call
   try {
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
-    await dragAssetToCanvas(this.page, this.currentAsset.id, {
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
+    await dragAssetToCanvas(this.page, ensureAssetId(this), {
       x: 500,
       y: 500,
     });
@@ -593,7 +618,7 @@ When('I attempt to place asset on that encounter', async function (this: CustomW
 When('I attempt to place asset with non-existent template ID', async function (this: CustomWorld) {
   const fakeAssetId = '999e8400-e29b-41d4-a716-446655440999';
 
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
   try {
@@ -609,9 +634,9 @@ When('I attempt to place asset with non-existent template ID', async function (t
 
 When('I place the asset with Z-index of {int}', async function (this: CustomWorld, zIndex: number) {
   // Fixed: Inline placement logic
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
-  await dragAssetToCanvas(this.page, this.currentAsset.id, {
+  await dragAssetToCanvas(this.page, ensureAssetId(this), {
     x: 500,
     y: 500,
   });
@@ -620,7 +645,7 @@ When('I place the asset with Z-index of {int}', async function (this: CustomWorl
   );
 
   // TODO: Set Z-index via properties panel
-  await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
+  await this.db.updateRecord('EncounterAssets', ensureAssetInstanceId(this), {
     layer: zIndex,
   });
 });
@@ -629,9 +654,9 @@ When(
   'I place the asset with width {int} and height {int}',
   async function (this: CustomWorld, width: number, height: number) {
     // Fixed: Inline placement
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
     await expandEncounterCanvas(this.page);
-    await dragAssetToCanvas(this.page, this.currentAsset.id, {
+    await dragAssetToCanvas(this.page, ensureAssetId(this), {
       x: 500,
       y: 500,
     });
@@ -640,7 +665,7 @@ When(
     );
 
     // TODO: Set dimensions via properties panel
-    await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
+    await this.db.updateRecord('EncounterAssets', ensureAssetInstanceId(this), {
       width,
       height,
     });
@@ -648,11 +673,11 @@ When(
 );
 
 When('I move the asset to position X={int}, Y={int}', async function (this: CustomWorld, x: number, y: number) {
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
   // Move asset on canvas using drag
-  await moveAssetOnCanvas(this.page, this.currentAssetInstanceId!, { x, y });
+  await moveAssetOnCanvas(this.page, ensureAssetInstanceId(this), { x, y });
 
   this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'PUT',
@@ -664,15 +689,17 @@ When('I move the asset to position X={int}, Y={int}', async function (this: Cust
 When(
   'I update the asset dimensions to width {int} and height {int}',
   async function (this: CustomWorld, width: number, height: number) {
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
     await expandEncounterCanvas(this.page);
 
+    const assetInstanceId = ensureAssetInstanceId(this);
+
     // Select asset and update via properties panel
-    await selectAssetOnCanvas(this.page, this.currentAssetInstanceId!);
+    await selectAssetOnCanvas(this.page, assetInstanceId);
 
     // TODO: Interact with properties panel to update dimensions
     // For now, simulate via database update
-    await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
+    await this.db.updateRecord('EncounterAssets', assetInstanceId, {
       width,
       height,
     });
@@ -682,13 +709,15 @@ When(
 );
 
 When('I update the asset Z-index to {int}', async function (this: CustomWorld, zIndex: number) {
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
-  await selectAssetOnCanvas(this.page, this.currentAssetInstanceId!);
+  const assetInstanceId = ensureAssetInstanceId(this);
+
+  await selectAssetOnCanvas(this.page, assetInstanceId);
 
   // TODO: Update via properties panel
-  await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
+  await this.db.updateRecord('EncounterAssets', assetInstanceId, {
     layer: zIndex,
   });
 
@@ -696,29 +725,33 @@ When('I update the asset Z-index to {int}', async function (this: CustomWorld, z
 });
 
 When('I rotate the asset to {int} degrees', async function (this: CustomWorld, rotation: number) {
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
-  await selectAssetOnCanvas(this.page, this.currentAssetInstanceId!);
+  const assetInstanceId = ensureAssetInstanceId(this);
+
+  await selectAssetOnCanvas(this.page, assetInstanceId);
 
   // TODO: Rotate via interaction or properties panel
-  await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, {
+  await this.db.updateRecord('EncounterAssets', assetInstanceId, {
     rotation,
   });
 
   this.attach(`Rotated asset to ${rotation} degrees`, 'text/plain');
 });
 
-When('I update the asset with:', async function (this: CustomWorld, dataTable: any) {
+When('I update the asset with:', async function (this: CustomWorld, dataTable: DataTable) {
   const rows = dataTable.rowsHash();
 
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
-  await selectAssetOnCanvas(this.page, this.currentAssetInstanceId!);
+  const assetInstanceId = ensureAssetInstanceId(this);
+
+  await selectAssetOnCanvas(this.page, assetInstanceId);
 
   // Update all properties
-  const updates: any = {};
+  const updates: Record<string, number> = {};
   if (rows.X) updates.x = parseInt(rows.X, 10);
   if (rows.Y) updates.y = parseInt(rows.Y, 10);
   if (rows.Width) updates.width = parseInt(rows.Width, 10);
@@ -726,14 +759,14 @@ When('I update the asset with:', async function (this: CustomWorld, dataTable: a
   if (rows.ZIndex) updates.layer = parseInt(rows.ZIndex, 10);
   if (rows.Rotation) updates.rotation = parseInt(rows.Rotation, 10);
 
-  await this.db.updateRecord('EncounterAssets', this.currentAssetInstanceId!, updates);
+  await this.db.updateRecord('EncounterAssets', assetInstanceId, updates);
 
   this.attach('Updated multiple asset properties', 'text/plain');
 });
 
 When('I attempt to move asset {string}', async function (this: CustomWorld, assetId: string) {
   try {
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
     await moveAssetOnCanvas(this.page, assetId, { x: 600, y: 600 });
 
     this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
@@ -747,7 +780,7 @@ When('I attempt to move asset {string}', async function (this: CustomWorld, asse
 When('I attempt to move asset on encounter {string}', async function (this: CustomWorld, encounterId: string) {
   try {
     await this.page.goto(`/encounters/${encounterId}/edit`);
-    await moveAssetOnCanvas(this.page, this.currentAssetInstanceId!, {
+    await moveAssetOnCanvas(this.page, ensureAssetInstanceId(this), {
       x: 600,
       y: 600,
     });
@@ -759,8 +792,8 @@ When('I attempt to move asset on encounter {string}', async function (this: Cust
 When('I attempt to move an asset on that encounter', async function (this: CustomWorld) {
   // Fixed: Inline logic
   try {
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
-    await moveAssetOnCanvas(this.page, this.currentAssetInstanceId!, {
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
+    await moveAssetOnCanvas(this.page, ensureAssetInstanceId(this), {
       x: 600,
       y: 600,
     });
@@ -770,16 +803,17 @@ When('I attempt to move an asset on that encounter', async function (this: Custo
 });
 
 When('I move the first asset to new position', async function (this: CustomWorld) {
+  const encounterId = ensureEncounterId(this);
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: encounterId,
   });
 
   this.currentAssetInstanceId = assets[0].Id;
 
   // Fixed: Inline move logic
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${encounterId}/edit`);
   await expandEncounterCanvas(this.page);
-  await moveAssetOnCanvas(this.page, this.currentAssetInstanceId!, {
+  await moveAssetOnCanvas(this.page, ensureAssetInstanceId(this), {
     x: 1000,
     y: 1000,
   });
@@ -789,7 +823,7 @@ When('I move the first asset to new position', async function (this: CustomWorld
 });
 
 When('I remove asset {string} from the encounter', async function (this: CustomWorld, assetId: string) {
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
 
   await deleteAssetFromCanvas(this.page, assetId);
@@ -802,11 +836,12 @@ When('I remove asset {string} from the encounter', async function (this: CustomW
 });
 
 When('I remove all assets from the encounter', async function (this: CustomWorld) {
+  const encounterId = ensureEncounterId(this);
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: encounterId,
   });
 
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${encounterId}/edit`);
   await expandEncounterCanvas(this.page);
 
   for (const asset of assets) {
@@ -821,8 +856,9 @@ When('I remove all assets from the encounter', async function (this: CustomWorld
 
 When('I remove the {string} asset', async function (this: CustomWorld, assetName: string) {
   // Find asset instance by name
+  const encounterId = ensureEncounterId(this);
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: encounterId,
   });
 
   const assetInstance = assets.find((a) => {
@@ -833,7 +869,7 @@ When('I remove the {string} asset', async function (this: CustomWorld, assetName
   expect(assetInstance).toBeDefined();
 
   // Fixed: Inline removal logic
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${encounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, assetInstance.Id);
   this.lastApiResponse = await this.page.waitForResponse(
@@ -843,7 +879,7 @@ When('I remove the {string} asset', async function (this: CustomWorld, assetName
 
 When('I attempt to remove asset {string}', async function (this: CustomWorld, assetId: string) {
   try {
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
     await deleteAssetFromCanvas(this.page, assetId);
 
     this.lastApiResponse = await this.page.waitForResponse((resp) => resp.url().includes('/api/encounters/'), {
@@ -857,7 +893,7 @@ When('I attempt to remove asset {string}', async function (this: CustomWorld, as
 When('I attempt to remove asset from encounter {string}', async function (this: CustomWorld, encounterId: string) {
   try {
     await this.page.goto(`/encounters/${encounterId}/edit`);
-    await deleteAssetFromCanvas(this.page, this.currentAssetInstanceId!);
+    await deleteAssetFromCanvas(this.page, ensureAssetInstanceId(this));
   } catch (_error) {
     this.attach('Remove from non-existent encounter failed as expected', 'text/plain');
   }
@@ -866,8 +902,8 @@ When('I attempt to remove asset from encounter {string}', async function (this: 
 When('I attempt to remove an asset from that encounter', async function (this: CustomWorld) {
   // Fixed: Inline removal attempt
   try {
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
-    await deleteAssetFromCanvas(this.page, this.currentAssetInstanceId!);
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
+    await deleteAssetFromCanvas(this.page, ensureAssetInstanceId(this));
   } catch (_error) {
     this.attach('Remove from non-existent encounter failed as expected', 'text/plain');
   }
@@ -875,21 +911,22 @@ When('I attempt to remove an asset from that encounter', async function (this: C
 
 When('I remove that asset', async function (this: CustomWorld) {
   // Fixed: Inline removal
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
-  await deleteAssetFromCanvas(this.page, this.currentAssetInstanceId!);
+  await deleteAssetFromCanvas(this.page, ensureAssetInstanceId(this));
   this.lastApiResponse = await this.page.waitForResponse(
     (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'DELETE',
   );
 });
 
 When('I remove one asset', async function (this: CustomWorld) {
+  const encounterId = ensureEncounterId(this);
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: encounterId,
   });
 
   // Fixed: Inline removal of first asset
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${encounterId}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, assets[0].Id);
   this.lastApiResponse = await this.page.waitForResponse(
@@ -899,7 +936,7 @@ When('I remove one asset', async function (this: CustomWorld) {
 
 When('I remove asset {string}', async function (this: CustomWorld, assetId: string) {
   // Fixed: Inline removal
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
   await deleteAssetFromCanvas(this.page, assetId);
   this.lastApiResponse = await this.page.waitForResponse(
@@ -911,9 +948,9 @@ When(
   'I place the same asset template at position X={int}, Y={int}',
   async function (this: CustomWorld, x: number, y: number) {
     // Fixed: Inline placement
-    await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+    await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
     await expandEncounterCanvas(this.page);
-    await dragAssetToCanvas(this.page, this.currentAsset.id, { x, y });
+    await dragAssetToCanvas(this.page, ensureAssetId(this), { x, y });
     this.lastApiResponse = await this.page.waitForResponse(
       (resp) => resp.url().includes('/api/encounters/') && resp.request().method() === 'POST',
     );
@@ -922,9 +959,9 @@ When(
 
 When('I place the new asset on the encounter', async function (this: CustomWorld) {
   // Fixed: Inline placement at 700,700
-  await this.page.goto(`/encounters/${this.currentEncounterId}/edit`);
+  await this.page.goto(`/encounters/${ensureEncounterId(this)}/edit`);
   await expandEncounterCanvas(this.page);
-  await dragAssetToCanvas(this.page, this.currentAsset.id, {
+  await dragAssetToCanvas(this.page, ensureAssetId(this), {
     x: 700,
     y: 700,
   });
@@ -945,7 +982,7 @@ Then('the asset should be placed successfully', async function (this: CustomWorl
 
 Then('the asset should reference the correct template', async function (this: CustomWorld) {
   const responseBody = await this.lastApiResponse?.json();
-  expect(responseBody.assetId).toBe(this.currentAsset.id!);
+  expect(responseBody.assetId).toBe(ensureAssetId(this));
 });
 
 Then('the asset should be placed on the encounter', async function (this: CustomWorld) {
@@ -956,14 +993,16 @@ Then('the asset should be placed on the encounter', async function (this: Custom
 });
 
 Then('the asset position should be X={int}, Y={int}', async function (this: CustomWorld, x: number, y: number) {
-  await verifyAssetPosition(this.page, this.currentAssetInstanceId!, {
+  const assetInstanceId = ensureAssetInstanceId(this);
+
+  await verifyAssetPosition(this.page, assetInstanceId, {
     x,
     y,
   });
 
   // Verify in database
   const asset = await this.db.queryTable('EncounterAssets', {
-    Id: this.currentAssetInstanceId,
+    Id: assetInstanceId,
   });
 
   expect(asset[0].X).toBe(x);
@@ -987,7 +1026,7 @@ Then('all asset properties should be set correctly', async function (this: Custo
 
 Then('all {int} assets should be placed successfully', async function (this: CustomWorld, count: number) {
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: ensureEncounterId(this),
   });
 
   expect(assets.length).toBe(count);
@@ -995,7 +1034,7 @@ Then('all {int} assets should be placed successfully', async function (this: Cus
 
 Then('each should have unique position', async function (this: CustomWorld) {
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: ensureEncounterId(this),
   });
 
   const positions = new Set(assets.map((a) => `${a.X},${a.Y}`));
@@ -1004,12 +1043,14 @@ Then('each should have unique position', async function (this: CustomWorld) {
 
 Then('the position should be at origin', async function (this: CustomWorld) {
   // Fixed: Inline verification for X=0, Y=0
-  await verifyAssetPosition(this.page, this.currentAssetInstanceId!, {
+  const assetInstanceId = ensureAssetInstanceId(this);
+
+  await verifyAssetPosition(this.page, assetInstanceId, {
     x: 0,
     y: 0,
   });
   const asset = await this.db.queryTable('EncounterAssets', {
-    Id: this.currentAssetInstanceId,
+    Id: assetInstanceId,
   });
   expect(asset[0].X).toBe(0);
   expect(asset[0].Y).toBe(0);
@@ -1034,12 +1075,13 @@ Then('the Z-index should be {int}', async function (this: CustomWorld, zIndex: n
 });
 
 Then('the encounter should now have {int} placed assets', async function (this: CustomWorld, count: number) {
-  const actualCount = await getPlacedAssetCount(this.page, this.currentEncounterId!);
+  const encounterId = ensureEncounterId(this);
+  const actualCount = await getPlacedAssetCount(this.page, encounterId);
   expect(actualCount).toBe(count);
 
   // Verify in database
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: encounterId,
   });
 
   expect(assets.length).toBe(count);
@@ -1047,8 +1089,8 @@ Then('the encounter should now have {int} placed assets', async function (this: 
 
 Then('the new asset should appear in the collection', async function (this: CustomWorld) {
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
-    AssetId: this.currentAsset.id,
+    EncounterId: ensureEncounterId(this),
+    AssetId: ensureAssetId(this),
   });
 
   expect(assets.length).toBeGreaterThan(0);
@@ -1098,12 +1140,14 @@ Then('all properties should be set correctly', async function (this: CustomWorld
 
 Then('the position should be X={int}, Y={int}', async function (this: CustomWorld, x: number, y: number) {
   // Fixed: Inline position verification
-  await verifyAssetPosition(this.page, this.currentAssetInstanceId!, {
+  const assetInstanceId = ensureAssetInstanceId(this);
+
+  await verifyAssetPosition(this.page, assetInstanceId, {
     x,
     y,
   });
   const asset = await this.db.queryTable('EncounterAssets', {
-    Id: this.currentAssetInstanceId,
+    Id: assetInstanceId,
   });
   expect(asset[0].X).toBe(x);
   expect(asset[0].Y).toBe(y);
@@ -1120,10 +1164,10 @@ Then('the first asset should be at new position', async function (this: CustomWo
 
 Then('the other {int} assets should remain unchanged', async function (this: CustomWorld, count: number) {
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: ensureEncounterId(this),
   });
 
-  const unchangedAssets = assets.filter((a) => a.Id !== this.currentAssetInstanceId!);
+  const unchangedAssets = assets.filter((a) => a.Id !== ensureAssetInstanceId(this));
   expect(unchangedAssets.length).toBe(count);
 });
 
@@ -1137,32 +1181,33 @@ Then('the rotation should be {int} degrees', async function (this: CustomWorld, 
 
 Then('the asset is removed successfully', async function (this: CustomWorld) {
   expect(this.lastApiResponse?.status()).toBe(204);
-  await verifyAssetRemoved(this.page, this.currentAssetInstanceId!);
+  await verifyAssetRemoved(this.page, ensureAssetInstanceId(this));
 });
 
 Then('all assets is removed successfully', async function (this: CustomWorld) {
-  const count = await getPlacedAssetCount(this.page, this.currentEncounterId!);
+  const count = await getPlacedAssetCount(this.page, ensureEncounterId(this));
   expect(count).toBe(0);
 });
 
 Then('the encounter should have {int} placed assets', async function (this: CustomWorld, count: number) {
   // Fixed: Inline asset count verification
-  const actualCount = await getPlacedAssetCount(this.page, this.currentEncounterId!);
+  const encounterId = ensureEncounterId(this);
+  const actualCount = await getPlacedAssetCount(this.page, encounterId);
   expect(actualCount).toBe(count);
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
+    EncounterId: encounterId,
   });
   expect(assets.length).toBe(count);
 });
 
 Then('the asset is removed', async function (this: CustomWorld) {
-  await verifyAssetRemoved(this.page, this.currentAssetInstanceId!);
+  await verifyAssetRemoved(this.page, ensureAssetInstanceId(this));
 });
 
 Then('attempting to move that asset should fail', async function (this: CustomWorld) {
   // Try to move the removed asset
   try {
-    await moveAssetOnCanvas(this.page, this.currentAssetInstanceId!, {
+    await moveAssetOnCanvas(this.page, ensureAssetInstanceId(this), {
       x: 800,
       y: 800,
     });
@@ -1182,7 +1227,7 @@ Then('the encounter should not contain the asset', async function (this: CustomW
 
 Then('the stage configuration should remain unchanged', async function (this: CustomWorld) {
   const encounter = await this.db.queryTable('Encounters', {
-    Id: this.currentEncounterId,
+    Id: ensureEncounterId(this),
   });
 
   expect(encounter[0].Width).toBe(1920);
@@ -1191,7 +1236,7 @@ Then('the stage configuration should remain unchanged', async function (this: Cu
 
 Then('the grid configuration should remain unchanged', async function (this: CustomWorld) {
   const encounter = await this.db.queryTable('Encounters', {
-    Id: this.currentEncounterId,
+    Id: ensureEncounterId(this),
   });
 
   expect(encounter[0].GridType).toBe('Square');
@@ -1202,7 +1247,7 @@ Then(
   'assets {int}, {int}, {int}, {int}, and {int} should remain intact',
   async function (this: CustomWorld, ...assetNumbers: number[]) {
     const assets = await this.db.queryTable('EncounterAssets', {
-      EncounterId: this.currentEncounterId,
+      EncounterId: ensureEncounterId(this),
     });
 
     expect(assets.length).toBe(assetNumbers.length);
@@ -1217,8 +1262,8 @@ Then('their positions should be unchanged', async function (this: CustomWorld) {
 
 Then('the encounter should have the asset at new position', async function (this: CustomWorld) {
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
-    AssetId: this.currentAsset.id,
+    EncounterId: ensureEncounterId(this),
+    AssetId: ensureAssetId(this),
   });
 
   expect(assets.length).toBe(1);
@@ -1228,9 +1273,9 @@ Then('the encounter should have the asset at new position', async function (this
 
 Then('the new asset should have a different placement ID', async function (this: CustomWorld) {
   const assets = await this.db.queryTable('EncounterAssets', {
-    EncounterId: this.currentEncounterId,
-    AssetId: this.currentAsset.id,
+    EncounterId: ensureEncounterId(this),
+    AssetId: ensureAssetId(this),
   });
 
-  expect(assets[0].Id).not.toBe(this.currentAssetInstanceId!);
+  expect(assets[0].Id).not.toBe(ensureAssetInstanceId(this));
 });

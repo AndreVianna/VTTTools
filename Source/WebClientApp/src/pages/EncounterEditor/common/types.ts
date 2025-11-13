@@ -30,7 +30,7 @@ export interface RegionEditingState {
 
 export interface AssetEditingState {
   selectedAssetIds: string[];
-  draggedAsset: any | null;
+  draggedAsset: PlacedAsset | null;
   contextMenuAsset: PlacedAsset | null;
   contextMenuPosition: { left: number; top: number } | null;
 }
@@ -39,5 +39,5 @@ export interface CommonHandlers {
   setEncounter: (encounter: Encounter) => void;
   setErrorMessage: (message: string | null) => void;
   refetch: () => Promise<{ data?: Encounter }>;
-  execute: (command: any) => void;
+  execute: (command: unknown) => void;
 }

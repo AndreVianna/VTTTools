@@ -635,7 +635,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                             }));
                             handleWallPropertyUpdate(encounterWall.index, {
                               poles: updatedPoles,
-                            } as any);
+                            });
                           }}
                           onKeyDown={(e) => {
                             e.stopPropagation();

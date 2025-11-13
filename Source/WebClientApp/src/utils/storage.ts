@@ -1,7 +1,7 @@
 const QUOTA_WARNING_THRESHOLD = 5 * 1024 * 1024;
 
 export const storage = {
-  getItem: <T = any>(key: string): T | null => {
+  getItem: <T = unknown>(key: string): T | null => {
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
@@ -11,7 +11,7 @@ export const storage = {
     }
   },
 
-  setItem: <T = any>(key: string, value: T): boolean => {
+  setItem: <T = unknown>(key: string, value: T): boolean => {
     try {
       const serialized = JSON.stringify(value);
       const size = new Blob([serialized]).size;

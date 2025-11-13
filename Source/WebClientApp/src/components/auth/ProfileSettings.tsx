@@ -131,8 +131,8 @@ export const ProfileSettings: React.FC = () => {
       }
 
       setIsEditing(false);
-    } catch (error: any) {
-      const errorMessage = error?.data?.message || 'Failed to update profile';
+    } catch (error: unknown) {
+      const errorMessage = (error as { data?: { message?: string } })?.data?.message || 'Failed to update profile';
       setLocalError(errorMessage);
       console.error('Failed to update profile:', error);
     }
@@ -162,8 +162,8 @@ export const ProfileSettings: React.FC = () => {
     try {
       setLocalError(null);
       await uploadAvatar(file).unwrap();
-    } catch (error: any) {
-      const errorMessage = error?.data?.message || 'Failed to upload avatar';
+    } catch (error: unknown) {
+      const errorMessage = (error as { data?: { message?: string } })?.data?.message || 'Failed to upload avatar';
       setLocalError(errorMessage);
       console.error('Failed to upload avatar:', error);
     }
@@ -173,8 +173,8 @@ export const ProfileSettings: React.FC = () => {
     try {
       setLocalError(null);
       await deleteAvatar().unwrap();
-    } catch (error: any) {
-      const errorMessage = error?.data?.message || 'Failed to delete avatar';
+    } catch (error: unknown) {
+      const errorMessage = (error as { data?: { message?: string } })?.data?.message || 'Failed to delete avatar';
       setLocalError(errorMessage);
       console.error('Failed to delete avatar:', error);
     }
@@ -188,8 +188,9 @@ export const ProfileSettings: React.FC = () => {
       await resendEmailConfirmation({ email: user.email }).unwrap();
       setConfirmationEmailSent(true);
       setTimeout(() => setConfirmationEmailSent(false), 5000);
-    } catch (error: any) {
-      const errorMessage = error?.data?.message || 'Failed to send confirmation email';
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message || 'Failed to send confirmation email';
       setLocalError(errorMessage);
       console.error('Failed to send confirmation email:', error);
     }

@@ -135,7 +135,9 @@ export function splitWallAtPoints(params: {
     }
 
     while (splitIndex < sortedSplits.length && sortedSplits[splitIndex]?.edgeIndex === poleIndex) {
-      const split = sortedSplits[splitIndex]!;
+      const split = sortedSplits[splitIndex];
+      if (!split) break;
+
       const nextPole = wall.poles[nextPoleIndex];
       if (!nextPole) break;
 

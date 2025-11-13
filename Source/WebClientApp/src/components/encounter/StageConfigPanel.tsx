@@ -134,8 +134,8 @@ export const StageConfigPanel: React.FC<StageConfigPanelProps> = ({ initialStage
 
       {errors.length > 0 && (
         <Alert severity='error' sx={{ mb: 2 }}>
-          {errors.map((error, index) => (
-            <div key={index}>{error}</div>
+          {errors.map((error) => (
+            <div key={error}>{error}</div>
           ))}
         </Alert>
       )}

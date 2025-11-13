@@ -334,7 +334,7 @@ describe('TwoFactorSetupForm', () => {
       // Arrange
       const user = userEvent.setup();
       mockEnableTwoFactor.mockRejectedValue(new Error('Invalid code'));
-      mockAuthReturnValue.error = 'Invalid code. Please check your authenticator app.' as any;
+      mockAuthReturnValue.error = 'Invalid code. Please check your authenticator app.' as unknown as null;
 
       render(<TwoFactorSetupForm />);
 
@@ -757,7 +757,7 @@ describe('TwoFactorSetupForm', () => {
     it('should display error when setup initialization fails', async () => {
       // Arrange
       mockSetupTwoFactor.mockRejectedValue(new Error('Failed to generate 2FA setup'));
-      mockAuthReturnValue.error = 'Failed to generate 2FA setup. Please try again.' as any;
+      mockAuthReturnValue.error = 'Failed to generate 2FA setup. Please try again.' as unknown as null;
 
       // Act
       render(<TwoFactorSetupForm />);
@@ -772,7 +772,7 @@ describe('TwoFactorSetupForm', () => {
       // Arrange
       const user = userEvent.setup();
       mockEnableTwoFactor.mockRejectedValue(new Error('Invalid code'));
-      mockAuthReturnValue.error = 'Invalid code. Please check your authenticator app.' as any;
+      mockAuthReturnValue.error = 'Invalid code. Please check your authenticator app.' as unknown as null;
 
       render(<TwoFactorSetupForm />);
 

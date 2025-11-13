@@ -617,7 +617,12 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
 
               <FormControlLabel
                 control={
-                  <Switch id='switch-snap-grid' size='small' checked={gridConfig.snap ?? false} onChange={handleSnapChange} />
+                  <Switch
+                    id='switch-snap-grid'
+                    size='small'
+                    checked={gridConfig.snap ?? false}
+                    onChange={handleSnapChange}
+                  />
                 }
                 label={<Typography sx={compactStyles.toggleLabel}>Snap to Grid</Typography>}
                 sx={{ margin: 0 }}

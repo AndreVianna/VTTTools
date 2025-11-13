@@ -52,33 +52,30 @@ const NetworkStatusComponent: React.FC = () => {
     networkStatusRef.current = networkStatus;
   }, [networkStatus]);
 
-  const checkConnectivity = useCallback(
-    async (): Promise<{
-      connected: boolean;
-      latency: number | null;
-    }> => {
-      try {
-        const start = performance.now();
-        const response = await fetch('/health', {
-          method: 'HEAD',
-          cache: 'no-cache',
-          signal: AbortSignal.timeout(5000),
-        });
-        const latency = performance.now() - start;
+  const checkConnectivity = useCallback(async (): Promise<{
+    connected: boolean;
+    latency: number | null;
+  }> => {
+    try {
+      const start = performance.now();
+      const response = await fetch('/health', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(5000),
+      });
+      const latency = performance.now() - start;
 
-        return {
-          connected: response.ok,
-          latency: Math.round(latency),
-        };
-      } catch (_error) {
-        return {
-          connected: false,
-          latency: null,
-        };
-      }
-    },
-    [],
-  );
+      return {
+        connected: response.ok,
+        latency: Math.round(latency),
+      };
+    } catch (_error) {
+      return {
+        connected: false,
+        latency: null,
+      };
+    }
+  }, []);
 
   const updateNetworkStatus = useCallback(
     async (isOnline: boolean, forceCheck = false) => {
@@ -143,19 +140,19 @@ const NetworkStatusComponent: React.FC = () => {
 
   // Handle online/offline events
   useEffect(() => {
-    const handleOnline = () => updateNetworkStatus(true, true);
-    const handleOffline = () => updateNetworkStatus(false);
+    const handleOnline = () => void updateNetworkStatus(true, true);
+    const handleOffline = () => void updateNetworkStatus(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
     // Initial check
-    updateNetworkStatus(navigator.onLine, true);
+    void updateNetworkStatus(navigator.onLine, true);
 
     // Periodic connectivity check
     const interval = setInterval(() => {
       if (navigator.onLine) {
-        updateNetworkStatus(true);
+        void updateNetworkStatus(true);
       }
     }, 60000); // Check every minute when online
 

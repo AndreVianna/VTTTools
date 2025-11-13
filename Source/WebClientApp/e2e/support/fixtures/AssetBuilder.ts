@@ -150,7 +150,9 @@ export class AssetBuilder {
   }
 
   withDefaultToken(tokenId: string): this {
-    this.tokens.forEach((t) => (t.isDefault = false));
+    for (const token of this.tokens) {
+      token.isDefault = false;
+    }
     return this.withToken(tokenId, true);
   }
 

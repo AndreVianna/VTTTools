@@ -29,9 +29,9 @@ describe('EditingBlocker', () => {
     const handleClick = vi.fn();
 
     renderWithTheme(
-      <div onClick={handleClick}>
+      <button type='button' onClick={handleClick}>
         <EditingBlocker isBlocked={true} />
-      </div>,
+      </button>,
     );
 
     const blocker = document.getElementById('editing-blocker');
@@ -61,8 +61,10 @@ describe('EditingBlocker', () => {
     const blocker = document.getElementById('editing-blocker');
     expect(blocker).toBeInTheDocument();
 
-    const computedStyle = window.getComputedStyle(blocker!);
-    expect(computedStyle.backgroundColor).toBeTruthy();
+    if (blocker) {
+      const computedStyle = window.getComputedStyle(blocker);
+      expect(computedStyle.backgroundColor).toBeTruthy();
+    }
   });
 
   it('should adapt to dark theme', () => {
@@ -71,8 +73,10 @@ describe('EditingBlocker', () => {
     const blocker = document.getElementById('editing-blocker');
     expect(blocker).toBeInTheDocument();
 
-    const computedStyle = window.getComputedStyle(blocker!);
-    expect(computedStyle.backgroundColor).toBeTruthy();
+    if (blocker) {
+      const computedStyle = window.getComputedStyle(blocker);
+      expect(computedStyle.backgroundColor).toBeTruthy();
+    }
   });
 
   it('should have correct z-index to block editing but not navigation', () => {
@@ -81,8 +85,10 @@ describe('EditingBlocker', () => {
     const blocker = document.getElementById('editing-blocker');
     expect(blocker).toBeInTheDocument();
 
-    const computedStyle = window.getComputedStyle(blocker!);
-    expect(parseInt(computedStyle.zIndex, 10)).toBeLessThan(1300);
+    if (blocker) {
+      const computedStyle = window.getComputedStyle(blocker);
+      expect(parseInt(computedStyle.zIndex, 10)).toBeLessThan(1300);
+    }
   });
 
   it('should be positioned below navigation bar (top: 64)', () => {
@@ -91,8 +97,10 @@ describe('EditingBlocker', () => {
     const blocker = document.getElementById('editing-blocker');
     expect(blocker).toBeInTheDocument();
 
-    const computedStyle = window.getComputedStyle(blocker!);
-    expect(computedStyle.top).toBe('64px');
+    if (blocker) {
+      const computedStyle = window.getComputedStyle(blocker);
+      expect(computedStyle.top).toBe('64px');
+    }
   });
 
   it('should cover the entire viewport below the header', () => {
@@ -101,10 +109,12 @@ describe('EditingBlocker', () => {
     const blocker = document.getElementById('editing-blocker');
     expect(blocker).toBeInTheDocument();
 
-    const computedStyle = window.getComputedStyle(blocker!);
-    expect(computedStyle.position).toBe('fixed');
-    expect(computedStyle.left).toBe('0px');
-    expect(computedStyle.right).toBe('0px');
-    expect(computedStyle.bottom).toBe('0px');
+    if (blocker) {
+      const computedStyle = window.getComputedStyle(blocker);
+      expect(computedStyle.position).toBe('fixed');
+      expect(computedStyle.left).toBe('0px');
+      expect(computedStyle.right).toBe('0px');
+      expect(computedStyle.bottom).toBe('0px');
+    }
   });
 });

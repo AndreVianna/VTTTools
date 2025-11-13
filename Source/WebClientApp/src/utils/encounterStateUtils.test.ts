@@ -19,8 +19,8 @@ const createMockEncounter = (overrides?: Partial<Encounter>): Encounter => ({
   name: 'Test Encounter',
   description: 'A test encounter',
   isPublished: false,
-  light: 'Bright' as any,
-  weather: 'Clear' as any,
+  light: 'Bright' as 'Bright',
+  weather: 'Clear' as 'Clear',
   elevation: 0,
   grid: {
     type: 0,
@@ -45,7 +45,7 @@ const createMockWall = (overrides?: Partial<EncounterWall>): EncounterWall => ({
   index: 0,
   name: 'Wall',
   poles: [],
-  visibility: 'Normal' as any,
+  visibility: 'Normal' as 'Normal',
   isClosed: false,
   ...overrides,
 });
@@ -72,7 +72,7 @@ describe('encounterStateUtils', () => {
       const result = addWallOptimistic(encounter, wall);
 
       expect(result.walls).toHaveLength(1);
-      expect(result.walls[0]!).toEqual(wall);
+      expect(result.walls[0]).toEqual(wall);
     });
 
     it('should add wall to existing walls', () => {
@@ -83,7 +83,7 @@ describe('encounterStateUtils', () => {
       const result = addWallOptimistic(encounter, newWall);
 
       expect(result.walls).toHaveLength(2);
-      expect(result.walls[1]!).toEqual(newWall);
+      expect(result.walls[1]).toEqual(newWall);
     });
 
     it('should filter out temporary walls (index === -1) before adding', () => {
@@ -192,7 +192,7 @@ describe('encounterStateUtils', () => {
       const result = removeWallOptimistic(encounter, 99);
 
       expect(result.walls).toHaveLength(1);
-      expect(result.walls[0]!).toEqual(wall);
+      expect(result.walls[0]).toEqual(wall);
     });
   });
 
@@ -289,7 +289,7 @@ describe('encounterStateUtils', () => {
       const result = removeTempRegions(encounter);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0]!).toEqual(region);
+      expect(result.regions[0]).toEqual(region);
     });
 
     it('should handle encounter with all temp regions', () => {
@@ -353,7 +353,7 @@ describe('encounterStateUtils', () => {
       const result = addRegionOptimistic(encounter, region);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0]!).toEqual(region);
+      expect(result.regions[0]).toEqual(region);
     });
 
     it('should add region and filter temp regions', () => {
@@ -466,7 +466,7 @@ describe('encounterStateUtils', () => {
       const result = removeRegionOptimistic(encounter, 99);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0]!).toEqual(region);
+      expect(result.regions[0]).toEqual(region);
     });
   });
 
@@ -621,7 +621,7 @@ describe('encounterStateUtils', () => {
       const result = filterEncounterForMergeDetection(encounter);
 
       expect(result).not.toBeNull();
-      expect(result?.regions[0]!).toEqual(region);
+      expect(result?.regions[0]).toEqual(region);
       expect(result?.regions[0]?.vertices).toEqual(region.vertices);
       expect(result?.regions[0]?.value).toBe(5);
       expect(result?.regions[0]?.label).toBe('Test Label');

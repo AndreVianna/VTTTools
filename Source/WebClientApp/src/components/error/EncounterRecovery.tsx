@@ -50,7 +50,7 @@ interface RecoverySnapshot {
   id: string;
   encounterId: string;
   encounterName: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   type: 'auto' | 'manual' | 'recovery';
   size: number;
@@ -66,9 +66,9 @@ const STORAGE_KEY_PREFIX = 'vtt_encounter_recovery_';
 export const EncounterRecoveryManager: React.FC<{
   encounterId: string;
   encounterName: string;
-  encounterData: any;
-  onSave: (data: any, isAutoSave?: boolean) => Promise<void>;
-  onLoad: (data: any) => void;
+  encounterData: unknown;
+  onSave: (data: unknown, isAutoSave?: boolean) => Promise<void>;
+  onLoad: (data: unknown) => void;
   isEnabled?: boolean;
 }> = ({ encounterId, encounterName, encounterData, onSave, onLoad, isEnabled = true }) => {
   const dispatch = useDispatch();
@@ -106,7 +106,7 @@ export const EncounterRecoveryManager: React.FC<{
   }, []);
 
   const saveRecoverySnapshot = useCallback(
-    (data: any, type: RecoverySnapshot['type']) => {
+    (data: unknown, type: RecoverySnapshot['type']) => {
       try {
         const snapshot: RecoverySnapshot = {
           id: Date.now().toString(),

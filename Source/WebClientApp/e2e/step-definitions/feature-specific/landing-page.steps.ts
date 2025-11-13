@@ -6,7 +6,7 @@
  * Tests: Hero section (guest), Dashboard preview (authenticated)
  */
 
-import { Given, Then, When } from '@cucumber/cucumber';
+import { type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { performPoolUserLogin } from '../../support/helpers/authentication.helper.js';
 import type { CustomWorld } from '../../support/world.js';
@@ -349,53 +349,57 @@ Then('the CTA buttons should be prominently displayed', async function (this: Cu
 });
 
 // Dashboard - Action Cards (Data Table)
-Then('I should see {int} action cards:', async function (this: CustomWorld, expectedCount: number, dataTable: any) {
-  const rows = dataTable.hashes();
-  expect(rows.length).toBe(expectedCount);
+Then(
+  'I should see {int} action cards:',
+  async function (this: CustomWorld, expectedCount: number, dataTable: DataTable) {
+    const rows = dataTable.hashes();
+    expect(rows.length).toBe(expectedCount);
 
-  // Validate each card from the data table
-  for (const row of rows) {
-    const title = row['Card Title'];
-    const status = row.Status;
-    const label = row.Label;
+    // Validate each card from the data table
+    for (const row of rows) {
+      const title = row['Card Title'];
+      const status = row.Status;
+      const label = row.Label;
 
-    // Map title to semantic ID
-    let cardId;
-    if (title.includes('Encounter Editor')) cardId = '#card-encounter-editor';
-    else if (title.includes('Content Library')) cardId = '#card-content-library';
-    else if (title.includes('Asset Library')) cardId = '#card-asset-library';
-    else if (title.includes('Account Settings')) cardId = '#card-account-settings';
-    else throw new Error(`Unknown card title: ${title}`);
+      // Map title to semantic ID
+      let cardId: string;
+      if (title.includes('Encounter Editor')) cardId = '#card-encounter-editor';
+      else if (title.includes('Content Library')) cardId = '#card-content-library';
+      else if (title.includes('Asset Library')) cardId = '#card-asset-library';
+      else if (title.includes('Account Settings')) cardId = '#card-account-settings';
+      else throw new Error(`Unknown card title: ${title}`);
 
-    const card = this.page.locator(cardId);
+      const card = this.page.locator(cardId);
 
-    // Verify card exists
-    await expect(card).toBeVisible();
+      // Verify card exists
+      await expect(card).toBeVisible();
 
-    // Verify title text
-    const titleId = cardId.replace('card-', 'title-');
-    await expect(this.page.locator(titleId)).toContainText(title);
+      // Verify title text
+      const titleId = cardId.replace('card-', 'title-');
+      await expect(this.page.locator(titleId)).toContainText(title);
 
-    // Get button ID based on card and status
-    let buttonId;
-    if (title.includes('Encounter Editor')) buttonId = '#btn-open-editor';
-    else if (title.includes('Asset Library')) buttonId = '#btn-browse-assets';
-    else if (title.includes('Content Library')) buttonId = '#btn-content-library-disabled';
-    else if (title.includes('Account Settings')) buttonId = '#btn-account-settings-disabled';
+      // Get button ID based on card and status
+      let buttonId: string | undefined;
+      if (title.includes('Encounter Editor')) buttonId = '#btn-open-editor';
+      else if (title.includes('Asset Library')) buttonId = '#btn-browse-assets';
+      else if (title.includes('Content Library')) buttonId = '#btn-content-library-disabled';
+      else if (title.includes('Account Settings')) buttonId = '#btn-account-settings-disabled';
 
-    const button = this.page.locator(buttonId!);
+      expect(buttonId).toBeDefined();
+      const button = this.page.locator(buttonId as string);
 
-    // Verify button label
-    await expect(button).toContainText(label);
+      // Verify button label
+      await expect(button).toContainText(label);
 
-    // Verify status (Active = enabled, Disabled = disabled)
-    if (status === 'Active') {
-      await expect(button).toBeEnabled();
-    } else if (status === 'Disabled') {
-      await expect(button).toBeDisabled();
+      // Verify status (Active = enabled, Disabled = disabled)
+      if (status === 'Active') {
+        await expect(button).toBeEnabled();
+      } else if (status === 'Disabled') {
+        await expect(button).toBeDisabled();
+      }
     }
-  }
-});
+  },
+);
 
 // Dashboard - Label Assertions
 Then('should show label {string}', async function (this: CustomWorld, labelText: string) {
