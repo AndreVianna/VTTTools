@@ -864,7 +864,7 @@ public class EncounterServiceTests {
         };
         var data = new EncounterWallAddData {
             Name = "Test Wall",
-            Poles = [new Pole { X = 0, Y = 0, H = 10 }, new Pole { X = 10, Y = 0, H = 10 }],
+            Poles = [new Pole(0, 0, 10), new Pole(10, 0, 10)],
             Visibility = WallVisibility.Normal,
             IsClosed = false,
             Material = "stone",
@@ -903,7 +903,7 @@ public class EncounterServiceTests {
                 new() {
                     Index = wallIndex,
                     Name = "Existing Wall",
-                    Poles = [new Pole { X = 0, Y = 0, H = 10 }, new Pole { X = 10, Y = 0, H = 10 }],
+                    Poles = [new Pole(0, 0, 10), new Pole(10, 0, 10)],
                     Visibility = WallVisibility.Normal,
                     IsClosed = false,
                     Material = "wood",
@@ -945,7 +945,7 @@ public class EncounterServiceTests {
         };
         var data = new EncounterWallAddData {
             Name = "Test Wall",
-            Poles = [new Pole { X = 0, Y = 0, H = 10 }, new Pole { X = 10, Y = 0, H = 10 }],
+            Poles = [new Pole(0, 0, 10), new Pole(10, 0, 10)],
             Visibility = WallVisibility.Normal,
             IsClosed = false,
             Material = null,
