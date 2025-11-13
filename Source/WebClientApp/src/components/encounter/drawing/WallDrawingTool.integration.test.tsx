@@ -1,11 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { act, render } from '@testing-library/react';
+import type Konva from 'konva';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { encounterApi } from '@/services/encounterApi';
-import type { Pole } from '@/types/domain';
+import type { Encounter, EncounterWall, Pole } from '@/types/domain';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import { WallDrawingTool } from './WallDrawingTool';
 
@@ -23,9 +24,9 @@ vi.mock('react-konva', () => ({
     onDblClick,
     onMouseMove,
   }: {
-    onClick?: (e: any) => void;
-    onDblClick?: (e: any) => void;
-    onMouseMove?: (e: any) => void;
+    onClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void;
+    onDblClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void;
+    onMouseMove?: (e: Konva.KonvaEventObject<MouseEvent>) => void;
   }) => {
     const mockKonvaEvent = {
       target: {
@@ -38,7 +39,7 @@ vi.mock('react-konva', () => ({
       },
       evt: {},
       cancelBubble: false,
-    };
+    } as Konva.KonvaEventObject<MouseEvent>;
     return (
       <button
         type='button'
@@ -81,7 +82,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     snap: true,
   };
 
-  const createMockEncounter = (walls: any[] = []) => ({
+  const createMockEncounter = (walls: EncounterWall[] = []): Partial<Encounter> => ({
     id: 'encounter-1',
     name: 'Test Encounter',
     walls,
@@ -106,7 +107,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     onFinishSpy = vi.fn();
   });
 
-  const createStoreWithEncounter = (encounter: any) => {
+  const createStoreWithEncounter = (encounter: Partial<Encounter>) => {
     return configureStore({
       reducer: {
         [encounterApi.reducerPath]: () => ({
@@ -118,7 +119,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
           },
         }),
       },
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware as any),
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(encounterApi.middleware),
     });
   };
 
@@ -411,11 +412,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         },
         evt: {},
         cancelBubble: false,
-      };
+      } as Konva.KonvaEventObject<MouseEvent>;
 
       vi.mock('react-konva', () => ({
         Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
-        Rect: ({ onClick }: { onClick?: (e: any) => void }) => (
+        Rect: ({ onClick }: { onClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void }) => (
           <button type='button' data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
         ),
       }));

@@ -121,7 +121,7 @@ describe('TokenPlacement', () => {
     mockOnAssetDeleted = vi.fn();
     mockOnDragComplete = vi.fn();
 
-    global.Image = class MockImage {
+    class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       src = '';
@@ -134,7 +134,9 @@ describe('TokenPlacement', () => {
           }
         }, 0);
       }
-    } as any;
+    }
+
+    global.Image = MockImage as unknown as typeof Image;
 
     const mockCanvas = {
       getContext: vi.fn(() => ({
@@ -145,7 +147,10 @@ describe('TokenPlacement', () => {
       })),
     };
 
-    HTMLCanvasElement.prototype.getContext = mockCanvas.getContext as any;
+    HTMLCanvasElement.prototype.getContext = mockCanvas.getContext as unknown as (
+      contextId: '2d',
+      options?: CanvasRenderingContext2DSettings,
+    ) => CanvasRenderingContext2D | null;
   });
 
   it('renders without crashing', () => {
@@ -196,7 +201,7 @@ describe('TokenPlacement', () => {
     const originalImage = global.Image;
 
     let imageLoadCount = 0;
-    global.Image = class MockImage {
+    class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       src = '';
@@ -212,7 +217,9 @@ describe('TokenPlacement', () => {
           }
         }, 0);
       }
-    } as any;
+    }
+
+    global.Image = MockImage as unknown as typeof Image;
 
     render(
       <TokenPlacement
@@ -245,7 +252,7 @@ describe('TokenPlacement', () => {
   it('shows loading state for dragged asset', async () => {
     const draggedAsset = createMockCreatureAsset('asset-1');
 
-    global.Image = class MockImage {
+    class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       src = '';
@@ -258,7 +265,9 @@ describe('TokenPlacement', () => {
           }
         }, 100);
       }
-    } as any;
+    }
+
+    global.Image = MockImage as unknown as typeof Image;
 
     render(
       <TokenPlacement
@@ -295,7 +304,7 @@ describe('TokenPlacement', () => {
   it('handles image loading errors gracefully', async () => {
     const placedAsset = createMockPlacedAsset('placed-1', 'asset-1');
 
-    global.Image = class MockImage {
+    class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       src = '';
@@ -308,7 +317,9 @@ describe('TokenPlacement', () => {
           }
         }, 0);
       }
-    } as any;
+    }
+
+    global.Image = MockImage as unknown as typeof Image;
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
