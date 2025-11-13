@@ -40,8 +40,9 @@ export async function hydratePlacedAssets(
       const asset = assets[arrayIndex];
       if (!asset) return null;
 
-      const position = { x: sa.x, y: sa.y };
-      const size = { width: sa.width, height: sa.height };
+      const encounterAssetData = sa as any;
+      const position = encounterAssetData.position || { x: sa.x, y: sa.y };
+      const size = encounterAssetData.size || { width: sa.width, height: sa.height };
 
       const encounterAssetAny = sa;
       const backendIndex = encounterAssetAny.index !== undefined ? encounterAssetAny.index : arrayIndex;

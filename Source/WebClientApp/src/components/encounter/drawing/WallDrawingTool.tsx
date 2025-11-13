@@ -208,8 +208,8 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         listening={true}
       />
 
-      {poles.map((pole) => (
-        <VertexMarker key={`pole-${pole.x}-${pole.y}`} position={{ x: pole.x, y: pole.y }} />
+      {poles.map((pole, index) => (
+        <VertexMarker key={`pole-${pole.x}-${pole.y}-${index}`} position={{ x: pole.x, y: pole.y }} />
       ))}
 
       <WallPreview poles={poles} previewPoint={previewPoint} wall={wall} />

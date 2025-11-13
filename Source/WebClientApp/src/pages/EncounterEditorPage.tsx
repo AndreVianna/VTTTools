@@ -180,24 +180,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
-  interface LayerVisibility {
-    background: boolean;
-    grid: boolean;
-    structures: boolean;
-    objects: boolean;
-    creatures: boolean;
-    overlays: boolean;
-  }
-
-  const [layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
-    background: true,
-    grid: true,
-    structures: true,
-    objects: true,
-    creatures: true,
-    overlays: true,
-  });
-
   const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
     regions: true,
     walls: true,
@@ -240,6 +222,10 @@ const EncounterEditorPageInternal: React.FC = () => {
       lightSources: true,
       fogOfWar: true,
     });
+    setGridConfig((prev) => ({
+      ...prev,
+      type: prev.type === GridType.NoGrid ? GridType.Square : prev.type,
+    }));
   }, []);
 
   const handleHideAllLayers = useCallback(() => {
@@ -254,6 +240,10 @@ const EncounterEditorPageInternal: React.FC = () => {
       lightSources: false,
       fogOfWar: false,
     });
+    setGridConfig((prev) => ({
+      ...prev,
+      type: GridType.NoGrid,
+    }));
   }, []);
 
   const saveChanges = useCallback(
@@ -1120,143 +1110,136 @@ const EncounterEditorPageInternal: React.FC = () => {
           >
             {/* Layer 1: Static (background + grid) */}
             <Layer name={LayerName.Static} listening={false}>
-              {layerVisibility.background && (
-                <BackgroundLayer
-                  imageUrl={backgroundImageUrl}
-                  backgroundColor={theme.palette.background.default}
-                  stageWidth={STAGE_WIDTH}
-                  stageHeight={STAGE_HEIGHT}
-                />
-              )}
+              <BackgroundLayer
+                imageUrl={backgroundImageUrl}
+                backgroundColor={theme.palette.background.default}
+                stageWidth={STAGE_WIDTH}
+                stageHeight={STAGE_HEIGHT}
+              />
 
-              {layerVisibility.grid && (
-                <GridRenderer
-                  grid={gridConfig}
-                  stageWidth={STAGE_WIDTH}
-                  stageHeight={STAGE_HEIGHT}
-                  visible={gridConfig.type !== GridType.NoGrid}
-                />
-              )}
+              <GridRenderer
+                grid={gridConfig}
+                stageWidth={STAGE_WIDTH}
+                stageHeight={STAGE_HEIGHT}
+                visible={gridConfig.type !== GridType.NoGrid}
+              />
             </Layer>
 
             {/* Layer 2: GameWorld (structures, objects, creatures) */}
             <Layer name={LayerName.GameWorld}>
-              {layerVisibility.structures && (
-                <>
-                  {/* Regions - render first (bottom of GameWorld) */}
-                  {placedRegions && placedRegions.length > 0 && (
-                    <Group name={GroupName.Structure}>
-                      {placedRegions.map((encounterRegion) => {
-                        if (encounterRegion.index === -1 && drawingRegionIndex !== null) {
-                          return null;
-                        }
-                        return <RegionRenderer key={encounterRegion.id} encounterRegion={encounterRegion} />;
-                      })}
-                    </Group>
-                  )}
+              {/* Regions - render first (bottom of GameWorld) */}
+              {scopeVisibility.regions && placedRegions && placedRegions.length > 0 && (
+                <Group name={GroupName.Structure}>
+                  {placedRegions.map((encounterRegion) => {
+                    if (encounterRegion.index === -1 && drawingRegionIndex !== null) {
+                      return null;
+                    }
+                    return <RegionRenderer key={encounterRegion.id} encounterRegion={encounterRegion} />;
+                  })}
+                </Group>
+              )}
 
-                  {/* Sources - render second */}
-                  {encounter && placedSources && placedSources.length > 0 && (
-                    <Group name={GroupName.Structure}>
-                      {placedSources.map((encounterSource) => (
-                        <SourceRenderer
-                          key={encounterSource.id}
-                          encounterSource={encounterSource}
-                          walls={encounter.walls || []}
+              {/* Sources - render second */}
+              {scopeVisibility.lightSources && encounter && placedSources && placedSources.length > 0 && (
+                <Group name={GroupName.Structure}>
+                  {placedSources.map((encounterSource) => (
+                    <SourceRenderer
+                      key={encounterSource.id}
+                      encounterSource={encounterSource}
+                      walls={encounter.walls || []}
+                      gridConfig={gridConfig}
+                    />
+                  ))}
+                </Group>
+              )}
+
+              {/* Walls - render third (top of structures) */}
+              {scopeVisibility.walls && encounter && placedWalls && (
+                <Group name={GroupName.Structure}>
+                  {placedWalls.map((encounterWall) => {
+                    const isInTransaction =
+                      wallTransaction.transaction.isActive &&
+                      wallTransaction
+                        .getActiveSegments()
+                        .some((s) => s.wallIndex === encounterWall.index || s.tempId === encounterWall.index);
+                    const shouldRender = !isInTransaction && !(drawingWallIndex === encounterWall.index);
+
+                    return (
+                      <React.Fragment key={encounterWall.id}>
+                        {shouldRender && (
+                          <WallRenderer
+                            encounterWall={encounterWall}
+                            onContextMenu={contextMenus.wallContextMenu.handleOpen}
+                          />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+
+                  {isEditingVertices &&
+                    wallTransaction.transaction.isActive &&
+                    wallTransaction
+                      .getActiveSegments()
+                      .map((segment) => (
+                        <WallTransformer
+                          key={`transformer-${segment.tempId}`}
+                          poles={segment.poles}
+                          isClosed={segment.isClosed}
+                          onPolesChange={(newPoles, newIsClosed) =>
+                            handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
+                          }
                           gridConfig={gridConfig}
+                          snapEnabled={gridConfig.snap}
+                          onClearSelections={wallHandlers.handleFinishEditing}
+                          isAltPressed={keyboardState.isAltPressed}
+                          encounterId={encounterId}
+                          wallIndex={segment.wallIndex || segment.tempId}
+                          wall={undefined}
+                          onWallBreak={wallHandlers.handleWallBreak}
+                          enableBackgroundRect={false}
+                          wallTransaction={wallTransaction}
                         />
                       ))}
-                    </Group>
-                  )}
-
-                  {/* Walls - render third (top of structures) */}
-                  {encounter && placedWalls && (
-                    <Group name={GroupName.Structure}>
-                      {placedWalls.map((encounterWall) => {
-                        const isInTransaction =
-                          wallTransaction.transaction.isActive &&
-                          wallTransaction
-                            .getActiveSegments()
-                            .some((s) => s.wallIndex === encounterWall.index || s.tempId === encounterWall.index);
-                        const shouldRender = !isInTransaction && !(drawingWallIndex === encounterWall.index);
-
-                        return (
-                          <React.Fragment key={encounterWall.id}>
-                            {shouldRender && (
-                              <WallRenderer
-                                encounterWall={encounterWall}
-                                onContextMenu={contextMenus.wallContextMenu.handleOpen}
-                              />
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-
-                      {isEditingVertices &&
-                        wallTransaction.transaction.isActive &&
-                        wallTransaction
-                          .getActiveSegments()
-                          .map((segment) => (
-                            <WallTransformer
-                              key={`transformer-${segment.tempId}`}
-                              poles={segment.poles}
-                              isClosed={segment.isClosed}
-                              onPolesChange={(newPoles, newIsClosed) =>
-                                handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
-                              }
-                              gridConfig={gridConfig}
-                              snapEnabled={gridConfig.snap}
-                              onClearSelections={wallHandlers.handleFinishEditing}
-                              isAltPressed={keyboardState.isAltPressed}
-                              encounterId={encounterId}
-                              wallIndex={segment.wallIndex || segment.tempId}
-                              wall={undefined}
-                              onWallBreak={wallHandlers.handleWallBreak}
-                              enableBackgroundRect={false}
-                              wallTransaction={wallTransaction}
-                            />
-                          ))}
-                    </Group>
-                  )}
-
-                  {/* Region Transformer */}
-                  {encounter?.regions &&
-                    isEditingRegionVertices &&
-                    editingRegionIndex !== null &&
-                    regionTransaction.transaction.isActive &&
-                    regionTransaction.transaction.segment && (
-                      <Group name={GroupName.Structure}>
-                        <RegionTransformer
-                          encounterId={encounterId || ''}
-                          regionIndex={editingRegionIndex}
-                          segment={regionTransaction.transaction.segment}
-                          gridConfig={gridConfig}
-                          viewport={viewportControls.viewport}
-                          onVerticesChange={(newVertices: Point[]) =>
-                            handleRegionVerticesChange(editingRegionIndex, newVertices)
-                          }
-                          onClearSelections={regionHandlers.handleFinishEditingRegion}
-                          onFinish={regionHandlers.handleFinishEditingRegion}
-                          onCancel={regionHandlers.handleCancelEditingRegion}
-                          onLocalAction={(action: unknown) => regionTransaction.pushLocalAction(action)}
-                          {...(regionTransaction.transaction.segment.color && {
-                            color: regionTransaction.transaction.segment.color,
-                          })}
-                        />
-                      </Group>
-                    )}
-                </>
+                </Group>
               )}
+
+              {/* Region Transformer */}
+              {scopeVisibility.regions &&
+                encounter?.regions &&
+                isEditingRegionVertices &&
+                editingRegionIndex !== null &&
+                regionTransaction.transaction.isActive &&
+                regionTransaction.transaction.segment && (
+                  <Group name={GroupName.Structure}>
+                    <RegionTransformer
+                      encounterId={encounterId || ''}
+                      regionIndex={editingRegionIndex}
+                      segment={regionTransaction.transaction.segment}
+                      gridConfig={gridConfig}
+                      viewport={viewportControls.viewport}
+                      onVerticesChange={(newVertices: Point[]) =>
+                        handleRegionVerticesChange(editingRegionIndex, newVertices)
+                      }
+                      onClearSelections={regionHandlers.handleFinishEditingRegion}
+                      onFinish={regionHandlers.handleFinishEditingRegion}
+                      onCancel={regionHandlers.handleCancelEditingRegion}
+                      onLocalAction={(action: unknown) => regionTransaction.pushLocalAction(action)}
+                      {...(regionTransaction.transaction.segment.color && {
+                        color: regionTransaction.transaction.segment.color,
+                      })}
+                    />
+                  </Group>
+                )}
             </Layer>
 
             {/* Layer 5: Assets (tokens/objects/creatures) */}
-            {encounter && (layerVisibility.objects || layerVisibility.creatures) && (
+            {encounter && (
               <TokenPlacement
                 placedAssets={assetManagement.placedAssets.filter((asset) => {
-                  if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
+                  if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
                     return false;
                   }
-                  if (asset.asset.kind === AssetKind.Creature && !layerVisibility.creatures) {
+                  if (asset.asset.kind === AssetKind.Creature && !scopeVisibility.creatures) {
                     return false;
                   }
                   return true;
@@ -1283,7 +1266,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             <Layer name={LayerName.Effects}>{/* Future: effects components */}</Layer>
 
             {/* Layer 4: Drawing Tools (in UIOverlay for topmost rendering) */}
-            {layerVisibility.overlays && encounter && encounterId && (
+            {encounter && encounterId && (
               <Layer name={LayerName.UIOverlay}>
                 {drawingMode === 'wall' && drawingWallIndex !== null && (
                   <WallDrawingTool
@@ -1350,10 +1333,10 @@ const EncounterEditorPageInternal: React.FC = () => {
             {/* Layer 8: UI Overlay (transformer + selection) */}
             <TokenDragHandle
               placedAssets={assetManagement.placedAssets.filter((asset) => {
-                if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
+                if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
                   return false;
                 }
-                if (asset.asset.kind === AssetKind.Creature && !layerVisibility.creatures) {
+                if (asset.asset.kind === AssetKind.Creature && !scopeVisibility.creatures) {
                   return false;
                 }
                 return true;

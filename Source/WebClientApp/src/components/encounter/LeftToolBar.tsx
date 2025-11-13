@@ -1,7 +1,7 @@
 import {
+  Cloud as FogOfWarIcon,
   Pets as CreaturesIcon,
   AutoAwesome as EffectsIcon,
-  VisibilityOff as FogOfWarIcon,
   type GridOn as GridIcon,
   Lock as LockIcon,
   LockOpen as LockOpenIcon,

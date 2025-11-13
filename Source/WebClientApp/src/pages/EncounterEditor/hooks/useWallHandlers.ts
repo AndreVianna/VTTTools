@@ -432,20 +432,6 @@ export const useWallHandlers = ({
     if (!encounterId || !encounter) return;
     if (drawingMode !== 'wall' || drawingWallIndex === null) return;
 
-    const activeSegments = wallTransaction.getActiveSegments();
-    console.log(
-      '[useWallHandlers.handleWallPlacementFinish] Active segments before commit:',
-      activeSegments.map((s) => ({
-        tempId: s.tempId,
-        wallIndex: s.wallIndex,
-        name: s.name,
-        material: s.material,
-        color: s.color,
-        poleCount: s.poles.length,
-        isClosed: s.isClosed,
-      })),
-    );
-
     const result = await wallTransaction.commitTransaction(encounterId, {
       addEncounterWall,
       updateEncounterWall,

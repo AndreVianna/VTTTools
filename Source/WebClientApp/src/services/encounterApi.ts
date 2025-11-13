@@ -335,15 +335,6 @@ export const encounterApi = createApi({
       }
     >({
       query: ({ encounterId, ...body }) => {
-        console.log('[encounterApi.addEncounterWall] Request:', {
-          encounterId,
-          name: body.name,
-          material: body.material,
-          color: body.color,
-          visibility: body.visibility,
-          isClosed: body.isClosed,
-          poleCount: body.poles?.length,
-        });
         return {
           url: `/${encounterId}/walls`,
           method: 'POST',
@@ -352,13 +343,7 @@ export const encounterApi = createApi({
       },
       onQueryStarted: async (_arg, { queryFulfilled }) => {
         try {
-          const { data } = await queryFulfilled;
-          console.log('[encounterApi.addEncounterWall] Response:', {
-            index: data.index,
-            name: data.name,
-            material: data.material,
-            color: data.color,
-          });
+          await queryFulfilled;
         } catch (error) {
           console.error('[encounterApi.addEncounterWall] Error:', error);
         }

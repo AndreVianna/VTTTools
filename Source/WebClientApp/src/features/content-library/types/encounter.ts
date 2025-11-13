@@ -1,4 +1,4 @@
-import { LabelPosition, LabelVisibility, type MediaResource, type PlacedAsset } from '@/types/domain';
+import { type MediaResource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface Point {
@@ -85,75 +85,3 @@ export const getDefaultStage = (): StageConfig => ({
   zoomLevel: 1,
   panning: { x: 0, y: 0 },
 });
-
-export const mapEncounterAssetToPlaced = async (
-  encounterAsset: EncounterAssetData,
-  getAsset: (id: string) => Promise<import('@/types/domain').Asset>,
-  gridConfig: GridConfig,
-): Promise<PlacedAsset> => {
-  const asset = await getAsset(encounterAsset.assetId);
-  if (!asset) {
-    throw new Error(`Asset ${encounterAsset.assetId} not found`);
-  }
-
-  const cellWidth = gridConfig.cellSize.width;
-  const cellHeight = gridConfig.cellSize.height;
-
-  return {
-    id: `placed-${encounterAsset.index}`,
-    assetId: encounterAsset.assetId,
-    asset,
-    position: {
-      x: encounterAsset.position.x * cellWidth,
-      y: encounterAsset.position.y * cellHeight,
-    },
-    size: {
-      width: encounterAsset.size.width * cellWidth,
-      height: encounterAsset.size.height * cellHeight,
-    },
-    rotation: encounterAsset.rotation,
-    layer: 'assets',
-    index: encounterAsset.index,
-    number: encounterAsset.number,
-    name: encounterAsset.name || asset.name,
-    visible: encounterAsset.isVisible,
-    locked: encounterAsset.isLocked,
-    labelVisibility: LabelVisibility.Always,
-    labelPosition: LabelPosition.Bottom,
-  };
-};
-
-export const mapPlacedToEncounterAsset = (
-  placedAsset: PlacedAsset,
-  index: number,
-  gridConfig: GridConfig,
-): EncounterAssetData => {
-  const cellWidth = gridConfig.cellSize.width;
-  const cellHeight = gridConfig.cellSize.height;
-
-  const defaultToken = placedAsset.asset.tokens?.find((t) => t.isDefault);
-  const resourceId = defaultToken?.token.id || placedAsset.asset.tokens?.[0]?.token.id || '';
-
-  return {
-    assetId: placedAsset.assetId,
-    index,
-    number: index + 1,
-    name: '',
-    description: null,
-    resourceId,
-    size: {
-      width: Math.round(placedAsset.size.width / cellWidth),
-      height: Math.round(placedAsset.size.height / cellHeight),
-    },
-    position: {
-      x: Math.round(placedAsset.position.x / cellWidth),
-      y: Math.round(placedAsset.position.y / cellHeight),
-    },
-    rotation: placedAsset.rotation,
-    frame: null,
-    elevation: 0,
-    isLocked: placedAsset.locked,
-    isVisible: placedAsset.visible,
-    controlledBy: null,
-  };
-};

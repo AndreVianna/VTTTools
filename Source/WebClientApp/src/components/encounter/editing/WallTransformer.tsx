@@ -1,4 +1,5 @@
 import { useTheme } from '@mui/material';
+import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Line, Rect } from 'react-konva';
 import type { useWallTransaction } from '@/hooks/useWallTransaction';

@@ -376,10 +376,19 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       // Validate placement for visual feedback
       const objectProperties =
         draggedAsset.kind === 'Object'
-          ? { isMovable: (draggedAsset as ObjectAsset).isMovable, isOpaque: (draggedAsset as ObjectAsset).isOpaque }
+          ? {
+              size: (draggedAsset as ObjectAsset).size,
+              isMovable: (draggedAsset as ObjectAsset).isMovable,
+              isOpaque: (draggedAsset as ObjectAsset).isOpaque,
+            }
           : undefined;
       const creatureProperties =
-        draggedAsset.kind === 'Creature' ? (draggedAsset as CreatureAsset).category : undefined;
+        draggedAsset.kind === 'Creature'
+          ? {
+              size: (draggedAsset as CreatureAsset).size,
+              category: (draggedAsset as CreatureAsset).category,
+            }
+          : undefined;
 
       const behavior = getPlacementBehavior(draggedAsset.kind, objectProperties, creatureProperties);
 
@@ -395,24 +404,48 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         position,
         size,
         behavior,
-        placedAssets.map((a) => {
-          const objectData =
-            a.asset.kind === 'Object' && 'size' in a.asset && 'isMovable' in a.asset && 'isOpaque' in a.asset
-              ? { size: a.asset.size, isMovable: a.asset.isMovable, isOpaque: a.asset.isOpaque }
-              : undefined;
-          const creatureData =
-            a.asset.kind === 'Creature' && 'size' in a.asset && 'category' in a.asset
-              ? { size: a.asset.size, category: a.asset.category }
-              : undefined;
+        placedAssets
+          .filter((a) => {
+            return (
+              a.position &&
+              typeof a.position.x === 'number' &&
+              typeof a.position.y === 'number' &&
+              a.size &&
+              typeof a.size.width === 'number' &&
+              typeof a.size.height === 'number' &&
+              a.size.width > 0 &&
+              a.size.height > 0 &&
+              Number.isFinite(a.position.x) &&
+              Number.isFinite(a.position.y) &&
+              Number.isFinite(a.size.width) &&
+              Number.isFinite(a.size.height)
+            );
+          })
+          .map((a) => {
+            const objectData =
+              a.asset.kind === 'Object'
+                ? {
+                    size: (a.asset as ObjectAsset).size,
+                    isMovable: (a.asset as ObjectAsset).isMovable,
+                    isOpaque: (a.asset as ObjectAsset).isOpaque,
+                  }
+                : undefined;
+            const creatureData =
+              a.asset.kind === 'Creature'
+                ? {
+                    size: (a.asset as CreatureAsset).size,
+                    category: (a.asset as CreatureAsset).category,
+                  }
+                : undefined;
 
-          return {
-            x: a.position.x,
-            y: a.position.y,
-            width: a.size.width,
-            height: a.size.height,
-            allowOverlap: getPlacementBehavior(a.asset.kind, objectData, creatureData).allowOverlap,
-          };
-        }),
+            return {
+              x: a.position.x,
+              y: a.position.y,
+              width: a.size.width,
+              height: a.size.height,
+              allowOverlap: getPlacementBehavior(a.asset.kind, objectData, creatureData).allowOverlap,
+            };
+          }),
         gridConfig,
         isShiftPressed,
       );
@@ -437,6 +470,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       }
 
       if (!isValidPlacement) {
+        return;
+      }
+
+      if (!cursorPosition) {
         return;
       }
 
@@ -486,6 +523,11 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const image = imageCache.get(placedAsset.assetId);
         if (!image) return null;
 
+        // Calculate size from asset's NamedSize (in grid cells) multiplied by cell size
+        const assetCellSize = getAssetSize(placedAsset.asset);
+        const pixelWidth = assetCellSize.width * gridConfig.cellSize.width;
+        const pixelHeight = assetCellSize.height * gridConfig.cellSize.height;
+
         const isCreature = placedAsset.asset.kind === 'Creature';
 
         if (isCreature) {
@@ -506,10 +548,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 image={image}
                 x={placedAsset.position.x}
                 y={placedAsset.position.y}
-                offsetX={placedAsset.size.width / 2}
-                offsetY={placedAsset.size.height / 2}
-                width={placedAsset.size.width}
-                height={placedAsset.size.height}
+                offsetX={pixelWidth / 2}
+                offsetY={pixelHeight / 2}
+                width={pixelWidth}
+                height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
                 listening={true}
@@ -542,7 +584,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
           const labelHeight = labelInfo.displayHeight + LABEL_VERTICAL_PADDING;
 
-          const halfHeight = placedAsset.size.height / 2;
+          const halfHeight = pixelHeight / 2;
           let labelY: number;
 
           switch (effectivePosition) {
@@ -571,10 +613,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 image={image}
                 x={0}
                 y={0}
-                offsetX={placedAsset.size.width / 2}
-                offsetY={placedAsset.size.height / 2}
-                width={placedAsset.size.width}
-                height={placedAsset.size.height}
+                offsetX={pixelWidth / 2}
+                offsetY={pixelHeight / 2}
+                width={pixelWidth}
+                height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
                 listening={true}
@@ -652,10 +694,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 image={image}
                 x={0}
                 y={0}
-                offsetX={placedAsset.size.width / 2}
-                offsetY={placedAsset.size.height / 2}
-                width={placedAsset.size.width}
-                height={placedAsset.size.height}
+                offsetX={pixelWidth / 2}
+                offsetY={pixelHeight / 2}
+                width={pixelWidth}
+                height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
                 listening={true}
@@ -689,7 +731,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
         const labelHeight = labelInfo.displayHeight + LABEL_VERTICAL_PADDING;
 
-        const halfHeight = placedAsset.size.height / 2;
+        const halfHeight = pixelHeight / 2;
         let labelY: number;
 
         switch (effectivePosition) {
@@ -718,10 +760,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               image={image}
               x={0}
               y={0}
-              offsetX={placedAsset.size.width / 2}
-              offsetY={placedAsset.size.height / 2}
-              width={placedAsset.size.width}
-              height={placedAsset.size.height}
+              offsetX={pixelWidth / 2}
+              offsetY={pixelHeight / 2}
+              width={pixelWidth}
+              height={pixelHeight}
               rotation={placedAsset.rotation}
               draggable={false}
               listening={true}

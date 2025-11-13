@@ -180,9 +180,19 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const behaviors = selectedAssets.map((asset) => {
       const objectProperties =
         asset.asset.kind === 'Object'
-          ? { isMovable: (asset.asset as ObjectAsset).isMovable, isOpaque: (asset.asset as ObjectAsset).isOpaque }
+          ? {
+              size: (asset.asset as ObjectAsset).size,
+              isMovable: (asset.asset as ObjectAsset).isMovable,
+              isOpaque: (asset.asset as ObjectAsset).isOpaque,
+            }
           : undefined;
-      const creatureProperties = asset.asset.kind === 'Creature' ? (asset.asset as CreatureAsset).category : undefined;
+      const creatureProperties =
+        asset.asset.kind === 'Creature'
+          ? {
+              size: (asset.asset as CreatureAsset).size,
+              category: (asset.asset as CreatureAsset).category,
+            }
+          : undefined;
       return getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
     });
 
@@ -346,10 +356,19 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
         const objectProperties =
           asset.asset.kind === 'Object'
-            ? { isMovable: (asset.asset as ObjectAsset).isMovable, isOpaque: (asset.asset as ObjectAsset).isOpaque }
+            ? {
+                size: (asset.asset as ObjectAsset).size,
+                isMovable: (asset.asset as ObjectAsset).isMovable,
+                isOpaque: (asset.asset as ObjectAsset).isOpaque,
+              }
             : undefined;
         const creatureProperties =
-          asset.asset.kind === 'Creature' ? (asset.asset as CreatureAsset).category : undefined;
+          asset.asset.kind === 'Creature'
+            ? {
+                size: (asset.asset as CreatureAsset).size,
+                category: (asset.asset as CreatureAsset).category,
+              }
+            : undefined;
         const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
 
         // Check collision with each other asset
@@ -357,10 +376,19 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
           for (const other of otherAssets) {
             const otherObjectProperties =
               other.asset.kind === 'Object'
-                ? { isMovable: (other.asset as ObjectAsset).isMovable, isOpaque: (other.asset as ObjectAsset).isOpaque }
+                ? {
+                    size: (other.asset as ObjectAsset).size,
+                    isMovable: (other.asset as ObjectAsset).isMovable,
+                    isOpaque: (other.asset as ObjectAsset).isOpaque,
+                  }
                 : undefined;
             const otherCreatureProperties =
-              other.asset.kind === 'Creature' ? (other.asset as CreatureAsset).category : undefined;
+              other.asset.kind === 'Creature'
+                ? {
+                    size: (other.asset as CreatureAsset).size,
+                    category: (other.asset as CreatureAsset).category,
+                  }
+                : undefined;
             const otherBehavior = getPlacementBehavior(
               other.asset.kind,
               otherObjectProperties,
@@ -662,12 +690,18 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const objectProperties =
           placedAsset.asset.kind === 'Object'
             ? {
+                size: (placedAsset.asset as ObjectAsset).size,
                 isMovable: (placedAsset.asset as ObjectAsset).isMovable,
                 isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
               }
             : undefined;
         const creatureProperties =
-          placedAsset.asset.kind === 'Creature' ? (placedAsset.asset as CreatureAsset).category : undefined;
+          placedAsset.asset.kind === 'Creature'
+            ? {
+                size: (placedAsset.asset as CreatureAsset).size,
+                category: (placedAsset.asset as CreatureAsset).category,
+              }
+            : undefined;
         const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, creatureProperties);
 
         const isDraggable =
