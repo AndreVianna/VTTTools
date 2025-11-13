@@ -5,6 +5,7 @@ namespace VttTools.Data.Library.Entities;
 
 public class EncounterAsset {
     public Guid EncounterId { get; set; }
+    public Encounter Encounter { get; set; } = null!;
     public uint Index { get; set; }
     public Guid AssetId { get; set; }
     public Asset Asset { get; set; } = null!;

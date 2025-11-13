@@ -9,6 +9,7 @@ using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
+using VttTools.Data.Helpers;
 
 namespace VttTools.Data.Library;
 
@@ -291,10 +292,10 @@ internal static class Mapper {
                 Sound = entity.Sound?.ToModel(),
             },
             Grid = entity.Grid,
-            Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel()!)],
-            Walls = [.. entity.Walls.Select(sb => sb.ToModel()!)],
-            Regions = [.. entity.Regions.Select(sr => sr.ToModel()!)],
-            Sources = [.. entity.Sources.Select(ss => ss.ToModel()!)],
+            Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel(entity.Grid)!)],
+            Walls = [.. entity.Walls.Select(sb => sb.ToModel(entity.Grid)!)],
+            Regions = [.. entity.Regions.Select(sr => sr.ToModel(entity.Grid)!)],
+            Sources = [.. entity.Sources.Select(ss => ss.ToModel(entity.Grid)!)],
             Effects = [.. entity.EncounterEffects.Select(se => se.ToModel()!)],
         };
 
@@ -313,10 +314,10 @@ internal static class Mapper {
             Elevation = model.Stage.Elevation,
             SoundId = model.Stage.Sound?.Id,
             Grid = model.Grid,
-            EncounterAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
-            Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id)) ?? [],
-            Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id)) ?? [],
-            Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id)) ?? [],
+            EncounterAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id, model.Grid)) ?? [],
+            Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id, model.Grid)) ?? [],
+            Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id, model.Grid)) ?? [],
+            Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
             EncounterEffects = model.Effects?.ConvertAll(se => ToEntity(se, model.Id)) ?? [],
         };
 
@@ -343,10 +344,10 @@ internal static class Mapper {
         foreach (var modelAsset in model.Assets) {
             var existingAsset = entity.EncounterAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
             if (existingAsset != null) {
-                UpdateFrom(existingAsset, entity.Id, modelAsset);
+                UpdateFrom(existingAsset, entity.Id, modelAsset, model.Grid);
             }
             else {
-                entity.EncounterAssets.Add(ToEntity(modelAsset, entity.Id));
+                entity.EncounterAssets.Add(ToEntity(modelAsset, entity.Id, model.Grid));
             }
         }
 
@@ -359,10 +360,10 @@ internal static class Mapper {
         foreach (var modelWall in model.Walls) {
             var existingWall = entity.Walls.FirstOrDefault(ew => ew.Index == modelWall.Index);
             if (existingWall != null) {
-                UpdateFrom(existingWall, entity.Id, modelWall);
+                UpdateFrom(existingWall, entity.Id, modelWall, model.Grid);
             }
             else {
-                entity.Walls.Add(ToEntity(modelWall, entity.Id));
+                entity.Walls.Add(ToEntity(modelWall, entity.Id, model.Grid));
             }
         }
 
@@ -375,10 +376,10 @@ internal static class Mapper {
         foreach (var modelRegion in model.Regions) {
             var existingRegion = entity.Regions.FirstOrDefault(er => er.Index == modelRegion.Index);
             if (existingRegion != null) {
-                UpdateFrom(existingRegion, entity.Id, modelRegion);
+                UpdateFrom(existingRegion, entity.Id, modelRegion, model.Grid);
             }
             else {
-                entity.Regions.Add(ToEntity(modelRegion, entity.Id));
+                entity.Regions.Add(ToEntity(modelRegion, entity.Id, model.Grid));
             }
         }
 
@@ -391,10 +392,10 @@ internal static class Mapper {
         foreach (var modelSource in model.Sources) {
             var existingSource = entity.Sources.FirstOrDefault(es => es.Index == modelSource.Index);
             if (existingSource != null) {
-                UpdateFrom(existingSource, entity.Id, modelSource);
+                UpdateFrom(existingSource, entity.Id, modelSource, model.Grid);
             }
             else {
-                entity.Sources.Add(ToEntity(modelSource, entity.Id));
+                entity.Sources.Add(ToEntity(modelSource, entity.Id, model.Grid));
             }
         }
 
@@ -418,7 +419,7 @@ internal static class Mapper {
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterAsset? ToModel(this EncounterAssetEntity? entity)
+    internal static EncounterAsset? ToModel(this EncounterAssetEntity? entity, Grid grid)
         => entity == null ? null : new() {
             AssetId = entity.AssetId,
             Index = entity.Index,
@@ -428,7 +429,7 @@ internal static class Mapper {
             Token = entity.Token?.ToModel(),
             Portrait = entity.Portrait?.ToModel(),
             Size = entity.Size,
-            Position = entity.Position,
+            Position = GridConverter.PositionToPixel(entity.Position, grid),
             Elevation = entity.Elevation,
             Rotation = entity.Rotation,
             Frame = entity.Frame,
@@ -436,7 +437,7 @@ internal static class Mapper {
             ControlledBy = entity.ControlledBy,
         };
 
-    internal static EncounterAssetEntity ToEntity(this EncounterAsset model, Guid encounterId)
+    internal static EncounterAssetEntity ToEntity(this EncounterAsset model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             AssetId = model.AssetId,
@@ -448,14 +449,14 @@ internal static class Mapper {
             TokenId = model.Token?.Id,
             Frame = model.Frame,
             Size = model.Size,
-            Position = model.Position,
+            Position = GridConverter.PositionToGrid(model.Position, grid),
             Elevation = model.Elevation,
             Rotation = model.Rotation,
             IsLocked = model.IsLocked,
             ControlledBy = model.ControlledBy,
         };
 
-    internal static EncounterAssetEntity UpdateFrom(this EncounterAssetEntity entity, Guid encounterId, EncounterAsset model) {
+    internal static EncounterAssetEntity UpdateFrom(this EncounterAssetEntity entity, Guid encounterId, EncounterAsset model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.AssetId = model.AssetId;
         entity.Index = model.Index;
@@ -466,7 +467,7 @@ internal static class Mapper {
         entity.TokenId = model.Token?.Id;
         entity.Frame = model.Frame;
         entity.Size = model.Size;
-        entity.Position = model.Position;
+        entity.Position = GridConverter.PositionToGrid(model.Position, grid);
         entity.Elevation = model.Elevation;
         entity.Rotation = model.Rotation;
         entity.IsLocked = model.IsLocked;
@@ -486,34 +487,34 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterWall? ToModel(this EncounterWallEntity? entity)
+    internal static EncounterWall? ToModel(this EncounterWallEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
-            Poles = entity.Poles,
+            Poles = entity.Poles.Select(p => GridConverter.PoleToPixel(p, grid)).ToList(),
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
             Material = entity.Material,
             Color = entity.Color,
         };
 
-    internal static EncounterWallEntity ToEntity(this EncounterWall model, Guid encounterId)
+    internal static EncounterWallEntity ToEntity(this EncounterWall model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
-            Poles = [.. model.Poles],
+            Poles = model.Poles.Select(p => GridConverter.PoleToGrid(p, grid)).ToList(),
             Visibility = model.Visibility,
             IsClosed = model.IsClosed,
             Material = model.Material,
             Color = model.Color,
         };
 
-    internal static EncounterWallEntity UpdateFrom(this EncounterWallEntity entity, Guid encounterId, EncounterWall model) {
+    internal static EncounterWallEntity UpdateFrom(this EncounterWallEntity entity, Guid encounterId, EncounterWall model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
-        entity.Poles = [.. model.Poles];
+        entity.Poles = model.Poles.Select(p => GridConverter.PoleToGrid(p, grid)).ToList();
         entity.Visibility = model.Visibility;
         entity.IsClosed = model.IsClosed;
         entity.Material = model.Material;
@@ -533,35 +534,35 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterRegion? ToModel(this EncounterRegionEntity? entity)
+    internal static EncounterRegion? ToModel(this EncounterRegionEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
-            Vertices = entity.Vertices,
+            Vertices = entity.Vertices.Select(v => GridConverter.PointToPixel(v, grid)).ToList(),
             Value = entity.Value,
             Label = entity.Label,
             Color = entity.Color,
         };
 
-    internal static EncounterRegionEntity ToEntity(this EncounterRegion model, Guid encounterId)
+    internal static EncounterRegionEntity ToEntity(this EncounterRegion model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
-            Vertices = [.. model.Vertices],
+            Vertices = model.Vertices.Select(v => GridConverter.PointToGrid(v, grid)).ToList(),
             Value = model.Value,
             Label = model.Label,
             Color = model.Color,
         };
 
-    internal static EncounterRegionEntity UpdateFrom(this EncounterRegionEntity entity, Guid encounterId, EncounterRegion model) {
+    internal static EncounterRegionEntity UpdateFrom(this EncounterRegionEntity entity, Guid encounterId, EncounterRegion model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
-        entity.Vertices = [.. model.Vertices];
+        entity.Vertices = model.Vertices.Select(v => GridConverter.PointToGrid(v, grid)).ToList();
         entity.Value = model.Value;
         entity.Label = model.Label;
         entity.Color = model.Color;
@@ -584,12 +585,12 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterSource? ToModel(this EncounterSourceEntity? entity)
+    internal static EncounterSource? ToModel(this EncounterSourceEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
-            Position = entity.Position,
+            Position = GridConverter.PointToPixel(entity.Position, grid),
             IsDirectional = entity.IsDirectional,
             Direction = entity.Direction,
             Range = entity.Range,
@@ -599,13 +600,13 @@ internal static class Mapper {
             Color = entity.Color,
         };
 
-    internal static EncounterSourceEntity ToEntity(this EncounterSource model, Guid encounterId)
+    internal static EncounterSourceEntity ToEntity(this EncounterSource model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
-            Position = model.Position,
+            Position = GridConverter.PointToGrid(model.Position, grid),
             IsDirectional = model.IsDirectional,
             Direction = model.Direction,
             Range = model.Range,
@@ -615,12 +616,12 @@ internal static class Mapper {
             Color = model.Color,
         };
 
-    internal static EncounterSourceEntity UpdateFrom(this EncounterSourceEntity entity, Guid encounterId, EncounterSource model) {
+    internal static EncounterSourceEntity UpdateFrom(this EncounterSourceEntity entity, Guid encounterId, EncounterSource model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
-        entity.Position = model.Position;
+        entity.Position = GridConverter.PointToGrid(model.Position, grid);
         entity.IsDirectional = model.IsDirectional;
         entity.Direction = model.Direction;
         entity.Range = model.Range;

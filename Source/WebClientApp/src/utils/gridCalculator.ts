@@ -265,6 +265,52 @@ export const validateGrid = (grid: GridConfig): string[] => {
 };
 
 /**
+ * Convert pixel position to grid coordinates
+ * @param pixel Pixel position
+ * @param grid Grid configuration
+ * @returns Grid position (floating-point for sub-cell precision)
+ */
+export const positionToGrid = (pixel: Point, grid: GridConfig): Point => {
+  switch (grid.type) {
+    case GridType.Square:
+      return {
+        x: (pixel.x - grid.offset.left) / grid.cellSize.width,
+        y: (pixel.y - grid.offset.top) / grid.cellSize.height,
+      };
+
+    case GridType.NoGrid:
+    case GridType.HexH:
+    case GridType.HexV:
+    case GridType.Isometric:
+    default:
+      return pixel;
+  }
+};
+
+/**
+ * Convert grid coordinates to pixel position
+ * @param gridPos Grid position (floating-point)
+ * @param grid Grid configuration
+ * @returns Pixel position
+ */
+export const positionToPixel = (gridPos: Point, grid: GridConfig): Point => {
+  switch (grid.type) {
+    case GridType.Square:
+      return {
+        x: gridPos.x * grid.cellSize.width + grid.offset.left,
+        y: gridPos.y * grid.cellSize.height + grid.offset.top,
+      };
+
+    case GridType.NoGrid:
+    case GridType.HexH:
+    case GridType.HexV:
+    case GridType.Isometric:
+    default:
+      return gridPos;
+  }
+};
+
+/**
  * Get default grid configuration
  * @returns Default square grid configuration
  */

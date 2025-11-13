@@ -127,12 +127,14 @@
 **Tests**: 134 unit tests
 **Frontend**: 70% complete (ProfilePage, SecuritySettingsPage, 2FA components exist, 4-6h polish remaining)
 
-### Undocumented Quality Work (Nov 5-8, 2025)
+### Undocumented Quality Work (Nov 5-13, 2025)
 **TypeScript/ESLint Cleanup**: 16-20h (Fixed 112+ errors, achieved strict mode compliance)
 **Asset Panel Enhancements**: 8-12h (localStorage settings, editable properties, backend API wiring)
 **Asset Selection Fixes**: 12-16h (CTRL+click multiselect, 15+ bug fixes, coordinate conversion)
 **Asset Rotation System**: 12-16h (Complete rotation feature with visual handle, mouse-based interaction, backend persistence)
-**Total Undocumented**: 48-58 hours
+**Layer Visibility System**: 3-4h (9-layer visibility toggles with Show All/Hide All, Fog of War icon change)
+**Asset Rendering Bug Fix**: 2-3h (Fixed backend API contract mismatch for position/size, corrected grid-based size calculation)
+**Total Undocumented**: 53-65 hours
 
 ---
 

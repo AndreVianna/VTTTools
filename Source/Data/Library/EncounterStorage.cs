@@ -108,7 +108,7 @@ public class EncounterStorage(ApplicationDbContext context)
         var encounterAssetEntity = entity.EncounterAssets.FirstOrDefault(sa => sa.Index == encounterAsset.Index);
         if (encounterAssetEntity == null)
             return false;
-        encounterAssetEntity.UpdateFrom(id, encounterAsset);
+        encounterAssetEntity.UpdateFrom(id, encounterAsset, entity.Grid);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
@@ -129,12 +129,14 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(sb => sb.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(sb => sb.EncounterId == id && sb.Index == index, ct);
-        return entity.ToModel();
+        return entity == null ? null : entity.ToModel(entity.Encounter.Grid);
     }
 
     /// <inheritdoc />
     public async Task<bool> AddWallAsync(Guid id, EncounterWall encounterWall, CancellationToken ct = default) {
-        var entity = encounterWall.ToEntity(id);
+        var encounter = await context.Encounters.FindAsync([id], ct);
+        if (encounter == null) return false;
+        var entity = encounterWall.ToEntity(id, encounter.Grid);
         await context.Set<EncounterWallEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
@@ -143,10 +145,11 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> UpdateWallAsync(Guid id, EncounterWall encounterWall, CancellationToken ct = default) {
         var entity = await context.Set<EncounterWallEntity>()
+            .Include(w => w.Encounter)
             .FirstOrDefaultAsync(sb => sb.EncounterId == id && sb.Index == encounterWall.Index, ct);
         if (entity == null)
             return false;
-        entity.UpdateFrom(id, encounterWall);
+        entity.UpdateFrom(id, encounterWall, entity.Encounter.Grid);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
@@ -168,12 +171,14 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(sr => sr.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(sr => sr.EncounterId == id && sr.Index == index, ct);
-        return entity.ToModel();
+        return entity == null ? null : entity.ToModel(entity.Encounter.Grid);
     }
 
     /// <inheritdoc />
     public async Task<bool> AddRegionAsync(Guid id, EncounterRegion encounterRegion, CancellationToken ct = default) {
-        var entity = encounterRegion.ToEntity(id);
+        var encounter = await context.Encounters.FindAsync([id], ct);
+        if (encounter == null) return false;
+        var entity = encounterRegion.ToEntity(id, encounter.Grid);
         await context.Set<EncounterRegionEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
@@ -182,10 +187,11 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> UpdateRegionAsync(Guid id, EncounterRegion encounterRegion, CancellationToken ct = default) {
         var entity = await context.Set<EncounterRegionEntity>()
+            .Include(r => r.Encounter)
             .FirstOrDefaultAsync(sr => sr.EncounterId == id && sr.Index == encounterRegion.Index, ct);
         if (entity == null)
             return false;
-        entity.UpdateFrom(id, encounterRegion);
+        entity.UpdateFrom(id, encounterRegion, entity.Encounter.Grid);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
@@ -207,12 +213,14 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(ss => ss.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == index, ct);
-        return entity.ToModel();
+        return entity == null ? null : entity.ToModel(entity.Encounter.Grid);
     }
 
     /// <inheritdoc />
     public async Task<bool> AddSourceAsync(Guid id, EncounterSource encounterSource, CancellationToken ct = default) {
-        var entity = encounterSource.ToEntity(id);
+        var encounter = await context.Encounters.FindAsync([id], ct);
+        if (encounter == null) return false;
+        var entity = encounterSource.ToEntity(id, encounter.Grid);
         await context.Set<EncounterSourceEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
@@ -221,10 +229,11 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> UpdateSourceAsync(Guid id, EncounterSource encounterSource, CancellationToken ct = default) {
         var entity = await context.Set<EncounterSourceEntity>()
+            .Include(s => s.Encounter)
             .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == encounterSource.Index, ct);
         if (entity == null)
             return false;
-        entity.UpdateFrom(id, encounterSource);
+        entity.UpdateFrom(id, encounterSource, entity.Encounter.Grid);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
