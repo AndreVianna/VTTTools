@@ -80,13 +80,23 @@ export const EncounterRecoveryManager: React.FC<{
     isAutoSaving: false,
   }));
 
-  const [recoverySnapshots, setRecoverySnapshots] = useState<RecoverySnapshot[]>([]);
+  const [recoverySnapshots, setRecoverySnapshots] = useState<RecoverySnapshot[]>(() => {
+    try {
+      const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}${encounterId}`);
+      if (stored) {
+        const snapshots: RecoverySnapshot[] = JSON.parse(stored);
+        return snapshots.filter((s) => Date.now() - s.timestamp < 7 * 24 * 60 * 60 * 1000);
+      }
+    } catch (_error) {
+      console.warn('Failed to load recovery snapshots:', _error);
+    }
+    return [];
+  });
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const lastSaveDataRef = useRef<string>('');
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Update current time every 10 seconds for timestamp display
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
@@ -94,25 +104,6 @@ export const EncounterRecoveryManager: React.FC<{
 
     return () => clearInterval(interval);
   }, []);
-
-  const loadRecoverySnapshots = useCallback(() => {
-    try {
-      const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}${encounterId}`);
-      if (stored) {
-        const snapshots: RecoverySnapshot[] = JSON.parse(stored);
-        setRecoverySnapshots(snapshots.filter((s) => Date.now() - s.timestamp < 7 * 24 * 60 * 60 * 1000)); // Keep 7 days
-      }
-    } catch (_error) {
-      console.warn('Failed to load recovery snapshots:', _error);
-    }
-  }, [encounterId]);
-
-  // Load existing recovery snapshots on mount
-  useEffect(() => {
-    loadRecoverySnapshots();
-    // Run only once on mount - loadRecoverySnapshots is stable via useCallback
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadRecoverySnapshots]);
 
   const saveRecoverySnapshot = useCallback(
     (data: unknown, type: RecoverySnapshot['type']) => {
@@ -192,22 +183,21 @@ export const EncounterRecoveryManager: React.FC<{
     }
   }, [encounterData, onSave, autoSaveState.isAutoSaving, saveRecoverySnapshot, dispatch, encounterId, encounterName]);
 
-  // Auto-save effect
   useEffect(() => {
     if (!autoSaveState.isEnabled || !encounterData) return;
 
     const currentDataString = JSON.stringify(encounterData);
     if (currentDataString === lastSaveDataRef.current) return;
 
-    setAutoSaveState((prev) => ({ ...prev, pendingChanges: true }));
-
-    // Clear existing timeout
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Set new auto-save timeout
     autoSaveTimeoutRef.current = setTimeout(() => {
+      setAutoSaveState((prev) => {
+        if (prev.pendingChanges) return prev;
+        return { ...prev, pendingChanges: true };
+      });
       performAutoSave();
     }, autoSaveState.interval);
 
@@ -216,8 +206,6 @@ export const EncounterRecoveryManager: React.FC<{
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-    // performAutoSave is stable via useCallback and includes all necessary dependencies
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [encounterData, autoSaveState.isEnabled, autoSaveState.interval, performAutoSave]);
 
   const performManualSave = useCallback(async () => {

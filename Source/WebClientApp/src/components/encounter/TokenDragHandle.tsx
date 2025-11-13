@@ -621,6 +621,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const stage = stageRef.current;
     if (!stage) return;
 
+    const handlersToCleanup = attachedHandlersRef.current;
+
     // Wait for next frame to ensure Konva has rendered all nodes
     const frameId = requestAnimationFrame(() => {
       const currentAssetIds = new Set(placedAssets.map((a) => a.id));
@@ -679,6 +681,17 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
     return () => {
       cancelAnimationFrame(frameId);
+
+      handlersToCleanup.forEach((assetId) => {
+        const node = stage?.findOne(`#${assetId}`);
+        if (node) {
+          node.off('click');
+          node.off('dragstart');
+          node.off('dragmove');
+          node.off('dragend');
+        }
+      });
+      handlersToCleanup.clear();
     };
   }, [
     stageRef,
@@ -694,26 +707,47 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
   ]);
 
   // Helper to get actual node position (for selection borders during drag)
+  const [draggedAssetNodePositions, setDraggedAssetNodePositions] = useState<Map<string, { x: number; y: number }>>(
+    new Map(),
+  );
+
+  useEffect(() => {
+    if (!isDraggingAsset || !stageRef.current) {
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      const positions = new Map<string, { x: number; y: number }>();
+      selectedAssetIds.forEach((assetId) => {
+        const node = stageRef.current?.findOne(`#${assetId}`);
+        if (node) {
+          positions.set(assetId, node.position());
+        }
+      });
+      setDraggedAssetNodePositions(positions);
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      setDraggedAssetNodePositions(new Map());
+    };
+  }, [isDraggingAsset, stageRef, selectedAssetIds]);
+
   const getAssetRenderPosition = useCallback(
     (assetId: string) => {
       const asset = placedAssets.find((a) => a.id === assetId);
       if (!asset) return null;
 
-      // During drag, query node for live position updates
-      if (dragStartPosRef.current && stageRef.current) {
-        const node = stageRef.current.findOne(`#${assetId}`);
-        if (node) {
-          const nodePos = node.position();
-          return {
-            x: nodePos.x - asset.size.width / 2,
-            y: nodePos.y - asset.size.height / 2,
-            width: asset.size.width,
-            height: asset.size.height,
-          };
-        }
+      const draggedNodePos = draggedAssetNodePositions.get(assetId);
+      if (draggedNodePos) {
+        return {
+          x: draggedNodePos.x - asset.size.width / 2,
+          y: draggedNodePos.y - asset.size.height / 2,
+          width: asset.size.width,
+          height: asset.size.height,
+        };
       }
 
-      // Use stored position (renders immediately, same as rotation handle)
       return {
         x: asset.position.x - asset.size.width / 2,
         y: asset.position.y - asset.size.height / 2,
@@ -721,7 +755,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         height: asset.size.height,
       };
     },
-    [placedAssets, stageRef],
+    [placedAssets, draggedAssetNodePositions],
   );
 
   const selectedAssets = React.useMemo(() => {
@@ -730,8 +764,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
   return (
     <Layer name='ui-overlay' listening={true}>
-      {/* Selection borders - blue outline for each selected asset */}
-      {/* eslint-disable-next-line react-hooks/refs */}
       {selectedAssetIds.map((assetId) => {
         const renderPos = getAssetRenderPosition(assetId);
         if (!renderPos) return null;
@@ -759,7 +791,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const asset = selectedAssets[0];
         if (!asset) return null;
 
-        // eslint-disable-next-line react-hooks/refs
         const renderPos = getAssetRenderPosition(asset.id);
         if (!renderPos) return null;
 

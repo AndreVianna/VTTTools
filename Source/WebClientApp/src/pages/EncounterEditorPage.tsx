@@ -140,7 +140,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     if (encounterId) {
       refetch();
     }
-  }, [encounterId, refetch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [encounterId, refetch]);  
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [encounter, setEncounter] = useState<Encounter | null>(null);

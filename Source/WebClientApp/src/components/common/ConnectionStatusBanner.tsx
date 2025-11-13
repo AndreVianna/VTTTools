@@ -3,25 +3,34 @@
 import { Alert, AlertTitle, Slide, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 
 export const ConnectionStatusBanner: React.FC = () => {
   const { isOnline, lastSync } = useConnectionStatus();
   const [showBanner, setShowBanner] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const theme = useTheme();
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-
     if (!isOnline) {
-      timeout = setTimeout(() => setShowBanner(true), 2000);
+      timeoutRef.current = setTimeout(() => {
+        setShowBanner(true);
+      }, 2000);
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowBanner(false);
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setShowBanner(false);
+      }, 0);
     }
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [isOnline]);
 
   if (!showBanner) return null;

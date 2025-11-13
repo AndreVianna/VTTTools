@@ -119,12 +119,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
   const expanded = isPanelVisible && activePanel !== null;
 
-  useEffect(() => {
-    if (activePanel === null) {
-      setIsPanelVisible(false);
-    }
-  }, [activePanel]);
-
   const handlePanelClick = (panel: PanelType) => {
     const isSamePanel = activePanel === panel;
 

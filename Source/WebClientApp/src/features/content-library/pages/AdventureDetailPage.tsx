@@ -67,34 +67,40 @@ export function AdventureDetailPage() {
   const [cloneEncounter] = useCloneEncounterMutation();
   const [deleteEncounter, { isLoading: isDeleting }] = useDeleteEncounterMutation();
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [style, setStyle] = useState<AdventureStyle>(AdventureStyle.Generic);
-  const [isOneShot, setIsOneShot] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [prevAdventureId, setPrevAdventureId] = useState(adventure?.id);
+  const [formState, setFormState] = useState({
+    adventureId: adventure?.id,
+    name: adventure?.name ?? '',
+    description: adventure?.description ?? '',
+    style: adventure?.style ?? AdventureStyle.Generic,
+    isOneShot: adventure?.isOneShot ?? false,
+    isPublished: adventure?.isPublished ?? false,
+  });
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [encounterToDelete, setEncounterToDelete] = useState<{
     id: string;
     name: string;
   } | null>(null);
 
-  useEffect(() => {
-    if (adventure && !isInitialized) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setName(adventure.name);
-      setDescription(adventure.description);
-      setStyle(adventure.style ?? AdventureStyle.Generic);
-      setIsOneShot(adventure.isOneShot ?? false);
-      setIsPublished(adventure.isPublished);
-      setIsInitialized(true);
-    }
-  }, [adventure, isInitialized]);
-
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
+  if (adventure && adventure.id !== prevAdventureId) {
+    setPrevAdventureId(adventure.id);
+    setFormState({
+      adventureId: adventure.id,
+      name: adventure.name,
+      description: adventure.description,
+      style: adventure.style ?? AdventureStyle.Generic,
+      isOneShot: adventure.isOneShot ?? false,
+      isPublished: adventure.isPublished ?? false,
+    });
+  }
+
+  const { name, description, style, isOneShot, isPublished } = formState;
+
   const hasUnsavedChanges = useCallback(() => {
-    if (!adventure || !isInitialized) return false;
+    if (!adventure) return false;
     return (
       name !== adventure.name ||
       description !== adventure.description ||
@@ -102,7 +108,7 @@ export function AdventureDetailPage() {
       isOneShot !== adventure.isOneShot ||
       isPublished !== adventure.isPublished
     );
-  }, [adventure, isInitialized, name, description, style, isOneShot, isPublished]);
+  }, [adventure, name, description, style, isOneShot, isPublished]);
 
   const saveChanges = useCallback(
     async (
@@ -114,7 +120,7 @@ export function AdventureDetailPage() {
         isPublished: boolean;
       }>,
     ) => {
-      if (!adventureId || !adventure || !isInitialized) {
+      if (!adventureId || !adventure) {
         return;
       }
 
@@ -150,7 +156,7 @@ export function AdventureDetailPage() {
         setSaveStatus('error');
       }
     },
-    [adventureId, adventure, isInitialized, name, description, style, isOneShot, isPublished, updateAdventure],
+    [adventureId, adventure, name, description, style, isOneShot, isPublished, updateAdventure],
   );
 
   useEffect(() => {
@@ -423,7 +429,7 @@ export function AdventureDetailPage() {
               <TextField
                 id='input-adventure-name'
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
                 onBlur={() => saveChanges()}
                 variant='standard'
                 fullWidth
@@ -508,7 +514,7 @@ export function AdventureDetailPage() {
                     label='Style'
                     onChange={(e) => {
                       const newStyle = e.target.value as AdventureStyle;
-                      setStyle(newStyle);
+                      setFormState((prev) => ({ ...prev, style: newStyle }));
                       saveChanges({ style: newStyle });
                     }}
                   >
@@ -527,7 +533,7 @@ export function AdventureDetailPage() {
                       checked={isOneShot}
                       onChange={(e) => {
                         const newValue = e.target.checked;
-                        setIsOneShot(newValue);
+                        setFormState((prev) => ({ ...prev, isOneShot: newValue }));
                         saveChanges({ isOneShot: newValue });
                       }}
                       size='small'
@@ -541,7 +547,7 @@ export function AdventureDetailPage() {
                       checked={isPublished}
                       onChange={(e) => {
                         const newValue = e.target.checked;
-                        setIsPublished(newValue);
+                        setFormState((prev) => ({ ...prev, isPublished: newValue }));
                         saveChanges({ isPublished: newValue });
                       }}
                       size='small'
@@ -555,7 +561,7 @@ export function AdventureDetailPage() {
               <TextField
                 id='input-adventure-description'
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
                 onBlur={() => saveChanges()}
                 multiline
                 rows={5}

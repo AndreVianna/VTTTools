@@ -7,6 +7,7 @@ interface UndoRedoState {
   future: Command[];
 }
 
+ 
 export interface UndoRedoContextValue {
   canUndo: boolean;
   canRedo: boolean;
@@ -172,7 +173,6 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({ children, ma
   return <UndoRedoContext.Provider value={value}>{children}</UndoRedoContext.Provider>;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useUndoRedoContext = (): UndoRedoContextValue => {
   const context = useContext(UndoRedoContext);
 

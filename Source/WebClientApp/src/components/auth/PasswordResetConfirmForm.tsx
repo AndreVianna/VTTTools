@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { handleValidationError } from '@/utils/errorHandling';
@@ -96,14 +96,17 @@ interface PasswordStrength {
 
 export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> = ({ onSwitchToLogin }) => {
   const [searchParams] = useSearchParams();
+  const email = searchParams.get('email') || '';
+  const token = searchParams.get('token') || '';
+  const isInvalidToken = !email || !token;
+
   const [formData, setFormData] = useState({
-    email: '',
-    token: '',
+    email,
+    token,
     newPassword: '',
     confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isInvalidToken, setIsInvalidToken] = useState(false);
 
   const { confirmResetPassword, isLoading, error } = useAuth();
 
@@ -113,21 +116,6 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     newPassword?: string;
     confirmPassword?: string;
   }>({});
-
-  // Extract email and token from URL params
-  useEffect(() => {
-    const email = searchParams.get('email') || '';
-    const token = searchParams.get('token') || '';
-
-    if (!email || !token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsInvalidToken(true);
-    } else {
-      setFormData((prev) => ({ ...prev, email, token }));
-    }
-    // Note: Intentionally syncing external state (URL params) with component state
-    // This is a legitimate use case for setState in useEffect
-  }, [searchParams]);
 
   // Password strength checker
   const getPasswordStrength = (password: string): PasswordStrength => {

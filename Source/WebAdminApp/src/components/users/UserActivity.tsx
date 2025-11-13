@@ -58,7 +58,6 @@ export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
 
     useEffect(() => {
         loadAuditLogs(true, 0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
     const handleLoadMore = () => {

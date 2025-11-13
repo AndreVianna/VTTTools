@@ -29,12 +29,8 @@ export function useAutoSave<T>({ data, originalData, onSave, delay = 3000, enabl
     const hasChanges = currentData !== serverData;
 
     if (!hasChanges) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSaveStatus('idle');
       return;
     }
-
-    setSaveStatus('idle');
 
     const timer = setTimeout(async () => {
       setSaveStatus('saving');

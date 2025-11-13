@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 // ErrorBoundary exports both the error boundary component and utility functions (withErrorBoundary HOC, ErrorBoundaryFallbackProps interface)
 // These utilities are tightly coupled to the error boundary behavior and logically belong in the same file
 

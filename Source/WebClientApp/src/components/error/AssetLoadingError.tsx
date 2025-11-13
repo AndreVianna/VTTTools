@@ -9,7 +9,7 @@ import {
 } from '@mui/icons-material';
 import { Alert, AlertTitle, Box, Button, Card, CardContent, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { handleAssetLoadingError, retryOperation } from '@/utils/errorHandling';
 
 /**
@@ -280,64 +280,78 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   height,
   ...imgProps
 }) => {
-  const [currentSrc, setCurrentSrc] = useState(src);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [prevSrc, setPrevSrc] = useState(src);
+  const [imageState, setImageState] = useState({
+    currentSrc: src,
+    isLoading: true,
+    hasError: false,
+    retryCount: 0,
+  });
 
-  useEffect(() => {
-    // Intentionally syncing external src prop with internal state
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentSrc(src);
-    setHasError(false);
-    setRetryCount(0);
-    setIsLoading(true);
-  }, [src]);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setImageState({
+      currentSrc: src,
+      isLoading: true,
+      hasError: false,
+      retryCount: 0,
+    });
+  }
 
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    setIsLoading(false);
-    setHasError(true);
+    setImageState((prev) => ({
+      ...prev,
+      isLoading: false,
+      hasError: true,
+    }));
 
     onError?.(event.nativeEvent);
 
     handleAssetLoadingError(new Error('Image failed to load'), {
       assetId,
       assetType: 'image',
-      assetUrl: currentSrc,
+      assetUrl: imageState.currentSrc,
       assetName: assetName || alt,
-      retryCount,
+      retryCount: imageState.retryCount,
     });
   };
 
   const handleImageLoad = () => {
-    setIsLoading(false);
-    setHasError(false);
+    setImageState((prev) => ({
+      ...prev,
+      isLoading: false,
+      hasError: false,
+    }));
     onLoad?.();
   };
 
   const handleRetry = async () => {
-    setRetryCount((prev) => prev + 1);
-    setIsLoading(true);
-    setHasError(false);
-
-    // Force reload by adding timestamp
-    const separator = currentSrc.includes('?') ? '&' : '?';
-    setCurrentSrc(`${currentSrc}${separator}t=${Date.now()}`);
+    const separator = imageState.currentSrc.includes('?') ? '&' : '?';
+    setImageState((prev) => ({
+      ...prev,
+      retryCount: prev.retryCount + 1,
+      isLoading: true,
+      hasError: false,
+      currentSrc: `${prev.currentSrc}${separator}t=${Date.now()}`,
+    }));
   };
 
   const handleFallback = () => {
-    if (fallbackSrc && currentSrc !== fallbackSrc) {
-      setCurrentSrc(fallbackSrc);
-      setHasError(false);
-      setIsLoading(true);
-      setRetryCount(0);
+    if (fallbackSrc && imageState.currentSrc !== fallbackSrc) {
+      setImageState((prev) => ({
+        ...prev,
+        currentSrc: fallbackSrc,
+        hasError: false,
+        isLoading: true,
+        retryCount: 0,
+      }));
     }
   };
 
   const errorProps: AssetErrorProps = {
     assetType: 'image',
     ...(assetId ? { assetId } : {}),
-    ...(currentSrc ? { assetUrl: currentSrc } : {}),
+    ...(imageState.currentSrc ? { assetUrl: imageState.currentSrc } : {}),
     ...(assetName || alt ? { assetName: assetName || alt } : {}),
     onRetry: handleRetry,
     ...(fallbackSrc ? { onFallback: handleFallback } : {}),
@@ -347,8 +361,8 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   };
 
   const assetSkeletonProps: AssetSkeletonProps = {
-    isLoading,
-    hasError,
+    isLoading: imageState.isLoading,
+    hasError: imageState.hasError,
     ...(width !== undefined ? { width } : {}),
     ...(height !== undefined ? { height } : {}),
     variant: 'rectangular',
@@ -359,7 +373,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
     <AssetSkeleton {...assetSkeletonProps}>
       <img
         {...imgProps}
-        src={currentSrc}
+        src={imageState.currentSrc}
         alt={alt}
         onError={handleImageError}
         onLoad={handleImageLoad}
@@ -367,7 +381,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
           width,
           height,
           objectFit: 'cover',
-          display: hasError ? 'none' : 'block',
+          display: imageState.hasError ? 'none' : 'block',
           ...imgProps.style,
         }}
       />
