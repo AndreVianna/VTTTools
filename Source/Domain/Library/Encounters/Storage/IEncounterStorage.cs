@@ -108,4 +108,24 @@ public interface IEncounterStorage {
     /// Deletes a encounter source.
     /// </summary>
     Task<bool> DeleteSourceAsync(Guid id, uint index, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a encounter opening by its ID.
+    /// </summary>
+    Task<EncounterOpening?> GetOpeningByIdAsync(Guid id, uint index, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a encounter opening to a encounter.
+    /// </summary>
+    Task<bool> AddOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a encounter opening.
+    /// </summary>
+    Task<bool> UpdateOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a encounter opening.
+    /// </summary>
+    Task<bool> DeleteOpeningAsync(Guid id, uint index, CancellationToken ct = default);
 }
