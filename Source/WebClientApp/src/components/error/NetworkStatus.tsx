@@ -52,33 +52,30 @@ const NetworkStatusComponent: React.FC = () => {
     networkStatusRef.current = networkStatus;
   }, [networkStatus]);
 
-  const checkConnectivity = useCallback(
-    async (): Promise<{
-      connected: boolean;
-      latency: number | null;
-    }> => {
-      try {
-        const start = performance.now();
-        const response = await fetch('/health', {
-          method: 'HEAD',
-          cache: 'no-cache',
-          signal: AbortSignal.timeout(5000),
-        });
-        const latency = performance.now() - start;
+  const checkConnectivity = useCallback(async (): Promise<{
+    connected: boolean;
+    latency: number | null;
+  }> => {
+    try {
+      const start = performance.now();
+      const response = await fetch('/health', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(5000),
+      });
+      const latency = performance.now() - start;
 
-        return {
-          connected: response.ok,
-          latency: Math.round(latency),
-        };
-      } catch (_error) {
-        return {
-          connected: false,
-          latency: null,
-        };
-      }
-    },
-    [],
-  );
+      return {
+        connected: response.ok,
+        latency: Math.round(latency),
+      };
+    } catch (_error) {
+      return {
+        connected: false,
+        latency: null,
+      };
+    }
+  }, []);
 
   const updateNetworkStatus = useCallback(
     async (isOnline: boolean, forceCheck = false) => {

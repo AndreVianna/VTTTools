@@ -140,7 +140,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     if (encounterId) {
       refetch();
     }
-  }, [encounterId, refetch]);  
+  }, [encounterId, refetch]);
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [encounter, setEncounter] = useState<Encounter | null>(null);

@@ -217,7 +217,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   }, [selectedPoles, selectedLines, poles, isClosed, onPolesChange, onWallBreak]);
 
   useEffect(() => {
-     
     setPreviewPoles(poles);
   }, [poles]);
 

@@ -7,7 +7,6 @@ interface UndoRedoState {
   future: Command[];
 }
 
- 
 export interface UndoRedoContextValue {
   canUndo: boolean;
   canRedo: boolean;
