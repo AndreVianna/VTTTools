@@ -6,8 +6,8 @@ import {
   FormControlLabel,
   InputLabel,
   Menu,
-  Link as MuiLink,
   MenuItem,
+  Link as MuiLink,
   Select,
   type SelectChangeEvent,
   Switch,
@@ -363,7 +363,12 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
 
             <FormControlLabel
               control={
-                <Switch id='switch-snap-grid' size='small' checked={gridConfig.snap ?? false} onChange={handleSnapChange} />
+                <Switch
+                  id='switch-snap-grid'
+                  size='small'
+                  checked={gridConfig.snap ?? false}
+                  onChange={handleSnapChange}
+                />
               }
               label={<Typography sx={compactStyles.toggleLabel}>Snap to Grid</Typography>}
               sx={{ margin: 0 }}

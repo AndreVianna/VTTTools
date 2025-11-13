@@ -2,7 +2,7 @@ import {
   Pets as CreaturesIcon,
   AutoAwesome as EffectsIcon,
   VisibilityOff as FogOfWarIcon,
-  GridOn as GridIcon,
+  type GridOn as GridIcon,
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   ViewInAr as ObjectsIcon,
@@ -178,15 +178,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [
-    expanded,
-    isPanelLocked,
-    activePanel,
-    selectedWallIndex,
-    onWallSelect,
-    selectedRegionIndex,
-    onRegionSelect,
-  ]);
+  }, [expanded, isPanelLocked, activePanel, selectedWallIndex, onWallSelect, selectedRegionIndex, onRegionSelect]);
 
   const panelConfigs: Array<{
     key: PanelType;
@@ -225,7 +217,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           overflowX: 'hidden',
         }}
       >
-        <Tooltip title={isPanelLocked ? 'Panel Locked - Click to unlock' : 'Panel Unlocked - Click to lock'} placement='right'>
+        <Tooltip
+          title={isPanelLocked ? 'Panel Locked - Click to unlock' : 'Panel Unlocked - Click to lock'}
+          placement='right'
+        >
           <IconButton
             size='small'
             onClick={() => setIsPanelLocked(!isPanelLocked)}

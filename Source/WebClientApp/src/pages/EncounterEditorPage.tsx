@@ -213,7 +213,13 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [activePanel, setActivePanel] = useState<string | null>(null);
 
   const drawingMode: DrawingMode =
-    activePanel === 'walls' ? 'wall' : activePanel === 'regions' ? 'region' : activePanel === 'lightSources' ? 'source' : null;
+    activePanel === 'walls'
+      ? 'wall'
+      : activePanel === 'regions'
+        ? 'region'
+        : activePanel === 'lightSources'
+          ? 'source'
+          : null;
 
   const handleLayerVisibilityToggle = useCallback((layer: LayerVisibilityType) => {
     setScopeVisibility((prev) => ({
