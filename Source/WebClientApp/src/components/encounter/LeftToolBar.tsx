@@ -1,6 +1,5 @@
 import {
   Pets as MonstersIcon,
-  AutoAwesome as EffectsIcon,
   Cloud as FogOfWarIcon,
   type GridOn as GridIcon,
   Lock as LockIcon,
@@ -30,7 +29,6 @@ export type PanelType =
   | 'objects'
   | 'monsters'
   | 'characters'
-  | 'effects'
   | 'sources'
   | 'fogOfWar';
 
@@ -201,13 +199,12 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     icon: typeof GridIcon;
     label: string;
   }> = [
-    { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
     { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
+    { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
     { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },
     { key: 'characters', icon: CharactersIcon, label: 'Characters' },
-    { key: 'effects', icon: EffectsIcon, label: 'Effects' },
     { key: 'sources', icon: SourcesIcon, label: 'Sources' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
   ];
@@ -396,12 +393,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
               {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
-          )}
-          {activePanel === 'effects' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Effects</Box>
-              <Box>Visual effects controls</Box>
-            </Box>
           )}
           {activePanel === 'sources' && (
             <SourcesPanel

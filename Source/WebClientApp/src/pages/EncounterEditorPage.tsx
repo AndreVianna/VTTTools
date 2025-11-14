@@ -220,8 +220,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     objects: true,
     monsters: true,
     characters: true,
-    effects: true,
-    lightSources: true,
+    sources: true,
     fogOfWar: true,
   });
 
@@ -255,8 +254,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       objects: true,
       monsters: true,
       characters: true,
-      effects: true,
-      lightSources: true,
+      sources: true,
       fogOfWar: true,
     });
     setGridConfig((prev) => ({
@@ -273,8 +271,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       objects: false,
       monsters: false,
       characters: false,
-      effects: false,
-      lightSources: false,
+      sources: false,
       fogOfWar: false,
     });
     setGridConfig((prev) => ({
@@ -1332,7 +1329,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               )}
 
               {/* Sources - render second */}
-              {scopeVisibility.lightSources && encounter && placedSources && placedSources.length > 0 && (
+              {scopeVisibility.sources && encounter && placedSources && placedSources.length > 0 && (
                 <Group name={GroupName.Structure}>
                   {placedSources.map((encounterSource) => (
                     <SourceRenderer
