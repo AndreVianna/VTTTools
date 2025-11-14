@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CreatureAsset, ObjectAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
+import type { MonsterAsset, ObjectAsset } from '@/types/domain';
+import { AssetKind, ResourceType } from '@/types/domain';
 import { mockApi } from './mockApi';
 
 describe('MockApiService', () => {
@@ -24,7 +24,7 @@ describe('MockApiService', () => {
 
       expect(firstAsset).not.toHaveProperty('resources');
       expect(firstAsset).not.toHaveProperty('objectProps');
-      expect(firstAsset).not.toHaveProperty('creatureProps');
+      expect(firstAsset).not.toHaveProperty('monsterProps');
     });
 
     it('should include assets with tokens', async () => {
@@ -86,17 +86,15 @@ describe('MockApiService', () => {
       });
     });
 
-    it('should include creature assets with CreatureData', async () => {
+    it('should include monster assets with MonsterData', async () => {
       const assets = await mockApi.mockGetAssets();
-      const creatures = assets.filter((a) => a.kind === AssetKind.Creature) as CreatureAsset[];
+      const monsters = assets.filter((a) => a.kind === AssetKind.Monster) as MonsterAsset[];
 
-      expect(creatures.length).toBeGreaterThan(0);
+      expect(monsters.length).toBeGreaterThan(0);
 
-      creatures.forEach((creature) => {
-        expect(creature).toHaveProperty('category');
-        expect(creature.category).toBeTypeOf('string');
-        expect([CreatureCategory.Character, CreatureCategory.Monster]).toContain(creature.category);
-        expect(creature.size).toBeDefined();
+      monsters.forEach((monster) => {
+        expect(monster.kind).toBe(AssetKind.Monster);
+        expect(monster.size).toBeDefined();
       });
     });
 

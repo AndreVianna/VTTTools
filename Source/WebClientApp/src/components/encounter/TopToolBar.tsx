@@ -1,12 +1,12 @@
 import {
   Clear as ClearIcon,
-  Pets as CreaturesIcon,
+  Pets as MonstersIcon,
   AutoAwesome as EffectsIcon,
   Cloud as FogOfWarIcon,
   GridOn as GridIcon,
   ViewInAr as ObjectsIcon,
   MeetingRoom as OpeningsIcon,
-  Person as PlayersIcon,
+  Person as CharactersIcon,
   Redo as RedoIcon,
   Layers as RegionsIcon,
   LightMode as SourcesIcon,
@@ -27,8 +27,8 @@ export type LayerVisibilityType =
   | 'walls'
   | 'openings'
   | 'objects'
-  | 'creatures'
-  | 'players'
+  | 'monsters'
+  | 'characters'
   | 'effects'
   | 'lightSources'
   | 'fogOfWar';
@@ -78,8 +78,8 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
     { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
-    { key: 'creatures', icon: CreaturesIcon, label: 'Creatures' },
-    { key: 'players', icon: PlayersIcon, label: 'Players' },
+    { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },
+    { key: 'characters', icon: CharactersIcon, label: 'Characters' },
     { key: 'effects', icon: EffectsIcon, label: 'Effects' },
     { key: 'lightSources', icon: SourcesIcon, label: 'Sources' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },

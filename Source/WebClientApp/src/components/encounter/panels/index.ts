@@ -1,7 +1,9 @@
 export type { BackgroundPanelProps } from './BackgroundPanel';
 export { BackgroundPanel } from './BackgroundPanel';
-export type { CreaturesPanelProps } from './CreaturesPanel';
-export { CreaturesPanel } from './CreaturesPanel';
+export type { MonstersPanelProps } from './MonstersPanel';
+export { MonstersPanel } from './MonstersPanel';
+export type { CharactersPanelProps } from './CharactersPanel';
+export { CharactersPanel } from './CharactersPanel';
 export type { GridPanelProps } from './GridPanel';
 export { GridPanel } from './GridPanel';
 export type { ObjectsPanelProps } from './ObjectsPanel';

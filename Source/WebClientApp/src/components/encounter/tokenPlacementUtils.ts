@@ -25,7 +25,7 @@ const measureTextWidth = (
   return ctx.measureText(text).width;
 };
 
-export const formatCreatureLabel = (
+export const formatMonsterLabel = (
   name: string,
   maxWidth: number,
 ): {

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { mockAssetToken, mockCreatureAsset, mockObjectAsset } from '@/test-utils/assetMocks';
+import { mockAssetToken, mockMonsterAsset, mockObjectAsset } from '@/test-utils/assetMocks';
 import type { Asset, EncounterAsset, PlacedAsset } from '@/types/domain';
-import { CreatureCategory, LabelPosition, LabelVisibility } from '@/types/domain';
+import { LabelPosition, LabelVisibility } from '@/types/domain';
 import { dehydratePlacedAssets, hydratePlacedAssets } from './encounterMappers';
 
-const mockCreatureAssetData: Asset = mockCreatureAsset({
+const mockMonsterAssetData: Asset = mockMonsterAsset({
   id: 'asset-1',
   ownerId: 'user-1',
   name: 'Goblin',
@@ -13,7 +13,6 @@ const mockCreatureAssetData: Asset = mockCreatureAsset({
   isPublic: false,
   tokens: [mockAssetToken({ isDefault: true })],
   size: { width: 1, height: 1, isSquare: true },
-  category: CreatureCategory.Monster,
   statBlockId: undefined,
   tokenStyle: undefined,
 });
@@ -50,7 +49,7 @@ const createMockEncounterAsset = (overrides: Partial<EncounterAsset>): Encounter
   elevation: 0,
   visible: true,
   locked: false,
-  asset: mockCreatureAssetData,
+  asset: mockMonsterAssetData,
   ...overrides,
 });
 
@@ -63,7 +62,7 @@ describe('hydratePlacedAssets', () => {
         number: 2,
       });
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAssetWithName], 'test-encounter-1', getAsset);
 
@@ -74,7 +73,7 @@ describe('hydratePlacedAssets', () => {
     it('falls back to asset name when encounterAsset name is undefined', async () => {
       const encounterAsset = createMockEncounterAsset({ name: '' });
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -87,7 +86,7 @@ describe('hydratePlacedAssets', () => {
         name: '',
       });
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAssetWithNullName], 'test-encounter-1', getAsset);
 
@@ -100,7 +99,7 @@ describe('hydratePlacedAssets', () => {
         name: '',
       });
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAssetWithEmptyName], 'test-encounter-1', getAsset);
 
@@ -108,7 +107,7 @@ describe('hydratePlacedAssets', () => {
       expect(result[0]?.name).toBe('Goblin');
     });
 
-    it('preserves numbered creature names', async () => {
+    it('preserves numbered monster names', async () => {
       const encounterAsset: EncounterAsset = {
         id: 'encounter-asset-1',
         encounterId: 'encounter-1',
@@ -127,7 +126,7 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
       const encounterAssetWithNumberedName = {
@@ -137,7 +136,7 @@ describe('hydratePlacedAssets', () => {
         number: 5,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAssetWithNumberedName], 'test-encounter-1', getAsset);
 
@@ -198,7 +197,7 @@ describe('hydratePlacedAssets', () => {
           elevation: 0,
           visible: true,
           locked: false,
-          asset: mockCreatureAssetData,
+          asset: mockMonsterAssetData,
           name: 'Goblin #1',
           index: 0,
           number: 1,
@@ -218,7 +217,7 @@ describe('hydratePlacedAssets', () => {
           elevation: 0,
           visible: true,
           locked: false,
-          asset: mockCreatureAssetData,
+          asset: mockMonsterAssetData,
           name: '',
           index: 1,
           number: 2,
@@ -246,7 +245,7 @@ describe('hydratePlacedAssets', () => {
       ];
 
       const getAsset = async (assetId: string) => {
-        return assetId === 'asset-1' ? mockCreatureAssetData : mockObjectAssetData;
+        return assetId === 'asset-1' ? mockMonsterAssetData : mockObjectAssetData;
       };
 
       const result = await hydratePlacedAssets(encounterAssets, 'test-encounter-1', getAsset);
@@ -278,10 +277,10 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -310,10 +309,10 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -325,7 +324,7 @@ describe('hydratePlacedAssets', () => {
   });
 
   describe('layer assignment', () => {
-    it('assigns Creatures layer for creature assets', async () => {
+    it('assigns Monsters layer for monster assets', async () => {
       const encounterAsset: EncounterAsset = {
         id: 'encounter-asset-1',
         encounterId: 'encounter-1',
@@ -344,15 +343,15 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
       expect(result).toHaveLength(1);
-      expect(result[0]?.layer).toBe('creatures');
+      expect(result[0]?.layer).toBe('monsters');
     });
 
     it('assigns Objects layer for non-opaque object assets', async () => {
@@ -406,10 +405,10 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -437,10 +436,10 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -467,10 +466,10 @@ describe('hydratePlacedAssets', () => {
         layer: 0,
         visible: true,
         locked: false,
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
       };
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -484,12 +483,12 @@ describe('hydratePlacedAssets', () => {
       localStorage.clear();
     });
 
-    it('uses backend values when explicitly set for creatures', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+    it('uses backend values when explicitly set for monsters', async () => {
+      localStorage.setItem('vtt-monsters-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-monsters-label-position', LabelPosition.Top);
       const encounterAsset = createMockEncounterAsset({});
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -497,13 +496,13 @@ describe('hydratePlacedAssets', () => {
       expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
     });
 
-    it('uses localStorage values when backend is Default for creatures', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.OnHover);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Middle);
+    it('uses localStorage values when backend is Default for monsters', async () => {
+      localStorage.setItem('vtt-monsters-label-visibility', LabelVisibility.OnHover);
+      localStorage.setItem('vtt-monsters-label-position', LabelPosition.Middle);
 
       const encounterAsset = createMockEncounterAsset({});
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -511,13 +510,13 @@ describe('hydratePlacedAssets', () => {
       expect(result[0]?.labelPosition).toBe(LabelPosition.Middle);
     });
 
-    it('uses localStorage values when backend values are missing for creatures', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+    it('uses localStorage values when backend values are missing for monsters', async () => {
+      localStorage.setItem('vtt-monsters-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-monsters-label-position', LabelPosition.Top);
 
       const encounterAsset = createMockEncounterAsset({});
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -525,13 +524,13 @@ describe('hydratePlacedAssets', () => {
       expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
     });
 
-    it('uses default values when both backend and localStorage are Default for creatures', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Default);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Default);
+    it('uses default values when both backend and localStorage are Default for monsters', async () => {
+      localStorage.setItem('vtt-monsters-label-visibility', LabelVisibility.Default);
+      localStorage.setItem('vtt-monsters-label-position', LabelPosition.Default);
 
       const encounterAsset = createMockEncounterAsset({});
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -539,10 +538,10 @@ describe('hydratePlacedAssets', () => {
       expect(result[0]?.labelPosition).toBe(LabelPosition.Bottom);
     });
 
-    it('uses creature default values when localStorage is empty', async () => {
+    it('uses monster default values when localStorage is empty', async () => {
       const encounterAsset = createMockEncounterAsset({});
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -594,13 +593,13 @@ describe('hydratePlacedAssets', () => {
       expect(result[0]?.labelPosition).toBe(LabelPosition.Bottom);
     });
 
-    it('applies different localStorage values for creatures vs objects', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Never);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Top);
+    it('applies different localStorage values for monsters vs objects', async () => {
+      localStorage.setItem('vtt-monsters-label-visibility', LabelVisibility.Never);
+      localStorage.setItem('vtt-monsters-label-position', LabelPosition.Top);
       localStorage.setItem('vtt-objects-label-visibility', LabelVisibility.Always);
       localStorage.setItem('vtt-objects-label-position', LabelPosition.Middle);
 
-      const creatureAsset = createMockEncounterAsset({
+      const monsterAsset = createMockEncounterAsset({
         assetId: 'asset-1',
       });
 
@@ -609,10 +608,10 @@ describe('hydratePlacedAssets', () => {
       });
 
       const getAsset = async (assetId: string) => {
-        return assetId === 'asset-1' ? mockCreatureAssetData : mockObjectAssetData;
+        return assetId === 'asset-1' ? mockMonsterAssetData : mockObjectAssetData;
       };
 
-      const result = await hydratePlacedAssets([creatureAsset, objectAsset], 'test-encounter-1', getAsset);
+      const result = await hydratePlacedAssets([monsterAsset, objectAsset], 'test-encounter-1', getAsset);
 
       expect(result[0]?.labelVisibility).toBe(LabelVisibility.Never);
       expect(result[0]?.labelPosition).toBe(LabelPosition.Top);
@@ -621,12 +620,12 @@ describe('hydratePlacedAssets', () => {
     });
 
     it('backend values take precedence over localStorage', async () => {
-      localStorage.setItem('vtt-creatures-label-visibility', LabelVisibility.Always);
-      localStorage.setItem('vtt-creatures-label-position', LabelPosition.Bottom);
+      localStorage.setItem('vtt-monsters-label-visibility', LabelVisibility.Always);
+      localStorage.setItem('vtt-monsters-label-position', LabelPosition.Bottom);
 
       const encounterAsset = createMockEncounterAsset({});
 
-      const getAsset = async () => mockCreatureAssetData;
+      const getAsset = async () => mockMonsterAssetData;
 
       const result = await hydratePlacedAssets([encounterAsset], 'test-encounter-1', getAsset);
 
@@ -656,7 +655,7 @@ describe('hydratePlacedAssets', () => {
           layer: 0,
           visible: true,
           locked: false,
-          asset: mockCreatureAssetData,
+          asset: mockMonsterAssetData,
         },
         {
           id: 'encounter-asset-2',
@@ -676,12 +675,12 @@ describe('hydratePlacedAssets', () => {
           layer: 0,
           visible: true,
           locked: false,
-          asset: mockCreatureAssetData,
+          asset: mockMonsterAssetData,
         },
       ];
 
       const getAsset = async (_assetId: string): Promise<Asset> => {
-        return mockCreatureAssetData;
+        return mockMonsterAssetData;
       };
 
       const result = await hydratePlacedAssets(encounterAssets, 'test-encounter-1', getAsset);
@@ -697,11 +696,11 @@ describe('dehydratePlacedAssets', () => {
     const placedAsset: PlacedAsset = {
       id: 'encounter-asset-1',
       assetId: 'asset-1',
-      asset: mockCreatureAssetData,
+      asset: mockMonsterAssetData,
       position: { x: 100, y: 150 },
       size: { width: 50, height: 75 },
       rotation: 45,
-      layer: 'creatures',
+      layer: 'monsters',
       index: 5,
       number: 3,
       name: 'Goblin #3',
@@ -732,7 +731,7 @@ describe('dehydratePlacedAssets', () => {
       elevation: 0,
       visible: true,
       locked: false,
-      asset: mockCreatureAssetData,
+      asset: mockMonsterAssetData,
     });
   });
 
@@ -741,11 +740,11 @@ describe('dehydratePlacedAssets', () => {
       {
         id: 'encounter-asset-1',
         assetId: 'asset-1',
-        asset: mockCreatureAssetData,
+        asset: mockMonsterAssetData,
         position: { x: 100, y: 100 },
         size: { width: 50, height: 50 },
         rotation: 0,
-        layer: 'creatures',
+        layer: 'monsters',
         index: 0,
         number: 1,
         name: 'Goblin #1',

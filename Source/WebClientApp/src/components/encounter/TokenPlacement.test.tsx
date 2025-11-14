@@ -11,13 +11,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupName } from '@/services/layerManager';
-import { mockAssetToken, mockCreatureAsset, mockMediaResource, mockObjectAsset } from '@/test-utils/assetMocks';
-import type { Asset, CreatureAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory, LabelPosition, LabelVisibility, Light, Weather } from '@/types/domain';
+import { mockAssetToken, mockCharacterAsset, mockMonsterAsset, mockMediaResource, mockObjectAsset } from '@/test-utils/assetMocks';
+import type { Asset, CharacterAsset, MonsterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility, Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { TokenPlacement } from './TokenPlacement';
-import { formatCreatureLabel } from './tokenPlacementUtils';
+import { formatMonsterLabel } from './tokenPlacementUtils';
 
 const mockGridConfig: GridConfig = {
   type: GridType.Square,
@@ -26,8 +26,8 @@ const mockGridConfig: GridConfig = {
   snap: true,
 };
 
-const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asset => {
-  const baseAsset = kind === AssetKind.Creature ? mockCreatureAsset({ id }) : mockObjectAsset({ id });
+const createMockAsset = (id: string, kind: AssetKind = AssetKind.Monster): Asset => {
+  const baseAsset = kind === AssetKind.Monster ? mockMonsterAsset({ id }) : mockObjectAsset({ id });
 
   return {
     ...baseAsset,
@@ -45,13 +45,12 @@ const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asse
   };
 };
 
-const createMockCreatureAsset = (id: string): CreatureAsset => {
-  const asset = createMockAsset(id, AssetKind.Creature) as CreatureAsset;
+const createMockCharacterAsset = (id: string): CharacterAsset => {
+  const asset = createMockAsset(id, AssetKind.Character) as CharacterAsset;
   return {
     ...asset,
-    kind: AssetKind.Creature,
+    kind: AssetKind.Character,
     statBlockId: undefined,
-    category: CreatureCategory.Character,
     tokenStyle: undefined,
   };
 };
@@ -252,7 +251,7 @@ describe('TokenPlacement', () => {
   });
 
   it('shows loading state for dragged asset', async () => {
-    const draggedAsset = createMockCreatureAsset('asset-1');
+    const draggedAsset = createMockCharacterAsset('asset-1');
 
     class MockImage {
       onload: (() => void) | null = null;
@@ -291,11 +290,11 @@ describe('TokenPlacement', () => {
   });
 
   it('assigns correct layer based on asset kind', () => {
-    const creatureAsset = createMockCreatureAsset('creature-1');
-    const creaturePlaced = createMockPlacedAsset('placed-1', 'creature-1');
-    creaturePlaced.asset = creatureAsset;
+    const monsterAsset = createMockCharacterAsset('monster-1');
+    const monsterPlaced = createMockPlacedAsset('placed-1', 'monster-1');
+    monsterPlaced.asset = monsterAsset;
 
-    expect(creaturePlaced.layer).toBe('agents');
+    expect(monsterPlaced.layer).toBe('agents');
 
     const objectPlaced = createMockPlacedAsset('placed-2', 'object-1');
     objectPlaced.layer = 'objects';
@@ -429,12 +428,12 @@ describe('TokenPlacement', () => {
     expect(mockOnAssetPlaced).not.toHaveBeenCalled();
   });
 
-  it('renders creature assets with floating label below icon', async () => {
-    const creatureAsset = createMockCreatureAsset('creature-1');
-    const placedAsset = createMockPlacedAsset('placed-1', 'creature-1');
-    placedAsset.asset = creatureAsset;
+  it('renders monster assets with floating label below icon', async () => {
+    const monsterAsset = createMockCharacterAsset('monster-1');
+    const placedAsset = createMockPlacedAsset('placed-1', 'monster-1');
+    placedAsset.asset = monsterAsset;
     placedAsset.name = 'Goblin #1';
-    placedAsset.layer = GroupName.Creatures;
+    placedAsset.layer = GroupName.Monsters;
 
     const { container } = render(
       <TokenPlacement
@@ -483,19 +482,19 @@ describe('TokenPlacement', () => {
     });
   });
 
-  it('renders multiple creatures with unique labels', async () => {
-    const creatureAsset1 = createMockCreatureAsset('creature-1');
-    const creatureAsset2 = createMockCreatureAsset('creature-2');
+  it('renders multiple monsters with unique labels', async () => {
+    const monsterAsset1 = createMockCharacterAsset('monster-1');
+    const monsterAsset2 = createMockCharacterAsset('monster-2');
 
-    const placedAsset1 = createMockPlacedAsset('placed-1', 'creature-1');
-    placedAsset1.asset = creatureAsset1;
+    const placedAsset1 = createMockPlacedAsset('placed-1', 'monster-1');
+    placedAsset1.asset = monsterAsset1;
     placedAsset1.name = 'Goblin #1';
-    placedAsset1.layer = GroupName.Creatures;
+    placedAsset1.layer = GroupName.Monsters;
 
-    const placedAsset2 = createMockPlacedAsset('placed-2', 'creature-2');
-    placedAsset2.asset = creatureAsset2;
+    const placedAsset2 = createMockPlacedAsset('placed-2', 'monster-2');
+    placedAsset2.asset = monsterAsset2;
     placedAsset2.name = 'Goblin #2';
-    placedAsset2.layer = GroupName.Creatures;
+    placedAsset2.layer = GroupName.Monsters;
     placedAsset2.position = { x: 200, y: 200 };
 
     const { container } = render(
@@ -521,13 +520,13 @@ describe('TokenPlacement', () => {
   });
 
   describe('Label Hover Expansion', () => {
-    it('renders creature label with truncated text', async () => {
+    it('renders monster label with truncated text', async () => {
       const longName = 'Very Long Goblin Warrior Champion Name #5';
-      const creatureAsset = createMockCreatureAsset('creature-1');
-      const placedAsset = createMockPlacedAsset('placed-1', 'creature-1');
-      placedAsset.asset = creatureAsset;
+      const monsterAsset = createMockCharacterAsset('monster-1');
+      const placedAsset = createMockPlacedAsset('placed-1', 'monster-1');
+      placedAsset.asset = monsterAsset;
       placedAsset.name = longName;
-      placedAsset.layer = GroupName.Creatures;
+      placedAsset.layer = GroupName.Monsters;
 
       const { container } = render(
         <TokenPlacement
@@ -549,13 +548,13 @@ describe('TokenPlacement', () => {
       });
     });
 
-    it('renders short creature label without truncation', async () => {
+    it('renders short monster label without truncation', async () => {
       const shortName = 'Orc #1';
-      const creatureAsset = createMockCreatureAsset('creature-1');
-      const placedAsset = createMockPlacedAsset('placed-1', 'creature-1');
-      placedAsset.asset = creatureAsset;
+      const monsterAsset = createMockCharacterAsset('monster-1');
+      const placedAsset = createMockPlacedAsset('placed-1', 'monster-1');
+      placedAsset.asset = monsterAsset;
       placedAsset.name = shortName;
-      placedAsset.layer = GroupName.Creatures;
+      placedAsset.layer = GroupName.Monsters;
 
       const { container } = render(
         <TokenPlacement
@@ -578,9 +577,9 @@ describe('TokenPlacement', () => {
     });
   });
 
-  describe('formatCreatureLabel', () => {
+  describe('formatMonsterLabel', () => {
     it('returns full name when text fits within max width', () => {
-      const result = formatCreatureLabel('Goblin', 100);
+      const result = formatMonsterLabel('Goblin', 100);
 
       expect(result.isTruncated).toBe(false);
       expect(result.displayText).toBe('Goblin');
@@ -591,7 +590,7 @@ describe('TokenPlacement', () => {
     });
 
     it('preserves #number suffix when truncating', () => {
-      const result = formatCreatureLabel('Very Long Goblin Warrior Name #5', 75);
+      const result = formatMonsterLabel('Very Long Goblin Warrior Name #5', 75);
 
       expect(result.isTruncated).toBe(true);
       expect(result.displayText).toMatch(/#5$/);
@@ -603,7 +602,7 @@ describe('TokenPlacement', () => {
     });
 
     it('uses Unicode ellipsis (U+2026) not three dots', () => {
-      const result = formatCreatureLabel('Very Long Goblin Warrior Name #5', 75);
+      const result = formatMonsterLabel('Very Long Goblin Warrior Name #5', 75);
 
       expect(result.isTruncated).toBe(true);
       expect(result.displayText).toContain('\u2026');
@@ -611,7 +610,7 @@ describe('TokenPlacement', () => {
     });
 
     it('handles names without #number suffix', () => {
-      const result = formatCreatureLabel('Very Long Goblin Warrior Name', 75);
+      const result = formatMonsterLabel('Very Long Goblin Warrior Name', 75);
 
       expect(result.isTruncated).toBe(true);
       expect(result.displayText).toContain('\u2026');
@@ -620,7 +619,7 @@ describe('TokenPlacement', () => {
     });
 
     it('truncates only the baseName part, not the number', () => {
-      const result = formatCreatureLabel('Goblin Warrior #123', 75);
+      const result = formatMonsterLabel('Goblin Warrior #123', 75);
 
       if (result.isTruncated) {
         expect(result.displayText).toMatch(/^.+\u2026 #123$/);
@@ -631,22 +630,22 @@ describe('TokenPlacement', () => {
     });
 
     it('handles very short names below MIN_LABEL_WIDTH', () => {
-      const result = formatCreatureLabel('G', 25);
+      const result = formatMonsterLabel('G', 25);
 
       expect(result.isTruncated).toBe(false);
       expect(result.displayText).toBe('G');
     });
 
     it('correctly identifies truncation status', () => {
-      const shortResult = formatCreatureLabel('Goblin #1', 100);
+      const shortResult = formatMonsterLabel('Goblin #1', 100);
       expect(shortResult.isTruncated).toBe(false);
 
-      const longResult = formatCreatureLabel('Very Long Goblin Warrior Name #5', 75);
+      const longResult = formatMonsterLabel('Very Long Goblin Warrior Name #5', 75);
       expect(longResult.isTruncated).toBe(true);
     });
 
     it('handles names with multiple spaces correctly', () => {
-      const result = formatCreatureLabel('Goblin Warrior Chief #10', 75);
+      const result = formatMonsterLabel('Goblin Warrior Chief #10', 75);
 
       if (result.isTruncated) {
         expect(result.displayText).toMatch(/#10$/);
@@ -655,7 +654,7 @@ describe('TokenPlacement', () => {
     });
 
     it('handles names with numbers not at the end', () => {
-      const result = formatCreatureLabel('Goblin #5 Warrior', 75);
+      const result = formatMonsterLabel('Goblin #5 Warrior', 75);
 
       if (result.isTruncated) {
         expect(result.displayText).toContain('\u2026');
@@ -664,12 +663,12 @@ describe('TokenPlacement', () => {
     });
 
     it('handles double-digit and triple-digit numbers', () => {
-      const result1 = formatCreatureLabel('Very Long Goblin Name #99', 75);
+      const result1 = formatMonsterLabel('Very Long Goblin Name #99', 75);
       if (result1.isTruncated) {
         expect(result1.displayText).toMatch(/#99$/);
       }
 
-      const result2 = formatCreatureLabel('Very Long Goblin Name #999', 75);
+      const result2 = formatMonsterLabel('Very Long Goblin Name #999', 75);
       if (result2.isTruncated) {
         expect(result2.displayText).toMatch(/#999$/);
       }
@@ -677,15 +676,15 @@ describe('TokenPlacement', () => {
 
     it('returns consistent fullText regardless of truncation', () => {
       const originalName = 'Goblin Warrior #5';
-      const result1 = formatCreatureLabel(originalName, 200);
-      const result2 = formatCreatureLabel(originalName, 50);
+      const result1 = formatMonsterLabel(originalName, 200);
+      const result2 = formatMonsterLabel(originalName, 50);
 
       expect(result1.fullText).toBe(originalName);
       expect(result2.fullText).toBe(originalName);
     });
 
     it('returns width and height dimensions for all results', () => {
-      const result = formatCreatureLabel('Goblin Warrior #5', 100);
+      const result = formatMonsterLabel('Goblin Warrior #5', 100);
 
       expect(result.displayWidth).toBeGreaterThan(0);
       expect(result.displayHeight).toBeGreaterThan(0);

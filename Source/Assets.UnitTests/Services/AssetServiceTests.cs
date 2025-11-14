@@ -19,8 +19,8 @@ public class AssetServiceTests {
     public async Task GetAssetsAsync_CallsStorage() {
         // Arrange
         var assets = new Asset[] {
-            new CreatureAsset { Id = Guid.CreateVersion7(), Name = "Test Asset 1" },
-            new CreatureAsset { Id = Guid.CreateVersion7(), Name = "Test Asset 2" },
+            new MonsterAsset { Id = Guid.CreateVersion7(), Name = "Test Asset 1" },
+            new MonsterAsset { Id = Guid.CreateVersion7(), Name = "Test Asset 2" },
                                  };
         _assetStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(assets);
 
@@ -36,7 +36,7 @@ public class AssetServiceTests {
     public async Task GetAssetAsync_CallsStorage() {
         // Arrange
         var assetId = Guid.CreateVersion7();
-        var asset = new CreatureAsset {
+        var asset = new MonsterAsset {
             Id = assetId,
             Name = "Test Asset",
             Description = "Test Description",
@@ -59,7 +59,7 @@ public class AssetServiceTests {
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
-            Kind = AssetKind.Creature,
+            Kind = AssetKind.Monster,
             Tokens = [
                 new AssetTokenData {
                     TokenId = tokenId,
@@ -67,9 +67,7 @@ public class AssetServiceTests {
                 }
             ],
             Size = NamedSize.FromName(SizeName.Medium),
-            CreatureData = new CreatureData {
-                Category = CreatureCategory.Character,
-            },
+            MonsterData = new MonsterData(),
         };
 
         // Act
@@ -88,7 +86,7 @@ public class AssetServiceTests {
     public async Task UpdateAssetAsync_WithOwner_UpdatesAsset() {
         // Arrange
         var assetId = Guid.CreateVersion7();
-        var asset = new CreatureAsset {
+        var asset = new MonsterAsset {
             Id = assetId,
             Name = "Old Name",
             Description = "Old Description",
@@ -155,7 +153,7 @@ public class AssetServiceTests {
     public async Task UpdateAssetAsync_WithPartialUpdate_OnlyUpdatesProvidedFields() {
         // Arrange
         var assetId = Guid.CreateVersion7();
-        var asset = new CreatureAsset {
+        var asset = new MonsterAsset {
             Id = assetId,
             Name = "Original Name",
             Description = "Original Description",

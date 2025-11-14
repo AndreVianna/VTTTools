@@ -45,20 +45,17 @@ public class CreateAssetRequestTests {
     public void WithClause_CreatureAsset_UpdatesProperties() {
         // Arrange
         var original = new CreateAssetRequest {
-            Kind = AssetKind.Creature,
+            Kind = AssetKind.Monster,
             Name = "Goblin",
             Description = "A goblin",
             Size = new NamedSize { Width = 1, Height = 1 },
-            CreatureData = new CreatureData {
-                Category = CreatureCategory.Monster
-            }
+            MonsterData = new MonsterData()
         };
 
         // Act
         var updated = original with {
             Size = new NamedSize { Width = 1, Height = 1 },
-            CreatureData = new CreatureData {
-                Category = CreatureCategory.Character,
+            MonsterData = new MonsterData {
                 TokenStyle = new TokenStyle {
                     BorderColor = "#FF0000",
                     Shape = TokenShape.Circle
@@ -67,9 +64,8 @@ public class CreateAssetRequestTests {
         };
 
         // Assert
-        updated.Kind.Should().Be(AssetKind.Creature);
-        updated.CreatureData.Should().NotBeNull();
-        updated.CreatureData!.Category.Should().Be(CreatureCategory.Character);
-        updated.CreatureData.TokenStyle.Should().NotBeNull();
+        updated.Kind.Should().Be(AssetKind.Monster);
+        updated.MonsterData.Should().NotBeNull();
+        updated.MonsterData!.TokenStyle.Should().NotBeNull();
     }
 }

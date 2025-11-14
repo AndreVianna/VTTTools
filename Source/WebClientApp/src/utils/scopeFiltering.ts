@@ -5,7 +5,8 @@ export type InteractionScope =
   | 'walls'
   | 'openings'
   | 'objects'
-  | 'creatures'
+  | 'monsters'
+  | 'characters'
   | 'effects'
   | 'sources'
   | 'fogOfWar'
@@ -18,8 +19,10 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
   switch (scope) {
     case 'objects':
       return asset.asset.kind === 'Object';
-    case 'creatures':
-      return asset.asset.kind === 'Creature';
+    case 'monsters':
+      return asset.asset.kind === 'Monster';
+    case 'characters':
+      return asset.asset.kind === 'Character';
     case 'effects':
       return false;
     case 'regions':

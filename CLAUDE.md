@@ -226,3 +226,4 @@ Log Viewer: `pwsh -ExecutionPolicy Bypass -File .claude/scripts/view_logs.ps1`
 - No need for excessive comments, always use the clean code rule for comments.
 - Whenever you find any unecessary on redundant comment in the code, delete it immediatelly independent if it is part of the current change or not.
 - **CRITICAL** NEVER lie to me or invent stories to hide problems.
+- You do not need to build the app after the updates. We have hot-reload.

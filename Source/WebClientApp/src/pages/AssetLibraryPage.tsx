@@ -4,7 +4,7 @@
 
 /**
  * Asset Library Page
- * Browse, filter, and manage asset templates (Objects and Creatures)
+ * Browse, filter, and manage asset templates (Objects and Monsters)
  * Phase 5: Asset Library UI with Material-UI Card grid
  */
 
@@ -38,7 +38,7 @@ import {
 } from '@/components/assets';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useGetAssetsQuery } from '@/services/assetsApi';
-import { type Asset, AssetKind, type CreatureAsset, CreatureCategory } from '@/types/domain';
+import { type Asset, AssetKind } from '@/types/domain';
 import { getDefaultToken, getPortrait, getResourceUrl } from '@/utils/assetHelpers';
 
 /**
@@ -52,8 +52,8 @@ import { getDefaultToken, getPortrait, getResourceUrl } from '@/utils/assetHelpe
 export const AssetLibraryPage: React.FC = () => {
   const theme = useTheme();
 
-  // Kind selection via Tabs (major filter) - defaults to Objects
-  const [selectedKind, setSelectedKind] = useState<AssetKind>(AssetKind.Object);
+  // Kind selection via Tabs (major filter) - defaults to Characters
+  const [selectedKind, setSelectedKind] = useState<AssetKind>(AssetKind.Character);
 
   // Comprehensive filter state
   const [filters, setFilters] = useState<AssetFilters>({
@@ -85,11 +85,6 @@ export const AssetLibraryPage: React.FC = () => {
 
   // Kind from Tabs (always set now, no 'all' option)
   queryParams.kind = selectedKind;
-
-  // Creature category
-  if (filters.creatureCategory) {
-    queryParams.creatureCategory = filters.creatureCategory;
-  }
 
   // Ownership: Determine 'owner' param based on checkboxes
   if (filters.showMine && !filters.showOthers) {
@@ -160,18 +155,6 @@ export const AssetLibraryPage: React.FC = () => {
     setPage(1);
   }, []);
 
-  // Get creature category badge color
-  const getCreatureCategoryColor = (category: CreatureCategory): string => {
-    switch (category) {
-      case CreatureCategory.Character:
-        return theme.palette.mode === 'dark' ? '#2196F3' : '#1976D2';
-      case CreatureCategory.Monster:
-        return theme.palette.mode === 'dark' ? '#F44336' : '#D32F2F';
-      default:
-        return theme.palette.secondary.main;
-    }
-  };
-
   return (
     <Container maxWidth='xl' sx={{ py: 4 }}>
       {/* Page Header */}
@@ -181,7 +164,7 @@ export const AssetLibraryPage: React.FC = () => {
             Asset Library
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Manage your objects and creatures for encounters
+            Manage your characters, monsters, and objects for encounters
           </Typography>
         </Box>
 
@@ -191,8 +174,9 @@ export const AssetLibraryPage: React.FC = () => {
           onChange={(_, newValue) => setSelectedKind(newValue)}
           sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
         >
+          <Tab label='Characters' value={AssetKind.Character} />
+          <Tab label='Monsters' value={AssetKind.Monster} />
           <Tab label='Objects' value={AssetKind.Object} />
-          <Tab label='Creatures' value={AssetKind.Creature} />
         </Tabs>
 
         {/* Search Bar */}
@@ -286,10 +270,10 @@ export const AssetLibraryPage: React.FC = () => {
                       setCreateDialogOpen(true);
                     }}
                   >
-                    {/* Title: "Add Object" or "Add Creature" */}
+                    {/* Title: "Add Character/Monster/Object" */}
                     <CardContent sx={{ pb: 1 }}>
                       <Typography variant='subtitle2' component='h2' noWrap fontWeight={600} color='primary'>
-                        Add {selectedKind === AssetKind.Object ? 'Object' : 'Creature'}
+                        Add {selectedKind === AssetKind.Character ? 'Character' : selectedKind === AssetKind.Monster ? 'Monster' : 'Object'}
                       </Typography>
                     </CardContent>
 
@@ -411,7 +395,7 @@ export const AssetLibraryPage: React.FC = () => {
                         </CardMedia>
                       </Tooltip>
 
-                      {/* Asset Info - Badges (no Kind badge - redundant with Tabs) */}
+                      {/* Asset Info - Badges */}
                       <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
                         <Box
                           sx={{
@@ -421,19 +405,6 @@ export const AssetLibraryPage: React.FC = () => {
                             minHeight: '24px',
                           }}
                         >
-                          {/* Creature Category Badge (only for Creatures) */}
-                          {asset.kind === AssetKind.Creature && (asset as CreatureAsset) && (
-                            <Chip
-                              label={(asset as CreatureAsset).category}
-                              size='small'
-                              sx={{
-                                bgcolor: getCreatureCategoryColor((asset as CreatureAsset).category),
-                                color: 'white',
-                                fontSize: '0.7rem',
-                              }}
-                            />
-                          )}
-
                           {/* Published Badge */}
                           {asset.isPublished && (
                             <Chip

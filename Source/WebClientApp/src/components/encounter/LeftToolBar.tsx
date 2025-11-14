@@ -1,5 +1,5 @@
 import {
-  Pets as CreaturesIcon,
+  Pets as MonstersIcon,
   AutoAwesome as EffectsIcon,
   Cloud as FogOfWarIcon,
   type GridOn as GridIcon,
@@ -7,7 +7,7 @@ import {
   LockOpen as LockOpenIcon,
   ViewInAr as ObjectsIcon,
   MeetingRoom as OpeningsIcon,
-  Person as PlayersIcon,
+  Person as CharactersIcon,
   Layers as RegionsIcon,
   LightMode as SourcesIcon,
   BorderAll as WallsIcon,
@@ -18,17 +18,18 @@ import { useEffect, useRef, useState } from 'react';
 import { AssetPicker } from '@/components/common';
 import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
+import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import type { SourcePlacementProperties } from './panels';
-import { CreaturesPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import { CharactersPanel, MonstersPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 
 export type PanelType =
   | 'regions'
   | 'walls'
   | 'openings'
   | 'objects'
-  | 'creatures'
-  | 'players'
+  | 'monsters'
+  | 'characters'
   | 'effects'
   | 'sources'
   | 'fogOfWar';
@@ -39,6 +40,7 @@ export interface LeftToolBarProps {
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
   encounterId?: string | undefined;
+  gridConfig?: GridConfig;
   encounterWalls?: PlacedWall[] | undefined;
   selectedWallIndex?: number | null | undefined;
   isEditingVertices?: boolean;
@@ -80,6 +82,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   activePanel: externalActivePanel,
   onPanelChange,
   encounterId,
+  gridConfig,
   encounterWalls,
   selectedWallIndex,
   isEditingVertices,
@@ -190,8 +193,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
     { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
-    { key: 'creatures', icon: CreaturesIcon, label: 'Creatures' },
-    { key: 'players', icon: PlayersIcon, label: 'Players' },
+    { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },
+    { key: 'characters', icon: CharactersIcon, label: 'Characters' },
     { key: 'effects', icon: EffectsIcon, label: 'Effects' },
     { key: 'sources', icon: SourcesIcon, label: 'Sources' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
@@ -303,13 +306,14 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         }}
       >
         <Box ref={drawerRef} sx={{ p: 2 }}>
-          {activeScope === null && isPanelLocked ? (
+          {activeScope === null && isPanelLocked && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="body2" color="text.secondary">
                 Select a scope to start working.
               </Typography>
             </Box>
-          ) : activePanel === 'regions' ? (
+          )}
+          {activePanel === 'regions' && (
             <RegionsPanel
               encounterId={encounterId || ''}
               encounterRegions={encounterRegions || []}
@@ -345,28 +349,36 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
               onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Object })}
+              {...(gridConfig ? { gridConfig } : {})}
               {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
               {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
               {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
               {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
-          {activePanel === 'creatures' && (
-            <CreaturesPanel
+          {activePanel === 'monsters' && (
+            <MonstersPanel
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
-              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
+              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Monster })}
+              {...(gridConfig ? { gridConfig } : {})}
               {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
               {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
               {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
               {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
-          {activePanel === 'players' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Players</Box>
-              <Box>Player token controls (coming soon)</Box>
-            </Box>
+          {activePanel === 'characters' && (
+            <CharactersPanel
+              placedAssets={placedAssets}
+              selectedAssetIds={selectedAssetIds}
+              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Character })}
+              {...(gridConfig ? { gridConfig } : {})}
+              {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
+              {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
+              {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
+              {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
+            />
           )}
           {activePanel === 'effects' && (
             <Box>

@@ -53,14 +53,14 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [Size_Height], [Size_Width], [StatBlockId], [Category], [TokenStyle_BorderColor], [TokenStyle_BackgroundColor], [TokenStyle_Shape], [IsMovable], [IsOpaque], [TriggerEffectId])
+            INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [Size_Height], [Size_Width], [StatBlockId], [TokenStyle_BorderColor], [TokenStyle_BackgroundColor], [TokenStyle_Shape], [IsMovable], [IsOpaque], [TriggerEffectId])
             VALUES
-            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5, NULL, NULL       , NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0, NULL, 'Monster'  , NULL, NULL, NULL, NULL, NULL, NULL),
-            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0, NULL, NULL       , NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0, NULL, NULL       , NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0, NULL, NULL       , NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature', 'Elf Paladin Squire', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0, NULL, 'Character', NULL, NULL, NULL, NULL, NULL, NULL);
+            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
+            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
+            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
+            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
+            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature', 'Elf Paladin Squire', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             """
         );
 
@@ -76,10 +76,66 @@ public partial class SeedApplicationSchema : Migration {
                 { new Guid("019A0363-9294-749D-9323-B759664A5436"), new Guid("019A50F8-F3E5-702B-89D3-33D694391F66"), 1 },
                 { new Guid("019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA"), new Guid("019A50F8-394B-79D2-9660-9B803391DD71"), 1 }
             });
+
+        migrationBuilder.Sql(
+            """
+            INSERT INTO [EncounterRegions] ([EncounterId], [Index], [Name], [Type], [Value], [Label], [Color], [Vertices])
+            VALUES
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, 'Region 1', 'Elevation', 0, null, '#ed6c02', '[{"X":22,"Y":15},{"X":25,"Y":19.5},{"X":31.5,"Y":19.5},{"X":33,"Y":14}]');
+            """
+        );
+
+        migrationBuilder.Sql(
+            """
+            INSERT INTO [EncounterWalls] ([EncounterId], [Index], [Name], [Visibility], [IsClosed], [Material], [Color], [Poles])
+            VALUES
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, 'Wall 1', 0, 0, 'Stone', '#808080', '[{"H":10,"X":35,"Y":15},{"H":10,"X":31.5,"Y":20.5},{"H":10,"X":23,"Y":20.5},{"H":10,"X":20,"Y":15.5}]'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, 'Wall 2', 0, 1, 'Stone', '#808080', '[{"H":10,"X":36,"Y":15.5},{"H":10,"X":36,"Y":17.5},{"H":10,"X":38,"Y":17.5},{"H":10,"X":38,"Y":15.5}]');
+            """
+        );
+
+        migrationBuilder.Sql(
+            """
+            INSERT INTO [EncounterAssets] ([EncounterId], [Index], [AssetId], [Name], [Number], [IsLocked], [IsVisible], [PortraitId], [TokenId], [Rotation], [Elevation], [ControlledBy], [Notes], [Frame_Background], [Frame_BorderColor], [Frame_BorderThickness], [Frame_Shape], [Position_X], [Position_Y], [Size_Height], [Size_Width])
+            VALUES
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, '019A0363-9294-749D-9323-B759664A5436', 'Wooden Create', 1, 0, 1, null, null, 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', null, '#00000000', '#0d6efd', 1, 'Square', 26.5, 22.5, 50, 50),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, '019A07E6-82A2-7286-ACAB-7CCB6CF652BD', 'Wide Chest', 1, 0, 1, null, null, 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', null, '#00000000', '#0d6efd', 1, 'Square', 30, 21.5, 50, 100),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, '019A0363-E277-7FA4-9A78-654F24400B79', 'Goblin #1', 1, 0, 1, null, null, 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', null, '#00000000', '#0d6efd', 1, 'Square', 33.5, 20.5, 50, 50),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 3, '019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', 'Elf Paladin Squire #1', 1, 0, 1, null, null, 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', null, '#00000000', '#0d6efd', 1, 'Square', 21.5, 19.5, 50, 50);
+            """
+        );
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder) {
+        migrationBuilder.DeleteData(
+            table: "EncounterAssets",
+            keyColumns: ["EncounterId", "Index"],
+            keyValues: new object[,]
+            {
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 0 },
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 1 },
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 2 },
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 3 },
+            });
+
+        migrationBuilder.DeleteData(
+            table: "EncounterWalls",
+            keyColumns: ["EncounterId", "Index"],
+            keyValues: new object[,]
+            {
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 1 },
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 2 },
+            });
+
+        migrationBuilder.DeleteData(
+            table: "EncounterRegions",
+            keyColumns: ["EncounterId", "Index"],
+            keyValues: new object[,]
+            {
+                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 1 },
+            });
+
         migrationBuilder.DeleteData(
             table: "AssetTokens",
             keyColumns: ["AssetId", "TokenId"],

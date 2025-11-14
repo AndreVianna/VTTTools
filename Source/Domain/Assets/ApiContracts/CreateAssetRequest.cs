@@ -12,5 +12,6 @@ public record CreateAssetRequest
     public bool IsPublic { get; init; }
 
     public ObjectData? ObjectData { get; init; }
-    public CreatureData? CreatureData { get; init; }
+    public MonsterData? MonsterData { get; init; }
+    public CharacterData? CharacterData { get; init; }
 }

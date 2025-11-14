@@ -33,13 +33,13 @@ import { useCreateAssetMutation } from '@/services/assetsApi';
 import {
   AssetKind,
   type AssetToken,
+  type CharacterData,
   type CreateAssetRequest,
-  CreatureCategory,
-  type CreatureData,
+  type MonsterData,
   type NamedSize,
   type ObjectData,
 } from '@/types/domain';
-import { AssetBasicFields, AssetResourceManager, CreaturePropertiesForm, ObjectPropertiesForm } from './forms';
+import { AssetBasicFields, AssetResourceManager, CharacterPropertiesForm, MonsterPropertiesForm, ObjectPropertiesForm } from './forms';
 
 export interface AssetCreateDialogProps {
   open: boolean;
@@ -51,7 +51,7 @@ export interface AssetCreateDialogProps {
 export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
   open,
   onClose,
-  initialKind = AssetKind.Object,
+  initialKind = AssetKind.Character,
   fixedKind,
 }) => {
   const theme = useTheme();
@@ -71,7 +71,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
   const [isPublic, setIsPublic] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
 
-  // Size moved to root level - shared between Object and Creature
+  // Size moved to root level - shared between all asset types
   const [size, setSize] = useState<NamedSize>({
     width: 1,
     height: 1,
@@ -84,10 +84,11 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     isOpaque: false,
   });
 
-  // Creature-specific properties
-  const [creatureData, setCreatureData] = useState<CreatureData>({
-    category: CreatureCategory.Character,
-  });
+  // Monster-specific properties (monsters/NPCs)
+  const [monsterData, setMonsterData] = useState<MonsterData>({});
+
+  // Character-specific properties (player characters)
+  const [characterData, setCharacterData] = useState<CharacterData>({});
 
   // RTK Query mutation
   const [createAsset, { isLoading: isSaving }] = useCreateAssetMutation();
@@ -112,14 +113,14 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
         size,
         isPublic,
         isPublished,
-        objectData,
-        creatureData,
       };
 
       if (selectedKind === AssetKind.Object) {
         request.objectData = objectData;
-      } else if (selectedKind === AssetKind.Creature) {
-        request.creatureData = creatureData;
+      } else if (selectedKind === AssetKind.Monster) {
+        request.monsterData = monsterData;
+      } else if (selectedKind === AssetKind.Character) {
+        request.characterData = characterData;
       }
 
       await createAsset(request).unwrap();
@@ -225,8 +226,9 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                     onChange={(_, newValue) => setSelectedKind(newValue)}
                     sx={{ borderBottom: 1, borderColor: 'divider' }}
                   >
+                    <Tab label='Character' value={AssetKind.Character} />
+                    <Tab label='Monster' value={AssetKind.Monster} />
                     <Tab label='Object' value={AssetKind.Object} />
-                    <Tab label='Creature' value={AssetKind.Creature} />
                   </Tabs>
                 </Box>
               )}
@@ -320,8 +322,12 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 <ObjectPropertiesForm objectData={objectData} onChange={setObjectData} />
               )}
 
-              {selectedKind === AssetKind.Creature && (
-                <CreaturePropertiesForm creatureData={creatureData} onChange={setCreatureData} />
+              {selectedKind === AssetKind.Monster && (
+                <MonsterPropertiesForm monsterData={monsterData} onChange={setMonsterData} />
+              )}
+
+              {selectedKind === AssetKind.Character && (
+                <CharacterPropertiesForm characterData={characterData} onChange={setCharacterData} />
               )}
             </Stack>
           </AccordionDetails>

@@ -8,7 +8,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind, CreatureCategory } from '@/types/domain';
+import { AssetKind } from '@/types/domain';
 import { AssetFilterPanel, type AssetFilters } from './AssetFilterPanel';
 
 // Test wrapper with theme
@@ -230,8 +230,7 @@ describe('AssetFilterPanel', () => {
       const user = userEvent.setup();
 
       const activeFilters: AssetFilters = {
-        kind: AssetKind.Creature,
-        creatureCategory: CreatureCategory.Monster,
+        kind: AssetKind.Monster,
         showMine: false,
         showOthers: false,
         showPublic: false,
@@ -250,7 +249,7 @@ describe('AssetFilterPanel', () => {
       await user.click(resetButton);
 
       expect(mockOnFiltersChange).toHaveBeenCalledWith({
-        kind: AssetKind.Creature, // Kind is preserved (controlled by parent Tabs)
+        kind: AssetKind.Monster, // Kind is preserved (controlled by parent Tabs)
         showMine: true,
         showOthers: true,
         showPublic: true,
@@ -264,8 +263,7 @@ describe('AssetFilterPanel', () => {
       const user = userEvent.setup();
 
       const filters: AssetFilters = {
-        kind: AssetKind.Creature,
-        creatureCategory: CreatureCategory.Character,
+        kind: AssetKind.Monster,
         showMine: false,
         showOthers: true,
         showPublic: true,
@@ -286,7 +284,7 @@ describe('AssetFilterPanel', () => {
       expect(mockOnFiltersChange).toHaveBeenCalled();
       const calledFilters = mockOnFiltersChange.mock.calls[0]?.[0];
       expect(calledFilters).toBeDefined();
-      expect(calledFilters?.kind).toBe(AssetKind.Creature);
+      expect(calledFilters?.kind).toBe(AssetKind.Monster);
     });
   });
 

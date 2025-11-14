@@ -32,7 +32,8 @@ export enum GroupName {
   Grid = 'grid',
   Structure = 'structure',
   Objects = 'objects',
-  Creatures = 'creatures',
+  Monsters = 'monsters',
+  Characters = 'characters',
   PersistentEffects = 'persistent-effects',
   TemporaryEffects = 'temporary-effects',
   Transformer = 'transformer',
@@ -53,7 +54,7 @@ export const LAYER_Z_INDEX = {
  * Group render order reference (NOT used as zIndex props)
  * React-Konva recommends using JSX render order instead of zIndex for Groups
  * Groups should be rendered in this order:
- * - Structure < Objects < Creatures for proper z-ordering
+ * - Structure < Objects < Monsters < Characters for proper z-ordering
  *
  * NOTE: These constants are for reference only. Groups use JSX render order,
  * not zIndex props, to avoid "Node has no parent" warnings.
@@ -63,7 +64,8 @@ export const GROUP_Z_INDEX = {
   [GroupName.Grid]: 1,
   [GroupName.Structure]: 100,
   [GroupName.Objects]: 200,
-  [GroupName.Creatures]: 300,
+  [GroupName.Monsters]: 300,
+  [GroupName.Characters]: 350,
   [GroupName.PersistentEffects]: 100,
   [GroupName.TemporaryEffects]: 200,
   [GroupName.Transformer]: 0,

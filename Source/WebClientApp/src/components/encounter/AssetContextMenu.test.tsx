@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { mockCreatureAsset } from '@/test-utils/assetMocks';
+import { mockMonsterAsset } from '@/test-utils/assetMocks';
 import { LabelPosition, LabelVisibility, type PlacedAsset } from '../../types/domain';
 import { AssetContextMenu } from './AssetContextMenu';
 
@@ -8,7 +8,7 @@ describe('AssetContextMenu', () => {
   const mockAsset: PlacedAsset = {
     id: '123',
     assetId: 'asset-123',
-    asset: mockCreatureAsset({ id: 'asset-123', name: 'Test Asset' }),
+    asset: mockMonsterAsset({ id: 'asset-123', name: 'Test Asset' }),
     position: { x: 100, y: 100 },
     size: { width: 50, height: 50 },
     rotation: 0,

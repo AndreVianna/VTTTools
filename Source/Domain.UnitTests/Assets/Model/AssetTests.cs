@@ -28,10 +28,9 @@ public class AssetTests {
 
         // Assert
         asset.Id.Should().NotBeEmpty();
-        asset.Kind.Should().Be(AssetKind.Creature);
+        asset.Kind.Should().Be(AssetKind.Monster);
         asset.Size.Width.Should().Be(1);
         asset.Size.Height.Should().Be(1);
-        asset.Category.Should().Be(CreatureCategory.Character);
     }
 
     [Fact]
@@ -127,13 +126,11 @@ public class AssetTests {
             Name = "Goblin Warrior",
             Description = "Small hostile creature",
             Size = new NamedSize { Width = 1, Height = 1 },
-            Category = CreatureCategory.Monster,
             TokenStyle = tokenStyle
         };
 
         // Assert
-        asset.Kind.Should().Be(AssetKind.Creature);
-        asset.Category.Should().Be(CreatureCategory.Monster);
+        asset.Kind.Should().Be(AssetKind.Monster);
         asset.TokenStyle.Should().NotBeNull();
         asset.TokenStyle!.Shape.Should().Be(TokenShape.Circle);
     }

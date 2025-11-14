@@ -491,7 +491,7 @@ internal static class Mapper {
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
-            Poles = entity.Poles.Select(p => GridConverter.PoleToPixel(p, grid)).ToList(),
+            Poles = entity.Poles.ConvertAll(p => GridConverter.PoleToPixel(p, grid)),
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
             Material = entity.Material,
@@ -503,7 +503,7 @@ internal static class Mapper {
             EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
-            Poles = model.Poles.Select(p => GridConverter.PoleToGrid(p, grid)).ToList(),
+            Poles = [.. model.Poles.Select(p => GridConverter.PoleToGrid(p, grid))],
             Visibility = model.Visibility,
             IsClosed = model.IsClosed,
             Material = model.Material,
@@ -514,7 +514,7 @@ internal static class Mapper {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
-        entity.Poles = model.Poles.Select(p => GridConverter.PoleToGrid(p, grid)).ToList();
+        entity.Poles = [.. model.Poles.Select(p => GridConverter.PoleToGrid(p, grid))];
         entity.Visibility = model.Visibility;
         entity.IsClosed = model.IsClosed;
         entity.Material = model.Material;
@@ -539,7 +539,7 @@ internal static class Mapper {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
-            Vertices = entity.Vertices.Select(v => GridConverter.PointToPixel(v, grid)).ToList(),
+            Vertices = entity.Vertices.ConvertAll(v => GridConverter.PointToPixel(v, grid)),
             Value = entity.Value,
             Label = entity.Label,
             Color = entity.Color,
@@ -551,7 +551,7 @@ internal static class Mapper {
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
-            Vertices = model.Vertices.Select(v => GridConverter.PointToGrid(v, grid)).ToList(),
+            Vertices = [.. model.Vertices.Select(v => GridConverter.PointToGrid(v, grid))],
             Value = model.Value,
             Label = model.Label,
             Color = model.Color,
@@ -562,7 +562,7 @@ internal static class Mapper {
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
-        entity.Vertices = model.Vertices.Select(v => GridConverter.PointToGrid(v, grid)).ToList();
+        entity.Vertices = [.. model.Vertices.Select(v => GridConverter.PointToGrid(v, grid))];
         entity.Value = model.Value;
         entity.Label = model.Label;
         entity.Color = model.Color;

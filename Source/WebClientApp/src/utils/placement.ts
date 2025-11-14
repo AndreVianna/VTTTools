@@ -1,4 +1,4 @@
-import { AssetKind, type CreatureCategory, type NamedSize } from '@/types/domain';
+import { AssetKind, type NamedSize } from '@/types/domain';
 import type { GridConfig } from './gridCalculator';
 import { snapToGrid } from './gridCalculator';
 
@@ -27,15 +27,14 @@ interface ObjectProperties {
   isOpaque: boolean;
 }
 
-interface CreatureProperties {
+interface MonsterOrCharacterProperties {
   size: NamedSize;
-  category: CreatureCategory;
 }
 
 export const getPlacementBehavior = (
   assetKind: AssetKind,
   objectData?: ObjectProperties,
-  creatureData?: CreatureProperties,
+  monsterOrCharacterData?: MonsterOrCharacterProperties,
 ): PlacementBehavior => {
   const defaultBehavior: PlacementBehavior = {
     canMove: true,
@@ -67,7 +66,7 @@ export const getPlacementBehavior = (
     };
   }
 
-  if (assetKind === AssetKind.Creature && creatureData !== undefined) {
+  if ((assetKind === AssetKind.Monster || assetKind === AssetKind.Character) && monsterOrCharacterData !== undefined) {
     return {
       ...defaultBehavior,
       canMove: true,

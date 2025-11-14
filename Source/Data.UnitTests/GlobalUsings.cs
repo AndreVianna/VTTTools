@@ -23,6 +23,3 @@ global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.Storage;
 global using VttTools.Media.Model;
-
-global using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
-global using Encounter = VttTools.Library.Encounters.Model.Encounter;

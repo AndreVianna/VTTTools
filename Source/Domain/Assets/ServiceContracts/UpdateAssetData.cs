@@ -11,7 +11,8 @@ public record UpdateAssetData
     public Optional<bool> IsPublic { get; set; }
 
     public Optional<ObjectData> ObjectData { get; init; }
-    public Optional<CreatureData> CreatureData { get; init; }
+    public Optional<MonsterData> MonsterData { get; init; }
+    public Optional<CharacterData> CharacterData { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

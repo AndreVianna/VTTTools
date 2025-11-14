@@ -16,5 +16,6 @@ public record UpdateAssetRequest
 
     // Polymorphic properties (provide the one matching the asset's Kind)
     public Optional<ObjectData> ObjectData { get; init; }
-    public Optional<CreatureData> CreatureData { get; init; }
+    public Optional<MonsterData> MonsterData { get; init; }
+    public Optional<CharacterData> CharacterData { get; init; }
 }

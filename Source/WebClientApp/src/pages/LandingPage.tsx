@@ -224,7 +224,7 @@ export const LandingPage: React.FC = () => {
                     Asset Library
                   </Typography>
                   <Typography id='desc-asset-library' variant='body2' color='text.secondary'>
-                    Browse creatures, characters, tokens
+                    Browse monsters, characters, tokens
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AssetKind, CreatureCategory, type NamedSize } from '@/types/domain';
+import { AssetKind, type NamedSize } from '@/types/domain';
 import { type GridConfig, GridType } from './gridCalculator';
 import {
   calculateAssetSize,
@@ -47,16 +47,15 @@ describe('getPlacementBehavior', () => {
     expect(behavior.zIndexRange).toEqual([10, 40]);
   });
 
-  it('configures Creature asset behavior based on properties', () => {
+  it('configures Monster asset behavior based on properties', () => {
     const namedSize: NamedSize = {
       width: 1,
       height: 1,
       isSquare: true,
     };
 
-    const behavior = getPlacementBehavior(AssetKind.Creature, undefined, {
+    const behavior = getPlacementBehavior(AssetKind.Monster, undefined, {
       size: namedSize,
-      category: CreatureCategory.Character,
     });
 
     expect(behavior.canMove).toBe(true);
@@ -142,7 +141,7 @@ describe('calculateAssetSize', () => {
     });
   });
 
-  it('handles fractional sizes for tiny creatures', () => {
+  it('handles fractional sizes for tiny monsters', () => {
     const namedSize: NamedSize = {
       width: 0.5,
       height: 0.5,

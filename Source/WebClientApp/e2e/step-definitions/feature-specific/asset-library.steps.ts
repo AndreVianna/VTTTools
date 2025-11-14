@@ -21,8 +21,8 @@ import type { CustomWorld } from '../../support/world.js';
 // Given('{int} Object assets exist in my library') available in asset-data.steps.ts
 
 Given(
-  '{int} Object assets and {int} Creature assets exist in my library',
-  async function (this: CustomWorld, objectCount: number, creatureCount: number) {
+  '{int} Object assets and {int} Monster assets exist in my library',
+  async function (this: CustomWorld, objectCount: number, monsterCount: number) {
     // Create Object assets
     for (let i = 0; i < objectCount; i++) {
       const asset = await this.assetBuilder()
@@ -32,11 +32,11 @@ Given(
       this.createdAssets.push(asset);
     }
 
-    // Create Creature assets
-    for (let i = 0; i < creatureCount; i++) {
+    // Create Monster assets
+    for (let i = 0; i < monsterCount; i++) {
       const asset = await this.assetBuilder()
-        .withName(`Creature ${i + 1}`)
-        .withKind(AssetKind.Creature)
+        .withName(`Monster ${i + 1}`)
+        .withKind(AssetKind.Monster)
         .create();
       this.createdAssets.push(asset);
     }
@@ -88,8 +88,8 @@ Given('an Object asset exists with:', async function (this: CustomWorld, dataTab
   this.createdAssets.push(asset);
 });
 
-Given('a Creature asset exists with category {string}', async function (this: CustomWorld, category: string) {
-  const builder = this.assetBuilder().withName('Test Creature').withKind(AssetKind.Creature);
+Given('a Monster asset exists with category {string}', async function (this: CustomWorld, category: string) {
+  const builder = this.assetBuilder().withName('Test Monster').withKind(AssetKind.Monster);
 
   if (category === 'Monster') {
     builder.asMonster();
@@ -339,7 +339,7 @@ When(
 // ═══════════════════════════════════════════════════════════════
 
 When('I click the {string} tab', async function (this: CustomWorld, tabName: string) {
-  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Creatures');
+  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Monsters');
 });
 
 // ═══════════════════════════════════════════════════════════════

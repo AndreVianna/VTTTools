@@ -2,6 +2,7 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
+using MonsterAssetEntity = VttTools.Data.Assets.Entities.MonsterAsset;
 
 namespace VttTools.Data.Helpers;
 
@@ -41,10 +42,10 @@ internal static class DbContextHelper {
 
         // Then add Assets that reference the Tokens
         var assets = new[] {
-            CreateTestAssetEntity("Asset 1", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
+            CreateTestAssetEntity("Asset 1", AssetKind.Monster, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
             CreateTestAssetEntity("Asset 2", ownerId: currentUserId, displayId: resources[1].Id),
-            CreateTestAssetEntity("Asset 3", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
-            CreateTestAssetEntity("Asset 4", AssetKind.Creature, isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), displayId: resources[3].Id),
+            CreateTestAssetEntity("Asset 3", AssetKind.Monster, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
+            CreateTestAssetEntity("Asset 4", AssetKind.Monster, isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), displayId: resources[3].Id),
         };
 
         context.Assets.AddRange(assets);
@@ -147,7 +148,7 @@ internal static class DbContextHelper {
             },
         };
 
-    public static CreatureAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
+    public static MonsterAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
         var tokenId = displayId ?? Guid.CreateVersion7();
         return new() {
             Id = id,
@@ -166,7 +167,7 @@ internal static class DbContextHelper {
         };
     }
 
-    public static CreatureAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
+    public static MonsterAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => CreateTestAssetEntity(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId, displayId);
 
     public static GameSessionEntity CreateTestGameSessionEntity(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
@@ -267,7 +268,7 @@ internal static class DbContextHelper {
             },
         };
 
-    public static CreatureAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
+    public static MonsterAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
         var tokenId = Guid.CreateVersion7();
         return new() {
             Id = id,
@@ -298,7 +299,7 @@ internal static class DbContextHelper {
         };
     }
 
-    public static CreatureAsset CreateTestAsset(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
+    public static MonsterAsset CreateTestAsset(string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
         => CreateTestAsset(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId);
 
     public static GameSession CreateTestGameSession(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)

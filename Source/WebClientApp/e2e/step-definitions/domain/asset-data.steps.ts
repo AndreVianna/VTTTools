@@ -19,11 +19,11 @@ Given('I own {int} Object assets', async function (this: CustomWorld, count: num
   }
 });
 
-Given('I own {int} Creature assets', async function (this: CustomWorld, count: number) {
+Given('I own {int} Monster assets', async function (this: CustomWorld, count: number) {
   for (let i = 0; i < count; i++) {
     const asset = await this.assetBuilder()
-      .withName(`Test Creature ${i + 1}`)
-      .withKind(AssetKind.Creature)
+      .withName(`Test Monster ${i + 1}`)
+      .withKind(AssetKind.Monster)
       .create();
     this.createdAssets.push(asset);
   }
@@ -31,7 +31,7 @@ Given('I own {int} Creature assets', async function (this: CustomWorld, count: n
 
 // Helper function for creating multiple assets
 async function createAssets(world: CustomWorld, count: number, kind: AssetKind): Promise<void> {
-  const kindName = kind === AssetKind.Object ? 'Object' : 'Creature';
+  const kindName = kind === AssetKind.Object ? 'Object' : 'Monster';
   for (let i = 0; i < count; i++) {
     const asset = await world
       .assetBuilder()
@@ -46,8 +46,8 @@ Given('{int} Object assets exist in my library', async function (this: CustomWor
   await createAssets(this, count, AssetKind.Object);
 });
 
-Given('{int} Creature assets exist in my library', async function (this: CustomWorld, count: number) {
-  await createAssets(this, count, AssetKind.Creature);
+Given('{int} Monster assets exist in my library', async function (this: CustomWorld, count: number) {
+  await createAssets(this, count, AssetKind.Monster);
 });
 
 Given('I own {int} Object assets \\(private\\)', async function (this: CustomWorld, count: number) {

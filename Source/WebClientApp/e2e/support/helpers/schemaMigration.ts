@@ -74,7 +74,7 @@ interface OldAsset {
   isPublic?: boolean;
   resources?: OldAssetResource[];
   objectProps?: { size?: unknown; [key: string]: unknown };
-  creatureProps?: { size?: unknown; [key: string]: unknown };
+  monsterProps?: { size?: unknown; [key: string]: unknown };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -103,14 +103,14 @@ export function migrateOldAssetToNew(oldAsset: OldAsset): NewAsset {
 
   const portraitId = oldAsset.resources ? extractPortraitFromResources(oldAsset.resources) : undefined;
 
-  const size = oldAsset.objectProps?.size || oldAsset.creatureProps?.size || { width: 1, height: 1, isSquare: true };
+  const size = oldAsset.objectProps?.size || oldAsset.monsterProps?.size || { width: 1, height: 1, isSquare: true };
 
   let properties: Record<string, unknown> | undefined;
   if (oldAsset.kind === 'Object' && oldAsset.objectProps) {
     const { size: _size, ...rest } = oldAsset.objectProps;
     properties = rest;
-  } else if (oldAsset.kind === 'Creature' && oldAsset.creatureProps) {
-    const { size: _size, ...rest } = oldAsset.creatureProps;
+  } else if (oldAsset.kind === 'Monster' && oldAsset.monsterProps) {
+    const { size: _size, ...rest } = oldAsset.monsterProps;
     properties = rest;
   }
 

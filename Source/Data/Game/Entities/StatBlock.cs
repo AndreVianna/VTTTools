@@ -1,7 +1,7 @@
 namespace VttTools.Data.Game.Entities;
 
 /// <summary>
-/// EF Core entity for character/creature stat blocks (stub - full implementation in future phase)
+/// EF Core entity for character/monster stat blocks (stub - full implementation in future phase)
 /// </summary>
 public class StatBlock {
     public Guid Id { get; set; } = Guid.CreateVersion7();

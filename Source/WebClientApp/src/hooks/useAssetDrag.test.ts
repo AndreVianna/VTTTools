@@ -10,15 +10,15 @@
 
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { Asset, CreatureAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory } from '@/types/domain';
+import type { Asset, MonsterAsset } from '@/types/domain';
+import { AssetKind } from '@/types/domain';
 import { useAssetDrag } from './useAssetDrag';
 
 const createMockAsset = (id: string): Asset =>
   ({
     id,
     ownerId: 'owner-123',
-    kind: AssetKind.Creature,
+    kind: AssetKind.Monster,
     name: `Test Asset ${id}`,
     description: 'Test description',
     isPublished: true,
@@ -26,13 +26,11 @@ const createMockAsset = (id: string): Asset =>
     tokens: [],
     portrait: undefined,
     size: { width: 1, height: 1, isSquare: true },
-    isMovable: true,
-    category: CreatureCategory.Monster,
     statBlockId: undefined,
     tokenStyle: undefined,
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
-  }) as CreatureAsset;
+  }) as MonsterAsset;
 
 describe('useAssetDrag', () => {
   it('initializes with null draggedAsset', () => {

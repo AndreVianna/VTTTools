@@ -123,22 +123,21 @@ Content-Type: application/json
 }
 
 ###############################################
-### HAPPY PATH - CREATURE ASSETS (CHARACTERS)
+### HAPPY PATH - CHARACTER ASSETS
 ###############################################
 
-### 4. Create CreatureAsset - Elven Ranger
+### 4. Create CharacterAsset - Elven Ranger
 # @name ranger
 POST {{baseUrl}}/api/assets
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Character",
   "name": "Elven Ranger",
   "description": "Agile archer from Silverwood",
-  "creatureProps": {
+  "monsterProps": {
     "cellSize": 1,
-    "category": "Character",
     "tokenStyle": {
       "borderColor": "#4CAF50",
       "backgroundColor": "#E8F5E9",
@@ -147,17 +146,21 @@ Content-Type: application/json
   }
 }
 
-### 5. Create CreatureAsset - Dwarven Cleric
+###############################################
+### HAPPY PATH - MONSTER ASSETS
+###############################################
+
+### 5. Create MonsterAsset - Dwarven Cleric
 # @name cleric
 POST {{baseUrl}}/api/assets
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Monster",
   "name": "Dwarven Cleric",
   "description": "Holy warrior of the mountain",
-  "creatureProps": {
+  "monsterProps": {
     "cellSize": 1,
     "category": "Character",
     "tokenStyle": {
@@ -169,20 +172,20 @@ Content-Type: application/json
 }
 
 ###############################################
-### HAPPY PATH - CREATURE ASSETS (MONSTERS)
+### HAPPY PATH - MONSTER ASSETS (MONSTERS)
 ###############################################
 
-### 6. Create CreatureAsset - Goblin Warrior
+### 6. Create MonsterAsset - Goblin Warrior
 # @name goblin
 POST {{baseUrl}}/api/assets
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Monster",
   "name": "Goblin Warrior",
-  "description": "Small hostile creature",
-  "creatureProps": {
+  "description": "Small hostile monster",
+  "monsterProps": {
     "cellSize": 1,
     "category": "Monster",
     "tokenStyle": {
@@ -193,17 +196,17 @@ Content-Type: application/json
   }
 }
 
-### 7. Create CreatureAsset - Orc Brute
+### 7. Create MonsterAsset - Orc Brute
 # @name orc
 POST {{baseUrl}}/api/assets
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Monster",
   "name": "Orc Brute",
   "description": "Muscular humanoid with battle axe",
-  "creatureProps": {
+  "monsterProps": {
     "cellSize": 1,
     "category": "Monster",
     "tokenStyle": {
@@ -214,17 +217,17 @@ Content-Type: application/json
   }
 }
 
-### 8. Create CreatureAsset - Adult Red Dragon (4x4)
+### 8. Create MonsterAsset - Adult Red Dragon (4x4)
 # @name dragon
 POST {{baseUrl}}/api/assets
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Monster",
   "name": "Adult Red Dragon",
   "description": "Massive ancient fire-breathing wyrm",
-  "creatureProps": {
+  "monsterProps": {
     "cellSize": 4,
     "category": "Monster",
     "tokenStyle": {
@@ -247,7 +250,7 @@ x-user: {{encodedUserId}}
 GET {{baseUrl}}/api/assets/{{table.response.body.$.id}}
 x-user: {{encodedUserId}}
 
-### 11. Get CreatureAsset by ID
+### 11. Get MonsterAsset by ID
 GET {{baseUrl}}/api/assets/{{ranger.response.body.$.id}}
 x-user: {{encodedUserId}}
 
@@ -272,13 +275,13 @@ Content-Type: application/json
   }
 }
 
-### 13. Update CreatureAsset Token Style
+### 13. Update MonsterAsset Token Style
 PATCH {{baseUrl}}/api/assets/{{ranger.response.body.$.id}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "creatureProps": {
+  "monsterProps": {
     "cellSize": 1,
     "category": "Character",
     "tokenStyle": {
@@ -307,7 +310,7 @@ Content-Type: application/json
 DELETE {{baseUrl}}/api/assets/{{trap.response.body.$.id}}
 x-user: {{encodedUserId}}
 
-### 16. Delete CreatureAsset
+### 16. Delete MonsterAsset
 DELETE {{baseUrl}}/api/assets/{{dragon.response.body.$.id}}
 x-user: {{encodedUserId}}
 
@@ -364,15 +367,15 @@ Content-Type: application/json
   "description": "Missing objectProps"
 }
 
-### 21. Creature Without CreatureProps
+### 21. Monster Without MonsterProps
 POST {{baseUrl}}/api/assets
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Monster",
   "name": "Incomplete",
-  "description": "Missing creatureProps"
+  "description": "Missing monsterProps"
 }
 
 ### 22. Negative Cell Dimensions
@@ -399,10 +402,10 @@ x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "kind": "Creature",
+  "kind": "Monster",
   "name": "Invalid Size",
   "description": "Zero cellSize",
-  "creatureProps": {
+  "monsterProps": {
     "cellSize": 0,
     "category": "Monster"
   }

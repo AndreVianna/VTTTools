@@ -190,8 +190,8 @@ const EncounterEditorPageInternal: React.FC = () => {
     walls: true,
     openings: true,
     objects: true,
-    creatures: true,
-    players: true,
+    monsters: true,
+    characters: true,
     effects: true,
     lightSources: true,
     fogOfWar: true,
@@ -225,8 +225,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       walls: true,
       openings: true,
       objects: true,
-      creatures: true,
-      players: true,
+      monsters: true,
+      characters: true,
       effects: true,
       lightSources: true,
       fogOfWar: true,
@@ -243,8 +243,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       walls: false,
       openings: false,
       objects: false,
-      creatures: false,
-      players: false,
+      monsters: false,
+      characters: false,
       effects: false,
       lightSources: false,
       fogOfWar: false,
@@ -560,8 +560,11 @@ const EncounterEditorPageInternal: React.FC = () => {
         case 'objects':
           setAssetPickerOpen({ open: true, kind: AssetKind.Object });
           break;
-        case 'creatures':
-          setAssetPickerOpen({ open: true, kind: AssetKind.Creature });
+        case 'monsters':
+          setAssetPickerOpen({ open: true, kind: AssetKind.Monster });
+          break;
+        case 'characters':
+          setAssetPickerOpen({ open: true, kind: AssetKind.Character });
           break;
         case 'walls':
           break;
@@ -1110,6 +1113,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             activePanel={activePanel}
             onPanelChange={setActivePanel}
             encounterId={encounterId}
+            gridConfig={gridConfig}
             encounterWalls={placedWalls}
             selectedWallIndex={selectedWallIndex}
             isEditingVertices={isEditingVertices}
@@ -1170,7 +1174,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               />
             </Layer>
 
-            {/* Layer 2: GameWorld (structures, objects, creatures) */}
+            {/* Layer 2: GameWorld (structures, objects, monsters) */}
             <Layer name={LayerName.GameWorld}>
               {/* Regions - render first (bottom of GameWorld) */}
               {scopeVisibility.regions && placedRegions && placedRegions.length > 0 && (
@@ -1277,14 +1281,17 @@ const EncounterEditorPageInternal: React.FC = () => {
                 )}
             </Layer>
 
-            {/* Layer 5: Assets (tokens/objects/creatures) */}
+            {/* Layer 5: Assets (tokens/objects/monsters) */}
             {encounter && (
               <TokenPlacement
                 placedAssets={assetManagement.placedAssets.filter((asset) => {
                   if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
                     return false;
                   }
-                  if (asset.asset.kind === AssetKind.Creature && !scopeVisibility.creatures) {
+                  if (asset.asset.kind === AssetKind.Monster && !scopeVisibility.monsters) {
+                    return false;
+                  }
+                  if (asset.asset.kind === AssetKind.Character && !scopeVisibility.characters) {
                     return false;
                   }
                   return true;
@@ -1381,7 +1388,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                 if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
                   return false;
                 }
-                if (asset.asset.kind === AssetKind.Creature && !scopeVisibility.creatures) {
+                if (asset.asset.kind === AssetKind.Monster && !scopeVisibility.monsters) {
+                  return false;
+                }
+                if (asset.asset.kind === AssetKind.Character && !scopeVisibility.characters) {
                   return false;
                 }
                 return true;

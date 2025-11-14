@@ -5,7 +5,7 @@
 /**
  * AssetFilterPanel Component
  * Comprehensive filtering controls for Asset Library
- * Filters: Kind, Creature Category, Ownership, Published Status
+ * Filters: Kind, Monster Category, Ownership, Published Status
  */
 
 import { Clear as ClearIcon, FilterList as FilterIcon } from '@mui/icons-material';
@@ -21,11 +21,10 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import type { AssetKind, CreatureCategory } from '@/types/domain';
+import type { AssetKind } from '@/types/domain';
 
 export interface AssetFilters {
   kind?: AssetKind;
-  creatureCategory?: CreatureCategory;
   // Ownership - checkboxes
   showMine: boolean;
   showOthers: boolean;
@@ -62,7 +61,6 @@ export const AssetFilterPanel: React.FC<AssetFilterPanelProps> = ({ filters, onF
   };
 
   const hasActiveFilters =
-    filters.creatureCategory !== undefined ||
     !filters.showMine ||
     !filters.showOthers ||
     !filters.showPublic ||

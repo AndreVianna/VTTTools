@@ -84,7 +84,7 @@ public class AssetStorageTests
 
         // Modify the asset
         var tokenId = Guid.CreateVersion7();
-        var asset = new CreatureAsset {
+        var asset = new MonsterAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Asset",
@@ -142,16 +142,15 @@ public class AssetStorageTests
         };
         await _context.Resources.AddAsync(resource, _ct);
 
-        var entity = new Assets.Entities.CreatureAsset {
+        var entity = new Assets.Entities.CharacterAsset {
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
-            Kind = AssetKind.Creature,
+            Kind = AssetKind.Character,
             Name = "Asset With Token",
             Description = "Test description",
             IsPublished = false,
             IsPublic = false,
             Size = NamedSize.FromName(SizeName.Medium),
-            Category = CreatureCategory.Character,
             Tokens = [
                 new() {
                     TokenId = tokenId,
@@ -163,7 +162,7 @@ public class AssetStorageTests
         await _context.Assets.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
-        var updatedAsset = new CreatureAsset {
+        var updatedAsset = new CharacterAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = entity.Name,
@@ -189,7 +188,6 @@ public class AssetStorageTests
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Size = NamedSize.FromName(SizeName.Medium),
-            Category = CreatureCategory.Character,
         };
 
         // Act

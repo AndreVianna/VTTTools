@@ -171,7 +171,7 @@ export class DatabaseHelper {
     const assetId = (asset.id as string | undefined) || this.generateGuidV7();
     const query = `
             INSERT INTO Assets
-            (Id, Name, Description, OwnerId, Kind, IsPublic, IsPublished, Tokens, Portrait, Size, ObjectData, CreatureData, CreatedAt, UpdatedAt)
+            (Id, Name, Description, OwnerId, Kind, IsPublic, IsPublished, Tokens, Portrait, Size, ObjectData, MonsterData, CreatedAt, UpdatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
@@ -180,7 +180,7 @@ export class DatabaseHelper {
     const size = asset.size || { width: 1, height: 1, isSquare: true };
 
     const objectData = asset.kind === 'Object' ? asset.properties : null;
-    const creatureData = asset.kind === 'Creature' ? asset.properties : null;
+    const monsterData = asset.kind === 'Monster' ? asset.properties : null;
 
     const params: SqlValue[] = [
       assetId,
@@ -194,7 +194,7 @@ export class DatabaseHelper {
       portrait ? JSON.stringify(portrait) : null,
       JSON.stringify(size),
       objectData ? JSON.stringify(objectData) : null,
-      creatureData ? JSON.stringify(creatureData) : null,
+      monsterData ? JSON.stringify(monsterData) : null,
       new Date(),
       new Date(),
     ];
@@ -269,9 +269,9 @@ export class DatabaseHelper {
       setClauses.push('ObjectData = ?');
       params.push(JSON.stringify(updates.objectData));
     }
-    if (updates.creatureData) {
-      setClauses.push('CreatureData = ?');
-      params.push(JSON.stringify(updates.creatureData));
+    if (updates.monsterData) {
+      setClauses.push('MonsterData = ?');
+      params.push(JSON.stringify(updates.monsterData));
     }
 
     setClauses.push('UpdatedAt = ?');

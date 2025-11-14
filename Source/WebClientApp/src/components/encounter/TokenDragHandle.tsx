@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Layer, Line, Rect } from 'react-konva';
-import type { CreatureAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
+import type { MonsterAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { getPlacementBehavior } from '@/types/placement';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
@@ -191,14 +191,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
               isOpaque: (asset.asset as ObjectAsset).isOpaque,
             }
           : undefined;
-      const creatureProperties =
-        asset.asset.kind === 'Creature'
+      const monsterProperties =
+        asset.asset.kind === 'Monster'
           ? {
-              size: (asset.asset as CreatureAsset).size,
-              category: (asset.asset as CreatureAsset).category,
+              size: (asset.asset as MonsterAsset).size,
+              category: (asset.asset as MonsterAsset).category,
             }
           : undefined;
-      return getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
+      return getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
     });
 
     return {
@@ -376,14 +376,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 isOpaque: (asset.asset as ObjectAsset).isOpaque,
               }
             : undefined;
-        const creatureProperties =
-          asset.asset.kind === 'Creature'
+        const monsterProperties =
+          asset.asset.kind === 'Monster'
             ? {
-                size: (asset.asset as CreatureAsset).size,
-                category: (asset.asset as CreatureAsset).category,
+                size: (asset.asset as MonsterAsset).size,
+                category: (asset.asset as MonsterAsset).category,
               }
             : undefined;
-        const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
+        const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
 
         // Check collision with each other asset
         if (!behavior.allowOverlap) {
@@ -396,17 +396,17 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     isOpaque: (other.asset as ObjectAsset).isOpaque,
                   }
                 : undefined;
-            const otherCreatureProperties =
-              other.asset.kind === 'Creature'
+            const otherMonsterProperties =
+              other.asset.kind === 'Monster'
                 ? {
-                    size: (other.asset as CreatureAsset).size,
-                    category: (other.asset as CreatureAsset).category,
+                    size: (other.asset as MonsterAsset).size,
+                    category: (other.asset as MonsterAsset).category,
                   }
                 : undefined;
             const otherBehavior = getPlacementBehavior(
               other.asset.kind,
               otherObjectProperties,
-              otherCreatureProperties,
+              otherMonsterProperties,
             );
 
             if (otherBehavior.allowOverlap) continue;
@@ -721,14 +721,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
               }
             : undefined;
-        const creatureProperties =
-          placedAsset.asset.kind === 'Creature'
+        const monsterProperties =
+          placedAsset.asset.kind === 'Monster'
             ? {
-                size: (placedAsset.asset as CreatureAsset).size,
-                category: (placedAsset.asset as CreatureAsset).category,
+                size: (placedAsset.asset as MonsterAsset).size,
+                category: (placedAsset.asset as MonsterAsset).category,
               }
             : undefined;
-        const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, creatureProperties);
+        const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, monsterProperties);
 
         const isDraggable =
           behavior.canMove &&

@@ -9,7 +9,7 @@ import {
   mockAssetToken,
   mockAssetWithMultipleTokens,
   mockAssetWithPortrait,
-  mockCreatureAsset,
+  mockMonsterAsset,
   mockMediaResource,
 } from '@/test-utils/assetMocks';
 import { getDefaultToken, getPortrait, getResourceUrl } from './assetHelpers';
@@ -27,7 +27,7 @@ describe('assetHelpers', () => {
     });
 
     it('should return undefined when no default token exists', () => {
-      const asset = mockCreatureAsset({
+      const asset = mockMonsterAsset({
         tokens: [
           mockAssetToken({
             token: mockMediaResource({ id: 'token-1' }),
@@ -46,7 +46,7 @@ describe('assetHelpers', () => {
     });
 
     it('should return undefined when tokens array is empty', () => {
-      const asset = mockCreatureAsset({ tokens: [] });
+      const asset = mockMonsterAsset({ tokens: [] });
 
       const result = getDefaultToken(asset);
 
@@ -54,7 +54,7 @@ describe('assetHelpers', () => {
     });
 
     it('should return first default token when multiple defaults exist', () => {
-      const asset = mockCreatureAsset({
+      const asset = mockMonsterAsset({
         tokens: [
           mockAssetToken({
             token: mockMediaResource({ id: 'token-1' }),
@@ -90,7 +90,7 @@ describe('assetHelpers', () => {
     });
 
     it('should return undefined when portrait does not exist', () => {
-      const asset = mockCreatureAsset();
+      const asset = mockMonsterAsset();
 
       const result = getPortrait(asset);
 
@@ -141,7 +141,7 @@ describe('assetHelpers', () => {
 
   describe('Token fallback logic', () => {
     it('should prioritize default token over first token', () => {
-      const asset = mockCreatureAsset({
+      const asset = mockMonsterAsset({
         tokens: [
           mockAssetToken({
             token: mockMediaResource({ id: 'token-1' }),
@@ -164,7 +164,7 @@ describe('assetHelpers', () => {
     });
 
     it('should handle asset with only one token (auto-default)', () => {
-      const asset = mockCreatureAsset({
+      const asset = mockMonsterAsset({
         tokens: [
           mockAssetToken({
             token: mockMediaResource({ id: 'token-1' }),
@@ -180,7 +180,7 @@ describe('assetHelpers', () => {
     });
 
     it('should return undefined for object with no tokens', () => {
-      const asset = mockCreatureAsset({ tokens: [] });
+      const asset = mockMonsterAsset({ tokens: [] });
 
       const defaultToken = getDefaultToken(asset);
 
@@ -209,7 +209,7 @@ describe('assetHelpers', () => {
     });
 
     it('should allow asset with tokens but no portrait', () => {
-      const asset = mockCreatureAsset({
+      const asset = mockMonsterAsset({
         tokens: [
           mockAssetToken({
             token: mockMediaResource({ id: 'token-1' }),

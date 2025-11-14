@@ -102,11 +102,11 @@ describe('EncounterEditorPage Integration', () => {
     const mockAssets = [
       {
         id: 'asset-1',
-        assetId: 'creature-1',
+        assetId: 'monster-1',
         asset: {
-          id: 'creature-1',
+          id: 'monster-1',
           name: 'Goblin',
-          kind: 'Creature',
+          kind: 'Monster',
           resources: [],
         },
         position: { x: 100, y: 100 },

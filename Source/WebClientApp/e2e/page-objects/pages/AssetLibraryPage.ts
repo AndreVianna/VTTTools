@@ -10,9 +10,9 @@ import { BasePage } from '../base/BasePage.js';
 export class AssetLibraryPage extends BasePage {
   // Locators as getters (lazy evaluation)
   readonly title = (): Locator => this.page.locator('h1:has-text("Asset Library")');
-  readonly subtitle = (): Locator => this.page.locator('text=Manage your objects and creatures');
+  readonly subtitle = (): Locator => this.page.locator('text=Manage your objects and monsters');
   readonly tabObjects = (): Locator => this.page.locator('button[role="tab"]:has-text("Objects")');
-  readonly tabCreatures = (): Locator => this.page.locator('button[role="tab"]:has-text("Creatures")');
+  readonly tabMonsters = (): Locator => this.page.locator('button[role="tab"]:has-text("Monsters")');
   readonly searchBar = (): Locator => this.page.locator('input[placeholder*="Search"]');
   readonly filterPanel = (): Locator => this.getByTestId('asset-filter-panel');
   readonly virtualAddCard = (): Locator => this.getByTestId('virtual-add-card');
@@ -37,14 +37,14 @@ export class AssetLibraryPage extends BasePage {
   }
 
   // Tab operations
-  async switchToTab(tabName: 'Objects' | 'Creatures'): Promise<void> {
-    const tab = tabName === 'Objects' ? this.tabObjects() : this.tabCreatures();
+  async switchToTab(tabName: 'Objects' | 'Monsters'): Promise<void> {
+    const tab = tabName === 'Objects' ? this.tabObjects() : this.tabMonsters();
     await tab.click();
     await this.waitForLoad();
   }
 
-  async verifyTabSelected(tabName: 'Objects' | 'Creatures'): Promise<void> {
-    const tab = tabName === 'Objects' ? this.tabObjects() : this.tabCreatures();
+  async verifyTabSelected(tabName: 'Objects' | 'Monsters'): Promise<void> {
+    const tab = tabName === 'Objects' ? this.tabObjects() : this.tabMonsters();
     await expect(tab).toHaveAttribute('aria-selected', 'true');
   }
 

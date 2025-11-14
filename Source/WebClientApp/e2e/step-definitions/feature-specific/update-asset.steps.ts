@@ -144,8 +144,8 @@ Given(
   },
 );
 
-Given('I own Creature with category {string}', async function (this: CustomWorld, category: string) {
-  const asset = await this.assetBuilder().withName('Test Creature').withKind(AssetKind.Creature).create();
+Given('I own Monster with category {string}', async function (this: CustomWorld, category: string) {
+  const asset = await this.assetBuilder().withName('Test Monster').withKind(AssetKind.Monster).create();
 
   await this.db.updateAsset(asset.id, {
     properties: {
@@ -787,7 +787,7 @@ Then(
   },
 );
 
-Then('creatureProps.category should be {string}', async function (this: CustomWorld, category: string) {
+Then('monsterProps.category should be {string}', async function (this: CustomWorld, category: string) {
   const asset = await this.db.queryTable('Assets', {
     Id: this.currentAsset.id,
   });
