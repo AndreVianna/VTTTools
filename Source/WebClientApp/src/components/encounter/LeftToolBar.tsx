@@ -16,12 +16,12 @@ import { Box, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/mat
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { AssetPicker } from '@/components/common';
-import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
+import type { Asset, PlacedAsset, PlacedOpening, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
-import type { SourcePlacementProperties } from './panels';
-import { CharactersPanel, MonstersPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import type { OpeningPlacementProperties, SourcePlacementProperties } from './panels';
+import { CharactersPanel, MonstersPanel, ObjectsPanel, OpeningsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 
 export type PanelType =
   | 'regions'
@@ -74,6 +74,12 @@ export interface LeftToolBarProps {
   onSourceDelete?: (index: number) => void;
   onPlaceSource?: (properties: SourcePlacementProperties) => void;
   onEditSource?: (index: number, updates: Partial<PlacedSource>) => void;
+  encounterOpenings?: PlacedOpening[] | undefined;
+  selectedOpeningIndex?: number | null | undefined;
+  onOpeningSelect?: (index: number) => void;
+  onOpeningDelete?: (index: number) => void;
+  onPlaceOpening?: (properties: OpeningPlacementProperties) => void;
+  onEditOpening?: (index: number, updates: Partial<PlacedOpening>) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
@@ -111,6 +117,12 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onSourceDelete,
   onPlaceSource,
   onEditSource,
+  encounterOpenings,
+  selectedOpeningIndex,
+  onOpeningSelect,
+  onOpeningDelete,
+  onPlaceOpening,
+  onEditOpening,
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
@@ -338,11 +350,16 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               {...(onCancelEditing ? { onCancelEditing } : {})}
             />
           )}
-          {activePanel === 'openings' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Openings</Box>
-              <Box>Door/window controls</Box>
-            </Box>
+          {activePanel === 'openings' && encounterId && encounterOpenings && (
+            <OpeningsPanel
+              encounterId={encounterId}
+              encounterOpenings={encounterOpenings}
+              selectedOpeningIndex={selectedOpeningIndex ?? null}
+              {...(onOpeningSelect ? { onOpeningSelect } : {})}
+              {...(onOpeningDelete ? { onOpeningDelete } : {})}
+              {...(onPlaceOpening ? { onPlaceOpening } : {})}
+              {...(onEditOpening ? { onEditOpening } : {})}
+            />
           )}
           {activePanel === 'objects' && (
             <ObjectsPanel
