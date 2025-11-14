@@ -1,6 +1,7 @@
 using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
+using EncounterOpeningEntity = VttTools.Data.Library.Entities.EncounterOpening;
 
 namespace VttTools.Data.Library;
 

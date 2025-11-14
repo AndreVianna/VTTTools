@@ -732,3 +732,47 @@ export interface EncounterSource {
 export interface PlacedSource extends EncounterSource {
   id: string;
 }
+
+export enum OpeningVisibility {
+  Visible = 0,
+  Secret = 1,
+  Concealed = 2,
+}
+
+export enum OpeningState {
+  Open = 0,
+  Closed = 1,
+  Locked = 2,
+  Barred = 3,
+  Destroyed = 4,
+  Jammed = 5,
+}
+
+export enum OpeningOpacity {
+  Opaque = 0,
+  Translucent = 1,
+  Transparent = 2,
+  Ethereal = 3,
+}
+
+export interface EncounterOpening {
+  encounterId: string;
+  index: number;
+  name: string;
+  description?: string;
+  type: string;
+  wallIndex: number;
+  startPoleIndex: number;
+  endPoleIndex: number;
+  width: number;
+  height: number;
+  visibility: OpeningVisibility;
+  state: OpeningState;
+  opacity: OpeningOpacity;
+  material?: string;
+  color?: string;
+}
+
+export interface PlacedOpening extends EncounterOpening {
+  id: string;
+}
