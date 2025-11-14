@@ -3,9 +3,13 @@ import type {
   CreateEncounterRequest,
   Encounter,
   EncounterAsset,
+  EncounterOpening,
   EncounterRegion,
   EncounterSource,
   EncounterWall,
+  OpeningOpacity,
+  OpeningState,
+  OpeningVisibility,
   Point,
   Pole,
   UpdateEncounterRequest,
@@ -36,7 +40,7 @@ export interface EncounterAssetBulkUpdate {
 export const encounterApi = createApi({
   reducerPath: 'encounterApi',
   baseQuery: createEnhancedBaseQuery('/api/encounters'),
-  tagTypes: ['Encounter', 'EncounterAsset', 'EncounterWall', 'EncounterRegion', 'EncounterSource'],
+  tagTypes: ['Encounter', 'EncounterAsset', 'EncounterWall', 'EncounterOpening', 'EncounterRegion', 'EncounterSource'],
   endpoints: (builder) => ({
     getEncounter: builder.query<Encounter, string>({
       query: (id) => `/${id}`,
@@ -558,6 +562,75 @@ export const encounterApi = createApi({
         { type: 'Encounter', id: encounterId },
       ],
     }),
+
+    addEncounterOpening: builder.mutation<
+      EncounterOpening,
+      {
+        encounterId: string;
+        name?: string;
+        description?: string;
+        type: string;
+        wallIndex: number;
+        centerPosition: number;
+        width: number;
+        height: number;
+        visibility?: OpeningVisibility;
+        state?: OpeningState;
+        opacity?: OpeningOpacity;
+        material?: string;
+        color?: string;
+      }
+    >({
+      query: ({ encounterId, ...body }) => ({
+        url: `/${encounterId}/openings`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { encounterId }) => [
+        { type: 'EncounterOpening', id: `ENCOUNTER_${encounterId}` },
+        { type: 'Encounter', id: encounterId },
+      ],
+    }),
+
+    updateEncounterOpening: builder.mutation<
+      void,
+      {
+        encounterId: string;
+        openingIndex: number;
+        name?: string;
+        description?: string;
+        type?: string;
+        width?: number;
+        height?: number;
+        visibility?: OpeningVisibility;
+        state?: OpeningState;
+        opacity?: OpeningOpacity;
+        material?: string;
+        color?: string;
+      }
+    >({
+      query: ({ encounterId, openingIndex, ...body }) => ({
+        url: `/${encounterId}/openings/${openingIndex}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { encounterId, openingIndex }) => [
+        { type: 'EncounterOpening', id: `${encounterId}-${openingIndex}` },
+        { type: 'Encounter', id: encounterId },
+      ],
+    }),
+
+    removeEncounterOpening: builder.mutation<void, { encounterId: string; openingIndex: number }>({
+      query: ({ encounterId, openingIndex }) => ({
+        url: `/${encounterId}/openings/${openingIndex}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { encounterId, openingIndex }) => [
+        { type: 'EncounterOpening', id: `${encounterId}-${openingIndex}` },
+        { type: 'EncounterOpening', id: `ENCOUNTER_${encounterId}` },
+        { type: 'Encounter', id: encounterId },
+      ],
+    }),
   }),
 });
 
@@ -587,4 +660,7 @@ export const {
   useAddEncounterSourceMutation,
   useUpdateEncounterSourceMutation,
   useRemoveEncounterSourceMutation,
+  useAddEncounterOpeningMutation,
+  useUpdateEncounterOpeningMutation,
+  useRemoveEncounterOpeningMutation,
 } = encounterApi;

@@ -16,5 +16,10 @@ export type {
   SourcesPanelProps,
 } from './SourcesPanel';
 export { SourcesPanel } from './SourcesPanel';
+export type {
+  OpeningPlacementProperties,
+  OpeningsPanelProps,
+} from './OpeningsPanel';
+export { OpeningsPanel } from './OpeningsPanel';
 export type { WallsPanelProps } from './WallsPanel';
 export { WallsPanel } from './WallsPanel';
