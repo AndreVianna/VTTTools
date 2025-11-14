@@ -573,8 +573,12 @@ const EncounterEditorPageInternal: React.FC = () => {
     if (!stage) return;
 
     const handleDblClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (e.target !== stage) return;
-      if (!activeScope) return;
+      if (e.target !== stage) {
+        return;
+      }
+      if (!activeScope) {
+        return;
+      }
 
       switch (activeScope) {
         case 'objects':
@@ -603,9 +607,14 @@ const EncounterEditorPageInternal: React.FC = () => {
     };
   }, [activeScope]);
 
+  const prevActiveScopeRef = useRef<InteractionScope>(null);
   useEffect(() => {
-    assetManagement.handleAssetSelected([]);
-  }, [activeScope, assetManagement]);
+    if (prevActiveScopeRef.current !== activeScope && prevActiveScopeRef.current !== null) {
+      assetManagement.handleAssetSelected([]);
+    }
+    prevActiveScopeRef.current = activeScope;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeScope]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -1313,7 +1322,13 @@ const EncounterEditorPageInternal: React.FC = () => {
                     if (encounterRegion.index === -1 && drawingRegionIndex !== null) {
                       return null;
                     }
-                    return <RegionRenderer key={encounterRegion.id} encounterRegion={encounterRegion} />;
+                    return (
+                      <RegionRenderer
+                        key={encounterRegion.id}
+                        encounterRegion={encounterRegion}
+                        activeScope={activeScope}
+                      />
+                    );
                   })}
                 </Group>
               )}
@@ -1327,6 +1342,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       encounterSource={encounterSource}
                       walls={encounter.walls || []}
                       gridConfig={gridConfig}
+                      activeScope={activeScope}
                     />
                   ))}
                 </Group>
@@ -1349,6 +1365,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                           <WallRenderer
                             encounterWall={encounterWall}
                             onContextMenu={contextMenus.wallContextMenu.handleOpen}
+                            activeScope={activeScope}
                           />
                         )}
                       </React.Fragment>

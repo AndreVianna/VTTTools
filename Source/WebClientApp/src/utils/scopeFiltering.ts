@@ -13,8 +13,13 @@ export type InteractionScope =
   | null;
 
 export function isAssetInScope(asset: PlacedAsset | undefined, scope: InteractionScope): boolean {
-  if (!asset) return false;
-  if (scope === null) return true;
+  if (!asset) {
+    return false;
+  }
+
+  if (scope === null) {
+    return true;
+  }
 
   switch (scope) {
     case 'objects':
@@ -37,25 +42,21 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
 }
 
 export function isWallInScope(scope: InteractionScope): boolean {
-  if (scope === null) return false;
+  if (scope === null) return true;
   return scope === 'walls';
 }
 
 export function isOpeningInScope(scope: InteractionScope): boolean {
-  if (scope === null) return false;
+  if (scope === null) return true;
   return scope === 'openings';
 }
 
 export function isRegionInScope(scope: InteractionScope): boolean {
-  if (scope === null) return false;
+  if (scope === null) return true;
   return scope === 'regions';
 }
 
 export function isSourceInScope(scope: InteractionScope): boolean {
-  if (scope === null) return false;
+  if (scope === null) return true;
   return scope === 'sources';
-}
-
-export function canInteract(scope: InteractionScope): boolean {
-  return true;
 }

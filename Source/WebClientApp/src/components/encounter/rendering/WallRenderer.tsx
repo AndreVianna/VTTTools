@@ -2,13 +2,16 @@ import type Konva from 'konva';
 import type React from 'react';
 import { Circle, Group, Line } from 'react-konva';
 import { type EncounterWall, WallVisibility } from '@/types/domain';
+import type { InteractionScope } from '@/utils/scopeFiltering';
+import { isWallInScope } from '@/utils/scopeFiltering';
 
 export interface WallRendererProps {
   encounterWall: EncounterWall;
   onContextMenu?: (index: number, position: { x: number; y: number }) => void;
+  activeScope: InteractionScope;
 }
 
-export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onContextMenu }) => {
+export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onContextMenu, activeScope }) => {
   const getWallStyle = (visibility: WallVisibility) => {
     const wallColor = encounterWall.color || '#808080';
     const strokeColor = wallColor;
@@ -41,6 +44,7 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
 
   const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
+
     if (onContextMenu) {
       const stage = e.target.getStage();
       const pointerPosition = stage?.getPointerPosition();
@@ -71,6 +75,8 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
   const poleRadius = 1.5;
   const poleColor = encounterWall.color || '#808080';
 
+  const isInteractive = isWallInScope(activeScope);
+
   return (
     <Group>
       <Line
@@ -79,16 +85,18 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
         strokeWidth={style.strokeWidth}
         {...(style.dash && { dash: style.dash })}
         opacity={style.opacity}
-        listening={true}
+        listening={isInteractive}
         onContextMenu={handleContextMenu}
         hitStrokeWidth={8}
         onMouseEnter={(e) => {
+          if (!isInteractive) return;
           const container = e.target.getStage()?.container();
           if (container) {
             container.style.cursor = 'context-menu';
           }
         }}
         onMouseLeave={(e) => {
+          if (!isInteractive) return;
           const container = e.target.getStage()?.container();
           if (container) {
             container.style.cursor = 'default';

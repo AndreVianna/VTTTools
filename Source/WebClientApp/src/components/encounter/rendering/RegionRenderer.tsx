@@ -3,14 +3,17 @@ import type React from 'react';
 import { Line } from 'react-konva';
 import type { PlacedRegion } from '@/types/domain';
 import { calculatePolygonCentroid } from '@/utils/geometryUtils';
+import type { InteractionScope } from '@/utils/scopeFiltering';
+import { isRegionInScope } from '@/utils/scopeFiltering';
 import { REGION_PRESETS } from '../panels/regionsPanelTypes';
 import { RegionLabelDisplay } from './RegionLabelDisplay';
 
 export interface RegionRendererProps {
   encounterRegion: PlacedRegion;
+  activeScope: InteractionScope;
 }
 
-export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion }) => {
+export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope }) => {
   const theme = useTheme();
 
   const getRegionColor = (): string => {
@@ -42,6 +45,8 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion 
   if (!firstVertex) return null;
   const points = [...encounterRegion.vertices, firstVertex].flatMap((v) => [v.x, v.y]);
 
+  const isInteractive = isRegionInScope(activeScope);
+
   return (
     <>
       <Line
@@ -53,7 +58,7 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion 
         fillOpacity={0.3}
         strokeOpacity={0.8}
         closed={true}
-        listening={false}
+        listening={isInteractive}
       />
       <RegionLabelDisplay centroid={centroid} label={getLabelText()} />
     </>

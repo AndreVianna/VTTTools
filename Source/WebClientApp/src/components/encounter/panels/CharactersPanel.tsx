@@ -60,7 +60,7 @@ export const CharactersPanel: React.FC<CharactersPanelProps> = ({
   const [labelVisibility, setLabelVisibility] = useState<LabelVisibility>(() => {
     const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
     if (stored === LabelVisibility.Default || !stored) {
-      return LabelVisibility.OnHover;
+      return LabelVisibility.Always;
     }
     return stored as LabelVisibility;
   });

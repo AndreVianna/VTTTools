@@ -7,11 +7,14 @@ import type { EncounterSource, EncounterWall } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
+import type { InteractionScope } from '@/utils/scopeFiltering';
+import { isSourceInScope } from '@/utils/scopeFiltering';
 
 export interface SourceRendererProps {
   encounterSource: EncounterSource;
   walls: EncounterWall[];
   gridConfig: GridConfig;
+  activeScope: InteractionScope;
 }
 
 const getSourceColor = (sourceType: string, theme: Theme): string => {
@@ -25,7 +28,12 @@ const getSourceColor = (sourceType: string, theme: Theme): string => {
   }
 };
 
-export const SourceRenderer: React.FC<SourceRendererProps> = ({ encounterSource, walls, gridConfig }) => {
+export const SourceRenderer: React.FC<SourceRendererProps> = ({
+  encounterSource,
+  walls,
+  gridConfig,
+  activeScope,
+}) => {
   const theme = useTheme();
   const defaultColor = getSourceColor(encounterSource.type, theme);
   const color = encounterSource.color ?? defaultColor;
@@ -43,6 +51,7 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({ encounterSource,
   }, [encounterSource, effectiveRange, opaqueWalls, gridConfig]);
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
+  const isInteractive = isSourceInScope(activeScope);
 
   return (
     <Shape
@@ -87,7 +96,7 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({ encounterSource,
           context.fill();
         }
       }}
-      listening={false}
+      listening={isInteractive}
     />
   );
 };

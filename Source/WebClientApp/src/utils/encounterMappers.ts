@@ -77,7 +77,7 @@ export async function hydratePlacedAssets(
       } else if (isCharacter) {
         visibilityKey = 'vtt-characters-label-visibility';
         positionKey = 'vtt-characters-label-position';
-        defaultVisibility = LabelVisibilityEnum.OnHover;
+        defaultVisibility = LabelVisibilityEnum.Always;
       } else {
         visibilityKey = 'vtt-objects-label-visibility';
         positionKey = 'vtt-objects-label-position';

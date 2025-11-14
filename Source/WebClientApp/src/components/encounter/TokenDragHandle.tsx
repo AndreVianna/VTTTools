@@ -8,7 +8,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 import type { InteractionScope } from '@/utils/scopeFiltering';
-import { canInteract, isAssetInScope } from '@/utils/scopeFiltering';
+import { isAssetInScope } from '@/utils/scopeFiltering';
 
 /**
  * Render invalid placement indicator (red X)
@@ -225,10 +225,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
   const handleNodeClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (!canInteract(activeScope)) {
-        return;
-      }
-
       const clickedNode = e.currentTarget;
       const assetId = clickedNode.id();
 
@@ -237,6 +233,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
       }
 
       const clickedAsset = placedAssetsRef.current.find((a) => a.id === assetId);
+
       if (!isAssetInScope(clickedAsset, activeScope)) {
         return;
       }
@@ -262,6 +259,13 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     (e: Konva.KonvaEventObject<DragEvent>) => {
       const node = e.currentTarget;
       const draggedAssetId = node.id();
+
+      const asset = placedAssetsRef.current.find((a) => a.id === draggedAssetId);
+      if (!isAssetInScope(asset, activeScope)) {
+        e.evt.preventDefault();
+        return;
+      }
+
       const position = node.position();
       dragStartPosRef.current = position;
 
@@ -307,7 +311,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         }
       }
     },
-    [stageRef, onAssetSelected],
+    [stageRef, onAssetSelected, activeScope],
   );
 
   const handleDragMove = useCallback(
@@ -578,11 +582,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     if (!stage) return;
 
     const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-      // Only marquee on left mouse button (button 0)
-      if (e.evt.button !== 0 || e.target !== stage) return;
+      if (e.evt.button !== 0 || e.target !== stage) {
+        return;
+      }
 
       const pos = stage.getPointerPosition();
-      if (!pos) return;
+      if (!pos) {
+        return;
+      }
 
       const scale = stage.scaleX();
       const stagePos = {
@@ -614,14 +621,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (!marqueeSelection) return;
       if (e.evt.button !== 0) return;
-
-      if (!canInteract(activeScope)) {
-        setMarqueeSelection(null);
-        setTimeout(() => {
-          marqueeActiveRef.current = false;
-        }, 100);
-        return;
-      }
 
       const rect = {
         left: Math.min(marqueeSelection.start.x, marqueeSelection.end.x),
@@ -679,39 +678,70 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     };
   }, [enableDragMove, stageRef, isCtrlPressed, marqueeSelection, placedAssets, onAssetSelected, activeScope]);
 
-  // Track which assets have handlers attached
-  const attachedHandlersRef = useRef<Set<string>>(new Set());
-
   useEffect(() => {
     if (!enableDragMove) return;
 
     const stage = stageRef.current;
     if (!stage) return;
 
-    const handlersToCleanup = attachedHandlersRef.current;
+    const handleStageClickCapture = (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (e.target === stage) {
+        return;
+      }
 
-    const currentAssetIds = new Set(placedAssets.map((a) => a.id));
+      const targetId = e.target.id();
+      if (!targetId) {
+        return;
+      }
 
-    attachedHandlersRef.current.forEach((assetId) => {
-      if (!currentAssetIds.has(assetId)) {
-        const node = stage.findOne(`#${assetId}`);
+      handleNodeClick(e);
+    };
+
+    stage.on('click', handleStageClickCapture);
+
+    return () => {
+      stage.off('click', handleStageClickCapture);
+    };
+  }, [enableDragMove, stageRef, handleNodeClick]);
+
+  useEffect(() => {
+    if (!enableDragMove) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    placedAssets.forEach((placedAsset) => {
+      const node = stage.findOne(`#${placedAsset.id}`);
+      if (node && !node.hasEventListeners('dragstart')) {
+        node.on('dragstart', handleDragStart);
+        node.on('dragmove', handleDragMove);
+        node.on('dragend', handleDragEnd);
+      }
+    });
+
+    if (!hasCalledReadyRef.current && onReady) {
+      hasCalledReadyRef.current = true;
+      onReady();
+    }
+
+    return () => {
+      placedAssets.forEach((placedAsset) => {
+        const node = stage?.findOne(`#${placedAsset.id}`);
         if (node) {
-          node.off('click', handleNodeClick);
           node.off('dragstart', handleDragStart);
           node.off('dragmove', handleDragMove);
           node.off('dragend', handleDragEnd);
         }
-        attachedHandlersRef.current.delete(assetId);
-      }
-    });
+      });
+    };
+  }, [stageRef, enableDragMove, placedAssets.length, handleDragStart, handleDragMove, handleDragEnd, onReady]);
+
+  useEffect(() => {
+    if (!enableDragMove) return;
+    const stage = stageRef.current;
+    if (!stage) return;
 
     placedAssets.forEach((placedAsset) => {
-      if (attachedHandlersRef.current.has(placedAsset.id)) {
-        return;
-      }
-
       const node = stage.findOne(`#${placedAsset.id}`);
-
       if (node) {
         const objectProperties =
           placedAsset.asset.kind === 'Object'
@@ -734,43 +764,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
           behavior.canMove &&
           (selectedAssetIds.length === 0 || !selectedAssetIds.includes(placedAsset.id) || availableActions.canMove);
         node.draggable(isDraggable);
-        node.on('click', handleNodeClick);
-        node.on('dragstart', handleDragStart);
-        node.on('dragmove', handleDragMove);
-        node.on('dragend', handleDragEnd);
-        attachedHandlersRef.current.add(placedAsset.id);
       }
     });
-
-    if (!hasCalledReadyRef.current && onReady) {
-      hasCalledReadyRef.current = true;
-      onReady();
-    }
-
-    return () => {
-      handlersToCleanup.forEach((assetId) => {
-        const node = stage?.findOne(`#${assetId}`);
-        if (node) {
-          node.off('click');
-          node.off('dragstart');
-          node.off('dragmove');
-          node.off('dragend');
-        }
-      });
-      handlersToCleanup.clear();
-    };
-  }, [
-    stageRef,
-    enableDragMove,
-    placedAssets,
-    handleNodeClick,
-    handleDragStart,
-    handleDragMove,
-    handleDragEnd,
-    onReady,
-    availableActions.canMove,
-    selectedAssetIds,
-  ]);
+  }, [enableDragMove, stageRef, placedAssets, selectedAssetIds, availableActions.canMove]);
 
   const getAssetRenderPosition = useCallback(
     (assetId: string) => {
