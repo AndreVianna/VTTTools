@@ -449,6 +449,7 @@ export interface Encounter {
   };
   assets: EncounterAsset[];
   walls: EncounterWall[];
+  openings: EncounterOpening[];
   regions: EncounterRegion[];
   sources: EncounterSource[];
 }
