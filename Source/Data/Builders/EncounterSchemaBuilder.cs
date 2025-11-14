@@ -1,6 +1,7 @@
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using EncounterAsset = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterEffect = VttTools.Data.Library.Entities.EncounterEffect;
+using EncounterOpening = VttTools.Data.Library.Entities.EncounterOpening;
 using EncounterRegion = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSource = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWall = VttTools.Data.Library.Entities.EncounterWall;
@@ -119,6 +120,38 @@ internal static class EncounterSchemaBuilder {
 
             entity.HasOne(e => e.Encounter)
                 .WithMany(s => s.Walls)
+                .HasForeignKey(e => e.EncounterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.EncounterId);
+        });
+
+        builder.Entity<EncounterOpening>(entity => {
+            entity.ToTable("EncounterOpenings");
+            entity.HasKey(e => new { e.EncounterId, e.Index });
+            entity.Property(e => e.EncounterId).IsRequired();
+            entity.Property(e => e.Index).IsRequired();
+
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Description).IsRequired(false).HasMaxLength(512);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
+
+            entity.Property(e => e.WallIndex).IsRequired();
+            entity.Property(e => e.StartPoleIndex).IsRequired();
+            entity.Property(e => e.EndPoleIndex).IsRequired();
+
+            entity.Property(e => e.Width).IsRequired().HasDefaultValue(0.0);
+            entity.Property(e => e.Height).IsRequired().HasDefaultValue(0.0);
+
+            entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(OpeningVisibility.Visible);
+            entity.Property(e => e.State).IsRequired().HasDefaultValue(OpeningState.Closed);
+            entity.Property(e => e.Opacity).IsRequired().HasDefaultValue(OpeningOpacity.Opaque);
+
+            entity.Property(e => e.Material).IsRequired(false).HasMaxLength(32);
+            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(16);
+
+            entity.HasOne(e => e.Encounter)
+                .WithMany(s => s.Openings)
                 .HasForeignKey(e => e.EncounterId)
                 .OnDelete(DeleteBehavior.Cascade);
 

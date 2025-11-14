@@ -248,4 +248,49 @@ public class EncounterStorage(ApplicationDbContext context)
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
+
+    /// <inheritdoc />
+    public async Task<EncounterOpening?> GetOpeningByIdAsync(Guid id, uint index, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterOpeningEntity>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.EncounterId == id && o.Index == index, ct);
+        return entity?.ToModel();
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> AddOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default) {
+        var encounter = await context.Encounters.FindAsync([id], ct);
+        if (encounter == null) return false;
+
+        var wallExists = await context.Set<EncounterWallEntity>()
+            .AnyAsync(w => w.EncounterId == id && w.Index == encounterOpening.WallIndex, ct);
+        if (!wallExists) return false;
+
+        var entity = encounterOpening.ToEntity(id);
+        await context.Set<EncounterOpeningEntity>().AddAsync(entity, ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterOpeningEntity>()
+            .FirstOrDefaultAsync(o => o.EncounterId == id && o.Index == encounterOpening.Index, ct);
+        if (entity == null)
+            return false;
+        entity.UpdateFrom(id, encounterOpening);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteOpeningAsync(Guid id, uint index, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterOpeningEntity>()
+            .FirstOrDefaultAsync(o => o.EncounterId == id && o.Index == index, ct);
+        if (entity == null)
+            return false;
+        context.Set<EncounterOpeningEntity>().Remove(entity);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
 }

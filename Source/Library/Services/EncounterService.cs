@@ -1,5 +1,7 @@
 using EncounterAssetBulkUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
 using EncounterAssetUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
+using EncounterOpeningAddData = VttTools.Library.Encounters.ServiceContracts.EncounterOpeningAddData;
+using EncounterOpeningUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterOpeningUpdateData;
 
 namespace VttTools.Library.Services;
 
@@ -470,6 +472,146 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             return Result.Failure("NotAllowed");
 
         await encounterStorage.DeleteWallAsync(id, index, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<EncounterOpening>> PlaceOpeningAsync(Guid userId, Guid id, EncounterOpeningAddData data, CancellationToken ct = default) {
+        var encounter = await encounterStorage.GetByIdAsync(id, ct);
+        if (encounter is null)
+            return Result.Failure("NotFound");
+        if (encounter.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var validationResult = data.Validate();
+        if (validationResult.HasErrors)
+            return validationResult;
+
+        var wall = encounter.Walls.FirstOrDefault(w => w.Index == data.WallIndex);
+        if (wall is null)
+            return Result.Failure($"Wall with index {data.WallIndex} not found");
+        if (wall.Poles.Count < 2)
+            return Result.Failure($"Wall with index {data.WallIndex} must have at least 2 poles");
+
+        var (startPoleIndex, endPoleIndex, updatedPoles) = FindOrInsertPoles(wall.Poles, data.CenterPosition, data.Width);
+
+        var openingIndex = encounter.Openings.Count != 0 ? encounter.Openings.Max(o => o.Index) + 1 : 1;
+        var opening = new EncounterOpening {
+            Index = openingIndex,
+            Name = data.Name ?? $"{data.Type} {openingIndex}",
+            Description = data.Description,
+            Type = data.Type,
+            WallIndex = data.WallIndex,
+            StartPoleIndex = startPoleIndex,
+            EndPoleIndex = endPoleIndex,
+            Size = new Dimension(data.Width, data.Height),
+            Visibility = data.Visibility,
+            State = data.State,
+            Opacity = data.Opacity,
+            Material = data.Material,
+            Color = data.Color,
+        };
+
+        if (updatedPoles.Count != wall.Poles.Count) {
+            var updatedWall = wall with { Poles = updatedPoles };
+            await encounterStorage.UpdateWallAsync(id, updatedWall, ct);
+        }
+
+        await encounterStorage.AddOpeningAsync(id, opening, ct);
+        return opening;
+    }
+
+    private static (uint startPoleIndex, uint endPoleIndex, List<Pole> updatedPoles) FindOrInsertPoles(
+        IReadOnlyList<Pole> existingPoles,
+        double centerPosition,
+        double openingWidth) {
+
+        const double poleTolerance = 0.5;
+        var poles = existingPoles.ToList();
+        var halfWidth = openingWidth / 2.0;
+        var startPosition = centerPosition - halfWidth;
+        var endPosition = centerPosition + halfWidth;
+
+        uint startPoleIndex = FindOrCreatePole(poles, startPosition, poleTolerance);
+        uint endPoleIndex = FindOrCreatePole(poles, endPosition, poleTolerance);
+
+        return (startPoleIndex, endPoleIndex, poles);
+    }
+
+    private static uint FindOrCreatePole(List<Pole> poles, double targetPosition, double tolerance) {
+        for (var i = 0; i < poles.Count; i++) {
+            var distance = Math.Abs(poles[i].X - targetPosition);
+            if (distance < tolerance)
+                return (uint)i;
+        }
+
+        if (poles.Count == 0)
+            throw new InvalidOperationException("Cannot create pole on wall with no existing poles");
+
+        var newPole = new Pole(targetPosition, poles[0].Y, poles[0].H);
+
+        if (targetPosition < poles[0].X) {
+            poles.Insert(0, newPole);
+            return 0;
+        }
+
+        for (var i = 0; i < poles.Count - 1; i++) {
+            if (poles[i].X < targetPosition && targetPosition < poles[i + 1].X) {
+                poles.Insert(i + 1, newPole);
+                return (uint)(i + 1);
+            }
+        }
+
+        poles.Add(newPole);
+        return (uint)(poles.Count - 1);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> UpdateOpeningAsync(Guid userId, Guid id, uint index, EncounterOpeningUpdateData data, CancellationToken ct = default) {
+        var encounter = await encounterStorage.GetByIdAsync(id, ct);
+        if (encounter is null)
+            return Result.Failure("NotFound");
+        var opening = encounter.Openings.FirstOrDefault(o => o.Index == index);
+        if (opening is null)
+            return Result.Failure("NotFound");
+        if (encounter.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var validationResult = data.Validate();
+        if (validationResult.HasErrors)
+            return validationResult;
+
+        opening = opening with {
+            Name = data.Name.IsSet ? data.Name.Value : opening.Name,
+            Description = data.Description.IsSet ? data.Description.Value : opening.Description,
+            Type = data.Type.IsSet ? data.Type.Value : opening.Type,
+            Size = new Dimension(
+                data.Width.IsSet ? data.Width.Value : opening.Size.Width,
+                data.Height.IsSet ? data.Height.Value : opening.Size.Height
+            ),
+            Visibility = data.Visibility.IsSet ? data.Visibility.Value : opening.Visibility,
+            State = data.State.IsSet ? data.State.Value : opening.State,
+            Opacity = data.Opacity.IsSet ? data.Opacity.Value : opening.Opacity,
+            Material = data.Material.IsSet ? data.Material.Value : opening.Material,
+            Color = data.Color.IsSet ? data.Color.Value : opening.Color,
+        };
+
+        await encounterStorage.UpdateOpeningAsync(id, opening, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> RemoveOpeningAsync(Guid userId, Guid id, uint index, CancellationToken ct = default) {
+        var encounter = await encounterStorage.GetByIdAsync(id, ct);
+        if (encounter is null)
+            return Result.Failure("NotFound");
+        var opening = encounter.Openings.FirstOrDefault(o => o.Index == index);
+        if (opening is null)
+            return Result.Failure("NotFound");
+        if (encounter.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        await encounterStorage.DeleteOpeningAsync(id, index, ct);
         return Result.Success();
     }
 

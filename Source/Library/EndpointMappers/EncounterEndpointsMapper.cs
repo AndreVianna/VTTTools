@@ -25,5 +25,8 @@ internal static class EncounterEndpointsMapper {
         encounters.MapPost("/{id:guid}/sources", EncounterHandlers.AddSourceHandler);
         encounters.MapPatch("/{id:guid}/sources/{index:int}", EncounterHandlers.UpdateSourceHandler);
         encounters.MapDelete("/{id:guid}/sources/{index:int}", EncounterHandlers.RemoveSourceHandler);
+        encounters.MapPost("/{id:guid}/openings", EncounterHandlers.PlaceOpeningHandler);
+        encounters.MapPatch("/{id:guid}/openings/{index:int}", EncounterHandlers.UpdateOpeningHandler);
+        encounters.MapDelete("/{id:guid}/openings/{index:int}", EncounterHandlers.RemoveOpeningHandler);
     }
 }

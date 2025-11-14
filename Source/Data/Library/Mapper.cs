@@ -9,6 +9,7 @@ using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
+using EncounterOpeningEntity = VttTools.Data.Library.Entities.EncounterOpening;
 using VttTools.Data.Helpers;
 
 namespace VttTools.Data.Library;
@@ -73,6 +74,7 @@ internal static class Mapper {
             Grid = entity.Grid,
             Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
             Walls = entity.Walls.AsQueryable().Select(AsEncounterWall!).ToList(),
+            Openings = entity.Openings.AsQueryable().Select(AsEncounterOpening!).ToList(),
             Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
             Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
             Effects = entity.EncounterEffects.AsQueryable().Select(AsEncounterEffect!).ToList(),
@@ -96,6 +98,7 @@ internal static class Mapper {
             Grid = entity.Grid,
             Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
             Walls = entity.Walls.AsQueryable().Select(AsEncounterWall!).ToList(),
+            Openings = entity.Openings.AsQueryable().Select(AsEncounterOpening!).ToList(),
             Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
             Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
             Effects = entity.EncounterEffects.AsQueryable().Select(AsEncounterEffect!).ToList(),
@@ -628,6 +631,79 @@ internal static class Mapper {
         entity.Spread = model.Spread;
         entity.Intensity = model.Intensity;
         entity.HasGradient = model.HasGradient;
+        entity.Color = model.Color;
+        return entity;
+    }
+
+    internal static Expression<Func<EncounterOpeningEntity, EncounterOpening>> AsEncounterOpening = entity
+        => new() {
+            Index = entity.Index,
+            Name = entity.Name,
+            Description = entity.Description,
+            Type = entity.Type,
+            WallIndex = entity.WallIndex,
+            StartPoleIndex = entity.StartPoleIndex,
+            EndPoleIndex = entity.EndPoleIndex,
+            Size = new Dimension(entity.Width, entity.Height),
+            Visibility = entity.Visibility,
+            State = entity.State,
+            Opacity = entity.Opacity,
+            Material = entity.Material,
+            Color = entity.Color,
+        };
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static EncounterOpening? ToModel(this EncounterOpeningEntity? entity)
+        => entity == null ? null : new() {
+            Index = entity.Index,
+            Name = entity.Name,
+            Description = entity.Description,
+            Type = entity.Type,
+            WallIndex = entity.WallIndex,
+            StartPoleIndex = entity.StartPoleIndex,
+            EndPoleIndex = entity.EndPoleIndex,
+            Size = new Dimension(entity.Width, entity.Height),
+            Visibility = entity.Visibility,
+            State = entity.State,
+            Opacity = entity.Opacity,
+            Material = entity.Material,
+            Color = entity.Color,
+        };
+
+    internal static EncounterOpeningEntity ToEntity(this EncounterOpening model, Guid encounterId)
+        => new() {
+            EncounterId = encounterId,
+            Index = model.Index,
+            Name = model.Name,
+            Description = model.Description,
+            Type = model.Type,
+            WallIndex = model.WallIndex,
+            StartPoleIndex = model.StartPoleIndex,
+            EndPoleIndex = model.EndPoleIndex,
+            Width = model.Size.Width,
+            Height = model.Size.Height,
+            Visibility = model.Visibility,
+            State = model.State,
+            Opacity = model.Opacity,
+            Material = model.Material,
+            Color = model.Color,
+        };
+
+    internal static EncounterOpeningEntity UpdateFrom(this EncounterOpeningEntity entity, Guid encounterId, EncounterOpening model) {
+        entity.EncounterId = encounterId;
+        entity.Index = model.Index;
+        entity.Name = model.Name;
+        entity.Description = model.Description;
+        entity.Type = model.Type;
+        entity.WallIndex = model.WallIndex;
+        entity.StartPoleIndex = model.StartPoleIndex;
+        entity.EndPoleIndex = model.EndPoleIndex;
+        entity.Width = model.Size.Width;
+        entity.Height = model.Size.Height;
+        entity.Visibility = model.Visibility;
+        entity.State = model.State;
+        entity.Opacity = model.Opacity;
+        entity.Material = model.Material;
         entity.Color = model.Color;
         return entity;
     }
