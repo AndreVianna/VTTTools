@@ -1,7 +1,5 @@
 namespace VttTools.Data.Library.Entities;
 
-using VttTools.Library.Encounters.Model;
-
 public class EncounterOpening {
     public Guid EncounterId { get; set; }
     public Encounter Encounter { get; set; } = null!;

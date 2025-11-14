@@ -56,11 +56,11 @@ public partial class SeedApplicationSchema : Migration {
             INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [Size_Height], [Size_Width], [StatBlockId], [TokenStyle_BorderColor], [TokenStyle_BackgroundColor], [TokenStyle_Shape], [IsMovable], [IsOpaque], [TriggerEffectId])
             VALUES
             ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Monster', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
             ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
             ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
             ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature', 'Elf Paladin Squire', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf Paladin Squire', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             """
         );
 

@@ -14,7 +14,7 @@ export type InteractionScope =
 
 export function isAssetInScope(asset: PlacedAsset | undefined, scope: InteractionScope): boolean {
   if (!asset) return false;
-  if (scope === null) return false;
+  if (scope === null) return true;
 
   switch (scope) {
     case 'objects':
@@ -57,5 +57,5 @@ export function isSourceInScope(scope: InteractionScope): boolean {
 }
 
 export function canInteract(scope: InteractionScope): boolean {
-  return scope !== null;
+  return true;
 }
