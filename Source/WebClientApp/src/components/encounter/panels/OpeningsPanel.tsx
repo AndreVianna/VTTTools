@@ -53,7 +53,7 @@ export const OpeningsPanel: React.FC<OpeningsPanelProps> = React.memo(
     onOpeningSelect,
     onOpeningDelete,
     onPlaceOpening,
-    onEditOpening: _onEditOpening,
+    onEditOpening,
   }) => {
     const theme = useTheme();
 
@@ -430,6 +430,9 @@ export const OpeningsPanel: React.FC<OpeningsPanelProps> = React.memo(
                       Size: {opening.width}' × {opening.height}'
                     </Typography>
                     <Typography sx={{ fontSize: '9px' }}>Wall: {opening.wallIndex}</Typography>
+                    <Typography sx={{ fontSize: '9px' }}>
+                      Position: Poles {opening.startPoleIndex}-{opening.endPoleIndex}
+                    </Typography>
                     <Typography sx={{ fontSize: '9px' }}>
                       State: {OpeningState[opening.state]}
                     </Typography>

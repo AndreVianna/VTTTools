@@ -9,6 +9,8 @@ import {
   GridRenderer,
   type LayerVisibilityType,
   LeftToolBar,
+  OpeningDrawingTool,
+  OpeningRenderer,
   RegionDrawingTool,
   RegionRenderer,
   RegionTransformer,
@@ -194,6 +196,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
   const [selectedOpeningIndex, setSelectedOpeningIndex] = useState<number | null>(null);
+  const [openingPlacementProperties, setOpeningPlacementProperties] = useState<OpeningPlacementProperties | null>(null);
 
   const [activeScope, setActiveScope] = useState<InteractionScope>(null);
 
@@ -1058,17 +1061,50 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, encounter, placedOpenings, removeEncounterOpening, selectedOpeningIndex, refetch],
   );
 
-  const handlePlaceOpening = useCallback(
-    async (properties: OpeningPlacementProperties) => {
-      if (!encounterId || !encounter) return;
+  const handlePlaceOpening = useCallback((properties: OpeningPlacementProperties) => {
+    setOpeningPlacementProperties(properties);
+    setActiveTool('openingDrawing');
+  }, []);
+
+  const handleOpeningPlacementComplete = useCallback(
+    async (wallIndex: number, centerPosition: number) => {
+      if (!encounterId || !encounter || !openingPlacementProperties) return;
 
       try {
         await addEncounterOpening({
           encounterId,
-          ...properties,
-          name: `${properties.type} ${(encounter.openings?.length || 0) + 1}`,
-          centerPosition: 0,
-          wallIndex: 0,
+          ...openingPlacementProperties,
+          name: `${openingPlacementProperties.type} ${(encounter.openings?.length || 0) + 1}`,
+          centerPosition,
+          wallIndex,
+        }).unwrap();
+
+        const { data: updatedEncounter } = await refetch();
+        if (updatedEncounter) {
+          setEncounter(updatedEncounter);
+          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
+          setPlacedOpenings(hydratedOpenings);
+        }
+
+        setOpeningPlacementProperties(null);
+        setActiveTool(null);
+      } catch (error) {
+        console.error('Failed to place opening:', error);
+        setErrorMessage('Failed to place opening. Please try again.');
+      }
+    },
+    [encounterId, encounter, openingPlacementProperties, addEncounterOpening, refetch],
+  );
+
+  const handleEditOpening = useCallback(
+    async (index: number, updates: Partial<PlacedOpening>) => {
+      if (!encounterId) return;
+
+      try {
+        await updateEncounterOpening({
+          encounterId,
+          openingIndex: index,
+          ...updates,
         }).unwrap();
 
         const { data: updatedEncounter } = await refetch();
@@ -1078,11 +1114,11 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedOpenings(hydratedOpenings);
         }
       } catch (error) {
-        console.error('Failed to place opening:', error);
-        setErrorMessage('Failed to place opening. Please try again.');
+        console.error('Failed to edit opening:', error);
+        setErrorMessage('Failed to edit opening. Please try again.');
       }
     },
-    [encounterId, encounter, addEncounterOpening, refetch],
+    [encounterId, updateEncounterOpening, refetch],
   );
 
   if (isLoadingEncounter || isHydrating) {
@@ -1240,6 +1276,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             onOpeningSelect={handleOpeningSelect}
             onOpeningDelete={handleOpeningDelete}
             onPlaceOpening={handlePlaceOpening}
+            onEditOpening={handleEditOpening}
           />
 
           <EncounterCanvas
@@ -1342,6 +1379,26 @@ const EncounterEditorPageInternal: React.FC = () => {
                           wallTransaction={wallTransaction}
                         />
                       ))}
+                </Group>
+              )}
+
+              {/* Openings - render fourth (on walls) */}
+              {scopeVisibility.openings && encounter && placedOpenings && placedOpenings.length > 0 && (
+                <Group name={GroupName.Structure}>
+                  {placedOpenings.map((encounterOpening) => {
+                    const wall = encounter.walls?.find((w) => w.index === encounterOpening.wallIndex);
+                    if (!wall) return null;
+
+                    return (
+                      <OpeningRenderer
+                        key={encounterOpening.id}
+                        encounterOpening={encounterOpening}
+                        wall={wall}
+                        isSelected={selectedOpeningIndex === encounterOpening.index}
+                        onSelect={() => handleOpeningSelect(encounterOpening.index)}
+                      />
+                    );
+                  })}
                 </Group>
               )}
 
@@ -1468,6 +1525,19 @@ const EncounterEditorPageInternal: React.FC = () => {
                     onComplete={handleSourcePlacementFinish}
                     onCancel={() => {
                       setSourcePlacementProperties(null);
+                      setActiveTool(null);
+                    }}
+                  />
+                )}
+                {activeTool === 'openingDrawing' && openingPlacementProperties && encounter && (
+                  <OpeningDrawingTool
+                    encounterId={encounterId || ''}
+                    properties={openingPlacementProperties}
+                    walls={encounter.walls || []}
+                    gridConfig={gridConfig}
+                    onComplete={handleOpeningPlacementComplete}
+                    onCancel={() => {
+                      setOpeningPlacementProperties(null);
                       setActiveTool(null);
                     }}
                   />
