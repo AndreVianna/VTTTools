@@ -394,4 +394,81 @@ internal static class EncounterHandlers {
                     ? Results.Forbid()
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
+
+    internal static async Task<IResult> PlaceOpeningHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterOpeningAddRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterOpeningAddData {
+            Name = request.Name,
+            Description = request.Description,
+            Type = request.Type,
+            WallIndex = request.WallIndex,
+            CenterPosition = request.CenterPosition,
+            Width = request.Width,
+            Height = request.Height,
+            Visibility = request.Visibility,
+            State = request.State,
+            Opacity = request.Opacity,
+            Material = request.Material,
+            Color = request.Color,
+        };
+        var result = await encounterService.PlaceOpeningAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(new EncounterOpeningResponse {
+                Index = result.Value.Index,
+                Name = result.Value.Name,
+                Description = result.Value.Description,
+                Type = result.Value.Type,
+                WallIndex = result.Value.WallIndex,
+                StartPoleIndex = result.Value.StartPoleIndex,
+                EndPoleIndex = result.Value.EndPoleIndex,
+                Width = result.Value.Size.Width,
+                Height = result.Value.Size.Height,
+                Visibility = result.Value.Visibility,
+                State = result.Value.State,
+                Opacity = result.Value.Opacity,
+                Material = result.Value.Material,
+                Color = result.Value.Color,
+            })
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> UpdateOpeningHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterOpeningUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterOpeningUpdateData {
+            Name = request.Name,
+            Description = request.Description,
+            Type = request.Type,
+            Width = request.Width,
+            Height = request.Height,
+            Visibility = request.Visibility,
+            State = request.State,
+            Opacity = request.Opacity,
+            Material = request.Material,
+            Color = request.Color,
+        };
+        var result = await encounterService.UpdateOpeningAsync(userId, id, (uint)index, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> RemoveOpeningHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var result = await encounterService.RemoveOpeningAsync(userId, id, (uint)index);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
 }
