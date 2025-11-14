@@ -1,3 +1,5 @@
+export type { OpeningRendererProps } from './OpeningRenderer';
+export { OpeningRenderer } from './OpeningRenderer';
 export type { RegionLabelDisplayProps } from './RegionLabelDisplay';
 export { RegionLabelDisplay } from './RegionLabelDisplay';
 export type { RegionRendererProps } from './RegionRenderer';

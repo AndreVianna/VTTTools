@@ -2,11 +2,13 @@ import { GroupName } from '@/services/layerManager';
 import type {
   Asset,
   EncounterAsset,
+  EncounterOpening,
   EncounterRegion,
   EncounterSource,
   EncounterWall,
   ObjectAsset,
   PlacedAsset,
+  PlacedOpening,
   PlacedRegion,
   PlacedSource,
   PlacedWall,
@@ -205,4 +207,25 @@ export function hydratePlacedSources(encounterSources: EncounterSource[], encoun
 
 export function dehydratePlacedSources(placedSources: PlacedSource[]): EncounterSource[] {
   return placedSources.map(({ id, ...source }) => source);
+}
+
+export function hydratePlacedOpenings(encounterOpenings: EncounterOpening[], encounterId: string): PlacedOpening[] {
+  return encounterOpenings.map((opening) => {
+    const domId =
+      getDomIdByIndex(encounterId, 'openings', opening.index) ||
+      `opening-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+    if (!getDomIdByIndex(encounterId, 'openings', opening.index)) {
+      setEntityMapping(encounterId, 'openings', domId, opening.index);
+    }
+
+    return {
+      ...opening,
+      id: domId,
+    };
+  });
+}
+
+export function dehydratePlacedOpenings(placedOpenings: PlacedOpening[]): EncounterOpening[] {
+  return placedOpenings.map(({ id, ...opening }) => opening);
 }

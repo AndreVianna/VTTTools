@@ -4,6 +4,7 @@ export { AssetContextMenu } from './AssetContextMenu';
 export type { BackgroundLayerProps } from './BackgroundLayer';
 export { BackgroundLayer } from './BackgroundLayer';
 export type {
+  OpeningDrawingToolProps,
   RegionDrawingToolProps,
   RegionPreviewProps,
   SourceDrawingToolProps,
@@ -14,6 +15,7 @@ export type {
 } from './drawing';
 // Drawing components
 export {
+  OpeningDrawingTool,
   RegionDrawingTool,
   RegionPreview,
   SourceDrawingTool,
@@ -71,6 +73,7 @@ export { RightToolBar } from './RightToolBar';
 export type { RotationHandleProps } from './RotationHandle';
 export { RotationHandle } from './RotationHandle';
 export type {
+  OpeningRendererProps,
   RegionLabelDisplayProps,
   RegionRendererProps,
   SourceRangeDisplayProps,
@@ -79,6 +82,7 @@ export type {
 } from './rendering';
 // Rendering components
 export {
+  OpeningRenderer,
   RegionLabelDisplay,
   RegionRenderer,
   SourceRangeDisplay,

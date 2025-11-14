@@ -9,6 +9,8 @@ import {
   GridRenderer,
   type LayerVisibilityType,
   LeftToolBar,
+  OpeningDrawingTool,
+  OpeningRenderer,
   RegionDrawingTool,
   RegionRenderer,
   RegionTransformer,
@@ -21,7 +23,7 @@ import {
   WallRenderer,
   WallTransformer,
 } from '@components/encounter';
-import type { SourcePlacementProperties } from '@components/encounter/panels';
+import type { OpeningPlacementProperties, SourcePlacementProperties } from '@components/encounter/panels';
 import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
 import { GroupName, LayerName, layerManager } from '@services/layerManager';
@@ -43,6 +45,7 @@ import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { assetsApi } from '@/services/assetsApi';
 import {
   useAddEncounterAssetMutation,
+  useAddEncounterOpeningMutation,
   useAddEncounterRegionMutation,
   useAddEncounterWallMutation,
   useBulkAddEncounterAssetsMutation,
@@ -51,10 +54,12 @@ import {
   useGetEncounterQuery,
   usePatchEncounterMutation,
   useRemoveEncounterAssetMutation,
+  useRemoveEncounterOpeningMutation,
   useRemoveEncounterRegionMutation,
   useRemoveEncounterSourceMutation,
   useRemoveEncounterWallMutation,
   useUpdateEncounterAssetMutation,
+  useUpdateEncounterOpeningMutation,
   useUpdateEncounterRegionMutation,
   useUpdateEncounterWallMutation,
 } from '@/services/encounterApi';
@@ -65,6 +70,7 @@ import {
   type Encounter,
   type EncounterWall,
   type PlacedAsset,
+  type PlacedOpening,
   type PlacedRegion,
   type PlacedSource,
   type PlacedWall,
@@ -75,6 +81,7 @@ import {
 import type { LocalAction } from '@/types/regionUndoActions';
 import {
   hydratePlacedAssets,
+  hydratePlacedOpenings,
   hydratePlacedRegions,
   hydratePlacedSources,
   hydratePlacedWalls,
@@ -138,6 +145,10 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [removeEncounterRegion] = useRemoveEncounterRegionMutation();
   const [removeEncounterSource] = useRemoveEncounterSourceMutation();
 
+  const [addEncounterOpening] = useAddEncounterOpeningMutation();
+  const [updateEncounterOpening] = useUpdateEncounterOpeningMutation();
+  const [removeEncounterOpening] = useRemoveEncounterOpeningMutation();
+
   // Force refetch on mount with forceRefetch option
   useEffect(() => {
     if (encounterId) {
@@ -151,6 +162,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [placedWalls, setPlacedWalls] = useState<PlacedWall[]>([]);
   const [placedRegions, setPlacedRegions] = useState<PlacedRegion[]>([]);
   const [placedSources, setPlacedSources] = useState<PlacedSource[]>([]);
+  const [placedOpenings, setPlacedOpenings] = useState<PlacedOpening[]>([]);
 
   useEffect(() => {
     encounterRef.current = encounter;
@@ -182,6 +194,9 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+
+  const [selectedOpeningIndex, setSelectedOpeningIndex] = useState<number | null>(null);
+  const [openingPlacementProperties, setOpeningPlacementProperties] = useState<OpeningPlacementProperties | null>(null);
 
   const [activeScope, setActiveScope] = useState<InteractionScope>(null);
 
@@ -478,6 +493,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
           const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
           const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
+          const hydratedOpenings = hydratePlacedOpenings(encounterData.openings || [], encounterId || '');
 
           setEncounter(encounterData);
           setGridConfig({
@@ -493,6 +509,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedWalls(hydratedWalls);
           setPlacedRegions(hydratedRegions);
           setPlacedSources(hydratedSources);
+          setPlacedOpenings(hydratedOpenings);
           setIsInitialized(true);
         } catch (error) {
           console.error('Failed to hydrate encounter:', error);
@@ -510,6 +527,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedWalls([]);
           setPlacedRegions([]);
           setPlacedSources([]);
+          setPlacedOpenings([]);
           setIsInitialized(true);
         } finally {
           setIsHydrating(false);
@@ -526,9 +544,11 @@ const EncounterEditorPageInternal: React.FC = () => {
       const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
       const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
       const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
+      const hydratedOpenings = hydratePlacedOpenings(encounterData.openings || [], encounterId || '');
       setPlacedWalls(hydratedWalls);
       setPlacedRegions(hydratedRegions);
       setPlacedSources(hydratedSources);
+      setPlacedOpenings(hydratedOpenings);
     }
   }, [encounterData, isInitialized, encounterId]);
 
@@ -1001,6 +1021,106 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
   }, []);
 
+  const handleOpeningSelect = useCallback((index: number) => {
+    setSelectedOpeningIndex(index);
+  }, []);
+
+  const handleOpeningDelete = useCallback(
+    async (index: number) => {
+      if (!encounterId || !encounter) return;
+
+      const opening = placedOpenings.find((o) => o.index === index);
+      if (!opening) return;
+
+      const openingId = opening.id;
+
+      try {
+        await removeEncounterOpening({
+          encounterId,
+          openingIndex: index,
+        }).unwrap();
+
+        const { removeEntityMapping } = await import('@/utils/encounterEntityMapping');
+        removeEntityMapping(encounterId, 'openings', openingId);
+
+        const { data: updatedEncounter } = await refetch();
+        if (updatedEncounter) {
+          setEncounter(updatedEncounter);
+          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
+          setPlacedOpenings(hydratedOpenings);
+        }
+
+        if (selectedOpeningIndex === index) {
+          setSelectedOpeningIndex(null);
+        }
+      } catch (error) {
+        console.error('Failed to delete opening:', error);
+        setErrorMessage('Failed to delete opening. Please try again.');
+      }
+    },
+    [encounterId, encounter, placedOpenings, removeEncounterOpening, selectedOpeningIndex, refetch],
+  );
+
+  const handlePlaceOpening = useCallback((properties: OpeningPlacementProperties) => {
+    setOpeningPlacementProperties(properties);
+    setActiveTool('openingDrawing');
+  }, []);
+
+  const handleOpeningPlacementComplete = useCallback(
+    async (wallIndex: number, centerPosition: number) => {
+      if (!encounterId || !encounter || !openingPlacementProperties) return;
+
+      try {
+        await addEncounterOpening({
+          encounterId,
+          ...openingPlacementProperties,
+          name: `${openingPlacementProperties.type} ${(encounter.openings?.length || 0) + 1}`,
+          centerPosition,
+          wallIndex,
+        }).unwrap();
+
+        const { data: updatedEncounter } = await refetch();
+        if (updatedEncounter) {
+          setEncounter(updatedEncounter);
+          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
+          setPlacedOpenings(hydratedOpenings);
+        }
+
+        setOpeningPlacementProperties(null);
+        setActiveTool(null);
+      } catch (error) {
+        console.error('Failed to place opening:', error);
+        setErrorMessage('Failed to place opening. Please try again.');
+      }
+    },
+    [encounterId, encounter, openingPlacementProperties, addEncounterOpening, refetch],
+  );
+
+  const handleEditOpening = useCallback(
+    async (index: number, updates: Partial<PlacedOpening>) => {
+      if (!encounterId) return;
+
+      try {
+        await updateEncounterOpening({
+          encounterId,
+          openingIndex: index,
+          ...updates,
+        }).unwrap();
+
+        const { data: updatedEncounter } = await refetch();
+        if (updatedEncounter) {
+          setEncounter(updatedEncounter);
+          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
+          setPlacedOpenings(hydratedOpenings);
+        }
+      } catch (error) {
+        console.error('Failed to edit opening:', error);
+        setErrorMessage('Failed to edit opening. Please try again.');
+      }
+    },
+    [encounterId, updateEncounterOpening, refetch],
+  );
+
   if (isLoadingEncounter || isHydrating) {
     return (
       <EditorLayout>
@@ -1151,6 +1271,12 @@ const EncounterEditorPageInternal: React.FC = () => {
             onSourceSelect={handleSourceSelect}
             onSourceDelete={handleSourceDelete}
             onPlaceSource={handlePlaceSource}
+            encounterOpenings={placedOpenings}
+            selectedOpeningIndex={selectedOpeningIndex}
+            onOpeningSelect={handleOpeningSelect}
+            onOpeningDelete={handleOpeningDelete}
+            onPlaceOpening={handlePlaceOpening}
+            onEditOpening={handleEditOpening}
           />
 
           <EncounterCanvas
@@ -1253,6 +1379,26 @@ const EncounterEditorPageInternal: React.FC = () => {
                           wallTransaction={wallTransaction}
                         />
                       ))}
+                </Group>
+              )}
+
+              {/* Openings - render fourth (on walls) */}
+              {scopeVisibility.openings && encounter && placedOpenings && placedOpenings.length > 0 && (
+                <Group name={GroupName.Structure}>
+                  {placedOpenings.map((encounterOpening) => {
+                    const wall = encounter.walls?.find((w) => w.index === encounterOpening.wallIndex);
+                    if (!wall) return null;
+
+                    return (
+                      <OpeningRenderer
+                        key={encounterOpening.id}
+                        encounterOpening={encounterOpening}
+                        wall={wall}
+                        isSelected={selectedOpeningIndex === encounterOpening.index}
+                        onSelect={() => handleOpeningSelect(encounterOpening.index)}
+                      />
+                    );
+                  })}
                 </Group>
               )}
 
@@ -1379,6 +1525,19 @@ const EncounterEditorPageInternal: React.FC = () => {
                     onComplete={handleSourcePlacementFinish}
                     onCancel={() => {
                       setSourcePlacementProperties(null);
+                      setActiveTool(null);
+                    }}
+                  />
+                )}
+                {activeTool === 'openingDrawing' && openingPlacementProperties && encounter && (
+                  <OpeningDrawingTool
+                    encounterId={encounterId || ''}
+                    properties={openingPlacementProperties}
+                    walls={encounter.walls || []}
+                    gridConfig={gridConfig}
+                    onComplete={handleOpeningPlacementComplete}
+                    onCancel={() => {
+                      setOpeningPlacementProperties(null);
                       setActiveTool(null);
                     }}
                   />
