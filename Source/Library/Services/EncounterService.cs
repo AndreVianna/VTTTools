@@ -495,7 +495,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
 
         var (startPoleIndex, endPoleIndex, updatedPoles) = FindOrInsertPoles(wall.Poles, data.CenterPosition, data.Width);
 
-        var openingIndex = encounter.Openings.Count != 0 ? encounter.Openings.Max(o => o.Index) + 1 : 1;
+        var openingIndex = encounter.Openings.Count > 0 ? encounter.Openings.Max(o => o.Index) + 1 : 1;
         var opening = new EncounterOpening {
             Index = openingIndex,
             Name = data.Name ?? $"{data.Type} {openingIndex}",
@@ -525,7 +525,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         IReadOnlyList<Pole> existingPoles,
         double centerPosition,
         double openingWidth) {
-
         const double poleTolerance = 0.5;
         var poles = existingPoles.ToList();
         var halfWidth = openingWidth / 2.0;
