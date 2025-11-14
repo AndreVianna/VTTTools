@@ -58,6 +58,8 @@ export interface EncounterCanvasProps {
   stageHeight?: number;
   /** Callback when canvas is clicked (left-click only) */
   onClick?: (position: { x: number; y: number }) => void;
+  /** Callback ref for the Konva Stage (for external access) */
+  stageCallbackRef?: (stage: Konva.Stage | null) => void;
 }
 
 /**
@@ -123,11 +125,23 @@ export const EncounterCanvas = forwardRef<EncounterCanvasHandle, EncounterCanvas
       children,
       backgroundColor = 'transparent',
       onClick,
+      stageCallbackRef,
     },
     ref,
   ) => {
     // Stage reference for direct Konva access
     const stageRef = useRef<Konva.Stage>(null);
+
+    // Combined ref callback to support both internal ref and external callback
+    const handleStageRef = useCallback(
+      (node: Konva.Stage | null) => {
+        stageRef.current = node;
+        if (stageCallbackRef) {
+          stageCallbackRef(node);
+        }
+      },
+      [stageCallbackRef],
+    );
 
     // Viewport state
     const [stagePos, setStagePos] = useState(initialPosition);
@@ -320,7 +334,7 @@ export const EncounterCanvas = forwardRef<EncounterCanvasHandle, EncounterCanvas
 
     return (
       <Stage
-        ref={stageRef}
+        ref={handleStageRef}
         width={width}
         height={height}
         x={stagePos.x}

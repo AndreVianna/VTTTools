@@ -88,6 +88,7 @@ describe('useMergeRegions', () => {
       assets: [],
       regions: [targetRegion, regionToDelete],
       walls: [],
+          openings: [],
       sources: [],
     };
 

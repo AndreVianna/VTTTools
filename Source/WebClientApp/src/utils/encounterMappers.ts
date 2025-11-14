@@ -14,7 +14,7 @@ import type {
   PlacedWall,
 } from '@/types/domain';
 import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityEnum } from '@/types/domain';
-import { getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
+import { generateUniqueId, getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
 
 function getAssetLayer(asset: Asset): GroupName {
   if (asset.kind === 'Monster') {
@@ -59,7 +59,7 @@ export async function hydratePlacedAssets(
       let domId = getDomIdByIndex(encounterId, 'assets', backendIndex);
 
       if (!domId) {
-        domId = `encounter-asset-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+        domId = generateUniqueId('encounter-asset', 'assets');
         setEntityMapping(encounterId, 'assets', domId, backendIndex);
       }
 
@@ -78,6 +78,11 @@ export async function hydratePlacedAssets(
         visibilityKey = 'vtt-characters-label-visibility';
         positionKey = 'vtt-characters-label-position';
         defaultVisibility = LabelVisibilityEnum.Always;
+
+        const existingValue = localStorage.getItem(visibilityKey);
+        if (existingValue === LabelVisibilityEnum.OnHover) {
+          localStorage.setItem(visibilityKey, LabelVisibilityEnum.Always);
+        }
       } else {
         visibilityKey = 'vtt-objects-label-visibility';
         positionKey = 'vtt-objects-label-position';
@@ -150,7 +155,7 @@ export function hydratePlacedWalls(encounterWalls: EncounterWall[], encounterId:
     let domId = getDomIdByIndex(encounterId, 'walls', backendIndex);
 
     if (!domId) {
-      domId = `wall-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      domId = generateUniqueId('wall', 'walls');
       setEntityMapping(encounterId, 'walls', domId, backendIndex);
     }
 
@@ -169,11 +174,10 @@ export function dehydratePlacedWalls(placedWalls: PlacedWall[]): EncounterWall[]
 
 export function hydratePlacedRegions(encounterRegions: EncounterRegion[], encounterId: string): PlacedRegion[] {
   return encounterRegions.map((region) => {
-    const domId =
-      getDomIdByIndex(encounterId, 'regions', region.index) ||
-      `region-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    let domId = getDomIdByIndex(encounterId, 'regions', region.index);
 
-    if (!getDomIdByIndex(encounterId, 'regions', region.index)) {
+    if (!domId) {
+      domId = generateUniqueId('region', 'regions');
       setEntityMapping(encounterId, 'regions', domId, region.index);
     }
 
@@ -190,11 +194,10 @@ export function dehydratePlacedRegions(placedRegions: PlacedRegion[]): Encounter
 
 export function hydratePlacedSources(encounterSources: EncounterSource[], encounterId: string): PlacedSource[] {
   return encounterSources.map((source) => {
-    const domId =
-      getDomIdByIndex(encounterId, 'sources', source.index) ||
-      `source-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    let domId = getDomIdByIndex(encounterId, 'sources', source.index);
 
-    if (!getDomIdByIndex(encounterId, 'sources', source.index)) {
+    if (!domId) {
+      domId = generateUniqueId('source', 'sources');
       setEntityMapping(encounterId, 'sources', domId, source.index);
     }
 
@@ -211,11 +214,10 @@ export function dehydratePlacedSources(placedSources: PlacedSource[]): Encounter
 
 export function hydratePlacedOpenings(encounterOpenings: EncounterOpening[], encounterId: string): PlacedOpening[] {
   return encounterOpenings.map((opening) => {
-    const domId =
-      getDomIdByIndex(encounterId, 'openings', opening.index) ||
-      `opening-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    let domId = getDomIdByIndex(encounterId, 'openings', opening.index);
 
-    if (!getDomIdByIndex(encounterId, 'openings', opening.index)) {
+    if (!domId) {
+      domId = generateUniqueId('opening', 'openings');
       setEntityMapping(encounterId, 'openings', domId, opening.index);
     }
 

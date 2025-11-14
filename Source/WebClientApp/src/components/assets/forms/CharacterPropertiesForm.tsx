@@ -9,8 +9,8 @@ export interface CharacterPropertiesFormProps {
 }
 
 export const CharacterPropertiesForm: React.FC<CharacterPropertiesFormProps> = ({
-  characterData,
-  onChange,
+  characterData: _characterData,
+  onChange: _onChange,
   readOnly = false,
 }) => {
   if (readOnly) {

@@ -12,12 +12,12 @@ export type InteractionScope =
   | 'fogOfWar'
   | null;
 
-export function isAssetInScope(asset: PlacedAsset | undefined, scope: InteractionScope): boolean {
+export function isAssetInScope(asset: PlacedAsset | undefined, scope: InteractionScope | undefined): boolean {
   if (!asset) {
     return false;
   }
 
-  if (scope === null) {
+  if (scope === null || scope === undefined) {
     return true;
   }
 
@@ -41,22 +41,18 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
   }
 }
 
-export function isWallInScope(scope: InteractionScope): boolean {
-  if (scope === null) return true;
-  return scope === 'walls';
+export function isWallInScope(scope: InteractionScope | undefined): boolean {
+  return scope === null || scope === undefined ? true : scope === 'walls';
 }
 
-export function isOpeningInScope(scope: InteractionScope): boolean {
-  if (scope === null) return true;
-  return scope === 'openings';
+export function isOpeningInScope(scope: InteractionScope | undefined): boolean {
+  return scope === null || scope === undefined ? true : scope === 'openings';
 }
 
-export function isRegionInScope(scope: InteractionScope): boolean {
-  if (scope === null) return true;
-  return scope === 'regions';
+export function isRegionInScope(scope: InteractionScope | undefined): boolean {
+  return scope === null || scope === undefined ? true : scope === 'regions';
 }
 
-export function isSourceInScope(scope: InteractionScope): boolean {
-  if (scope === null) return true;
-  return scope === 'sources';
+export function isSourceInScope(scope: InteractionScope | undefined): boolean {
+  return scope === null || scope === undefined ? true : scope === 'sources';
 }

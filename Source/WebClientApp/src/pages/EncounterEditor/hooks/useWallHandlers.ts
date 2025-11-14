@@ -167,18 +167,6 @@ export const useWallHandlers = ({
     if (!encounterId || !encounter || selectedWallIndex === null) return;
 
     const activeSegments = wallTransaction.getActiveSegments();
-    console.log(
-      '[useWallHandlers.handleFinishEditing] Active segments before processing:',
-      activeSegments.map((s) => ({
-        tempId: s.tempId,
-        wallIndex: s.wallIndex,
-        name: s.name,
-        material: s.material,
-        color: s.color,
-        poleCount: s.poles.length,
-        isClosed: s.isClosed,
-      })),
-    );
 
     const editedSegment = activeSegments[0];
 
@@ -229,18 +217,6 @@ export const useWallHandlers = ({
     }
 
     const updatedActiveSegments = wallTransaction.getActiveSegments();
-    console.log(
-      '[useWallHandlers.handleFinishEditing] Active segments after decomposition:',
-      updatedActiveSegments.map((s) => ({
-        tempId: s.tempId,
-        wallIndex: s.wallIndex,
-        name: s.name,
-        material: s.material,
-        color: s.color,
-        poleCount: s.poles.length,
-        isClosed: s.isClosed,
-      })),
-    );
 
     const finalEditedSegment = updatedActiveSegments[0];
 

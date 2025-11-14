@@ -95,7 +95,7 @@ export interface TokenDragHandleProps {
   /** Current grid configuration */
   gridConfig: GridConfig;
   /** Konva Stage reference */
-  stageRef: React.RefObject<Konva.Stage>;
+  stageRef: React.RefObject<Konva.Stage | null>;
   /** Signal that stage ref has been set and is ready for use */
   stageReady?: boolean;
   /** Whether placement mode is active (disable layer listening) */
@@ -195,7 +195,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         asset.asset.kind === 'Monster'
           ? {
               size: (asset.asset as MonsterAsset).size,
-              category: (asset.asset as MonsterAsset).category,
             }
           : undefined;
       return getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
@@ -225,7 +224,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
   const handleNodeClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
-      const clickedNode = e.currentTarget;
+      const clickedNode = e.target;
       const assetId = clickedNode.id();
 
       if (!assetId) {
@@ -384,7 +383,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
           asset.asset.kind === 'Monster'
             ? {
                 size: (asset.asset as MonsterAsset).size,
-                category: (asset.asset as MonsterAsset).category,
               }
             : undefined;
         const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
@@ -404,7 +402,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
               other.asset.kind === 'Monster'
                 ? {
                     size: (other.asset as MonsterAsset).size,
-                    category: (other.asset as MonsterAsset).category,
                   }
                 : undefined;
             const otherBehavior = getPlacementBehavior(
@@ -540,48 +537,51 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     [onAssetMoved, stageRef],
   );
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
       if (selectedAssetIds.length === 0 || !availableActions.canDelete) return;
 
       if (e.key === 'Delete') {
         e.preventDefault();
         onAssetDeleted();
       }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedAssetIds, onAssetDeleted, availableActions.canDelete]);
+    },
+    [selectedAssetIds, onAssetDeleted, availableActions.canDelete],
+  );
 
   useEffect(() => {
-    // Skip stage click handler if drag-move is disabled
-    if (!enableDragMove) return;
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleStageClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
       if (e.evt.button !== 0) return;
       if (e.target === stage && !marqueeActiveRef.current) {
         onAssetSelected([]);
       }
-    };
+    },
+    [stageRef, onAssetSelected],
+  );
+
+  useEffect(() => {
+    if (!enableDragMove) return;
+
+    const stage = stageRef.current;
+    if (!stage) return;
 
     stage.on('click', handleStageClick);
     return () => {
       stage.off('click', handleStageClick);
     };
-  }, [enableDragMove, stageRef, onAssetSelected]);
+  }, [enableDragMove, stageRef, handleStageClick]);
 
-  // Marquee selection with Shift+drag
-  useEffect(() => {
-    if (!enableDragMove) return;
-
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
       if (e.evt.button !== 0 || e.target !== stage) {
         return;
       }
@@ -599,73 +599,95 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
       setMarqueeSelection({ start: stagePos, end: stagePos });
       marqueeActiveRef.current = true;
-    };
+    },
+    [stageRef],
+  );
 
-    const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (!marqueeSelection) return;
-      // During mousemove, check buttons bitmask (1 = left button is pressed)
-      if ((e.evt.buttons & 1) === 0) return;
+  const handleMouseMove = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
 
-      const pos = stage.getPointerPosition();
-      if (!pos) return;
+      setMarqueeSelection((prev) => {
+        if (!prev) return prev;
+        if ((e.evt.buttons & 1) === 0) return prev;
 
-      const scale = stage.scaleX();
-      const stagePos = {
-        x: (pos.x - stage.x()) / scale,
-        y: (pos.y - stage.y()) / scale,
-      };
+        const pos = stage.getPointerPosition();
+        if (!pos) return prev;
 
-      setMarqueeSelection((prev) => (prev ? { ...prev, end: stagePos } : null));
-    };
+        const scale = stage.scaleX();
+        const stagePos = {
+          x: (pos.x - stage.x()) / scale,
+          y: (pos.y - stage.y()) / scale,
+        };
 
-    const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (!marqueeSelection) return;
-      if (e.evt.button !== 0) return;
+        return { ...prev, end: stagePos };
+      });
+    },
+    [stageRef],
+  );
 
-      const rect = {
-        left: Math.min(marqueeSelection.start.x, marqueeSelection.end.x),
-        right: Math.max(marqueeSelection.start.x, marqueeSelection.end.x),
-        top: Math.min(marqueeSelection.start.y, marqueeSelection.end.y),
-        bottom: Math.max(marqueeSelection.start.y, marqueeSelection.end.y),
-      };
+  const handleMouseUp = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      setMarqueeSelection((currentMarquee) => {
+        if (!currentMarquee) return null;
+        if (e.evt.button !== 0) return currentMarquee;
 
-      const containedAssets = placedAssets
-        .filter((asset) => {
-          if (!isAssetInScope(asset, activeScope)) {
-            return false;
-          }
+        const rect = {
+          left: Math.min(currentMarquee.start.x, currentMarquee.end.x),
+          right: Math.max(currentMarquee.start.x, currentMarquee.end.x),
+          top: Math.min(currentMarquee.start.y, currentMarquee.end.y),
+          bottom: Math.max(currentMarquee.start.y, currentMarquee.end.y),
+        };
 
-          const assetLeft = asset.position.x - asset.size.width / 2;
-          const assetRight = asset.position.x + asset.size.width / 2;
-          const assetTop = asset.position.y - asset.size.height / 2;
-          const assetBottom = asset.position.y + asset.size.height / 2;
+        const currentAssets = placedAssetsRef.current;
+        const containedAssets = currentAssets
+          .filter((asset) => {
+            if (!isAssetInScope(asset, activeScope)) {
+              return false;
+            }
 
-          return (
-            assetLeft >= rect.left && assetRight <= rect.right && assetTop >= rect.top && assetBottom <= rect.bottom
-          );
-        })
-        .map((a) => a.id);
+            const assetLeft = asset.position.x - asset.size.width / 2;
+            const assetRight = asset.position.x + asset.size.width / 2;
+            const assetTop = asset.position.y - asset.size.height / 2;
+            const assetBottom = asset.position.y + asset.size.height / 2;
 
-      const currentSelection = selectedAssetIdsRef.current;
-      if (isCtrlPressed) {
-        const newSelection = [...currentSelection];
-        containedAssets.forEach((id) => {
-          if (!newSelection.includes(id)) {
-            newSelection.push(id);
-          }
-        });
-        onAssetSelected(newSelection);
-        selectedAssetIdsRef.current = newSelection;
-      } else {
-        onAssetSelected(containedAssets);
-        selectedAssetIdsRef.current = containedAssets;
-      }
+            return (
+              assetLeft >= rect.left && assetRight <= rect.right && assetTop >= rect.top && assetBottom <= rect.bottom
+            );
+          })
+          .map((a) => a.id);
 
-      setMarqueeSelection(null);
-      setTimeout(() => {
-        marqueeActiveRef.current = false;
-      }, 100);
-    };
+        const currentSelection = selectedAssetIdsRef.current;
+        if (isCtrlPressed) {
+          const newSelection = [...currentSelection];
+          containedAssets.forEach((id) => {
+            if (!newSelection.includes(id)) {
+              newSelection.push(id);
+            }
+          });
+          onAssetSelected(newSelection);
+          selectedAssetIdsRef.current = newSelection;
+        } else {
+          onAssetSelected(containedAssets);
+          selectedAssetIdsRef.current = containedAssets;
+        }
+
+        setTimeout(() => {
+          marqueeActiveRef.current = false;
+        }, 100);
+
+        return null;
+      });
+    },
+    [isCtrlPressed, onAssetSelected, activeScope],
+  );
+
+  useEffect(() => {
+    if (!enableDragMove) return;
+
+    const stage = stageRef.current;
+    if (!stage) return;
 
     stage.on('mousedown', handleMouseDown);
     stage.on('mousemove', handleMouseMove);
@@ -676,15 +698,13 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
       stage.off('mousemove', handleMouseMove);
       stage.off('mouseup', handleMouseUp);
     };
-  }, [enableDragMove, stageRef, isCtrlPressed, marqueeSelection, placedAssets, onAssetSelected, activeScope]);
+  }, [enableDragMove, stageRef, handleMouseDown, handleMouseMove, handleMouseUp]);
 
-  useEffect(() => {
-    if (!enableDragMove) return;
+  const handleStageClickCapture = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
 
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const handleStageClickCapture = (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (e.target === stage) {
         return;
       }
@@ -695,14 +715,22 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
       }
 
       handleNodeClick(e);
-    };
+    },
+    [stageRef, handleNodeClick, activeScope],
+  );
+
+  useEffect(() => {
+    if (!enableDragMove) return;
+
+    const stage = stageRef.current;
+    if (!stage) return;
 
     stage.on('click', handleStageClickCapture);
 
     return () => {
       stage.off('click', handleStageClickCapture);
     };
-  }, [enableDragMove, stageRef, handleNodeClick]);
+  }, [enableDragMove, stageRef, handleStageClickCapture, activeScope]);
 
   useEffect(() => {
     if (!enableDragMove) return;
@@ -711,7 +739,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
     placedAssets.forEach((placedAsset) => {
       const node = stage.findOne(`#${placedAsset.id}`);
-      if (node && !node.hasEventListeners('dragstart')) {
+      if (node) {
+        node.off('dragstart', handleDragStart);
+        node.off('dragmove', handleDragMove);
+        node.off('dragend', handleDragEnd);
         node.on('dragstart', handleDragStart);
         node.on('dragmove', handleDragMove);
         node.on('dragend', handleDragEnd);
@@ -755,7 +786,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
           placedAsset.asset.kind === 'Monster'
             ? {
                 size: (placedAsset.asset as MonsterAsset).size,
-                category: (placedAsset.asset as MonsterAsset).category,
               }
             : undefined;
         const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, monsterProperties);
@@ -796,6 +826,46 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
   const selectedAssets = React.useMemo(() => {
     return placedAssets.filter((asset) => selectedAssetIds.includes(asset.id));
   }, [placedAssets, selectedAssetIds]);
+
+  const handleRotationMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>, assetId: string, assetPosition: { x: number; y: number }) => {
+      e.cancelBubble = true;
+      setIsRotating(true);
+      onRotationStart?.();
+
+      const stage = e.target.getStage();
+      if (!stage) return;
+
+      const handleMouseMove = () => {
+        const pointerPosition = stage.getPointerPosition();
+        if (!pointerPosition) return;
+        const canvasPosition = {
+          x: (pointerPosition.x - stage.x()) / stage.scaleX(),
+          y: (pointerPosition.y - stage.y()) / stage.scaleY(),
+        };
+
+        const assetCenter = {
+          x: assetPosition.x,
+          y: assetPosition.y,
+        };
+        const newRotation = snapAngle(calculateAngleFromCenter(assetCenter, canvasPosition));
+        onAssetRotated?.([{ assetId, rotation: newRotation }]);
+      };
+
+      const handleMouseUp = () => {
+        setIsRotating(false);
+        onRotationEnd?.();
+        stage.off('mousemove', handleMouseMove);
+        stage.off('mouseup', handleMouseUp);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      stage.on('mousemove', handleMouseMove);
+      stage.on('mouseup', handleMouseUp);
+      window.addEventListener('mouseup', handleMouseUp);
+    },
+    [onRotationStart, onRotationEnd, onAssetRotated],
+  );
 
   return (
     <Layer name='ui-overlay' listening={true}>
@@ -863,42 +933,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
               strokeWidth={1}
               cursor={isRotating ? 'grabbing' : 'grab'}
               hitStrokeWidth={20}
-              onMouseDown={(e) => {
-                e.cancelBubble = true;
-                setIsRotating(true);
-                onRotationStart?.();
-
-                const stage = e.target.getStage();
-                if (!stage) return;
-
-                const handleMouseMove = () => {
-                  const pointerPosition = stage.getPointerPosition();
-                  if (!pointerPosition) return;
-                  const canvasPosition = {
-                    x: (pointerPosition.x - stage.x()) / stage.scaleX(),
-                    y: (pointerPosition.y - stage.y()) / stage.scaleY(),
-                  };
-
-                  const assetCenter = {
-                    x: asset.position.x,
-                    y: asset.position.y,
-                  };
-                  const newRotation = snapAngle(calculateAngleFromCenter(assetCenter, canvasPosition));
-                  onAssetRotated?.([{ assetId: asset.id, rotation: newRotation }]);
-                };
-
-                const handleMouseUp = () => {
-                  setIsRotating(false);
-                  onRotationEnd?.();
-                  stage.off('mousemove', handleMouseMove);
-                  stage.off('mouseup', handleMouseUp);
-                  window.removeEventListener('mouseup', handleMouseUp);
-                };
-
-                stage.on('mousemove', handleMouseMove);
-                stage.on('mouseup', handleMouseUp);
-                window.addEventListener('mouseup', handleMouseUp);
-              }}
+              onMouseDown={(e) => handleRotationMouseDown(e, asset.id, asset.position)}
             />
           </Group>
         );

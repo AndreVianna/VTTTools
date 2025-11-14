@@ -1,22 +1,22 @@
 import type Konva from 'konva';
-import { type RefObject, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface UseCanvasReadyStateProps {
-  stageRef: RefObject<Konva.Stage | null>;
+  stage: Konva.Stage | null;
 }
 
-export const useCanvasReadyState = ({ stageRef }: UseCanvasReadyStateProps) => {
+export const useCanvasReadyState = ({ stage }: UseCanvasReadyStateProps) => {
   const [isEncounterReady, setIsEncounterReady] = useState<boolean>(false);
   const [imagesLoaded, setImagesLoaded] = useState<boolean>(false);
   const [handlersReady, setHandlersReady] = useState<boolean>(false);
 
   useEffect(() => {
-    if (stageRef.current && imagesLoaded && handlersReady && !isEncounterReady) {
+    if (stage && imagesLoaded && handlersReady && !isEncounterReady) {
       queueMicrotask(() => {
         setIsEncounterReady(true);
       });
     }
-  }, [stageRef, imagesLoaded, handlersReady, isEncounterReady]);
+  }, [stage, imagesLoaded, handlersReady, isEncounterReady]);
 
   const handleImagesLoaded = useCallback(() => {
     setImagesLoaded(true);
@@ -28,6 +28,8 @@ export const useCanvasReadyState = ({ stageRef }: UseCanvasReadyStateProps) => {
 
   return {
     isEncounterReady,
+    imagesLoaded,
+    handlersReady,
     handleImagesLoaded,
     handleHandlersReady,
   };

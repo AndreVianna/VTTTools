@@ -343,6 +343,7 @@ describe('useRegionTransaction', () => {
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
+          openings: [],
           regions: [],
           sources: [],
         };
@@ -420,6 +421,7 @@ describe('useRegionTransaction', () => {
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
+          openings: [],
           regions: [existingRegion],
           sources: [],
         };
@@ -509,6 +511,7 @@ describe('useRegionTransaction', () => {
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
+          openings: [],
           regions: [region2, region1],
           sources: [],
         };
@@ -584,6 +587,7 @@ describe('useRegionTransaction', () => {
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
+          openings: [],
           regions: [existingRegion],
           sources: [],
         };

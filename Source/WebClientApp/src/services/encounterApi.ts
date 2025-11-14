@@ -372,29 +372,11 @@ export const encounterApi = createApi({
       }
     >({
       query: ({ encounterId, wallIndex, ...body }) => {
-        console.log('[encounterApi.updateEncounterWall] Request:', {
-          encounterId,
-          wallIndex,
-          name: body.name,
-          material: body.material,
-          color: body.color,
-          visibility: body.visibility,
-          isClosed: body.isClosed,
-          poleCount: body.poles?.length,
-        });
         return {
           url: `/${encounterId}/walls/${wallIndex}`,
           method: 'PATCH',
           body,
         };
-      },
-      onQueryStarted: async (_arg, { queryFulfilled }) => {
-        try {
-          await queryFulfilled;
-          console.log('[encounterApi.updateEncounterWall] Response: Success');
-        } catch (error) {
-          console.error('[encounterApi.updateEncounterWall] Error:', error);
-        }
       },
       invalidatesTags: (_result, _error, { encounterId, wallIndex }) => [
         { type: 'EncounterWall', id: `${encounterId}-${wallIndex}` },

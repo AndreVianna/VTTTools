@@ -47,9 +47,14 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
 
   const isInteractive = isRegionInScope(activeScope);
 
+  if (import.meta.env.DEV && !encounterRegion.id) {
+    console.warn('[RegionRenderer] Missing ID for region at index', encounterRegion.index);
+  }
+
   return (
     <>
       <Line
+        id={encounterRegion.id}
         points={points}
         fill={color}
         stroke={color}
