@@ -531,8 +531,8 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         var startPosition = centerPosition - halfWidth;
         var endPosition = centerPosition + halfWidth;
 
-        uint startPoleIndex = FindOrCreatePole(poles, startPosition, poleTolerance);
-        uint endPoleIndex = FindOrCreatePole(poles, endPosition, poleTolerance);
+        var startPoleIndex = FindOrCreatePole(poles, startPosition, poleTolerance);
+        var endPoleIndex = FindOrCreatePole(poles, endPosition, poleTolerance);
 
         return (startPoleIndex, endPoleIndex, poles);
     }

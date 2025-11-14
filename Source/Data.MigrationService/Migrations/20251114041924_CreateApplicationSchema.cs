@@ -474,6 +474,35 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
+            name: "EncounterOpenings",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Index = table.Column<long>(type: "bigint", nullable: false),
+                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
+                Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                WallIndex = table.Column<long>(type: "bigint", nullable: false),
+                StartPoleIndex = table.Column<long>(type: "bigint", nullable: false),
+                EndPoleIndex = table.Column<long>(type: "bigint", nullable: false),
+                Width = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Height = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Visibility = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                State = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                Opacity = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                Material = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
+                Color = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterOpenings", x => new { x.EncounterId, x.Index });
+                table.ForeignKey(
+                    name: "FK_EncounterOpenings_Encounters_EncounterId",
+                    column: x => x.EncounterId,
+                    principalTable: "Encounters",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
             name: "EncounterRegions",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -656,6 +685,11 @@ public partial class CreateApplicationSchema : Migration {
             column: "EncounterId1");
 
         migrationBuilder.CreateIndex(
+            name: "IX_EncounterOpenings_EncounterId",
+            table: "EncounterOpenings",
+            column: "EncounterId");
+
+        migrationBuilder.CreateIndex(
             name: "IX_EncounterRegions_EncounterId",
             table: "EncounterRegions",
             column: "EncounterId");
@@ -741,6 +775,9 @@ public partial class CreateApplicationSchema : Migration {
 
         migrationBuilder.DropTable(
             name: "EncounterEffects");
+
+        migrationBuilder.DropTable(
+            name: "EncounterOpenings");
 
         migrationBuilder.DropTable(
             name: "EncounterRegions");

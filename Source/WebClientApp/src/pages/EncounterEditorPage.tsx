@@ -584,6 +584,10 @@ const EncounterEditorPageInternal: React.FC = () => {
   }, [activeScope]);
 
   useEffect(() => {
+    assetManagement.handleAssetSelected([]);
+  }, [activeScope, assetManagement]);
+
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (saveStatus === 'saving') {
         e.preventDefault();

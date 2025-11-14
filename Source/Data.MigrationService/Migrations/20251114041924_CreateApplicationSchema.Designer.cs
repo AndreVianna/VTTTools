@@ -13,8 +13,8 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251114024858_SeedApplicationSchema")]
-    partial class SeedApplicationSchema
+    [Migration("20251114041924_CreateApplicationSchema")]
+    partial class CreateApplicationSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -726,6 +726,77 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasIndex("EncounterId1");
 
                     b.ToTable("EncounterEffects", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterOpening", b =>
+                {
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Index")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<long>("EndPoleIndex")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("Height")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
+                    b.Property<string>("Material")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Opacity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("StartPoleIndex")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("State")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("Visibility")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("WallIndex")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("Width")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
+                    b.HasKey("EncounterId", "Index");
+
+                    b.HasIndex("EncounterId");
+
+                    b.ToTable("EncounterOpenings", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
@@ -1586,6 +1657,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Encounter");
                 });
 
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterOpening", b =>
+                {
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
+                        .WithMany("Openings")
+                        .HasForeignKey("EncounterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Encounter");
+                });
+
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
@@ -1833,6 +1915,8 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("EncounterAssets");
 
                     b.Navigation("EncounterEffects");
+
+                    b.Navigation("Openings");
 
                     b.Navigation("Regions");
 

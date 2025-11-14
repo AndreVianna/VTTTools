@@ -1,7 +1,5 @@
 namespace VttTools.Library.Encounters.Model;
 
-using VttTools.Common.Model;
-
 public record EncounterOpening {
     public uint Index { get; init; }
 

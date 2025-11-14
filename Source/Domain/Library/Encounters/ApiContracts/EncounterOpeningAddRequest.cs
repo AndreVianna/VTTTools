@@ -1,7 +1,5 @@
 namespace VttTools.Library.Encounters.ApiContracts;
 
-using VttTools.Common.Model;
-
 public record EncounterOpeningAddRequest {
     [MaxLength(128)]
     public string Name { get; init; } = string.Empty;
