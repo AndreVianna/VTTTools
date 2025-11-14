@@ -2,9 +2,7 @@ import { Delete, ExpandLess, ExpandMore } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Checkbox,
   FormControl,
-  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
@@ -28,10 +26,10 @@ export interface OpeningsPanelProps {
   encounterId: string;
   encounterOpenings: PlacedOpening[];
   selectedOpeningIndex: number | null;
-  onOpeningSelect: (index: number) => void;
-  onOpeningDelete: (index: number) => void;
-  onPlaceOpening: (properties: OpeningPlacementProperties) => void;
-  onEditOpening?: (index: number, updates: Partial<PlacedOpening>) => void;
+  onOpeningSelect?: ((index: number) => void) | undefined;
+  onOpeningDelete?: ((index: number) => void) | undefined;
+  onPlaceOpening?: ((properties: OpeningPlacementProperties) => void) | undefined;
+  onEditOpening?: ((index: number, updates: Partial<PlacedOpening>) => void) | undefined;
 }
 
 export interface OpeningPlacementProperties {
@@ -53,7 +51,7 @@ export const OpeningsPanel: React.FC<OpeningsPanelProps> = React.memo(
     onOpeningSelect,
     onOpeningDelete,
     onPlaceOpening,
-    onEditOpening,
+    onEditOpening: _onEditOpening,
   }) => {
     const theme = useTheme();
 
@@ -84,7 +82,7 @@ export const OpeningsPanel: React.FC<OpeningsPanelProps> = React.memo(
     }, []);
 
     const handlePlaceOpening = useCallback(() => {
-      onPlaceOpening({
+      onPlaceOpening?.({
         type,
         width,
         height,
@@ -377,7 +375,7 @@ export const OpeningsPanel: React.FC<OpeningsPanelProps> = React.memo(
                   '&:hover': { backgroundColor: theme.palette.action.hover },
                   borderRadius: '4px',
                 }}
-                onClick={() => onOpeningSelect(opening.index)}
+                onClick={() => onOpeningSelect?.(opening.index)}
               >
                 <Box
                   sx={{
@@ -408,7 +406,7 @@ export const OpeningsPanel: React.FC<OpeningsPanelProps> = React.memo(
                       size='small'
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpeningDelete(opening.index);
+                        onOpeningDelete?.(opening.index);
                       }}
                       sx={{ padding: '2px' }}
                     >

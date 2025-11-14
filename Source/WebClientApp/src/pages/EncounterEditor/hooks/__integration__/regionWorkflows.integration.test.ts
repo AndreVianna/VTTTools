@@ -52,6 +52,7 @@ describe('Region Workflows - Integration Tests', () => {
       },
       assets: [],
       walls: [],
+          openings: [],
       regions: [],
       sources: [],
     };

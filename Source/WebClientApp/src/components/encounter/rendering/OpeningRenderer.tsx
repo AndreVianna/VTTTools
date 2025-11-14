@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import type React from 'react';
 import { useMemo } from 'react';
-import { Circle, Group, Line, Rect, Text } from 'react-konva';
+import { Group, Line, Rect, Text } from 'react-konva';
 import {
     type EncounterWall,
     OpeningOpacity,
@@ -91,7 +91,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
         if (onContextMenu) {
             const stage = e.target.getStage();
             const pointerPosition = stage?.getPointerPosition();
-            if (pointerPosition) {
+            if (stage && pointerPosition) {
                 const scale = stage.scaleX();
                 onContextMenu({
                     x: (pointerPosition.x - stage.x()) / scale,
@@ -140,10 +140,15 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
     const strokeWidth = 2;
     const selectionStrokeWidth = 4;
 
+    if (import.meta.env.DEV && !encounterOpening.id) {
+        console.warn('[OpeningRenderer] Missing ID for opening', encounterOpening.name);
+    }
+
     return (
         <Group>
             {!isOpen && (
                 <Line
+                    id={`${encounterOpening.id}-fill`}
                     points={[p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y]}
                     closed={true}
                     fill={color}
@@ -167,6 +172,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
             )}
 
             <Line
+                id={`${encounterOpening.id}-stroke`}
                 points={[p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, p1.x, p1.y]}
                 stroke={isSelected ? theme.palette.primary.main : color}
                 strokeWidth={isSelected ? selectionStrokeWidth : strokeWidth}
@@ -194,6 +200,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
             {isBarred && (
                 <>
                     <Line
+                        id={`${encounterOpening.id}-bar-1`}
                         points={[p1.x, p1.y, p3.x, p3.y]}
                         stroke={color}
                         strokeWidth={strokeWidth}
@@ -201,6 +208,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
                         listening={false}
                     />
                     <Line
+                        id={`${encounterOpening.id}-bar-2`}
                         points={[p2.x, p2.y, p4.x, p4.y]}
                         stroke={color}
                         strokeWidth={strokeWidth}
@@ -213,6 +221,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
             {isLocked && (
                 <Group x={centerX} y={centerY}>
                     <Rect
+                        id={`${encounterOpening.id}-lock-body`}
                         x={-4}
                         y={-2}
                         width={8}
@@ -224,6 +233,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
                         listening={false}
                     />
                     <Rect
+                        id={`${encounterOpening.id}-lock-shackle`}
                         x={-3}
                         y={-6}
                         width={6}
@@ -238,6 +248,7 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
 
             {isSelected && (
                 <Text
+                    id={`${encounterOpening.id}-label`}
                     x={centerX}
                     y={centerY + heightPixels / 2 + 5}
                     text={encounterOpening.name}

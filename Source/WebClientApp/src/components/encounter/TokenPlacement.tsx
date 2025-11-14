@@ -390,7 +390,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         draggedAsset.kind === 'Monster'
           ? {
               size: (draggedAsset as MonsterAsset).size,
-              category: (draggedAsset as MonsterAsset).category,
             }
           : undefined;
 
@@ -438,7 +437,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               a.asset.kind === 'Monster'
                 ? {
                     size: (a.asset as MonsterAsset).size,
-                    category: (a.asset as MonsterAsset).category,
                   }
                 : undefined;
 
@@ -614,6 +612,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               y={placedAsset.position.y}
             >
               <KonvaImage
+                id={placedAsset.id}
                 image={image}
                 x={0}
                 y={0}
@@ -695,6 +694,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               y={placedAsset.position.y}
             >
               <KonvaImage
+                id={placedAsset.id}
                 image={image}
                 x={0}
                 y={0}
@@ -761,6 +761,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             y={placedAsset.position.y}
           >
             <KonvaImage
+              id={placedAsset.id}
               image={image}
               x={0}
               y={0}

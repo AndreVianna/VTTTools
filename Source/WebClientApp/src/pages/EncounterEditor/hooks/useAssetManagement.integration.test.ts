@@ -130,6 +130,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       },
       assets: [],
       walls: [],
+          openings: [],
       regions: [],
       sources: [],
     };

@@ -9,8 +9,8 @@ export interface MonsterPropertiesFormProps {
 }
 
 export const MonsterPropertiesForm: React.FC<MonsterPropertiesFormProps> = ({
-  monsterData,
-  onChange,
+  monsterData: _monsterData,
+  onChange: _onChange,
   readOnly = false,
 }) => {
   if (readOnly) {

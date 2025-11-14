@@ -11,8 +11,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupName } from '@/services/layerManager';
-import { mockAssetToken, mockCharacterAsset, mockMonsterAsset, mockMediaResource, mockObjectAsset } from '@/test-utils/assetMocks';
-import type { Asset, CharacterAsset, MonsterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
+import { mockAssetToken, mockMediaResource, mockMonsterAsset, mockObjectAsset } from '@/test-utils/assetMocks';
+import type { Asset, CharacterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { AssetKind, LabelPosition, LabelVisibility, Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
@@ -110,6 +110,7 @@ describe('TokenPlacement', () => {
     elevation: 0,
     assets: [],
     walls: [],
+          openings: [],
     regions: [],
     sources: [],
   };

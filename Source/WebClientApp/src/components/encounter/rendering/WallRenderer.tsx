@@ -77,9 +77,16 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
 
   const isInteractive = isWallInScope(activeScope);
 
+  const wallId = `wall-${encounterWall.encounterId}-${encounterWall.index}`;
+
+  if (import.meta.env.DEV && !encounterWall.encounterId) {
+    console.warn('[WallRenderer] Missing encounterId for wall at index', encounterWall.index);
+  }
+
   return (
     <Group>
       <Line
+        id={wallId}
         points={points}
         stroke={style.stroke}
         strokeWidth={style.strokeWidth}
@@ -107,6 +114,7 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
       {encounterWall.poles.map((pole, index) => (
         <Circle
           key={`pole-${pole.x}-${pole.y}-${index}`}
+          id={`${wallId}-pole-${index}`}
           x={pole.x}
           y={pole.y}
           radius={poleRadius}

@@ -83,7 +83,6 @@ function createEditData(asset: Asset) {
     isOpaque: (asset as ObjectAsset).isOpaque,
     triggerEffectId: (asset as ObjectAsset).triggerEffectId,
     statBlockId: (asset as MonsterAsset).statBlockId,
-    category: (asset as MonsterAsset).category,
     tokenStyle: (asset as MonsterAsset).tokenStyle,
   };
 }
@@ -116,7 +115,6 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
     triggerEffectId: editData.triggerEffectId ?? undefined,
   };
   const monsterData: MonsterData = {
-    category: editData.category,
     statBlockId: editData.statBlockId ?? undefined,
     tokenStyle: editData.tokenStyle ?? undefined,
   };
@@ -153,7 +151,6 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
         };
       } else if (asset.kind === AssetKind.Monster) {
         request.monsterData = {
-          category: editData.category,
           statBlockId: editData.statBlockId ?? undefined,
           tokenStyle: editData.tokenStyle ?? undefined,
         };
@@ -327,7 +324,6 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                       monsterData={monsterData}
                       onChange={(data) =>
                         updateModifiedFields({
-                          category: data.category,
                           statBlockId: data.statBlockId,
                           tokenStyle: data.tokenStyle,
                         })
@@ -379,7 +375,6 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                   monsterData={monsterData}
                   onChange={(data) =>
                     updateModifiedFields({
-                      category: data.category,
                       statBlockId: data.statBlockId,
                       tokenStyle: data.tokenStyle,
                     })

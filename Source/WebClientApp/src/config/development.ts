@@ -77,7 +77,7 @@ export const MOCK_DATA = {
     accessFailedCount: 0,
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
-    profilworldtureUrl: null,
+    profilePictureUrl: null,
   },
 
   // Mock API responses

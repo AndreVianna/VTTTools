@@ -1,10 +1,14 @@
-export type EncounterEntityType = 'assets' | 'walls' | 'regions' | 'sources' | 'effects';
+export type EncounterEntityType = 'assets' | 'walls' | 'openings' | 'regions' | 'sources' | 'effects';
 
 const STORAGE_KEY = 'encounter-mappings';
+const MAX_ID_GENERATION_ATTEMPTS = 10;
+
+const usedIds = new Set<string>();
 
 interface EntityTypeMappings {
   assets: Record<string, number>;
   walls: Record<string, number>;
+  openings: Record<string, number>;
   regions: Record<string, number>;
   sources: Record<string, number>;
   effects: Record<string, number>;
@@ -73,6 +77,7 @@ function getEncounterMappings(encounterId: string): EntityTypeMappings {
     allMappings[encounterId] ?? {
       assets: {},
       walls: {},
+      openings: {},
       regions: {},
       sources: {},
       effects: {},
@@ -129,6 +134,7 @@ export function removeEntityMapping(encounterId: string, entityType: EncounterEn
   const encounterMappings = getEncounterMappings(encounterId);
   delete encounterMappings[entityType][domId];
   setEncounterMappings(encounterId, encounterMappings);
+  usedIds.delete(domId);
 }
 
 export function getAllMappings(encounterId: string, entityType: EncounterEntityType): Record<string, number> {
@@ -142,4 +148,32 @@ export function clearEncounterMappings(encounterId: string): void {
   const allMappings = getStoredMappings();
   delete allMappings[encounterId];
   setStoredMappings(allMappings);
+}
+
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+export function generateUniqueId(prefix: string, entityType: EncounterEntityType): string {
+  for (let attempt = 0; attempt < MAX_ID_GENERATION_ATTEMPTS; attempt++) {
+    const uuid = generateUUID();
+    const id = `${prefix}-${uuid}`;
+
+    if (!usedIds.has(id)) {
+      usedIds.add(id);
+      return id;
+    }
+  }
+
+  throw new Error(
+    `Failed to generate unique ID after ${MAX_ID_GENERATION_ATTEMPTS} attempts for ${entityType} with prefix "${prefix}"`,
+  );
 }

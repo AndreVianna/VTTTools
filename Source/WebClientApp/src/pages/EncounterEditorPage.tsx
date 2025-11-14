@@ -113,7 +113,20 @@ const EncounterEditorPageInternal: React.FC = () => {
   const theme = useTheme();
   const { encounterId } = useParams<{ encounterId: string }>();
   const canvasRef = useRef<EncounterCanvasHandle>(null);
-  const stageRef = useRef<Konva.Stage>(null);
+  const [stage, setStage] = useState<Konva.Stage | null>(null);
+  const stageRefObject = useRef<Konva.Stage | null>(null);
+
+  const stageCallbackRef = useCallback((node: Konva.Stage | null) => {
+    if (node) {
+      stageRefObject.current = node;
+      setStage(node);
+      layerManager.initialize(node);
+      layerManager.enforceZOrder();
+    } else {
+      stageRefObject.current = null;
+      setStage(null);
+    }
+  }, []);
   const { execute, recordAction, undo, redo } = useUndoRedoContext();
   const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
   const { isOnline } = useConnectionStatus();
@@ -437,7 +450,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   });
 
   const canvasReadyState = useCanvasReadyState({
-    stageRef,
+    stage,
   });
 
   const viewportControls = useViewportControls({
@@ -552,24 +565,8 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
   }, [encounterData, isInitialized, encounterId]);
 
-  // Initialize Stage reference when EncounterCanvas is ready
-  // CRITICAL: TokenDragHandle depends on this ref being set to attach event handlers
-  // NOTE: Runs when imagesLoaded or handlersReady changes to retry stage initialization
-  const [stageReady, setStageReady] = useState(false);
 
   useEffect(() => {
-    const stage = canvasRef.current?.getStage();
-
-    if (stage && stage !== stageRef.current) {
-      stageRef.current = stage;
-      layerManager.initialize(stage);
-      layerManager.enforceZOrder();
-      setStageReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    const stage = stageRef.current;
     if (!stage) return;
 
     const handleDblClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -605,7 +602,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     return () => {
       stage.off('dblclick', handleDblClick);
     };
-  }, [activeScope]);
+  }, [activeScope, stage]);
 
   const prevActiveScopeRef = useRef<InteractionScope>(null);
   useEffect(() => {
@@ -1295,6 +1292,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             initialPosition={{ x: initialViewport.x, y: initialViewport.y }}
             backgroundColor={theme.palette.background.default}
             onViewportChange={viewportControls.handleViewportChange}
+            stageCallbackRef={stageCallbackRef}
           >
             {/* Layer 1: Static (background + grid) */}
             <Layer name={LayerName.Static} listening={false}>
@@ -1581,8 +1579,8 @@ const EncounterEditorPageInternal: React.FC = () => {
               onAssetMoved={assetManagement.handleAssetMoved}
               onAssetDeleted={assetManagement.handleAssetDeleted}
               gridConfig={gridConfig}
-              stageRef={stageRef as React.RefObject<Konva.Stage>}
-              stageReady={stageReady}
+              stageRef={stageRefObject}
+              stageReady={!!stage}
               isPlacementMode={!!assetManagement.draggedAsset}
               enableDragMove={true}
               onReady={canvasReadyState.handleHandlersReady}
@@ -1635,7 +1633,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           onClose={() => setAssetPickerOpen({ open: false })}
           onSelect={(asset) => {
             setAssetPickerOpen({ open: false });
-            assetManagement.handleAssetSelectForPlacement(asset);
+            assetManagement.setDraggedAsset(asset);
           }}
           kind={assetPickerOpen.kind}
         />
