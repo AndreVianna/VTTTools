@@ -15,8 +15,12 @@ import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityE
 import { getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
 
 function getAssetLayer(asset: Asset): GroupName {
-  if (asset.kind === 'Creature') {
-    return GroupName.Creatures;
+  if (asset.kind === 'Monster') {
+    return GroupName.Monsters;
+  }
+
+  if (asset.kind === 'Character') {
+    return GroupName.Characters;
   }
 
   const objectAsset = asset as ObjectAsset;
@@ -32,8 +36,7 @@ export async function hydratePlacedAssets(
   encounterId: string,
   getAsset: (assetId: string) => Promise<Asset>,
 ): Promise<PlacedAsset[]> {
-  const assetPromises = encounterAssets.map((sa) => getAsset(sa.assetId));
-  const assets = await Promise.all(assetPromises);
+  const assets = await Promise.all(encounterAssets.map(sa => getAsset(sa.assetId)));
 
   return encounterAssets
     .map((sa, arrayIndex) => {
@@ -58,14 +61,30 @@ export async function hydratePlacedAssets(
         setEntityMapping(encounterId, 'assets', domId, backendIndex);
       }
 
-      const isCreature = asset.kind === 'Creature';
-      const visibilityKey = isCreature ? 'vtt-creatures-label-visibility' : 'vtt-objects-label-visibility';
-      const positionKey = isCreature ? 'vtt-creatures-label-position' : 'vtt-objects-label-position';
+      const isMonster = asset.kind === 'Monster';
+      const isCharacter = asset.kind === 'Character';
+
+      let visibilityKey: string;
+      let positionKey: string;
+      let defaultVisibility: LabelVisibilityEnum;
+
+      if (isMonster) {
+        visibilityKey = 'vtt-monsters-label-visibility';
+        positionKey = 'vtt-monsters-label-position';
+        defaultVisibility = LabelVisibilityEnum.Always;
+      } else if (isCharacter) {
+        visibilityKey = 'vtt-characters-label-visibility';
+        positionKey = 'vtt-characters-label-position';
+        defaultVisibility = LabelVisibilityEnum.OnHover;
+      } else {
+        visibilityKey = 'vtt-objects-label-visibility';
+        positionKey = 'vtt-objects-label-position';
+        defaultVisibility = LabelVisibilityEnum.OnHover;
+      }
 
       const storedVisibility = localStorage.getItem(visibilityKey);
       const storedPosition = localStorage.getItem(positionKey);
 
-      const defaultVisibility = isCreature ? LabelVisibilityEnum.Always : LabelVisibilityEnum.OnHover;
       const defaultPosition = LabelPositionEnum.Bottom;
 
       const labelVisibility =

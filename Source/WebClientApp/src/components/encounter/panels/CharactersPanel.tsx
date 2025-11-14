@@ -26,13 +26,16 @@ import {
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { AssetKind, LabelPosition, LabelVisibility, type PlacedAsset } from '@/types/domain';
+import type { GridConfig } from '@/utils/gridCalculator';
+import { positionToGrid } from '@/utils/gridCalculator';
 
-const STORAGE_KEY_VISIBILITY = 'vtt-creatures-label-visibility';
-const STORAGE_KEY_POSITION = 'vtt-creatures-label-position';
+const STORAGE_KEY_VISIBILITY = 'vtt-characters-label-visibility';
+const STORAGE_KEY_POSITION = 'vtt-characters-label-position';
 
-export interface CreaturesPanelProps {
+export interface CharactersPanelProps {
   placedAssets: PlacedAsset[];
   selectedAssetIds: string[];
+  gridConfig?: GridConfig;
   onBrowseAssets?: () => void;
   onAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onAssetDelete?: (assetId: string) => void;
@@ -40,9 +43,10 @@ export interface CreaturesPanelProps {
   onAssetUpdate?: (assetId: string, updates: Partial<PlacedAsset>) => void;
 }
 
-export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
+export const CharactersPanel: React.FC<CharactersPanelProps> = ({
   placedAssets,
   selectedAssetIds,
+  gridConfig,
   onBrowseAssets,
   onAssetSelect,
   onAssetDelete,
@@ -56,7 +60,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
   const [labelVisibility, setLabelVisibility] = useState<LabelVisibility>(() => {
     const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
     if (stored === LabelVisibility.Default || !stored) {
-      return LabelVisibility.Always;
+      return LabelVisibility.OnHover;
     }
     return stored as LabelVisibility;
   });
@@ -76,7 +80,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
     localStorage.setItem(STORAGE_KEY_POSITION, labelPosition);
   }, [labelPosition]);
 
-  const creatures = placedAssets.filter((a) => a.asset.kind === AssetKind.Creature);
+  const characters = placedAssets.filter((a) => a.asset.kind === AssetKind.Character);
 
   const toggleAssetExpanded = (assetId: string) => {
     setExpandedAssets((prev) => {
@@ -128,7 +132,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
       }}
     >
       <Typography variant='overline' sx={compactStyles.sectionHeader}>
-        Creatures
+        Characters
       </Typography>
 
       <Button
@@ -138,7 +142,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
         sx={compactStyles.button}
         fullWidth
       >
-        Browse Creatures
+        Browse Characters
       </Button>
 
       <Divider sx={{ my: 0.5 }} />
@@ -192,7 +196,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
       <Divider sx={{ my: 0.5 }} />
 
       <Typography variant='overline' sx={compactStyles.sectionHeader}>
-        Placed Creatures ({creatures.length})
+        Placed Characters ({characters.length})
       </Typography>
 
       <List
@@ -205,18 +209,18 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
           borderRadius: 1,
         }}
       >
-        {creatures.length === 0 ? (
+        {characters.length === 0 ? (
           <ListItem>
             <ListItemText
               primary={
                 <Typography sx={{ fontSize: '10px', color: theme.palette.text.disabled }}>
-                  No creatures placed
+                  No characters placed
                 </Typography>
               }
             />
           </ListItem>
         ) : (
-          creatures.map((placedAsset) => {
+          characters.map((placedAsset) => {
             const isExpanded = expandedAssets.has(placedAsset.id);
             const isSelected = selectedAssetIds.includes(placedAsset.id);
 
@@ -328,7 +332,10 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
                         color: theme.palette.text.secondary,
                       }}
                     >
-                      Position: ({placedAsset.position.x.toFixed(0)}, {placedAsset.position.y.toFixed(0)})
+                      {gridConfig ? (() => {
+                        const gridPos = positionToGrid(placedAsset.position || { x: 0, y: 0 }, gridConfig);
+                        return `Position: (${gridPos.x.toFixed(1)}, ${gridPos.y.toFixed(1)}) grid`;
+                      })() : `Position: (${placedAsset.position?.x?.toFixed(0) ?? '0'}, ${placedAsset.position?.y?.toFixed(0) ?? '0'}) px`}
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 2 }}>

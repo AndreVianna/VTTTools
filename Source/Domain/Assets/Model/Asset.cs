@@ -5,7 +5,8 @@
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
 [JsonDerivedType(typeof(ObjectAsset), typeDiscriminator: "Object")]
-[JsonDerivedType(typeof(CreatureAsset), typeDiscriminator: "Creature")]
+[JsonDerivedType(typeof(MonsterAsset), typeDiscriminator: "Monster")]
+[JsonDerivedType(typeof(CharacterAsset), typeDiscriminator: "Character")]
 public abstract record Asset {
     /// <summary>
     /// Unique identifier for the asset

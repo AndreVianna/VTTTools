@@ -8,18 +8,13 @@ public record CreatureAsset : Asset {
     /// Constructor that automatically sets the Kind discriminator
     /// </summary>
     public CreatureAsset() {
-        Kind = AssetKind.Creature;
+        Kind = AssetKind.Monster;
     }
 
     /// <summary>
     /// Reference to the creature's stat block (to be implemented in future phase)
     /// </summary>
     public Guid? StatBlockId { get; init; }
-
-    /// <summary>
-    /// Category for UI filtering (Character vs Monster)
-    /// </summary>
-    public CreatureCategory Category { get; init; } = CreatureCategory.Character;
 
     /// <summary>
     /// Optional visual styling for the creature's token

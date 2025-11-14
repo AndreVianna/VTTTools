@@ -8,7 +8,8 @@ import type {
   Adventure,
   Asset,
   AssetToken,
-  CreatureAsset,
+  CharacterAsset,
+  MonsterAsset,
   GameSession,
   LoginRequest,
   LoginResponse,
@@ -18,7 +19,7 @@ import type {
   RegisterResponse,
   User,
 } from '@/types/domain';
-import { AssetKind, ContentType, CreatureCategory, ResourceType, TokenShape } from '@/types/domain';
+import { AssetKind, ContentType, ResourceType, TokenShape } from '@/types/domain';
 
 // Delay to simulate network latency in development
 const MOCK_DELAY = 500;
@@ -131,11 +132,11 @@ export class MockApiService {
       isDefault,
     });
 
-    const creatureAssets: CreatureAsset[] = [
+    const characterAssets: CharacterAsset[] = [
       {
         id: 'mock-asset-1',
         ownerId: 'mock-owner',
-        kind: AssetKind.Creature,
+        kind: AssetKind.Character,
         name: 'Hero Character',
         description: 'A playable hero character with portrait',
         isPublished: true,
@@ -143,55 +144,12 @@ export class MockApiService {
         tokens: [createMockToken('hero')],
         portrait: createMockMediaResource('hero-portrait'),
         size: { width: 1, height: 1, isSquare: true },
-        category: CreatureCategory.Character,
         tokenStyle: { shape: TokenShape.Circle },
-      },
-      {
-        id: 'mock-asset-2',
-        ownerId: 'mock-owner',
-        kind: AssetKind.Creature,
-        name: 'Goblin',
-        description: 'A hostile goblin enemy',
-        isPublished: true,
-        isPublic: true,
-        tokens: [createMockToken('goblin')],
-        portrait: undefined,
-        size: { width: 1, height: 1, isSquare: true },
-        category: CreatureCategory.Monster,
-        tokenStyle: { shape: TokenShape.Circle },
-      },
-      {
-        id: 'mock-asset-3',
-        ownerId: 'mock-owner',
-        kind: AssetKind.Creature,
-        name: 'Ogre',
-        description: 'Large creature with multiple tokens',
-        isPublished: true,
-        isPublic: true,
-        tokens: [createMockToken('ogre-default', true), createMockToken('ogre-alt', false)],
-        portrait: createMockMediaResource('ogre-portrait'),
-        size: { width: 2, height: 2, isSquare: true },
-        category: CreatureCategory.Monster,
-        tokenStyle: { shape: TokenShape.Circle },
-      },
-      {
-        id: 'mock-asset-4',
-        ownerId: 'mock-owner',
-        kind: AssetKind.Creature,
-        name: 'Dragon',
-        description: 'Huge creature with custom size',
-        isPublished: true,
-        isPublic: true,
-        tokens: [createMockToken('dragon')],
-        portrait: createMockMediaResource('dragon-portrait'),
-        size: { width: 4, height: 3, isSquare: false },
-        category: CreatureCategory.Monster,
-        tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' },
       },
       {
         id: 'mock-asset-5',
         ownerId: 'mock-owner',
-        kind: AssetKind.Creature,
+        kind: AssetKind.Character,
         name: 'Portrait Only NPC',
         description: 'NPC with portrait but no token (edge case)',
         isPublished: true,
@@ -199,8 +157,49 @@ export class MockApiService {
         tokens: [],
         portrait: createMockMediaResource('npc-portrait'),
         size: { width: 1, height: 1, isSquare: true },
-        category: CreatureCategory.Character,
         tokenStyle: { shape: TokenShape.Square },
+      },
+    ];
+
+    const monsterAssets: MonsterAsset[] = [
+      {
+        id: 'mock-asset-2',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Monster,
+        name: 'Goblin',
+        description: 'A hostile goblin enemy',
+        isPublished: true,
+        isPublic: true,
+        tokens: [createMockToken('goblin')],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        tokenStyle: { shape: TokenShape.Circle },
+      },
+      {
+        id: 'mock-asset-3',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Monster,
+        name: 'Ogre',
+        description: 'Large monster with multiple tokens',
+        isPublished: true,
+        isPublic: true,
+        tokens: [createMockToken('ogre-default', true), createMockToken('ogre-alt', false)],
+        portrait: createMockMediaResource('ogre-portrait'),
+        size: { width: 2, height: 2, isSquare: true },
+        tokenStyle: { shape: TokenShape.Circle },
+      },
+      {
+        id: 'mock-asset-4',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Monster,
+        name: 'Dragon',
+        description: 'Huge monster with custom size',
+        isPublished: true,
+        isPublic: true,
+        tokens: [createMockToken('dragon')],
+        portrait: createMockMediaResource('dragon-portrait'),
+        size: { width: 4, height: 3, isSquare: false },
+        tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' },
       },
     ];
 
@@ -305,7 +304,7 @@ export class MockApiService {
       },
     ];
 
-    return [...creatureAssets, ...objectAssets];
+    return [...characterAssets, ...monsterAssets, ...objectAssets];
   }
 
   // Game Sessions Mock Responses

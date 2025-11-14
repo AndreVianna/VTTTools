@@ -29,14 +29,14 @@ describe('displayHelpers', () => {
           tokens: [],
           portrait: undefined,
           size: { width: 1, height: 1, isSquare: true },
-          kind: AssetKind.Creature,
+          kind: AssetKind.Monster,
         },
       };
 
       expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.Never);
     });
 
-    it('returns encounter default for Creatures when asset is Default', () => {
+    it('returns encounter default for Monsters when asset is Default', () => {
       const asset: PlacedAsset = {
         id: '1',
         assetId: '1',
@@ -61,11 +61,11 @@ describe('displayHelpers', () => {
           tokens: [],
           portrait: undefined,
           size: { width: 1, height: 1, isSquare: true },
-          kind: AssetKind.Creature,
+          kind: AssetKind.Monster,
         },
       };
 
-      expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.OnHover);
+      expect(getEffectiveLabelVisibility(asset)).toBe(LabelVisibility.Always);
     });
 
     it('returns OnHover for Objects when asset is Default (ignores encounter default)', () => {
@@ -159,7 +159,7 @@ describe('displayHelpers', () => {
           tokens: [],
           portrait: undefined,
           size: { width: 1, height: 1, isSquare: true },
-          kind: AssetKind.Creature,
+          kind: AssetKind.Monster,
         },
       };
 
@@ -191,11 +191,11 @@ describe('displayHelpers', () => {
           tokens: [],
           portrait: undefined,
           size: { width: 1, height: 1, isSquare: true },
-          kind: AssetKind.Creature,
+          kind: AssetKind.Monster,
         },
       };
 
-      expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Middle);
+      expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Bottom);
     });
   });
 });

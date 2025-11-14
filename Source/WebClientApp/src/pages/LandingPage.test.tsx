@@ -307,7 +307,7 @@ describe('LandingPage', () => {
       // Assert - BDD: Descriptive card content
       expect(screen.getByText(/create tactical maps with grids and tokens/i)).toBeInTheDocument();
       expect(screen.getByText(/manage worlds, campaigns, adventures/i)).toBeInTheDocument();
-      expect(screen.getByText(/browse creatures, characters, tokens/i)).toBeInTheDocument();
+      expect(screen.getByText(/browse monsters, characters, tokens/i)).toBeInTheDocument();
       expect(screen.getByText(/profile, security, 2FA settings/i)).toBeInTheDocument();
     });
   });

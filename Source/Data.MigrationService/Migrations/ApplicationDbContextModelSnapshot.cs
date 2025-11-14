@@ -1274,18 +1274,26 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Assets.Entities.CreatureAsset", b =>
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.CharacterAsset", b =>
                 {
                     b.HasBaseType("VttTools.Data.Assets.Entities.Asset");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("StatBlockId")
+                        .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasDiscriminator().HasValue("Creature");
+                    b.HasDiscriminator().HasValue("Character");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.MonsterAsset", b =>
+                {
+                    b.HasBaseType("VttTools.Data.Assets.Entities.Asset");
+
+                    b.Property<Guid?>("StatBlockId")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasDiscriminator().HasValue("Monster");
                 });
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.ObjectAsset", b =>
@@ -1527,7 +1535,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Library.Entities.Encounter", null)
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany("EncounterAssets")
                         .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1544,6 +1552,8 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Asset");
+
+                    b.Navigation("Encounter");
 
                     b.Navigation("Portrait");
 
@@ -1738,29 +1748,63 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VttTools.Data.Assets.Entities.CreatureAsset", b =>
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.CharacterAsset", b =>
                 {
                     b.OwnsOne("VttTools.Data.Assets.Entities.TokenStyle", "TokenStyle", b1 =>
                         {
-                            b1.Property<Guid>("CreatureAssetId")
+                            b1.Property<Guid>("CharacterAssetId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("BackgroundColor")
+                                .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<string>("BorderColor")
+                                .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<string>("Shape")
                                 .IsRequired()
+                                .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.HasKey("CreatureAssetId");
+                            b1.HasKey("CharacterAssetId");
 
                             b1.ToTable("Assets");
 
                             b1.WithOwner()
-                                .HasForeignKey("CreatureAssetId");
+                                .HasForeignKey("CharacterAssetId");
+                        });
+
+                    b.Navigation("TokenStyle");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.MonsterAsset", b =>
+                {
+                    b.OwnsOne("VttTools.Data.Assets.Entities.TokenStyle", "TokenStyle", b1 =>
+                        {
+                            b1.Property<Guid>("MonsterAssetId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("BackgroundColor")
+                                .ValueGeneratedOnUpdateSometimes()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("BorderColor")
+                                .ValueGeneratedOnUpdateSometimes()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Shape")
+                                .IsRequired()
+                                .ValueGeneratedOnUpdateSometimes()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("MonsterAssetId");
+
+                            b1.ToTable("Assets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MonsterAssetId");
                         });
 
                     b.Navigation("TokenStyle");

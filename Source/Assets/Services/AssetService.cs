@@ -10,38 +10,19 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         => assetStorage.GetAllAsync(ct);
 
     /// <inheritdoc />
-    public async Task<Asset[]> GetAssetsAsync(Guid userId, AssetKind? kind, CreatureCategory? creatureCategory, string? search, bool? published, string? owner, CancellationToken ct = default) {
+    public async Task<Asset[]> GetAssetsAsync(Guid userId, AssetKind? kind, string? search, bool? published, string? owner, CancellationToken ct = default) {
         var assets = await assetStorage.GetAllAsync(ct);
+        assets = owner switch {
+            "mine" => [.. assets.Where(a => a.OwnerId == userId)],
+            "public" => [.. assets.Where(a => a.IsPublic)],
+            "all" => [.. assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished))],
+            _ => [.. assets.Where(a => a.OwnerId == userId)],
+        };
 
-        // Apply ownership filter first
-        if (owner == "mine") {
-            assets = [.. assets.Where(a => a.OwnerId == userId)];
-        }
-        else if (owner == "public") {
-            assets = [.. assets.Where(a => a.IsPublic)];
-        }
-        else if (owner == "all") {
-            // Show user's assets + public published assets
-            assets = [.. assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished))];
-        }
-        else {
-            // Default: only user's own assets (when owner not specified)
-            assets = [.. assets.Where(a => a.OwnerId == userId)];
-        }
-
-        // Filter by kind
         if (kind.HasValue) {
             assets = [.. assets.Where(a => a.Kind == kind.Value)];
         }
 
-        // Filter by creature category (only for CreatureAssets)
-        if (creatureCategory.HasValue) {
-            assets = [.. assets.Where(a =>
-                a is CreatureAsset creature && creature.Category == creatureCategory.Value
-            )];
-        }
-
-        // Filter by search (name or description)
         if (!string.IsNullOrWhiteSpace(search)) {
             var searchLower = search.ToLowerInvariant();
             assets = [.. assets.Where(a =>
@@ -50,7 +31,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             )];
         }
 
-        // Filter by published status
         if (published.HasValue) {
             assets = [.. assets.Where(a => a.IsPublished == published.Value)];
         }
@@ -59,9 +39,9 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
     }
 
     /// <inheritdoc />
-    public async Task<(Asset[] assets, int totalCount)> GetAssetsPagedAsync(Guid userId, AssetKind? kind, CreatureCategory? creatureCategory, string? search, bool? published, string? owner, int skip, int take, CancellationToken ct = default) {
+    public async Task<(Asset[] assets, int totalCount)> GetAssetsPagedAsync(Guid userId, AssetKind? kind, string? search, bool? published, string? owner, int skip, int take, CancellationToken ct = default) {
         // Get filtered assets (reuse existing logic)
-        var allFilteredAssets = await GetAssetsAsync(userId, kind, creatureCategory, search, published, owner, ct);
+        var allFilteredAssets = await GetAssetsAsync(userId, kind, search, published, owner, ct);
 
         // Get total count before pagination
         var totalCount = allFilteredAssets.Length;
@@ -113,7 +93,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 IsOpaque = data.ObjectData!.IsOpaque,
                 TriggerEffectId = data.ObjectData!.TriggerEffectId,
             },
-            AssetKind.Creature => new CreatureAsset {
+            AssetKind.Monster => new MonsterAsset {
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
@@ -122,9 +102,20 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
                 Size = data.Size,
-                StatBlockId = data.CreatureData!.StatBlockId,
-                Category = data.CreatureData!.Category,
-                TokenStyle = data.CreatureData!.TokenStyle,
+                StatBlockId = data.MonsterData!.StatBlockId,
+                TokenStyle = data.MonsterData!.TokenStyle,
+            },
+            AssetKind.Character => new CharacterAsset {
+                OwnerId = userId,
+                Name = data.Name,
+                Description = data.Description,
+                Tokens = tokens,
+                Portrait = portrait,
+                IsPublished = data.IsPublished,
+                IsPublic = data.IsPublic,
+                Size = data.Size,
+                StatBlockId = data.CharacterData!.StatBlockId,
+                TokenStyle = data.CharacterData!.TokenStyle,
             },
             _ => throw new InvalidOperationException($"Unknown asset kind: {data.Kind}")
         };
@@ -186,17 +177,27 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 IsOpaque = data.ObjectData.IsSet ? data.ObjectData.Value.IsOpaque : obj.IsOpaque,
                 TriggerEffectId = data.ObjectData.IsSet ? data.ObjectData.Value.TriggerEffectId : obj.TriggerEffectId,
             },
-            CreatureAsset creature => creature with {
-                Name = data.Name.IsSet ? data.Name.Value : creature.Name,
-                Description = data.Description.IsSet ? data.Description.Value : creature.Description,
+            MonsterAsset monster => monster with {
+                Name = data.Name.IsSet ? data.Name.Value : monster.Name,
+                Description = data.Description.IsSet ? data.Description.Value : monster.Description,
                 Tokens = tokens,
                 Portrait = portrait,
-                IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : creature.IsPublished,
-                IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : creature.IsPublic,
-                Size = data.Size.IsSet ? data.Size.Value : creature.Size,
-                StatBlockId = data.CreatureData.IsSet ? data.CreatureData.Value.StatBlockId : creature.StatBlockId,
-                Category = data.CreatureData.IsSet ? data.CreatureData.Value.Category : creature.Category,
-                TokenStyle = data.CreatureData.IsSet ? data.CreatureData.Value.TokenStyle : creature.TokenStyle,
+                IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : monster.IsPublished,
+                IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : monster.IsPublic,
+                Size = data.Size.IsSet ? data.Size.Value : monster.Size,
+                StatBlockId = data.MonsterData.IsSet ? data.MonsterData.Value.StatBlockId : monster.StatBlockId,
+                TokenStyle = data.MonsterData.IsSet ? data.MonsterData.Value.TokenStyle : monster.TokenStyle,
+            },
+            CharacterAsset character => character with {
+                Name = data.Name.IsSet ? data.Name.Value : character.Name,
+                Description = data.Description.IsSet ? data.Description.Value : character.Description,
+                Tokens = tokens,
+                Portrait = portrait,
+                IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : character.IsPublished,
+                IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : character.IsPublic,
+                Size = data.Size.IsSet ? data.Size.Value : character.Size,
+                StatBlockId = data.CharacterData.IsSet ? data.CharacterData.Value.StatBlockId : character.StatBlockId,
+                TokenStyle = data.CharacterData.IsSet ? data.CharacterData.Value.TokenStyle : character.TokenStyle,
             },
             _ => throw new InvalidOperationException($"Unknown asset type: {asset.GetType()}")
         };

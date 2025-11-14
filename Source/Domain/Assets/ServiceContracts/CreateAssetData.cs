@@ -1,17 +1,5 @@
 namespace VttTools.Assets.ServiceContracts;
 
-public record CreatureData {
-    public Guid? StatBlockId { get; init; }
-    public CreatureCategory Category { get; init; } = CreatureCategory.Character;
-    public TokenStyle? TokenStyle { get; init; }
-}
-
-public record ObjectData {
-    public bool IsMovable { get; init; } = true;
-    public bool IsOpaque { get; init; }
-    public Guid? TriggerEffectId { get; init; }
-}
-
 /// <summary>
 /// Data to create a new Asset template.
 /// </summary>
@@ -27,7 +15,8 @@ public record CreateAssetData
     public bool IsPublic { get; init; }
 
     public ObjectData? ObjectData { get; init; }
-    public CreatureData? CreatureData { get; init; }
+    public MonsterData? MonsterData { get; init; }
+    public CharacterData? CharacterData { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
@@ -38,8 +27,10 @@ public record CreateAssetData
         // Validate that properties match the Kind
         if (Kind == AssetKind.Object && ObjectData is null)
             result += new Error("ObjectData must be provided for Object assets.", nameof(ObjectData));
-        if (Kind == AssetKind.Creature && CreatureData is null)
-            result += new Error("CreatureData must be provided for Creature assets.", nameof(CreatureData));
+        if (Kind == AssetKind.Monster && MonsterData is null)
+            result += new Error("MonsterData must be provided for Monster assets.", nameof(MonsterData));
+        if (Kind == AssetKind.Character && CharacterData is null)
+            result += new Error("CharacterData must be provided for Character assets.", nameof(CharacterData));
 
         // Validate Size values
         if (Size.Width <= 0)

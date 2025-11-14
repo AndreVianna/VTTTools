@@ -1,14 +1,16 @@
 using Resource = VttTools.Media.Model.Resource;
 using Asset = VttTools.Assets.Model.Asset;
 using AssetToken = VttTools.Assets.Model.AssetToken;
-using CreatureAsset = VttTools.Assets.Model.CreatureAsset;
+using CharacterAsset = VttTools.Assets.Model.CharacterAsset;
+using MonsterAsset = VttTools.Assets.Model.MonsterAsset;
 using ObjectAsset = VttTools.Assets.Model.ObjectAsset;
 using TokenStyle = VttTools.Assets.Model.TokenStyle;
 
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
-using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
+using MonsterAssetEntity = VttTools.Data.Assets.Entities.MonsterAsset;
+using CharacterAssetEntity = VttTools.Data.Assets.Entities.CharacterAsset;
 using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
 using TokenStyleEntity = VttTools.Data.Assets.Entities.TokenStyle;
 
@@ -39,28 +41,50 @@ internal static class Mapper {
                 IsOpaque = obj.IsOpaque,
                 TriggerEffectId = obj.TriggerEffectId
             },
-            CreatureAssetEntity creature => new CreatureAsset {
-                Id = creature.Id,
-                OwnerId = creature.OwnerId,
-                Name = creature.Name,
-                Description = creature.Description,
-                IsPublic = creature.IsPublic,
-                IsPublished = creature.IsPublished,
-                Tokens = [.. creature.Tokens.Select(r => new AssetToken {
+            MonsterAssetEntity monster => new MonsterAsset {
+                Id = monster.Id,
+                OwnerId = monster.OwnerId,
+                Name = monster.Name,
+                Description = monster.Description,
+                IsPublic = monster.IsPublic,
+                IsPublished = monster.IsPublished,
+                Tokens = [.. monster.Tokens.Select(r => new AssetToken {
                     Token = r.Token.ToModel(),
                     IsDefault = r.IsDefault
                 })],
-                Portrait = creature.Portrait?.ToModel(),
+                Portrait = monster.Portrait?.ToModel(),
                 Size = new NamedSize {
-                    Width = Math.Round(creature.Size.Width, 3),
-                    Height = Math.Round(creature.Size.Height, 3),
+                    Width = Math.Round(monster.Size.Width, 3),
+                    Height = Math.Round(monster.Size.Height, 3),
                 },
-                StatBlockId = creature.StatBlockId,
-                Category = creature.Category,
-                TokenStyle = creature.TokenStyle != null ? new TokenStyle {
-                    BorderColor = creature.TokenStyle.BorderColor,
-                    BackgroundColor = creature.TokenStyle.BackgroundColor,
-                    Shape = creature.TokenStyle.Shape
+                StatBlockId = monster.StatBlockId,
+                TokenStyle = monster.TokenStyle != null ? new TokenStyle {
+                    BorderColor = monster.TokenStyle.BorderColor,
+                    BackgroundColor = monster.TokenStyle.BackgroundColor,
+                    Shape = monster.TokenStyle.Shape
+                } : null
+            },
+            CharacterAssetEntity character => new CharacterAsset {
+                Id = character.Id,
+                OwnerId = character.OwnerId,
+                Name = character.Name,
+                Description = character.Description,
+                IsPublic = character.IsPublic,
+                IsPublished = character.IsPublished,
+                Tokens = [.. character.Tokens.Select(r => new AssetToken {
+                    Token = r.Token.ToModel(),
+                    IsDefault = r.IsDefault
+                })],
+                Portrait = character.Portrait?.ToModel(),
+                Size = new NamedSize {
+                    Width = Math.Round(character.Size.Width, 3),
+                    Height = Math.Round(character.Size.Height, 3),
+                },
+                StatBlockId = character.StatBlockId,
+                TokenStyle = character.TokenStyle != null ? new TokenStyle {
+                    BorderColor = character.TokenStyle.BorderColor,
+                    BackgroundColor = character.TokenStyle.BackgroundColor,
+                    Shape = character.TokenStyle.Shape
                 } : null
             },
             _ => throw new InvalidOperationException($"Unknown asset entity type: {entity.GetType()}")
@@ -90,31 +114,56 @@ internal static class Mapper {
                 IsOpaque = obj.IsOpaque,
                 TriggerEffectId = obj.TriggerEffectId
             },
-            CreatureAsset creature => new CreatureAssetEntity {
-                Id = creature.Id,
-                OwnerId = creature.OwnerId,
-                Kind = AssetKind.Creature,
-                Name = creature.Name,
-                Description = creature.Description,
-                PortraitId = creature.Portrait?.Id,
-                Tokens = [.. creature.Tokens
+            MonsterAsset monster => new MonsterAssetEntity {
+                Id = monster.Id,
+                OwnerId = monster.OwnerId,
+                Kind = AssetKind.Monster,
+                Name = monster.Name,
+                Description = monster.Description,
+                PortraitId = monster.Portrait?.Id,
+                Tokens = [.. monster.Tokens
                     .Select(r => new AssetTokenEntity {
                         TokenId = r.Token.Id,
                         Token = r.Token.ToEntity(),
                         IsDefault = r.IsDefault
                     })],
-                IsPublic = creature.IsPublic,
-                IsPublished = creature.IsPublished,
+                IsPublic = monster.IsPublic,
+                IsPublished = monster.IsPublished,
                 Size = new NamedSize {
-                    Width = Math.Round(creature.Size.Width, 3),
-                    Height = Math.Round(creature.Size.Height, 3),
+                    Width = Math.Round(monster.Size.Width, 3),
+                    Height = Math.Round(monster.Size.Height, 3),
                 },
-                StatBlockId = creature.StatBlockId,
-                Category = creature.Category,
-                TokenStyle = creature.TokenStyle != null ? new TokenStyleEntity {
-                    BorderColor = creature.TokenStyle.BorderColor,
-                    BackgroundColor = creature.TokenStyle.BackgroundColor,
-                    Shape = creature.TokenStyle.Shape
+                StatBlockId = monster.StatBlockId,
+                TokenStyle = monster.TokenStyle != null ? new TokenStyleEntity {
+                    BorderColor = monster.TokenStyle.BorderColor,
+                    BackgroundColor = monster.TokenStyle.BackgroundColor,
+                    Shape = monster.TokenStyle.Shape
+                } : null
+            },
+            CharacterAsset character => new CharacterAssetEntity {
+                Id = character.Id,
+                OwnerId = character.OwnerId,
+                Kind = AssetKind.Character,
+                Name = character.Name,
+                Description = character.Description,
+                PortraitId = character.Portrait?.Id,
+                Tokens = [.. character.Tokens
+                    .Select(r => new AssetTokenEntity {
+                        TokenId = r.Token.Id,
+                        Token = r.Token.ToEntity(),
+                        IsDefault = r.IsDefault
+                    })],
+                IsPublic = character.IsPublic,
+                IsPublished = character.IsPublished,
+                Size = new NamedSize {
+                    Width = Math.Round(character.Size.Width, 3),
+                    Height = Math.Round(character.Size.Height, 3),
+                },
+                StatBlockId = character.StatBlockId,
+                TokenStyle = character.TokenStyle != null ? new TokenStyleEntity {
+                    BorderColor = character.TokenStyle.BorderColor,
+                    BackgroundColor = character.TokenStyle.BackgroundColor,
+                    Shape = character.TokenStyle.Shape
                 } : null
             },
             _ => throw new InvalidOperationException($"Unknown asset model type: {model.GetType()}")
@@ -160,19 +209,32 @@ internal static class Mapper {
                 objEntity.IsOpaque = objModel.IsOpaque;
                 objEntity.TriggerEffectId = objModel.TriggerEffectId;
                 break;
-            case (CreatureAssetEntity creatureEntity, CreatureAsset creatureModel):
-                creatureEntity.Size = new NamedSize {
-                    Width = Math.Round(creatureModel.Size.Width, 3),
-                    Height = Math.Round(creatureModel.Size.Height, 3),
+            case (MonsterAssetEntity monsterEntity, MonsterAsset monsterModel):
+                monsterEntity.Size = new NamedSize {
+                    Width = Math.Round(monsterModel.Size.Width, 3),
+                    Height = Math.Round(monsterModel.Size.Height, 3),
                 };
-                creatureEntity.StatBlockId = creatureModel.StatBlockId;
-                creatureEntity.Category = creatureModel.Category;
-                creatureEntity.TokenStyle = creatureModel.TokenStyle == null
+                monsterEntity.StatBlockId = monsterModel.StatBlockId;
+                monsterEntity.TokenStyle = monsterModel.TokenStyle == null
                     ? null
                     : new TokenStyleEntity {
-                        BorderColor = creatureModel.TokenStyle.BorderColor,
-                        BackgroundColor = creatureModel.TokenStyle.BackgroundColor,
-                        Shape = creatureModel.TokenStyle.Shape
+                        BorderColor = monsterModel.TokenStyle.BorderColor,
+                        BackgroundColor = monsterModel.TokenStyle.BackgroundColor,
+                        Shape = monsterModel.TokenStyle.Shape
+                    };
+                break;
+            case (CharacterAssetEntity characterEntity, CharacterAsset characterModel):
+                characterEntity.Size = new NamedSize {
+                    Width = Math.Round(characterModel.Size.Width, 3),
+                    Height = Math.Round(characterModel.Size.Height, 3),
+                };
+                characterEntity.StatBlockId = characterModel.StatBlockId;
+                characterEntity.TokenStyle = characterModel.TokenStyle == null
+                    ? null
+                    : new TokenStyleEntity {
+                        BorderColor = characterModel.TokenStyle.BorderColor,
+                        BackgroundColor = characterModel.TokenStyle.BackgroundColor,
+                        Shape = characterModel.TokenStyle.Shape
                     };
                 break;
             default:

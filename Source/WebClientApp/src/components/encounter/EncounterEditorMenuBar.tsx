@@ -52,7 +52,7 @@ export const EncounterEditorMenuBar: React.FC<EncounterEditorMenuBarProps> = ({
   const { canUndo, canRedo, undo, redo } = useUndoRedoContext();
   const [structuresMenuAnchor, setStructuresMenuAnchor] = useState<null | HTMLElement>(null);
   const [objectsMenuAnchor, setObjectsMenuAnchor] = useState<null | HTMLElement>(null);
-  const [creaturesMenuAnchor, setCreaturesMenuAnchor] = useState<null | HTMLElement>(null);
+  const [monstersMenuAnchor, setMonstersMenuAnchor] = useState<null | HTMLElement>(null);
 
   // Asset picker state
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
@@ -74,12 +74,12 @@ export const EncounterEditorMenuBar: React.FC<EncounterEditorMenuBarProps> = ({
     setObjectsMenuAnchor(null);
   };
 
-  const handleCreaturesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setCreaturesMenuAnchor(event.currentTarget);
+  const handleMonstersMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMonstersMenuAnchor(event.currentTarget);
   };
 
-  const handleCreaturesMenuClose = () => {
-    setCreaturesMenuAnchor(null);
+  const handleMonstersMenuClose = () => {
+    setMonstersMenuAnchor(null);
   };
 
   // Asset picker handlers
@@ -89,7 +89,7 @@ export const EncounterEditorMenuBar: React.FC<EncounterEditorMenuBarProps> = ({
     // Close all menus
     handleStructuresMenuClose();
     handleObjectsMenuClose();
-    handleCreaturesMenuClose();
+    handleMonstersMenuClose();
   };
 
   const handleAssetSelected = (asset: Asset) => {
@@ -155,19 +155,19 @@ export const EncounterEditorMenuBar: React.FC<EncounterEditorMenuBarProps> = ({
         </Button>
       </Menu>
 
-      {/* Creatures Menu - Active Assets (characters, NPCs, monsters) */}
+      {/* Monsters Menu - Active Assets (characters, NPCs, monsters) */}
       <Button
-        onClick={handleCreaturesMenuOpen}
+        onClick={handleMonstersMenuOpen}
         endIcon={<ExpandMoreIcon />}
         sx={{ textTransform: 'none', minWidth: 'auto', px: 1 }}
         size='small'
       >
-        Creatures
+        Monsters
       </Button>
       <Menu
-        anchorEl={creaturesMenuAnchor}
-        open={Boolean(creaturesMenuAnchor)}
-        onClose={handleCreaturesMenuClose}
+        anchorEl={monstersMenuAnchor}
+        open={Boolean(monstersMenuAnchor)}
+        onClose={handleMonstersMenuClose}
         PaperProps={{
           sx: { minWidth: 200, p: 1.5 },
         }}
@@ -176,10 +176,10 @@ export const EncounterEditorMenuBar: React.FC<EncounterEditorMenuBarProps> = ({
           Active Assets
         </Typography>
         <Typography variant='caption' color='text.secondary' sx={{ fontSize: '0.75rem', display: 'block', mb: 1 }}>
-          Interactive creatures (characters, NPCs, monsters)
+          Interactive monsters (characters, NPCs, monsters)
         </Typography>
-        <Button fullWidth variant='outlined' size='small' onClick={() => handleOpenAssetPicker(AssetKind.Creature)}>
-          Browse Creatures
+        <Button fullWidth variant='outlined' size='small' onClick={() => handleOpenAssetPicker(AssetKind.Monster)}>
+          Browse Monsters
         </Button>
       </Menu>
 

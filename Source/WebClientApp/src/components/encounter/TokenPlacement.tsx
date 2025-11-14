@@ -5,13 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva';
 import { getApiEndpoints } from '@/config/development';
 import { GroupName, LayerName } from '@/services/layerManager';
-import type { Asset, CreatureAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
+import type { Asset, MonsterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { getEffectiveLabelPosition, getEffectiveLabelVisibility } from '@/utils/displayHelpers';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
-import { formatCreatureLabel } from './tokenPlacementUtils';
+import { formatMonsterLabel } from './tokenPlacementUtils';
 
 const LABEL_PADDING = 4;
 const LABEL_HORIZONTAL_PADDING = 8;
@@ -77,8 +77,12 @@ const getTokenImageUrl = (asset: Asset): string | null => {
 };
 
 const getAssetGroup = (asset: Asset): GroupName => {
-  if (asset.kind === 'Creature') {
-    return GroupName.Creatures;
+  if (asset.kind === 'Monster') {
+    return GroupName.Monsters;
+  }
+
+  if (asset.kind === 'Character') {
+    return GroupName.Characters;
   }
 
   if (asset.kind === 'Object') {
@@ -382,15 +386,15 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               isOpaque: (draggedAsset as ObjectAsset).isOpaque,
             }
           : undefined;
-      const creatureProperties =
-        draggedAsset.kind === 'Creature'
+      const monsterProperties =
+        draggedAsset.kind === 'Monster'
           ? {
-              size: (draggedAsset as CreatureAsset).size,
-              category: (draggedAsset as CreatureAsset).category,
+              size: (draggedAsset as MonsterAsset).size,
+              category: (draggedAsset as MonsterAsset).category,
             }
           : undefined;
 
-      const behavior = getPlacementBehavior(draggedAsset.kind, objectProperties, creatureProperties);
+      const behavior = getPlacementBehavior(draggedAsset.kind, objectProperties, monsterProperties);
 
       const size = {
         width: assetCellSize.width * gridConfig.cellSize.width,
@@ -430,11 +434,11 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                     isOpaque: (a.asset as ObjectAsset).isOpaque,
                   }
                 : undefined;
-            const creatureData =
-              a.asset.kind === 'Creature'
+            const monsterData =
+              a.asset.kind === 'Monster'
                 ? {
-                    size: (a.asset as CreatureAsset).size,
-                    category: (a.asset as CreatureAsset).category,
+                    size: (a.asset as MonsterAsset).size,
+                    category: (a.asset as MonsterAsset).category,
                   }
                 : undefined;
 
@@ -443,7 +447,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               y: a.position.y,
               width: a.size.width,
               height: a.size.height,
-              allowOverlap: getPlacementBehavior(a.asset.kind, objectData, creatureData).allowOverlap,
+              allowOverlap: getPlacementBehavior(a.asset.kind, objectData, monsterData).allowOverlap,
             };
           }),
         gridConfig,
@@ -528,9 +532,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const pixelWidth = assetCellSize.width * gridConfig.cellSize.width;
         const pixelHeight = assetCellSize.height * gridConfig.cellSize.height;
 
-        const isCreature = placedAsset.asset.kind === 'Creature';
+        const isMonster = placedAsset.asset.kind === 'Monster';
 
-        if (isCreature) {
+        if (isMonster) {
           const isHovered = hoveredAssetId === placedAsset.id;
           const isExpanded = expandedAssetId === placedAsset.id;
           const effectiveDisplay = getEffectiveLabelVisibility(placedAsset);
@@ -571,7 +575,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             );
           }
 
-          const labelInfo = formatCreatureLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
+          const labelInfo = formatMonsterLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
           // Show full text if expanded OR if label visibility is "on hover"
           const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
           const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
@@ -718,7 +722,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
           );
         }
 
-        const labelInfo = formatCreatureLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
+        const labelInfo = formatMonsterLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
         // Show full text if expanded OR if label visibility is "on hover"
         const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
         const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
@@ -878,7 +882,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
       <Group name={GroupName.Objects}>{renderAssetsByGroup(GroupName.Objects)}</Group>
 
-      <Group name={GroupName.Creatures}>{renderAssetsByGroup(GroupName.Creatures)}</Group>
+      <Group name={GroupName.Monsters}>{renderAssetsByGroup(GroupName.Monsters)}</Group>
+
+      <Group name={GroupName.Characters}>{renderAssetsByGroup(GroupName.Characters)}</Group>
 
       {/* Preview Group - Renders last so preview is always on top */}
       <Group name='preview'>{renderPreview()}</Group>

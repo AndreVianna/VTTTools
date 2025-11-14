@@ -5,7 +5,7 @@ export const getEffectiveLabelVisibility = (asset: PlacedAsset): LabelVisibility
     return asset.labelVisibility;
   }
 
-  if (asset.asset.kind === 'Creature') {
+  if (asset.asset.kind === 'Monster') {
     return LabelVisibility.Always;
   }
 

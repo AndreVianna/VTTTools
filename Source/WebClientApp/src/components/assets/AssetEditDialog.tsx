@@ -10,7 +10,7 @@
  * - Edit Mode: Editable forms for updating asset properties
  * - Delete Mode: Confirmation dialog for asset deletion
  *
- * Supports ObjectAsset and CreatureAsset with polymorphic property editing
+ * Supports ObjectAsset and MonsterAsset with polymorphic property editing
  */
 
 import {
@@ -47,21 +47,21 @@ import { useDeleteAssetMutation, useUpdateAssetMutation } from '@/services/asset
 import {
   type Asset,
   AssetKind,
-  type CreatureAsset,
-  type CreatureData,
+  type MonsterAsset,
+  type MonsterData,
   type ObjectAsset,
   type ObjectData,
   type UpdateAssetRequest,
 } from '@/types/domain';
-import { AssetBasicFields, AssetResourceManager, CreaturePropertiesForm, ObjectPropertiesForm } from './forms';
+import { AssetBasicFields, AssetResourceManager, MonsterPropertiesForm, ObjectPropertiesForm } from './forms';
 
 // Type guards
 function isObjectAsset(asset: Asset): asset is ObjectAsset {
   return asset.kind === AssetKind.Object && 'properties' in asset;
 }
 
-function isCreatureAsset(asset: Asset): asset is CreatureAsset {
-  return asset.kind === AssetKind.Creature && 'properties' in asset;
+function isMonsterAsset(asset: Asset): asset is MonsterAsset {
+  return asset.kind === AssetKind.Monster && 'properties' in asset;
 }
 
 export interface AssetEditDialogProps {
@@ -82,9 +82,9 @@ function createEditData(asset: Asset) {
     isMovable: (asset as ObjectAsset).isMovable,
     isOpaque: (asset as ObjectAsset).isOpaque,
     triggerEffectId: (asset as ObjectAsset).triggerEffectId,
-    statBlockId: (asset as CreatureAsset).statBlockId,
-    category: (asset as CreatureAsset).category,
-    tokenStyle: (asset as CreatureAsset).tokenStyle,
+    statBlockId: (asset as MonsterAsset).statBlockId,
+    category: (asset as MonsterAsset).category,
+    tokenStyle: (asset as MonsterAsset).tokenStyle,
   };
 }
 
@@ -115,7 +115,7 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
     isOpaque: editData.isOpaque,
     triggerEffectId: editData.triggerEffectId ?? undefined,
   };
-  const creatureData: CreatureData = {
+  const monsterData: MonsterData = {
     category: editData.category,
     statBlockId: editData.statBlockId ?? undefined,
     tokenStyle: editData.tokenStyle ?? undefined,
@@ -151,8 +151,8 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
           isOpaque: editData.isOpaque,
           triggerEffectId: editData.triggerEffectId ?? undefined,
         };
-      } else if (asset.kind === AssetKind.Creature) {
-        request.creatureData = {
+      } else if (asset.kind === AssetKind.Monster) {
+        request.monsterData = {
           category: editData.category,
           statBlockId: editData.statBlockId ?? undefined,
           tokenStyle: editData.tokenStyle ?? undefined,
@@ -322,9 +322,9 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                     />
                   )}
 
-                  {isCreatureAsset(asset) && creatureData && (
-                    <CreaturePropertiesForm
-                      creatureData={creatureData}
+                  {isMonsterAsset(asset) && monsterData && (
+                    <MonsterPropertiesForm
+                      monsterData={monsterData}
                       onChange={(data) =>
                         updateModifiedFields({
                           category: data.category,
@@ -374,9 +374,9 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                 />
               )}
 
-              {isCreatureAsset(asset) && creatureData && (
-                <CreaturePropertiesForm
-                  creatureData={creatureData}
+              {isMonsterAsset(asset) && monsterData && (
+                <MonsterPropertiesForm
+                  monsterData={monsterData}
                   onChange={(data) =>
                     updateModifiedFields({
                       category: data.category,

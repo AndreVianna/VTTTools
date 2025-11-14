@@ -55,16 +55,13 @@ public class UpdateAssetRequestTests {
         var original = new UpdateAssetRequest {
             Name = "Goblin",
             Size = new NamedSize { Width = 1, Height = 1 },
-            CreatureData = new CreatureData {
-                Category = CreatureCategory.Monster
-            }
+            MonsterData = new MonsterData()
         };
 
         // Act
         var updated = original with {
             Size = new NamedSize { Width = 1, Height = 1 },
-            CreatureData = new CreatureData {
-                Category = CreatureCategory.Character,
+            MonsterData = new MonsterData {
                 TokenStyle = new TokenStyle {
                     BorderColor = "#00FF00",
                     Shape = TokenShape.Square
@@ -73,8 +70,7 @@ public class UpdateAssetRequestTests {
         };
 
         // Assert
-        updated.CreatureData.Value.Category.Should().Be(CreatureCategory.Character);
-        updated.CreatureData.Value.TokenStyle.Should().NotBeNull();
-        updated.CreatureData.Value.TokenStyle!.Shape.Should().Be(TokenShape.Square);
+        updated.MonsterData.Value.TokenStyle.Should().NotBeNull();
+        updated.MonsterData.Value.TokenStyle!.Shape.Should().Be(TokenShape.Square);
     }
 }

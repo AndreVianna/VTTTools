@@ -115,7 +115,7 @@ Given('I have asset template {string}', async function (this: CustomWorld, templ
   const assetId = await this.db.insertAsset({
     name: templateName,
     ownerId: this.currentUser.id,
-    kind: 'Creature',
+    kind: 'Monster',
     isPublic: false,
     isPublished: false,
     size: { width: 1, height: 1, isSquare: true },
@@ -133,7 +133,7 @@ Given('I have asset template', async function (this: CustomWorld) {
   const assetId = await this.db.insertAsset({
     name: 'Default Token',
     ownerId: this.currentUser.id,
-    kind: 'Creature',
+    kind: 'Monster',
     isPublic: false,
     isPublished: false,
     size: { width: 1, height: 1, isSquare: true },
@@ -152,7 +152,7 @@ Given('I have {int} asset templates', async function (this: CustomWorld, count: 
     const assetId = await this.db.insertAsset({
       name: `Asset Template ${i + 1}`,
       ownerId: this.currentUser.id,
-      kind: 'Creature',
+      kind: 'Monster',
       isPublic: false,
       isPublished: false,
       size: { width: 1, height: 1, isSquare: true },
@@ -368,7 +368,7 @@ Given(
       const assetId = await this.db.insertAsset({
         name: assetName,
         ownerId: this.currentUser.id,
-        kind: 'Creature',
+        kind: 'Monster',
         isPublic: false,
         isPublished: false,
         size: { width: 1, height: 1, isSquare: true },
@@ -402,7 +402,7 @@ Given('a valid asset template exists', async function (this: CustomWorld) {
   const assetId = await this.db.insertAsset({
     name: 'Default Token',
     ownerId: this.currentUser.id,
-    kind: 'Creature',
+    kind: 'Monster',
     isPublic: false,
     isPublished: false,
     size: { width: 1, height: 1, isSquare: true },
@@ -492,7 +492,7 @@ Given('I have a new asset template', async function (this: CustomWorld) {
   const assetId = await this.db.insertAsset({
     name: 'New Asset',
     ownerId: this.currentUser.id,
-    kind: 'Creature',
+    kind: 'Monster',
     isPublic: false,
     isPublished: false,
     size: { width: 1, height: 1, isSquare: true },

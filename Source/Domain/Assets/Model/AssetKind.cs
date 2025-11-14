@@ -6,12 +6,17 @@ namespace VttTools.Assets.Model;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AssetKind {
     /// <summary>
-    /// Environmental objects (furniture, traps, containers)
+    /// Environmental objects (furniture, traps, containers, etc.)
     /// </summary>
     Object,
 
     /// <summary>
-    /// Controllable creatures (characters, NPCs, monsters)
+    /// Monsters and non-player creatures
     /// </summary>
-    Creature
+    Monster,
+
+    /// <summary>
+    /// Player characters and important NPCs
+    /// </summary>
+    Character
 }

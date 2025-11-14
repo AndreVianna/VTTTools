@@ -173,7 +173,6 @@ public partial class CreateApplicationSchema : Migration {
                 Size_Height = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
                 Size_Width = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
                 StatBlockId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 TokenStyle_BorderColor = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 TokenStyle_BackgroundColor = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 TokenStyle_Shape = table.Column<string>(type: "nvarchar(max)", nullable: true),

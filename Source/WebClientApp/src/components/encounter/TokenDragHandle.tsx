@@ -2,11 +2,13 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Layer, Line, Rect } from 'react-konva';
-import type { CreatureAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
+import type { MonsterAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { getPlacementBehavior } from '@/types/placement';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
+import type { InteractionScope } from '@/utils/scopeFiltering';
+import { canInteract, isAssetInScope } from '@/utils/scopeFiltering';
 
 /**
  * Render invalid placement indicator (red X)
@@ -122,6 +124,8 @@ export interface TokenDragHandleProps {
   onRotationStart?: () => void;
   /** Callback when rotation ends */
   onRotationEnd?: () => void;
+  /** Active interaction scope for filtering interactions */
+  activeScope?: InteractionScope;
 }
 
 export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
@@ -141,6 +145,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
   onAssetRotated,
   onRotationStart,
   onRotationEnd,
+  activeScope,
 }) => {
   const theme = useTheme();
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -186,14 +191,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
               isOpaque: (asset.asset as ObjectAsset).isOpaque,
             }
           : undefined;
-      const creatureProperties =
-        asset.asset.kind === 'Creature'
+      const monsterProperties =
+        asset.asset.kind === 'Monster'
           ? {
-              size: (asset.asset as CreatureAsset).size,
-              category: (asset.asset as CreatureAsset).category,
+              size: (asset.asset as MonsterAsset).size,
+              category: (asset.asset as MonsterAsset).category,
             }
           : undefined;
-      return getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
+      return getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
     });
 
     return {
@@ -220,10 +225,19 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
   const handleNodeClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (!canInteract(activeScope)) {
+        return;
+      }
+
       const clickedNode = e.currentTarget;
       const assetId = clickedNode.id();
 
       if (!assetId) {
+        return;
+      }
+
+      const clickedAsset = placedAssetsRef.current.find((a) => a.id === assetId);
+      if (!isAssetInScope(clickedAsset, activeScope)) {
         return;
       }
 
@@ -241,7 +255,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         onAssetSelected([assetId]);
       }
     },
-    [onAssetSelected, isCtrlPressed],
+    [onAssetSelected, isCtrlPressed, activeScope],
   );
 
   const handleDragStart = useCallback(
@@ -362,14 +376,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 isOpaque: (asset.asset as ObjectAsset).isOpaque,
               }
             : undefined;
-        const creatureProperties =
-          asset.asset.kind === 'Creature'
+        const monsterProperties =
+          asset.asset.kind === 'Monster'
             ? {
-                size: (asset.asset as CreatureAsset).size,
-                category: (asset.asset as CreatureAsset).category,
+                size: (asset.asset as MonsterAsset).size,
+                category: (asset.asset as MonsterAsset).category,
               }
             : undefined;
-        const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, creatureProperties);
+        const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
 
         // Check collision with each other asset
         if (!behavior.allowOverlap) {
@@ -382,17 +396,17 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     isOpaque: (other.asset as ObjectAsset).isOpaque,
                   }
                 : undefined;
-            const otherCreatureProperties =
-              other.asset.kind === 'Creature'
+            const otherMonsterProperties =
+              other.asset.kind === 'Monster'
                 ? {
-                    size: (other.asset as CreatureAsset).size,
-                    category: (other.asset as CreatureAsset).category,
+                    size: (other.asset as MonsterAsset).size,
+                    category: (other.asset as MonsterAsset).category,
                   }
                 : undefined;
             const otherBehavior = getPlacementBehavior(
               other.asset.kind,
               otherObjectProperties,
-              otherCreatureProperties,
+              otherMonsterProperties,
             );
 
             if (otherBehavior.allowOverlap) continue;
@@ -599,8 +613,16 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
     const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (!marqueeSelection) return;
-      // Only complete on left-button release
       if (e.evt.button !== 0) return;
+
+      if (!canInteract(activeScope)) {
+        setMarqueeSelection(null);
+        setTimeout(() => {
+          marqueeActiveRef.current = false;
+        }, 100);
+        return;
+      }
+
       const rect = {
         left: Math.min(marqueeSelection.start.x, marqueeSelection.end.x),
         right: Math.max(marqueeSelection.start.x, marqueeSelection.end.x),
@@ -610,6 +632,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
       const containedAssets = placedAssets
         .filter((asset) => {
+          if (!isAssetInScope(asset, activeScope)) {
+            return false;
+          }
+
           const assetLeft = asset.position.x - asset.size.width / 2;
           const assetRight = asset.position.x + asset.size.width / 2;
           const assetTop = asset.position.y - asset.size.height / 2;
@@ -651,7 +677,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
       stage.off('mousemove', handleMouseMove);
       stage.off('mouseup', handleMouseUp);
     };
-  }, [enableDragMove, stageRef, isCtrlPressed, marqueeSelection, placedAssets, onAssetSelected]);
+  }, [enableDragMove, stageRef, isCtrlPressed, marqueeSelection, placedAssets, onAssetSelected, activeScope]);
 
   // Track which assets have handlers attached
   const attachedHandlersRef = useRef<Set<string>>(new Set());
@@ -695,14 +721,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
               }
             : undefined;
-        const creatureProperties =
-          placedAsset.asset.kind === 'Creature'
+        const monsterProperties =
+          placedAsset.asset.kind === 'Monster'
             ? {
-                size: (placedAsset.asset as CreatureAsset).size,
-                category: (placedAsset.asset as CreatureAsset).category,
+                size: (placedAsset.asset as MonsterAsset).size,
+                category: (placedAsset.asset as MonsterAsset).category,
               }
             : undefined;
-        const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, creatureProperties);
+        const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, monsterProperties);
 
         const isDraggable =
           behavior.canMove &&

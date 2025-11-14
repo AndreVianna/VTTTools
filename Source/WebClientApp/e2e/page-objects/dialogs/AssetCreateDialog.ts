@@ -11,7 +11,7 @@ export class AssetCreateDialog extends BasePage {
   readonly dialog = (): Locator => this.page.locator('[role="dialog"]');
   readonly dialogTitle = (): Locator => this.dialog().locator('h2');
   readonly tabObject = (): Locator => this.page.locator('button[role="tab"]:has-text("Object")');
-  readonly tabCreature = (): Locator => this.page.locator('button[role="tab"]:has-text("Creature")');
+  readonly tabMonster = (): Locator => this.page.locator('button[role="tab"]:has-text("Monster")');
   readonly nameInput = (): Locator => this.page.locator('input[name="name"]');
   readonly descriptionInput = (): Locator => this.page.locator('textarea[name="description"]');
   readonly createButton = (): Locator => this.page.locator('button:has-text("Create Asset")');
@@ -27,8 +27,8 @@ export class AssetCreateDialog extends BasePage {
     await expect(this.dialog()).not.toBeVisible({ timeout: 5000 });
   }
 
-  async selectTab(tabName: 'Object' | 'Creature'): Promise<void> {
-    const tab = tabName === 'Object' ? this.tabObject() : this.tabCreature();
+  async selectTab(tabName: 'Object' | 'Monster'): Promise<void> {
+    const tab = tabName === 'Object' ? this.tabObject() : this.tabMonster();
     await tab.click();
   }
 

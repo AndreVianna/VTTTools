@@ -2,12 +2,8 @@ import type { DatabaseHelper } from '../helpers/database.helper.js';
 
 export enum AssetKind {
   Object = 'Object',
-  Creature = 'Creature',
-}
-
-export enum CreatureCategory {
-  Character = 'Character',
   Monster = 'Monster',
+  Character = 'Character',
 }
 
 export enum ResourceType {
@@ -48,9 +44,17 @@ export interface ObjectData {
   triggerEffectId?: string;
 }
 
-export interface CreatureData {
+export interface MonsterData {
   statBlockId?: string;
-  category: CreatureCategory;
+  tokenStyle?: {
+    borderColor?: string;
+    backgroundColor?: string;
+    shape: 'Circle' | 'Square';
+  };
+}
+
+export interface CharacterData {
+  statBlockId?: string;
   tokenStyle?: {
     borderColor?: string;
     backgroundColor?: string;
@@ -69,7 +73,7 @@ export interface Asset {
   tokens: AssetToken[];
   portrait?: MediaResource;
   size: NamedSize;
-  properties?: ObjectData | CreatureData;
+  properties?: ObjectData | MonsterData | CharacterData;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -84,7 +88,7 @@ export class AssetBuilder {
   private size: NamedSize = { width: 1, height: 1, isSquare: true };
   private isPublic: boolean = false;
   private isPublished: boolean = false;
-  private properties: ObjectData | CreatureData = {
+  private properties: ObjectData | MonsterData | CharacterData = {
     isMovable: true,
     isOpaque: false,
   };
@@ -107,10 +111,10 @@ export class AssetBuilder {
   withKind(kind: AssetKind): this {
     this.kind = kind;
 
-    if (kind === AssetKind.Creature) {
-      this.properties = {
-        category: CreatureCategory.Character,
-      };
+    if (kind === AssetKind.Monster) {
+      this.properties = {};
+    } else if (kind === AssetKind.Character) {
+      this.properties = {};
     } else {
       this.properties = {
         isMovable: true,
@@ -198,18 +202,14 @@ export class AssetBuilder {
   }
 
   asMonster(): this {
-    this.kind = AssetKind.Creature;
-    this.properties = {
-      category: CreatureCategory.Monster,
-    };
+    this.kind = AssetKind.Monster;
+    this.properties = {};
     return this;
   }
 
   asCharacter(): this {
-    this.kind = AssetKind.Creature;
-    this.properties = {
-      category: CreatureCategory.Character,
-    };
+    this.kind = AssetKind.Character;
+    this.properties = {};
     return this;
   }
 
@@ -223,13 +223,12 @@ export class AssetBuilder {
     return this;
   }
 
-  asCreature(creatureData?: Partial<CreatureData>): this {
-    this.kind = AssetKind.Creature;
+  asMonster(monsterData?: Partial<MonsterData>): this {
+    this.kind = AssetKind.Monster;
     this.properties = {
-      category: CreatureCategory.Monster,
       statBlockId: undefined,
       tokenStyle: undefined,
-      ...creatureData,
+      ...monsterData,
     };
     return this;
   }

@@ -7,7 +7,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import type { DatabaseHelper } from '../helpers/database.helper';
-import { AssetBuilder, AssetKind, CreatureCategory } from './AssetBuilder';
+import { AssetBuilder, AssetKind } from './AssetBuilder';
 
 describe('AssetBuilder (New Schema)', () => {
   const mockDb = {
@@ -29,18 +29,18 @@ describe('AssetBuilder (New Schema)', () => {
     expect(asset.size).toEqual({ width: 1, height: 1, isSquare: true });
   });
 
-  it('should build creature asset with portrait', async () => {
+  it('should build monster asset with portrait', async () => {
     const builder = new AssetBuilder(mockDb, testOwnerId);
     const asset = await builder
       .withName('Goblin')
-      .asCreature({ category: CreatureCategory.Monster })
+      .asMonster()
       .withDefaultToken('token-456')
       .withPortrait('portrait-789')
       .withSize(1, 1)
       .build();
 
     expect(asset.name).toBe('Goblin');
-    expect(asset.kind).toBe(AssetKind.Creature);
+    expect(asset.kind).toBe(AssetKind.Monster);
     expect(asset.portrait).toBeDefined();
     expect(asset.portrait?.id).toBe('portrait-789');
     expect(asset.tokens[0].tokenId).toBe('token-456');

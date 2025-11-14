@@ -18,11 +18,11 @@ Given('I am on the Asset Library page at {string}', async function (this: Custom
 });
 
 Given('I am on the {string} tab', async function (this: CustomWorld, tabName: string) {
-  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Creatures');
+  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Monsters');
 });
 
 When('I switch to the {string} tab', async function (this: CustomWorld, tabName: string) {
-  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Creatures');
+  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Monsters');
 });
 
 When('I navigate to {string}', async function (this: CustomWorld, url: string) {

@@ -1,6 +1,6 @@
 import {
   Wallpaper as BackgroundIcon,
-  Group as CreaturesIcon,
+  Group as MonstersIcon,
   GridOn as GridIcon,
   ViewInAr as ObjectsIcon,
   Layers as OverlaysIcon,
@@ -15,7 +15,7 @@ export interface LayerVisibility {
   grid: boolean;
   structures: boolean;
   objects: boolean;
-  creatures: boolean;
+  monsters: boolean;
   overlays: boolean;
 }
 
@@ -49,9 +49,9 @@ export const LayerToggleBar: React.FC<LayerToggleBarProps> = ({ visible, layers,
       label: 'Objects',
     },
     {
-      key: 'creatures' as keyof LayerVisibility,
-      icon: CreaturesIcon,
-      label: 'Creatures',
+      key: 'monsters' as keyof LayerVisibility,
+      icon: MonstersIcon,
+      label: 'Monsters',
     },
     {
       key: 'overlays' as keyof LayerVisibility,

@@ -9,7 +9,7 @@
 
 import type { GridConfig } from '@/utils/gridCalculator';
 import { snapToGrid } from '@/utils/gridCalculator';
-import type { AssetKind, CreatureCategory, NamedSize } from './domain';
+import type { AssetKind, NamedSize } from './domain';
 
 /**
  * Snap mode for asset placement
@@ -39,15 +39,15 @@ export interface PlacementBehavior {
 
 /**
  * Get placement behavior for an asset based on its kind and properties
- * @param assetKind Asset kind (Object | Creature)
+ * @param assetKind Asset kind (Object | Monster)
  * @param objectData Object data (if Object asset)
- * @param creatureData Creature data (if Creature asset)
+ * @param monsterData Monster data (if Monster asset)
  * @returns Placement behavior configuration
  */
 export const getPlacementBehavior = (
   assetKind: AssetKind,
   objectData?: { size: NamedSize; isMovable: boolean; isOpaque: boolean },
-  creatureData?: { size: NamedSize; category: CreatureCategory },
+  monsterOrCharacterData?: { size: NamedSize },
 ): PlacementBehavior => {
   const defaultBehavior: PlacementBehavior = {
     canMove: true,
@@ -79,7 +79,7 @@ export const getPlacementBehavior = (
     };
   }
 
-  if (assetKind === 'Creature' && creatureData) {
+  if ((assetKind === 'Monster' || assetKind === 'Character') && monsterOrCharacterData) {
     return {
       ...defaultBehavior,
       canMove: true,

@@ -129,7 +129,7 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(sb => sb.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(sb => sb.EncounterId == id && sb.Index == index, ct);
-        return entity == null ? null : entity.ToModel(entity.Encounter.Grid);
+        return entity?.ToModel(entity.Encounter.Grid);
     }
 
     /// <inheritdoc />
@@ -171,7 +171,7 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(sr => sr.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(sr => sr.EncounterId == id && sr.Index == index, ct);
-        return entity == null ? null : entity.ToModel(entity.Encounter.Grid);
+        return entity?.ToModel(entity.Encounter.Grid);
     }
 
     /// <inheritdoc />
@@ -213,7 +213,7 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(ss => ss.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == index, ct);
-        return entity == null ? null : entity.ToModel(entity.Encounter.Grid);
+        return entity?.ToModel(entity.Encounter.Grid);
     }
 
     /// <inheritdoc />

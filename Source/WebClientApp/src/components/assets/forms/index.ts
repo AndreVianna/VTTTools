@@ -4,5 +4,6 @@
 export * from './AssetBasicFields';
 export * from './AssetResourceManager';
 export * from './AssetVisibilityFields';
-export * from './CreaturePropertiesForm';
+export * from './CharacterPropertiesForm';
+export * from './MonsterPropertiesForm';
 export * from './ObjectPropertiesForm';

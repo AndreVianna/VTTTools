@@ -33,7 +33,7 @@ import {
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useGetAssetsQuery } from '@/services/assetsApi';
-import { type Asset, AssetKind, type CreatureCategory } from '@/types/domain';
+import { type Asset, AssetKind } from '@/types/domain';
 import { getDefaultToken, getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetPickerProps {
@@ -42,8 +42,7 @@ export interface AssetPickerProps {
   onSelect: (asset: Asset) => void;
 
   // Filtering options
-  kind?: AssetKind; // Optional: filter by Object or Creature
-  creatureCategory?: CreatureCategory; // Optional: filter Characters vs Monsters (if kind=Creature)
+  kind?: AssetKind; // Optional: filter by Object, Monster, or Character
 
   // UI customization
   title?: string;
@@ -55,7 +54,6 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
   onClose,
   onSelect,
   kind,
-  creatureCategory: _creatureCategory,
   title,
   multiSelect = false,
 }) => {
@@ -85,8 +83,10 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     switch (assetKind) {
       case AssetKind.Object:
         return 'Objects';
-      case AssetKind.Creature:
-        return 'Creatures';
+      case AssetKind.Monster:
+        return 'Monsters';
+      case AssetKind.Character:
+        return 'Characters';
       default:
         return 'Assets';
     }
@@ -97,10 +97,12 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     switch (assetKind) {
       case AssetKind.Object:
         return '#9E9E9E'; // Gray
-      case AssetKind.Creature:
+      case AssetKind.Monster:
         return '#4CAF50'; // Green
-      default:
+      case AssetKind.Character:
         return '#2196F3'; // Blue
+      default:
+        return '#757575'; // Default gray
     }
   };
 
@@ -195,8 +197,6 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
           }}
           sx={{ mb: 2 }}
         />
-
-        {/* TODO: Add CreatureCategory filter chips here when needed */}
 
         {/* Loading State */}
         {isLoading && (

@@ -1,11 +1,8 @@
 namespace VttTools.Data.Helpers;
 
-using VttTools.Common.Model;
-using VttTools.Library.Encounters.Model;
-
 public static class GridConverter {
-    public static Position PositionToGrid(Position pixel, Grid grid) {
-        return grid.Type switch {
+    public static Position PositionToGrid(Position pixel, Grid grid)
+        => grid.Type switch {
             GridType.Square => new Position(
                 (pixel.X - grid.Offset.Left) / grid.CellSize.Width,
                 (pixel.Y - grid.Offset.Top) / grid.CellSize.Height
@@ -16,10 +13,9 @@ public static class GridConverter {
             GridType.Isometric => pixel,
             _ => pixel
         };
-    }
 
-    public static Position PositionToPixel(Position gridPosition, Grid grid) {
-        return grid.Type switch {
+    public static Position PositionToPixel(Position gridPosition, Grid grid)
+        => grid.Type switch {
             GridType.Square => new Position(
                 (gridPosition.X * grid.CellSize.Width) + grid.Offset.Left,
                 (gridPosition.Y * grid.CellSize.Height) + grid.Offset.Top
@@ -30,10 +26,9 @@ public static class GridConverter {
             GridType.Isometric => gridPosition,
             _ => gridPosition
         };
-    }
 
-    public static Point PointToGrid(Point pixel, Grid grid) {
-        return grid.Type switch {
+    public static Point PointToGrid(Point pixel, Grid grid)
+        => grid.Type switch {
             GridType.Square => new Point(
                 (pixel.X - grid.Offset.Left) / grid.CellSize.Width,
                 (pixel.Y - grid.Offset.Top) / grid.CellSize.Height
@@ -44,10 +39,9 @@ public static class GridConverter {
             GridType.Isometric => pixel,
             _ => pixel
         };
-    }
 
-    public static Point PointToPixel(Point gridPoint, Grid grid) {
-        return grid.Type switch {
+    public static Point PointToPixel(Point gridPoint, Grid grid)
+        => grid.Type switch {
             GridType.Square => new Point(
                 (gridPoint.X * grid.CellSize.Width) + grid.Offset.Left,
                 (gridPoint.Y * grid.CellSize.Height) + grid.Offset.Top
@@ -58,10 +52,9 @@ public static class GridConverter {
             GridType.Isometric => gridPoint,
             _ => gridPoint
         };
-    }
 
-    public static Pole PoleToGrid(Pole pixel, Grid grid) {
-        return grid.Type switch {
+    public static Pole PoleToGrid(Pole pixel, Grid grid)
+        => grid.Type switch {
             GridType.Square => new Pole(
                 (pixel.X - grid.Offset.Left) / grid.CellSize.Width,
                 (pixel.Y - grid.Offset.Top) / grid.CellSize.Height,
@@ -73,10 +66,9 @@ public static class GridConverter {
             GridType.Isometric => pixel,
             _ => pixel
         };
-    }
 
-    public static Pole PoleToPixel(Pole gridPole, Grid grid) {
-        return grid.Type switch {
+    public static Pole PoleToPixel(Pole gridPole, Grid grid)
+        => grid.Type switch {
             GridType.Square => new Pole(
                 (gridPole.X * grid.CellSize.Width) + grid.Offset.Left,
                 (gridPole.Y * grid.CellSize.Height) + grid.Offset.Top,
@@ -88,5 +80,4 @@ public static class GridConverter {
             GridType.Isometric => gridPole,
             _ => gridPole
         };
-    }
 }

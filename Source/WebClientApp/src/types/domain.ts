@@ -70,12 +70,8 @@ export enum Weather {
 
 export enum AssetKind {
   Object = 'Object',
-  Creature = 'Creature',
-}
-
-export enum CreatureCategory {
-  Character = 'Character',
   Monster = 'Monster',
+  Character = 'Character',
 }
 
 export enum TokenShape {
@@ -121,9 +117,14 @@ export interface ObjectData {
   triggerEffectId?: string | undefined;
 }
 
-// CreatureData replaces CreatureProperties (size moved to Asset root level)
-export interface CreatureData {
-  category: CreatureCategory;
+// MonsterData replaces MonsterProperties (size moved to Asset root level)
+export interface MonsterData {
+  statBlockId?: string | undefined;
+  tokenStyle?: TokenStyle | undefined;
+}
+
+// CharacterData - player characters
+export interface CharacterData {
   statBlockId?: string | undefined;
   tokenStyle?: TokenStyle | undefined;
 }
@@ -138,7 +139,8 @@ export interface CreateAssetRequest {
   isPublished: boolean;
   isPublic: boolean;
   objectData?: ObjectData | undefined; // Renamed from objectProps
-  creatureData?: CreatureData | undefined; // Renamed from creatureProps
+  monsterData?: MonsterData | undefined; // Renamed from monsterProps
+  characterData?: CharacterData | undefined;
 }
 
 export interface UpdateAssetRequest {
@@ -150,7 +152,8 @@ export interface UpdateAssetRequest {
   isPublished?: boolean | undefined;
   isPublic?: boolean | undefined;
   objectData?: ObjectData | undefined; // Renamed from objectProps
-  creatureData?: CreatureData | undefined; // Renamed from creatureProps
+  monsterData?: MonsterData | undefined; // Renamed from monsterProps
+  characterData?: CharacterData | undefined;
 }
 
 // Base Asset interface
@@ -175,10 +178,16 @@ export interface ObjectAsset extends Asset {
   triggerEffectId?: string | undefined;
 }
 
-// CreatureAsset - characters and monsters
-export interface CreatureAsset extends Asset {
-  kind: AssetKind.Creature;
-  category: CreatureCategory;
+// MonsterAsset - monsters and NPCs
+export interface MonsterAsset extends Asset {
+  kind: AssetKind.Monster;
+  statBlockId?: string | undefined;
+  tokenStyle?: TokenStyle | undefined;
+}
+
+// CharacterAsset - player characters
+export interface CharacterAsset extends Asset {
+  kind: AssetKind.Character;
   statBlockId?: string | undefined;
   tokenStyle?: TokenStyle | undefined;
 }

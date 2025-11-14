@@ -27,7 +27,7 @@ async function openCreateDialog(world: CustomWorld): Promise<void> {
 }
 
 /**
- * Helper: Select category dropdown (Creature only)
+ * Helper: Select category dropdown (Monster only)
  */
 async function selectCategory(world: CustomWorld, category: string): Promise<void> {
   await world.page.click('select[name="category"]');
@@ -91,22 +91,22 @@ Then('the {string} section should be visible at the top', async function (this: 
 // ============================================================================
 
 Given('I am on the {string} tab in Asset Library', async function (this: CustomWorld, tabName: string) {
-  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Creatures');
+  await this.assetLibrary.switchToTab(tabName as 'Objects' | 'Monsters');
 });
 
 Given('I select the {string} tab', async function (this: CustomWorld, tabName: string) {
-  await this.assetCreateDialog.selectTab(tabName as 'Object' | 'Creature');
+  await this.assetCreateDialog.selectTab(tabName as 'Object' | 'Monster');
 });
 
 Given('I select {string} tab', async function (this: CustomWorld, tabName: string) {
-  await this.assetCreateDialog.selectTab(tabName as 'Object' | 'Creature');
+  await this.assetCreateDialog.selectTab(tabName as 'Object' | 'Monster');
 });
 
 // REMOVED: Duplicate - Use asset-library.steps.ts
 // When('I click the virtual {string} card') available in asset-library.steps.ts
 
 When('I switch to {string} tab', async function (this: CustomWorld, tabName: string) {
-  await this.assetCreateDialog.selectTab(tabName as 'Object' | 'Creature');
+  await this.assetCreateDialog.selectTab(tabName as 'Object' | 'Monster');
 });
 
 Then('the Create Dialog should open', async function (this: CustomWorld) {
@@ -120,7 +120,7 @@ Then('the kind should be locked to {string}', async function (this: CustomWorld,
 
 Then('the kind tabs should not be visible', async function (this: CustomWorld) {
   await expect(this.assetCreateDialog.tabObject()).not.toBeVisible();
-  await expect(this.assetCreateDialog.tabCreature()).not.toBeVisible();
+  await expect(this.assetCreateDialog.tabMonster()).not.toBeVisible();
 });
 
 Then('I should not be able to change the kind', async function (this: CustomWorld) {
@@ -145,7 +145,7 @@ Then('the backend should receive:', async function (this: CustomWorld, dataTable
   await verifyAssetProperties(this, dataTable);
 });
 
-Then('the backend should receive creatureProps:', async function (this: CustomWorld, dataTable: DataTable) {
+Then('the backend should receive monsterProps:', async function (this: CustomWorld, dataTable: DataTable) {
   await verifyAssetProperties(this, dataTable);
 });
 
@@ -337,7 +337,7 @@ Then('only I should be able to see this asset', async function (this: CustomWorl
 // Already handled by checkbox.steps.ts and verification helpers
 
 // ============================================================================
-// CREATURE-SPECIFIC PROPERTIES
+// MONSTER-SPECIFIC PROPERTIES
 // ============================================================================
 
 Given('I do not change the category', async function (this: CustomWorld) {
@@ -350,9 +350,9 @@ Given('I select category {string}', async function (this: CustomWorld, category:
   await selectCategory(this, category);
 });
 
-Then('the asset creatureProps.category should be {string}', async function (this: CustomWorld, category: string) {
+Then('the asset monsterProps.category should be {string}', async function (this: CustomWorld, category: string) {
   throw new Error(
-    `NOT IMPLEMENTED: Step needs to verify creatureProps.category is "${category}" (check API response body for creatureProps.category field)`,
+    `NOT IMPLEMENTED: Step needs to verify monsterProps.category is "${category}" (check API response body for monsterProps.category field)`,
   );
 });
 
@@ -720,7 +720,7 @@ Given('I set category to {string}', async function (this: CustomWorld, category:
   await selectCategory(this, category);
 });
 
-Then('I should see Creature properties form', async function (this: CustomWorld) {
+Then('I should see Monster properties form', async function (this: CustomWorld) {
   await expect(this.page.locator('select[name="category"]')).toBeVisible();
 });
 
@@ -730,15 +730,15 @@ Then('Object properties should not be sent to backend', async function (this: Cu
   );
 });
 
-Then('the asset should have creatureProps \\(not objectProps\\)', async function (this: CustomWorld) {
+Then('the asset should have monsterProps \\(not objectProps\\)', async function (this: CustomWorld) {
   throw new Error(
-    'NOT IMPLEMENTED: Step needs to verify asset has creatureProps and no objectProps (check API response body)',
+    'NOT IMPLEMENTED: Step needs to verify asset has monsterProps and no objectProps (check API response body)',
   );
 });
 
-Then('the asset should have objectProps \\(not creatureProps\\)', async function (this: CustomWorld) {
+Then('the asset should have objectProps \\(not monsterProps\\)', async function (this: CustomWorld) {
   throw new Error(
-    'NOT IMPLEMENTED: Step needs to verify asset has objectProps and no creatureProps (check API response body)',
+    'NOT IMPLEMENTED: Step needs to verify asset has objectProps and no monsterProps (check API response body)',
   );
 });
 

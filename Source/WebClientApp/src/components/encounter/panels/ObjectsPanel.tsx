@@ -26,6 +26,8 @@ import {
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { AssetKind, LabelPosition, LabelVisibility, type PlacedAsset } from '@/types/domain';
+import type { GridConfig } from '@/utils/gridCalculator';
+import { positionToGrid } from '@/utils/gridCalculator';
 
 const STORAGE_KEY_VISIBILITY = 'vtt-objects-label-visibility';
 const STORAGE_KEY_POSITION = 'vtt-objects-label-position';
@@ -33,6 +35,7 @@ const STORAGE_KEY_POSITION = 'vtt-objects-label-position';
 export interface ObjectsPanelProps {
   placedAssets: PlacedAsset[];
   selectedAssetIds: string[];
+  gridConfig?: GridConfig;
   onBrowseAssets?: () => void;
   onAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onAssetDelete?: (assetId: string) => void;
@@ -43,6 +46,7 @@ export interface ObjectsPanelProps {
 export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
   placedAssets,
   selectedAssetIds,
+  gridConfig,
   onBrowseAssets,
   onAssetSelect,
   onAssetDelete,
@@ -326,8 +330,10 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                         color: theme.palette.text.secondary,
                       }}
                     >
-                      Position: ({placedAsset.position?.x?.toFixed(0) ?? '0'},{' '}
-                      {placedAsset.position?.y?.toFixed(0) ?? '0'})
+                      {gridConfig ? (() => {
+                        const gridPos = positionToGrid(placedAsset.position || { x: 0, y: 0 }, gridConfig);
+                        return `Position: (${gridPos.x.toFixed(1)}, ${gridPos.y.toFixed(1)}) grid`;
+                      })() : `Position: (${placedAsset.position?.x?.toFixed(0) ?? '0'}, ${placedAsset.position?.y?.toFixed(0) ?? '0'}) px`}
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 2 }}>

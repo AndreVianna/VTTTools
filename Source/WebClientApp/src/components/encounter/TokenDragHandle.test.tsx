@@ -9,8 +9,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CreatureAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory, LabelPosition, LabelVisibility, TokenShape } from '@/types/domain';
+import type { MonsterAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility, TokenShape } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { GridType, snapToGrid } from '@/utils/gridCalculator';
 
@@ -22,28 +22,27 @@ describe('TokenDragHandle Logic Tests', () => {
     snap: true,
   };
 
-  const mockCreatureAsset: PlacedAsset = {
+  const mockMonsterAsset: PlacedAsset = {
     id: 'token-1',
     assetId: 'asset-1',
     asset: {
       id: 'asset-1',
       ownerId: 'user-1',
-      kind: AssetKind.Creature,
+      kind: AssetKind.Monster,
       name: 'Test Token',
-      description: 'Test creature token',
+      description: 'Test monster token',
       isPublished: true,
       isPublic: false,
       tokens: [],
       portrait: undefined,
       size: { width: 1, height: 1, isSquare: true },
-      category: CreatureCategory.Monster,
       statBlockId: undefined,
       tokenStyle: {
         shape: TokenShape.Circle,
         borderColor: '#000',
         backgroundColor: '#fff',
       },
-    } as CreatureAsset,
+    } as MonsterAsset,
     position: { x: 100, y: 100 },
     size: { width: 50, height: 50 },
     rotation: 0,
@@ -58,68 +57,68 @@ describe('TokenDragHandle Logic Tests', () => {
   };
 
   describe('Placement Behavior', () => {
-    it('should allow creatures to move', () => {
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+    it('should allow monsters to move', () => {
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       expect(behavior.canMove).toBe(true);
     });
 
-    it('should not allow creatures to rotate in Phase 6', () => {
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+    it('should not allow monsters to rotate in Phase 6', () => {
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       expect(behavior.canRotate).toBe(false);
     });
 
-    it('should not allow creatures to resize', () => {
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+    it('should not allow monsters to resize', () => {
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       expect(behavior.canResize).toBe(false);
     });
 
-    it('should allow creatures to be deleted', () => {
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+    it('should allow monsters to be deleted', () => {
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       expect(behavior.canDelete).toBe(true);
     });
 
-    it('should require grid alignment for creatures', () => {
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+    it('should require grid alignment for monsters', () => {
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       expect(behavior.requiresGridAlignment).toBe(true);
     });
 
-    it('should not allow creatures to overlap', () => {
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+    it('should not allow monsters to overlap', () => {
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       expect(behavior.allowOverlap).toBe(false);
     });
@@ -156,12 +155,12 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should validate non-overlapping placement', () => {
       const position = { x: 200, y: 200 };
       const size = { width: 50, height: 50 };
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       const validation = validatePlacement(
         position,
@@ -186,12 +185,12 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should reject overlapping placement when overlap not allowed', () => {
       const position = { x: 100, y: 100 };
       const size = { width: 50, height: 50 };
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       const validation = validatePlacement(
         position,
@@ -216,12 +215,12 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should validate size constraints', () => {
       const position = { x: 100, y: 100 };
       const size = { width: 1, height: 1 };
-      const creatureAsset = mockCreatureAsset.asset as CreatureAsset;
-      const creatureProperties =
-        mockCreatureAsset.asset.kind === 'Creature'
-          ? { size: creatureAsset.size, category: creatureAsset.category }
+      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
+      const monsterProperties =
+        mockMonsterAsset.asset.kind === 'Monster'
+          ? { size: monsterAsset.size }
           : undefined;
-      const behavior = getPlacementBehavior(mockCreatureAsset.asset.kind, undefined, creatureProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
 
       const validation = validatePlacement(position, size, behavior, [], mockGridConfig);
 

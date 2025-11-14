@@ -4,7 +4,7 @@ import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 /**
  * Assets API - RTK Query slice for Asset CRUD operations
- * Supports ObjectAssets (furniture, traps) and CreatureAssets (characters, monsters)
+ * Supports ObjectAssets (furniture, traps), MonsterAssets (monsters, NPCs), and CharacterAssets (player characters)
  * Phase 5 Step 1 - Updated for new domain model (AssetKind, polymorphic properties)
  */
 export const assetsApi = createApi({
@@ -14,13 +14,12 @@ export const assetsApi = createApi({
   endpoints: (builder) => ({
     /**
      * Get all assets with optional filtering (non-paginated)
-     * Query params: kind, creatureCategory, search, published, owner
+     * Query params: kind, search, published, owner
      */
     getAssets: builder.query<
       Asset[],
       {
         kind?: AssetKind;
-        creatureCategory?: string;
         search?: string;
         published?: boolean;
         owner?: 'mine' | 'public' | 'all';
@@ -50,7 +49,6 @@ export const assetsApi = createApi({
       },
       {
         kind?: AssetKind;
-        creatureCategory?: string;
         search?: string;
         published?: boolean;
         owner?: 'mine' | 'public' | 'all';
@@ -70,7 +68,7 @@ export const assetsApi = createApi({
 
     /**
      * Get single asset by ID
-     * Returns ObjectAsset or CreatureAsset based on kind
+     * Returns ObjectAsset, MonsterAsset, or CharacterAsset based on kind
      */
     getAsset: builder.query<Asset, string>({
       query: (id) => `/${id}`,
@@ -78,8 +76,8 @@ export const assetsApi = createApi({
     }),
 
     /**
-     * Create new asset (ObjectAsset or CreatureAsset)
-     * Request must include kind and corresponding data (objectData or creatureData)
+     * Create new asset (ObjectAsset, MonsterAsset, or CharacterAsset)
+     * Request must include kind and corresponding data (objectData, monsterData, or characterData)
      */
     createAsset: builder.mutation<Asset, CreateAssetRequest>({
       query: (request) => ({
