@@ -3,8 +3,9 @@ export { OpeningDrawingTool } from './OpeningDrawingTool';
 export type { RegionPreviewProps } from '../RegionPreview';
 export { RegionPreview } from '../RegionPreview';
 export type { RegionDrawingToolProps } from './RegionDrawingTool';
-
 export { RegionDrawingTool } from './RegionDrawingTool';
+export type { RegionBucketFillToolProps } from './RegionBucketFillTool';
+export { RegionBucketFillTool } from './RegionBucketFillTool';
 export type { SourceDrawingToolProps } from './SourceDrawingTool';
 
 export { SourceDrawingTool } from './SourceDrawingTool';
