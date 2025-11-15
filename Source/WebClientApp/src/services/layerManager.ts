@@ -13,14 +13,15 @@
 import type Konva from 'konva';
 
 /**
- * Layer names for 4-layer architecture
- * Reduced from 6+ layers to 4 for performance optimization
+ * Layer names for 5-layer architecture
+ * Reduced from 6+ layers for performance optimization
  */
 export enum LayerName {
   Static = 'static',
   GameWorld = 'game-world',
-  Effects = 'effects',
-  UIOverlay = 'ui-overlay',
+  Assets = 'assets',
+  DrawingTools = 'drawing-tools',
+  SelectionHandles = 'selection-handles',
 }
 
 /**
@@ -42,12 +43,34 @@ export enum GroupName {
 /**
  * Layer z-index constants (determines render order)
  * Lower values render first (bottom), higher values render last (top)
+ *
+ * NOTE: These constants are for LayerManager internal use only.
+ * DO NOT use these as zIndex props on React-Konva Layer components.
+ * React-Konva expects layers to be ordered by JSX render order, not zIndex props.
+ */
+export const LayerZIndex = {
+  STATIC: 0,
+  GAME_WORLD: 1,
+  ASSETS: 2,
+  DRAWING_TOOLS: 3,
+  SELECTION_HANDLES: 4,
+} as const;
+
+/**
+ * Layer z-index mapping
+ * Maps LayerName enum to z-index values
+ * 0: Static (background + grid)
+ * 1: GameWorld (structures: walls, regions, sources, openings, transformers)
+ * 2: Assets (tokens: objects, monsters, characters)
+ * 3: DrawingTools (wall/region/source/opening placement tools with preview cursors)
+ * 4: SelectionHandles (token selection boxes, rotation handles, marquee)
  */
 export const LAYER_Z_INDEX = {
-  [LayerName.Static]: 0,
-  [LayerName.GameWorld]: 1,
-  [LayerName.Effects]: 2,
-  [LayerName.UIOverlay]: 3,
+  [LayerName.Static]: LayerZIndex.STATIC,
+  [LayerName.GameWorld]: LayerZIndex.GAME_WORLD,
+  [LayerName.Assets]: LayerZIndex.ASSETS,
+  [LayerName.DrawingTools]: LayerZIndex.DRAWING_TOOLS,
+  [LayerName.SelectionHandles]: LayerZIndex.SELECTION_HANDLES,
 } as const;
 
 /**

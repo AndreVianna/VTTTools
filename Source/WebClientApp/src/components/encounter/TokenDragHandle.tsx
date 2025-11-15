@@ -2,6 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Layer, Line, Rect } from 'react-konva';
+import { LayerName, LayerZIndex } from '@/services/layerManager';
 import type { MonsterAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { getPlacementBehavior } from '@/types/placement';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -868,7 +869,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
   );
 
   return (
-    <Layer name='ui-overlay' listening={true}>
+    <Layer name={LayerName.SelectionHandles} listening={true}>
       {selectedAssetIds.map((assetId) => {
         const renderPos = getAssetRenderPosition(assetId);
         if (!renderPos) return null;

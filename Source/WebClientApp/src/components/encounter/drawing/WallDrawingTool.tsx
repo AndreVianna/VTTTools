@@ -1,6 +1,6 @@
 import type Konva from 'konva';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useWallTransaction } from '@/hooks/useWallTransaction';
 import { useGetEncounterQuery } from '@/services/encounterApi';
@@ -10,7 +10,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { snapToNearest } from '@/utils/structureSnapping';
 import { decomposeSelfIntersectingPath } from '@/utils/wallPlanarUtils';
-import { getCrosshairCursor } from '@/utils/customCursors';
+import { getCrosshairPlusCursor } from '@/utils/customCursors';
 
 import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
@@ -41,9 +41,18 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 }) => {
   const [poles, setPoles] = useState<Pole[]>([]);
   const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
+  const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { data: encounter } = useGetEncounterQuery(encounterId);
   const wall = encounter?.walls?.find((w) => w.index === wallIndex);
+
+  useEffect(() => {
+    return () => {
+      if (stageContainerRef.current) {
+        stageContainerRef.current.style.cursor = 'default';
+      }
+    };
+  }, []);
 
   const handleFinish = useCallback(async () => {
     if (poles.length < 2) return;
@@ -100,11 +109,17 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         onCancel();
         return;
       }
 
       if (e.key === 'Enter' && !e.defaultPrevented) {
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         handleFinish();
         return;
       }
@@ -201,7 +216,8 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 
     const container = stage.container();
     if (container) {
-      container.style.cursor = getCrosshairCursor();
+      stageContainerRef.current = container;
+      container.style.cursor = getCrosshairPlusCursor();
     }
   }, []);
 

@@ -4,7 +4,7 @@ import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva';
 import { getApiEndpoints } from '@/config/development';
-import { GroupName, LayerName } from '@/services/layerManager';
+import { GroupName, LayerName, LayerZIndex } from '@/services/layerManager';
 import type { Asset, MonsterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
@@ -939,7 +939,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
   return (
     <Layer
       ref={layerRef}
-      name={LayerName.GameWorld}
+      name={LayerName.Assets}
+      listening={true}
       {...(draggedAsset && { onMouseMove: handleMouseMove })}
       {...(draggedAsset && { onClick: handleClick })}
     >

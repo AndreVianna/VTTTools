@@ -1,11 +1,11 @@
 import type Konva from 'konva';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Group, Line, Rect, Text } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
 import type { EncounterWall, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
-import { getCrosshairCursor } from '@/utils/customCursors';
+import { getCrosshairPlusCursor } from '@/utils/customCursors';
 import type { OpeningPlacementProperties } from '../panels/OpeningsPanel';
 
 const INTERACTION_RECT_SIZE = 20000;
@@ -33,12 +33,27 @@ export const OpeningDrawingTool: React.FC<OpeningDrawingToolProps> = ({
     const [selectedWallIndex, setSelectedWallIndex] = useState<number | null>(null);
     const [clickPosition, setClickPosition] = useState<Point | null>(null);
     const [previewPosition, setPreviewPosition] = useState<number | null>(null);
+    const stageContainerRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (stageContainerRef.current) {
+                stageContainerRef.current.style.cursor = 'default';
+            }
+        };
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
+                if (stageContainerRef.current) {
+                    stageContainerRef.current.style.cursor = 'default';
+                }
                 onCancel();
             } else if (e.key === 'Enter' && selectedWallIndex !== null && previewPosition !== null) {
+                if (stageContainerRef.current) {
+                    stageContainerRef.current.style.cursor = 'default';
+                }
                 onComplete(selectedWallIndex, previewPosition);
             }
         };
@@ -174,6 +189,9 @@ export const OpeningDrawingTool: React.FC<OpeningDrawingToolProps> = ({
                     setSelectedWallIndex(hoveredWallIndex);
                 }
             } else if (previewPosition !== null) {
+                if (stageContainerRef.current) {
+                    stageContainerRef.current.style.cursor = 'default';
+                }
                 onComplete(selectedWallIndex, previewPosition);
             }
         },
@@ -263,7 +281,8 @@ export const OpeningDrawingTool: React.FC<OpeningDrawingToolProps> = ({
 
         const container = stage.container();
         if (container) {
-            container.style.cursor = getCrosshairCursor();
+            stageContainerRef.current = container;
+            container.style.cursor = getCrosshairPlusCursor();
         }
     }, []);
 
