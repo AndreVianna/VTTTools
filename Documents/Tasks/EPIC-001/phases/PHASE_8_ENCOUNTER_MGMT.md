@@ -2443,6 +2443,88 @@ interface AssetToken {
 
 ---
 
+### Phase 8.10: Fog of War Backend Persistence ✅ COMPLETE
+
+**Objective**: Integrate FoW regions with backend API for data persistence across sessions
+
+**Implementation Summary**:
+
+**1. Backend API Integration**
+- ✅ **onRegionCreated Callback** (EncounterEditorPage.tsx:1164-1189)
+  - Calls `addEncounterRegion` mutation with FoW region data
+  - Refetches encounter data after successful save
+  - Hydrates regions using `hydratePlacedRegions`
+  - Proper error handling and user feedback
+
+- ✅ **handleFogRevealAll** (EncounterEditorPage.tsx:1225-1248)
+  - Iterates through FoW regions
+  - Calls `removeEncounterRegion` for each region by index
+  - Refetches and updates state after all deletions
+  - Error handling for deletion failures
+
+**2. Component Organization**
+- ✅ **FogOfWarRenderer.tsx** - Moved to `rendering/` directory
+  - Fixed `globalCompositeOperation` to use method call syntax
+  - Added to rendering module exports
+  - TypeScript compilation passes
+
+- ✅ **FogOfWarPanel.tsx** - Cleaned up unused props
+  - Removed `encounterId` prop (exactOptionalPropertyTypes compliance)
+  - Simplified component interface
+
+**3. Type Safety Improvements**
+- ✅ **useFogOfWarPlacement.ts** - Fixed type issues
+  - Added undefined checks for `ring[0]` in toGeoJSONPolygon
+  - Added coordinate validation in fromGeoJSONPolygon
+  - Type assertions for polygon-clipping library compatibility
+  - All TypeScript errors resolved
+
+**Technical Changes**:
+```typescript
+// BEFORE: Local state only
+setPlacedRegions((prev) => [...prev, region]);
+
+// AFTER: Backend persistence with refetch
+await addEncounterRegion({
+  encounterId: encounterId || '',
+  type: region.type,
+  name: region.name,
+  label: region.label ?? undefined,
+  value: region.value ?? undefined,
+  vertices: region.vertices,
+}).unwrap();
+
+const { data: updatedEncounter } = await refetch();
+if (updatedEncounter) {
+  setEncounter(updatedEncounter);
+  const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions || [], encounterId || '');
+  setPlacedRegions(hydratedRegions);
+}
+```
+
+**Files Changed**:
+- EncounterEditorPage.tsx (backend integration)
+- FogOfWarRenderer.tsx → rendering/FogOfWarRenderer.tsx (organization)
+- FogOfWarPanel.tsx (cleanup)
+- useFogOfWarPlacement.ts (type safety)
+- LeftToolBar.tsx (prop cleanup)
+- encounter/index.ts, rendering/index.ts (exports)
+
+**Verification**:
+- ✅ TypeScript compilation passes
+- ✅ FoW regions save to backend via addEncounterRegion
+- ✅ FoW regions load from backend via hydratePlacedRegions
+- ✅ Delete operations call removeEncounterRegion API
+- ✅ State synchronization via refetch after mutations
+
+**Commit**: c2463f8 - "feat: Phase 8.10 - Implement backend persistence for Fog of War"
+
+**Status**: ✅ COMPLETE (2025-11-15)
+
+**Grade**: A- (Backend persistence working, undo/redo integration pending)
+
+---
+
 
 ---
 
