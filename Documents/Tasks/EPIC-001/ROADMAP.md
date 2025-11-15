@@ -66,16 +66,12 @@
 | 5 | Asset Library | ✅ Complete | 70/16 | A | [PHASE_5_ASSET_LIBRARY.md](./phases/PHASE_5_ASSET_LIBRARY.md) |
 | 6 | Encounter Editor | ✅ Complete | 30/25 | A+ | [PHASE_6_ENCOUNTER_EDITOR.md](./phases/PHASE_6_ENCOUNTER_EDITOR.md) |
 | 7 | Adventure Mgmt | ✅ Complete | 19/21 | A- | [PHASE_7_ADVENTURE_MGMT.md](./phases/PHASE_7_ADVENTURE_MGMT.md) |
-| 8.0 | Encounter Mgmt | ✅ Complete | 23/12 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-80-encounter-management--complete) |
-| 8.5 | Incomplete Items | 🚧 Partial | 9/13 | - | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-85-incomplete-items--partial) |
-| 8.6 | Structures Backend | ✅ Complete | 37/32-42 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-86-structures-backend--complete) |
-| 8.7 | Structures Frontend | ✅ Complete | 67/56-76 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-87-structures-frontend--complete) |
-| 8.8 | Manual Tests | 🔄 Active | 5/8-12 | A | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
+| 8 | Encounter Mgmt | 🚧 Partial | 23/12 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md) |
 | 9 | World/Campaign | ✅ Complete | 16/18 | A+ | [PHASE_9_WORLD_CAMPAIGN.md](./phases/PHASE_9_WORLD_CAMPAIGN.md) |
 | 10 | Game Sessions | 🔜 Ready | 0/22 | - | [PHASE_10_GAME_SESSIONS.md](./phases/PHASE_10_GAME_SESSIONS.md) |
-| 11 | Account Mgmt | 🚧 Partial | 16/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
-| 12 | Audit Logging | 🔜 Ready | 0/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
-| 13 | Release Prep | 🔜 Ready | 0/5 | - | [PHASE_13_RELEASE_PREP.md](./phases/PHASE_13_RELEASE_PREP.md) |
+| 11 | Account Mgmt | 🚧 Partial | 15/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
+| 12 | Audit Logging | 🚧 Partial | 12/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
+| 13 | Release Prep | 🚧 Partial | 4/5 | - | [PHASE_13_RELEASE_PREP.md](./phases/PHASE_13_RELEASE_PREP.md) |
 | 14 | Performance | 🔜 Optional | 0/16 | - | [PHASE_14_PERFORMANCE.md](./phases/PHASE_14_PERFORMANCE.md) |
 
 **Legend**: ✅ Complete | 🚧 Partial | 🔄 Active | 🔜 Ready | ⚠️ Blocked
@@ -106,7 +102,7 @@
 ### Pending 🔜
 - ⚠️ Structure placement type-specific logic (pending clarification)
 - 🚧 Real-time game sessions: Backend ✅ COMPLETE (12 endpoints) | Frontend ❌ NOT STARTED
-- 🔜 Audit logging user-facing features (Phase 12)
+- 🚧 Audit logging user-facing features (Phase 12)
 - 🔜 Legacy Blazor projects deprecated (Phase 13)
 
 ---

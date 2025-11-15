@@ -4,6 +4,7 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   FormatColorFill as BucketFillIcon,
+  Polyline as PolygonIcon,
 } from '@mui/icons-material';
 import {
   Box,
@@ -21,6 +22,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -34,6 +36,7 @@ export interface RegionsPanelProps {
   encounterId?: string;
   encounterRegions?: PlacedRegion[];
   selectedRegionIndex?: number | null;
+  placementMode?: 'polygon' | 'bucketFill' | null;
   onPresetSelect?: (preset: RegionPreset) => void;
   onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
   onBucketFillRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
@@ -62,6 +65,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     encounterId,
     encounterRegions = [],
     selectedRegionIndex,
+    placementMode,
     onPresetSelect,
     onPlaceRegion,
     onBucketFillRegion,
@@ -373,25 +377,47 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
           </Box>
         </Box>
 
-        <ButtonGroup fullWidth variant='contained' sx={{ height: '28px' }}>
-          <Button
-            id='btn-place-region'
-            onClick={handlePlaceRegion}
-            disabled={!name.trim()}
-            sx={{...compactStyles.button, flex: 1}}
-          >
-            Place Region
-          </Button>
-          <Button
-            id='btn-bucket-fill-region'
-            onClick={handleBucketFillRegion}
-            disabled={!name.trim()}
-            sx={{...compactStyles.button, minWidth: '40px', flex: 0}}
-            title='Bucket Fill'
-          >
-            <BucketFillIcon sx={{ fontSize: '14px' }} />
-          </Button>
-        </ButtonGroup>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant='caption' sx={{ fontSize: '11px', fontWeight: 500 }}>
+            Place a Region:
+          </Typography>
+          <ButtonGroup variant='contained' sx={{ height: '28px' }}>
+            <Tooltip title='Place a Polygon' arrow>
+              <Button
+                id='btn-place-region-polygon'
+                onClick={handlePlaceRegion}
+                disabled={!name.trim()}
+                sx={{
+                  ...compactStyles.button,
+                  minWidth: '40px',
+                  backgroundColor: placementMode === 'polygon' ? theme.palette.primary.dark : undefined,
+                  '&:hover': {
+                    backgroundColor: placementMode === 'polygon' ? theme.palette.primary.dark : undefined,
+                  },
+                }}
+              >
+                <PolygonIcon sx={{ fontSize: '14px' }} />
+              </Button>
+            </Tooltip>
+            <Tooltip title='Fill an Area' arrow>
+              <Button
+                id='btn-place-region-bucket'
+                onClick={handleBucketFillRegion}
+                disabled={!name.trim()}
+                sx={{
+                  ...compactStyles.button,
+                  minWidth: '40px',
+                  backgroundColor: placementMode === 'bucketFill' ? theme.palette.primary.dark : undefined,
+                  '&:hover': {
+                    backgroundColor: placementMode === 'bucketFill' ? theme.palette.primary.dark : undefined,
+                  },
+                }}
+              >
+                <BucketFillIcon sx={{ fontSize: '14px' }} />
+              </Button>
+            </Tooltip>
+          </ButtonGroup>
+        </Box>
 
         <Divider sx={{ my: 0.5 }} />
 

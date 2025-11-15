@@ -1311,12 +1311,146 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 
 ---
 
-##### 8.8B.2: Remaining Structure Testing 🔜 NEXT
+##### 8.8B.2: Region Bucket Fill Implementation ✅ COMPLETE
+
+**Objective**: Complete bucket fill region placement feature started by another developer
+
+**Completion Date**: 2025-11-15
+
+**Context**: Bucket fill tool was ~80% implemented but completely disconnected from the application flow. Users could not start the filling process.
+
+**User Requirements**:
+1. Change placement button to label + 2 icon buttons (polygon & bucket) with tooltips
+2. Fix bucket fill implementation (not working - couldn't start placement)
+3. Different cursors for polygon (crosshair) vs bucket fill (bucket icon)
+4. Cursors only over stage, not panels (applies to all scopes)
+
+**Implementation Work**:
+
+**Phase 1: UI Redesign** ✅
+- **File**: `RegionsPanel.tsx` (lines 380-420)
+- Replaced single "Place Region" button with:
+  - Typography label: "Place a Region:"
+  - ButtonGroup with 2 icon buttons (Polygon & BucketFill icons)
+  - Tooltips: "Place a Polygon" and "Fill an Area"
+  - Visual highlighting based on `placementMode` state (darker background when active)
+  - Both buttons remain disabled when no name entered
+
+**Phase 2: State Management & Integration** ✅
+- **File**: `EncounterEditorPage.tsx`
+  - Added state: `regionPlacementMode: 'polygon' | 'bucketFill' | null` (line 207)
+  - Updated `drawingMode` logic to support bucket fill (lines 235-244)
+  - Wired up `handleBucketFillRegion` and `handleBucketFillFinish` handlers
+
+- **File**: `useRegionHandlers.ts`
+  - Created `handleBucketFillRegion` handler (lines 464-505) - initiates bucket fill mode
+  - Created `handleBucketFillFinish` handler (lines 543-661) - completes placement
+  - Modified `handleStructurePlacementFinish` to accept both 'region' and 'bucketFill' drawing modes (line 304)
+
+- **File**: `LeftToolBar.tsx`
+  - Added props: `onBucketFillRegion`, `regionPlacementMode` (lines 61-62)
+  - Passed props through to RegionsPanel (lines 335-336)
+
+- **File**: `EncounterEditorPage.tsx`
+  - Added RegionBucketFillTool canvas rendering (lines 1555-1577)
+  - Wired up `onFinish={regionHandlers.handleBucketFillFinish}`
+
+**Phase 3: Cursor Management** ✅
+- **File**: `customCursors.ts`
+  - Created `getBucketFillCursor()` function (lines 18-31)
+  - SVG bucket icon with lightblue fill
+  - Size: 18x18px (reduced from initial 24x24 per user feedback)
+
+- **File**: `RegionDrawingTool.tsx`
+  - Added crosshair cursor management (lines 149-167, 177-178)
+  - `onMouseEnter`: Set crosshair cursor via `container.style.cursor`
+  - `onMouseLeave`: Reset to 'default'
+
+- **File**: `RegionBucketFillTool.tsx`
+  - Added bucket cursor management (lines 147-165, 175-176)
+  - Same pattern as polygon tool
+
+**Phase 4: Opacity Tuning** ✅
+- **File**: `RegionBucketFillTool.tsx` (line 172)
+  - Reduced preview opacity from `0.1/0.3` to `0.05/0.15`
+  - Full-stage fill now much more subtle (per user feedback)
+
+**Phase 5: Export Configuration** ✅
+- **File**: `src/components/encounter/index.ts`
+  - Added `RegionBucketFillTool` and `RegionBucketFillToolProps` exports (lines 8, 20)
+
+- **File**: `src/components/encounter/drawing/index.ts`
+  - Already had exports (lines 7-8)
+
+**Critical Bug Fix: React State Timing/Closure Issue** 🔥
+
+**Problem**: Bucket fill placement was failing with "Region requires minimum 3 vertices" even though 4 vertices were detected.
+
+**Root Cause**: Architectural issue with React state updates and closures
+- Bucket fill tool called `onVerticesChange(finalVertices)` then `onFinish()` immediately
+- `onVerticesChange` scheduled async React state update via `regionTransaction.updateVertices()`
+- `onFinish` was called BEFORE state update processed
+- `commitTransaction` read from stale closure with empty vertices array
+
+**Failed Attempts**:
+1. **`setTimeout(..., 0)`**: Didn't wait for React state batching
+2. **`flushSync()`**: Forced synchronous update but closure still had old reference
+3. **Read from encounter state**: Encounter also stale in closure
+4. **`requestAnimationFrame()`**: Also didn't solve closure issue
+
+**Solution**: Bypass transaction system for bucket fill ✅
+- **File**: `useRegionHandlers.ts` - `handleBucketFillFinish` (lines 543-661)
+- Modified bucket fill tool to pass vertices as parameter: `onFinish(vertices: Point[])`
+- Handler receives vertices directly, bypasses transaction state entirely
+- Calls API directly: `addEncounterRegion({ encounterId, ...segment, vertices })`
+- Refetches encounter to get updated data
+- Sets up undo/redo command manually
+
+**Architecture Pattern Discovered**:
+```typescript
+// WRONG: Rely on state updates before reading
+onVerticesChange(vertices);  // Schedules async update
+onFinish();                  // Reads stale closure ❌
+
+// CORRECT: Pass data as parameters
+onFinish(vertices);          // Receives data directly ✅
+```
+
+**Key Lessons Learned**:
+
+1. **React State & Closures**: When callbacks capture state in closures, they don't see updates made by other callbacks in the same event cycle
+2. **Solution Pattern**: Pass critical data as function parameters instead of relying on shared state
+3. **Transaction System Limitation**: Designed for interactive multi-step operations (polygon drawing), not single-click operations (bucket fill)
+4. **API Direct Call**: Sometimes bypassing abstractions is the right choice when they don't fit the use case
+
+**Files Modified**:
+- `Source/WebClientApp/src/components/encounter/panels/RegionsPanel.tsx`
+- `Source/WebClientApp/src/pages/EncounterEditorPage.tsx`
+- `Source/WebClientApp/src/pages/EncounterEditor/hooks/useRegionHandlers.ts`
+- `Source/WebClientApp/src/components/encounter/LeftToolBar.tsx`
+- `Source/WebClientApp/src/components/encounter/drawing/RegionBucketFillTool.tsx`
+- `Source/WebClientApp/src/components/encounter/drawing/RegionDrawingTool.tsx`
+- `Source/WebClientApp/src/utils/customCursors.ts`
+- `Source/WebClientApp/src/components/encounter/index.ts`
+
+**Testing Status**: ✅ Manual testing complete
+- Bucket fill successfully places regions in closed areas
+- Bucket fill works on open areas (fills to stage boundaries)
+- Preview shows with low opacity
+- Cursors change correctly (only over stage)
+- Undo/redo works correctly
+- API integration confirmed
+
+**Estimated Effort**: 3-4 hours
+**Actual Effort**: 4+ hours (including debugging closure issues)
+
+---
+
+##### 8.8B.3: Remaining Structure Testing 🔜 NEXT
 
 **Remaining Work**:
 - Complete Wall marquee selection debugging
 - Reimplement pole insertion on line segment
-- Manual testing of Region workflows (placement, editing, deletion)
 - Manual testing of Source workflows (placement, editing, deletion)
 - Line-of-sight visual verification for Sources
 - Snapping behavior verification across all structure types

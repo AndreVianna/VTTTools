@@ -5,6 +5,7 @@ export type { BackgroundLayerProps } from './BackgroundLayer';
 export { BackgroundLayer } from './BackgroundLayer';
 export type {
   OpeningDrawingToolProps,
+  RegionBucketFillToolProps,
   RegionDrawingToolProps,
   RegionPreviewProps,
   SourceDrawingToolProps,
@@ -16,6 +17,7 @@ export type {
 // Drawing components
 export {
   OpeningDrawingTool,
+  RegionBucketFillTool,
   RegionDrawingTool,
   RegionPreview,
   SourceDrawingTool,
