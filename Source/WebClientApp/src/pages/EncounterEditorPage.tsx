@@ -85,6 +85,12 @@ import {
 import type { LocalAction } from '@/types/regionUndoActions';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
 import {
+  getBucketMinusCursor,
+  getBucketPlusCursor,
+  getCrosshairMinusCursor,
+  getCrosshairPlusCursor,
+} from '@/utils/customCursors';
+import {
   hydratePlacedAssets,
   hydratePlacedOpenings,
   hydratePlacedRegions,
@@ -1783,6 +1789,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                     regionIndex={-1}
                     gridConfig={gridConfig}
                     regionType='FogOfWar'
+                    cursor={fogMode === 'add' ? getCrosshairPlusCursor() : getCrosshairMinusCursor()}
                     onCancel={() => {
                       setFogDrawingTool(null);
                       setFogDrawingVertices([]);
@@ -1798,6 +1805,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                   <RegionBucketFillTool
                     encounterId={encounterId}
                     gridConfig={gridConfig}
+                    cursor={fogMode === 'add' ? getBucketPlusCursor() : getBucketMinusCursor()}
                     onCancel={() => setFogDrawingTool(null)}
                     onFinish={handleBucketFillComplete}
                     regionType='FogOfWar'

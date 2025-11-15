@@ -25,6 +25,7 @@ export interface RegionDrawingToolProps {
   regionType: string;
   regionColor?: string;
   regionTransaction: ReturnType<typeof useRegionTransaction>;
+  cursor?: string;
 }
 
 export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
@@ -34,6 +35,7 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
   onVerticesChange,
   regionColor,
   regionTransaction,
+  cursor,
 }) => {
   const [vertices, setVertices] = useState<Point[]>([]);
   const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
@@ -168,9 +170,9 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
     const container = stage.container();
     if (container) {
       stageContainerRef.current = container;
-      container.style.cursor = getCrosshairPlusCursor();
+      container.style.cursor = cursor || getCrosshairPlusCursor();
     }
-  }, []);
+  }, [cursor]);
 
   const handleMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();
