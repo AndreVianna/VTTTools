@@ -66,7 +66,7 @@ public class AssetStorageTests
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Kind.Should().Be(asset.Kind);
+        dbAsset.Kind.Should().Be(AssetKind.Monster);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
@@ -120,7 +120,7 @@ public class AssetStorageTests
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Kind.Should().Be(asset.Kind);
+        dbAsset.Kind.Should().Be(AssetKind.Monster);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);

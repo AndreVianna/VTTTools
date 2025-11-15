@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { PlacedOpening, PlacedWall, Point } from '@/types/domain';
+import { getBucketFillCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { traceBoundary } from '@/utils/regionBoundaryUtils';
 import { RegionPreview } from '../RegionPreview';
@@ -15,8 +16,7 @@ export interface RegionBucketFillToolProps {
   encounterId: string;
   gridConfig: GridConfig;
   onCancel: () => void;
-  onFinish: () => void;
-  onVerticesChange?: (vertices: Point[]) => void;
+  onFinish: (vertices: Point[]) => void;
   regionType: string;
   regionColor?: string;
   regionTransaction: ReturnType<typeof useRegionTransaction>;
@@ -28,7 +28,6 @@ export interface RegionBucketFillToolProps {
 export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
   onCancel,
   onFinish,
-  onVerticesChange,
   regionColor,
   walls,
   openings,
@@ -119,15 +118,33 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
       } else if (result.vertices && result.vertices.length >= 3) {
         finalVertices = result.vertices;
       } else {
-        console.warn('Cannot create region: no valid boundary found');
         return;
       }
 
-      onVerticesChange?.(finalVertices);
-      onFinish();
+      onFinish(finalVertices);
     },
-    [walls, openings, stageSize, onVerticesChange, onFinish],
+    [walls, openings, stageSize, onFinish],
   );
+
+  const handleMouseEnter = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const container = stage.container();
+    if (container) {
+      container.style.cursor = getBucketFillCursor();
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const container = stage.container();
+    if (container) {
+      container.style.cursor = 'default';
+    }
+  }, []);
 
   return (
     <Group>
@@ -137,6 +154,8 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         width={INTERACTION_RECT_SIZE}
         height={INTERACTION_RECT_SIZE}
         fill='transparent'
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onClick={handleClick}
         listening={true}
@@ -146,7 +165,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         <RegionPreview
           vertices={previewVertices}
           {...(regionColor && { color: regionColor })}
-          opacity={isFullStage ? 0.1 : 0.3}
+          opacity={isFullStage ? 0.05 : 0.15}
         />
       )}
     </Group>

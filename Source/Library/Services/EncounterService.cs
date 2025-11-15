@@ -150,7 +150,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         return encounter?.Assets.ToArray() ?? [];
     }
 
-    private static string GenerateAssetInstanceName(Asset asset, uint number) => asset.Kind == AssetKind.Monster ? $"{asset.Name} #{number}" : asset.Name;
+    private static string GenerateAssetInstanceName(Asset asset, uint number) => asset is MonsterAsset ? $"{asset.Name} #{number}" : asset.Name;
 
     /// <inheritdoc />
     public async Task<Result<EncounterAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, EncounterAssetAddData data, CancellationToken ct = default) {

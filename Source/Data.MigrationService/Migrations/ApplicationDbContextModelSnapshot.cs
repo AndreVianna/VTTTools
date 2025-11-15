@@ -18,7 +18,7 @@ namespace VttTools.Data.MigrationService.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -59,7 +59,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("PortraitId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Assets.Entities.Asset.Size#NamedSize", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Size", "VttTools.Data.Assets.Entities.Asset.Size#NamedSize", b1 =>
                         {
                             b1.IsRequired();
 
@@ -288,7 +288,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<DateTimeOffset>("Start")
                         .HasColumnType("datetimeoffset");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Recurrence", "VttTools.Data.Game.Entities.Schedule.Recurrence#Recurrence", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Recurrence", "VttTools.Data.Game.Entities.Schedule.Recurrence#Recurrence", b1 =>
                         {
                             b1.IsRequired();
 
@@ -487,7 +487,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("real")
                         .HasDefaultValue(1f);
 
-                    b.ComplexProperty<Dictionary<string, object>>("Grid", "VttTools.Data.Library.Entities.Encounter.Grid#Grid", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Grid", "VttTools.Data.Library.Entities.Encounter.Grid#Grid", b1 =>
                         {
                             b1.IsRequired();
 
@@ -502,7 +502,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("NoGrid");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("CellSize", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.CellSize#CellSize", b2 =>
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "CellSize", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.CellSize#CellSize", b2 =>
                                 {
                                     b2.IsRequired();
 
@@ -517,7 +517,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                         .HasDefaultValue(64.0);
                                 });
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Offset", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.Offset#Offset", b2 =>
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Offset", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.Offset#Offset", b2 =>
                                 {
                                     b2.IsRequired();
 
@@ -533,7 +533,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 });
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Panning", "VttTools.Data.Library.Entities.Encounter.Panning#Point", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Panning", "VttTools.Data.Library.Entities.Encounter.Panning#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -611,7 +611,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("TokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Frame", "VttTools.Data.Library.Entities.EncounterAsset.Frame#Frame", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Frame", "VttTools.Data.Library.Entities.EncounterAsset.Frame#Frame", b1 =>
                         {
                             b1.IsRequired();
 
@@ -639,7 +639,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue("Square");
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.EncounterAsset.Position#Position", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterAsset.Position#Position", b1 =>
                         {
                             b1.IsRequired();
 
@@ -654,7 +654,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue(0.0);
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.EncounterAsset.Size#NamedSize", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Size", "VttTools.Data.Library.Entities.EncounterAsset.Size#NamedSize", b1 =>
                         {
                             b1.IsRequired();
 
@@ -705,7 +705,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<float?>("Size")
                         .HasColumnType("real");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Origin", "VttTools.Data.Library.Entities.EncounterEffect.Origin#Point", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Origin", "VttTools.Data.Library.Entities.EncounterEffect.Origin#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -880,7 +880,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.EncounterSource.Position#Point", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterSource.Position#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -1067,7 +1067,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Undefined");
 
-                    b.ComplexProperty<Dictionary<string, object>>("ImageSize", "VttTools.Data.Media.Entities.Resource.ImageSize#Size", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "ImageSize", "VttTools.Data.Media.Entities.Resource.ImageSize#Size", b1 =>
                         {
                             b1.IsRequired();
 
@@ -1675,21 +1675,16 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.OwnsMany("VttTools.Common.Model.Point", "Vertices", b1 =>
                         {
-                            b1.Property<Guid>("EncounterRegionEncounterId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<Guid>("EncounterRegionEncounterId");
 
-                            b1.Property<long>("EncounterRegionIndex")
-                                .HasColumnType("bigint");
+                            b1.Property<long>("EncounterRegionIndex");
 
                             b1.Property<int>("__synthesizedOrdinal")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
+                                .ValueGeneratedOnAddOrUpdate();
 
-                            b1.Property<double>("X")
-                                .HasColumnType("float");
+                            b1.Property<double>("X");
 
-                            b1.Property<double>("Y")
-                                .HasColumnType("float");
+                            b1.Property<double>("Y");
 
                             b1.HasKey("EncounterRegionEncounterId", "EncounterRegionIndex", "__synthesizedOrdinal");
 
@@ -1727,24 +1722,18 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.OwnsMany("VttTools.Common.Model.Pole", "Poles", b1 =>
                         {
-                            b1.Property<Guid>("EncounterWallEncounterId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<Guid>("EncounterWallEncounterId");
 
-                            b1.Property<long>("EncounterWallIndex")
-                                .HasColumnType("bigint");
+                            b1.Property<long>("EncounterWallIndex");
 
                             b1.Property<int>("__synthesizedOrdinal")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
+                                .ValueGeneratedOnAddOrUpdate();
 
-                            b1.Property<double>("H")
-                                .HasColumnType("float");
+                            b1.Property<double>("H");
 
-                            b1.Property<double>("X")
-                                .HasColumnType("float");
+                            b1.Property<double>("X");
 
-                            b1.Property<double>("Y")
-                                .HasColumnType("float");
+                            b1.Property<double>("Y");
 
                             b1.HasKey("EncounterWallEncounterId", "EncounterWallIndex", "__synthesizedOrdinal");
 
@@ -1839,16 +1828,19 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<string>("BackgroundColor")
                                 .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("TokenStyle_BackgroundColor");
 
                             b1.Property<string>("BorderColor")
                                 .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("TokenStyle_BorderColor");
 
                             b1.Property<string>("Shape")
                                 .IsRequired()
                                 .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("TokenStyle_Shape");
 
                             b1.HasKey("CharacterAssetId");
 
@@ -1870,16 +1862,19 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<string>("BackgroundColor")
                                 .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("TokenStyle_BackgroundColor");
 
                             b1.Property<string>("BorderColor")
                                 .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("TokenStyle_BorderColor");
 
                             b1.Property<string>("Shape")
                                 .IsRequired()
                                 .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("TokenStyle_Shape");
 
                             b1.HasKey("MonsterAssetId");
 

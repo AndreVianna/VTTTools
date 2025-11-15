@@ -40,6 +40,7 @@ interface UseRegionHandlersProps {
   setIsEditingRegionVertices: (editing: boolean) => void;
   setOriginalRegionVertices: (vertices: Point[] | null) => void;
   setDrawingRegionIndex: (index: number | null) => void;
+  setRegionPlacementMode: (mode: 'polygon' | 'bucketFill' | null) => void;
   setErrorMessage: (message: string | null) => void;
 
   recordAction: (command: Command) => void;
@@ -66,6 +67,7 @@ export const useRegionHandlers = ({
   setIsEditingRegionVertices,
   setOriginalRegionVertices,
   setDrawingRegionIndex,
+  setRegionPlacementMode,
   setErrorMessage,
   recordAction,
   refetch,
@@ -299,7 +301,7 @@ export const useRegionHandlers = ({
     try {
       if (!encounterId || !encounter) return;
 
-      if (drawingMode !== 'region' || drawingRegionIndex === null) return;
+      if ((drawingMode !== 'region' && drawingMode !== 'bucketFill') || drawingRegionIndex === null) return;
 
       const encounterForCommit = filterEncounterForMergeDetection(encounter);
 
@@ -383,7 +385,6 @@ export const useRegionHandlers = ({
           recordAction(command);
         }
 
-        // Clear the transaction state
         regionTransaction.clearTransaction();
       } else {
         regionTransaction.rollbackTransaction();
@@ -423,6 +424,7 @@ export const useRegionHandlers = ({
       setOriginalRegionVertices(null);
       setDrawingRegionIndex(-1);
       setSelectedRegionIndex(null);
+      setRegionPlacementMode('polygon');
 
       regionTransaction.startTransaction('placement', undefined, properties);
 
@@ -452,8 +454,147 @@ export const useRegionHandlers = ({
       setOriginalRegionVertices,
       setDrawingRegionIndex,
       setSelectedRegionIndex,
+      setRegionPlacementMode,
       regionTransaction,
       setEncounter,
+    ],
+  );
+
+  const handleBucketFillRegion = useCallback(
+    (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => {
+      setEditingRegionIndex(null);
+      setIsEditingRegionVertices(false);
+      setOriginalRegionVertices(null);
+      setDrawingRegionIndex(-1);
+      setSelectedRegionIndex(null);
+      setRegionPlacementMode('bucketFill');
+
+      regionTransaction.startTransaction('placement', undefined, properties);
+
+      if (encounter) {
+        const tempRegion: EncounterRegion = {
+          encounterId: encounter.id,
+          index: -1,
+          name: properties.name,
+          vertices: [],
+          type: properties.type,
+          ...(properties.value !== undefined && { value: properties.value }),
+          ...(properties.label !== undefined && { label: properties.label }),
+          color: properties.color || '#808080',
+        };
+
+        const updatedEncounter = {
+          ...encounter,
+          regions: [...(encounter.regions || []), tempRegion],
+        };
+        setEncounter(updatedEncounter);
+      }
+    },
+    [
+      encounter,
+      setEditingRegionIndex,
+      setIsEditingRegionVertices,
+      setOriginalRegionVertices,
+      setDrawingRegionIndex,
+      setSelectedRegionIndex,
+      setRegionPlacementMode,
+      regionTransaction,
+      setEncounter,
+    ],
+  );
+
+  const handleBucketFillFinish = useCallback(
+    async (vertices: Point[]) => {
+      try {
+        if (!encounterId || !encounter) return;
+
+        if (drawingRegionIndex === null) return;
+
+        const segment = regionTransaction.transaction.segment;
+        if (!segment) {
+          setErrorMessage('No region properties found');
+          return;
+        }
+
+        const result = await addEncounterRegion({
+          encounterId,
+          name: segment.name,
+          type: segment.type,
+          vertices: vertices,
+          ...(segment.value !== undefined && { value: segment.value }),
+          ...(segment.label !== undefined && { label: segment.label }),
+          ...(segment.color !== undefined && { color: segment.color }),
+        }).unwrap();
+
+        const { data: updatedEncounter } = await refetch();
+        if (updatedEncounter) {
+          setEncounter(updatedEncounter);
+
+          const createdRegion = updatedEncounter.regions?.find((r) => r.index === result.index);
+          if (createdRegion) {
+            const command = new CreateRegionCommand({
+              encounterId,
+              region: createdRegion,
+              onCreate: async (encounterId, regionData) => {
+                try {
+                  const result = await addEncounterRegion({
+                    encounterId,
+                    ...regionData,
+                  }).unwrap();
+                  return result;
+                } catch (error) {
+                  console.error('Failed to recreate region:', error);
+                  setErrorMessage('Failed to recreate region. Please try again.');
+                  throw error;
+                }
+              },
+              onRemove: async (encounterId, regionIndex) => {
+                try {
+                  await removeEncounterRegion({
+                    encounterId,
+                    regionIndex,
+                  }).unwrap();
+                } catch (error) {
+                  console.error('Failed to remove region:', error);
+                  setErrorMessage('Failed to remove region. Please try again.');
+                  throw error;
+                }
+              },
+              onRefetch: async () => {
+                const { data } = await refetch();
+                if (data) setEncounter(data);
+              },
+            });
+            recordAction(command);
+          }
+
+          regionTransaction.clearTransaction();
+        } else {
+          setErrorMessage('Failed to refresh encounter. Please reload.');
+        }
+
+        setDrawingRegionIndex(null);
+      } catch (error) {
+        console.error('[useRegionHandlers] Failed to process bucket fill:', error);
+        setErrorMessage('Failed to process bucket fill. Please try again.');
+        setDrawingRegionIndex(null);
+      }
+    },
+    [
+      encounterId,
+      encounter,
+      drawingRegionIndex,
+      regionTransaction,
+      gridConfig,
+      addEncounterRegion,
+      updateEncounterRegion,
+      removeEncounterRegion,
+      setEncounter,
+      setDrawingRegionIndex,
+      setErrorMessage,
+      executeMerge,
+      recordAction,
+      refetch,
     ],
   );
 
@@ -496,6 +637,8 @@ export const useRegionHandlers = ({
     handleFinishEditingRegion,
     handleStructurePlacementFinish,
     handlePlaceRegion,
+    handleBucketFillRegion,
+    handleBucketFillFinish,
     handleRegionSelect,
     handleEditRegionVertices,
   };

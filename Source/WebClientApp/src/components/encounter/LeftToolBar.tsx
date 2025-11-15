@@ -58,6 +58,8 @@ export interface LeftToolBarProps {
   onRegionSelect?: (regionIndex: number | null) => void;
   onRegionDelete?: (regionIndex: number) => void;
   onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
+  onBucketFillRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
+  regionPlacementMode?: 'polygon' | 'bucketFill' | null;
   onEditRegionVertices?: (regionIndex: number) => void;
   placedAssets?: PlacedAsset[] | undefined;
   selectedAssetIds?: string[] | undefined;
@@ -101,6 +103,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onRegionSelect,
   onRegionDelete,
   onPlaceRegion,
+  onBucketFillRegion,
+  regionPlacementMode,
   onEditRegionVertices,
   placedAssets = [],
   selectedAssetIds = [],
@@ -328,6 +332,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               encounterRegions={encounterRegions || []}
               selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
               {...(onPlaceRegion ? { onPlaceRegion } : {})}
+              {...(onBucketFillRegion ? { onBucketFillRegion } : {})}
+              {...(regionPlacementMode !== undefined ? { placementMode: regionPlacementMode } : {})}
               {...(onRegionSelect ? { onRegionSelect } : {})}
               {...(onRegionDelete ? { onRegionDelete } : {})}
               {...(onEditRegionVertices ? { onEditVertices: onEditRegionVertices } : {})}

@@ -75,9 +75,9 @@ public class AssetServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
+        result.Value.Should().BeOfType<MonsterAsset>();
         result.Value.Name.Should().Be(data.Name);
         result.Value.Description.Should().Be(data.Description);
-        result.Value.Kind.Should().Be(data.Kind);
         result.Value.OwnerId.Should().Be(_userId);
         await _assetStorage.Received(1).AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
@@ -173,9 +173,9 @@ public class AssetServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
+        result.Value.Should().BeOfType<MonsterAsset>();
         result.Value.Name.Should().Be(data.Name.Value);
         result.Value.Description.Should().Be(asset.Description);
-        result.Value.Kind.Should().Be(asset.Kind);
         await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 

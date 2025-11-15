@@ -32,6 +32,7 @@ import { type GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator
 import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Group, Layer } from 'react-konva';
 import { useParams } from 'react-router-dom';
 import type { SaveStatus } from '@/components/common';
@@ -204,6 +205,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [editingRegionIndex, setEditingRegionIndex] = useState<number | null>(null);
   const [isEditingRegionVertices, setIsEditingRegionVertices] = useState(false);
   const [originalRegionVertices, setOriginalRegionVertices] = useState<Point[] | null>(null);
+  const [regionPlacementMode, setRegionPlacementMode] = useState<'polygon' | 'bucketFill' | null>(null);
 
   const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
@@ -234,11 +236,13 @@ const EncounterEditorPageInternal: React.FC = () => {
   const drawingMode: DrawingMode =
     activeScope === 'walls'
       ? 'wall'
-      : activeScope === 'regions'
+      : activeScope === 'regions' && regionPlacementMode === 'polygon'
         ? 'region'
-        : activeScope === 'sources'
-          ? 'source'
-          : null;
+        : activeScope === 'regions' && regionPlacementMode === 'bucketFill'
+          ? 'bucketFill'
+          : activeScope === 'sources'
+            ? 'source'
+            : null;
 
   const handleLayerVisibilityToggle = useCallback((layer: LayerVisibilityType) => {
     setScopeVisibility((prev) => ({
@@ -418,6 +422,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     setIsEditingRegionVertices,
     setOriginalRegionVertices,
     setDrawingRegionIndex,
+    setRegionPlacementMode,
     setErrorMessage,
     recordAction,
     refetch: async () => {
@@ -489,8 +494,12 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   useEffect(() => {
     if (encounterData && !isInitialized) {
+      let isMounted = true;
+
       const initializeEncounter = async () => {
+        if (!isMounted) return;
         setIsHydrating(true);
+
         try {
           const hydratedAssets = await hydratePlacedAssets(
             encounterData.assets,
@@ -500,6 +509,8 @@ const EncounterEditorPageInternal: React.FC = () => {
               return result;
             },
           );
+
+          if (!isMounted) return;
 
           const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
           const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
@@ -523,6 +534,8 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedOpenings(hydratedOpenings);
           setIsInitialized(true);
         } catch (error) {
+          if (!isMounted) return;
+
           console.error('Failed to hydrate encounter:', error);
           setEncounter(encounterData);
           setGridConfig({
@@ -541,11 +554,17 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedOpenings([]);
           setIsInitialized(true);
         } finally {
-          setIsHydrating(false);
+          if (isMounted) {
+            setIsHydrating(false);
+          }
         }
       };
 
       initializeEncounter();
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [encounterData, isInitialized, dispatch, encounterId, assetManagement]);
 
@@ -608,8 +627,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       assetManagement.handleAssetSelected([]);
     }
     prevActiveScopeRef.current = activeScope;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeScope]);
+  }, [activeScope, assetManagement.handleAssetSelected]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -873,11 +891,16 @@ const EncounterEditorPageInternal: React.FC = () => {
   }, [encounter, regionTransaction]);
 
   const handleStructurePlacementFinish = useCallback(async () => {
+    console.log('[EncounterEditorPage] handleStructurePlacementFinish called, activePanel:', activePanel);
     try {
       if (activePanel === 'regions') {
+        console.log('[EncounterEditorPage] Calling regionHandlers.handleStructurePlacementFinish');
         await regionHandlers.handleStructurePlacementFinish();
+        console.log('[EncounterEditorPage] regionHandlers.handleStructurePlacementFinish completed');
       } else if (activePanel === 'walls') {
         await wallHandlers.handleWallPlacementFinish();
+      } else {
+        console.warn('[EncounterEditorPage] activePanel is not regions or walls:', activePanel);
       }
     } catch (error) {
       console.error('Failed to finish structure placement:', error);
@@ -1271,6 +1294,8 @@ const EncounterEditorPageInternal: React.FC = () => {
             onRegionSelect={regionHandlers.handleRegionSelect}
             onRegionDelete={regionHandlers.handleRegionDelete}
             onPlaceRegion={regionHandlers.handlePlaceRegion}
+            onBucketFillRegion={regionHandlers.handleBucketFillRegion}
+            regionPlacementMode={regionPlacementMode}
             onEditRegionVertices={regionHandlers.handleEditRegionVertices}
             placedAssets={assetManagement.placedAssets}
             selectedAssetIds={assetManagement.selectedAssetIds}
@@ -1525,6 +1550,22 @@ const EncounterEditorPageInternal: React.FC = () => {
                       }
                     }}
                     regionTransaction={regionTransaction}
+                  />
+                )}
+                {drawingMode === 'bucketFill' && drawingRegionIndex !== null && encounter && (
+                  <RegionBucketFillTool
+                    encounterId={encounterId}
+                    gridConfig={gridConfig}
+                    onCancel={handleRegionPlacementCancel}
+                    onFinish={regionHandlers.handleBucketFillFinish}
+                    regionType={regionTransaction.transaction.segment?.type || 'Elevation'}
+                    {...(regionTransaction.transaction.segment?.color && {
+                      regionColor: regionTransaction.transaction.segment.color,
+                    })}
+                    regionTransaction={regionTransaction}
+                    walls={encounter.walls || []}
+                    openings={encounter.openings || []}
+                    stageSize={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
                   />
                 )}
                 {activeTool === 'sourceDrawing' && sourcePlacementProperties && encounter && (

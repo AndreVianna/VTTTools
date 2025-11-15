@@ -5,13 +5,6 @@ namespace VttTools.Assets.Model;
 /// </summary>
 public record ObjectAsset : Asset {
     /// <summary>
-    /// Constructor that automatically sets the Kind discriminator
-    /// </summary>
-    public ObjectAsset() {
-        Kind = AssetKind.Object;
-    }
-
-    /// <summary>
     /// Whether the object can be moved after placement
     /// </summary>
     public bool IsMovable { get; init; } = true;

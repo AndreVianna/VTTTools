@@ -369,10 +369,12 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       });
   }, [placedAssets]);
 
-  // Initialize cursor position when draggedAsset changes from null to non-null
+  const prevDraggedAssetRef = useRef<Asset | null>(null);
   useEffect(() => {
-    if (draggedAsset && !cursorPosition) {
-      // Get the center of the viewport as initial position
+    const wasDragging = prevDraggedAssetRef.current !== null;
+    const isDragging = draggedAsset !== null;
+
+    if (isDragging && !wasDragging) {
       const stage = layerRef.current?.getStage();
       if (stage) {
         const centerX = (window.innerWidth / 2 - stage.x()) / stage.scaleX();
@@ -381,12 +383,14 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
           setCursorPosition({ x: centerX, y: centerY });
         });
       }
-    } else if (!draggedAsset) {
+    } else if (!isDragging && wasDragging) {
       requestAnimationFrame(() => {
         setCursorPosition(null);
       });
     }
-  }, [draggedAsset, cursorPosition]);
+
+    prevDraggedAssetRef.current = draggedAsset;
+  }, [draggedAsset]);
 
   const loadImage = useCallback((url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
@@ -398,57 +402,69 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     });
   }, []);
 
+  const onImagesLoadedRef = useRef(onImagesLoaded);
+  useEffect(() => {
+    onImagesLoadedRef.current = onImagesLoaded;
+  }, [onImagesLoaded]);
+
   useEffect(() => {
     const loadImages = async () => {
-      const newCache = new Map<string, HTMLImageElement>();
-      let allLoaded = true;
+      setImageCache((prevCache) => {
+        const newCache = new Map(prevCache);
+        let allLoaded = true;
+        const assetsToLoad: Array<{ id: string; url: string }> = [];
 
-      for (const placedAsset of placedAssets) {
-        const imageUrl = getTokenImageUrl(placedAsset.asset);
-        if (imageUrl && !imageCache.has(placedAsset.assetId)) {
-          try {
-            const img = await loadImage(imageUrl);
-            newCache.set(placedAsset.assetId, img);
-          } catch (error) {
-            console.error(`Failed to load image for asset ${placedAsset.assetId}:`, error);
-            allLoaded = false;
+        for (const placedAsset of placedAssets) {
+          const imageUrl = getTokenImageUrl(placedAsset.asset);
+          if (imageUrl && !prevCache.has(placedAsset.assetId)) {
+            assetsToLoad.push({ id: placedAsset.assetId, url: imageUrl });
           }
         }
-      }
 
-      if (draggedAsset) {
-        const imageUrl = getTokenImageUrl(draggedAsset);
-        if (imageUrl && !imageCache.has(draggedAsset.id)) {
-          try {
-            const img = await loadImage(imageUrl);
-            newCache.set(draggedAsset.id, img);
-          } catch (error) {
-            console.error(`Failed to load preview image for asset ${draggedAsset.id}:`, error);
-            allLoaded = false;
+        if (draggedAsset) {
+          const imageUrl = getTokenImageUrl(draggedAsset);
+          if (imageUrl && !prevCache.has(draggedAsset.id)) {
+            assetsToLoad.push({ id: draggedAsset.id, url: imageUrl });
           }
         }
-      }
 
-      if (newCache.size > 0) {
-        setImageCache((prevCache) => {
-          const updatedCache = new Map(prevCache);
-          for (const [key, img] of newCache) {
-            updatedCache.set(key, img);
-          }
-          return updatedCache;
-        });
-      }
+        if (assetsToLoad.length > 0) {
+          Promise.all(
+            assetsToLoad.map(async ({ id, url }) => {
+              try {
+                const img = await loadImage(url);
+                return { id, img, success: true };
+              } catch (error) {
+                console.error(`Failed to load image for asset ${id}:`, error);
+                return { id, img: null, success: false };
+              }
+            })
+          ).then((results) => {
+            setImageCache((cache) => {
+              const updated = new Map(cache);
+              for (const result of results) {
+                if (result.success && result.img) {
+                  updated.set(result.id, result.img);
+                }
+              }
+              return updated;
+            });
 
-      const totalAssetsNeeded = placedAssets.length;
-      const totalAssetsLoaded = placedAssets.filter((a) => imageCache.has(a.assetId) || newCache.has(a.assetId)).length;
+            const allSuccessful = results.every((r) => r.success);
+            if (allSuccessful || placedAssets.length === 0) {
+              onImagesLoadedRef.current?.();
+            }
+          });
+        } else if (placedAssets.length === 0) {
+          onImagesLoadedRef.current?.();
+        }
 
-      if (totalAssetsNeeded === 0 || (allLoaded && totalAssetsLoaded === totalAssetsNeeded)) {
-        onImagesLoaded?.();
-      }
+        return newCache;
+      });
     };
 
     loadImages();
-  }, [placedAssets, draggedAsset, loadImage, imageCache, onImagesLoaded]);
+  }, [placedAssets, draggedAsset, loadImage]);
 
   const handleMouseMove = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {

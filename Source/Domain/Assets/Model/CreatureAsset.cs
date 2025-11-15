@@ -5,13 +5,6 @@ namespace VttTools.Assets.Model;
 /// </summary>
 public record CreatureAsset : Asset {
     /// <summary>
-    /// Constructor that automatically sets the Kind discriminator
-    /// </summary>
-    public CreatureAsset() {
-        Kind = AssetKind.Monster;
-    }
-
-    /// <summary>
     /// Reference to the creature's stat block (to be implemented in future phase)
     /// </summary>
     public Guid? StatBlockId { get; init; }

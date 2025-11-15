@@ -1,6 +1,7 @@
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using AssetToken = VttTools.Data.Assets.Entities.AssetToken;
 using ObjectAsset = VttTools.Data.Assets.Entities.ObjectAsset;
+using CreatureAsset = VttTools.Data.Assets.Entities.CreatureAsset;
 using MonsterAsset = VttTools.Data.Assets.Entities.MonsterAsset;
 using CharacterAsset = VttTools.Data.Assets.Entities.CharacterAsset;
 
@@ -52,18 +53,18 @@ internal static class AssetSchemaBuilder {
         builder.Entity<MonsterAsset>(entity => {
             entity.Property(p => p.StatBlockId);
             entity.OwnsOne(p => p.TokenStyle, style => {
-                style.Property(s => s.BorderColor);
-                style.Property(s => s.BackgroundColor);
-                style.Property(s => s.Shape).IsRequired().HasConversion<string>();
+                style.Property(s => s.BorderColor).HasColumnName("TokenStyle_BorderColor");
+                style.Property(s => s.BackgroundColor).HasColumnName("TokenStyle_BackgroundColor");
+                style.Property(s => s.Shape).IsRequired().HasConversion<string>().HasColumnName("TokenStyle_Shape");
             });
         });
 
         builder.Entity<CharacterAsset>(entity => {
             entity.Property(p => p.StatBlockId);
             entity.OwnsOne(p => p.TokenStyle, style => {
-                style.Property(s => s.BorderColor);
-                style.Property(s => s.BackgroundColor);
-                style.Property(s => s.Shape).IsRequired().HasConversion<string>();
+                style.Property(s => s.BorderColor).HasColumnName("TokenStyle_BorderColor");
+                style.Property(s => s.BackgroundColor).HasColumnName("TokenStyle_BackgroundColor");
+                style.Property(s => s.Shape).IsRequired().HasConversion<string>().HasColumnName("TokenStyle_Shape");
             });
         });
     }

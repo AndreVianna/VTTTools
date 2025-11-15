@@ -13,7 +13,6 @@ public class AssetTests {
         asset.Id.Should().NotBeEmpty();
         asset.OwnerId.Should().BeEmpty();
         asset.Name.Should().BeEmpty();
-        asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().BeEmpty();
         asset.Tokens.Should().NotBeNull().And.BeEmpty();
         asset.Size.Width.Should().Be(1);
@@ -28,7 +27,6 @@ public class AssetTests {
 
         // Assert
         asset.Id.Should().NotBeEmpty();
-        asset.Kind.Should().Be(AssetKind.Monster);
         asset.Size.Width.Should().Be(1);
         asset.Size.Height.Should().Be(1);
     }
@@ -100,7 +98,6 @@ public class AssetTests {
         asset.Id.Should().Be(id);
         asset.OwnerId.Should().Be(ownerId);
         asset.Name.Should().Be(name);
-        asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().Be(description);
         asset.Tokens.Should().NotBeEmpty();
         asset.Tokens.First().Token.Should().BeEquivalentTo(token);
@@ -130,7 +127,6 @@ public class AssetTests {
         };
 
         // Assert
-        asset.Kind.Should().Be(AssetKind.Monster);
         asset.TokenStyle.Should().NotBeNull();
         asset.TokenStyle!.Shape.Should().Be(TokenShape.Circle);
     }

@@ -268,12 +268,11 @@ internal static class DbContextHelper {
             },
         };
 
-    public static MonsterAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
+    public static MonsterAsset CreateTestAsset(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
         var tokenId = Guid.CreateVersion7();
         return new() {
             Id = id,
             Name = name,
-            Kind = kind,
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
@@ -299,8 +298,8 @@ internal static class DbContextHelper {
         };
     }
 
-    public static MonsterAsset CreateTestAsset(string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
-        => CreateTestAsset(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId);
+    public static MonsterAsset CreateTestAsset(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
+        => CreateTestAsset(Guid.CreateVersion7(), name, isPublished, isPublic, ownerId);
 
     public static GameSession CreateTestGameSession(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {

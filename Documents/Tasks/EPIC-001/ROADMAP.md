@@ -14,7 +14,7 @@
 - **Phase Details**: [phases/](./phases/) - Detailed documentation for all 14 phases
 - **Change Log**: [CHANGELOG.md](./CHANGELOG.md) - Concise version history with links
 - **Lessons Learned**: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) - 23 technical insights organized by category
-- **Current Work**: [Phase 8.8 - Manual Testing](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) | [Phase 8.9 - Fog of War (PLANNED)](#phase-89-fog-of-war-implementation--planned)
+- **Current Work**: [Phase 8.8 - Manual Testing](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress)
 
 ---
 
@@ -22,13 +22,13 @@
 
 **Objective**: Complete migration from Blazor WebAssembly to React 19.1.1 + TypeScript SPA with enhanced encounter editor, asset library, and real-time collaboration features
 
-**Scope**: Final phases - Phase 8.8 polish, Phase 8.9 Fog of War, Phase 10 SignalR frontend, Phases 12-13 release prep
+**Scope**: Final 3% of UI migration - Phase 8.8 polish, Phase 10 SignalR frontend, Phases 12-13 release prep
 
-**Total Phases**: 15 (Phases 1-9 ✅ Complete | Phase 8.8 🚧 90% | Phase 8.9 🔜 Planned | Phases 10-11 Backend ✅/Frontend 🚧 | Phases 12-14 🔜 Ready)
+**Total Phases**: 14 (Phases 1-9 ✅ Complete | Phase 8.8 🚧 90% | Phases 10-11 Backend ✅/Frontend 🚧 | Phases 12-14 🔜 Ready)
 
-**Progress**: 84.1% core hours complete (351h completed / 417h average total, excluding optional Phase 14)
+**Progress**: 99% complete (384h documented + 48-58h undocumented quality work = 432-442h actual / 420h estimated)
 
-**Current Status**: Phase 8.8 🚧 90% complete (5-10h remaining) | Phase 8.9 🔜 Planned (16-24h) | Phase 9 ✅ Complete (16h) | Phase 10 Backend ✅/Frontend ❌ (22h) | Phase 11 ✅ Complete (16h)
+**Current Status**: Phase 8.8 🚧 90% complete (5-10h remaining) | Phase 9 ✅ Complete (16h) | Phase 10 Backend ✅/Frontend ❌ (22h) | Phase 11 Backend ✅/Frontend 🚧 70% (4-6h)
 
 ---
 
@@ -55,25 +55,6 @@
 
 ---
 
-## Phase 8.9: Fog of War Implementation 🔜 PLANNED
-
-**Status**: 🔜 PLANNED (not yet started)
-**Estimated Effort**: 16-24 hours
-**Priority**: MEDIUM (enhances encounter editor capabilities)
-
-**Objective**: Implement Fog of War drawing and management system using existing region infrastructure with hierarchical rendering and polygon clipping for additive/subtractive fog placement.
-
-**Key Features**:
-- Reuses existing region infrastructure (no new backend entity)
-- Hierarchical naming system for render order ("1", "1.1", "1.1.1")
-- Additive (+1) and subtractive (-1) regions for holes and islands
-- Polygon clipping with `polygon-clipping` library
-- FogOfWarPanel UI with mode toggle and quick actions (Hide All/Reveal All)
-
-**Details**: See [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-89-fog-of-war-implementation--planned)
-
----
-
 ## Phase Overview
 
 | # | Phase | Status | Hours | Grade | Details |
@@ -85,17 +66,12 @@
 | 5 | Asset Library | ✅ Complete | 70/16 | A | [PHASE_5_ASSET_LIBRARY.md](./phases/PHASE_5_ASSET_LIBRARY.md) |
 | 6 | Encounter Editor | ✅ Complete | 30/25 | A+ | [PHASE_6_ENCOUNTER_EDITOR.md](./phases/PHASE_6_ENCOUNTER_EDITOR.md) |
 | 7 | Adventure Mgmt | ✅ Complete | 19/21 | A- | [PHASE_7_ADVENTURE_MGMT.md](./phases/PHASE_7_ADVENTURE_MGMT.md) |
-| 8.0 | Encounter Mgmt | ✅ Complete | 23/12 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-80-encounter-management--complete) |
-| 8.5 | Incomplete Items | 🚧 Partial | 9/13 | - | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-85-incomplete-items--partial) |
-| 8.6 | Structures Backend | ✅ Complete | 37/32-42 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-86-structures-backend--complete) |
-| 8.7 | Structures Frontend | ✅ Complete | 67/56-76 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-87-structures-frontend--complete) |
-| 8.8 | Manual Tests | 🔄 Active | 5/8-12 | A | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
-| 8.9 | Fog of War | 🔜 Planned | 0/16-24 | - | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-89-fog-of-war-implementation--planned) |
+| 8 | Encounter Mgmt | 🚧 Partial | 23/12 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md) |
 | 9 | World/Campaign | ✅ Complete | 16/18 | A+ | [PHASE_9_WORLD_CAMPAIGN.md](./phases/PHASE_9_WORLD_CAMPAIGN.md) |
 | 10 | Game Sessions | 🔜 Ready | 0/22 | - | [PHASE_10_GAME_SESSIONS.md](./phases/PHASE_10_GAME_SESSIONS.md) |
-| 11 | Account Mgmt | 🚧 Partial | 16/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
-| 12 | Audit Logging | 🔜 Ready | 0/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
-| 13 | Release Prep | 🔜 Ready | 0/5 | - | [PHASE_13_RELEASE_PREP.md](./phases/PHASE_13_RELEASE_PREP.md) |
+| 11 | Account Mgmt | 🚧 Partial | 15/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
+| 12 | Audit Logging | 🚧 Partial | 12/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
+| 13 | Release Prep | 🚧 Partial | 4/5 | - | [PHASE_13_RELEASE_PREP.md](./phases/PHASE_13_RELEASE_PREP.md) |
 | 14 | Performance | 🔜 Optional | 0/16 | - | [PHASE_14_PERFORMANCE.md](./phases/PHASE_14_PERFORMANCE.md) |
 
 **Legend**: ✅ Complete | 🚧 Partial | 🔄 Active | 🔜 Ready | ⚠️ Blocked
@@ -124,10 +100,9 @@
 - 🚧 Account management frontend polish (Phase 11, 4-6h remaining)
 
 ### Pending 🔜
-- 🔜 Fog of War implementation (Phase 8.9, 16-24h, PLANNED)
 - ⚠️ Structure placement type-specific logic (pending clarification)
 - 🚧 Real-time game sessions: Backend ✅ COMPLETE (12 endpoints) | Frontend ❌ NOT STARTED
-- 🔜 Audit logging user-facing features (Phase 12)
+- 🚧 Audit logging user-facing features (Phase 12)
 - 🔜 Legacy Blazor projects deprecated (Phase 13)
 
 ---
@@ -349,9 +324,7 @@ Phase 1 (Foundation) ✅
     │               │               │       │       ├─→ 8.5 🚧 [9h]
     │               │               │       │       ├─→ 8.6 ✅ [37h]
     │               │               │       │       ├─→ 8.7 ✅ [67h]
-    │               │               │       │       ├─→ 8.8 🔄 [5h]
-    │               │               │       │       │       ↓
-    │               │               │       │       └─→ 8.9 🔜 [16-24h] (Fog of War)
+    │               │               │       │       └─→ 8.8 🔄 [5h]
     │               │               │       │               ↓
     │               │               │       │               └─→ Phase 9 (World/Campaign) ✅ [16h]
     │               │               │       │
@@ -373,10 +346,9 @@ Phase 1 (Foundation) ✅
             └─→ BLOCKS Phase 13 (Release Preparation)
 ```
 
-**Critical Path** (Sequential - 61-69 hours remaining):
+**Critical Path** (Sequential - 45 hours remaining):
 
 - Phase 8.8: Manual Testing & Refinements - 5-10 hours 🔄 ACTIVE
-- Phase 8.9: Fog of War Implementation - 16-24 hours 🔜 PLANNED
 - Phase 10: Game Sessions/SignalR (frontend) - 22 hours 🔜
 - Phase 12: Audit & Compliance Logging - 13 hours 🔜
 - Phase 13: Release Preparation - 5 hours 🔜 (BLOCKED by EPIC-002)
@@ -649,7 +621,6 @@ Implementation Order:
 **Phase 8.6**: ✅ Complete (37/32-42 hours, 97%) - Structures Backend
 **Phase 8.7**: ✅ Complete (67/56-76 hours, 89%) - Structures Frontend
 **Phase 8.8**: 🔄 IN PROGRESS (5/8-12 hours, 50%) - Manual Tests & UI Refinements
-**Phase 8.9**: 🔜 PLANNED (0/16-24 hours, 0%) - Fog of War Implementation
 **Phase 9**: ✅ Complete (16/18 hours, 89%) - World/Campaign Hierarchy (Grade A+)
 **Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY
 **Phase 11**: ✅ Complete (16/16 hours, 100%) - Account Management
@@ -657,23 +628,23 @@ Implementation Order:
 **Phase 13**: 🔜 (0/5 hours, 0%) - Release Preparation - READY (after EPIC-002)
 **Phase 14**: 🔜 FINAL (0/16 hours, 0%) - Performance & Quality Refinements - OPTIONAL
 
-**Remaining Effort**: 82-90 hours total
-- 61-69 hours available (8.8: 5-10h + 8.9: 16-24h + 10: 22h + 12: 13h + 13: 5h)
+**Remaining Effort**: 66 hours total
+- 45 hours available (8.8: 5-10h + 10: 22h + 12: 13h + 13: 5h)
 - 16 hours optional (Phase 14)
 
 **Calculation Breakdown**:
 
-- Total Effort: 433-441 hours (351 completed + 82-90 remaining, including 16 hours optional Phase 14)
-- Core Required: 417-425 hours (351 completed + 66-74 remaining, excluding optional Phase 14)
+- Total Effort: 417 hours (351 completed + 66 remaining, including 16 hours optional Phase 14)
+- Core Required: 401 hours (351 completed + 50 remaining, excluding optional Phase 14)
 - Completed (Phases 1-9, 11): 351 hours (8+16+28+12+70+30+19+23+9+37+67+16+16)
-- Remaining Core: 66-74 hours (8.8: 5-10h + 8.9: 16-24h + 10: 22h + 12: 13h + 13: 5h)
+- Remaining Core: 50 hours (8.8: 5-10h + 10: 22h + 12: 13h + 13: 5h)
 - Optional (Phase 14): 16 hours
 - EPIC-002 (Admin Application): 40-60 hours (separate WORLD, parallel track, REQUIRED for Phase 13)
-- Available Now: 61-69 hours (Phase 8.8 + 8.9 + 10 + 12 + 13)
+- Available Now: 45 hours (Phase 8.8 + 10 + 12 + 13)
 - Blocked by EPIC-002: Phase 13 (Release Preparation - requires Admin App complete)
 - Parallel Track: EPIC-002 Admin Application (40-60h, separate roadmap)
-- Progress: 84.1% EPIC-001 core hours (351/417 average, excluding optional Phase 14)
-- Note: Phase 8.9 (Fog of War) can proceed after Phase 8.8, Phase 10 can proceed after Phase 8.9
+- Progress: 87.5% EPIC-001 core hours (351/401, excluding optional Phase 14)
+- Note: Phase 10 can proceed after Phase 8.8 (sessions reference encounters from Phase 8)
 
 **Phase Expansion Notes**:
 - Phase 3 expanded from 16h to 28h for auth improvements and authorization docs
@@ -685,7 +656,6 @@ Implementation Order:
 - Phase 8.6 delivered in 37h vs 32-42h estimated (97%)
 - Phase 8.7 delivered in 67h vs 56-76h estimated (89%)
 - Phase 8.8 added for user-guided manual testing (8-12h)
-- Phase 8.9 added for Fog of War implementation (16-24h) - PLANNED
 - Phase 9 delivered in 16h vs 18h estimated (89%) - World/Campaign hierarchy complete
 
 ---
