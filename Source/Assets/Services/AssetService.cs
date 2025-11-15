@@ -20,7 +20,12 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         };
 
         if (kind.HasValue) {
-            assets = [.. assets.Where(a => a.Kind == kind.Value)];
+            assets = kind.Value switch {
+                AssetKind.Object => [.. assets.OfType<ObjectAsset>()],
+                AssetKind.Monster => [.. assets.OfType<MonsterAsset>()],
+                AssetKind.Character => [.. assets.OfType<CharacterAsset>()],
+                _ => assets
+            };
         }
 
         if (!string.IsNullOrWhiteSpace(search)) {

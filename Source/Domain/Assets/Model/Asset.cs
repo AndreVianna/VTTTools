@@ -19,11 +19,6 @@ public abstract record Asset {
     public Guid OwnerId { get; init; }
 
     /// <summary>
-    /// Discriminator for asset kind (Object or Entity)
-    /// </summary>
-    public AssetKind Kind { get; init; }
-
-    /// <summary>
     /// Asset name (max 128 characters)
     /// </summary>
     [MaxLength(128)]
