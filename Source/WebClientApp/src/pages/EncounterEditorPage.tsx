@@ -1161,9 +1161,24 @@ const EncounterEditorPageInternal: React.FC = () => {
     encounterId: encounterId || '',
     existingRegions: placedRegions || [],
     mode: fogMode,
-    onRegionCreated: (region) => {
+    onRegionCreated: async (region) => {
       try {
-        setPlacedRegions((prev) => [...(prev || []), region]);
+        await addEncounterRegion({
+          encounterId: encounterId || '',
+          type: region.type,
+          name: region.name,
+          label: region.label ?? undefined,
+          value: region.value ?? undefined,
+          vertices: region.vertices,
+        }).unwrap();
+
+        const { data: updatedEncounter } = await refetch();
+        if (updatedEncounter) {
+          setEncounter(updatedEncounter);
+          const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions || [], encounterId || '');
+          setPlacedRegions(hydratedRegions);
+        }
+
         setFogDrawingTool(null);
       } catch (error) {
         console.error('Failed to create FoW region:', error);
@@ -1205,14 +1220,28 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
   }, [fogMode, handlePolygonComplete]);
 
-  const handleFogRevealAll = useCallback(() => {
+  const handleFogRevealAll = useCallback(async () => {
     try {
-      setPlacedRegions((prev) => (prev || []).filter((region) => region.type !== 'FogOfWar'));
+      const fowRegionsToDelete = (placedRegions || []).filter((region) => region.type === 'FogOfWar');
+
+      for (const region of fowRegionsToDelete) {
+        await removeEncounterRegion({
+          encounterId: encounterId || '',
+          regionIndex: region.index,
+        }).unwrap();
+      }
+
+      const { data: updatedEncounter } = await refetch();
+      if (updatedEncounter) {
+        setEncounter(updatedEncounter);
+        const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions || [], encounterId || '');
+        setPlacedRegions(hydratedRegions);
+      }
     } catch (error) {
       console.error('Failed to reveal all areas:', error);
       setErrorMessage('Failed to reveal all areas. Please try again.');
     }
-  }, []);
+  }, [placedRegions, encounterId, removeEncounterRegion, refetch]);
 
   const visibleAssets = useMemo(() => {
     return assetManagement.placedAssets.filter((asset) => {

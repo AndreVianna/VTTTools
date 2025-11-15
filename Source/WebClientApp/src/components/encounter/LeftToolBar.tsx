@@ -433,7 +433,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'fogOfWar' && (
             <FogOfWarPanel
-              encounterId={encounterId}
               onHideAll={onFogHideAll || (() => {})}
               onRevealAll={onFogRevealAll || (() => {})}
               onModeChange={onFogModeChange || (() => {})}

@@ -38,7 +38,7 @@ const FogOfWarRendererComponent: React.FC<FogOfWarRendererProps> = ({
 
     const handleLineRef = useCallback((node: Konva.Line | null, value: number) => {
         if (node && value === -1) {
-            node.globalCompositeOperation = 'destination-out';
+            node.globalCompositeOperation('destination-out');
         }
     }, []);
 

@@ -75,6 +75,7 @@ export { RightToolBar } from './RightToolBar';
 export type { RotationHandleProps } from './RotationHandle';
 export { RotationHandle } from './RotationHandle';
 export type {
+  FogOfWarRendererProps,
   OpeningRendererProps,
   RegionLabelDisplayProps,
   RegionRendererProps,
@@ -84,6 +85,7 @@ export type {
 } from './rendering';
 // Rendering components
 export {
+  FogOfWarRenderer,
   OpeningRenderer,
   RegionLabelDisplay,
   RegionRenderer,

@@ -17,7 +17,10 @@ function toGeoJSONPolygon(vertices: Point[]): GeoJSONPolygon {
         return [[]];
     }
     const ring = vertices.map((v) => [v.x, v.y]);
-    ring.push(ring[0]);
+    const firstPoint = ring[0];
+    if (firstPoint) {
+        ring.push(firstPoint);
+    }
     return [ring];
 }
 
@@ -28,8 +31,8 @@ function fromGeoJSONPolygon(polygon: GeoJSONPolygon): Point[] {
     }
     const vertices = ring
         .slice(0, -1)
-        .filter((coord) => coord.length >= 2)
-        .map((coord) => ({ x: coord[0], y: coord[1] }));
+        .filter((coord) => coord.length >= 2 && coord[0] !== undefined && coord[1] !== undefined)
+        .map((coord) => ({ x: coord[0]!, y: coord[1]! }));
     return vertices;
 }
 
@@ -108,10 +111,10 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
                 if (existingHiddenRegions.length === 0) {
                     resultPolygons = [newPoly];
                 } else {
-                    const existingPolys: MultiPolygon = existingHiddenRegions.map((r) =>
+                    const existingPolys = existingHiddenRegions.map((r) =>
                         toGeoJSONPolygon(r.vertices),
                     );
-                    resultPolygons = polygonClipping.union(existingPolys, [newPoly]);
+                    resultPolygons = polygonClipping.union(existingPolys as any, [newPoly] as any) as MultiPolygon;
                 }
 
                 if (resultPolygons.length === 0) {
