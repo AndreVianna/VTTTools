@@ -1710,6 +1710,160 @@ interface AssetToken {
 
 ---
 
+### Phase 8.9: Fog of War Implementation 🔜 PLANNED
+
+**Objective**: Implement Fog of War drawing and management system using region infrastructure with hierarchical rendering
+
+**Approach**: Reuse existing region drawing tools (polygon, bucket fill) with additive/subtractive mode for creating fog coverage and holes
+
+**Estimated Start Date**: TBD (after Phase 8.8 complete)
+
+**Completion Date**: TBD
+
+**Background**: Fog of War is a critical encounter editor feature that allows GMs to control what portions of the map are visible to players. The design reuses the existing region infrastructure to avoid creating a new backend entity, leveraging polygon drawing and bucket fill tools with hierarchical naming for proper render order.
+
+**Scope**:
+- FogOfWarPanel UI component with Add/Subtract mode toggle
+- Hierarchical region naming system for render order ("1", "1.1", "1.1.1")
+- Polygon clipping for additive/subtractive region placement
+- FogOfWarRenderer with canvas composite operations
+- Integration with existing RegionDrawingTool and RegionBucketFillTool
+- Quick actions: Hide All, Reveal All
+
+**Design Decisions**:
+
+**1. Data Model** (Reuse Existing Region Structure):
+```typescript
+{
+  index: number,           // Primary key (integer)
+  type: 'FogOfWar',       // Identifies as fog region
+  name: '1.1.2',          // Hierarchical identifier for render order
+  label: 'Hidden',        // Editor state (always 'Hidden' during editing)
+  value: 1 | -1,          // 1 = additive (solid fog), -1 = subtractive (hole)
+  vertices: Point[]       // Polygon shape
+}
+```
+
+**2. State Management**:
+- **Editor Time**: Only `'Hidden'` state used (all placed FoW regions are black fog)
+- **Game Time** (Future): Supports `'Revealed'` and `'Outdated'` states (not implemented in this phase)
+- Mode toggle controls whether new regions are additive (+1) or subtractive (-1)
+
+**3. Hierarchical Rendering**:
+- Regions sorted by `name` string: `["1", "1.1", "1.1.1", "1.2", "2"]`
+- Alternating levels create nested hierarchy:
+  - Level 0: `"1"` (additive, value: 1, black fog covering area)
+  - Level 1: `"1.1"` (subtractive, value: -1, hole in region 1 revealing map)
+  - Level 2: `"1.1.1"` (additive, value: 1, island of fog inside hole 1.1)
+- Render using Konva `globalCompositeOperation`:
+  - Additive (value: 1): `'source-over'` (normal drawing)
+  - Subtractive (value: -1): `'destination-out'` (erase/cut out)
+
+**4. Placement Logic with Polygon Clipping**:
+
+**Subtractive Region Placement**:
+1. Merge with all overlapping subtractive regions → `resultSubtractive`
+2. Check containment:
+   - If no overlap with any additive region → Don't add (orphan hole prevention)
+   - If fully contained in additive region(s) → Add as hole (value: -1, hierarchical name)
+   - If partially overlaps additive regions → Clip overlapping additive regions (reshape boundaries)
+
+**Additive Region Placement**:
+1. Merge with all overlapping additive regions → `resultAdditive`
+2. Check overlap:
+   - If no overlap with subtractive regions → Add as new region (value: 1)
+   - If overlaps subtractive regions:
+     - If subtractive fully contained → Delete subtractive (fill hole)
+     - If subtractive partially overlaps → Clip subtractive (reshape hole)
+   - Then add `resultAdditive` (value: 1)
+
+**5. Polygon Clipping**:
+- Library: `polygon-clipping` (NPM package, ~30KB, robust boolean operations)
+- Operations: union (merge), difference (subtract), intersection
+- Handles multi-polygon results (one region splits into multiple pieces)
+- When clipping produces multiple polygons:
+  - Keep original region as first polygon piece
+  - Create new regions for additional polygon pieces
+  - Auto-increment indices for new regions
+
+**Deliverables**:
+
+**New Components**:
+1. `FogOfWarPanel.tsx` - UI panel with mode toggle, drawing tools, quick actions
+2. `FogOfWarRenderer.tsx` - Hierarchical rendering with composite operations
+3. `useFogOfWarPlacement.ts` - Placement logic with polygon clipping hook
+
+**Modified Components**:
+4. `LeftToolBar.tsx` - Add FogOfWar panel integration
+5. `EncounterEditorPage.tsx` - Wire up FoW drawing modes and rendering
+6. `package.json` - Add `polygon-clipping` dependency
+
+**Testing**:
+- Unit tests for polygon clipping logic
+- Integration tests for additive/subtractive placement
+- Manual tests for hierarchical rendering
+- E2E tests for complete FoW workflows
+
+**Success Criteria**:
+- ✅ User can paint fog with polygon drawing tool
+- ✅ User can bucket fill enclosed areas with fog
+- ✅ User can toggle between Add/Subtract modes
+- ✅ User can create holes in fog (subtractive regions)
+- ✅ User can create islands within holes (nested hierarchy)
+- ✅ Fog renders with correct z-order (topmost layer, above all other content)
+- ✅ Hide All quick action creates full-stage fog rectangle
+- ✅ Reveal All quick action deletes all FoW regions
+- ✅ FoW visibility toggle in top toolbar works
+- ✅ Overlapping same-type regions auto-merge correctly
+- ✅ Polygon clipping produces correct geometric results
+- ✅ Hierarchical names maintain correct render order
+
+**Technical Challenges**:
+
+**1. Hole Problem**: Subtracting from middle of region creates holes
+- **Solution**: Store holes as separate regions with hierarchical names + `value: -1`
+- **Rendering**: Use `globalCompositeOperation: 'destination-out'` for subtractive regions
+
+**2. Multi-Polygon Results**: Clipping one region can produce multiple separate polygons
+- **Solution**: Keep original region as first result, add new regions for additional pieces
+- **Index Management**: Auto-increment region indices for new pieces
+
+**3. Orphaned Holes**: Clipping additive region may leave subtractive regions no longer contained
+- **Solution**: After any additive clipping operation, delete any subtractive regions not fully contained in additive regions
+
+**4. Name Management**: Hierarchical names must maintain sort order
+- **Solution**: Use string-sortable decimal notation ("1", "1.1", "1.2", "2")
+- **Algorithm**: When adding child, find parent's children count and append (e.g., parent "1" with 2 children → new child "1.3")
+
+**Deferred Features** (Game Time, Future Phases):
+- Automatic state transitions (`Revealed` → `Outdated` based on line of sight)
+- Character vision range calculations
+- Light source interactions with FoW
+- GM vs Player view separation
+- Brush tool with Douglas-Peucker vertex simplification
+- Dynamic FoW updates during gameplay
+
+**Dependencies**:
+- **Prerequisites**: Phase 8.8 complete (Manual testing finished) ✅
+- **Blocks**: None (Phase 9-14 can proceed independently)
+- **External**: NPM package `polygon-clipping` v0.15.7+
+
+**Estimated Effort**: 16-24 hours
+
+**Breakdown**:
+- FogOfWarPanel UI (3-4h)
+- FogOfWarRenderer component (3-4h)
+- Polygon clipping integration (4-6h)
+- Placement logic hook (3-4h)
+- Integration with editor (2-3h)
+- Testing and polish (1-3h)
+
+**Status**: 🔜 PLANNED
+
+**Grade**: TBD
+
+---
+
 
 ---
 
