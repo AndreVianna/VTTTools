@@ -83,6 +83,7 @@ import {
   type WallVisibility,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
+import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
 import {
   hydratePlacedAssets,
   hydratePlacedOpenings,
@@ -1163,22 +1164,37 @@ const EncounterEditorPageInternal: React.FC = () => {
     mode: fogMode,
     onRegionCreated: async (region) => {
       try {
-        await addEncounterRegion({
+        const command = new CreateFogOfWarRegionCommand({
           encounterId: encounterId || '',
-          type: region.type,
-          name: region.name,
-          label: region.label ?? undefined,
-          value: region.value ?? undefined,
-          vertices: region.vertices,
-        }).unwrap();
+          region,
+          onAdd: async (encId, regionData) => {
+            const result = await addEncounterRegion({
+              encounterId: encId,
+              type: regionData.type,
+              name: regionData.name,
+              ...(regionData.label !== undefined && { label: regionData.label }),
+              ...(regionData.value !== undefined && { value: regionData.value }),
+              vertices: regionData.vertices,
+            }).unwrap();
+            return result;
+          },
+          onRemove: async (encId, regionIndex) => {
+            await removeEncounterRegion({
+              encounterId: encId,
+              regionIndex,
+            }).unwrap();
+          },
+          onRefetch: async () => {
+            const { data } = await refetch();
+            if (data) {
+              setEncounter(data);
+              const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+              setPlacedRegions(hydratedRegions);
+            }
+          },
+        });
 
-        const { data: updatedEncounter } = await refetch();
-        if (updatedEncounter) {
-          setEncounter(updatedEncounter);
-          const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions || [], encounterId || '');
-          setPlacedRegions(hydratedRegions);
-        }
-
+        await execute(command);
         setFogDrawingTool(null);
       } catch (error) {
         console.error('Failed to create FoW region:', error);
@@ -1222,26 +1238,58 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const handleFogRevealAll = useCallback(async () => {
     try {
-      const fowRegionsToDelete = (placedRegions || []).filter((region) => region.type === 'FogOfWar');
+      const fowRegionsToReveal = (placedRegions || [])
+        .filter((region) => region.type === 'FogOfWar')
+        .map((pr) => ({
+          encounterId: pr.encounterId,
+          index: pr.index,
+          name: pr.name,
+          type: pr.type,
+          vertices: pr.vertices,
+          ...(pr.value !== undefined && { value: pr.value }),
+          ...(pr.label !== undefined && { label: pr.label }),
+        }));
 
-      for (const region of fowRegionsToDelete) {
-        await removeEncounterRegion({
-          encounterId: encounterId || '',
-          regionIndex: region.index,
-        }).unwrap();
+      if (fowRegionsToReveal.length === 0) {
+        return;
       }
 
-      const { data: updatedEncounter } = await refetch();
-      if (updatedEncounter) {
-        setEncounter(updatedEncounter);
-        const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions || [], encounterId || '');
-        setPlacedRegions(hydratedRegions);
-      }
+      const command = new RevealAllFogOfWarCommand({
+        encounterId: encounterId || '',
+        fogRegions: fowRegionsToReveal,
+        onAdd: async (encId, regionData) => {
+          const result = await addEncounterRegion({
+            encounterId: encId,
+            type: regionData.type,
+            name: regionData.name,
+            ...(regionData.label !== undefined && { label: regionData.label }),
+            ...(regionData.value !== undefined && { value: regionData.value }),
+            vertices: regionData.vertices,
+          }).unwrap();
+          return result;
+        },
+        onRemove: async (encId, regionIndex) => {
+          await removeEncounterRegion({
+            encounterId: encId,
+            regionIndex,
+          }).unwrap();
+        },
+        onRefetch: async () => {
+          const { data } = await refetch();
+          if (data) {
+            setEncounter(data);
+            const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+            setPlacedRegions(hydratedRegions);
+          }
+        },
+      });
+
+      await execute(command);
     } catch (error) {
       console.error('Failed to reveal all areas:', error);
       setErrorMessage('Failed to reveal all areas. Please try again.');
     }
-  }, [placedRegions, encounterId, removeEncounterRegion, refetch]);
+  }, [placedRegions, encounterId, addEncounterRegion, removeEncounterRegion, refetch, execute]);
 
   const visibleAssets = useMemo(() => {
     return assetManagement.placedAssets.filter((asset) => {
