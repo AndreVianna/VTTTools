@@ -24,7 +24,7 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
   activeScope,
 }) => {
   const theme = useTheme();
-  const defaultColor = useMemo(() => {
+  const defaultColor = (() => {
     switch (encounterSource.type.toLowerCase()) {
       case 'light':
         return theme.palette.warning.light;
@@ -41,12 +41,10 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
       default:
         return theme.palette.grey[400];
     }
-  }, [encounterSource.type, theme.palette]);
+  })();
   const color = encounterSource.color ?? defaultColor;
 
-  const opaqueWalls = useMemo(() => {
-    return walls.filter((w) => w.visibility !== WallVisibility.Invisible);
-  }, [walls]);
+  const opaqueWalls = walls.filter((w) => w.visibility !== WallVisibility.Invisible);
 
   const effectiveRange = encounterSource.range ?? 5.0;
   const effectiveIntensity = encounterSource.intensity ?? 1.0;
@@ -59,27 +57,19 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
   const isInteractive = isSourceInScope(activeScope);
 
-  const transparentColor = useMemo(() => {
-    return color.startsWith('#')
-      ? `${color}00`
-      : color.replace(')', ', 0)').replace('rgb(', 'rgba(');
-  }, [color]);
+  const transparentColor = color.startsWith('#')
+    ? `${color}00`
+    : color.replace(')', ', 0)').replace('rgb(', 'rgba(');
 
-  const useSimpleCircle = useMemo(() => {
-    return losPolygon.length < 3;
-  }, [losPolygon.length]);
+  const useSimpleCircle = losPolygon.length < 3;
 
-  const gradientProps = useMemo(() => {
-    if (!effectiveIsGradient) return {};
-
-    return {
-      fillRadialGradientStartPoint: { x: 0, y: 0 },
-      fillRadialGradientEndPoint: { x: 0, y: 0 },
-      fillRadialGradientStartRadius: 0,
-      fillRadialGradientEndRadius: rangeInPixels,
-      fillRadialGradientColorStops: [0, color, 1, transparentColor],
-    };
-  }, [effectiveIsGradient, rangeInPixels, color, transparentColor]);
+  const gradientProps = !effectiveIsGradient ? {} : {
+    fillRadialGradientStartPoint: { x: 0, y: 0 },
+    fillRadialGradientEndPoint: { x: 0, y: 0 },
+    fillRadialGradientStartRadius: 0,
+    fillRadialGradientEndRadius: rangeInPixels,
+    fillRadialGradientColorStops: [0, color, 1, transparentColor],
+  };
 
   if (useSimpleCircle) {
     return (

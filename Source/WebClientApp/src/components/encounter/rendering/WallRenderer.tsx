@@ -57,29 +57,23 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
     }
   };
 
-  const points = useMemo(() => {
-    const result: number[] = [];
-    for (let i = 0; i < encounterWall.poles.length; i++) {
-      const pole = encounterWall.poles[i];
-      if (!pole) continue;
-      result.push(pole.x, pole.y);
+  const points: number[] = [];
+  for (let i = 0; i < encounterWall.poles.length; i++) {
+    const pole = encounterWall.poles[i];
+    if (!pole) continue;
+    points.push(pole.x, pole.y);
+  }
+  if (encounterWall.isClosed && encounterWall.poles.length > 0) {
+    const firstPole = encounterWall.poles[0];
+    if (firstPole) {
+      points.push(firstPole.x, firstPole.y);
     }
-    if (encounterWall.isClosed && encounterWall.poles.length > 0) {
-      const firstPole = encounterWall.poles[0];
-      if (firstPole) {
-        result.push(firstPole.x, firstPole.y);
-      }
-    }
-    return result;
-  }, [encounterWall.poles, encounterWall.isClosed]);
+  }
 
   const poleRadius = 1.5;
   const poleColor = encounterWall.color || '#808080';
 
-  const isInteractive = useMemo(
-    () => isWallInScope(activeScope),
-    [activeScope]
-  );
+  const isInteractive = isWallInScope(activeScope);
 
   const wallId = encounterWall.encounterId
     ? `wall-${encounterWall.encounterId}-${encounterWall.index}`

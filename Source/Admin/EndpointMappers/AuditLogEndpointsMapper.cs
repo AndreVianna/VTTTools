@@ -7,16 +7,13 @@ public static class AuditLogEndpointsMapper {
             .RequireRateLimiting("audit");
 
         auditGroup.MapGet("", AuditLogHandlers.QueryAuditLogsHandler)
-            .WithName("QueryAuditLogs")
-            .WithOpenApi();
+            .WithName("QueryAuditLogs");
 
         auditGroup.MapGet("{id:guid}", AuditLogHandlers.GetAuditLogByIdHandler)
-            .WithName("GetAuditLogById")
-            .WithOpenApi();
+            .WithName("GetAuditLogById");
 
         auditGroup.MapGet("count", AuditLogHandlers.GetAuditLogCountHandler)
-            .WithName("GetAuditLogCount")
-            .WithOpenApi();
+            .WithName("GetAuditLogCount");
 
         return app;
     }

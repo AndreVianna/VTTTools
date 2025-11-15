@@ -8,23 +8,19 @@ public static class MaintenanceModeEndpointsMapper {
 
         maintenanceGroup.MapGet("", MaintenanceModeHandlers.GetMaintenanceModeStatusHandler)
             .WithName("GetMaintenanceModeStatus")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         maintenanceGroup.MapPut("enable", MaintenanceModeHandlers.EnableMaintenanceModeHandler)
             .WithName("EnableMaintenanceMode")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         maintenanceGroup.MapPut("disable", MaintenanceModeHandlers.DisableMaintenanceModeHandler)
             .WithName("DisableMaintenanceMode")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         maintenanceGroup.MapPut("{id:guid}", MaintenanceModeHandlers.UpdateMaintenanceModeHandler)
             .WithName("UpdateMaintenanceMode")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         return app;
     }

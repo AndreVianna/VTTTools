@@ -8,14 +8,12 @@ public static class ConfigurationEndpointsMapper {
 
         group.MapGet("/{serviceName}", ConfigurationHandlers.GetConfigurationHandler)
             .WithName("GetConfiguration")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         group.MapPost("/reveal", ConfigurationHandlers.RevealConfigValueHandler)
             .WithName("RevealConfigValue")
             .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .RequireRateLimiting("reveal")
-            .WithOpenApi();
+            .RequireRateLimiting("reveal");
 
         return app;
     }

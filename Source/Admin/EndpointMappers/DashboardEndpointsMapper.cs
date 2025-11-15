@@ -7,13 +7,11 @@ public static class DashboardEndpointsMapper {
 
         group.MapGet("/stats", DashboardHandlers.GetDashboardStatsHandler)
             .WithName("GetDashboardStats")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         group.MapGet("/metrics", DashboardHandlers.GetPerformanceMetricsHandler)
             .WithName("GetPerformanceMetrics")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .WithOpenApi();
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
 
         return app;
     }

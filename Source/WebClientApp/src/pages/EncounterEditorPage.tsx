@@ -489,8 +489,12 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   useEffect(() => {
     if (encounterData && !isInitialized) {
+      let isMounted = true;
+
       const initializeEncounter = async () => {
+        if (!isMounted) return;
         setIsHydrating(true);
+
         try {
           const hydratedAssets = await hydratePlacedAssets(
             encounterData.assets,
@@ -500,6 +504,8 @@ const EncounterEditorPageInternal: React.FC = () => {
               return result;
             },
           );
+
+          if (!isMounted) return;
 
           const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
           const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
@@ -523,6 +529,8 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedOpenings(hydratedOpenings);
           setIsInitialized(true);
         } catch (error) {
+          if (!isMounted) return;
+
           console.error('Failed to hydrate encounter:', error);
           setEncounter(encounterData);
           setGridConfig({
@@ -541,11 +549,17 @@ const EncounterEditorPageInternal: React.FC = () => {
           setPlacedOpenings([]);
           setIsInitialized(true);
         } finally {
-          setIsHydrating(false);
+          if (isMounted) {
+            setIsHydrating(false);
+          }
         }
       };
 
       initializeEncounter();
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [encounterData, isInitialized, dispatch, encounterId, assetManagement]);
 
@@ -608,8 +622,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       assetManagement.handleAssetSelected([]);
     }
     prevActiveScopeRef.current = activeScope;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeScope]);
+  }, [activeScope, assetManagement.handleAssetSelected]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {

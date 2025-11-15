@@ -7,8 +7,7 @@ public static class HealthCheckEndpointsMapper {
             .RequireRateLimiting("dashboard");
 
         adminGroup.MapGet("/health-checks", HealthCheckHandlers.GetHealthChecksHandler)
-            .WithName("GetHealthChecks")
-            .WithOpenApi();
+            .WithName("GetHealthChecks");
 
         return app;
     }

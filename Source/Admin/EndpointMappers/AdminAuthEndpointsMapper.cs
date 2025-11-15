@@ -6,23 +6,19 @@ public static class AdminAuthEndpointsMapper {
 
         authGroup.MapPost("/login", AdminAuthHandlers.LoginHandler)
             .AllowAnonymous()
-            .WithName("AdminLogin")
-            .WithOpenApi();
+            .WithName("AdminLogin");
 
         authGroup.MapPost("/logout", AdminAuthHandlers.LogoutHandler)
             .RequireAuthorization()
-            .WithName("AdminLogout")
-            .WithOpenApi();
+            .WithName("AdminLogout");
 
         authGroup.MapGet("/me", AdminAuthHandlers.GetCurrentUserHandler)
             .RequireAuthorization()
-            .WithName("GetCurrentAdminUser")
-            .WithOpenApi();
+            .WithName("GetCurrentAdminUser");
 
         authGroup.MapGet("/session", AdminAuthHandlers.GetSessionStatusHandler)
             .RequireAuthorization()
-            .WithName("GetAdminSessionStatus")
-            .WithOpenApi();
+            .WithName("GetAdminSessionStatus");
 
         return app;
     }

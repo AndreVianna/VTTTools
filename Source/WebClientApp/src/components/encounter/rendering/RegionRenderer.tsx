@@ -17,47 +17,24 @@ export interface RegionRendererProps {
 export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope }) => {
   const theme = useTheme();
 
-  const color = useMemo(() => {
-    if (encounterRegion.color) {
-      return encounterRegion.color;
-    }
+  const firstVertex = encounterRegion.vertices[0];
+  if (!firstVertex) return null;
 
-    const preset = REGION_PRESETS.find((p) => p.type === encounterRegion.type);
-    if (preset) {
-      return preset.color;
-    }
+  const color = encounterRegion.color ||
+    REGION_PRESETS.find((p) => p.type === encounterRegion.type)?.color ||
+    theme.palette.grey[400];
 
-    return theme.palette.grey[400];
-  }, [encounterRegion.color, encounterRegion.type, theme.palette.grey]);
-
-  const labelText = useMemo(() => {
-    if (encounterRegion.label) {
-      return encounterRegion.label;
-    }
-    if (encounterRegion.value !== undefined && encounterRegion.value !== null) {
-      return `${encounterRegion.value}`;
-    }
-    return encounterRegion.type;
-  }, [encounterRegion.label, encounterRegion.value, encounterRegion.type]);
+  const labelText = encounterRegion.label ||
+    (encounterRegion.value !== undefined && encounterRegion.value !== null ? `${encounterRegion.value}` : encounterRegion.type);
 
   const centroid = useMemo(
     () => calculatePolygonCentroid(encounterRegion.vertices),
     [encounterRegion.vertices]
   );
 
-  const points = useMemo(() => {
-    const firstVertex = encounterRegion.vertices[0];
-    if (!firstVertex) return [];
-    return [...encounterRegion.vertices, firstVertex].flatMap((v) => [v.x, v.y]);
-  }, [encounterRegion.vertices]);
+  const points = [...encounterRegion.vertices, firstVertex].flatMap((v) => [v.x, v.y]);
 
-  const isInteractive = useMemo(
-    () => isRegionInScope(activeScope),
-    [activeScope]
-  );
-
-  const firstVertex = encounterRegion.vertices[0];
-  if (!firstVertex) return null;
+  const isInteractive = isRegionInScope(activeScope);
 
   if (import.meta.env.DEV && !encounterRegion.id) {
     console.warn('[RegionRenderer] Missing ID for region at index', encounterRegion.index);
