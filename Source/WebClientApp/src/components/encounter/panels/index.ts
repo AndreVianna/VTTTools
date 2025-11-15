@@ -23,3 +23,5 @@ export type {
 export { OpeningsPanel } from './OpeningsPanel';
 export type { WallsPanelProps } from './WallsPanel';
 export { WallsPanel } from './WallsPanel';
+export type { FogOfWarPanelProps } from './FogOfWarPanel';
+export { FogOfWarPanel } from './FogOfWarPanel';

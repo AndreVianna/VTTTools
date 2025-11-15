@@ -6,6 +6,7 @@ import {
   EditorStatusBar,
   EncounterCanvas,
   type EncounterCanvasHandle,
+  FogOfWarRenderer,
   GridRenderer,
   type LayerVisibilityType,
   LeftToolBar,
@@ -41,6 +42,7 @@ import { ClipboardProvider } from '@/contexts/ClipboardContext';
 import { UndoRedoProvider } from '@/contexts/UndoRedoContext';
 import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
+import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
@@ -164,7 +166,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [updateEncounterOpening] = useUpdateEncounterOpeningMutation();
   const [removeEncounterOpening] = useRemoveEncounterOpeningMutation();
 
-  // Force refetch on mount with forceRefetch option
   useEffect(() => {
     if (encounterId) {
       refetch();
@@ -213,6 +214,10 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const [selectedOpeningIndex, setSelectedOpeningIndex] = useState<number | null>(null);
   const [openingPlacementProperties, setOpeningPlacementProperties] = useState<OpeningPlacementProperties | null>(null);
+
+  const [fogMode, setFogMode] = useState<'add' | 'subtract'>('add');
+  const [fogDrawingTool, setFogDrawingTool] = useState<'polygon' | 'bucketFill' | null>(null);
+  const [fogDrawingVertices, setFogDrawingVertices] = useState<Point[]>([]);
 
   const [activeScope, setActiveScope] = useState<InteractionScope>(null);
 
@@ -1148,6 +1153,67 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, updateEncounterOpening, refetch],
   );
 
+  const fowRegions = useMemo(() => {
+    return placedRegions?.filter((r) => r.type === 'FogOfWar') || [];
+  }, [placedRegions]);
+
+  const { handlePolygonComplete, handleBucketFillComplete} = useFogOfWarPlacement({
+    encounterId: encounterId || '',
+    existingRegions: placedRegions || [],
+    mode: fogMode,
+    onRegionCreated: (region) => {
+      try {
+        setPlacedRegions((prev) => [...(prev || []), region]);
+        setFogDrawingTool(null);
+      } catch (error) {
+        console.error('Failed to create FoW region:', error);
+        setErrorMessage('Failed to create fog region. Please try again.');
+      }
+    },
+  });
+
+  const handleFogModeChange = useCallback((mode: 'add' | 'subtract') => {
+    setFogMode(mode);
+  }, []);
+
+  const handleFogDrawPolygon = useCallback(() => {
+    setFogDrawingTool('polygon');
+  }, []);
+
+  const handleFogBucketFill = useCallback(() => {
+    setFogDrawingTool('bucketFill');
+  }, []);
+
+  const handleFogHideAll = useCallback(() => {
+    try {
+      if (fogMode !== 'add') {
+        setFogMode('add');
+        return;
+      }
+
+      const fullStageVertices: Point[] = [
+        { x: 0, y: 0 },
+        { x: STAGE_WIDTH, y: 0 },
+        { x: STAGE_WIDTH, y: STAGE_HEIGHT },
+        { x: 0, y: STAGE_HEIGHT },
+      ];
+
+      handlePolygonComplete(fullStageVertices);
+    } catch (error) {
+      console.error('Failed to hide all areas:', error);
+      setErrorMessage('Failed to hide all areas. Please try again.');
+    }
+  }, [fogMode, handlePolygonComplete]);
+
+  const handleFogRevealAll = useCallback(() => {
+    try {
+      setPlacedRegions((prev) => (prev || []).filter((region) => region.type !== 'FogOfWar'));
+    } catch (error) {
+      console.error('Failed to reveal all areas:', error);
+      setErrorMessage('Failed to reveal all areas. Please try again.');
+    }
+  }, []);
+
   const visibleAssets = useMemo(() => {
     return assetManagement.placedAssets.filter((asset) => {
       if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
@@ -1321,6 +1387,12 @@ const EncounterEditorPageInternal: React.FC = () => {
             onOpeningDelete={handleOpeningDelete}
             onPlaceOpening={handlePlaceOpening}
             onEditOpening={handleEditOpening}
+            onFogHideAll={handleFogHideAll}
+            onFogRevealAll={handleFogRevealAll}
+            onFogModeChange={handleFogModeChange}
+            onFogDrawPolygon={handleFogDrawPolygon}
+            onFogBucketFill={handleFogBucketFill}
+            fogMode={fogMode}
           />
 
           <EncounterCanvas
@@ -1482,6 +1554,15 @@ const EncounterEditorPageInternal: React.FC = () => {
                     />
                   </Group>
                 )}
+
+              {/* Fog of War */}
+              {encounterId && (
+                <FogOfWarRenderer
+                  encounterId={encounterId}
+                  regions={fowRegions}
+                  visible={scopeVisibility.fogOfWar !== false}
+                />
+              )}
             </Layer>
 
             {/* Layer 5: Assets (tokens/objects/monsters) */}
@@ -1598,6 +1679,35 @@ const EncounterEditorPageInternal: React.FC = () => {
                       setOpeningPlacementProperties(null);
                       setActiveTool(null);
                     }}
+                  />
+                )}
+                {fogDrawingTool === 'polygon' && (
+                  <RegionDrawingTool
+                    encounterId={encounterId}
+                    regionIndex={-1}
+                    gridConfig={gridConfig}
+                    regionType='FogOfWar'
+                    onCancel={() => {
+                      setFogDrawingTool(null);
+                      setFogDrawingVertices([]);
+                    }}
+                    onFinish={() => {
+                      handlePolygonComplete(fogDrawingVertices);
+                      setFogDrawingVertices([]);
+                    }}
+                    onVerticesChange={(vertices: Point[]) => setFogDrawingVertices(vertices)}
+                  />
+                )}
+                {fogDrawingTool === 'bucketFill' && encounter && (
+                  <RegionBucketFillTool
+                    encounterId={encounterId}
+                    gridConfig={gridConfig}
+                    onCancel={() => setFogDrawingTool(null)}
+                    onFinish={handleBucketFillComplete}
+                    regionType='FogOfWar'
+                    walls={encounter.walls || []}
+                    openings={encounter.openings || []}
+                    stageSize={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
                   />
                 )}
               </Layer>

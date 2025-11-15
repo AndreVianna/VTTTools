@@ -20,7 +20,7 @@ import { AssetKind } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import type { OpeningPlacementProperties, SourcePlacementProperties } from './panels';
-import { CharactersPanel, MonstersPanel, ObjectsPanel, OpeningsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import { CharactersPanel, FogOfWarPanel, MonstersPanel, ObjectsPanel, OpeningsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 
 export type PanelType =
   | 'regions'
@@ -80,6 +80,12 @@ export interface LeftToolBarProps {
   onOpeningDelete?: (index: number) => void;
   onPlaceOpening?: (properties: OpeningPlacementProperties) => void;
   onEditOpening?: (index: number, updates: Partial<PlacedOpening>) => void;
+  onFogHideAll?: () => void;
+  onFogRevealAll?: () => void;
+  onFogModeChange?: (mode: 'add' | 'subtract') => void;
+  onFogDrawPolygon?: () => void;
+  onFogBucketFill?: () => void;
+  fogMode?: 'add' | 'subtract';
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
@@ -125,6 +131,12 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onOpeningDelete,
   onPlaceOpening,
   onEditOpening,
+  onFogHideAll,
+  onFogRevealAll,
+  onFogModeChange,
+  onFogDrawPolygon,
+  onFogBucketFill,
+  fogMode,
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
@@ -412,10 +424,15 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             />
           )}
           {activePanel === 'fogOfWar' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Fog of War</Box>
-              <Box>Fog of war controls</Box>
-            </Box>
+            <FogOfWarPanel
+              encounterId={encounterId}
+              onHideAll={onFogHideAll || (() => {})}
+              onRevealAll={onFogRevealAll || (() => {})}
+              onModeChange={onFogModeChange || (() => {})}
+              onDrawPolygon={onFogDrawPolygon || (() => {})}
+              onBucketFill={onFogBucketFill || (() => {})}
+              currentMode={fogMode || 'add'}
+            />
           )}
         </Box>
       </Drawer>

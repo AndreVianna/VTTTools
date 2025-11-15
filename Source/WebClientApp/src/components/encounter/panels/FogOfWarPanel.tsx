@@ -19,7 +19,7 @@ import {
 import React from 'react';
 
 export interface FogOfWarPanelProps {
-  encounterId: string;
+  encounterId?: string;
   onHideAll: () => void;
   onRevealAll: () => void;
   onModeChange: (mode: 'add' | 'subtract') => void;
