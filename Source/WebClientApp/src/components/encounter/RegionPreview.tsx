@@ -103,9 +103,9 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertice
           );
         })()}
 
-      {vertices.map((vertex) => (
+      {vertices.map((vertex, index) => (
         <Circle
-          key={`vertex-${vertex.x}-${vertex.y}`}
+          key={`vertex-${index}-${vertex.x}-${vertex.y}`}
           x={vertex.x}
           y={vertex.y}
           radius={5}

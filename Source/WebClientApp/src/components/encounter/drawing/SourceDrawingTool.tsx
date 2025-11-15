@@ -7,6 +7,7 @@ import type { EncounterSource, EncounterWall, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { snapToNearest } from '@/utils/structureSnapping';
+import { getCrosshairCursor } from '@/utils/customCursors';
 import { SourcePreview } from './SourcePreview';
 import { VertexMarker } from './VertexMarker';
 
@@ -255,6 +256,26 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     ],
   );
 
+  const handleMouseEnter = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const container = stage.container();
+    if (container) {
+      container.style.cursor = getCrosshairCursor();
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const container = stage.container();
+    if (container) {
+      container.style.cursor = 'default';
+    }
+  }, []);
+
   return (
     <Group>
       <Rect
@@ -263,6 +284,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
         width={INTERACTION_RECT_SIZE}
         height={INTERACTION_RECT_SIZE}
         fill='transparent'
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onClick={handleClick}
         listening={true}

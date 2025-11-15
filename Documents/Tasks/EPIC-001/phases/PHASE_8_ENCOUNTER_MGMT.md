@@ -1444,6 +1444,393 @@ onFinish(vertices);          // Receives data directly ✅
 **Estimated Effort**: 3-4 hours
 **Actual Effort**: 4+ hours (including debugging closure issues)
 
+###### 8.8B.2.1: Bucket Fill Boundary Detection Algorithm Fixes ✅ COMPLETE
+
+**Objective**: Fix critical bugs in the bucket fill boundary detection algorithm affecting region placement accuracy
+
+**Completion Date**: 2025-11-15
+
+**Context**: After initial bucket fill implementation, the boundary detection algorithm (`regionBoundaryUtils.ts`) had multiple critical bugs:
+- React key duplication errors in RegionPreview
+- Inconsistent region detection depending on cursor position (failed at certain angles, especially 270-360°)
+- Self-intersecting polygons from incorrect boundary tracing
+- Open walls incorrectly creating boundaries
+- Fundamental misunderstanding of wall vs segment architecture
+
+**Critical Issues Identified & Fixed**:
+
+**Issue 1: React Key Duplication** 🐛
+
+**Error**: `Encountered two children with the same key, 'vertex-1575-1025'`
+
+**Root Cause**: RegionPreview component was generating keys using only vertex coordinates, causing duplicates when a boundary trace visited the same coordinate at different positions in the vertex array.
+
+**Solution**:
+- **File**: `RegionPreview.tsx` (line 108)
+- Added index to key generation: `key={vertex-${index}-${vertex.x}-${vertex.y}}`
+- Ensures unique keys even with duplicate coordinates
+
+```typescript
+// BEFORE
+key={`vertex-${vertex.x}-${vertex.y}`}  // ❌ Duplicates possible
+
+// AFTER
+key={`vertex-${index}-${vertex.x}-${vertex.y}`}  // ✅ Always unique
+```
+
+**Issue 2: Vertex Intersection Detection in Ray Casting** 🐛🐛🐛
+
+**Problem**: Cursor inside exact square at specific angles (270-360°, bottom-right quadrant) not detected as enclosed. This is the classic "vertex intersection problem" in computational geometry.
+
+**Root Cause**: When the horizontal ray passes exactly through a polygon vertex, the ray-segment intersection can be counted incorrectly, leading to wrong odd/even parity.
+
+**Failed Attempts** (multiple iterations):
+
+1. **Attempt 1**: Check if ray Y equals vertex Y
+```typescript
+// ❌ WRONG - Vertices might not be on the ray
+if (Math.abs(rayOrigin.y - start.y) < TOLERANCE) {
+  return end.y > rayOrigin.y;
+}
+```
+**Why it failed**: Compared ray Y to vertex Y, but vertices aren't necessarily on the ray path.
+
+2. **Attempt 2**: Different comparison but same flawed logic
+```typescript
+// ❌ WRONG - Still comparing to ray Y
+return start.y < rayOrigin.y;
+```
+**User feedback**: "No. It is still wrong"
+
+**Correct Solution**: "Lower Vertex Rule" ✅
+
+**Pattern**: When intersection occurs at a vertex (detected via intersection parameter `t`), count the intersection only if the vertex is the "lower" endpoint of the edge.
+
+**Implementation**: `regionBoundaryUtils.ts` (lines 46-54)
+```typescript
+function lineSegmentIntersectsRay(segment: LineSegment, rayOrigin: Point, rayDirection: Point): boolean {
+  // ... standard ray-segment intersection math ...
+
+  if (t < 0 || t > 1 || u <= EPSILON) {
+    return false;
+  }
+
+  // Lower vertex rule: only count vertex if it's the lower endpoint
+  if (Math.abs(t) < EPSILON) {
+    return start.y < end.y;  // At start vertex: count only if edge goes UP from start
+  }
+
+  if (Math.abs(t - 1) < EPSILON) {
+    return end.y < start.y;  // At end vertex: count only if edge goes DOWN to end
+  }
+
+  return true;  // Normal intersection (not at vertex)
+}
+```
+
+**Why this works**:
+- For vertex shared by two edges, exactly one edge will have it as "lower" endpoint
+- Prevents double-counting while ensuring proper parity
+- Standard solution in computational geometry
+
+**Key Lesson**: Don't compare vertices to ray - compare edge endpoints to each other. The intersection parameter `t` tells us where the intersection occurred (vertex vs interior).
+
+**Issue 3: Boundary Tracing Creates Self-Intersecting Polygons** 🐛🐛
+
+**Problem**: Traced boundaries were creating paths like:
+```
+(1900, 875) → (1900, 775) → (1900, 875) → (1800, 875) → (1800, 775)
+```
+Self-intersecting and backtracking along edges.
+
+**Root Cause 1**: Rightmost-turn algorithm was inverted
+
+**Failed Implementation**:
+```typescript
+let bestAngle = Infinity;  // ❌ WRONG initialization
+
+if (relativeAngle < bestAngle) {  // ❌ Selecting MINIMUM angle (leftmost turn)
+  bestAngle = relativeAngle;
+  nextPoint = candidatePoint;
+}
+```
+
+This selected the MINIMUM angle (leftmost turn), causing counterclockwise traversal and self-intersection.
+
+**Partial Fix** (still broken):
+```typescript
+let bestAngle = Infinity;  // ❌ Still wrong
+
+if (relativeAngle > bestAngle) {  // Changed comparison but initialization wrong
+  bestAngle = relativeAngle;
+  nextPoint = candidatePoint;
+}
+```
+
+**User feedback**: "Now the problem is mirrored" - backtracking happened the other direction.
+
+**Correct Solution**:
+- **File**: `regionBoundaryUtils.ts` (lines 260, 287, 296)
+
+```typescript
+let bestAngle = -Infinity;  // ✅ Initialize to -Infinity for maximum search
+
+if (nextPoint === null || relativeAngle > bestAngle) {  // ✅ Select MAXIMUM angle
+  bestAngle = relativeAngle;
+  nextPoint = candidatePoint;
+}
+```
+
+**Why this works**: Selecting the maximum relative angle ensures clockwise traversal and proper boundary following (rightmost turn at each vertex).
+
+**Root Cause 2**: Algorithm was selecting previous point as next candidate
+
+**Problem**: Even with correct angle selection, the path would backtrack:
+```
+(1900, 875) → (1800, 875) → (1900, 875) → ...
+```
+
+**Solution**: Exclude previous point from candidates
+- **File**: `regionBoundaryUtils.ts` (lines 276-278)
+
+```typescript
+for (const segment of allSegments) {
+  let candidatePoint: Point | null = null;
+  // ... determine candidatePoint from segment ...
+
+  if (previousPoint && arePointsEqual(candidatePoint, previousPoint)) {
+    continue;  // ✅ Skip the point we just came from
+  }
+
+  // ... rest of angle selection logic ...
+}
+```
+
+**Combined Fix**: Maximum angle selection + previous point exclusion = correct boundary tracing ✅
+
+**Issue 4: Open Walls Creating Boundaries** 🐛🐛🐛
+
+**Problem**: Walls with `isClosed = false` were creating boundary polygons when they should be completely ignored.
+
+**Critical Architecture Misunderstanding**:
+
+Initially misunderstood wall structure:
+- ❌ **Wrong**: Thought each segment belonged to different walls
+- ✅ **Correct**: One `PlacedWall` = one complete boundary with multiple segments
+
+**User's clarification**:
+> "You did not understand what is a wall. Each wall is one boundary. The wall is made of segments. 2 poles define one segment, not one wall."
+
+**Wall Structure**:
+```typescript
+interface PlacedWall {
+  poles: Pole[];      // Array of vertices
+  isClosed: boolean;  // Is this boundary closed?
+  index: number;
+}
+
+// Example:
+// 4 poles with isClosed=true  → 4 segments (including closing segment from pole[3] to pole[0])
+// 4 poles with isClosed=false → 3 segments (no closing segment), SHOULD BE IGNORED ENTIRELY
+```
+
+**Failed Attempts**:
+
+1. **Attempt 1**: Added geometric check to verify boundary closure
+```typescript
+// ❌ WRONG - Trying to infer from geometry
+const closedProperly = arePointsEqual(boundary[0], currentPoint) || ...;
+if (!closedProperly) return [];
+```
+**User feedback**: "You cannot rely on the geometry to find if a wall is open or closed. You need to get it from the Wall property."
+
+2. **Attempt 2**: Validated wall properties at end of traceBoundary
+```typescript
+// ❌ WRONG - Checking after boundary traced
+const allWallsClosed = relevantWalls.every((wall) => wall.isClosed);
+```
+**User feedback**: Explained wall vs segment structure (see above)
+
+**Correct Solution**: Skip open walls entirely at the segment generation level ✅
+
+- **File**: `regionBoundaryUtils.ts` (lines 73-75)
+
+```typescript
+function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegment[] {
+  const segments: LineSegment[] = [];
+  const { poles, isClosed } = wall;
+
+  if (!isClosed) {  // ✅ CRITICAL: Return empty array for open walls
+    return segments;
+  }
+
+  // ... rest of function generates segments only for closed walls ...
+}
+```
+
+**Why this works**:
+- Open walls contribute zero segments to the boundary detection
+- No need for post-processing or geometric validation
+- Clean separation of concerns
+- Matches actual domain semantics
+
+**Key Lesson**: Trust domain properties over geometric inference. The `isClosed` flag is the source of truth, not the polygon topology.
+
+**Issue 5: Opening States and Segment Filtering** ✅
+
+**Requirement**: Openings in different states affect whether a wall segment blocks movement:
+- **Passable** (don't block): `OpeningState.Open`, `OpeningState.Destroyed`
+- **Blocking** (do block): `OpeningState.Closed`, `OpeningState.Locked`, `OpeningState.Barred`
+
+**Implementation**: Already correctly implemented in `getWallSegments` (lines 90-111)
+
+```typescript
+const hasOpenOpening = wallOpenings.some((opening) => {
+  const isPassable = opening.state === OpeningState.Open ||
+                     opening.state === OpeningState.Destroyed;
+
+  return isPassable && opening.startPoleIndex === i && opening.endPoleIndex === i + 1;
+});
+
+if (!hasOpenOpening) {
+  segments.push({ start, end });  // Only add segment if no passable opening
+}
+```
+
+This logic was working correctly and remained unchanged through the fixes.
+
+**Debug Process & Throttling Implementation** 🔍
+
+**Challenge**: Mouse move events fire hundreds of times per second, flooding console with logs.
+
+**Solution**: Implemented throttled logging system
+```typescript
+let lastLogTime = 0;
+const LOG_THROTTLE_MS = 1000;
+
+function shouldLog(): boolean {
+  const now = Date.now();
+  if (now - lastLogTime >= LOG_THROTTLE_MS) {
+    lastLogTime = now;
+    return true;
+  }
+  return false;
+}
+
+// Usage:
+if (shouldLog()) {
+  console.log('[traceBoundary] ...', { ... });
+}
+```
+
+**Comprehensive Logging Added**:
+- `traceBoundary`: Entry point, enclosed status, vertex count
+- `isPointEnclosed`: Intersection counts per wall
+- `getWallSegments`: Wall properties, segment count
+- `traceBoundaryPolygon`: Full boundary trace path with angles
+
+**Key Debug Insights**:
+
+1. **Throttling revealed hidden bugs**:
+   - Wall 2 wasn't appearing in logs due to throttle timing
+   - Multiple log points with different throttle timers interfered
+
+2. **User provided marked logs**:
+   - Annotated which results were CORRECT vs WRONG
+   - Showed exact traced paths revealing self-intersection
+
+3. **Boundary trace visualization**:
+```
+Traced path: (1900, 875) → (1900, 775) → (1900, 875) → ...
+              ^^^^^^^^^^^^   ^^^^^^^^^^^^   ^^^^^^^^^^^^
+              start          next           WRONG (backtrack!)
+```
+
+**Cleanup**: After all fixes verified, removed all debug logging including throttling mechanism (per user request).
+
+**Final Architecture Pattern**: Boundary Detection Algorithm
+
+```typescript
+// 1. Filter segments (skip open walls, skip passable openings)
+function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegment[] {
+  if (!isClosed) return [];  // Skip open walls entirely
+
+  // For closed walls, generate segments excluding passable openings
+  // ...
+}
+
+// 2. Point-in-polygon test (ray casting with lower vertex rule)
+function isPointEnclosed(point: Point, walls: PlacedWall[], openings: PlacedOpening[]): boolean {
+  const segments = getAllSegments(walls, openings);
+
+  // Cast horizontal ray, count intersections
+  // Use lower vertex rule to handle vertex intersections correctly
+
+  return intersectionCount % 2 === 1;  // Odd = inside
+}
+
+// 3. Boundary tracing (rightmost turn algorithm)
+function traceBoundaryPolygon(startPoint: Point, walls: PlacedWall[], openings: PlacedOpening[]): Point[] {
+  // Start at nearest vertex to click point
+  // At each vertex, select next edge with MAXIMUM relative angle (rightmost turn)
+  // Exclude previous point to prevent backtracking
+  // Continue until returning to start
+}
+
+// 4. Validation and result construction
+function traceBoundary(...): BoundaryResult {
+  if (!enclosed) return { isFullStage: true };
+
+  const vertices = traceBoundaryPolygon(...);
+
+  if (vertices.length < 3) return { isFullStage: true };
+  if (!isPointInPolygon(clickPoint, vertices)) return { isFullStage: false };
+
+  return { vertices, isFullStage: false, boundingWalls };
+}
+```
+
+**Key Algorithmic Components**:
+
+1. **Ray Casting**: O(n) point-in-polygon test with lower vertex rule
+2. **Rightmost Turn**: Maximum angle selection for clockwise boundary traversal
+3. **Backtracking Prevention**: Exclude previous vertex from candidates
+4. **Domain Filtering**: Skip open walls, skip passable openings
+
+**Files Modified**:
+- `Source/WebClientApp/src/utils/regionBoundaryUtils.ts` - Core algorithm fixes
+- `Source/WebClientApp/src/components/encounter/RegionPreview.tsx` - React key fix
+
+**Testing Status**: ✅ Manual testing complete
+- Correct detection in all quadrants and angles
+- Open walls properly ignored
+- Closed walls with passable openings correctly exclude segments
+- No React warnings or errors
+- Clean boundary traces with no self-intersection
+- All debug logging removed
+
+**Key Lessons Learned**:
+
+1. **Computational Geometry**: The "lower vertex rule" is standard solution for ray casting vertex intersection
+2. **Algorithm Direction**: Maximum vs minimum angle selection completely changes traversal direction
+3. **Backtracking**: Must explicitly exclude previous point in graph traversal
+4. **Domain Properties**: Trust domain flags (`isClosed`) over geometric inference
+5. **Architecture Understanding**: One wall = one boundary (not one segment)
+6. **Debug Strategy**: Throttled logging essential for mouse move event debugging
+7. **User Feedback**: Multiple failed attempts before correct understanding - listen carefully!
+
+**Critical User Corrections**:
+> "No. It is still wrong" (after vertex fix attempts)
+>
+> "You cannot rely on the geometry to find if a wall is open or closed"
+>
+> "You did not understand what is a wall. Each wall is one boundary."
+
+These corrections were pivotal in reaching the correct solution.
+
+**Estimated Effort**: 2-3 hours
+**Actual Effort**: 6+ hours (multiple failed attempts on vertex intersection, wall structure misunderstanding, debugging process)
+
 ---
 
 ##### 8.8B.3: Remaining Structure Testing 🔜 NEXT

@@ -5,6 +5,7 @@ import { Group, Line, Rect, Text } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
 import type { EncounterWall, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import { getCrosshairCursor } from '@/utils/customCursors';
 import type { OpeningPlacementProperties } from '../panels/OpeningsPanel';
 
 const INTERACTION_RECT_SIZE = 20000;
@@ -256,6 +257,26 @@ export const OpeningDrawingTool: React.FC<OpeningDrawingToolProps> = ({
         };
     }, [selectedWallIndex, clickPosition, previewPosition, walls, properties, gridConfig.cellSize.width]);
 
+    const handleMouseEnter = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+        const stage = e.target.getStage();
+        if (!stage) return;
+
+        const container = stage.container();
+        if (container) {
+            container.style.cursor = getCrosshairCursor();
+        }
+    }, []);
+
+    const handleMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+        const stage = e.target.getStage();
+        if (!stage) return;
+
+        const container = stage.container();
+        if (container) {
+            container.style.cursor = 'default';
+        }
+    }, []);
+
     return (
         <Group>
             <Rect
@@ -264,6 +285,8 @@ export const OpeningDrawingTool: React.FC<OpeningDrawingToolProps> = ({
                 width={INTERACTION_RECT_SIZE}
                 height={INTERACTION_RECT_SIZE}
                 fill='transparent'
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
                 onMouseMove={handleMouseMove}
                 onClick={handleClick}
                 listening={true}

@@ -13,9 +13,16 @@ interface BoundaryResult {
 }
 
 const EPSILON = 1e-10;
+const TOLERANCE = 0.01;
 
-function arePointsEqual(p1: Point, p2: Point, tolerance = EPSILON): boolean {
+function arePointsEqual(p1: Point, p2: Point, tolerance = TOLERANCE): boolean {
   return Math.abs(p1.x - p2.x) < tolerance && Math.abs(p1.y - p2.y) < tolerance;
+}
+
+function normalizeAngle(angle: number): number {
+  while (angle > Math.PI) angle -= 2 * Math.PI;
+  while (angle < -Math.PI) angle += 2 * Math.PI;
+  return angle;
 }
 
 function lineSegmentIntersectsRay(segment: LineSegment, rayOrigin: Point, rayDirection: Point): boolean {
@@ -32,14 +39,26 @@ function lineSegmentIntersectsRay(segment: LineSegment, rayOrigin: Point, rayDir
   const t = ((rayOrigin.x - start.x) * rayDirection.y - (rayOrigin.y - start.y) * rayDirection.x) / det;
   const u = ((rayOrigin.x - start.x) * dy - (rayOrigin.y - start.y) * dx) / det;
 
-  return t >= 0 && t <= 1 && u > EPSILON;
+  if (t < 0 || t > 1 || u <= EPSILON) {
+    return false;
+  }
+
+  if (Math.abs(t) < EPSILON) {
+    return start.y < end.y;
+  }
+
+  if (Math.abs(t - 1) < EPSILON) {
+    return end.y < start.y;
+  }
+
+  return true;
 }
 
 function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegment[] {
   const segments: LineSegment[] = [];
-  const { poles } = wall;
+  const { poles, isClosed } = wall;
 
-  if (poles.length < 2) {
+  if (!isClosed) {
     return segments;
   }
 
@@ -49,15 +68,14 @@ function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegme
     const start = poles[i];
     const end = poles[i + 1];
 
-    const hasBlockingOpening = wallOpenings.some((opening) => {
-      const isBlocking = opening.state === OpeningState.Closed ||
-                         opening.state === OpeningState.Locked ||
-                         opening.state === OpeningState.Barred;
+    const hasOpenOpening = wallOpenings.some((opening) => {
+      const isPassable = opening.state === OpeningState.Open ||
+                         opening.state === OpeningState.Destroyed;
 
-      return !isBlocking && opening.startPoleIndex <= i && opening.endPoleIndex >= i + 1;
+      return isPassable && opening.startPoleIndex === i && opening.endPoleIndex === i + 1;
     });
 
-    if (!hasBlockingOpening) {
+    if (!hasOpenOpening) {
       segments.push({
         start: { x: start.x, y: start.y },
         end: { x: end.x, y: end.y },
@@ -65,21 +83,20 @@ function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegme
     }
   }
 
-  if (wall.isClosed && poles.length > 2) {
+  if (isClosed && poles.length > 2) {
     const start = poles[poles.length - 1];
     const end = poles[0];
 
-    const hasBlockingOpening = wallOpenings.some((opening) => {
-      const isBlocking = opening.state === OpeningState.Closed ||
-                         opening.state === OpeningState.Locked ||
-                         opening.state === OpeningState.Barred;
+    const hasOpenOpening = wallOpenings.some((opening) => {
+      const isPassable = opening.state === OpeningState.Open ||
+                         opening.state === OpeningState.Destroyed;
 
-      return !isBlocking &&
+      return isPassable &&
              ((opening.startPoleIndex === poles.length - 1 && opening.endPoleIndex === 0) ||
               (opening.startPoleIndex === 0 && opening.endPoleIndex === poles.length - 1));
     });
 
-    if (!hasBlockingOpening) {
+    if (!hasOpenOpening) {
       segments.push({
         start: { x: start.x, y: start.y },
         end: { x: end.x, y: end.y },
@@ -107,17 +124,59 @@ function isPointEnclosed(point: Point, walls: PlacedWall[], openings: PlacedOpen
   return intersectionCount % 2 === 1;
 }
 
-function findNearestWallPoint(point: Point, walls: PlacedWall[]): Point | null {
+function isPointInPolygon(point: Point, polygon: Point[]): boolean {
+  if (polygon.length < 3) return false;
+
+  const rayDirection = { x: 1, y: 0 };
+  let intersectionCount = 0;
+
+  for (let i = 0; i < polygon.length; i++) {
+    const start = polygon[i];
+    const end = polygon[(i + 1) % polygon.length];
+    const segment: LineSegment = { start, end };
+
+    if (lineSegmentIntersectsRay(segment, point, rayDirection)) {
+      intersectionCount++;
+    }
+  }
+
+  return intersectionCount % 2 === 1;
+}
+
+function findBoundaryStartPoint(
+  point: Point,
+  walls: PlacedWall[],
+  openings: PlacedOpening[]
+): Point | null {
+  const allSegments: LineSegment[] = [];
+
+  for (const wall of walls) {
+    const segments = getWallSegments(wall, openings);
+    allSegments.push(...segments);
+  }
+
+  if (allSegments.length === 0) {
+    return null;
+  }
+
   let nearestPoint: Point | null = null;
   let minDistance = Infinity;
 
-  for (const wall of walls) {
-    for (const pole of wall.poles) {
-      const distance = Math.sqrt((pole.x - point.x) ** 2 + (pole.y - point.y) ** 2);
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearestPoint = { x: pole.x, y: pole.y };
-      }
+  for (const segment of allSegments) {
+    const segmentStartDist = Math.sqrt(
+      (segment.start.x - point.x) ** 2 + (segment.start.y - point.y) ** 2
+    );
+    const segmentEndDist = Math.sqrt(
+      (segment.end.x - point.x) ** 2 + (segment.end.y - point.y) ** 2
+    );
+
+    if (segmentStartDist < minDistance) {
+      minDistance = segmentStartDist;
+      nearestPoint = { x: segment.start.x, y: segment.start.y };
+    }
+    if (segmentEndDist < minDistance) {
+      minDistance = segmentEndDist;
+      nearestPoint = { x: segment.end.x, y: segment.end.y };
     }
   }
 
@@ -131,20 +190,23 @@ function traceBoundaryPolygon(
 ): Point[] {
   const visited = new Set<string>();
   const boundary: Point[] = [];
-  const allSegments: Array<{ wall: PlacedWall; segment: LineSegment; poleIndex: number }> = [];
+  const allSegments: LineSegment[] = [];
 
   for (const wall of walls) {
     const segments = getWallSegments(wall, openings);
-    segments.forEach((segment, idx) => {
-      allSegments.push({ wall, segment, poleIndex: idx });
-    });
+    allSegments.push(...segments);
+  }
+
+  if (allSegments.length === 0) {
+    return [];
   }
 
   let currentPoint = startPoint;
-  const pointKey = (p: Point) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`;
+  const pointKey = (p: Point) => `${Math.round(p.x / TOLERANCE)},${Math.round(p.y / TOLERANCE)}`;
 
-  const maxIterations = allSegments.length * 2;
+  const maxIterations = allSegments.length * 3;
   let iterations = 0;
+  let previousPoint: Point | null = null;
 
   while (iterations < maxIterations) {
     iterations++;
@@ -158,46 +220,75 @@ function traceBoundaryPolygon(
     boundary.push({ ...currentPoint });
 
     let nextPoint: Point | null = null;
-    let minAngle = Infinity;
-    const currentIndex = boundary.length - 2;
-    const previousPoint = currentIndex >= 0 ? boundary[currentIndex] : null;
+    let bestAngle = -Infinity;
 
-    for (const { segment } of allSegments) {
-      if (arePointsEqual(segment.start, currentPoint, 0.1)) {
-        const angle = previousPoint
-          ? Math.atan2(segment.end.y - currentPoint.y, segment.end.x - currentPoint.x) -
-            Math.atan2(currentPoint.y - previousPoint.y, currentPoint.x - previousPoint.x)
-          : 0;
+    for (const segment of allSegments) {
+      let candidatePoint: Point | null = null;
+      let directionAngle: number;
 
-        if (nextPoint === null || angle < minAngle) {
-          minAngle = angle;
-          nextPoint = segment.end;
+      if (arePointsEqual(segment.start, currentPoint)) {
+        candidatePoint = segment.end;
+        directionAngle = Math.atan2(segment.end.y - currentPoint.y, segment.end.x - currentPoint.x);
+      } else if (arePointsEqual(segment.end, currentPoint)) {
+        candidatePoint = segment.start;
+        directionAngle = Math.atan2(segment.start.y - currentPoint.y, segment.start.x - currentPoint.x);
+      } else {
+        continue;
+      }
+
+      if (previousPoint && arePointsEqual(candidatePoint, previousPoint)) {
+        continue;
+      }
+
+      if (previousPoint) {
+        const previousAngle = Math.atan2(
+          currentPoint.y - previousPoint.y,
+          currentPoint.x - previousPoint.x
+        );
+        let relativeAngle = normalizeAngle(directionAngle - previousAngle);
+
+        if (relativeAngle < 0) {
+          relativeAngle += 2 * Math.PI;
         }
-      } else if (arePointsEqual(segment.end, currentPoint, 0.1)) {
-        const angle = previousPoint
-          ? Math.atan2(segment.start.y - currentPoint.y, segment.start.x - currentPoint.x) -
-            Math.atan2(currentPoint.y - previousPoint.y, currentPoint.x - previousPoint.x)
-          : 0;
 
-        if (nextPoint === null || angle < minAngle) {
-          minAngle = angle;
-          nextPoint = segment.start;
+        if (nextPoint === null || relativeAngle > bestAngle) {
+          bestAngle = relativeAngle;
+          nextPoint = candidatePoint;
+        }
+      } else {
+        if (nextPoint === null) {
+          nextPoint = candidatePoint;
+          bestAngle = directionAngle;
+        } else {
+          if (directionAngle > bestAngle) {
+            bestAngle = directionAngle;
+            nextPoint = candidatePoint;
+          }
         }
       }
     }
 
-    if (!nextPoint || arePointsEqual(nextPoint, startPoint, 0.1)) {
+    if (!nextPoint) {
       break;
     }
 
+    if (arePointsEqual(nextPoint, startPoint) && boundary.length > 2) {
+      break;
+    }
+
+    previousPoint = currentPoint;
     currentPoint = nextPoint;
   }
 
-  if (boundary.length >= 3) {
-    return boundary;
+  if (boundary.length < 3) {
+    return [];
   }
 
-  return [];
+  if (arePointsEqual(boundary[0], boundary[boundary.length - 1])) {
+    return boundary.slice(0, -1);
+  }
+
+  return boundary;
 }
 
 export function traceBoundary(
@@ -224,7 +315,7 @@ export function traceBoundary(
     };
   }
 
-  const nearestPoint = findNearestWallPoint(clickPoint, walls);
+  const nearestPoint = findBoundaryStartPoint(clickPoint, walls, openings);
 
   if (!nearestPoint) {
     return {
@@ -244,9 +335,17 @@ export function traceBoundary(
     };
   }
 
+  if (!isPointInPolygon(clickPoint, boundaryVertices)) {
+    return {
+      vertices: null,
+      isFullStage: false,
+      boundingWalls: [],
+    };
+  }
+
   const relevantWalls = walls.filter((wall) =>
     wall.poles.some((pole) =>
-      boundaryVertices.some((v) => arePointsEqual({ x: pole.x, y: pole.y }, v, 0.1))
+      boundaryVertices.some((v) => arePointsEqual({ x: pole.x, y: pole.y }, v))
     )
   );
 
