@@ -10,6 +10,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { snapToNearest } from '@/utils/structureSnapping';
 import { decomposeSelfIntersectingPath } from '@/utils/wallPlanarUtils';
+import { getCrosshairCursor } from '@/utils/customCursors';
 
 import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
@@ -194,6 +195,26 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     }
   }, [poles.length, handleFinish]);
 
+  const handleMouseEnter = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const container = stage.container();
+    if (container) {
+      container.style.cursor = getCrosshairCursor();
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const container = stage.container();
+    if (container) {
+      container.style.cursor = 'default';
+    }
+  }, []);
+
   return (
     <Group>
       <Rect
@@ -202,6 +223,8 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         width={INTERACTION_RECT_SIZE}
         height={INTERACTION_RECT_SIZE}
         fill='transparent'
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onClick={handleClick}
         onDblClick={handleDoubleClick}

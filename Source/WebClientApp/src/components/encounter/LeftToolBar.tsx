@@ -318,7 +318,15 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           },
         }}
       >
-        <Box ref={drawerRef} sx={{ p: 2 }}>
+        <Box
+          ref={drawerRef}
+          sx={{ p: 2 }}
+          onMouseLeave={() => {
+            if (!isPanelLocked) {
+              setIsPanelVisible(false);
+            }
+          }}
+        >
           {activeScope === null && isPanelLocked && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="body2" color="text.secondary">
