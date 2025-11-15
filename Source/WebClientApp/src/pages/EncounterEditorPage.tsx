@@ -30,7 +30,7 @@ import { GroupName, LayerName, layerManager } from '@services/layerManager';
 import { type GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Group, Layer } from 'react-konva';
 import { useParams } from 'react-router-dom';
 import type { SaveStatus } from '@/components/common';
@@ -1124,6 +1124,21 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, updateEncounterOpening, refetch],
   );
 
+  const visibleAssets = useMemo(() => {
+    return assetManagement.placedAssets.filter((asset) => {
+      if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
+        return false;
+      }
+      if (asset.asset.kind === AssetKind.Monster && !scopeVisibility.monsters) {
+        return false;
+      }
+      if (asset.asset.kind === AssetKind.Character && !scopeVisibility.characters) {
+        return false;
+      }
+      return true;
+    });
+  }, [assetManagement.placedAssets, scopeVisibility.objects, scopeVisibility.monsters, scopeVisibility.characters]);
+
   if (isLoadingEncounter || isHydrating) {
     return (
       <EditorLayout>
@@ -1446,18 +1461,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             {/* Layer 5: Assets (tokens/objects/monsters) */}
             {encounter && (
               <TokenPlacement
-                placedAssets={assetManagement.placedAssets.filter((asset) => {
-                  if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
-                    return false;
-                  }
-                  if (asset.asset.kind === AssetKind.Monster && !scopeVisibility.monsters) {
-                    return false;
-                  }
-                  if (asset.asset.kind === AssetKind.Character && !scopeVisibility.characters) {
-                    return false;
-                  }
-                  return true;
-                })}
+                placedAssets={visibleAssets}
                 onAssetPlaced={assetManagement.handleAssetPlaced}
                 onAssetMoved={assetManagement.handleAssetMoved}
                 onAssetDeleted={assetManagement.handleAssetDeleted}
@@ -1559,18 +1563,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
             {/* Layer 8: UI Overlay (transformer + selection) */}
             <TokenDragHandle
-              placedAssets={assetManagement.placedAssets.filter((asset) => {
-                if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
-                  return false;
-                }
-                if (asset.asset.kind === AssetKind.Monster && !scopeVisibility.monsters) {
-                  return false;
-                }
-                if (asset.asset.kind === AssetKind.Character && !scopeVisibility.characters) {
-                  return false;
-                }
-                return true;
-              })}
+              placedAssets={visibleAssets}
               selectedAssetIds={assetManagement.selectedAssetIds}
               onAssetSelected={assetManagement.handleAssetSelected}
               onAssetMoved={assetManagement.handleAssetMoved}
