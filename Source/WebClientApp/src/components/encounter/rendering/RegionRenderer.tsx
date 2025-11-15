@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
+import { useMemo } from 'react';
 import { Line } from 'react-konva';
 import type { PlacedRegion } from '@/types/domain';
 import { calculatePolygonCentroid } from '@/utils/geometryUtils';
@@ -16,7 +17,7 @@ export interface RegionRendererProps {
 export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope }) => {
   const theme = useTheme();
 
-  const getRegionColor = (): string => {
+  const color = useMemo(() => {
     if (encounterRegion.color) {
       return encounterRegion.color;
     }
@@ -27,9 +28,9 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
     }
 
     return theme.palette.grey[400];
-  };
+  }, [encounterRegion.color, encounterRegion.type, theme.palette.grey]);
 
-  const getLabelText = (): string => {
+  const labelText = useMemo(() => {
     if (encounterRegion.label) {
       return encounterRegion.label;
     }
@@ -37,15 +38,26 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
       return `${encounterRegion.value}`;
     }
     return encounterRegion.type;
-  };
+  }, [encounterRegion.label, encounterRegion.value, encounterRegion.type]);
 
-  const color = getRegionColor();
-  const centroid = calculatePolygonCentroid(encounterRegion.vertices);
+  const centroid = useMemo(
+    () => calculatePolygonCentroid(encounterRegion.vertices),
+    [encounterRegion.vertices]
+  );
+
+  const points = useMemo(() => {
+    const firstVertex = encounterRegion.vertices[0];
+    if (!firstVertex) return [];
+    return [...encounterRegion.vertices, firstVertex].flatMap((v) => [v.x, v.y]);
+  }, [encounterRegion.vertices]);
+
+  const isInteractive = useMemo(
+    () => isRegionInScope(activeScope),
+    [activeScope]
+  );
+
   const firstVertex = encounterRegion.vertices[0];
   if (!firstVertex) return null;
-  const points = [...encounterRegion.vertices, firstVertex].flatMap((v) => [v.x, v.y]);
-
-  const isInteractive = isRegionInScope(activeScope);
 
   if (import.meta.env.DEV && !encounterRegion.id) {
     console.warn('[RegionRenderer] Missing ID for region at index', encounterRegion.index);
@@ -65,7 +77,7 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
         closed={true}
         listening={isInteractive}
       />
-      <RegionLabelDisplay centroid={centroid} label={getLabelText()} />
+      <RegionLabelDisplay centroid={centroid} label={labelText} />
     </>
   );
 };

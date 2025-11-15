@@ -133,7 +133,6 @@ export function UserDetailModal({
         setActionLoading(true);
         try {
             await userService.sendPasswordReset(userId, user.email);
-            console.log('Password reset email sent');
         } catch (error) {
             console.error('Failed to send password reset:', error);
         } finally {

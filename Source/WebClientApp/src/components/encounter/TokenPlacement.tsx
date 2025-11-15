@@ -103,12 +103,23 @@ const getAssetSize = (asset: Asset): { width: number; height: number } => {
   return { width: 1, height: 1 };
 };
 
+let sharedCanvas: HTMLCanvasElement | null = null;
+let sharedContext: CanvasRenderingContext2D | null = null;
+
+const getSharedContext = (): CanvasRenderingContext2D | null => {
+  if (!sharedCanvas) {
+    sharedCanvas = document.createElement('canvas');
+    sharedContext = sharedCanvas.getContext('2d');
+  }
+  return sharedContext;
+};
+
 const measureTextWidth = (
   text: string,
   fontSize: number = LABEL_FONT_SIZE,
   fontFamily: string = LABEL_FONT_FAMILY,
 ): number => {
-  const ctx = document.createElement('canvas').getContext('2d');
+  const ctx = getSharedContext();
   if (!ctx) {
     return text.length * fontSize * 0.6;
   }
@@ -148,8 +159,14 @@ interface TooltipRendererProps {
 }
 
 const TooltipRenderer: React.FC<TooltipRendererProps> = ({ tooltip, labelColors }) => {
-  const tooltipWidth = measureTextWidth(tooltip.text, LABEL_FONT_SIZE, LABEL_FONT_FAMILY) + LABEL_HORIZONTAL_PADDING;
-  const tooltipHeight = measureTextHeight(LABEL_FONT_SIZE) + LABEL_VERTICAL_PADDING;
+  const tooltipWidth = useMemo(
+    () => measureTextWidth(tooltip.text, LABEL_FONT_SIZE, LABEL_FONT_FAMILY) + LABEL_HORIZONTAL_PADDING,
+    [tooltip.text]
+  );
+  const tooltipHeight = useMemo(
+    () => measureTextHeight(LABEL_FONT_SIZE) + LABEL_VERTICAL_PADDING,
+    []
+  );
 
   return (
     <Group x={tooltip.canvasX + 10} y={tooltip.canvasY + 10}>
@@ -255,6 +272,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
   const [hoveredAssetId, setHoveredAssetId] = useState<string | null>(null);
   const snapModeRef = useRef(snapMode);
   const layerRef = useRef<Konva.Layer>(null);
+  const lastMouseMoveTime = useRef(0);
 
   const labelColors = useMemo(
     () => ({
@@ -265,9 +283,91 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     [theme.palette.background.paper, theme.palette.divider, theme.palette.text.primary],
   );
 
+  const labelVisibilityMap = useMemo(() => {
+    return new Map(
+      placedAssets.map(asset => [
+        asset.id,
+        getEffectiveLabelVisibility(asset)
+      ])
+    );
+  }, [placedAssets]);
+
+  const labelPositionMap = useMemo(() => {
+    return new Map(
+      placedAssets.map(asset => [
+        asset.id,
+        getEffectiveLabelPosition(asset)
+      ])
+    );
+  }, [placedAssets]);
+
+  const assetRenderData = useMemo(() => {
+    return new Map(placedAssets.map(asset => {
+      const size = getAssetSize(asset.asset);
+      const pixelWidth = size.width * gridConfig.cellSize.width;
+      const pixelHeight = size.height * gridConfig.cellSize.height;
+
+      let formattedLabel = null;
+      if (asset.asset.kind === 'Monster' || asset.asset.kind === 'Character') {
+        formattedLabel = formatMonsterLabel(asset.name, MAX_LABEL_WIDTH_COLLAPSED);
+      }
+
+      return [asset.id, {
+        size,
+        pixelWidth,
+        pixelHeight,
+        formattedLabel,
+      }];
+    }));
+  }, [placedAssets, gridConfig.cellSize]);
+
   useEffect(() => {
     snapModeRef.current = snapMode;
   }, [snapMode]);
+
+  const collisionData = useMemo(() => {
+    return placedAssets
+      .filter((a) => {
+        return (
+          a.position &&
+          typeof a.position.x === 'number' &&
+          typeof a.position.y === 'number' &&
+          a.size &&
+          typeof a.size.width === 'number' &&
+          typeof a.size.height === 'number' &&
+          a.size.width > 0 &&
+          a.size.height > 0 &&
+          Number.isFinite(a.position.x) &&
+          Number.isFinite(a.position.y) &&
+          Number.isFinite(a.size.width) &&
+          Number.isFinite(a.size.height)
+        );
+      })
+      .map((a) => {
+        const objectData =
+          a.asset.kind === 'Object'
+            ? {
+                size: (a.asset as ObjectAsset).size,
+                isMovable: (a.asset as ObjectAsset).isMovable,
+                isOpaque: (a.asset as ObjectAsset).isOpaque,
+              }
+            : undefined;
+        const monsterData =
+          a.asset.kind === 'Monster'
+            ? {
+                size: (a.asset as MonsterAsset).size,
+              }
+            : undefined;
+
+        return {
+          x: a.position.x,
+          y: a.position.y,
+          width: a.size.width,
+          height: a.size.height,
+          allowOverlap: getPlacementBehavior(a.asset.kind, objectData, monsterData).allowOverlap,
+        };
+      });
+  }, [placedAssets]);
 
   // Initialize cursor position when draggedAsset changes from null to non-null
   useEffect(() => {
@@ -354,6 +454,12 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (!draggedAsset) return;
 
+      const now = Date.now();
+      if (now - lastMouseMoveTime.current < 33) {
+        return;
+      }
+      lastMouseMoveTime.current = now;
+
       const stage = e.target.getStage();
       if (!stage) {
         return;
@@ -407,54 +513,14 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         position,
         size,
         behavior,
-        placedAssets
-          .filter((a) => {
-            return (
-              a.position &&
-              typeof a.position.x === 'number' &&
-              typeof a.position.y === 'number' &&
-              a.size &&
-              typeof a.size.width === 'number' &&
-              typeof a.size.height === 'number' &&
-              a.size.width > 0 &&
-              a.size.height > 0 &&
-              Number.isFinite(a.position.x) &&
-              Number.isFinite(a.position.y) &&
-              Number.isFinite(a.size.width) &&
-              Number.isFinite(a.size.height)
-            );
-          })
-          .map((a) => {
-            const objectData =
-              a.asset.kind === 'Object'
-                ? {
-                    size: (a.asset as ObjectAsset).size,
-                    isMovable: (a.asset as ObjectAsset).isMovable,
-                    isOpaque: (a.asset as ObjectAsset).isOpaque,
-                  }
-                : undefined;
-            const monsterData =
-              a.asset.kind === 'Monster'
-                ? {
-                    size: (a.asset as MonsterAsset).size,
-                  }
-                : undefined;
-
-            return {
-              x: a.position.x,
-              y: a.position.y,
-              width: a.size.width,
-              height: a.size.height,
-              allowOverlap: getPlacementBehavior(a.asset.kind, objectData, monsterData).allowOverlap,
-            };
-          }),
+        collisionData,
         gridConfig,
         isShiftPressed,
       );
 
       setIsValidPlacement(validation.valid);
     },
-    [draggedAsset, gridConfig, placedAssets],
+    [draggedAsset, gridConfig, collisionData],
   );
 
   const handleClick = useCallback(
@@ -525,18 +591,18 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const image = imageCache.get(placedAsset.assetId);
         if (!image) return null;
 
-        // Calculate size from asset's NamedSize (in grid cells) multiplied by cell size
-        const assetCellSize = getAssetSize(placedAsset.asset);
-        const pixelWidth = assetCellSize.width * gridConfig.cellSize.width;
-        const pixelHeight = assetCellSize.height * gridConfig.cellSize.height;
+        const renderData = assetRenderData.get(placedAsset.id);
+        if (!renderData) return null;
+
+        const { pixelWidth, pixelHeight, formattedLabel } = renderData;
 
         const isMonster = placedAsset.asset.kind === 'Monster';
 
         if (isMonster) {
           const isHovered = hoveredAssetId === placedAsset.id;
           const isExpanded = expandedAssetId === placedAsset.id;
-          const effectiveDisplay = getEffectiveLabelVisibility(placedAsset);
-          const effectivePosition = getEffectiveLabelPosition(placedAsset);
+          const effectiveDisplay = labelVisibilityMap.get(placedAsset.id)!;
+          const effectivePosition = labelPositionMap.get(placedAsset.id)!;
 
           const showLabel =
             effectiveDisplay === DisplayNameEnum.Always || (effectiveDisplay === DisplayNameEnum.OnHover && isHovered);
@@ -573,8 +639,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             );
           }
 
-          const labelInfo = formatMonsterLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
-          // Show full text if expanded OR if label visibility is "on hover"
+          const labelInfo = formattedLabel!;
           const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
           const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
 
@@ -678,8 +743,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const isHovered = hoveredAssetId === placedAsset.id;
         const isExpanded = expandedAssetId === placedAsset.id;
 
-        const effectiveDisplay = getEffectiveLabelVisibility(placedAsset);
-        const effectivePosition = getEffectiveLabelPosition(placedAsset);
+        const effectiveDisplay = labelVisibilityMap.get(placedAsset.id)!;
+        const effectivePosition = labelPositionMap.get(placedAsset.id)!;
 
         const showLabel =
           effectiveDisplay === DisplayNameEnum.Always || (effectiveDisplay === DisplayNameEnum.OnHover && isHovered);
@@ -722,8 +787,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
           );
         }
 
-        const labelInfo = formatMonsterLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
-        // Show full text if expanded OR if label visibility is "on hover"
+        const labelInfo = formattedLabel!;
         const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
         const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
 
@@ -825,29 +889,29 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       });
   };
 
-  const renderPreview = () => {
-    if (!draggedAsset || !cursorPosition) return null;
-
-    const image = imageCache.get(draggedAsset.id);
-    if (!image) return null;
-
-    // Get asset size (number of grid cells)
+  const previewSize = useMemo(() => {
+    if (!draggedAsset) return null;
     const assetCellSize = getAssetSize(draggedAsset);
-
-    // Convert to pixel dimensions
-    const size = {
+    return {
       width: assetCellSize.width * gridConfig.cellSize.width,
       height: assetCellSize.height * gridConfig.cellSize.height,
     };
+  }, [draggedAsset, gridConfig.cellSize]);
+
+  const renderPreview = () => {
+    if (!draggedAsset || !cursorPosition || !previewSize) return null;
+
+    const image = imageCache.get(draggedAsset.id);
+    if (!image) return null;
 
     return (
       <>
         <KonvaImage
           image={image}
-          x={cursorPosition.x - size.width / 2}
-          y={cursorPosition.y - size.height / 2}
-          width={size.width}
-          height={size.height}
+          x={cursorPosition.x - previewSize.width / 2}
+          y={cursorPosition.y - previewSize.height / 2}
+          width={previewSize.width}
+          height={previewSize.height}
           opacity={isValidPlacement ? 0.6 : 0.3}
           listening={false}
         />

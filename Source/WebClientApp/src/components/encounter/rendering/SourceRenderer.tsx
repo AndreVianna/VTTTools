@@ -1,8 +1,8 @@
-import type { Theme } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
+import type { Context } from 'konva/lib/Context';
 import type React from 'react';
 import { useMemo } from 'react';
-import { Shape } from 'react-konva';
+import { Circle, Shape } from 'react-konva';
 import type { EncounterSource, EncounterWall } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -17,17 +17,6 @@ export interface SourceRendererProps {
   activeScope: InteractionScope;
 }
 
-const getSourceColor = (sourceType: string, theme: Theme): string => {
-  switch (sourceType.toLowerCase()) {
-    case 'light':
-      return theme.palette.warning.light;
-    case 'sound':
-      return theme.palette.info.light;
-    default:
-      return theme.palette.grey[400];
-  }
-};
-
 export const SourceRenderer: React.FC<SourceRendererProps> = ({
   encounterSource,
   walls,
@@ -35,7 +24,24 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
   activeScope,
 }) => {
   const theme = useTheme();
-  const defaultColor = getSourceColor(encounterSource.type, theme);
+  const defaultColor = useMemo(() => {
+    switch (encounterSource.type.toLowerCase()) {
+      case 'light':
+        return theme.palette.warning.light;
+      case 'bright light':
+        return theme.palette.warning.main;
+      case 'dim light':
+        return theme.palette.warning.dark;
+      case 'darkness':
+        return theme.palette.grey[800];
+      case 'magical darkness':
+        return theme.palette.grey[900];
+      case 'sound':
+        return theme.palette.info.light;
+      default:
+        return theme.palette.grey[400];
+    }
+  }, [encounterSource.type, theme.palette]);
   const color = encounterSource.color ?? defaultColor;
 
   const opaqueWalls = useMemo(() => {
@@ -48,16 +54,50 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
 
   const losPolygon = useMemo(() => {
     return calculateLineOfSight(encounterSource, effectiveRange, opaqueWalls, gridConfig);
-  }, [encounterSource, effectiveRange, opaqueWalls, gridConfig]);
+  }, [encounterSource.position, encounterSource.type, effectiveRange, opaqueWalls, gridConfig.cellSize]);
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
   const isInteractive = isSourceInScope(activeScope);
 
+  const transparentColor = useMemo(() => {
+    return color.startsWith('#')
+      ? `${color}00`
+      : color.replace(')', ', 0)').replace('rgb(', 'rgba(');
+  }, [color]);
+
+  const useSimpleCircle = useMemo(() => {
+    return losPolygon.length < 3;
+  }, [losPolygon.length]);
+
+  const gradientProps = useMemo(() => {
+    if (!effectiveIsGradient) return {};
+
+    return {
+      fillRadialGradientStartPoint: { x: 0, y: 0 },
+      fillRadialGradientEndPoint: { x: 0, y: 0 },
+      fillRadialGradientStartRadius: 0,
+      fillRadialGradientEndRadius: rangeInPixels,
+      fillRadialGradientColorStops: [0, color, 1, transparentColor],
+    };
+  }, [effectiveIsGradient, rangeInPixels, color, transparentColor]);
+
+  if (useSimpleCircle) {
+    return (
+      <Circle
+        x={encounterSource.position.x}
+        y={encounterSource.position.y}
+        radius={rangeInPixels}
+        fill={effectiveIsGradient ? color : color}
+        opacity={effectiveIntensity}
+        {...gradientProps}
+        listening={isInteractive}
+      />
+    );
+  }
+
   return (
     <Shape
-      encounterFunc={(context: CanvasRenderingContext2D) => {
-        if (losPolygon.length < 3) return;
-
+      sceneFunc={(context: Context) => {
         const firstPoint = losPolygon[0];
         if (!firstPoint) return;
 
@@ -79,10 +119,6 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
             encounterSource.position.y,
             rangeInPixels,
           );
-
-          const transparentColor = color.startsWith('#')
-            ? `${color}00`
-            : color.replace(')', ', 0)').replace('rgb(', 'rgba(');
 
           gradient.addColorStop(0, color);
           gradient.addColorStop(1, transparentColor);

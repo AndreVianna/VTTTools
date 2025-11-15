@@ -1,5 +1,6 @@
 import type Konva from 'konva';
 import type React from 'react';
+import { useMemo } from 'react';
 import { Circle, Group, Line } from 'react-konva';
 import { type EncounterWall, WallVisibility } from '@/types/domain';
 import type { InteractionScope } from '@/utils/scopeFiltering';
@@ -12,35 +13,34 @@ export interface WallRendererProps {
 }
 
 export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onContextMenu, activeScope }) => {
-  const getWallStyle = (visibility: WallVisibility) => {
+  const style = useMemo(() => {
     const wallColor = encounterWall.color || '#808080';
     const strokeColor = wallColor;
-    const strokeWidth = 3;
 
-    switch (visibility) {
-      case WallVisibility.Normal:
-        return {
-          stroke: strokeColor,
-          strokeWidth: strokeWidth,
-          opacity: 1,
-          dash: undefined,
-        };
+    switch (encounterWall.visibility) {
       case WallVisibility.Fence:
         return {
           stroke: strokeColor,
-          strokeWidth: strokeWidth,
-          opacity: 0.9,
+          strokeWidth: 3,
           dash: [8, 4],
+          opacity: 0.9,
         };
       case WallVisibility.Invisible:
         return {
           stroke: strokeColor,
-          strokeWidth: strokeWidth,
-          opacity: 0.3,
+          strokeWidth: 3,
           dash: [4, 4],
+          opacity: 0.3,
+        };
+      default:
+        return {
+          stroke: strokeColor,
+          strokeWidth: 3,
+          opacity: 1,
+          dash: undefined,
         };
     }
-  };
+  }, [encounterWall.visibility, encounterWall.color]);
 
   const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
@@ -57,31 +57,33 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
     }
   };
 
-  const style = getWallStyle(encounterWall.visibility);
-
-  const points: number[] = [];
-  for (let i = 0; i < encounterWall.poles.length; i++) {
-    const pole = encounterWall.poles[i];
-    if (!pole) continue;
-    points.push(pole.x, pole.y);
-  }
-  if (encounterWall.isClosed && encounterWall.poles.length > 0) {
-    const firstPole = encounterWall.poles[0];
-    if (firstPole) {
-      points.push(firstPole.x, firstPole.y);
+  const points = useMemo(() => {
+    const result: number[] = [];
+    for (let i = 0; i < encounterWall.poles.length; i++) {
+      const pole = encounterWall.poles[i];
+      if (!pole) continue;
+      result.push(pole.x, pole.y);
     }
-  }
+    if (encounterWall.isClosed && encounterWall.poles.length > 0) {
+      const firstPole = encounterWall.poles[0];
+      if (firstPole) {
+        result.push(firstPole.x, firstPole.y);
+      }
+    }
+    return result;
+  }, [encounterWall.poles, encounterWall.isClosed]);
 
   const poleRadius = 1.5;
   const poleColor = encounterWall.color || '#808080';
 
-  const isInteractive = isWallInScope(activeScope);
+  const isInteractive = useMemo(
+    () => isWallInScope(activeScope),
+    [activeScope]
+  );
 
-  const wallId = `wall-${encounterWall.encounterId}-${encounterWall.index}`;
-
-  if (import.meta.env.DEV && !encounterWall.encounterId) {
-    console.warn('[WallRenderer] Missing encounterId for wall at index', encounterWall.index);
-  }
+  const wallId = encounterWall.encounterId
+    ? `wall-${encounterWall.encounterId}-${encounterWall.index}`
+    : `wall-temp-${encounterWall.index}`;
 
   return (
     <Group>
