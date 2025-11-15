@@ -1,11 +1,11 @@
 import type Konva from 'konva';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { Point } from '@/types/domain';
 import { createPlaceVertexAction } from '@/types/regionUndoActions';
-import { getCrosshairCursor } from '@/utils/customCursors';
+import { getCrosshairPlusCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { snapToNearest } from '@/utils/structureSnapping';
@@ -37,6 +37,15 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
 }) => {
   const [vertices, setVertices] = useState<Point[]>([]);
   const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
+  const stageContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (stageContainerRef.current) {
+        stageContainerRef.current.style.cursor = 'default';
+      }
+    };
+  }, []);
 
   const handleFinish = useCallback(async () => {
     if (vertices.length < 3) {
@@ -52,6 +61,9 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         onCancel();
         return;
       }
@@ -59,6 +71,9 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
       if (e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         handleFinish();
         return;
       }
@@ -152,7 +167,8 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
 
     const container = stage.container();
     if (container) {
-      container.style.cursor = getCrosshairCursor();
+      stageContainerRef.current = container;
+      container.style.cursor = getCrosshairPlusCursor();
     }
   }, []);
 

@@ -1,13 +1,13 @@
 import type Konva from 'konva';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import { useAddEncounterSourceMutation } from '@/services/encounterApi';
 import type { EncounterSource, EncounterWall, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { snapToNearest } from '@/utils/structureSnapping';
-import { getCrosshairCursor } from '@/utils/customCursors';
+import { getCrosshairPlusCursor } from '@/utils/customCursors';
 import { SourcePreview } from './SourcePreview';
 import { VertexMarker } from './VertexMarker';
 
@@ -40,8 +40,17 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   const [currentDirection, setCurrentDirection] = useState<number>(0);
   const [currentSpread, setCurrentSpread] = useState<number>(45);
   const [addSource] = useAddEncounterSourceMutation();
+  const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const isDirectional = source.isDirectional;
+
+  useEffect(() => {
+    return () => {
+      if (stageContainerRef.current) {
+        stageContainerRef.current.style.cursor = 'default';
+      }
+    };
+  }, []);
 
   const handleFinish = useCallback(
     async (explicitRange?: number) => {
@@ -54,6 +63,9 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
 
       if (rangeToUse < MIN_RANGE || rangeToUse > MAX_RANGE) {
         console.warn(`Invalid range: ${rangeToUse}. Must be between ${MIN_RANGE} and ${MAX_RANGE}`);
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         onComplete(false);
         return;
       }
@@ -73,9 +85,15 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           ...(source.color && { color: source.color }),
         }).unwrap();
 
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         onComplete(true);
       } catch (error) {
         console.error('Failed to place source:', error);
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         onComplete(false);
       }
     },
@@ -111,6 +129,9 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         resetPlacement();
         onCancel();
       }
@@ -262,7 +283,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
 
     const container = stage.container();
     if (container) {
-      container.style.cursor = getCrosshairCursor();
+      stageContainerRef.current = container;
+      container.style.cursor = getCrosshairPlusCursor();
     }
   }, []);
 

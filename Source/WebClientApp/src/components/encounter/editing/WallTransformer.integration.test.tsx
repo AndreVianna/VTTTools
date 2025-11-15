@@ -48,7 +48,7 @@
 // }));
 
 // vi.mock('@/utils/customCursors', () => ({
-//     getCrosshairPlusCursor: () => 'crosshair',
+//     getCrosshairCursor: () => 'crosshair',
 //     getMoveCursor: () => 'move',
 //     getGrabbingCursor: () => 'grabbing',
 //     getPointerCursor: () => 'pointer',

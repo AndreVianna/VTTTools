@@ -1,10 +1,10 @@
 import type Konva from 'konva';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { PlacedOpening, PlacedWall, Point } from '@/types/domain';
-import { getBucketFillCursor } from '@/utils/customCursors';
+import { getBucketPlusCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { traceBoundary } from '@/utils/regionBoundaryUtils';
 import { RegionPreview } from '../RegionPreview';
@@ -35,12 +35,24 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
 }) => {
   const [previewVertices, setPreviewVertices] = useState<Point[] | null>(null);
   const [isFullStage, setIsFullStage] = useState(false);
+  const stageContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (stageContainerRef.current) {
+        stageContainerRef.current.style.cursor = 'default';
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
+        if (stageContainerRef.current) {
+          stageContainerRef.current.style.cursor = 'default';
+        }
         onCancel();
         return;
       }
@@ -121,6 +133,9 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         return;
       }
 
+      if (stageContainerRef.current) {
+        stageContainerRef.current.style.cursor = 'default';
+      }
       onFinish(finalVertices);
     },
     [walls, openings, stageSize, onFinish],
@@ -132,7 +147,8 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
 
     const container = stage.container();
     if (container) {
-      container.style.cursor = getBucketFillCursor();
+      stageContainerRef.current = container;
+      container.style.cursor = getBucketPlusCursor();
     }
   }, []);
 

@@ -28,7 +28,7 @@ import {
 import type { OpeningPlacementProperties, SourcePlacementProperties } from '@components/encounter/panels';
 import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
-import { GroupName, LayerName, layerManager } from '@services/layerManager';
+import { GroupName, LayerName, LayerZIndex, layerManager } from '@services/layerManager';
 import { type GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
@@ -1413,7 +1413,6 @@ const EncounterEditorPageInternal: React.FC = () => {
             position: 'relative',
             width: '100%',
             height: '100%',
-            cursor: drawingMode === 'wall' || drawingMode === 'region' ? 'crosshair' : 'default',
           }}
         >
           <LeftToolBar
@@ -1481,6 +1480,29 @@ const EncounterEditorPageInternal: React.FC = () => {
             onViewportChange={viewportControls.handleViewportChange}
             stageCallbackRef={stageCallbackRef}
           >
+            {/* ===== KONVA LAYER HIERARCHY (Z-ORDER) =====
+              *
+              * LAYER STACK (bottom to top):
+              * 0. Static Layer - Background image, grid lines
+              * 1. GameWorld Layer - Regions, Sources, Walls, Openings, Transformers
+              * 2. Assets Layer - Tokens, Objects, Monsters, Characters
+              * 3. DrawingTools Layer - Wall/Region/Source/Opening drawing tools
+              * 4. SelectionHandles Layer - Token selection boxes, rotation handles, marquee
+              *
+              * CRITICAL: Drawing tool cursors/markers MUST render above walls
+              * CRITICAL: Selection handles MUST render above all content for visibility
+              *
+              * WHY THIS ORDER:
+              * - Static below everything (non-interactive background)
+              * - GameWorld structures define playable space
+              * - Assets placed on top of structures (characters/objects)
+              * - DrawingTools overlay for visual feedback during placement
+              * - SelectionHandles always on top for clear visibility
+              *
+              * NOTE: React-Konva controls z-order via JSX render order, NOT zIndex props.
+              * The order of <Layer> elements below defines their rendering order.
+              */}
+
             {/* Layer 1: Static (background + grid) */}
             <Layer name={LayerName.Static} listening={false}>
               <BackgroundLayer
@@ -1499,7 +1521,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             </Layer>
 
             {/* Layer 2: GameWorld (structures, objects, monsters) */}
-            <Layer name={LayerName.GameWorld}>
+            <Layer name={LayerName.GameWorld} listening={true}>
               {/* Regions - render first (bottom of GameWorld) */}
               {scopeVisibility.regions && placedRegions && placedRegions.length > 0 && (
                 <Group name={GroupName.Structure}>
@@ -1642,7 +1664,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               )}
             </Layer>
 
-            {/* Layer 5: Assets (tokens/objects/monsters) */}
+            {/* Layer 3: Assets (tokens/objects/monsters) - creates Layer internally */}
             {encounter && (
               <TokenPlacement
                 placedAssets={visibleAssets}
@@ -1664,12 +1686,9 @@ const EncounterEditorPageInternal: React.FC = () => {
               />
             )}
 
-            {/* Layer 6: Effects (placeholder for future) */}
-            <Layer name={LayerName.Effects}>{/* Future: effects components */}</Layer>
-
-            {/* Layer 4: Drawing Tools (in UIOverlay for topmost rendering) */}
+            {/* Layer 4: DrawingTools (wall/region/source/opening placement tools) */}
             {encounter && encounterId && (
-              <Layer name={LayerName.UIOverlay}>
+              <Layer name={LayerName.DrawingTools} listening={true}>
                 {drawingMode === 'wall' && drawingWallIndex !== null && (
                   <WallDrawingTool
                     encounterId={encounterId}
@@ -1790,7 +1809,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               </Layer>
             )}
 
-            {/* Layer 8: UI Overlay (transformer + selection) */}
+            {/* Layer 5: SelectionHandles (token selection boxes, rotation handles, marquee) */}
             <TokenDragHandle
               placedAssets={visibleAssets}
               selectedAssetIds={assetManagement.selectedAssetIds}
