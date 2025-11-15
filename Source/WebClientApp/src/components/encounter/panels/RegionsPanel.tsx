@@ -3,10 +3,12 @@ import {
   Edit as EditIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
+  FormatColorFill as BucketFillIcon,
 } from '@mui/icons-material';
 import {
   Box,
   Button,
+  ButtonGroup,
   Collapse,
   Divider,
   FormControl,
@@ -34,6 +36,7 @@ export interface RegionsPanelProps {
   selectedRegionIndex?: number | null;
   onPresetSelect?: (preset: RegionPreset) => void;
   onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
+  onBucketFillRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
   onRegionSelect?: (regionIndex: number) => void;
   onRegionDelete?: (regionIndex: number) => void;
   onEditVertices?: (regionIndex: number) => void;
@@ -61,6 +64,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     selectedRegionIndex,
     onPresetSelect,
     onPlaceRegion,
+    onBucketFillRegion,
     onRegionSelect,
     onRegionDelete,
     onEditVertices,
@@ -167,6 +171,30 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
       }
 
       onPlaceRegion?.(properties);
+
+      setName(getSuggestedRegionName([...encounterRegions, { name } as PlacedRegion]));
+    };
+
+    const handleBucketFillRegion = () => {
+      const properties: {
+        name: string;
+        type: string;
+        value?: number;
+        label?: string;
+        color?: string;
+      } = {
+        name,
+        type: regionType,
+        color,
+      };
+
+      if (regionType === 'Elevation') {
+        properties.value = value;
+      } else {
+        properties.label = label;
+      }
+
+      onBucketFillRegion?.(properties);
 
       setName(getSuggestedRegionName([...encounterRegions, { name } as PlacedRegion]));
     };
@@ -345,15 +373,25 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
           </Box>
         </Box>
 
-        <Button
-          id='btn-place-region'
-          variant='contained'
-          onClick={handlePlaceRegion}
-          disabled={!name.trim()}
-          sx={compactStyles.button}
-        >
-          Place Region
-        </Button>
+        <ButtonGroup fullWidth variant='contained' sx={{ height: '28px' }}>
+          <Button
+            id='btn-place-region'
+            onClick={handlePlaceRegion}
+            disabled={!name.trim()}
+            sx={{...compactStyles.button, flex: 1}}
+          >
+            Place Region
+          </Button>
+          <Button
+            id='btn-bucket-fill-region'
+            onClick={handleBucketFillRegion}
+            disabled={!name.trim()}
+            sx={{...compactStyles.button, minWidth: '40px', flex: 0}}
+            title='Bucket Fill'
+          >
+            <BucketFillIcon sx={{ fontSize: '14px' }} />
+          </Button>
+        </ButtonGroup>
 
         <Divider sx={{ my: 0.5 }} />
 

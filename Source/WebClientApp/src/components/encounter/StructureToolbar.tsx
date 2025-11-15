@@ -8,7 +8,7 @@ import { Box, Button, ButtonGroup, Tooltip, useTheme } from '@mui/material';
 import type React from 'react';
 import { useEffect } from 'react';
 
-export type DrawingMode = 'wall' | 'region' | 'source' | null;
+export type DrawingMode = 'wall' | 'region' | 'source' | 'bucketFill' | null;
 
 export interface StructureToolbarProps {
   drawingMode: DrawingMode;

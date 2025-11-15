@@ -11,6 +11,7 @@ import {
   LeftToolBar,
   OpeningDrawingTool,
   OpeningRenderer,
+  RegionBucketFillTool,
   RegionDrawingTool,
   RegionRenderer,
   RegionTransformer,
