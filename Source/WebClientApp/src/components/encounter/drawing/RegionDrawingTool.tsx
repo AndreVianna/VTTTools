@@ -61,8 +61,6 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
         if (stageContainerRef.current) {
           stageContainerRef.current.style.cursor = 'default';
         }
@@ -70,9 +68,7 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         return;
       }
 
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
+      if (e.key === 'Enter' && !e.defaultPrevented) {
         if (stageContainerRef.current) {
           stageContainerRef.current.style.cursor = 'default';
         }
