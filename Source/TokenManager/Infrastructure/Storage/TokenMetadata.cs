@@ -6,6 +6,5 @@ public sealed record TokenMetadata(
     string EntityType,
     string EntitySlug,
     string Prompt,
-    string EngineId,
     DateTime CreatedAtUtc,
     string FileName);

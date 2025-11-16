@@ -7,19 +7,22 @@ public static class MonsterMapper {
         // crudely infer environments from type/traits later if you want
         var envs = Array.Empty<string>();
 
-        var tags = new List<string> { "monster", m.CreatureType.ToLowerInvariant() };
+        var tags = new List<string> { "monster" };
 
-        if (m.Size is { Length: > 0 })
+        if (!string.IsNullOrWhiteSpace(m.CreatureType))
+            tags.Add(m.CreatureType.ToLowerInvariant());
+
+        if (!string.IsNullOrWhiteSpace(m.Size))
             tags.Add(m.Size.ToLowerInvariant());
 
-        if (m.Alignment is { Length: > 0 })
+        if (!string.IsNullOrWhiteSpace(m.Alignment))
             tags.Add(m.Alignment.ToLowerInvariant());
 
         return new TokenEntity(
             Id: id,
             Name: m.Name,
             Type: EntityType.Monster,
-            Subtype: m.CreatureType,
+            Subtype: m.CreatureType ?? string.Empty,
             Size: m.Size,
             Role: null,
             Tags: tags,

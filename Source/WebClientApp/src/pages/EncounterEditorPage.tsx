@@ -446,7 +446,8 @@ const EncounterEditorPageInternal: React.FC = () => {
   const keyboardState = useKeyboardState({
     gridConfig,
     ...(drawingMode !== 'wall' &&
-      drawingMode !== 'region' && {
+      drawingMode !== 'region' &&
+      fogDrawingTool === null && {
         onEscapeKey: () => {
           if (isEditingVertices && wallTransaction.transaction.isActive) {
             wallHandlers.handleCancelEditing();
@@ -1207,6 +1208,25 @@ const EncounterEditorPageInternal: React.FC = () => {
         setErrorMessage('Failed to create fog region. Please try again.');
       }
     },
+    onRegionsDeleted: async (regionIndices) => {
+      try {
+        for (const regionIndex of regionIndices) {
+          await removeEncounterRegion({
+            encounterId: encounterId || '',
+            regionIndex,
+          }).unwrap();
+        }
+        const { data } = await refetch();
+        if (data) {
+          setEncounter(data);
+          const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+          setPlacedRegions(hydratedRegions);
+        }
+      } catch (error) {
+        console.error('Failed to delete old FoW regions:', error);
+        setErrorMessage('Failed to merge fog regions. Please try again.');
+      }
+    },
   });
 
   const handleFogModeChange = useCallback((mode: 'add' | 'subtract') => {
@@ -1221,7 +1241,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     setFogDrawingTool('bucketFill');
   }, []);
 
-  const handleFogHideAll = useCallback(() => {
+  const handleFogHideAll = useCallback(async () => {
     try {
       if (fogMode !== 'add') {
         setFogMode('add');
@@ -1235,7 +1255,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         { x: 0, y: STAGE_HEIGHT },
       ];
 
-      handlePolygonComplete(fullStageVertices);
+      await handlePolygonComplete(fullStageVertices);
     } catch (error) {
       console.error('Failed to hide all areas:', error);
       setErrorMessage('Failed to hide all areas. Please try again.');
@@ -1535,6 +1555,9 @@ const EncounterEditorPageInternal: React.FC = () => {
                     if (encounterRegion.index === -1 && drawingRegionIndex !== null) {
                       return null;
                     }
+                    if (encounterRegion.type === 'FogOfWar') {
+                      return null;
+                    }
                     return (
                       <RegionRenderer
                         key={encounterRegion.id}
@@ -1659,15 +1682,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                     />
                   </Group>
                 )}
-
-              {/* Fog of War */}
-              {encounterId && (
-                <FogOfWarRenderer
-                  encounterId={encounterId}
-                  regions={fowRegions}
-                  visible={scopeVisibility.fogOfWar !== false}
-                />
-              )}
             </Layer>
 
             {/* Layer 3: Assets (tokens/objects/monsters) - creates Layer internally */}
@@ -1690,6 +1704,17 @@ const EncounterEditorPageInternal: React.FC = () => {
                 }}
                 encounter={encounter}
               />
+            )}
+
+            {/* Fog of War Layer (renders on top of assets) */}
+            {encounterId && scopeVisibility.fogOfWar !== false && (
+              <Layer name="fog-of-war" listening={false}>
+                <FogOfWarRenderer
+                  encounterId={encounterId}
+                  regions={fowRegions}
+                  visible={true}
+                />
+              </Layer>
             )}
 
             {/* Layer 4: DrawingTools (wall/region/source/opening placement tools) */}
@@ -1794,9 +1819,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                       setFogDrawingTool(null);
                       setFogDrawingVertices([]);
                     }}
-                    onFinish={() => {
-                      handlePolygonComplete(fogDrawingVertices);
+                    onFinish={async () => {
+                      await handlePolygonComplete(fogDrawingVertices);
                       setFogDrawingVertices([]);
+                      setFogDrawingTool(null);
                     }}
                     onVerticesChange={(vertices: Point[]) => setFogDrawingVertices(vertices)}
                   />

@@ -1,13 +1,20 @@
 ﻿namespace VttTools.TokenManager.Domain;
 
-public sealed class TokenGenerationService(StabilityClient stability, FileTokenStore store) {
-    private readonly StabilityClient _stability = stability;
-    private readonly FileTokenStore _store = store;
+public sealed class TokenGenerationService(IStabilityClient stability, IFileTokenStore store, int outputImageSize = 0, string aspectRatio = "1:1")
+    : ITokenGenerationService {
+    private readonly IStabilityClient _stability = stability;
+    private readonly IFileTokenStore _store = store;
+    private readonly int _outputImageSize = outputImageSize;
+    private readonly string _aspectRatio = aspectRatio;
 
-    public async Task GenerateAsync(TokenEntity entity, int variantIndex, string engineId) {
+    public async Task GenerateAsync(TokenEntity entity, int variantIndex, CancellationToken ct = default) {
         var prompt = BuildPrompt(entity);
+        var negativePrompt = "border, frame, text, UI elements, watermark, letters, numbers";
 
-        var bytes = await _stability.GeneratePngAsync(prompt);
+        var bytes = await _stability.GeneratePngAsync(prompt, negativePrompt, _aspectRatio, ct);
+
+        if (_outputImageSize > 0)
+            bytes = ImageProcessor.ResizeIfNeeded(bytes, _outputImageSize);
 
         var metadata = new TokenMetadata(
             EntityId: entity.Id,
@@ -15,12 +22,11 @@ public sealed class TokenGenerationService(StabilityClient stability, FileTokenS
             EntityType: entity.Type.ToString(),
             EntitySlug: entity.Id,
             Prompt: prompt,
-            EngineId: engineId,
             CreatedAtUtc: DateTime.UtcNow,
             FileName: $"token_{variantIndex}.png"
         );
 
-        await _store.SaveVariantAsync(metadata, bytes, variantIndex);
+        await _store.SaveVariantAsync(metadata, bytes, variantIndex, ct);
     }
 
     private static string BuildPrompt(TokenEntity e) {

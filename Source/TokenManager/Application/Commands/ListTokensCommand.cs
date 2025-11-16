@@ -1,7 +1,7 @@
 ﻿namespace VttTools.TokenManager.Application.Commands;
 
-public sealed class ListTokensCommand(FileTokenStore store) {
-    private readonly FileTokenStore _store = store;
+public sealed class ListTokensCommand(IFileTokenStore store) {
+    private readonly IFileTokenStore _store = store;
 
     public void Execute(ListTokensCommandOptions options) {
         foreach (var (_, meta) in _store.EnumerateTokens()) {

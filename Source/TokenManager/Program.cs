@@ -1,24 +1,21 @@
-﻿var config = new ConfigurationBuilder()
+﻿var serviceCollection = new ServiceCollection();
+serviceCollection.AddHttpClient();
+var serviceProvider = serviceCollection.BuildServiceProvider();
+
+var config = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true)
     .AddJsonFile("appsettings.Development.json", optional: true)
     .AddUserSecrets(typeof(Program).Assembly, optional: true)
     .Build();
 
-var apiKey = config["Stability:ApiKey"];
-if (string.IsNullOrWhiteSpace(apiKey)) {
-    Console.WriteLine("ERROR: Stability API Key is not configured.");
-    Console.WriteLine("Configure it using user secrets:");
-    Console.WriteLine("  dotnet user-secrets set \"Stability:ApiKey\" \"KEY\"");
-    return 1;
-}
-
-var engineId = config["Stability:EngineId"] ?? "stable-diffusion-xl-1024-v1-0";
-var outputDir = new DirectoryInfo(config["TokenManager:OutputRoot"] ?? "tokens");
+var outputDir = new DirectoryInfo(config["OutputRootFolder"] ?? "tokens");
 Directory.CreateDirectory(outputDir.FullName);
 
-var delay = int.TryParse(config["TokenManager:DelayInMs"], out var d) ? d : 500;
-var limit = int.TryParse(config["TokenManager:MaxTokens"], out var mt) ? mt : 0;
+var delay = int.TryParse(config["DelayBetweenRequestsInMs"], out var d) ? d : 500;
+var limit = int.TryParse(config["MaximumRequestsPerFile"], out var mt) ? mt : 0;
+var outputImageSize = int.TryParse(config["OutputImageSize"], out var ois) ? ois : 0;
+var outputAspectRatio = config["OutputAspectRatio"] ?? "1:1";
 
 var rootCommand = new RootCommand("TokenManager - generate and manage VTT tokens");
 
@@ -53,11 +50,6 @@ generateCommand.SetAction(parseResult => {
     var monstersFile = parseResult.GetValue(monstersOption);
     var variants = parseResult.GetValue(variantsOption);
 
-    if (string.IsNullOrWhiteSpace(apiKey)) {
-        Console.Error.WriteLine("Api Key is required.");
-        return 1;
-    }
-
     if (monstersFile is null) {
         Console.Error.WriteLine("Monsters file is required.");
         return 1;
@@ -68,21 +60,34 @@ generateCommand.SetAction(parseResult => {
         return 1;
     }
 
+    var provider = config["Provider"] ?? "Stability";
+    var engine = config[$"{provider}:Engine"] ?? "SD35";
+
     Console.WriteLine("Generating...");
-    Console.WriteLine($"  engine     : {engineId}");
     Console.WriteLine($"  idOrName         : {idOrName ?? "<all>"}");
     Console.WriteLine($"  monsters   : {monstersFile.FullName}");
     Console.WriteLine($"  output     : {outputDir.FullName}");
     Console.WriteLine($"  variants   : {variants}");
     Console.WriteLine($"  delay (ms) : {delay}");
     Console.WriteLine($"  limit      : {(limit == 0 ? "<none>" : limit.ToString())}");
+    Console.WriteLine($"  provider   : {provider}");
+    Console.WriteLine($"  engine     : {engine}");
+    Console.WriteLine($"  aspect ratio : {outputAspectRatio}");
+    Console.WriteLine($"  image size : {(outputImageSize > 0 ? $"{outputImageSize}x{outputImageSize}" : "original")}");
 
-    using var http = new HttpClient { BaseAddress = new Uri("https://api.stability.ai") };
-    var stability = new StabilityClient(http, apiKey, engineId);
+    var serviceProvider = serviceCollection.BuildServiceProvider();
+    var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+
+    IStabilityClient stability = engine.ToUpperInvariant() switch {
+        "SD35" => new StableDiffusion35Client(httpClientFactory, config),
+        "CORE" => new StableImageCoreClient(httpClientFactory, config),
+        _ => throw new InvalidOperationException($"Unknown engine: {engine}. Valid values: SD35, Core")
+    };
+
     var store = new FileTokenStore(outputDir.FullName);
-    var service = new TokenGenerationService(stability, store);
+    var service = new TokenGenerationService(stability, store, outputImageSize, outputAspectRatio);
 
-    var cmd = new GenerateTokensCommand(service, engineId);
+    var cmd = new GenerateTokensCommand(service);
 
     var options = new GenerateTokensCommandOptions(
         InputPath: monstersFile.FullName,

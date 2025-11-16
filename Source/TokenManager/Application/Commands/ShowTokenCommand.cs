@@ -1,7 +1,7 @@
 ﻿namespace VttTools.TokenManager.Application.Commands;
 
-public sealed class ShowTokenCommand(FileTokenStore store) {
-    private readonly FileTokenStore _store = store;
+public sealed class ShowTokenCommand(IFileTokenStore store) {
+    private readonly IFileTokenStore _store = store;
 
     public void Execute(ShowTokenCommandOptions options) {
         var meta = _store.LoadMetadata(options.IdOrName);
@@ -15,7 +15,6 @@ public sealed class ShowTokenCommand(FileTokenStore store) {
         Console.WriteLine($"Type:      {meta.EntityType}");
         Console.WriteLine($"File:      {meta.FileName}");
         Console.WriteLine($"Created:   {meta.CreatedAtUtc:u}");
-        Console.WriteLine($"Engine:    {meta.EngineId}");
         Console.WriteLine("Prompt:");
         Console.WriteLine(meta.Prompt);
     }

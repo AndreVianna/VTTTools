@@ -7,6 +7,7 @@ export interface UseFogOfWarPlacementParams {
     existingRegions: PlacedRegion[];
     mode: 'add' | 'subtract';
     onRegionCreated: (region: PlacedRegion) => void;
+    onRegionsDeleted?: (regionIndices: number[]) => Promise<void>;
 }
 
 type GeoJSONPolygon = number[][][];
@@ -89,7 +90,7 @@ function getNextHierarchicalName(existingRegions: PlacedRegion[], mode: 'add' | 
 }
 
 export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
-    const { encounterId, existingRegions, mode, onRegionCreated } = params;
+    const { encounterId, existingRegions, mode, onRegionCreated, onRegionsDeleted } = params;
 
     const fowRegions = useMemo(
         () => existingRegions.filter((r) => r.type === 'FogOfWar'),
@@ -97,7 +98,7 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
     );
 
     const handlePolygonComplete = useCallback(
-        (vertices: Point[]) => {
+        async (vertices: Point[]) => {
             if (!vertices || vertices.length < 3) {
                 return;
             }
@@ -115,6 +116,11 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
                         toGeoJSONPolygon(r.vertices),
                     );
                     resultPolygons = polygonClipping.union(existingPolys as any, [newPoly] as any) as MultiPolygon;
+
+                    if (onRegionsDeleted && existingHiddenRegions.length > 0) {
+                        const indicesToDelete = existingHiddenRegions.map((r) => r.index);
+                        await onRegionsDeleted(indicesToDelete);
+                    }
                 }
 
                 if (resultPolygons.length === 0) {
@@ -163,7 +169,7 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
                 onRegionCreated(newRegion);
             }
         },
-        [encounterId, existingRegions, fowRegions, mode, onRegionCreated],
+        [encounterId, existingRegions, fowRegions, mode, onRegionCreated, onRegionsDeleted],
     );
 
     return {

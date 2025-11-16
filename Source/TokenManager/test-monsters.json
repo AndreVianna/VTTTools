@@ -1,0 +1,168 @@
+[
+  {
+    "Name": "Goblin Warrior",
+    "Ac": 15,
+    "Size": "Small",
+    "CreatureType": "humanoid",
+    "Alignment": "Neutral Evil",
+    "Languages": ["Common", "Goblin"],
+    "MaxHitPoints": 7,
+    "HitDice": "2d6",
+    "Speed": {
+      "Walk": 30,
+      "Fly": 0,
+      "Swim": 0,
+      "Burrow": 0,
+      "Climb": 0,
+      "Hover": false
+    },
+    "Modifiers": {
+      "Str": -1,
+      "Dex": 2,
+      "Con": 0,
+      "Int": 0,
+      "Wis": -1,
+      "Cha": -1
+    },
+    "Stats": {
+      "Str": 8,
+      "Dex": 14,
+      "Con": 10,
+      "Int": 10,
+      "Wis": 8,
+      "Cha": 8
+    },
+    "SavingThrows": {
+      "Str": -1,
+      "Dex": 2,
+      "Con": 0,
+      "Int": 0,
+      "Wis": -1,
+      "Cha": -1
+    },
+    "Skills": {
+      "Acrobatics": 0,
+      "AnimalHandling": 0,
+      "Arcana": 0,
+      "Athletics": 0,
+      "Deception": 0,
+      "History": 0,
+      "Insight": 0,
+      "Intimidation": 0,
+      "Investigation": 0,
+      "Medicine": 0,
+      "Nature": 0,
+      "Perception": 0,
+      "Performance": 0,
+      "Persuasion": 0,
+      "Religion": 0,
+      "SleightOfHand": 4,
+      "Stealth": 6,
+      "Survival": 0
+    },
+    "Traits": [
+      "Nimble Escape"
+    ],
+    "Actions": {
+      "List": [
+        "Scimitar: Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.",
+        "Shortbow: Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage."
+      ],
+      "AttackRolls": []
+    },
+    "LegendaryActions": [],
+    "Reactions": [],
+    "Challenge": {
+      "Rating": "1/4",
+      "Xp": 50
+    },
+    "ImageUrl": null
+  },
+  {
+    "Name": "Ancient Red Dragon",
+    "Ac": 22,
+    "Size": "Gargantuan",
+    "CreatureType": "dragon",
+    "Alignment": "Chaotic Evil",
+    "Languages": ["Common", "Draconic"],
+    "MaxHitPoints": 546,
+    "HitDice": "28d20+252",
+    "Speed": {
+      "Walk": 40,
+      "Fly": 80,
+      "Swim": 0,
+      "Burrow": 0,
+      "Climb": 40,
+      "Hover": false
+    },
+    "Modifiers": {
+      "Str": 10,
+      "Dex": 0,
+      "Con": 9,
+      "Int": 4,
+      "Wis": 2,
+      "Cha": 6
+    },
+    "Stats": {
+      "Str": 30,
+      "Dex": 10,
+      "Con": 29,
+      "Int": 18,
+      "Wis": 15,
+      "Cha": 23
+    },
+    "SavingThrows": {
+      "Str": 10,
+      "Dex": 7,
+      "Con": 16,
+      "Int": 4,
+      "Wis": 9,
+      "Cha": 13
+    },
+    "Skills": {
+      "Acrobatics": 0,
+      "AnimalHandling": 0,
+      "Arcana": 0,
+      "Athletics": 0,
+      "Deception": 0,
+      "History": 0,
+      "Insight": 0,
+      "Intimidation": 0,
+      "Investigation": 0,
+      "Medicine": 0,
+      "Nature": 0,
+      "Perception": 16,
+      "Performance": 0,
+      "Persuasion": 0,
+      "Religion": 0,
+      "SleightOfHand": 0,
+      "Stealth": 7,
+      "Survival": 0
+    },
+    "Traits": [
+      "Legendary Resistance (3/Day)",
+      "Frightful Presence"
+    ],
+    "Actions": {
+      "List": [
+        "Multiattack: The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws.",
+        "Bite: Melee Weapon Attack: +17 to hit, reach 15 ft., one target. Hit: 21 (2d10 + 10) piercing damage plus 14 (4d6) fire damage.",
+        "Claw: Melee Weapon Attack: +17 to hit, reach 10 ft., one target. Hit: 17 (2d6 + 10) slashing damage.",
+        "Tail: Melee Weapon Attack: +17 to hit, reach 20 ft., one target. Hit: 19 (2d8 + 10) bludgeoning damage.",
+        "Fire Breath (Recharge 5-6): The dragon exhales fire in a 90-foot cone. Each creature in that area must make a DC 24 Dexterity saving throw, taking 91 (26d6) fire damage on a failed save, or half as much damage on a successful one."
+      ],
+      "AttackRolls": []
+    },
+    "LegendaryActions": [
+      "Detect: The dragon makes a Wisdom (Perception) check.",
+      "Tail Attack: The dragon makes a tail attack.",
+      "Wing Attack (Costs 2 Actions): The dragon beats its wings."
+    ],
+    "Reactions": [],
+    "Challenge": {
+      "Rating": "24",
+      "Xp": 62000
+    },
+    "ImageUrl": null
+  }
+]

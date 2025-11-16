@@ -1,6 +1,6 @@
 ﻿namespace VttTools.TokenManager.Infrastructure.Storage;
 
-public sealed class FileTokenStore(string root) {
+public sealed partial class FileTokenStore(string root) : IFileTokenStore {
     private readonly string _root = root;
 
     private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
@@ -8,9 +8,16 @@ public sealed class FileTokenStore(string root) {
     public string GetEntityFolder(TokenEntity entity)
         => Path.Combine(_root, $"{entity.Type.ToString().ToLowerInvariant()}-{entity.Id}");
 
-    public string GetEntityFolder(string idOrSlug)
-        => Directory.GetDirectories(_root, $"*-{idOrSlug}", SearchOption.TopDirectoryOnly)
+    public string GetEntityFolder(string idOrSlug) {
+        if (string.IsNullOrWhiteSpace(idOrSlug))
+            throw new ArgumentException("Entity ID cannot be empty.", nameof(idOrSlug));
+
+        if (!ValidEntityId().IsMatch(idOrSlug))
+            throw new ArgumentException($"Invalid entity ID format: {idOrSlug}", nameof(idOrSlug));
+
+        return Directory.GetDirectories(_root, $"*-{idOrSlug}", SearchOption.TopDirectoryOnly)
             .FirstOrDefault() ?? Path.Combine(_root, idOrSlug);
+    }
 
     public IEnumerable<(string Folder, TokenMetadata Metadata)> EnumerateTokens() {
         if (!Directory.Exists(_root))
@@ -40,18 +47,21 @@ public sealed class FileTokenStore(string root) {
         return JsonSerializer.Deserialize<TokenMetadata>(json);
     }
 
-    public async Task SaveVariantAsync(TokenMetadata metadata, byte[] imageBytes, int variantIndex) {
+    public async Task SaveVariantAsync(TokenMetadata metadata, byte[] imageBytes, int variantIndex, CancellationToken ct = default) {
         var folder = GetEntityFolder(metadata.EntitySlug);
         Directory.CreateDirectory(folder);
 
         var fileName = $"token_{variantIndex}.png";
         var pngPath = Path.Combine(folder, fileName);
-        await File.WriteAllBytesAsync(pngPath, imageBytes);
+        await File.WriteAllBytesAsync(pngPath, imageBytes, ct);
 
         var metaWithFile = metadata with { FileName = fileName };
 
         var metaPath = Path.Combine(folder, $"token_{variantIndex}.json");
         var json = JsonSerializer.Serialize(metaWithFile, _jsonOptions);
-        await File.WriteAllTextAsync(metaPath, json);
+        await File.WriteAllTextAsync(metaPath, json, ct);
     }
+
+    [GeneratedRegex(@"^[a-zA-Z0-9_-]+$")]
+    private static partial Regex ValidEntityId();
 }

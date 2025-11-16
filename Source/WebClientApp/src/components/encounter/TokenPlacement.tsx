@@ -803,7 +803,44 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
           );
         }
 
-        const labelInfo = formattedLabel!;
+        if (!formattedLabel) {
+          return (
+            <Group
+              key={placedAsset.id}
+              id={placedAsset.id}
+              name='placed-asset'
+              x={placedAsset.position.x}
+              y={placedAsset.position.y}
+            >
+              <KonvaImage
+                id={placedAsset.id}
+                image={image}
+                x={0}
+                y={0}
+                offsetX={pixelWidth / 2}
+                offsetY={pixelHeight / 2}
+                width={pixelWidth}
+                height={pixelHeight}
+                rotation={placedAsset.rotation}
+                draggable={false}
+                listening={true}
+                onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
+                onMouseLeave={() => setHoveredAssetId(null)}
+                onContextMenu={(e) => {
+                  e.evt.preventDefault();
+                  if (onContextMenu) {
+                    onContextMenu(placedAsset.id, {
+                      x: e.evt.clientX,
+                      y: e.evt.clientY,
+                    });
+                  }
+                }}
+              />
+            </Group>
+          );
+        }
+
+        const labelInfo = formattedLabel;
         const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
         const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
 

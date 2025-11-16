@@ -1,18 +1,60 @@
 ﻿namespace VttTools.TokenManager.Application.Commands;
 
-public sealed class GenerateTokensCommand(TokenGenerationService generator, string engineId) {
-    private readonly TokenGenerationService _generator = generator;
-    private readonly string _engineId = engineId;
+public sealed class GenerateTokensCommand(ITokenGenerationService generator) {
+    private readonly ITokenGenerationService _generator = generator;
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions _jsonOptions = new() {
+        PropertyNameCaseInsensitive = true,
+        MaxDepth = 32
+    };
 
-    public async Task ExecuteAsync(GenerateTokensCommandOptions options) {
+    public async Task ExecuteAsync(GenerateTokensCommandOptions options, CancellationToken ct = default) {
+        if (string.IsNullOrWhiteSpace(options.InputPath)) {
+            Console.Error.WriteLine("Error: Input path cannot be empty.");
+            return;
+        }
+
+        if (!Path.IsPathFullyQualified(options.InputPath)) {
+            Console.Error.WriteLine($"Error: Input path must be an absolute path: {options.InputPath}");
+            return;
+        }
+
+        var extension = Path.GetExtension(options.InputPath).ToLowerInvariant();
+        if (extension != ".json") {
+            Console.Error.WriteLine($"Error: Only .json files are supported. Got: {extension}");
+            return;
+        }
+
+        try {
+            var fullPath = Path.GetFullPath(options.InputPath);
+            var currentDir = Path.GetFullPath(Directory.GetCurrentDirectory());
+
+            var normalizedCurrent = currentDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var normalizedFull = fullPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+            if (!normalizedFull.StartsWith(normalizedCurrent, StringComparison.OrdinalIgnoreCase)) {
+                Console.Error.WriteLine("Error: Access denied. Input file must be within the current directory.");
+                return;
+            }
+        }
+        catch (Exception) {
+            Console.Error.WriteLine("Error: Invalid file path.");
+            return;
+        }
+
         if (!File.Exists(options.InputPath)) {
             Console.Error.WriteLine($"Input file not found: {options.InputPath}");
             return;
         }
 
-        var json = await File.ReadAllTextAsync(options.InputPath);
+        var fileInfo = new FileInfo(options.InputPath);
+        const long maxFileSizeBytes = 10 * 1024 * 1024;
+        if (fileInfo.Length > maxFileSizeBytes) {
+            Console.Error.WriteLine($"Error: Input file exceeds maximum size of {maxFileSizeBytes / (1024 * 1024)} MB.");
+            return;
+        }
+
+        var json = await File.ReadAllTextAsync(options.InputPath, ct);
         var monsters = JsonSerializer.Deserialize<List<MonsterDefinition>>(json, _jsonOptions) ?? [];
 
         // Map to TokenEntity (monster type)
@@ -46,7 +88,7 @@ public sealed class GenerateTokensCommand(TokenGenerationService generator, stri
             for (var v = 1; v <= options.Variants; v++) {
                 try {
                     Console.WriteLine($"  Variant {v}...");
-                    await _generator.GenerateAsync(e, v, _engineId);
+                    await _generator.GenerateAsync(e, v, ct);
                     Console.WriteLine("   OK");
                 }
                 catch (Exception ex) {
@@ -54,7 +96,7 @@ public sealed class GenerateTokensCommand(TokenGenerationService generator, stri
                 }
 
                 if (options.DelayMs > 0)
-                    await Task.Delay(options.DelayMs);
+                    await Task.Delay(options.DelayMs, ct);
             }
         }
     }
