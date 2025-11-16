@@ -24,7 +24,7 @@ export interface RegionDrawingToolProps {
   onVerticesChange?: (vertices: Point[]) => void;
   regionType: string;
   regionColor?: string;
-  regionTransaction: ReturnType<typeof useRegionTransaction>;
+  regionTransaction?: ReturnType<typeof useRegionTransaction>;
   cursor?: string;
 }
 
@@ -61,8 +61,6 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
         if (stageContainerRef.current) {
           stageContainerRef.current.style.cursor = 'default';
         }
@@ -70,9 +68,7 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         return;
       }
 
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
+      if (e.key === 'Enter' && !e.defaultPrevented) {
         if (stageContainerRef.current) {
           stageContainerRef.current.style.cursor = 'default';
         }
@@ -132,27 +128,29 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
       setVertices(newVertices);
       onVerticesChange?.(newVertices);
 
-      const action = createPlaceVertexAction(
-        () => {
-          const segment = regionTransaction.transaction.segment;
-          if (!segment) return null;
-          return {
-            ...segment,
-            vertices: newVertices,
-          };
-        },
-        (updater) => {
-          const segment = regionTransaction.transaction.segment;
-          if (!segment) return;
-          const updated = updater({ ...segment, vertices: newVertices });
-          regionTransaction.updateVertices(updated.vertices);
-          setVertices(updated.vertices);
-          onVerticesChange?.(updated.vertices);
-        },
-      );
+      if (regionTransaction) {
+        const action = createPlaceVertexAction(
+          () => {
+            const segment = regionTransaction.transaction.segment;
+            if (!segment) return null;
+            return {
+              ...segment,
+              vertices: newVertices,
+            };
+          },
+          (updater) => {
+            const segment = regionTransaction.transaction.segment;
+            if (!segment) return;
+            const updated = updater({ ...segment, vertices: newVertices });
+            regionTransaction.updateVertices(updated.vertices);
+            setVertices(updated.vertices);
+            onVerticesChange?.(updated.vertices);
+          },
+        );
 
-      regionTransaction.updateVertices(newVertices);
-      regionTransaction.pushLocalAction(action);
+        regionTransaction.updateVertices(newVertices);
+        regionTransaction.pushLocalAction(action);
+      }
     },
     [vertices, gridConfig, onVerticesChange, regionTransaction],
   );
