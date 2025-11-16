@@ -23,6 +23,7 @@ export interface RegionBucketFillToolProps {
   walls: PlacedWall[];
   openings: PlacedOpening[];
   stageSize: { width: number; height: number };
+  cursor?: string;
 }
 
 export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
@@ -32,6 +33,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
   walls,
   openings,
   stageSize,
+  cursor,
 }) => {
   const [previewVertices, setPreviewVertices] = useState<Point[] | null>(null);
   const [isFullStage, setIsFullStage] = useState(false);
@@ -148,9 +150,9 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
     const container = stage.container();
     if (container) {
       stageContainerRef.current = container;
-      container.style.cursor = getBucketPlusCursor();
+      container.style.cursor = cursor || getBucketPlusCursor();
     }
-  }, []);
+  }, [cursor]);
 
   const handleMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();

@@ -1,3 +1,5 @@
+export type { FogOfWarRendererProps } from './FogOfWarRenderer';
+export { FogOfWarRenderer } from './FogOfWarRenderer';
 export type { OpeningRendererProps } from './OpeningRenderer';
 export { OpeningRenderer } from './OpeningRenderer';
 export type { RegionLabelDisplayProps } from './RegionLabelDisplay';

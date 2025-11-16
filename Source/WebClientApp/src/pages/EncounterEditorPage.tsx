@@ -6,6 +6,7 @@ import {
   EditorStatusBar,
   EncounterCanvas,
   type EncounterCanvasHandle,
+  FogOfWarRenderer,
   GridRenderer,
   type LayerVisibilityType,
   LeftToolBar,
@@ -41,6 +42,7 @@ import { ClipboardProvider } from '@/contexts/ClipboardContext';
 import { UndoRedoProvider } from '@/contexts/UndoRedoContext';
 import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
+import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
@@ -81,6 +83,13 @@ import {
   type WallVisibility,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
+import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
+import {
+  getBucketMinusCursor,
+  getBucketPlusCursor,
+  getCrosshairMinusCursor,
+  getCrosshairPlusCursor,
+} from '@/utils/customCursors';
 import {
   hydratePlacedAssets,
   hydratePlacedOpenings,
@@ -164,7 +173,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [updateEncounterOpening] = useUpdateEncounterOpeningMutation();
   const [removeEncounterOpening] = useRemoveEncounterOpeningMutation();
 
-  // Force refetch on mount with forceRefetch option
   useEffect(() => {
     if (encounterId) {
       refetch();
@@ -213,6 +221,10 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const [selectedOpeningIndex, setSelectedOpeningIndex] = useState<number | null>(null);
   const [openingPlacementProperties, setOpeningPlacementProperties] = useState<OpeningPlacementProperties | null>(null);
+
+  const [fogMode, setFogMode] = useState<'add' | 'subtract'>('add');
+  const [fogDrawingTool, setFogDrawingTool] = useState<'polygon' | 'bucketFill' | null>(null);
+  const [fogDrawingVertices, setFogDrawingVertices] = useState<Point[]>([]);
 
   const [activeScope, setActiveScope] = useState<InteractionScope>(null);
 
@@ -1148,6 +1160,143 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, updateEncounterOpening, refetch],
   );
 
+  const fowRegions = useMemo(() => {
+    return placedRegions?.filter((r) => r.type === 'FogOfWar') || [];
+  }, [placedRegions]);
+
+  const { handlePolygonComplete, handleBucketFillComplete} = useFogOfWarPlacement({
+    encounterId: encounterId || '',
+    existingRegions: placedRegions || [],
+    mode: fogMode,
+    onRegionCreated: async (region) => {
+      try {
+        const command = new CreateFogOfWarRegionCommand({
+          encounterId: encounterId || '',
+          region,
+          onAdd: async (encId, regionData) => {
+            const result = await addEncounterRegion({
+              encounterId: encId,
+              type: regionData.type,
+              name: regionData.name,
+              ...(regionData.label !== undefined && { label: regionData.label }),
+              ...(regionData.value !== undefined && { value: regionData.value }),
+              vertices: regionData.vertices,
+            }).unwrap();
+            return result;
+          },
+          onRemove: async (encId, regionIndex) => {
+            await removeEncounterRegion({
+              encounterId: encId,
+              regionIndex,
+            }).unwrap();
+          },
+          onRefetch: async () => {
+            const { data } = await refetch();
+            if (data) {
+              setEncounter(data);
+              const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+              setPlacedRegions(hydratedRegions);
+            }
+          },
+        });
+
+        await execute(command);
+        setFogDrawingTool(null);
+      } catch (error) {
+        console.error('Failed to create FoW region:', error);
+        setErrorMessage('Failed to create fog region. Please try again.');
+      }
+    },
+  });
+
+  const handleFogModeChange = useCallback((mode: 'add' | 'subtract') => {
+    setFogMode(mode);
+  }, []);
+
+  const handleFogDrawPolygon = useCallback(() => {
+    setFogDrawingTool('polygon');
+  }, []);
+
+  const handleFogBucketFill = useCallback(() => {
+    setFogDrawingTool('bucketFill');
+  }, []);
+
+  const handleFogHideAll = useCallback(() => {
+    try {
+      if (fogMode !== 'add') {
+        setFogMode('add');
+        return;
+      }
+
+      const fullStageVertices: Point[] = [
+        { x: 0, y: 0 },
+        { x: STAGE_WIDTH, y: 0 },
+        { x: STAGE_WIDTH, y: STAGE_HEIGHT },
+        { x: 0, y: STAGE_HEIGHT },
+      ];
+
+      handlePolygonComplete(fullStageVertices);
+    } catch (error) {
+      console.error('Failed to hide all areas:', error);
+      setErrorMessage('Failed to hide all areas. Please try again.');
+    }
+  }, [fogMode, handlePolygonComplete]);
+
+  const handleFogRevealAll = useCallback(async () => {
+    try {
+      const fowRegionsToReveal = (placedRegions || [])
+        .filter((region) => region.type === 'FogOfWar')
+        .map((pr) => ({
+          encounterId: pr.encounterId,
+          index: pr.index,
+          name: pr.name,
+          type: pr.type,
+          vertices: pr.vertices,
+          ...(pr.value !== undefined && { value: pr.value }),
+          ...(pr.label !== undefined && { label: pr.label }),
+        }));
+
+      if (fowRegionsToReveal.length === 0) {
+        return;
+      }
+
+      const command = new RevealAllFogOfWarCommand({
+        encounterId: encounterId || '',
+        fogRegions: fowRegionsToReveal,
+        onAdd: async (encId, regionData) => {
+          const result = await addEncounterRegion({
+            encounterId: encId,
+            type: regionData.type,
+            name: regionData.name,
+            ...(regionData.label !== undefined && { label: regionData.label }),
+            ...(regionData.value !== undefined && { value: regionData.value }),
+            vertices: regionData.vertices,
+          }).unwrap();
+          return result;
+        },
+        onRemove: async (encId, regionIndex) => {
+          await removeEncounterRegion({
+            encounterId: encId,
+            regionIndex,
+          }).unwrap();
+        },
+        onRefetch: async () => {
+          const { data } = await refetch();
+          if (data) {
+            setEncounter(data);
+            const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+            setPlacedRegions(hydratedRegions);
+          }
+        },
+      });
+
+      await execute(command);
+    } catch (error) {
+      console.error('Failed to reveal all areas:', error);
+      setErrorMessage('Failed to reveal all areas. Please try again.');
+    }
+  }, [placedRegions, encounterId, addEncounterRegion, removeEncounterRegion, refetch, execute]);
+
   const visibleAssets = useMemo(() => {
     return assetManagement.placedAssets.filter((asset) => {
       if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
@@ -1320,6 +1469,12 @@ const EncounterEditorPageInternal: React.FC = () => {
             onOpeningDelete={handleOpeningDelete}
             onPlaceOpening={handlePlaceOpening}
             onEditOpening={handleEditOpening}
+            onFogHideAll={handleFogHideAll}
+            onFogRevealAll={handleFogRevealAll}
+            onFogModeChange={handleFogModeChange}
+            onFogDrawPolygon={handleFogDrawPolygon}
+            onFogBucketFill={handleFogBucketFill}
+            fogMode={fogMode}
           />
 
           <EncounterCanvas
@@ -1504,6 +1659,15 @@ const EncounterEditorPageInternal: React.FC = () => {
                     />
                   </Group>
                 )}
+
+              {/* Fog of War */}
+              {encounterId && (
+                <FogOfWarRenderer
+                  encounterId={encounterId}
+                  regions={fowRegions}
+                  visible={scopeVisibility.fogOfWar !== false}
+                />
+              )}
             </Layer>
 
             {/* Layer 3: Assets (tokens/objects/monsters) - creates Layer internally */}
@@ -1617,6 +1781,37 @@ const EncounterEditorPageInternal: React.FC = () => {
                       setOpeningPlacementProperties(null);
                       setActiveTool(null);
                     }}
+                  />
+                )}
+                {fogDrawingTool === 'polygon' && (
+                  <RegionDrawingTool
+                    encounterId={encounterId}
+                    regionIndex={-1}
+                    gridConfig={gridConfig}
+                    regionType='FogOfWar'
+                    cursor={fogMode === 'add' ? getCrosshairPlusCursor() : getCrosshairMinusCursor()}
+                    onCancel={() => {
+                      setFogDrawingTool(null);
+                      setFogDrawingVertices([]);
+                    }}
+                    onFinish={() => {
+                      handlePolygonComplete(fogDrawingVertices);
+                      setFogDrawingVertices([]);
+                    }}
+                    onVerticesChange={(vertices: Point[]) => setFogDrawingVertices(vertices)}
+                  />
+                )}
+                {fogDrawingTool === 'bucketFill' && encounter && (
+                  <RegionBucketFillTool
+                    encounterId={encounterId}
+                    gridConfig={gridConfig}
+                    cursor={fogMode === 'add' ? getBucketPlusCursor() : getBucketMinusCursor()}
+                    onCancel={() => setFogDrawingTool(null)}
+                    onFinish={handleBucketFillComplete}
+                    regionType='FogOfWar'
+                    walls={encounter.walls || []}
+                    openings={encounter.openings || []}
+                    stageSize={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
                   />
                 )}
               </Layer>
