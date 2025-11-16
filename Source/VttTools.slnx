@@ -47,6 +47,9 @@
   <Folder Name="/Source/4 Hosting/">
     <Project Path="AppHost/VttTools.AppHost.csproj" />
   </Folder>
+  <Folder Name="/Source/5 Resources/">
+    <Project Path="TokenManager/VttTools.TokenManager.csproj" Id="8ff0ccb1-c826-4f40-8110-a392189b2f79" />
+  </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/0 Common/">
     <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj" />
