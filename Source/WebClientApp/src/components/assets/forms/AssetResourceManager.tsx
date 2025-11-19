@@ -1,4 +1,4 @@
-import { Close as CloseIcon, CheckCircle as DefaultIcon, CloudUpload as UploadIcon } from '@mui/icons-material';
+import { Close as CloseIcon, CloudUpload as UploadIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -17,24 +17,34 @@ import { useState } from 'react';
 import { DisplayPreview } from '@/components/common/DisplayPreview';
 import { TokenPreview } from '@/components/common/TokenPreview';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { type AssetToken, type NamedSize, ResourceType } from '@/types/domain';
+import { AssetKind, type NamedSize } from '@/types/domain';
 import { getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetResourceManagerProps {
-  tokens: AssetToken[];
-  onTokensChange: (tokens: AssetToken[]) => void;
+  assetKind: AssetKind;
   portraitId?: string | undefined;
+  topDownId?: string | undefined;
+  miniatureId?: string | undefined;
+  photoId?: string | undefined;
   onPortraitIdChange: (portraitId: string | undefined) => void;
+  onTopDownIdChange: (topDownId: string | undefined) => void;
+  onMiniatureIdChange: (miniatureId: string | undefined) => void;
+  onPhotoIdChange: (photoId: string | undefined) => void;
   size: NamedSize;
   readOnly?: boolean;
   entityId?: string | undefined;
 }
 
 export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
-  tokens,
-  onTokensChange,
+  assetKind,
   portraitId,
+  topDownId,
+  miniatureId,
+  photoId,
   onPortraitIdChange,
+  onTopDownIdChange,
+  onMiniatureIdChange,
+  onPhotoIdChange,
   size,
   readOnly = false,
   entityId,
@@ -43,9 +53,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
   const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const defaultToken = tokens.find((t) => t.isDefault);
-
-  const handleUploadToken = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>, onChange: (id: string) => void) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -56,23 +64,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
         ...(entityId ? { entityId } : {}),
       }).unwrap();
 
-      const isFirstToken = tokens.length === 0;
-      const newToken: AssetToken = {
-        token: {
-          id: result.id,
-          type: ResourceType.Image,
-          path: '',
-          metadata: {
-            contentType: file.type,
-            fileLength: file.size,
-            fileName: file.name,
-          },
-          tags: [],
-        },
-        isDefault: isFirstToken,
-      };
-
-      onTokensChange([...tokens, newToken]);
+      onChange(result.id);
     } catch (error: unknown) {
       const errorMessage =
         (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.detail ||
@@ -80,59 +72,117 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
         (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.error ||
         (error as { message?: string })?.message ||
         JSON.stringify(error);
-      setUploadError(`Failed to upload token: ${errorMessage}`);
+      setUploadError(`Failed to upload image: ${errorMessage}`);
     }
     event.target.value = '';
   };
 
-  const handleUploadPortrait = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const renderImageSection = (
+    title: string,
+    description: string,
+    imageId: string | undefined,
+    onRemove: () => void,
+    onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void,
+    useTokenPreview: boolean = false,
+    isDefault: boolean = false,
+  ) => (
+    <Box
+      sx={{
+        p: 2,
+        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant='subtitle2'>{title}</Typography>
+          {isDefault && <Chip label='Default' size='small' color='primary' />}
+          <Typography variant='caption' color='text.secondary' sx={{ width: '100%' }}>
+            {description}
+          </Typography>
+        </Box>
+        {!readOnly && (
+          <Button
+            component='label'
+            size='small'
+            startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
+            disabled={isUploading}
+          >
+            Upload
+            <input
+              type='file'
+              accept='image/jpeg,image/png,image/svg+xml,image/gif,image/webp,image/bmp,image/tiff'
+              hidden
+              onChange={onUpload}
+              disabled={isUploading}
+            />
+          </Button>
+        )}
+      </Box>
 
-    setUploadError(null);
-    try {
-      const result = await uploadFile({
-        file,
-        ...(entityId ? { entityId } : {}),
-      }).unwrap();
+      {imageId ? (
+        <Box sx={{ position: 'relative', display: 'inline-block' }}>
+          {useTokenPreview ? (
+            <TokenPreview imageUrl={getResourceUrl(imageId)} size={size} />
+          ) : (
+            <Card sx={{ width: 180 }}>
+              <CardMedia
+                component='img'
+                height='180'
+                image={getResourceUrl(imageId)}
+                alt={title}
+                crossOrigin='use-credentials'
+                sx={{
+                  objectFit: 'contain',
+                  bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                }}
+              />
+            </Card>
+          )}
+          {!readOnly && (
+            <IconButton
+              size='small'
+              onClick={onRemove}
+              sx={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: 'error.main', color: 'white' },
+              }}
+            >
+              <CloseIcon fontSize='small' />
+            </IconButton>
+          )}
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            textAlign: 'center',
+            py: 4,
+            border: '2px dashed',
+            borderColor: 'divider',
+            borderRadius: 1,
+          }}
+        >
+          <Typography variant='body2' color='text.secondary'>
+            No image uploaded yet
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
 
-      onPortraitIdChange(result.id);
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.detail ||
-        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.title ||
-        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.error ||
-        (error as { message?: string })?.message ||
-        JSON.stringify(error);
-      setUploadError(`Failed to upload portrait: ${errorMessage}`);
-    }
-    event.target.value = '';
-  };
-
-  const handleSetDefaultToken = (tokenId: string) => {
-    const updated = tokens.map((t) => ({
-      ...t,
-      isDefault: t.token.id === tokenId,
-    }));
-    onTokensChange(updated);
-  };
-
-  const handleRemoveToken = (tokenId: string) => {
-    const updated = tokens.filter((t) => t.token.id !== tokenId);
-
-    if (updated.length > 0) {
-      const hadDefault = tokens.find((t) => t.token.id === tokenId)?.isDefault;
-      if (hadDefault && updated[0]) {
-        updated[0].isDefault = true;
-      }
-    }
-
-    onTokensChange(updated);
-  };
-
-  const handleRemovePortrait = () => {
-    onPortraitIdChange(undefined);
-  };
+  const isObject = assetKind === AssetKind.Object;
 
   if (readOnly) {
     return (
@@ -141,56 +191,41 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
           Asset Images
         </Typography>
         <Grid container spacing={2}>
-          <Grid size={6}>
-            <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
-              Default Token
-            </Typography>
-            {defaultToken ? (
-              <TokenPreview imageUrl={getResourceUrl(defaultToken.token.id)} size={size} />
-            ) : (
-              <Box
-                sx={{
-                  height: 120,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                }}
-              >
+          {topDownId && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                 <Typography variant='caption' color='text.secondary'>
-                  No token
+                  Top-Down
                 </Typography>
+                <Chip label='Default' size='small' color='primary' />
               </Box>
-            )}
-          </Grid>
-          <Grid size={6}>
-            <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
-              Portrait
-            </Typography>
-            {portraitId ? (
+              <TokenPreview imageUrl={getResourceUrl(topDownId)} size={size} />
+            </Grid>
+          )}
+          {portraitId && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
+                Portrait
+              </Typography>
               <DisplayPreview imageUrl={getResourceUrl(portraitId)} />
-            ) : (
-              <Box
-                sx={{
-                  height: 120,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                }}
-              >
-                <Typography variant='caption' color='text.secondary'>
-                  No portrait
-                </Typography>
-              </Box>
-            )}
-          </Grid>
+            </Grid>
+          )}
+          {miniatureId && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
+                Miniature
+              </Typography>
+              <TokenPreview imageUrl={getResourceUrl(miniatureId)} size={size} />
+            </Grid>
+          )}
+          {!isObject && photoId && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
+                Photo
+              </Typography>
+              <DisplayPreview imageUrl={getResourceUrl(photoId)} />
+            </Grid>
+          )}
         </Grid>
       </Box>
     );
@@ -204,217 +239,57 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
         </Alert>
       )}
 
-      <Box
-        sx={{
-          p: 2,
-          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-          borderRadius: 1,
-          border: '1px solid',
-          borderColor: 'divider',
-          mb: 2,
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
-        >
-          <Typography variant='subtitle2'>Tokens (Battle Map)</Typography>
-          <Button
-            component='label'
-            size='small'
-            startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
-            disabled={isUploading}
-          >
-            Upload Token
-            <input
-              type='file'
-              accept='image/jpeg,image/png,image/svg+xml,image/gif,image/webp,image/bmp,image/tiff'
-              hidden
-              onChange={handleUploadToken}
-              disabled={isUploading}
-            />
-          </Button>
-        </Box>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {renderImageSection(
+            'Portrait',
+            'Full image for asset details and stat blocks',
+            portraitId,
+            () => onPortraitIdChange(undefined),
+            (e) => handleUpload(e, onPortraitIdChange),
+            false,
+            false,
+          )}
+        </Grid>
 
-        {tokens.length > 0 ? (
-          <Grid container spacing={1}>
-            {tokens.map((token) => (
-              <Grid size={{ xs: 6, sm: 4, md: 3 }} key={token.token.id}>
-                <Card
-                  sx={{
-                    position: 'relative',
-                    border: '2px solid',
-                    borderColor: token.isDefault ? 'primary.main' : 'divider',
-                  }}
-                >
-                  <CardMedia
-                    component='img'
-                    height='100'
-                    image={getResourceUrl(token.token.id)}
-                    alt='Token'
-                    crossOrigin='use-credentials'
-                    sx={{
-                      objectFit: 'contain',
-                      bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
-                    }}
-                  />
+        <Grid size={{ xs: 12, md: 6 }}>
+          {renderImageSection(
+            'Top-Down View',
+            'Bird\'s eye view for square/hex grids',
+            topDownId,
+            () => onTopDownIdChange(undefined),
+            (e) => handleUpload(e, onTopDownIdChange),
+            true,
+            true,
+          )}
+        </Grid>
 
-                  {token.isDefault && (
-                    <Chip
-                      icon={<DefaultIcon sx={{ fontSize: 14 }} />}
-                      label='Default'
-                      size='small'
-                      color='primary'
-                      sx={{
-                        position: 'absolute',
-                        bottom: 4,
-                        left: 4,
-                        height: 20,
-                      }}
-                    />
-                  )}
+        <Grid size={{ xs: 12, md: 6 }}>
+          {renderImageSection(
+            'Miniature View',
+            'Isometric view for isometric maps',
+            miniatureId,
+            () => onMiniatureIdChange(undefined),
+            (e) => handleUpload(e, onMiniatureIdChange),
+            true,
+            false,
+          )}
+        </Grid>
 
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 4,
-                      right: 4,
-                      display: 'flex',
-                      gap: 0.5,
-                    }}
-                  >
-                    {!token.isDefault && (
-                      <IconButton
-                        size='small'
-                        onClick={() => handleSetDefaultToken(token.token.id)}
-                        sx={{
-                          bgcolor: 'background.paper',
-                          '&:hover': {
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                          },
-                        }}
-                        title='Set as default'
-                      >
-                        <DefaultIcon fontSize='small' />
-                      </IconButton>
-                    )}
-                    <IconButton
-                      size='small'
-                      onClick={() => handleRemoveToken(token.token.id)}
-                      sx={{
-                        bgcolor: 'background.paper',
-                        '&:hover': { bgcolor: 'error.main', color: 'white' },
-                      }}
-                    >
-                      <CloseIcon fontSize='small' />
-                    </IconButton>
-                  </Box>
-                </Card>
-              </Grid>
-            ))}
+        {!isObject && (
+          <Grid size={{ xs: 12, md: 6 }}>
+            {renderImageSection(
+              'Photo',
+              '3/4 face view with frame (creatures only)',
+              photoId,
+              () => onPhotoIdChange(undefined),
+              (e) => handleUpload(e, onPhotoIdChange),
+              false,
+              false,
+            )}
           </Grid>
-        ) : (
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 4,
-              border: '2px dashed',
-              borderColor: 'divider',
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant='body2' color='text.secondary'>
-              No tokens uploaded yet
-            </Typography>
-          </Box>
         )}
-      </Box>
-
-      <Box
-        sx={{
-          p: 2,
-          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-          borderRadius: 1,
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
-        >
-          <Typography variant='subtitle2'>Portrait (Character Sheet)</Typography>
-          <Button
-            component='label'
-            size='small'
-            startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
-            disabled={isUploading}
-          >
-            Upload Portrait
-            <input
-              type='file'
-              accept='image/jpeg,image/png,image/svg+xml,image/gif,image/webp,image/bmp,image/tiff'
-              hidden
-              onChange={handleUploadPortrait}
-              disabled={isUploading}
-            />
-          </Button>
-        </Box>
-
-        {portraitId ? (
-          <Box sx={{ position: 'relative', display: 'inline-block' }}>
-            <Card sx={{ width: 180 }}>
-              <CardMedia
-                component='img'
-                height='180'
-                image={getResourceUrl(portraitId)}
-                alt='Portrait'
-                crossOrigin='use-credentials'
-                sx={{
-                  objectFit: 'contain',
-                  bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
-                }}
-              />
-            </Card>
-            <IconButton
-              size='small'
-              onClick={handleRemovePortrait}
-              sx={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                bgcolor: 'background.paper',
-                '&:hover': { bgcolor: 'error.main', color: 'white' },
-              }}
-            >
-              <CloseIcon fontSize='small' />
-            </IconButton>
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 4,
-              border: '2px dashed',
-              borderColor: 'divider',
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant='body2' color='text.secondary'>
-              No portrait uploaded yet
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      </Grid>
     </Box>
   );
 };

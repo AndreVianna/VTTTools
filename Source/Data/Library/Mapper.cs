@@ -111,8 +111,7 @@ internal static class Mapper {
             Number = entity.Number,
             Name = entity.Name,
             Notes = entity.Notes,
-            Token = entity.Token == null ? null : entity.Token.ToModel(),
-            Portrait = entity.Portrait == null ? null : entity.Portrait.ToModel(),
+            Image = entity.Image == null ? null : entity.Image.ToModel(),
             Size = entity.Size,
             Position = entity.Position,
             Elevation = entity.Elevation,
@@ -429,8 +428,7 @@ internal static class Mapper {
             Number = entity.Number,
             Name = entity.Name,
             Notes = entity.Notes,
-            Token = entity.Token?.ToModel(),
-            Portrait = entity.Portrait?.ToModel(),
+            Image = entity.Image?.ToModel(),
             Size = entity.Size,
             Position = GridConverter.PositionToPixel(entity.Position, grid),
             Elevation = entity.Elevation,
@@ -448,8 +446,7 @@ internal static class Mapper {
             Number = model.Number,
             Name = model.Name,
             Notes = model.Notes,
-            PortraitId = model.Portrait?.Id,
-            TokenId = model.Token?.Id,
+            ImageId = model.Image?.Id,
             Frame = model.Frame,
             Size = model.Size,
             Position = GridConverter.PositionToGrid(model.Position, grid),
@@ -466,8 +463,7 @@ internal static class Mapper {
         entity.Number = model.Number;
         entity.Name = model.Name;
         entity.Notes = model.Notes;
-        entity.PortraitId = model.Portrait?.Id;
-        entity.TokenId = model.Token?.Id;
+        entity.ImageId = model.Image?.Id;
         entity.Frame = model.Frame;
         entity.Size = model.Size;
         entity.Position = GridConverter.PositionToGrid(model.Position, grid);

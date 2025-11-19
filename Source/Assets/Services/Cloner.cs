@@ -7,8 +7,10 @@ public static class Cloner {
                 OwnerId = ownerId ?? obj.OwnerId,
                 Name = obj.Name,
                 Description = obj.Description,
-                Tokens = [.. obj.Tokens.Select(ar => ar.Clone())],
                 Portrait = obj.Portrait?.Clone(),
+                TopDown = obj.TopDown?.Clone(),
+                Miniature = obj.Miniature?.Clone(),
+                Photo = obj.Photo?.Clone(),
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
                 Size = obj.Size,
@@ -20,8 +22,10 @@ public static class Cloner {
                 OwnerId = ownerId ?? monster.OwnerId,
                 Name = monster.Name,
                 Description = monster.Description,
-                Tokens = [.. monster.Tokens.Select(ar => ar.Clone())],
                 Portrait = monster.Portrait?.Clone(),
+                TopDown = monster.TopDown?.Clone(),
+                Miniature = monster.Miniature?.Clone(),
+                Photo = monster.Photo?.Clone(),
                 IsPublic = monster.IsPublic,
                 IsPublished = monster.IsPublished,
                 Size = monster.Size,
@@ -32,8 +36,10 @@ public static class Cloner {
                 OwnerId = ownerId ?? character.OwnerId,
                 Name = character.Name,
                 Description = character.Description,
-                Tokens = [.. character.Tokens.Select(ar => ar.Clone())],
                 Portrait = character.Portrait?.Clone(),
+                TopDown = character.TopDown?.Clone(),
+                Miniature = character.Miniature?.Clone(),
+                Photo = character.Photo?.Clone(),
                 IsPublic = character.IsPublic,
                 IsPublished = character.IsPublished,
                 Size = character.Size,
@@ -41,12 +47,6 @@ public static class Cloner {
                 TokenStyle = character.TokenStyle,
             },
             _ => throw new InvalidOperationException($"Unknown asset type: {original.GetType()}")
-        };
-
-    internal static AssetToken Clone(this AssetToken original)
-        => new() {
-            Token = original.Token.Clone(),
-            IsDefault = original.IsDefault
         };
 
     internal static Resource Clone(this Resource original)

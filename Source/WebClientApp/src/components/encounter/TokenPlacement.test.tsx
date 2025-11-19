@@ -11,7 +11,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupName } from '@/services/layerManager';
-import { mockAssetToken, mockMediaResource, mockMonsterAsset, mockObjectAsset } from '@/test-utils/assetMocks';
+import { mockMediaResource, mockMonsterAsset, mockObjectAsset } from '@/test-utils/assetMocks';
 import type { Asset, CharacterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
 import { AssetKind, LabelPosition, LabelVisibility, Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -35,12 +35,10 @@ const createMockAsset = (id: string, kind: AssetKind = AssetKind.Monster): Asset
     description: 'Test description',
     isPublished: true,
     isPublic: false,
-    tokens: [
-      mockAssetToken({
-        token: mockMediaResource({ id: 'resource-1' }),
-        isDefault: true,
-      }),
-    ],
+    topDown: mockMediaResource({ id: `${id}-topdown` }),
+    portrait: undefined,
+    miniature: undefined,
+    photo: undefined,
     size: { width: 1, height: 1, isSquare: true },
   };
 };
@@ -364,10 +362,13 @@ describe('TokenPlacement', () => {
     unmount();
   });
 
-  it('handles assets without image tokens', () => {
+  it('handles assets without any images', () => {
     const assetNoImage: Asset = {
       ...createMockAsset('asset-no-image'),
-      tokens: [],
+      topDown: undefined,
+      portrait: undefined,
+      miniature: undefined,
+      photo: undefined,
     };
 
     const placedAsset = createMockPlacedAsset('placed-1', 'asset-no-image');
@@ -390,27 +391,17 @@ describe('TokenPlacement', () => {
     expect(mockOnAssetPlaced).not.toHaveBeenCalled();
   });
 
-  it('uses default token for rendering', () => {
-    const assetMultiToken: Asset = {
+  it('uses topDown image as primary for rendering', () => {
+    const assetWithMultipleImages: Asset = {
       ...createMockAsset('asset-multi'),
-      tokens: [
-        mockAssetToken({
-          token: mockMediaResource({ id: 'token-1' }),
-          isDefault: false,
-        }),
-        mockAssetToken({
-          token: mockMediaResource({ id: 'token-2' }),
-          isDefault: true,
-        }),
-        mockAssetToken({
-          token: mockMediaResource({ id: 'token-3' }),
-          isDefault: false,
-        }),
-      ],
+      topDown: mockMediaResource({ id: 'topdown-1' }),
+      miniature: mockMediaResource({ id: 'miniature-1' }),
+      photo: mockMediaResource({ id: 'photo-1' }),
+      portrait: mockMediaResource({ id: 'portrait-1' }),
     };
 
     const placedAsset = createMockPlacedAsset('placed-1', 'asset-multi');
-    placedAsset.asset = assetMultiToken;
+    placedAsset.asset = assetWithMultipleImages;
 
     render(
       <TokenPlacement

@@ -74,6 +74,21 @@ export enum AssetKind {
   Character = 'Character',
 }
 
+export enum ImageType {
+  Portrait = 'Portrait',
+  TopDown = 'TopDown',
+  Miniature = 'Miniature',
+  Photo = 'Photo',
+}
+
+export enum GridType {
+  NoGrid = 'NoGrid',
+  Square = 'Square',
+  HexV = 'HexV',
+  HexH = 'HexH',
+  Isometric = 'Isometric',
+}
+
 export enum TokenShape {
   Circle = 'Circle',
   Square = 'Square',
@@ -83,12 +98,6 @@ export interface TokenStyle {
   borderColor?: string;
   backgroundColor?: string;
   shape: TokenShape;
-}
-
-// AssetToken replaces AssetResource in new backend schema
-export interface AssetToken {
-  token: MediaResource; // Renamed from resource
-  isDefault: boolean; // Simplified from role enum
 }
 
 export enum SizeName {
@@ -133,26 +142,30 @@ export interface CreateAssetRequest {
   kind: AssetKind;
   name: string;
   description: string;
-  tokens: AssetToken[]; // Renamed from resources
-  portraitId?: string | undefined; // New: separate portrait reference
-  size: NamedSize; // New: moved from nested properties to root
+  portraitId?: string | undefined;
+  topDownId?: string | undefined;
+  miniatureId?: string | undefined;
+  photoId?: string | undefined;
+  size: NamedSize;
   isPublished: boolean;
   isPublic: boolean;
-  objectData?: ObjectData | undefined; // Renamed from objectProps
-  monsterData?: MonsterData | undefined; // Renamed from monsterProps
+  objectData?: ObjectData | undefined;
+  monsterData?: MonsterData | undefined;
   characterData?: CharacterData | undefined;
 }
 
 export interface UpdateAssetRequest {
   name?: string | undefined;
   description?: string | undefined;
-  tokens?: AssetToken[] | undefined; // Renamed from resources
-  portraitId?: string | undefined; // New: separate portrait reference
-  size?: NamedSize | undefined; // New: moved from nested properties to root
+  portraitId?: string | undefined;
+  topDownId?: string | undefined;
+  miniatureId?: string | undefined;
+  photoId?: string | undefined;
+  size?: NamedSize | undefined;
   isPublished?: boolean | undefined;
   isPublic?: boolean | undefined;
-  objectData?: ObjectData | undefined; // Renamed from objectProps
-  monsterData?: MonsterData | undefined; // Renamed from monsterProps
+  objectData?: ObjectData | undefined;
+  monsterData?: MonsterData | undefined;
   characterData?: CharacterData | undefined;
 }
 
@@ -165,8 +178,10 @@ export interface Asset {
   description: string;
   isPublished: boolean;
   isPublic: boolean;
-  tokens: AssetToken[];
-  portrait: MediaResource | undefined;
+  portrait?: MediaResource | undefined;
+  topDown?: MediaResource | undefined;
+  miniature?: MediaResource | undefined;
+  photo?: MediaResource | undefined;
   size: NamedSize;
 }
 
@@ -462,8 +477,7 @@ export interface EncounterAsset {
   number: number;
   name: string;
   notes?: string;
-  token?: MediaResource;
-  portrait?: MediaResource;
+  image?: MediaResource;
   x: number;
   y: number;
   width: number;

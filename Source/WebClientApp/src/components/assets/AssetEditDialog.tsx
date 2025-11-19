@@ -74,8 +74,10 @@ function createEditData(asset: Asset) {
   return {
     name: asset.name,
     description: asset.description,
-    tokens: asset.tokens || [],
     portraitId: asset.portrait?.id,
+    topDownId: asset.topDown?.id,
+    miniatureId: asset.miniature?.id,
+    photoId: asset.photo?.id,
     isPublic: asset.isPublic,
     isPublished: asset.isPublished,
     size: asset.size,
@@ -126,17 +128,10 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
         isPublished: editData.isPublished,
         description: editData.description,
         size: editData.size,
-        tokens: editData.tokens.map((t) => ({
-          token: {
-            id: t.token.id,
-            type: t.token.type,
-            path: t.token.path,
-            metadata: t.token.metadata,
-            tags: t.token.tags,
-          },
-          isDefault: t.isDefault,
-        })),
         portraitId: editData.portraitId,
+        topDownId: editData.topDownId,
+        miniatureId: editData.miniatureId,
+        photoId: editData.photoId,
       };
 
       if (editData.name.trim()) {
@@ -207,10 +202,15 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
         <DialogContent>
           <AssetResourceManager
             entityId={asset.id}
-            tokens={editData.tokens}
-            onTokensChange={(tokens) => updateModifiedFields({ tokens })}
+            assetKind={asset.kind}
             portraitId={editData.portraitId}
+            topDownId={editData.topDownId}
+            miniatureId={editData.miniatureId}
+            photoId={editData.photoId}
             onPortraitIdChange={(portraitId) => updateModifiedFields({ portraitId })}
+            onTopDownIdChange={(topDownId) => updateModifiedFields({ topDownId })}
+            onMiniatureIdChange={(miniatureId) => updateModifiedFields({ miniatureId })}
+            onPhotoIdChange={(photoId) => updateModifiedFields({ photoId })}
             size={editData.size}
             readOnly={!editMode}
           />

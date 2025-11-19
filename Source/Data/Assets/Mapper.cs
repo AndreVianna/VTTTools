@@ -1,6 +1,5 @@
 using Resource = VttTools.Media.Model.Resource;
 using Asset = VttTools.Assets.Model.Asset;
-using AssetToken = VttTools.Assets.Model.AssetToken;
 using CharacterAsset = VttTools.Assets.Model.CharacterAsset;
 using MonsterAsset = VttTools.Assets.Model.MonsterAsset;
 using ObjectAsset = VttTools.Assets.Model.ObjectAsset;
@@ -8,7 +7,6 @@ using TokenStyle = VttTools.Assets.Model.TokenStyle;
 
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
-using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
 using MonsterAssetEntity = VttTools.Data.Assets.Entities.MonsterAsset;
 using CharacterAssetEntity = VttTools.Data.Assets.Entities.CharacterAsset;
 using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
@@ -28,11 +26,10 @@ internal static class Mapper {
                 Description = obj.Description,
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
-                Tokens = [.. obj.Tokens.Select(r => new AssetToken {
-                    Token = r.Token.ToModel(),
-                    IsDefault = r.IsDefault,
-                })],
                 Portrait = obj.Portrait?.ToModel(),
+                TopDown = obj.TopDown?.ToModel(),
+                Miniature = obj.Miniature?.ToModel(),
+                Photo = obj.Photo?.ToModel(),
                 Size = new NamedSize {
                     Width = Math.Round(obj.Size.Width, 3),
                     Height = Math.Round(obj.Size.Height, 3),
@@ -48,11 +45,10 @@ internal static class Mapper {
                 Description = monster.Description,
                 IsPublic = monster.IsPublic,
                 IsPublished = monster.IsPublished,
-                Tokens = [.. monster.Tokens.Select(r => new AssetToken {
-                    Token = r.Token.ToModel(),
-                    IsDefault = r.IsDefault
-                })],
                 Portrait = monster.Portrait?.ToModel(),
+                TopDown = monster.TopDown?.ToModel(),
+                Miniature = monster.Miniature?.ToModel(),
+                Photo = monster.Photo?.ToModel(),
                 Size = new NamedSize {
                     Width = Math.Round(monster.Size.Width, 3),
                     Height = Math.Round(monster.Size.Height, 3),
@@ -71,11 +67,10 @@ internal static class Mapper {
                 Description = character.Description,
                 IsPublic = character.IsPublic,
                 IsPublished = character.IsPublished,
-                Tokens = [.. character.Tokens.Select(r => new AssetToken {
-                    Token = r.Token.ToModel(),
-                    IsDefault = r.IsDefault
-                })],
                 Portrait = character.Portrait?.ToModel(),
+                TopDown = character.TopDown?.ToModel(),
+                Miniature = character.Miniature?.ToModel(),
+                Photo = character.Photo?.ToModel(),
                 Size = new NamedSize {
                     Width = Math.Round(character.Size.Width, 3),
                     Height = Math.Round(character.Size.Height, 3),
@@ -98,12 +93,10 @@ internal static class Mapper {
                 Kind = AssetKind.Object,
                 Name = obj.Name,
                 Description = obj.Description,
-                Tokens = [.. obj.Tokens
-                    .Select(r => new AssetTokenEntity {
-                        Token = r.Token.ToEntity(),
-                        IsDefault = r.IsDefault
-                    })],
                 PortraitId = obj.Portrait?.Id,
+                TopDownId = obj.TopDown?.Id,
+                MiniatureId = obj.Miniature?.Id,
+                PhotoId = obj.Photo?.Id,
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
                 Size = new NamedSize {
@@ -121,12 +114,9 @@ internal static class Mapper {
                 Name = monster.Name,
                 Description = monster.Description,
                 PortraitId = monster.Portrait?.Id,
-                Tokens = [.. monster.Tokens
-                    .Select(r => new AssetTokenEntity {
-                        TokenId = r.Token.Id,
-                        Token = r.Token.ToEntity(),
-                        IsDefault = r.IsDefault
-                    })],
+                TopDownId = monster.TopDown?.Id,
+                MiniatureId = monster.Miniature?.Id,
+                PhotoId = monster.Photo?.Id,
                 IsPublic = monster.IsPublic,
                 IsPublished = monster.IsPublished,
                 Size = new NamedSize {
@@ -147,12 +137,9 @@ internal static class Mapper {
                 Name = character.Name,
                 Description = character.Description,
                 PortraitId = character.Portrait?.Id,
-                Tokens = [.. character.Tokens
-                    .Select(r => new AssetTokenEntity {
-                        TokenId = r.Token.Id,
-                        Token = r.Token.ToEntity(),
-                        IsDefault = r.IsDefault
-                    })],
+                TopDownId = character.TopDown?.Id,
+                MiniatureId = character.Miniature?.Id,
+                PhotoId = character.Photo?.Id,
                 IsPublic = character.IsPublic,
                 IsPublished = character.IsPublished,
                 Size = new NamedSize {
@@ -172,30 +159,10 @@ internal static class Mapper {
     internal static void UpdateFrom(this AssetEntity entity, Asset model) {
         entity.Name = model.Name;
         entity.Description = model.Description;
-
-        var tokenIds = model.Tokens.Select(r => r.Token.Id).ToHashSet();
-
-        foreach (var existing in entity.Tokens.ToList()) {
-            if (!tokenIds.Contains(existing.TokenId)) {
-                entity.Tokens.Remove(existing);
-            }
-        }
-
         entity.PortraitId = model.Portrait?.Id;
-
-        foreach (var token in model.Tokens) {
-            var existing = entity.Tokens.FirstOrDefault(r => r.TokenId == token.Token!.Id);
-            if (existing != null) {
-                existing.IsDefault = token.IsDefault;
-            }
-            else if (token.Token != null) {
-                entity.Tokens.Add(new AssetTokenEntity {
-                    TokenId = token.Token.Id,
-                    IsDefault = token.IsDefault
-                });
-            }
-        }
-
+        entity.TopDownId = model.TopDown?.Id;
+        entity.MiniatureId = model.Miniature?.Id;
+        entity.PhotoId = model.Photo?.Id;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
 

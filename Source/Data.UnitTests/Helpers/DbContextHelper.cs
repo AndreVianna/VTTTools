@@ -148,9 +148,8 @@ internal static class DbContextHelper {
             },
         };
 
-    public static MonsterAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
-        var tokenId = displayId ?? Guid.CreateVersion7();
-        return new() {
+    public static MonsterAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
+        => new() {
             Id = id,
             Name = name,
             Kind = kind,
@@ -158,14 +157,11 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
-            Tokens = [
-                new() {
-                    TokenId = tokenId,
-                    IsDefault = true,
-                },
-            ],
+            PortraitId = displayId,
+            TopDownId = displayId,
+            MiniatureId = displayId,
+            PhotoId = displayId,
         };
-    }
 
     public static MonsterAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => CreateTestAssetEntity(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId, displayId);
@@ -269,7 +265,7 @@ internal static class DbContextHelper {
         };
 
     public static MonsterAsset CreateTestAsset(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
-        var tokenId = Guid.CreateVersion7();
+        var imageId = Guid.CreateVersion7();
         return new() {
             Id = id,
             Name = name,
@@ -277,24 +273,32 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
-            Tokens = [
-                new() {
-                    IsDefault = true,
-                    Token = new() {
-                        Id = tokenId,
-                        Type = ResourceType.Image,
-                        Path = "test/path",
-                        Metadata = new ResourceMetadata {
-                            FileName = $"{name}_resource.png",
-                            ContentType = "image/png",
-                            FileLength = 1000,
-                            ImageSize = new(100, 100),
-                            Duration = TimeSpan.Zero,
-                        },
-                        Tags = [],
-                    },
+            Portrait = new() {
+                Id = imageId,
+                Type = ResourceType.Image,
+                Path = "test/path",
+                Metadata = new ResourceMetadata {
+                    FileName = $"{name}_portrait.png",
+                    ContentType = "image/png",
+                    FileLength = 1000,
+                    ImageSize = new(100, 100),
+                    Duration = TimeSpan.Zero,
                 },
-            ],
+                Tags = [],
+            },
+            TopDown = new() {
+                Id = Guid.CreateVersion7(),
+                Type = ResourceType.Image,
+                Path = "test/path",
+                Metadata = new ResourceMetadata {
+                    FileName = $"{name}_topdown.png",
+                    ContentType = "image/png",
+                    FileLength = 1000,
+                    ImageSize = new(100, 100),
+                    Duration = TimeSpan.Zero,
+                },
+                Tags = [],
+            },
         };
     }
 

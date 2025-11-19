@@ -32,7 +32,6 @@ import { useState } from 'react';
 import { useCreateAssetMutation } from '@/services/assetsApi';
 import {
   AssetKind,
-  type AssetToken,
   type CharacterData,
   type CreateAssetRequest,
   type MonsterData,
@@ -63,9 +62,11 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
-  // Tokens (images) - renamed from resources
-  const [tokens, setTokens] = useState<AssetToken[]>([]);
+  // Image IDs for the 4 image types
   const [portraitId, setPortraitId] = useState<string | undefined>(undefined);
+  const [topDownId, setTopDownId] = useState<string | undefined>(undefined);
+  const [miniatureId, setMiniatureId] = useState<string | undefined>(undefined);
+  const [photoId, setPhotoId] = useState<string | undefined>(undefined);
 
   // Visibility fields
   const [isPublic, setIsPublic] = useState(false);
@@ -99,17 +100,10 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
         kind: selectedKind,
         name,
         description,
-        tokens: tokens.map((t) => ({
-          token: {
-            id: t.token.id,
-            type: t.token.type,
-            path: t.token.path,
-            metadata: t.token.metadata,
-            tags: t.token.tags,
-          },
-          isDefault: t.isDefault,
-        })),
         portraitId,
+        topDownId,
+        miniatureId,
+        photoId,
         size,
         isPublic,
         isPublished,
@@ -164,13 +158,17 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
       <Divider />
 
       <DialogContent>
-        {/* PERMANENT SECTION: Asset Images (Always Visible - Visual Identity) */}
         <Box sx={{ mb: 3 }}>
           <AssetResourceManager
-            tokens={tokens}
-            onTokensChange={setTokens}
+            assetKind={selectedKind}
             portraitId={portraitId}
+            topDownId={topDownId}
+            miniatureId={miniatureId}
+            photoId={photoId}
             onPortraitIdChange={setPortraitId}
+            onTopDownIdChange={setTopDownId}
+            onMiniatureIdChange={setMiniatureId}
+            onPhotoIdChange={setPhotoId}
             size={size}
           />
         </Box>

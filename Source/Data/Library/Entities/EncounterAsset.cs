@@ -18,10 +18,8 @@ public class EncounterAsset {
     public bool IsVisible { get; set; } = true;
 
     public Frame Frame { get; set; } = new Frame();
-    public Guid? PortraitId { get; set; }
-    public Resource? Portrait { get; set; }
-    public Guid? TokenId { get; set; }
-    public Resource? Token { get; set; }
+    public Guid? ImageId { get; set; }
+    public Resource? Image { get; set; }
 
     public NamedSize Size { get; set; } = NamedSize.Default;
     public Position Position { get; set; } = Position.Zero;

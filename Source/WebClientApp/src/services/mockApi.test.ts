@@ -9,7 +9,7 @@ describe('MockApiService', () => {
   });
 
   describe('mockGetAssets', () => {
-    it('should return assets with new schema structure', async () => {
+    it('should return assets with new 4-image structure', async () => {
       const assets = await mockApi.mockGetAssets();
 
       expect(assets).toBeDefined();
@@ -17,36 +17,30 @@ describe('MockApiService', () => {
 
       const firstAsset = assets[0];
       expect(firstAsset).toHaveProperty('id');
-      expect(firstAsset).toHaveProperty('tokens');
+      expect(firstAsset).toHaveProperty('topDown');
       expect(firstAsset).toHaveProperty('portrait');
+      expect(firstAsset).toHaveProperty('miniature');
+      expect(firstAsset).toHaveProperty('photo');
       expect(firstAsset).toHaveProperty('size');
-      expect(firstAsset).toHaveProperty('properties');
 
+      expect(firstAsset).not.toHaveProperty('tokens');
       expect(firstAsset).not.toHaveProperty('resources');
       expect(firstAsset).not.toHaveProperty('objectProps');
       expect(firstAsset).not.toHaveProperty('monsterProps');
     });
 
-    it('should include assets with tokens', async () => {
+    it('should include assets with topDown images', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithTokens = assets.filter((a) => a.tokens.length > 0);
+      const assetsWithTopDown = assets.filter((a) => a.topDown !== undefined);
 
-      expect(assetsWithTokens.length).toBeGreaterThan(0);
+      expect(assetsWithTopDown.length).toBeGreaterThan(0);
 
-      assetsWithTokens.forEach((asset) => {
-        asset.tokens.forEach((token) => {
-          expect(token).toHaveProperty('tokenId');
-          expect(token).toHaveProperty('isDefault');
-          expect(token.isDefault).toBeTypeOf('boolean');
-
-          if (token.token) {
-            expect(token.token).toHaveProperty('id');
-            expect(token.token).toHaveProperty('type');
-            expect(token.token).toHaveProperty('path');
-            expect(token.token).toHaveProperty('metadata');
-            expect(token.token.type).toBe(ResourceType.Image);
-          }
-        });
+      assetsWithTopDown.forEach((asset) => {
+        expect(asset.topDown).toHaveProperty('id');
+        expect(asset.topDown).toHaveProperty('type');
+        expect(asset.topDown).toHaveProperty('path');
+        expect(asset.topDown).toHaveProperty('metadata');
+        expect(asset.topDown?.type).toBe(ResourceType.Image);
       });
     });
 
@@ -70,6 +64,34 @@ describe('MockApiService', () => {
       const assetsWithoutPortrait = assets.filter((a) => a.portrait === undefined);
 
       expect(assetsWithoutPortrait.length).toBeGreaterThan(0);
+    });
+
+    it('should include assets with miniature images', async () => {
+      const assets = await mockApi.mockGetAssets();
+      const assetsWithMiniature = assets.filter((a) => a.miniature !== undefined);
+
+      expect(assetsWithMiniature.length).toBeGreaterThan(0);
+
+      assetsWithMiniature.forEach((asset) => {
+        expect(asset.miniature).toHaveProperty('id');
+        expect(asset.miniature).toHaveProperty('type');
+        expect(asset.miniature).toHaveProperty('path');
+        expect(asset.miniature?.type).toBe(ResourceType.Image);
+      });
+    });
+
+    it('should include assets with photo images', async () => {
+      const assets = await mockApi.mockGetAssets();
+      const assetsWithPhoto = assets.filter((a) => a.photo !== undefined);
+
+      expect(assetsWithPhoto.length).toBeGreaterThan(0);
+
+      assetsWithPhoto.forEach((asset) => {
+        expect(asset.photo).toHaveProperty('id');
+        expect(asset.photo).toHaveProperty('type');
+        expect(asset.photo).toHaveProperty('path');
+        expect(asset.photo?.type).toBe(ResourceType.Image);
+      });
     });
 
     it('should have size at root level', async () => {
@@ -124,36 +146,36 @@ describe('MockApiService', () => {
       expect(sizes.some((s) => s !== '1x1')).toBe(true);
     });
 
-    it('should include assets with multiple tokens', async () => {
+    it('should include edge case: asset with no images', async () => {
       const assets = await mockApi.mockGetAssets();
-      const multiToken = assets.filter((a) => a.tokens.length > 1);
+      const noImages = assets.filter(
+        (a) => !a.topDown && !a.portrait && !a.miniature && !a.photo
+      );
 
-      expect(multiToken.length).toBeGreaterThan(0);
+      expect(noImages.length).toBeGreaterThan(0);
 
-      multiToken.forEach((asset) => {
-        expect(asset.tokens.length).toBeGreaterThan(1);
+      noImages.forEach((asset) => {
+        expect(asset.topDown).toBeUndefined();
+        expect(asset.portrait).toBeUndefined();
+        expect(asset.miniature).toBeUndefined();
+        expect(asset.photo).toBeUndefined();
       });
     });
 
-    it('should include edge case: asset with no tokens', async () => {
+    it('should include edge case: asset with all 4 image types', async () => {
       const assets = await mockApi.mockGetAssets();
-      const noTokens = assets.filter((a) => a.tokens.length === 0);
+      const allImages = assets.filter(
+        (a) => a.topDown && a.portrait && a.miniature && a.photo
+      );
 
-      expect(noTokens.length).toBeGreaterThan(0);
+      expect(allImages.length).toBeGreaterThan(0);
 
-      noTokens.forEach((asset) => {
-        expect(asset.tokens).toEqual([]);
+      allImages.forEach((asset) => {
+        expect(asset.topDown).toBeDefined();
+        expect(asset.portrait).toBeDefined();
+        expect(asset.miniature).toBeDefined();
+        expect(asset.photo).toBeDefined();
       });
-    });
-
-    it('should include edge case: asset with multiple default tokens', async () => {
-      const assets = await mockApi.mockGetAssets();
-      const multiDefault = assets.filter((a) => {
-        const defaultCount = a.tokens.filter((t) => t.isDefault).length;
-        return defaultCount > 1;
-      });
-
-      expect(multiDefault.length).toBeGreaterThan(0);
     });
 
     it('should include square and non-square assets', async () => {
@@ -167,17 +189,17 @@ describe('MockApiService', () => {
 
     it('should have realistic media resource metadata', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithTokens = assets.filter((a) => a.tokens.length > 0 && a.tokens[0]?.token);
+      const assetsWithTopDown = assets.filter((a) => a.topDown !== undefined);
 
-      assetsWithTokens.forEach((asset) => {
-        const token = asset.tokens[0]?.token;
-        expect(token).toBeDefined();
-        expect(token?.metadata.contentType).toBe('image/png');
-        expect(token?.metadata.fileName).toMatch(/\.png$/);
-        expect(token?.metadata.fileLength).toBeGreaterThan(0);
-        expect(token?.metadata.imageSize).toBeDefined();
-        expect(token?.metadata.imageSize?.width).toBe(256);
-        expect(token?.metadata.imageSize?.height).toBe(256);
+      assetsWithTopDown.forEach((asset) => {
+        const topDown = asset.topDown;
+        expect(topDown).toBeDefined();
+        expect(topDown?.metadata.contentType).toBe('image/png');
+        expect(topDown?.metadata.fileName).toMatch(/\.png$/);
+        expect(topDown?.metadata.fileLength).toBeGreaterThan(0);
+        expect(topDown?.metadata.imageSize).toBeDefined();
+        expect(topDown?.metadata.imageSize?.width).toBe(256);
+        expect(topDown?.metadata.imageSize?.height).toBe(256);
       });
     });
 

@@ -67,30 +67,27 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        // Check for duplicate name for this owner
+        if (data.Kind == AssetKind.Object && data.PhotoId.HasValue)
+            throw new InvalidOperationException("Objects cannot have a Photo image.");
+
         var existing = await assetStorage.GetByNameAndOwnerAsync(data.Name, userId, ct);
         if (existing != null)
             return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
 
-        // Load Token entities for each AssetToken
-        var tokens = new List<AssetToken>();
-        foreach (var assetResource in data.Tokens) {
-            var resource = await mediaStorage.GetByIdAsync(assetResource.TokenId, ct);
-            tokens.Add(new AssetToken {
-                Token = resource!,
-                IsDefault = assetResource.IsDefault
-            });
-        }
-
         var portrait = !data.PortraitId.HasValue ? null : await mediaStorage.GetByIdAsync(data.PortraitId.Value, ct);
+        var topDown = !data.TopDownId.HasValue ? null : await mediaStorage.GetByIdAsync(data.TopDownId.Value, ct);
+        var miniature = !data.MiniatureId.HasValue ? null : await mediaStorage.GetByIdAsync(data.MiniatureId.Value, ct);
+        var photo = !data.PhotoId.HasValue ? null : await mediaStorage.GetByIdAsync(data.PhotoId.Value, ct);
 
         Asset asset = data.Kind switch {
             AssetKind.Object => new ObjectAsset {
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Tokens = tokens,
                 Portrait = portrait,
+                TopDown = topDown,
+                Miniature = miniature,
+                Photo = photo,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
                 Size = data.Size,
@@ -102,8 +99,10 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Tokens = tokens,
                 Portrait = portrait,
+                TopDown = topDown,
+                Miniature = miniature,
+                Photo = photo,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
                 Size = data.Size,
@@ -114,8 +113,10 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Tokens = tokens,
                 Portrait = portrait,
+                TopDown = topDown,
+                Miniature = miniature,
+                Photo = photo,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
                 Size = data.Size,
@@ -151,17 +152,8 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        var tokens = asset.Tokens.ToList();
-        if (data.Tokens.IsSet) {
-            tokens.Clear();
-            foreach (var assetResource in data.Tokens.Value) {
-                var resource = await mediaStorage.GetByIdAsync(assetResource.TokenId, ct);
-                tokens.Add(new AssetToken {
-                    Token = resource!,
-                    IsDefault = assetResource.IsDefault
-                });
-            }
-        }
+        if (asset is ObjectAsset && data.PhotoId.IsSet && data.PhotoId.Value.HasValue)
+            throw new InvalidOperationException("Objects cannot have a Photo image.");
 
         var portrait = data.PortraitId.IsSet
                         ? !data.PortraitId.Value.HasValue
@@ -169,12 +161,32 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                             : await mediaStorage.GetByIdAsync(data.PortraitId.Value.Value, ct)
                         : asset.Portrait;
 
+        var topDown = data.TopDownId.IsSet
+                        ? !data.TopDownId.Value.HasValue
+                            ? null
+                            : await mediaStorage.GetByIdAsync(data.TopDownId.Value.Value, ct)
+                        : asset.TopDown;
+
+        var miniature = data.MiniatureId.IsSet
+                        ? !data.MiniatureId.Value.HasValue
+                            ? null
+                            : await mediaStorage.GetByIdAsync(data.MiniatureId.Value.Value, ct)
+                        : asset.Miniature;
+
+        var photo = data.PhotoId.IsSet
+                        ? !data.PhotoId.Value.HasValue
+                            ? null
+                            : await mediaStorage.GetByIdAsync(data.PhotoId.Value.Value, ct)
+                        : asset.Photo;
+
         asset = asset switch {
             ObjectAsset obj => obj with {
                 Name = data.Name.IsSet ? data.Name.Value : obj.Name,
                 Description = data.Description.IsSet ? data.Description.Value : obj.Description,
-                Tokens = tokens,
                 Portrait = portrait,
+                TopDown = topDown,
+                Miniature = miniature,
+                Photo = photo,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : obj.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : obj.IsPublic,
                 Size = data.Size.IsSet ? data.Size.Value : obj.Size,
@@ -185,8 +197,10 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             MonsterAsset monster => monster with {
                 Name = data.Name.IsSet ? data.Name.Value : monster.Name,
                 Description = data.Description.IsSet ? data.Description.Value : monster.Description,
-                Tokens = tokens,
                 Portrait = portrait,
+                TopDown = topDown,
+                Miniature = miniature,
+                Photo = photo,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : monster.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : monster.IsPublic,
                 Size = data.Size.IsSet ? data.Size.Value : monster.Size,
@@ -196,8 +210,10 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             CharacterAsset character => character with {
                 Name = data.Name.IsSet ? data.Name.Value : character.Name,
                 Description = data.Description.IsSet ? data.Description.Value : character.Description,
-                Tokens = tokens,
                 Portrait = portrait,
+                TopDown = topDown,
+                Miniature = miniature,
+                Photo = photo,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : character.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : character.IsPublic,
                 Size = data.Size.IsSet ? data.Size.Value : character.Size,

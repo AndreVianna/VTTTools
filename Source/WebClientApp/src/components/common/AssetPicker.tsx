@@ -34,7 +34,7 @@ import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useGetAssetsQuery } from '@/services/assetsApi';
 import { type Asset, AssetKind } from '@/types/domain';
-import { getDefaultToken, getResourceUrl } from '@/utils/assetHelpers';
+import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetPickerProps {
   open: boolean;
@@ -243,10 +243,9 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                       component='img'
                       height='120'
                       image={(() => {
-                        const defaultToken = getDefaultToken(asset);
-                        const tokenId = defaultToken?.token.id || asset.tokens?.[0]?.token.id;
-                        return tokenId
-                          ? getResourceUrl(tokenId)
+                        const image = getDefaultAssetImage(asset);
+                        return image
+                          ? getResourceUrl(image.id)
                           : 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image';
                       })()}
                       alt={asset.name}

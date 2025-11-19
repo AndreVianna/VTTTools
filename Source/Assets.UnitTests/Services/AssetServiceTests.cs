@@ -40,7 +40,6 @@ public class AssetServiceTests {
             Id = assetId,
             Name = "Test Asset",
             Description = "Test Description",
-            Tokens = [],
         };
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -55,17 +54,12 @@ public class AssetServiceTests {
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
         // Arrange
-        var tokenId = Guid.CreateVersion7();
+        var portraitId = Guid.CreateVersion7();
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
             Kind = AssetKind.Monster,
-            Tokens = [
-                new AssetTokenData {
-                    TokenId = tokenId,
-                    IsDefault = true
-                }
-            ],
+            PortraitId = portraitId,
             Size = NamedSize.FromName(SizeName.Medium),
             MonsterData = new MonsterData(),
         };
@@ -91,19 +85,13 @@ public class AssetServiceTests {
             Name = "Old Name",
             Description = "Old Description",
             OwnerId = _userId,
-            Tokens = [],
         };
 
-        var tokenId = Guid.CreateVersion7();
+        var topDownId = Guid.CreateVersion7();
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
-            Tokens = Optional<AssetTokenData[]>.Some([
-                new AssetTokenData {
-                    TokenId = tokenId,
-                    IsDefault = false
-                }
-            ]),
+            TopDownId = Optional<Guid?>.Some(topDownId),
             IsPublished = true,
             IsPublic = true,
         };

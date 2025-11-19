@@ -5,8 +5,7 @@ public record EncounterAssetAddRequest {
     public bool IsVisible { get; init; }
 
     public Frame Frame { get; init; } = new Frame();
-    public Guid? TokenId { get; init; }
-    public Guid? PortraitId { get; init; }
+    public Guid? ImageId { get; init; }
 
     public Position Position { get; init; } = Position.Zero;
     public NamedSize Size { get; init; } = NamedSize.Zero;

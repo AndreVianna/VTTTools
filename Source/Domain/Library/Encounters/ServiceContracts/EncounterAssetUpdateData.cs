@@ -8,8 +8,11 @@ public record EncounterAssetUpdateData
     public Optional<bool> IsVisible { get; set; }
 
     public Optional<Frame> Frame { get; init; }
-    public Optional<Guid?> TokenId { get; init; }
-    public Optional<Guid?> PortraitId { get; init; }
+
+    /// <summary>
+    /// Single image reference for this asset instance.
+    /// </summary>
+    public Optional<Guid?> ImageId { get; init; }
 
     public Optional<Position> Position { get; init; }
     public Optional<NamedSize> Size { get; init; }

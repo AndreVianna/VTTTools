@@ -48,6 +48,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("MiniatureId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -56,7 +59,13 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("PhotoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("PortraitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TopDownId")
                         .HasColumnType("uniqueidentifier");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Size", "VttTools.Data.Assets.Entities.Asset.Size#NamedSize", b1 =>
@@ -76,31 +85,22 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MiniatureId");
+
+                    b.HasIndex("PhotoId");
+
                     b.HasIndex("PortraitId");
 
-                    b.ToTable("Assets", (string)null);
+                    b.HasIndex("TopDownId");
+
+                    b.ToTable("Assets", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Asset_Photo_ObjectOnly", "(Kind != 'Object') OR (PhotoId IS NULL)");
+                        });
 
                     b.HasDiscriminator<string>("Kind");
 
                     b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetToken", b =>
-                {
-                    b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TokenId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("IsDefault")
-                        .HasColumnType("int");
-
-                    b.HasKey("AssetId", "TokenId");
-
-                    b.HasIndex("TokenId");
-
-                    b.ToTable("AssetTokens", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Effect", b =>
@@ -578,6 +578,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("real")
                         .HasDefaultValue(0f);
 
+                    b.Property<Guid?>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsLocked")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -600,16 +603,10 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<long>("Number")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid?>("PortraitId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<float>("Rotation")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("real")
                         .HasDefaultValue(0f);
-
-                    b.Property<Guid?>("TokenId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Frame", "VttTools.Data.Library.Entities.EncounterAsset.Frame#Frame", b1 =>
                         {
@@ -673,9 +670,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("AssetId");
 
-                    b.HasIndex("PortraitId");
-
-                    b.HasIndex("TokenId");
+                    b.HasIndex("ImageId");
 
                     b.ToTable("EncounterAssets", (string)null);
                 });
@@ -1353,6 +1348,11 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("uniqueidentifier");
 
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Asset_Photo_ObjectOnly", "(Kind != 'Object') OR (PhotoId IS NULL)");
+                        });
+
                     b.HasDiscriminator().HasValue("Character");
                 });
 
@@ -1363,6 +1363,11 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("StatBlockId")
                         .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("uniqueidentifier");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Asset_Photo_ObjectOnly", "(Kind != 'Object') OR (PhotoId IS NULL)");
+                        });
 
                     b.HasDiscriminator().HasValue("Monster");
                 });
@@ -1380,35 +1385,43 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("TriggerEffectId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Asset_Photo_ObjectOnly", "(Kind != 'Object') OR (PhotoId IS NULL)");
+                        });
+
                     b.HasDiscriminator().HasValue("Object");
                 });
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Miniature")
+                        .WithMany()
+                        .HasForeignKey("MiniatureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Portrait")
                         .WithMany()
-                        .HasForeignKey("PortraitId");
+                        .HasForeignKey("PortraitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "TopDown")
+                        .WithMany()
+                        .HasForeignKey("TopDownId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Miniature");
+
+                    b.Navigation("Photo");
 
                     b.Navigation("Portrait");
-                });
 
-            modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetToken", b =>
-                {
-                    b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
-                        .WithMany("Tokens")
-                        .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Token")
-                        .WithMany()
-                        .HasForeignKey("TokenId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Asset");
-
-                    b.Navigation("Token");
+                    b.Navigation("TopDown");
                 });
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Effect", b =>
@@ -1612,23 +1625,16 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Portrait")
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Image")
                         .WithMany()
-                        .HasForeignKey("PortraitId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Token")
-                        .WithMany()
-                        .HasForeignKey("TokenId")
+                        .HasForeignKey("ImageId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Asset");
 
                     b.Navigation("Encounter");
 
-                    b.Navigation("Portrait");
-
-                    b.Navigation("Token");
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterEffect", b =>
@@ -1885,11 +1891,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         });
 
                     b.Navigation("TokenStyle");
-                });
-
-            modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
-                {
-                    b.Navigation("Tokens");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>

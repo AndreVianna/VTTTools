@@ -6,15 +6,16 @@ namespace VttTools.Assets.Model;
 public class AssetTests {
     [Fact]
     public void ObjectAsset_Constructor_InitializesWithDefaultValues() {
-        // Arrange & Act
         var asset = new ObjectAsset();
 
-        // Assert
         asset.Id.Should().NotBeEmpty();
         asset.OwnerId.Should().BeEmpty();
         asset.Name.Should().BeEmpty();
         asset.Description.Should().BeEmpty();
-        asset.Tokens.Should().NotBeNull().And.BeEmpty();
+        asset.Portrait.Should().BeNull();
+        asset.TopDown.Should().BeNull();
+        asset.Miniature.Should().BeNull();
+        asset.Photo.Should().BeNull();
         asset.Size.Width.Should().Be(1);
         asset.Size.Height.Should().Be(1);
         asset.IsMovable.Should().BeTrue();
@@ -33,34 +34,13 @@ public class AssetTests {
 
     [Fact]
     public void ObjectAsset_WithValues_InitializesCorrectly() {
-        // Arrange
         var id = Guid.CreateVersion7();
         var ownerId = Guid.CreateVersion7();
         const string name = "Wooden Table";
         const string description = "A sturdy oak table";
         var size = new Size(100, 200);
-        var tokenId = Guid.CreateVersion7();
         var portraitId = Guid.CreateVersion7();
-        var token = new Resource {
-            Id = tokenId,
-            Type = ResourceType.Image,
-            Path = "assets/table-token.png",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/png",
-                ImageSize = size,
-            },
-            Tags = ["furniture", "indoor"],
-        };
-        var otherToken = new Resource {
-            Id = tokenId,
-            Type = ResourceType.Image,
-            Path = "assets/table-other-token.png",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/png",
-                ImageSize = size,
-            },
-            Tags = ["furniture", "indoor"],
-        };
+        var topDownId = Guid.CreateVersion7();
         var portrait = new Resource {
             Id = portraitId,
             Type = ResourceType.Image,
@@ -71,40 +51,35 @@ public class AssetTests {
             },
             Tags = ["furniture", "indoor"],
         };
+        var topDown = new Resource {
+            Id = topDownId,
+            Type = ResourceType.Image,
+            Path = "assets/table-topdown.png",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = size,
+            },
+            Tags = ["furniture", "indoor"],
+        };
 
-        // Act
         var asset = new ObjectAsset {
             Id = id,
             OwnerId = ownerId,
             Name = name,
             Description = description,
-            Tokens = [
-                new AssetToken {
-                    Token = token,
-                    IsDefault = true
-                },
-                new AssetToken {
-                    Token = otherToken,
-                    IsDefault = false
-                }
-            ],
             Portrait = portrait,
+            TopDown = topDown,
             Size = new NamedSize { Width = 2, Height = 1 },
             IsMovable = true,
             IsOpaque = false
         };
 
-        // Assert
         asset.Id.Should().Be(id);
         asset.OwnerId.Should().Be(ownerId);
         asset.Name.Should().Be(name);
         asset.Description.Should().Be(description);
-        asset.Tokens.Should().NotBeEmpty();
-        asset.Tokens.First().Token.Should().BeEquivalentTo(token);
-        asset.Tokens.First().IsDefault.Should().BeTrue();
-        asset.Tokens.Last().Token.Should().BeEquivalentTo(otherToken);
-        asset.Tokens.Last().IsDefault.Should().BeFalse();
         asset.Portrait.Should().BeEquivalentTo(portrait);
+        asset.TopDown.Should().BeEquivalentTo(topDown);
         asset.Size.Width.Should().Be(2);
         asset.Size.Height.Should().Be(1);
     }

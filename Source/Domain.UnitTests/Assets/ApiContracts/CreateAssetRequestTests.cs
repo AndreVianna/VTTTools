@@ -3,17 +3,12 @@ namespace VttTools.Assets.ApiContracts;
 public class CreateAssetRequestTests {
     [Fact]
     public void WithClause_ObjectAsset_UpdatesProperties() {
-        // Arrange
         var original = new CreateAssetRequest {
             Kind = AssetKind.Object,
             Name = "Table",
             Description = "A table",
-            Tokens = [
-                new AssetTokenData {
-                    TokenId = Guid.CreateVersion7(),
-                    IsDefault = true
-                }
-            ],
+            PortraitId = Guid.CreateVersion7(),
+            TopDownId = Guid.CreateVersion7(),
             Size = new NamedSize { Width = 1, Height = 1 },
             ObjectData = new ObjectData {
                 IsMovable = true,
@@ -22,7 +17,6 @@ public class CreateAssetRequestTests {
         };
         const string name = "Large Table";
 
-        // Act
         var updated = original with {
             Name = name,
             Size = new NamedSize { Width = 2, Height = 1 },
@@ -32,7 +26,6 @@ public class CreateAssetRequestTests {
             }
         };
 
-        // Assert
         updated.Name.Should().Be(name);
         updated.Kind.Should().Be(AssetKind.Object);
         updated.Size.Width.Should().Be(2);

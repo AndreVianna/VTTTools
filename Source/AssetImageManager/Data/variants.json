@@ -1,0 +1,27 @@
+[
+  {
+    "Name": "Goblin",
+    "Category": "Creature",
+    "Type": "Monster",
+    "Subtype": "Humanoid",
+    "PhysicalDescription": "small and thin green-skinned",
+    "DistinctiveFeatures": "with pointed ears and yellow eyes, wearing a ragged leather armor",
+    "Environment": "tribal camps",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Class": [
+          "warrior"
+        ],
+        "Equipment": [
+          "scimitar and shield",
+          "shortbow"
+        ]
+      }
+    ],
+    "SchemaVersion": 1
+  }
+]

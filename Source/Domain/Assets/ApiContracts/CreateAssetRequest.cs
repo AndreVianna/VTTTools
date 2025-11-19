@@ -5,8 +5,12 @@ public record CreateAssetRequest
     public AssetKind Kind { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public AssetTokenData[] Tokens { get; init; } = [];
+
     public Guid? PortraitId { get; init; }
+    public Guid? TopDownId { get; init; }
+    public Guid? MiniatureId { get; init; }
+    public Guid? PhotoId { get; init; }
+
     public NamedSize Size { get; init; } = NamedSize.Default;
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }

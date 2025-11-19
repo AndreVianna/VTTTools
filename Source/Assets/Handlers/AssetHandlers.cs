@@ -53,10 +53,11 @@ internal static class AssetHandlers {
             Kind = request.Kind,
             Name = request.Name,
             Description = request.Description,
-            Tokens = [..request.Tokens.Select(r => new AssetTokenData {
-                TokenId = r.TokenId,
-                IsDefault = r.IsDefault
-            })],
+            PortraitId = request.PortraitId,
+            TopDownId = request.TopDownId,
+            MiniatureId = request.MiniatureId,
+            PhotoId = request.PhotoId,
+            Size = request.Size,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
             ObjectData = request.ObjectData,
@@ -77,11 +78,11 @@ internal static class AssetHandlers {
         var data = new UpdateAssetData {
             Name = request.Name,
             Description = request.Description,
-            Tokens = request.Tokens.As<AssetTokenData[]>(list => [..list.Select(r => new AssetTokenData {
-                TokenId = r.TokenId,
-                IsDefault = r.IsDefault
-            })]),
+            Size = request.Size,
             PortraitId = request.PortraitId,
+            TopDownId = request.TopDownId,
+            MiniatureId = request.MiniatureId,
+            PhotoId = request.PhotoId,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
             ObjectData = request.ObjectData,
@@ -91,7 +92,7 @@ internal static class AssetHandlers {
 
         var result = await assetService.UpdateAssetAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.NoContent()  // 204 No Content (UpdatedAt is audit metadata, not side effect)
+            ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"

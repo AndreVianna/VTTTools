@@ -41,16 +41,29 @@ public abstract record Asset {
     public bool IsPublic { get; init; }
 
     /// <summary>
-    /// Collection of visual resources (images/videos) associated with this asset
-    /// Each resource can have one or more roles (Token, Portrait)
-    /// </summary>
-    public ICollection<AssetToken> Tokens { get; init; } = [];
-
-    /// <summary>
-    /// Collection of visual resources (images/videos) associated with this asset
-    /// Each resource can have one or more roles (Token, Portrait)
+    /// Full image for asset details page and stat blocks (4:3, 1:1, or 3:4 aspect ratio)
+    /// Never displayed on encounter maps - use TopDown, Miniature, or Photo instead
     /// </summary>
     public Resource? Portrait { get; init; }
+
+    /// <summary>
+    /// Bird's eye view token for square/HexV/HexH grids (transparent background)
+    /// Used when ViewMode is MapView and MapType is not Isometric
+    /// </summary>
+    public Resource? TopDown { get; init; }
+
+    /// <summary>
+    /// Isometric view token for isometric maps (transparent background)
+    /// Used when ViewMode is MapView and MapType is Isometric
+    /// </summary>
+    public Resource? Miniature { get; init; }
+
+    /// <summary>
+    /// 3/4 face view with frame for Portrait Mode on encounters
+    /// Only available for creatures and characters (NOT for objects)
+    /// Used when ViewMode is Portrait
+    /// </summary>
+    public Resource? Photo { get; init; }
 
     /// <summary>
     /// Gets or sets the named size value for the element.

@@ -2,13 +2,15 @@
 
 public record EncounterAssetAddData
     : Data {
-    // Overridable properties
     public string? Name { get; init; }
     public bool IsVisible { get; init; }
 
     public Frame Frame { get; init; } = new Frame();
-    public Guid? TokenId { get; init; }
-    public Guid? PortraitId { get; init; }
+
+    /// <summary>
+    /// Single image reference for this asset instance.
+    /// </summary>
+    public Guid? ImageId { get; init; }
 
     public NamedSize Size { get; init; } = NamedSize.Zero;
     public Position Position { get; init; } = Position.Zero;

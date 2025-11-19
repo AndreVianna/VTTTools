@@ -3,17 +3,12 @@ namespace VttTools.Assets.ApiContracts;
 public class UpdateAssetRequestTests {
     [Fact]
     public void WithClause_ObjectAsset_UpdatesProperties() {
-        // Arrange
-        var originalResourceId = Guid.CreateVersion7();
+        var originalPortraitId = Guid.CreateVersion7();
         var original = new UpdateAssetRequest {
             Name = "Table",
             Description = "A table",
-            Tokens = new[] {
-                new AssetTokenData {
-                    TokenId = originalResourceId,
-                    IsDefault = true
-                }
-            },
+            PortraitId = originalPortraitId,
+            TopDownId = Guid.CreateVersion7(),
             Size = new NamedSize { Width = 1, Height = 1 },
             ObjectData = new ObjectData {
                 IsMovable = true,
@@ -21,17 +16,12 @@ public class UpdateAssetRequestTests {
             }
         };
         const string newName = "Large Table";
-        var newResourceId = Guid.CreateVersion7();
+        var newPortraitId = Guid.CreateVersion7();
 
-        // Act
         var updated = original with {
             Name = newName,
-            Tokens = new[] {
-                new AssetTokenData {
-                    TokenId = newResourceId,
-                    IsDefault = false
-                }
-            },
+            PortraitId = newPortraitId,
+            MiniatureId = Guid.CreateVersion7(),
             Size = new NamedSize { Width = 2, Height = 2 },
             ObjectData = new ObjectData {
                 IsMovable = false,
@@ -39,11 +29,9 @@ public class UpdateAssetRequestTests {
             }
         };
 
-        // Assert
         updated.Name.Value.Should().Be(newName);
-        updated.Tokens.Value.Should().HaveCount(1);
-        updated.Tokens.Value[0].TokenId.Should().Be(newResourceId);
-        updated.Tokens.Value[0].IsDefault.Should().BeFalse();
+        updated.PortraitId.Value.Should().Be(newPortraitId);
+        updated.MiniatureId.IsSet.Should().BeTrue();
         updated.Size.Value.Width.Should().Be(2);
         updated.Size.Value.Height.Should().Be(2);
         updated.ObjectData.Value.IsMovable.Should().BeFalse();

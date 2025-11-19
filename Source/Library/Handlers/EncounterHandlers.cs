@@ -56,8 +56,7 @@ internal static class EncounterHandlers {
         var data = new EncounterAssetAddData {
             Name = request.Name,
             IsVisible = request.IsVisible,
-            TokenId = request.TokenId,
-            PortraitId = request.PortraitId,
+            ImageId = request.ImageId,
             Position = request.Position,
             Size = request.Size,
             Frame = request.Frame,
@@ -160,8 +159,7 @@ internal static class EncounterHandlers {
             new EncounterAssetAddData {
                 Name = a.Name,
                 IsVisible = a.IsVisible,
-                TokenId = a.TokenId,
-                PortraitId = a.PortraitId,
+                ImageId = a.ImageId,
                 Position = a.Position,
                 Size = a.Size,
                 Frame = a.Frame,

@@ -166,8 +166,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (result.HasErrors)
             return result;
 
-        var tokenId = data.TokenId ?? asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id;
-        var portraitId = data.PortraitId ?? asset.Portrait?.Id;
+        var imageId = data.ImageId;
 
         var number = encounter.Assets.Any(sa => sa.AssetId == assetId)
             ? encounter.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
@@ -178,8 +177,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             Index = encounter.Assets.Count != 0 ? encounter.Assets.Max(sa => sa.Index) + 1 : 0,
             Number = number,
             Name = data.Name ?? GenerateAssetInstanceName(asset, number),
-            Token = tokenId is null ? null : new Resource { Id = tokenId.Value },
-            Portrait = portraitId is null ? null : new Resource { Id = portraitId.Value },
+            Image = imageId is null ? null : new Resource { Id = imageId.Value },
             Position = data.Position,
             Size = data.Size,
             Frame = data.Frame,
@@ -233,25 +231,20 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (result.HasErrors)
             return result;
 
-        var tokenId = data.TokenId.IsSet
-                        ? data.TokenId.Value
-                        : encounterAsset.Token?.Id;
-
-        var portraitId = data.PortraitId.IsSet
-                        ? data.PortraitId.Value
-                        : encounterAsset.Portrait?.Id;
+        var imageId = data.ImageId.IsSet
+                        ? data.ImageId.Value
+                        : encounterAsset.Image?.Id;
 
         encounterAsset = encounterAsset with {
             Name = data.Name.IsSet ? data.Name.Value : encounterAsset.Name,
-            Token = tokenId == encounterAsset.Token?.Id ? encounterAsset.Token : (tokenId is null ? null : new Resource { Id = tokenId.Value }),
-            Portrait = portraitId == encounterAsset.Portrait?.Id ? encounterAsset.Portrait : (portraitId is null ? null : new Resource { Id = portraitId.Value }),
+            Image = imageId == encounterAsset.Image?.Id ? encounterAsset.Image : (imageId is null ? null : new Resource { Id = imageId.Value }),
             Position = data.Position.IsSet ? data.Position.Value : encounterAsset.Position,
             Size = data.Size.IsSet ? data.Size.Value : encounterAsset.Size,
             Rotation = data.Rotation.IsSet ? data.Rotation.Value : encounterAsset.Rotation,
             Elevation = data.Elevation.IsSet ? data.Elevation.Value : encounterAsset.Elevation,
             IsLocked = data.IsLocked.IsSet ? data.IsLocked.Value : encounterAsset.IsLocked,
             ControlledBy = data.ControlledBy.IsSet ? data.ControlledBy.Value : encounterAsset.ControlledBy,
-            Notes = data.Notes.IsSet ? data.Notes.Value : null,
+            Notes = data.Notes.IsSet ? data.Notes.Value : encounterAsset.Notes,
         };
         await encounterStorage.UpdateAsync(id, encounterAsset, ct);
         return Result.Success();
@@ -369,8 +362,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))
                 return Result.Failure("NotAllowed");
 
-            var tokenId = data.TokenId ?? asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id;
-            var portraitId = data.PortraitId ?? asset.Portrait?.Id;
+            var imageId = data.ImageId;
 
             var number = encounter.Assets.Any(sa => sa.AssetId == assetId)
                 ? encounter.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
@@ -382,8 +374,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
                 Number = number,
                 Name = data.Name ?? GenerateAssetInstanceName(asset, number),
                 Notes = data.Notes,
-                Token = tokenId is null ? null : new Resource { Id = tokenId.Value },
-                Portrait = portraitId is null ? null : new Resource { Id = portraitId.Value },
+                Image = imageId is null ? null : new Resource { Id = imageId.Value },
                 Position = data.Position,
                 Size = data.Size,
                 Frame = data.Frame,

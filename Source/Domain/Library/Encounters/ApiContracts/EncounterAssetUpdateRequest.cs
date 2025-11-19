@@ -8,8 +8,7 @@ public record EncounterAssetUpdateRequest
     public Optional<bool> IsLocked { get; set; }
 
     public Optional<Frame> Frame { get; init; }
-    public Optional<Guid?> TokenId { get; set; }
-    public Optional<Guid?> PortraitId { get; set; }
+    public Optional<Guid?> ImageId { get; set; }
 
     public Optional<Position> Position { get; init; }
     public Optional<NamedSize> Size { get; init; }

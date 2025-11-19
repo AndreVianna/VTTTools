@@ -171,24 +171,14 @@ public class ClonerTests {
                     Name = "Asset 1",
                     Number = 1,
                     IsVisible = true,
-                    Token = new() {
+                    Image = new() {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
-                        Path = "assets/asset-1-token.png",
+                        Path = "assets/asset-1-image.png",
                         Metadata = new ResourceMetadata {
                             ContentType = "image/png",
                             ImageSize = new Size(100, 100),
                         },
-                    },
-                    Portrait = new Resource {
-                        Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
-                        Path = "assets/asset-1-portrait.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new Size(100, 100),
-                        },
-                        Tags = ["furniture", "indoor"],
                     },
                     Position = new(20, 30),
                     Size = new NamedSize { Width = 1, Height = 1 },
@@ -202,24 +192,14 @@ public class ClonerTests {
                     Index = 2,
                     Name = "Asset 2",
                     Number = 2,
-                    Token = new() {
+                    Image = new() {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
-                        Path = "assets/asset-2-token.png",
+                        Path = "assets/asset-2-image.png",
                         Metadata = new ResourceMetadata {
                             ContentType = "image/png",
                             ImageSize = new Size(100, 100),
                         },
-                    },
-                    Portrait = new Resource {
-                        Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
-                        Path = "assets/asset-2-portrait.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new Size(100, 100),
-                        },
-                        Tags = ["furniture", "indoor"],
                     },
                     Position = new(5, 10),
                     Size = new NamedSize { Width = 1, Height = 1 },
@@ -257,19 +237,10 @@ public class ClonerTests {
                     Index = 1,
                     Name = "Asset 1",
                     Number = 1,
-                    Token = new() {
+                    Image = new() {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
-                        Path = "assets/asset-1-token.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new Size(100, 100),
-                        },
-                    },
-                    Portrait = new Resource {
-                        Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
-                        Path = "assets/asset-1-portrait.png",
+                        Path = "assets/asset-1-image.png",
                         Metadata = new ResourceMetadata {
                             ContentType = "image/png",
                             ImageSize = new Size(100, 100),
@@ -308,24 +279,14 @@ public class ClonerTests {
             Index = 1,
             Name = "Original Asset",
             Number = 1,
-            Token = new() {
+            Image = new() {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
-                Path = "assets/asset-1-token.png",
+                Path = "assets/asset-1-image.png",
                 Metadata = new ResourceMetadata {
                     ContentType = "image/png",
                     ImageSize = new Size(100, 100),
                 },
-            },
-            Portrait = new Resource {
-                Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
-                Path = "assets/asset-1-portrait.png",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/png",
-                    ImageSize = new Size(100, 100),
-                },
-                Tags = ["furniture", "indoor"],
             },
             Position = new(20, 30),
             Size = new NamedSize { Width = 1, Height = 1 },

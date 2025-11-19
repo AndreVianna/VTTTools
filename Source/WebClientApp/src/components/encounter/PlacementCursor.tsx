@@ -14,8 +14,8 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Group, Image as KonvaImage } from 'react-konva';
-import type { Asset } from '@/types/domain';
-import { getDefaultToken, getResourceUrl } from '@/utils/assetHelpers';
+import { type Asset } from '@/types/domain';
+import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
 import { cellToPoint, type GridConfig, type Point, pointToCell } from '@/utils/gridCalculator';
 import type { EncounterCanvasHandle } from './EncounterCanvas';
 
@@ -42,11 +42,11 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({ asset, gridCon
 
   // Load asset image
   useEffect(() => {
-    const tokenResource = getDefaultToken(asset);
-    if (!tokenResource) return;
+    const imageResource = getDefaultAssetImage(asset);
+    if (!imageResource) return;
 
     const img = new window.Image();
-    img.src = getResourceUrl(tokenResource.token.id);
+    img.src = getResourceUrl(imageResource.id);
     img.crossOrigin = 'use-credentials';
 
     img.onload = () => {

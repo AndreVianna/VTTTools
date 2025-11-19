@@ -55,13 +55,10 @@ public class AssetStorageTests
 
     [Fact]
     public async Task AddAsync_WithValidAsset_AddsToDatabase() {
-        // Arrange
         var asset = DbContextHelper.CreateTestAsset("New Asset");
 
-        // Act
         await _storage.AddAsync(asset, _ct);
 
-        // Assert
         var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
@@ -71,50 +68,56 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.Tokens.Should().HaveCount(asset.Tokens.Count);
+        dbAsset.PortraitId.Should().Be(asset.Portrait?.Id);
+        dbAsset.TopDownId.Should().Be(asset.TopDown?.Id);
     }
 
     [Fact]
     public async Task UpdateAsync_WithExistingAsset_UpdatesInDatabase() {
-        // Arrange
         var entity = DbContextHelper.CreateTestAssetEntity("Asset To Update");
 
         await _context.Assets.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
-        // Modify the asset
-        var tokenId = Guid.CreateVersion7();
+        var portraitId = Guid.CreateVersion7();
+        var topDownId = Guid.CreateVersion7();
         var asset = new MonsterAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Asset",
             Description = "Updated description",
-            Tokens = [
-                new() {
-                    IsDefault = true,
-                    Token = new() {
-                        Id = tokenId,
-                        Type = ResourceType.Image,
-                        Path = "assets/updated-asset-resource",
-                        Metadata = new ResourceMetadata {
-                            FileName = "updated_resource.png",
-                            ContentType = "image/png",
-                            FileLength = 1500,
-                            ImageSize = new(100, 100),
-                            Duration = TimeSpan.Zero,
-                        },
-                        Tags = [],
-                    },
+            Portrait = new() {
+                Id = portraitId,
+                Type = ResourceType.Image,
+                Path = "assets/updated-portrait",
+                Metadata = new ResourceMetadata {
+                    FileName = "updated_portrait.png",
+                    ContentType = "image/png",
+                    FileLength = 1500,
+                    ImageSize = new(100, 100),
+                    Duration = TimeSpan.Zero,
                 },
-            ],
+                Tags = [],
+            },
+            TopDown = new() {
+                Id = topDownId,
+                Type = ResourceType.Image,
+                Path = "assets/updated-topdown",
+                Metadata = new ResourceMetadata {
+                    FileName = "updated_topdown.png",
+                    ContentType = "image/png",
+                    FileLength = 1500,
+                    ImageSize = new(100, 100),
+                    Duration = TimeSpan.Zero,
+                },
+                Tags = [],
+            },
             IsPublished = true,
             IsPublic = true,
         };
 
-        // Act
         var result = await _storage.UpdateAsync(asset, _ct);
 
-        // Assert
         result.Should().BeTrue();
         var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
         dbAsset.Should().NotBeNull();
@@ -125,84 +128,93 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.Tokens.Should().HaveCount(asset.Tokens.Count);
+        dbAsset.PortraitId.Should().Be(portraitId);
+        dbAsset.TopDownId.Should().Be(topDownId);
     }
 
     [Fact]
-    public async Task UpdateAsync_WithChangedResourceRoles_UpdatesRolesInDatabase() {
-        // Arrange
-        var tokenId = Guid.CreateVersion7();
-        var resource = new Media.Entities.Resource {
-            Id = tokenId,
+    public async Task UpdateAsync_WithChangedImages_UpdatesImagesInDatabase() {
+        var portraitId = Guid.CreateVersion7();
+        var topDownId = Guid.CreateVersion7();
+        var resource1 = new Media.Entities.Resource {
+            Id = portraitId,
             Type = ResourceType.Image,
-            Path = "assets/test-resource",
+            Path = "assets/portrait",
             ContentType = "image/png",
-            FileName = "test_resource.png",
+            FileName = "portrait.png",
             FileLength = 1000,
         };
-        await _context.Resources.AddAsync(resource, _ct);
+        var resource2 = new Media.Entities.Resource {
+            Id = topDownId,
+            Type = ResourceType.Image,
+            Path = "assets/topdown",
+            ContentType = "image/png",
+            FileName = "topdown.png",
+            FileLength = 1000,
+        };
+        await _context.Resources.AddAsync(resource1, _ct);
+        await _context.Resources.AddAsync(resource2, _ct);
 
         var entity = new Assets.Entities.CharacterAsset {
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
             Kind = AssetKind.Character,
-            Name = "Asset With Token",
+            Name = "Asset With Images",
             Description = "Test description",
             IsPublished = false,
             IsPublic = false,
             Size = NamedSize.FromName(SizeName.Medium),
-            Tokens = [
-                new() {
-                    TokenId = tokenId,
-                    IsDefault = true
-                }
-            ]
+            PortraitId = portraitId,
         };
 
         await _context.Assets.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
+        var newTopDownId = Guid.CreateVersion7();
         var updatedAsset = new CharacterAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = entity.Name,
             Description = entity.Description,
-            Tokens = [
-                new() {
-                    IsDefault = false,
-                    Token = new() {
-                        Id = tokenId,
-                        Type = ResourceType.Image,
-                        Path = "assets/test-resource",
-                        Metadata = new ResourceMetadata {
-                            FileName = "test_resource.png",
-                            ContentType = "image/png",
-                            FileLength = 1000,
-                            ImageSize = new(100, 100),
-                            Duration = TimeSpan.Zero,
-                        },
-                        Tags = [],
-                    },
+            Portrait = new() {
+                Id = portraitId,
+                Type = ResourceType.Image,
+                Path = "assets/portrait",
+                Metadata = new ResourceMetadata {
+                    FileName = "portrait.png",
+                    ContentType = "image/png",
+                    FileLength = 1000,
+                    ImageSize = new(100, 100),
+                    Duration = TimeSpan.Zero,
                 },
-            ],
+                Tags = [],
+            },
+            TopDown = new() {
+                Id = newTopDownId,
+                Type = ResourceType.Image,
+                Path = "assets/new-topdown",
+                Metadata = new ResourceMetadata {
+                    FileName = "new_topdown.png",
+                    ContentType = "image/png",
+                    FileLength = 1000,
+                    ImageSize = new(100, 100),
+                    Duration = TimeSpan.Zero,
+                },
+                Tags = [],
+            },
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Size = NamedSize.FromName(SizeName.Medium),
         };
 
-        // Act
         var result = await _storage.UpdateAsync(updatedAsset, _ct);
 
-        // Assert
         result.Should().BeTrue();
         var dbAsset = await _context.Assets
-            .Include(a => a.Tokens)
             .FirstAsync(a => a.Id == entity.Id, _ct);
         dbAsset.Should().NotBeNull();
-        dbAsset.Tokens.Should().HaveCount(1);
-        var dbResource = dbAsset.Tokens.First();
-        dbResource.TokenId.Should().Be(tokenId);
-        dbResource.IsDefault.Should().BeFalse();
+        dbAsset.PortraitId.Should().Be(portraitId);
+        dbAsset.TopDownId.Should().Be(newTopDownId);
     }
 
     [Fact]

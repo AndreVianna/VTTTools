@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { mockAssetToken, mockMonsterAsset, mockObjectAsset } from '@/test-utils/assetMocks';
+import { mockMonsterAsset, mockObjectAsset, mockMediaResource } from '@/test-utils/assetMocks';
 import type { Asset, EncounterAsset, PlacedAsset } from '@/types/domain';
 import { LabelPosition, LabelVisibility } from '@/types/domain';
 import { dehydratePlacedAssets, hydratePlacedAssets } from './encounterMappers';
@@ -11,7 +11,10 @@ const mockMonsterAssetData: Asset = mockMonsterAsset({
   description: 'A small goblin',
   isPublished: true,
   isPublic: false,
-  tokens: [mockAssetToken({ isDefault: true })],
+  topDown: mockMediaResource({ id: 'asset-1-topdown' }),
+  portrait: undefined,
+  miniature: undefined,
+  photo: undefined,
   size: { width: 1, height: 1, isSquare: true },
   statBlockId: undefined,
   tokenStyle: undefined,
@@ -24,7 +27,10 @@ const mockObjectAssetData: Asset = mockObjectAsset({
   description: 'A wooden chest',
   isPublished: true,
   isPublic: false,
-  tokens: [],
+  topDown: mockMediaResource({ id: 'asset-2-topdown' }),
+  portrait: undefined,
+  miniature: undefined,
+  photo: undefined,
   size: { width: 1, height: 1, isSquare: true },
   isMovable: true,
   isOpaque: false,

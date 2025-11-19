@@ -1,35 +1,28 @@
 /**
  * Test Utilities: Asset Mock Factories
  *
- * Provides factory functions to create mock Asset objects with new backend schema
- * (AssetToken, portrait separation, size at root, ObjectData/MonsterData)
+ * Provides factory functions to create mock Asset objects with 4-image structure
+ * (Portrait, TopDown, Miniature, Photo)
  *
  * Usage:
- *   const token = mockAssetToken({ isDefault: true });
  *   const monster = mockMonsterAsset({ name: 'Goblin' });
  *   const object = mockObjectAsset({ size: { width: 2, height: 2, isSquare: true } });
  */
 
-import type { Asset, AssetToken, CharacterAsset, MonsterAsset, MediaResource, ObjectAsset } from '@/types/domain';
+import type { Asset, CharacterAsset, MonsterAsset, MediaResource, ObjectAsset } from '@/types/domain';
 import { AssetKind, ResourceType } from '@/types/domain';
 
 export const mockMediaResource = (overrides?: Partial<MediaResource>): MediaResource => ({
   id: 'resource-123',
   type: ResourceType.Image,
-  path: '/media/test-token.png',
+  path: '/media/test-image.png',
   metadata: {
     contentType: 'image/png',
-    fileName: 'test-token.png',
+    fileName: 'test-image.png',
     fileLength: 12345,
     imageSize: { width: 256, height: 256 },
   },
   tags: [],
-  ...overrides,
-});
-
-export const mockAssetToken = (overrides?: Partial<AssetToken>): AssetToken => ({
-  isDefault: true,
-  token: mockMediaResource(),
   ...overrides,
 });
 
@@ -41,8 +34,10 @@ export const mockObjectAsset = (overrides?: Partial<ObjectAsset>): ObjectAsset =
   description: 'Test object description',
   isPublished: false,
   isPublic: false,
-  tokens: [mockAssetToken()],
+  topDown: mockMediaResource({ id: 'topdown-123' }),
   portrait: undefined,
+  miniature: undefined,
+  photo: undefined,
   size: { width: 1, height: 1, isSquare: true },
   isMovable: true,
   isOpaque: false,
@@ -58,8 +53,10 @@ export const mockMonsterAsset = (overrides?: Partial<MonsterAsset>): MonsterAsse
   description: 'Test monster description',
   isPublished: false,
   isPublic: false,
-  tokens: [mockAssetToken({ token: mockMediaResource({ id: 'token-456' }) })],
+  topDown: mockMediaResource({ id: 'topdown-456' }),
   portrait: undefined,
+  miniature: undefined,
+  photo: undefined,
   size: { width: 1, height: 1, isSquare: true },
   statBlockId: undefined,
   tokenStyle: undefined,
@@ -74,8 +71,10 @@ export const mockCharacterAsset = (overrides?: Partial<CharacterAsset>): Charact
   description: 'Test character description',
   isPublished: false,
   isPublic: false,
-  tokens: [mockAssetToken({ token: mockMediaResource({ id: 'token-789' }) })],
+  topDown: mockMediaResource({ id: 'topdown-789' }),
   portrait: mockMediaResource({ id: 'portrait-789' }),
+  miniature: undefined,
+  photo: undefined,
   size: { width: 1, height: 1, isSquare: true },
   statBlockId: undefined,
   tokenStyle: undefined,
@@ -99,23 +98,13 @@ export const mockAssetWithPortrait = (overrides?: Partial<Asset>): Asset => {
   };
 };
 
-export const mockAssetWithMultipleTokens = (overrides?: Partial<Asset>): Asset => {
+export const mockAssetWithAllImages = (overrides?: Partial<Asset>): Asset => {
   const asset = mockMonsterAsset(overrides as Partial<MonsterAsset>);
   return {
     ...asset,
-    tokens: [
-      mockAssetToken({
-        token: mockMediaResource({ id: 'token-1' }),
-        isDefault: false,
-      }),
-      mockAssetToken({
-        token: mockMediaResource({ id: 'token-2' }),
-        isDefault: true,
-      }),
-      mockAssetToken({
-        token: mockMediaResource({ id: 'token-3' }),
-        isDefault: false,
-      }),
-    ],
+    portrait: mockMediaResource({ id: 'portrait-1', path: '/media/portrait.png' }),
+    topDown: mockMediaResource({ id: 'topdown-1', path: '/media/topdown.png' }),
+    miniature: mockMediaResource({ id: 'miniature-1', path: '/media/miniature.png' }),
+    photo: mockMediaResource({ id: 'photo-1', path: '/media/photo.png' }),
   };
 };

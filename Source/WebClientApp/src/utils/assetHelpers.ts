@@ -1,12 +1,8 @@
 import { getApiEndpoints } from '@/config/development';
-import type { Asset, AssetToken, MediaResource } from '@/types/domain';
+import type { Asset, MediaResource } from '@/types/domain';
 
-export function getDefaultToken(asset: Asset): AssetToken | undefined {
-  return asset.tokens?.find((t) => t.isDefault);
-}
-
-export function getPortrait(asset: Asset): MediaResource | undefined {
-  return asset.portrait;
+export function getDefaultAssetImage(asset: Asset): MediaResource | null {
+  return asset.topDown ?? asset.miniature ?? asset.photo ?? asset.portrait ?? null;
 }
 
 export function getResourceUrl(resourceId: string): string {

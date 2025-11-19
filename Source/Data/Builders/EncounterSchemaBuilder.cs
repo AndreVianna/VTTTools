@@ -57,19 +57,13 @@ internal static class EncounterSchemaBuilder {
             entity.Property(ea => ea.Index).IsRequired();
             entity.Property(ea => ea.Number).IsRequired();
 
-            // Overridable properties
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
             entity.Property(ea => ea.Notes).HasMaxLength(4096);
-            entity.Property(ea => ea.PortraitId);
-            entity.Property(ea => ea.TokenId);
+            entity.Property(ea => ea.ImageId);
 
-            entity.HasOne(s => s.Portrait)
+            entity.HasOne(s => s.Image)
                   .WithMany()
-                  .HasForeignKey(s => s.PortraitId)
-                  .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(s => s.Token)
-                  .WithMany()
-                  .HasForeignKey(s => s.TokenId)
+                  .HasForeignKey(s => s.ImageId)
                   .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(ea => ea.Frame, frameBuilder => {
                 frameBuilder.IsRequired();

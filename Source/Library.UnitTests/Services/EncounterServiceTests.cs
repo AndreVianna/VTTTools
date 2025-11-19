@@ -257,22 +257,17 @@ public class EncounterServiceTests {
             Rotation = 45,
         };
 
-        var resourceId = Guid.CreateVersion7();
+        var portraitId = Guid.CreateVersion7();
         var asset = new ObjectAsset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Test Asset",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId,
-                        Type = ResourceType.Image,
-                        Path = "test/asset-display.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            Portrait = new Resource {
+                Id = portraitId,
+                Type = ResourceType.Image,
+                Path = "test/asset-portrait.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
@@ -543,7 +538,6 @@ public class EncounterServiceTests {
 
     [Fact]
     public async Task AddAssetAsync_WithCreatureAsset_GeneratesindexedName() {
-        // Arrange
         var encounterId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
         var resourceId = Guid.CreateVersion7();
@@ -567,17 +561,12 @@ public class EncounterServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId,
-                        Type = ResourceType.Image,
-                        Path = "test/goblin-token.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            TopDown = new Resource {
+                Id = resourceId,
+                Type = ResourceType.Image,
+                Path = "test/goblin-topdown.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -623,17 +612,12 @@ public class EncounterServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId,
-                        Type = ResourceType.Image,
-                        Path = "test/goblin-token.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            TopDown = new Resource {
+                Id = resourceId,
+                Type = ResourceType.Image,
+                Path = "test/goblin-topdown.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -682,17 +666,12 @@ public class EncounterServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Treasure Chest",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId,
-                        Type = ResourceType.Image,
-                        Path = "test/chest-token.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            TopDown = new Resource {
+                Id = resourceId,
+                Type = ResourceType.Image,
+                Path = "test/chest-topdown.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -741,17 +720,12 @@ public class EncounterServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId,
-                        Type = ResourceType.Image,
-                        Path = "test/goblin-token.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            TopDown = new Resource {
+                Id = resourceId,
+                Type = ResourceType.Image,
+                Path = "test/goblin-topdown.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
         var data = new EncounterAssetAddData {
             Name = "Boss Goblin",
@@ -799,33 +773,23 @@ public class EncounterServiceTests {
             Id = goblinAssetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId1,
-                        Type = ResourceType.Image,
-                        Path = "test/goblin-token.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            TopDown = new Resource {
+                Id = resourceId1,
+                Type = ResourceType.Image,
+                Path = "test/goblin-topdown.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
         var orcAsset = new CreatureAsset {
             Id = orcAssetId,
             OwnerId = _userId,
             Name = "Orc",
-            Tokens = [
-                new AssetToken {
-                    Token = new Resource {
-                        Id = resourceId2,
-                        Type = ResourceType.Image,
-                        Path = "test/orc-token.png",
-                        Metadata = new ResourceMetadata { ContentType = "image/png" },
-                    },
-                    IsDefault = true,
-                }
-            ],
+            TopDown = new Resource {
+                Id = resourceId2,
+                Type = ResourceType.Image,
+                Path = "test/orc-topdown.png",
+                Metadata = new ResourceMetadata { ContentType = "image/png" },
+            },
         };
         var data = new EncounterAssetAddData {
             Name = null,

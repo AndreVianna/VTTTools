@@ -1,5 +1,4 @@
 using Asset = VttTools.Data.Assets.Entities.Asset;
-using AssetToken = VttTools.Data.Assets.Entities.AssetToken;
 using ObjectAsset = VttTools.Data.Assets.Entities.ObjectAsset;
 using CreatureAsset = VttTools.Data.Assets.Entities.CreatureAsset;
 using MonsterAsset = VttTools.Data.Assets.Entities.MonsterAsset;
@@ -23,25 +22,28 @@ internal static class AssetSchemaBuilder {
                 sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0);
                 sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0);
             });
-            entity.HasMany(e => e.Tokens)
-                .WithOne(ar => ar.Asset)
-                .HasForeignKey(e => e.AssetId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Portrait)
+                .WithMany()
+                .HasForeignKey(e => e.PortraitId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.TopDown)
+                .WithMany()
+                .HasForeignKey(e => e.TopDownId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Miniature)
+                .WithMany()
+                .HasForeignKey(e => e.MiniatureId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Photo)
+                .WithMany()
+                .HasForeignKey(e => e.PhotoId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.ToTable(t => t.HasCheckConstraint("CK_Asset_Photo_ObjectOnly", "(Kind != 'Object') OR (PhotoId IS NULL)"));
 
             entity.HasDiscriminator<AssetKind>("Kind")
                 .HasValue<ObjectAsset>(AssetKind.Object)
                 .HasValue<MonsterAsset>(AssetKind.Monster)
                 .HasValue<CharacterAsset>(AssetKind.Character);
-        });
-
-        builder.Entity<AssetToken>(entity => {
-            entity.ToTable("AssetTokens");
-            entity.HasKey(ar => new { ar.AssetId, ar.TokenId });  // Composite primary key
-            entity.Property(ar => ar.IsDefault).IsRequired().HasConversion<int>();
-            entity.HasOne(ar => ar.Token)
-                .WithMany()
-                .HasForeignKey(ar => ar.TokenId)
-                .OnDelete(DeleteBehavior.Restrict);  // Don't cascade delete resources when asset deleted
         });
 
         builder.Entity<ObjectAsset>(entity => {

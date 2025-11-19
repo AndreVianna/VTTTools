@@ -53,20 +53,18 @@ export interface TokenPlacementProps {
 }
 
 const getTokenImageUrl = (asset: Asset): string | null => {
-  if (!asset?.tokens || !Array.isArray(asset.tokens)) {
-    return null;
-  }
-
   const mediaBaseUrl = getApiEndpoints().media;
 
-  const defaultToken = asset.tokens.find((t) => t.isDefault);
-
-  if (defaultToken) {
-    return `${mediaBaseUrl}/${defaultToken.token.id}`;
+  if (asset.topDown) {
+    return `${mediaBaseUrl}/${asset.topDown.id}`;
   }
 
-  if (asset.tokens.length > 0 && asset.tokens[0]) {
-    return `${mediaBaseUrl}/${asset.tokens[0].token.id}`;
+  if (asset.miniature) {
+    return `${mediaBaseUrl}/${asset.miniature.id}`;
+  }
+
+  if (asset.photo) {
+    return `${mediaBaseUrl}/${asset.photo.id}`;
   }
 
   if (asset.portrait) {

@@ -4,9 +4,28 @@ public record UpdateAssetData
     : Data {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<AssetTokenData[]> Tokens { get; init; }
     public Optional<NamedSize> Size { get; init; }
+
+    /// <summary>
+    /// Full image for details and stat blocks.
+    /// </summary>
     public Optional<Guid?> PortraitId { get; init; }
+
+    /// <summary>
+    /// Bird's eye view token image.
+    /// </summary>
+    public Optional<Guid?> TopDownId { get; init; }
+
+    /// <summary>
+    /// Isometric view token image.
+    /// </summary>
+    public Optional<Guid?> MiniatureId { get; init; }
+
+    /// <summary>
+    /// Face view image with frame (not applicable for objects).
+    /// </summary>
+    public Optional<Guid?> PhotoId { get; init; }
+
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 

@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Goblin",
+    "Category": "Creature",
+    "Type": "Monster",
+    "Subtype": "Humanoid",
+    "PhysicalDescription": "a small and thin green-skinned, with pointed ears and yellow eyes",
+    "DistinctiveFeatures": "wearing a ragged leather armor and carrying a rusty dagger",
+    "SchemaVersion": 1
+  }
+]

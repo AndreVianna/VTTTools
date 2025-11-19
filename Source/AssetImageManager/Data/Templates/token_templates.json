@@ -1,0 +1,127 @@
+{
+  "version": "1.0",
+  "imageType": "token",
+  "description": "Prompt templates for 1:1 aspect ratio battle map tokens",
+  "templates": [
+    {
+      "id": "goblin_warrior",
+      "name": "Goblin Warrior",
+      "basePrompt": "A {theme} goblin warrior in aggressive battle stance, top-down 45-degree angle view, wielding notched scimitar and wooden shield, wearing patched leather armor, snarling expression with pointed ears, small humanoid figure, D&D fantasy art style, clean transparent background, centered composition, 1:1 aspect ratio",
+      "defaultTheme": "green_skin",
+      "category": "humanoid",
+      "tags": ["goblin", "warrior", "melee", "small", "common"]
+    },
+    {
+      "id": "orc_berserker",
+      "name": "Orc Berserker",
+      "basePrompt": "A fierce {theme} orc berserker in battle rage pose, top-down view, muscular build, dual-wielding greataxes, tribal war paint, spiked armor plates, tusks prominently visible, medium-sized humanoid, intense aggressive posture, D&D fantasy art, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "green_skin",
+      "category": "humanoid",
+      "tags": ["orc", "berserker", "melee", "medium", "elite"]
+    },
+    {
+      "id": "ancient_dragon",
+      "name": "Ancient Dragon",
+      "basePrompt": "A massive {theme} ancient dragon in powerful flight pose, top-down 45-degree angle, wings spread wide with detailed membrane texture, scales glistening with magical energy, fierce reptilian head with horns, long serpentine tail, clawed limbs extended, huge creature size, D&D legendary dragon art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "red_skin",
+      "category": "monster",
+      "tags": ["dragon", "huge", "flying", "legendary", "boss"]
+    },
+    {
+      "id": "skeleton_warrior",
+      "name": "Skeleton Warrior",
+      "basePrompt": "An {theme} animated skeleton warrior in combat stance, top-down view, holding rusted longsword and cracked shield, tattered armor remnants, visible ribcage and skull, hollow eye sockets with faint glow, undead creature, medium humanoid skeleton, D&D undead art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "pale_skin",
+      "category": "monster",
+      "tags": ["skeleton", "undead", "warrior", "medium", "common"]
+    },
+    {
+      "id": "dire_wolf",
+      "name": "Dire Wolf",
+      "basePrompt": "A {theme} dire wolf in predatory stalking pose, top-down 45-degree view, powerful muscular build, snarling muzzle with prominent fangs, thick fur with bristling hackles, alert ears, focused predatory gaze, large beast, natural D&D creature art, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "dark_skin",
+      "category": "beast",
+      "tags": ["wolf", "beast", "large", "animal", "common"]
+    },
+    {
+      "id": "iron_golem",
+      "name": "Iron Golem",
+      "basePrompt": "A massive {theme} iron golem in standing guard pose, top-down view, constructed from thick metal plates, riveted armor construction, glowing runes on chest, massive fists, mechanical joints visible, large construct, imposing presence, D&D construct art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "metal",
+      "category": "construct",
+      "tags": ["golem", "construct", "large", "guardian", "elite"]
+    },
+    {
+      "id": "elven_archer",
+      "name": "Elven Archer",
+      "basePrompt": "An elegant {theme} elven archer in readied shooting stance, top-down view, drawing longbow with arrow nocked, flowing leather ranger armor, pointed ears, graceful posture, quiver on back, medium humanoid, refined features, D&D elf art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "pale_skin",
+      "category": "humanoid",
+      "tags": ["elf", "archer", "ranged", "medium", "player"]
+    },
+    {
+      "id": "stone_golem",
+      "name": "Stone Golem",
+      "basePrompt": "A hulking {theme} stone golem in powerful stance, top-down 45-degree angle, body carved from ancient rock with weathered texture, moss growing in crevices, massive boulder-like fists, rune inscriptions glowing faintly, large construct, D&D elemental construct art, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "stone",
+      "category": "construct",
+      "tags": ["golem", "construct", "large", "earth", "elite"]
+    },
+    {
+      "id": "ghost_spirit",
+      "name": "Ghost Spirit",
+      "basePrompt": "An {theme} ethereal ghost in haunting floating pose, top-down view, translucent wispy form, tattered spectral robes flowing, hollow eye sockets with eerie glow, reaching ghostly hands, medium undead spirit, semi-transparent with soft edges, D&D incorporeal undead art, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "ethereal",
+      "category": "monster",
+      "tags": ["ghost", "undead", "medium", "incorporeal", "common"]
+    },
+    {
+      "id": "dwarf_cleric",
+      "name": "Dwarf Cleric",
+      "basePrompt": "A stout {theme} dwarf cleric in prayer pose, top-down view, holding glowing holy symbol and warhammer, heavy chainmail armor, thick braided beard, medium humanoid, divine light radiating, sacred runes on armor, D&D dwarf cleric art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "pale_skin",
+      "category": "humanoid",
+      "tags": ["dwarf", "cleric", "divine", "medium", "player"]
+    },
+    {
+      "id": "giant_spider",
+      "name": "Giant Spider",
+      "basePrompt": "A menacing {theme} giant spider in aggressive pose, top-down view, eight segmented legs splayed out, hairy chitinous body, multiple glowing eyes, prominent venomous fangs dripping poison, large beast, arachnid anatomy, D&D monster art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "dark_skin",
+      "category": "beast",
+      "tags": ["spider", "beast", "large", "vermin", "common"]
+    },
+    {
+      "id": "fire_elemental",
+      "name": "Fire Elemental",
+      "basePrompt": "A {theme} fire elemental in swirling flame form, top-down view, humanoid-shaped living fire, crackling flames forming body, intense heat shimmer, glowing core, flickering tendrils of fire, large elemental creature, D&D elemental art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "burning",
+      "category": "monster",
+      "tags": ["elemental", "fire", "large", "magical", "elite"]
+    },
+    {
+      "id": "human_knight",
+      "name": "Human Knight",
+      "basePrompt": "A noble {theme} human knight in heroic battle stance, top-down view, wearing polished full plate armor with heraldic symbols, wielding longsword and kite shield, plumed helmet, medium humanoid, confident pose, D&D paladin knight art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "metal",
+      "category": "humanoid",
+      "tags": ["human", "knight", "melee", "medium", "player"]
+    },
+    {
+      "id": "treant_guardian",
+      "name": "Treant Guardian",
+      "basePrompt": "A massive {theme} treant in protective stance, top-down 45-degree view, ancient tree-like body with bark texture, gnarled branches for arms, leaves and moss covering, face formed in trunk with wise expression, root-like feet, huge plant creature, D&D nature guardian art, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "wood",
+      "category": "monster",
+      "tags": ["treant", "plant", "huge", "nature", "boss"]
+    },
+    {
+      "id": "vampire_lord",
+      "name": "Vampire Lord",
+      "basePrompt": "An aristocratic {theme} vampire lord in commanding pose, top-down view, elegant noble clothing with dark cape flowing, pale aristocratic features, crimson eyes glowing, sharp fangs visible, medium undead humanoid, regal and menacing presence, D&D vampire art style, transparent background, 1:1 aspect ratio",
+      "defaultTheme": "pale_skin",
+      "category": "monster",
+      "tags": ["vampire", "undead", "medium", "boss", "legendary"]
+    }
+  ]
+}
