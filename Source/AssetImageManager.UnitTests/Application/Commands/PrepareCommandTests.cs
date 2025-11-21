@@ -5,7 +5,7 @@ public sealed class PrepareCommandTests : IDisposable {
     private readonly string _outputDir;
     private readonly PrepareCommand _command;
     private readonly MockHttpClientFactory _mockHttpClientFactory;
-    private readonly IImageStore _imageStore;
+    private readonly IFileStore _imageStore;
     private readonly IConfiguration _mockConfiguration;
 
     private static readonly JsonSerializerOptions _jsonOptions = new() {
@@ -51,8 +51,9 @@ public sealed class PrepareCommandTests : IDisposable {
         _mockConfiguration["Images:Portrait:NegativePrompts:Portrait"]
             .Returns("border, frame, cropped face");
 
-        _imageStore = new HierarchicalImageStore(_outputDir);
-        _command = new PrepareCommand(_mockHttpClientFactory, _imageStore, _mockConfiguration);
+        _imageStore = new HierarchicalFileStore(_outputDir);
+        var entityLoader = new EntityLoaderService();
+        _command = new PrepareCommand(_mockHttpClientFactory, _imageStore, _mockConfiguration, entityLoader);
     }
 
     public void Dispose() {
@@ -187,7 +188,7 @@ public sealed class PrepareCommandTests : IDisposable {
         Assert.True(true);
     }
 
-    private async Task<string> CreateJsonFileAsync(string fileName, List<EntityDefinition> entities) {
+    private async Task<string> CreateJsonFileAsync(string fileName, List<EntryDefinition> entities) {
         var filePath = Path.Combine(_tempDir, fileName);
         var json = JsonSerializer.Serialize(entities, _jsonOptions);
         await File.WriteAllTextAsync(filePath, json);

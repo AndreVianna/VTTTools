@@ -10,7 +10,7 @@ var config = new ConfigurationBuilder()
 var serviceCollection = new ServiceCollection();
 serviceCollection.AddSingleton<IConfiguration>(config);
 serviceCollection.AddHttpClient();
-serviceCollection.AddSingleton<IPromptEnhancer, OpenAiClient>();
+serviceCollection.AddSingleton<IPromptEnhancer, OpenAiPromptEnhancer>();
 
 var outputDir = new DirectoryInfo(config["OutputFolder"] ?? "Output");
 Directory.CreateDirectory(outputDir.FullName);

@@ -3,7 +3,7 @@ namespace VttTools.AssetImageManager.UnitTests.Application.Commands;
 public sealed class GenerateCommandTests : IDisposable {
     private readonly string _tempDir;
     private readonly MockHttpClientFactory _mockHttpClientFactory;
-    private readonly HierarchicalImageStore _imageStore;
+    private readonly HierarchicalFileStore _imageStore;
     private readonly GenerateCommand _command;
     private readonly IConfiguration _mockConfiguration;
 
@@ -17,7 +17,7 @@ public sealed class GenerateCommandTests : IDisposable {
         Directory.CreateDirectory(_tempDir);
 
         _mockHttpClientFactory = new MockHttpClientFactory();
-        _imageStore = new HierarchicalImageStore(_tempDir);
+        _imageStore = new HierarchicalFileStore(_tempDir);
         _mockConfiguration = Substitute.For<IConfiguration>();
 
         _mockConfiguration["Providers:Stability:BaseUrl"].Returns("https://api.stability.ai");
@@ -41,10 +41,12 @@ public sealed class GenerateCommandTests : IDisposable {
         _mockConfiguration["Images:Portrait:NegativePrompt"].Returns("border, frame");
         _mockConfiguration["Images:Portrait:AspectRatio"].Returns("1:1");
 
+        var entityLoader = new EntityLoaderService();
         _command = new GenerateCommand(
             _mockHttpClientFactory,
             _imageStore,
-            _mockConfiguration);
+            _mockConfiguration,
+            entityLoader);
     }
 
     public void Dispose() {
@@ -55,7 +57,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
     [Fact]
     public async Task Should_ReturnEarly_When_InputPathIsEmpty() {
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: string.Empty,
             ImageType: "All",
             Limit: null,
@@ -69,7 +71,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
     [Fact]
     public async Task Should_ReturnEarly_When_InputPathIsNotAbsolute() {
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: "relative/path.json",
             ImageType: "All",
             Limit: null,
@@ -85,7 +87,7 @@ public sealed class GenerateCommandTests : IDisposable {
     public async Task Should_ReturnEarly_When_FileNotJson() {
         var txtFile = Path.Combine(_tempDir, "test.txt");
         await File.WriteAllTextAsync(txtFile, "test", TestContext.Current.CancellationToken);
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: txtFile,
             ImageType: "All",
             Limit: null,
@@ -100,7 +102,7 @@ public sealed class GenerateCommandTests : IDisposable {
     [Fact]
     public async Task Should_ReturnEarly_When_FileDoesNotExist() {
         var missingFile = Path.Combine(_tempDir, "missing.json");
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: missingFile,
             ImageType: "All",
             Limit: null,
@@ -122,7 +124,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
         _mockHttpClientFactory.EnqueueFakeImage();
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -133,7 +135,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
         Assert.Single(_mockHttpClientFactory.ReceivedRequests);
 
-        var existingTypes = await _imageStore.GetExistingImageTypesAsync(entity, variant, TestContext.Current.CancellationToken);
+        var existingTypes = _imageStore.GetExistingImageFiles(entity, variant);
         Assert.Contains(ImageType.TopDown, existingTypes);
     }
 
@@ -148,7 +150,7 @@ public sealed class GenerateCommandTests : IDisposable {
             _mockHttpClientFactory.EnqueueFakeImage();
         }
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -166,14 +168,14 @@ public sealed class GenerateCommandTests : IDisposable {
         var jsonFile = await CreateJsonFileAsync("entity.json", [entity]);
 
         var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-        var imageTypes = new[] { ImageType.TopDown, ImageType.Miniature, ImageType.Photo };
+        var imageTypes = new[] { ImageType.TopDown, ImageType.TopDown, ImageType.Photo };
 
         for (var i = 0; i < imageTypes.Length; i++) {
             await CreatePromptFileAsync(entity, variant, imageTypes[i], $"Enhanced prompt {i}");
             _mockHttpClientFactory.EnqueueFakeImage();
         }
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -194,14 +196,14 @@ public sealed class GenerateCommandTests : IDisposable {
         var jsonFile = await CreateJsonFileAsync("entity.json", [entity]);
 
         var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-        var imageTypes = new[] { ImageType.TopDown, ImageType.Miniature, ImageType.Photo };
+        var imageTypes = new[] { ImageType.TopDown, ImageType.TopDown, ImageType.Photo };
 
         for (var i = 0; i < imageTypes.Length; i++) {
             await CreatePromptFileAsync(entity, variant, imageTypes[i], $"Enhanced prompt {i}");
             _mockHttpClientFactory.EnqueueFakeImage();
         }
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -224,14 +226,14 @@ public sealed class GenerateCommandTests : IDisposable {
         var jsonFile = await CreateJsonFileAsync("entity.json", [entity]);
 
         var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-        var imageTypes = new[] { ImageType.TopDown, ImageType.Miniature, ImageType.Photo };
+        var imageTypes = new[] { ImageType.TopDown, ImageType.TopDown, ImageType.Photo };
 
         for (var i = 0; i < imageTypes.Length; i++) {
             await CreatePromptFileAsync(entity, variant, imageTypes[i], $"Enhanced prompt {i}");
             _mockHttpClientFactory.EnqueueFakeImage();
         }
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -240,10 +242,10 @@ public sealed class GenerateCommandTests : IDisposable {
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var existingTypes = await _imageStore.GetExistingImageTypesAsync(entity, variant, TestContext.Current.CancellationToken);
+        var existingTypes = _imageStore.GetExistingImageFiles(entity, variant);
         Assert.Equal(3, existingTypes.Count);
         Assert.Contains(ImageType.TopDown, existingTypes);
-        Assert.Contains(ImageType.Miniature, existingTypes);
+        Assert.Contains(ImageType.TopDown, existingTypes);
         Assert.Contains(ImageType.Photo, existingTypes);
     }
 
@@ -257,7 +259,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFileAsync(goblin, goblinVariant, ImageType.TopDown, "Enhanced goblin prompt");
         _mockHttpClientFactory.EnqueueFakeImage();
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -275,7 +277,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var entity = EntityDefinitionFixtures.CreateSimpleGoblin();
         var jsonFile = await CreateJsonFileAsync("entity.json", [entity]);
 
-        var options = new GenerateTokensOptions(
+        var options = new GenerateOptions(
             InputPath: jsonFile,
             ImageType: "All",
             Limit: null,
@@ -287,17 +289,13 @@ public sealed class GenerateCommandTests : IDisposable {
         Assert.Empty(_mockHttpClientFactory.ReceivedRequests);
     }
 
-    private async Task<string> CreateJsonFileAsync(string fileName, List<EntityDefinition> entities) {
+    private async Task<string> CreateJsonFileAsync(string fileName, List<EntryDefinition> entities) {
         var filePath = Path.Combine(_tempDir, fileName);
         var json = JsonSerializer.Serialize(entities, _jsonOptions);
         await File.WriteAllTextAsync(filePath, json);
         return filePath;
     }
 
-    private async Task CreatePromptFileAsync(EntityDefinition entity, StructuralVariant variant, string imageType, string promptContent) {
-        var variantPath = _imageStore.GetVariantDirectoryPath(entity, variant);
-        Directory.CreateDirectory(variantPath);
-        var promptFilePath = Path.Combine(variantPath, $"{ImageType.ToFileName(imageType)}.prompt");
-        await File.WriteAllTextAsync(promptFilePath, promptContent);
-    }
+    private async Task CreatePromptFileAsync(EntryDefinition entity, StructuralVariant variant, string imageType, string promptContent)
+        => await _imageStore.SavePromptAsync(entity, variant, promptContent, imageType, CancellationToken.None);
 }

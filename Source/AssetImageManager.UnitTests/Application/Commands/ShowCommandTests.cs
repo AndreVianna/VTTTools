@@ -2,14 +2,14 @@ namespace VttTools.AssetImageManager.UnitTests.Application.Commands;
 
 public sealed class ShowCommandTests : IDisposable {
     private readonly string _tempDir;
-    private readonly HierarchicalImageStore _imageStore;
+    private readonly HierarchicalFileStore _imageStore;
     private readonly ShowCommand _command;
 
     public ShowCommandTests() {
         _tempDir = Path.Combine(Path.GetTempPath(), $"TokenManagerTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
-        _imageStore = new HierarchicalImageStore(_tempDir);
+        _imageStore = new HierarchicalFileStore(_tempDir);
         _command = new ShowCommand(_imageStore);
     }
 
@@ -71,7 +71,7 @@ public sealed class ShowCommandTests : IDisposable {
 
         var fakeImage = new byte[1024];
         await _imageStore.SaveImageAsync(entity, variant, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync(entity, variant, fakeImage, ImageType.Miniature, TestContext.Current.CancellationToken);
+        await _imageStore.SaveImageAsync(entity, variant, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
         await _imageStore.SaveImageAsync(entity, variant, fakeImage, ImageType.Photo, TestContext.Current.CancellationToken);
 
         var options = new ShowTokenOptions(Id: "Goblin");
@@ -135,7 +135,7 @@ public sealed class ShowCommandTests : IDisposable {
 
         var fakeImage = new byte[1024];
         await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.Miniature, TestContext.Current.CancellationToken);
+        await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
         await _imageStore.SaveImageAsync(entity, variant2, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
 
         var options = new ShowTokenOptions(Id: "Goblin");
@@ -151,7 +151,7 @@ public sealed class ShowCommandTests : IDisposable {
         Assert.Equal(3, totalPoses);
     }
 
-    private async Task SaveEntityImageAsync(EntityDefinition entity, string variantId, string imageType) {
+    private async Task SaveEntityImageAsync(EntryDefinition entity, string variantId, string imageType) {
         var variant = new StructuralVariant(variantId, null, null, null, null, null, null, null);
         var fakeImage = new byte[1024];
         await _imageStore.SaveImageAsync(entity, variant, fakeImage, imageType);

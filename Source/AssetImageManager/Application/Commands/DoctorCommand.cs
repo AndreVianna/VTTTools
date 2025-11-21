@@ -2,9 +2,9 @@ namespace VttTools.AssetImageManager.Application.Commands;
 
 public sealed class DoctorCommand(IConfiguration configuration, IHttpClientFactory httpClientFactory, string outputDirectory) {
     public async Task<int> ExecuteAsync(DoctorOptions options, CancellationToken ct = default) {
-        Console.WriteLine("AssetImageManager v2.0 - System Diagnostics");
-        Console.WriteLine("=====================================");
-        Console.WriteLine();
+        ConsoleOutput.WriteLine("AssetImageManager v2.0 - System Diagnostics");
+        ConsoleOutput.WriteLine("=====================================");
+        ConsoleOutput.WriteBlankLine();
 
         var checks = new List<IHealthCheck> {
             new ConfigurationHealthCheck(configuration),
@@ -21,7 +21,7 @@ public sealed class DoctorCommand(IConfiguration configuration, IHttpClientFacto
         var results = new List<HealthCheckResult>();
 
         foreach (var group in checks.GroupBy(c => GetCheckCategory(c.Name))) {
-            Console.WriteLine($"{group.Key} Checks");
+            ConsoleOutput.WriteLine($"{group.Key} Checks");
 
             foreach (var check in group) {
                 var result = await check.ExecuteAsync(ct);
@@ -30,26 +30,26 @@ public sealed class DoctorCommand(IConfiguration configuration, IHttpClientFacto
                 var icon = ConsoleColorHelper.GetStatusIcon(result.Status);
                 var color = ConsoleColorHelper.GetStatusColor(result.Status);
 
-                Console.Write("  ");
-                Console.Write(ConsoleColorHelper.Colorize(icon, color));
-                Console.Write(" ");
-                Console.Write(result.Message);
-                Console.WriteLine();
+                ConsoleOutput.Write("  ");
+                ConsoleOutput.Write(ConsoleColorHelper.Colorize(icon, color));
+                ConsoleOutput.Write(" ");
+                ConsoleOutput.Write(result.Message);
+                ConsoleOutput.WriteBlankLine();
 
                 if (!string.IsNullOrWhiteSpace(result.Details)) {
                     if (options.Verbose || result.Status is HealthCheckStatus.Warning or HealthCheckStatus.Fail) {
-                        Console.WriteLine($"    {result.Details}");
+                        ConsoleOutput.WriteLine($"    {result.Details}");
                     }
                 }
 
                 if (result.Status is HealthCheckStatus.Warning or HealthCheckStatus.Fail) {
                     if (!string.IsNullOrWhiteSpace(result.Remediation)) {
-                        Console.WriteLine($"    → {result.Remediation}");
+                        ConsoleOutput.WriteLine($"    → {result.Remediation}");
                     }
                 }
             }
 
-            Console.WriteLine();
+            ConsoleOutput.WriteBlankLine();
         }
 
         var passCount = results.Count(r => r.Status == HealthCheckStatus.Pass);
@@ -57,30 +57,30 @@ public sealed class DoctorCommand(IConfiguration configuration, IHttpClientFacto
         var failCount = results.Count(r => r.Status == HealthCheckStatus.Fail);
         var skipCount = results.Count(r => r.Status == HealthCheckStatus.Skipped);
 
-        Console.WriteLine("=====================================");
-        Console.WriteLine($"Summary: {passCount}/{results.Count - skipCount} checks passed");
+        ConsoleOutput.WriteLine("=====================================");
+        ConsoleOutput.WriteLine($"Summary: {passCount}/{results.Count - skipCount} checks passed");
 
         if (warnCount > 0) {
-            Console.WriteLine($"  {ConsoleColorHelper.Colorize($"{warnCount} warning(s)", ConsoleColor.Yellow)}");
+            ConsoleOutput.WriteLine($"  {ConsoleColorHelper.Colorize($"{warnCount} warning(s)", ConsoleColor.Yellow)}");
         }
 
         if (failCount > 0) {
-            Console.WriteLine($"  {ConsoleColorHelper.Colorize($"{failCount} critical failure(s)", ConsoleColor.Red)}");
+            ConsoleOutput.WriteLine($"  {ConsoleColorHelper.Colorize($"{failCount} critical failure(s)", ConsoleColor.Red)}");
         }
 
-        Console.WriteLine();
+        ConsoleOutput.WriteBlankLine();
 
         if (failCount == 0 && warnCount == 0) {
-            Console.WriteLine(ConsoleColorHelper.Colorize("Status: READY - Your system is configured correctly!", ConsoleColor.Green));
+            ConsoleOutput.WriteLine(ConsoleColorHelper.Colorize("Status: READY - Your system is configured correctly!", ConsoleColor.Green));
             return 0;
         }
 
         if (failCount > 0) {
-            Console.WriteLine(ConsoleColorHelper.Colorize("Status: CRITICAL - Please resolve failures before generating tokens.", ConsoleColor.Red));
+            ConsoleOutput.WriteLine(ConsoleColorHelper.Colorize("Status: CRITICAL - Please resolve failures before generating tokens.", ConsoleColor.Red));
             return 1;
         }
 
-        Console.WriteLine(ConsoleColorHelper.Colorize("Status: DEGRADED - System will work but may have reduced performance.", ConsoleColor.Yellow));
+        ConsoleOutput.WriteLine(ConsoleColorHelper.Colorize("Status: DEGRADED - System will work but may have reduced performance.", ConsoleColor.Yellow));
         return 0;
     }
 

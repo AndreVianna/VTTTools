@@ -2,7 +2,7 @@ namespace VttTools.AssetImageManager.Infrastructure.Clients;
 
 public sealed class StabilityClient(IHttpClientFactory httpClientFactory, IConfiguration config)
     : IImageGenerator {
-    public async Task<ImageGenerationResponse> GenerateImageAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
+    public async Task<ImageGenerationResponse> GenerateImageFileAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
         using var input = new MultipartFormDataContent();
 
         AddFormField(input, "prompt", prompt);
@@ -49,8 +49,14 @@ public sealed class StabilityClient(IHttpClientFactory httpClientFactory, IConfi
     private string GetEndpoint(string model)
         => config[$"Providers:Stability:{model}"] ?? throw new InvalidOperationException("Stability API image generation endpoint is not configured.");
 
-    private string GetNegativePrompt(string imageType)
-        => config[$"Images:{imageType}:NegativePrompt"] ?? "border, frame, text, UI elements, watermark";
+    private const string _genericNegativePrompt = "border, frame, text, watermark, signature, blurry, low quality, cropped edges, multiple subjects, duplicates";
+
+    private string GetNegativePrompt(string imageType) {
+        var specificNegativesPrompt = config[$"Images:{imageType}:NegativePrompt"] ?? string.Empty;
+        return string.IsNullOrWhiteSpace(specificNegativesPrompt)
+            ? _genericNegativePrompt
+            : $"{_genericNegativePrompt}, {specificNegativesPrompt}";
+    }
 
     private string GetAspectRatio(string imageType)
         => config[$"Images:{imageType}:AspectRatio"] ?? "1:1";

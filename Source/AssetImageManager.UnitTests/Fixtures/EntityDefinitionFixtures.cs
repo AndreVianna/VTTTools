@@ -1,7 +1,7 @@
 namespace VttTools.AssetImageManager.UnitTests.Fixtures;
 
 public static class EntityDefinitionFixtures {
-    public static EntityDefinition CreateSimpleGoblin() => new() {
+    public static EntryDefinition CreateSimpleGoblin() => new() {
         Name = "Goblin",
         Genre = "Fantasy",
         Category = "creatures",
@@ -12,7 +12,7 @@ public static class EntityDefinitionFixtures {
         Environment = "caves and forests"
     };
 
-    public static EntityDefinition CreateGoblinWithVariants() => new() {
+    public static EntryDefinition CreateGoblinWithVariants() => new() {
         Name = "Goblin",
         Genre = "Fantasy",
         Category = "creatures",
@@ -34,7 +34,7 @@ public static class EntityDefinitionFixtures {
         ]
     };
 
-    public static EntityDefinition CreateOrc() => new() {
+    public static EntryDefinition CreateOrc() => new() {
         Name = "Orc",
         Genre = "Fantasy",
         Category = "creatures",
@@ -45,7 +45,7 @@ public static class EntityDefinitionFixtures {
         Environment = "mountains and wastelands"
     };
 
-    public static EntityDefinition CreateDragonWithComplexVariants() => new() {
+    public static EntryDefinition CreateDragonWithComplexVariants() => new() {
         Name = "Dragon",
         Genre = "Fantasy",
         Category = "creatures",
@@ -67,7 +67,7 @@ public static class EntityDefinitionFixtures {
         ]
     };
 
-    public static EntityDefinition CreateChest() => new() {
+    public static EntryDefinition CreateChest() => new() {
         Name = "Treasure Chest",
         Genre = "Fantasy",
         Category = "objects",
@@ -89,18 +89,18 @@ public static class EntityDefinitionFixtures {
         ]
     };
 
-    public static List<EntityDefinition> CreateMultipleEntities() => [
+    public static List<EntryDefinition> CreateMultipleEntities() => [
         CreateSimpleGoblin(),
         CreateOrc(),
         CreateGoblinWithVariants()
     ];
 
-    public static EntityDefinition CreateLargeVariantSet() {
+    public static EntryDefinition CreateLargeVariantSet() {
         var genders = new List<string> { "male", "female", "nonbinary" };
         var classes = new List<string> { "warrior", "mage", "rogue", "cleric" };
         var equipment = Enumerable.Range(1, 5).Select(i => $"Equipment{i}").ToList();
 
-        return new EntityDefinition {
+        return new EntryDefinition {
             Name = "TestEntity",
             Genre = "Fantasy",
             Category = "creatures",

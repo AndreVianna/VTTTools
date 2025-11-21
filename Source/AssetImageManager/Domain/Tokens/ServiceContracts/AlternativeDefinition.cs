@@ -4,7 +4,7 @@ namespace VttTools.AssetImageManager.Domain.Tokens.ServiceContracts;
 /// Defines cartesian product alternatives for entity variants.
 /// Each non-null collection represents a dimension in the variant space.
 /// Example: Gender=[male, female] × Class=[warrior, mage] produces 4 structural variants.
-/// For creatures: Gender, Class, Equipment, Vestiment are common.
+/// For creatures: Gender, Class, Equipment, Vestment are common.
 /// For objects: Material, Quality are common.
 /// </summary>
 public sealed partial record AlternativeDefinition
@@ -29,7 +29,7 @@ public sealed partial record AlternativeDefinition
                            || Quality is not null;
 
         if (!hasAnyDimension)
-            result += new Error("At least one dimension (Size, Gender, Class, Equipment, Vestiment, Material, or Quality) must be specified.");
+            result += new Error("At least one dimension (Size, Gender, Class, Equipment, Vestment, Material, or Quality) must be specified.");
 
         result += ValidateDimension(Size, nameof(Size), requireLowercase: true);
         result += ValidateDimension(Gender, nameof(Gender), requireLowercase: true);

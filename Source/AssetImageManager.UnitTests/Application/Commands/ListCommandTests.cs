@@ -2,14 +2,19 @@ namespace VttTools.AssetImageManager.UnitTests.Application.Commands;
 
 public sealed class ListCommandTests : IDisposable {
     private readonly string _tempDir;
-    private readonly HierarchicalImageStore _imageStore;
+    private readonly HierarchicalFileStore _imageStore;
     private readonly ListCommand _command;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new() {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public ListCommandTests() {
         _tempDir = Path.Combine(Path.GetTempPath(), $"TokenManagerTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
-        _imageStore = new HierarchicalImageStore(_tempDir);
+        _imageStore = new HierarchicalFileStore(_tempDir);
         _command = new ListCommand(_imageStore);
     }
 
@@ -23,7 +28,8 @@ public sealed class ListCommandTests : IDisposable {
     public async Task Should_ReturnEmpty_When_NoEntitiesExist() {
         var options = new ListTokensOptions(
             TypeFilter: null,
-            IdOrName: null);
+            IdOrName: null,
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -37,7 +43,8 @@ public sealed class ListCommandTests : IDisposable {
 
         var options = new ListTokensOptions(
             TypeFilter: null,
-            IdOrName: null);
+            IdOrName: null,
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -54,8 +61,9 @@ public sealed class ListCommandTests : IDisposable {
         await SaveEntityImageAsync(chest, "base");
 
         var options = new ListTokensOptions(
-            TypeFilter: EntityType.Monster,
-            IdOrName: null);
+            TypeFilter: EntityType.Creature,
+            IdOrName: null,
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -74,7 +82,8 @@ public sealed class ListCommandTests : IDisposable {
 
         var options = new ListTokensOptions(
             TypeFilter: null,
-            IdOrName: "Goblin");
+            IdOrName: "Goblin",
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -92,8 +101,9 @@ public sealed class ListCommandTests : IDisposable {
         await SaveEntityImageAsync(orc, "base");
 
         var options = new ListTokensOptions(
-            TypeFilter: EntityType.Monster,
-            IdOrName: "Goblin");
+            TypeFilter: EntityType.Creature,
+            IdOrName: "Goblin",
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -110,12 +120,13 @@ public sealed class ListCommandTests : IDisposable {
 
         var fakeImage = new byte[1024];
         await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.Miniature, TestContext.Current.CancellationToken);
+        await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.Photo, TestContext.Current.CancellationToken);
         await _imageStore.SaveImageAsync(entity, variant2, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
 
         var options = new ListTokensOptions(
             TypeFilter: null,
-            IdOrName: null);
+            IdOrName: null,
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -139,7 +150,8 @@ public sealed class ListCommandTests : IDisposable {
 
         var options = new ListTokensOptions(
             TypeFilter: null,
-            IdOrName: null);
+            IdOrName: null,
+            ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -152,7 +164,7 @@ public sealed class ListCommandTests : IDisposable {
         }
     }
 
-    private async Task SaveEntityImageAsync(EntityDefinition entity, string variantId) {
+    private async Task SaveEntityImageAsync(EntryDefinition entity, string variantId) {
         var variant = new StructuralVariant(variantId, null, null, null, null, null, null, null);
         var fakeImage = new byte[1024];
         await _imageStore.SaveImageAsync(entity, variant, fakeImage, ImageType.TopDown);
@@ -164,5 +176,62 @@ public sealed class ListCommandTests : IDisposable {
 
         await SaveEntityImageAsync(goblin, "base");
         await SaveEntityImageAsync(orc, "base");
+    }
+
+    [Fact]
+    public async Task Should_ListFromJson_When_ImportPathProvided() {
+        var entities = EntityDefinitionFixtures.CreateMultipleEntities();
+        var jsonFile = Path.Combine(_tempDir, "entities.json");
+        await File.WriteAllTextAsync(jsonFile, JsonSerializer.Serialize(entities, _jsonOptions), TestContext.Current.CancellationToken);
+
+        var options = new ListTokensOptions(
+            TypeFilter: null,
+            IdOrName: null,
+            ImportPath: jsonFile);
+
+        await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Should_FilterByType_When_ImportPathAndTypeFilterProvided() {
+        var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
+        var chest = EntityDefinitionFixtures.CreateChest();
+        var entities = new List<EntryDefinition> { goblin, chest };
+
+        var jsonFile = Path.Combine(_tempDir, "mixed.json");
+        await File.WriteAllTextAsync(jsonFile, JsonSerializer.Serialize(entities, _jsonOptions), TestContext.Current.CancellationToken);
+
+        var options = new ListTokensOptions(
+            TypeFilter: EntityType.Creature,
+            IdOrName: null,
+            ImportPath: jsonFile);
+
+        await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Should_CalculateVariantCounts_When_ImportPathWithVariants() {
+        var entity = EntityDefinitionFixtures.CreateGoblinWithVariants();
+        var entities = new List<EntryDefinition> { entity };
+
+        var jsonFile = Path.Combine(_tempDir, "variants.json");
+        await File.WriteAllTextAsync(jsonFile, JsonSerializer.Serialize(entities, _jsonOptions), TestContext.Current.CancellationToken);
+
+        var options = new ListTokensOptions(
+            TypeFilter: null,
+            IdOrName: null,
+            ImportPath: jsonFile);
+
+        await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Should_HandleMissingFile_When_ImportPathInvalid() {
+        var options = new ListTokensOptions(
+            TypeFilter: null,
+            IdOrName: null,
+            ImportPath: Path.Combine(_tempDir, "missing.json"));
+
+        await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
     }
 }

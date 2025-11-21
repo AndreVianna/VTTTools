@@ -10,7 +10,7 @@ public sealed record StructuralVariant(
     string? Gender,
     string? Class,
     string? Equipment,
-    string? Vestiment,
+    string? Vestment,
     string? Material,
     string? Quality
 );

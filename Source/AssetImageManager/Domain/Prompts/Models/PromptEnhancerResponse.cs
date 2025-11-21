@@ -1,9 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace VttTools.AssetImageManager.Domain.Prompts.Models;
 
 public sealed record PromptEnhancerResponse(
-    [Required] string Prompt,
+    string Prompt,
     bool IsSuccess = true,
     string? ErrorMessage = null,
     int TotalTokens = 0,

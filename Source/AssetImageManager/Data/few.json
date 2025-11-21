@@ -1,0 +1,62 @@
+[
+  {
+    "Category": "Creature",
+    "Subtype": "Goblinoid",
+    "DistinctiveFeatures": "Wearing ragged leather armor, crouched in a sneaky posture, clutching weapons with gnarled hands.",
+    "Environment": "Caves, ruins, dark forests",
+    "Name": "Goblin",
+    "Genre": "Fantasy",
+    "Type": "Fey",
+    "SchemaVersion": 1,
+    "Size": "small",
+    "PhysicalDescription": "A small, green-skinned humanoid with pointed ears, sharp teeth, and yellow eyes. Goblins have wiry builds, stand about 3-4 feet tall, and move with jerky, furtive motions. Their facial features are harsh and angular, with oversized noses and bat-like ears.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "scimitar",
+          "shortbow"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Humanoid",
+    "DistinctiveFeatures": "wearing mismatched leather armor, hooded cloak, bandana covering face, menacing stance with weapon drawn",
+    "Environment": "Forest roads, mountain passes, ruins",
+    "Name": "Bandit",
+    "Genre": "Fantasy",
+    "Type": "Humanoid",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A rough-looking human with weathered features, standing 5-6 feet tall. Bandits wear practical leather armor often decorated with trophies from previous victims. They have hardened expressions, scarred faces, and carry themselves with the confidence of experienced fighters.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "scimitar",
+          "light crossbow"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Mammal",
+    "DistinctiveFeatures": "alert ears perked forward, fangs bared in snarl, pack-hunting posture, piercing predatory gaze",
+    "Environment": "Forests, wilderness",
+    "Name": "Wolf",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium beast with thick gray or brown fur, intelligent eyes, and powerful jaws. The wolf moves with predatory grace on four legs, standing about 3 feet at the shoulder. Its keen senses and pack mentality make it a formidable hunter."
+  }
+]

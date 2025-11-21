@@ -104,6 +104,7 @@
         { "required": ["gender"] },
         { "required": ["class"] },
         { "required": ["equipment"] },
+        { "required": ["vestment"] },
         { "required": ["material"] },
         { "required": ["quality"] }
       ],
@@ -135,16 +136,16 @@
           "items": {
             "type": "string"
           },
-          "description": "Optional equipment variants"
+          "description": "Optional equipment variants. Including: weapons, shield, wands, or any other relevant equipment the subject may be holding (lowercase only)"
         },
-        "armor": {
+        "vestment": {
           "type": ["array", "null"],
           "minItems": 1,
           "uniqueItems": true,
           "items": {
             "type": "string"
           },
-          "description": "Optional armor variants"
+          "description": "Optional vestment variants. Including: armor, robes, backpack, or any other relevant relevant equipment the subject may be wearing (lowercase only)"
         },
         "material": {
           "type": ["array", "null"],
@@ -153,7 +154,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Optional material variants"
+          "description": "Optional material variants. Used to describe the material an object is made of. (lowercase only)"
         },
         "quality": {
           "type": ["array", "null"],
@@ -162,7 +163,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Optional quality variants"
+          "description": "Optional quality variants. Used to describe the quality or state of the object. (lowercase only)"
         }
       }
     }

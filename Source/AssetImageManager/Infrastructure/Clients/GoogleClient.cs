@@ -8,7 +8,7 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
         PropertyNameCaseInsensitive = true
     };
 
-    public async Task<ImageGenerationResponse> GenerateImageAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
+    public async Task<ImageGenerationResponse> GenerateImageFileAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
         var request = new {
             Contents = new[] {
                 new {
@@ -47,7 +47,13 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
         const double outputPricePerM = 30.0;
         var outputCost = outputPricePerM * content.UsageMetadata.CandidatesTokenCount / 1000000.0;
         var totalCost = inputCost + outputCost;
-        Console.Write($"Cost: ${inputCost:0.0000000} ({content.UsageMetadata.PromptTokenCount}) + ${outputCost:0.0000000} ({content.UsageMetadata.CandidatesTokenCount}) = ${totalCost:0.0000000};");
+        ConsoleOutput.WriteCost(
+            content.UsageMetadata.PromptTokenCount,
+            inputCost,
+            content.UsageMetadata.CandidatesTokenCount,
+            outputCost,
+            content.UsageMetadata.TotalTokenCount,
+            totalCost);
         return new ImageGenerationResponse(
             Convert.FromBase64String(imageData),
             true,

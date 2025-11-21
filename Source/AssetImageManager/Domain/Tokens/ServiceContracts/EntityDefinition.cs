@@ -5,7 +5,7 @@ namespace VttTools.AssetImageManager.Domain.Tokens.ServiceContracts;
 /// Supports creatures (monsters, NPCs, characters) and objects (equipment, items).
 /// Replaces the complex MonsterDefinition schema with a more flexible approach.
 /// </summary>
-public sealed partial record EntityDefinition
+public sealed partial record EntryDefinition
     : Data {
     public string Name { get; init; } = string.Empty;
     public string Genre { get; init; } = string.Empty;

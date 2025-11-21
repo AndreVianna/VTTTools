@@ -1,7 +1,7 @@
 namespace VttTools.AssetImageManager.Application.Commands;
 
-public sealed class ShowCommand(IImageStore store) {
-    private readonly IImageStore _store = store;
+public sealed class ShowCommand(IFileStore store) {
+    private readonly IFileStore _store = store;
 
     public async Task ExecuteAsync(ShowTokenOptions options, CancellationToken ct = default) {
         var allSummaries = await _store.GetEntitySummariesAsync(null, null, null, ct);
@@ -10,7 +10,7 @@ public sealed class ShowCommand(IImageStore store) {
             string.Equals(s.Name, options.Id, StringComparison.OrdinalIgnoreCase));
 
         if (matchingSummary is null) {
-            Console.WriteLine($"No entity found with name '{options.Id}'.");
+            ConsoleOutput.WriteLine($"No entity found with name '{options.Id}'.");
             return;
         }
 
@@ -23,30 +23,30 @@ public sealed class ShowCommand(IImageStore store) {
             ct);
 
         if (entityInfo is null) {
-            Console.WriteLine($"Error: Could not load details for entity '{options.Id}'.");
+            ConsoleOutput.WriteLine($"Error: Could not load details for entity '{options.Id}'.");
             return;
         }
 
-        Console.WriteLine();
-        Console.WriteLine($"Entity: {entityInfo.Name}");
-        Console.WriteLine($"Genre: {entityInfo.Genre}");
-        Console.WriteLine($"Category: {entityInfo.Category}");
-        Console.WriteLine($"Type: {entityInfo.Type}");
-        Console.WriteLine($"Subtype: {entityInfo.Subtype}");
-        Console.WriteLine();
-        Console.WriteLine($"Total Variants: {entityInfo.Variants.Count}");
-        Console.WriteLine($"Total Poses: {entityInfo.Variants.Sum(v => v.Poses.Count)}");
-        Console.WriteLine();
+        ConsoleOutput.WriteBlankLine();
+        ConsoleOutput.WriteLine($"Entity: {entityInfo.Name}");
+        ConsoleOutput.WriteLine($"Genre: {entityInfo.Genre}");
+        ConsoleOutput.WriteLine($"Category: {entityInfo.Category}");
+        ConsoleOutput.WriteLine($"Type: {entityInfo.Type}");
+        ConsoleOutput.WriteLine($"Subtype: {entityInfo.Subtype}");
+        ConsoleOutput.WriteBlankLine();
+        ConsoleOutput.WriteLine($"Total Variants: {entityInfo.Variants.Count}");
+        ConsoleOutput.WriteLine($"Total Poses: {entityInfo.Variants.Sum(v => v.Poses.Count)}");
+        ConsoleOutput.WriteBlankLine();
 
         foreach (var variant in entityInfo.Variants.OrderBy(v => v.VariantId)) {
-            Console.WriteLine($"Variant: {variant.VariantId} ({variant.Poses.Count} poses)");
+            ConsoleOutput.WriteLine($"Variant: {variant.VariantId} ({variant.Poses.Count} poses)");
 
             foreach (var pose in variant.Poses.OrderBy(p => p.PoseNumber)) {
                 var sizeKb = pose.FileSizeBytes / 1024.0;
-                Console.WriteLine($"  Pose {pose.PoseNumber}: {Path.GetFileName(pose.FilePath)} ({sizeKb:F1} KB, created {pose.CreatedUtc:yyyy-MM-dd HH:mm:ss} UTC)");
+                ConsoleOutput.WriteLine($"  Pose {pose.PoseNumber}: {Path.GetFileName(pose.FilePath)} ({sizeKb:F1} KB, created {pose.CreatedUtc:yyyy-MM-dd HH:mm:ss} UTC)");
             }
 
-            Console.WriteLine();
+            ConsoleOutput.WriteBlankLine();
         }
     }
 }

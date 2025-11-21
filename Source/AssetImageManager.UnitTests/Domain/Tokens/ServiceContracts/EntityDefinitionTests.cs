@@ -4,7 +4,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_ValidEntity_ReturnsSuccess() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Genre = "Fantasy",
             Category = "creatures",
@@ -26,7 +26,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_InvalidSchemaVersion_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Category = "creatures",
             Type = "humanoid",
@@ -44,7 +44,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_EmptyName_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "",
             Category = "creatures",
             Type = "humanoid",
@@ -61,7 +61,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_NameTooLong_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = new string('a', 129),
             Category = "creatures",
             Type = "humanoid",
@@ -78,7 +78,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_NameWithInvalidCharacters_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin-Chief!",
             Category = "creatures",
             Type = "humanoid",
@@ -95,7 +95,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_InvalidCategory_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Category = "monsters",
             Type = "humanoid",
@@ -112,7 +112,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_InvalidAlternative_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Category = "creatures",
             Type = "humanoid",
@@ -130,7 +130,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_DistinctiveFeaturesTooLong_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Category = "creatures",
             Type = "humanoid",
@@ -148,7 +148,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_EnvironmentTooLong_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Category = "creatures",
             Type = "humanoid",
@@ -166,7 +166,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_PhysicalDescriptionTooLong_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Category = "creatures",
             Type = "humanoid",
@@ -183,7 +183,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_EmptyGenre_DefaultsToFantasy() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Genre = "",
             Category = "creatures",
@@ -200,7 +200,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_NullGenre_DefaultsToFantasy() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Genre = null!,
             Category = "creatures",
@@ -217,7 +217,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_GenreTooLong_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Genre = new string('a', 65),
             Category = "creatures",
@@ -235,7 +235,7 @@ public sealed class EntityDefinitionTests {
 
     [Fact]
     public void Validate_GenreWithInvalidCharacters_ReturnsError() {
-        var entity = new EntityDefinition {
+        var entity = new EntryDefinition {
             Name = "Goblin",
             Genre = "Fantasy-SciFi!",
             Category = "creatures",

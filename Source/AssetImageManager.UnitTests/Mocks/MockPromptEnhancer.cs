@@ -1,4 +1,4 @@
-using Request = (VttTools.AssetImageManager.Domain.Tokens.ServiceContracts.EntityDefinition entity, VttTools.AssetImageManager.Domain.Tokens.Models.StructuralVariant variant);
+using Request = (VttTools.AssetImageManager.Domain.Tokens.ServiceContracts.EntryDefinition entity, VttTools.AssetImageManager.Domain.Tokens.Models.StructuralVariant variant);
 
 namespace VttTools.AssetImageManager.UnitTests.Mocks;
 
@@ -25,7 +25,7 @@ public sealed class MockPromptEnhancer : IPromptEnhancer {
             TotalTokens: 0));
 
     public Task<PromptEnhancerResponse> EnhancePromptAsync(
-        EntityDefinition entity,
+        EntryDefinition entity,
         StructuralVariant variant,
         string imageType,
         CancellationToken ct = default) {

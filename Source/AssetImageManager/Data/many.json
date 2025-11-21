@@ -1,0 +1,742 @@
+[
+  {
+    "Category": "Creature",
+    "Subtype": "Goblinoid",
+    "DistinctiveFeatures": "Wearing ragged leather armor, crouched in a sneaky posture, clutching weapons with gnarled hands.",
+    "Environment": "Caves, ruins, dark forests",
+    "Name": "Goblin",
+    "Genre": "Fantasy",
+    "Type": "Fey",
+    "SchemaVersion": 1,
+    "Size": "small",
+    "PhysicalDescription": "A small, green-skinned humanoid with pointed ears, sharp teeth, and yellow eyes. Goblins have wiry builds, stand about 3-4 feet tall, and move with jerky, furtive motions. Their facial features are harsh and angular, with oversized noses and bat-like ears.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "scimitar",
+          "shortbow"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "DistinctiveFeatures": "wearing crude leather scraps, clutching makeshift weapons, tail twitching nervously",
+    "Environment": "Caves, ruins, dark forests",
+    "Name": "Kobold",
+    "Genre": "Fantasy",
+    "Type": "Dragon",
+    "SchemaVersion": 1,
+    "Size": "small",
+    "PhysicalDescription": "A small reptilian humanoid standing 2-3 feet tall with rust-red to brownish scales. Kobolds have horned heads resembling small dragons, long tails for balance, and bright eyes. They move in a hunched, scuttling manner and speak in yipping voices.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "dagger",
+          "sling"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Orc",
+    "DistinctiveFeatures": "wearing spiked hide armor, battle-scarred face, aggressive battle-ready stance",
+    "Environment": "Caves, ruins, dark forests",
+    "Name": "Orc",
+    "Genre": "Fantasy",
+    "Type": "Humanoid",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium to large humanoid with grayish-green skin, broad shoulders, and a powerful build standing 6-7 feet tall. Orcs have prominent lower canines, sloping foreheads, and fierce red eyes. Their posture is aggressive and their movements are brutish and forceful.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "greataxe",
+          "javelin"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Goblinoid",
+    "DistinctiveFeatures": "wearing well-maintained chainmail, military stance, disciplined posture with weapon at ready",
+    "Environment": "Caves, ruins, dark forests",
+    "Name": "Hobgoblin",
+    "Genre": "Fantasy",
+    "Type": "Fey",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium humanoid with reddish-brown to gray skin and stern, militaristic bearing. Hobgoblins stand about 6 feet tall with broad shoulders, flat faces, and fierce yellow or reddish-orange eyes. Their features are harsh and disciplined, reflecting their warrior culture.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "longsword",
+          "longbow"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Gnoll",
+    "DistinctiveFeatures": "wearing crude bone and leather armor, wild manic grin, hunched aggressive posture",
+    "Environment": "Savannahs, badlands, desert ruins",
+    "Name": "Gnoll",
+    "Genre": "Fantasy",
+    "Type": "Fiend",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium humanoid hyena standing upright, covered in mangy fur ranging from greenish-gray to dull yellow. Gnolls have sloped backs, powerful jaws filled with sharp teeth, and wild, manic eyes. They move with a distinctive hunched lope.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "spear",
+          "longbow"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Goblinoid",
+    "DistinctiveFeatures": "wearing dark leather and furs, stealthy crouched stance, clutching a massive morningstar",
+    "Environment": "Forests, wilderness",
+    "Name": "Bugbear",
+    "Genre": "Fantasy",
+    "Type": "Fey",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A large, hairy humanoid standing 7 feet tall with a powerful, muscular build. Bugbears have coarse yellow-brown to greenish-brown fur, broad shoulders, and long arms. Their faces combine ursine and goblinoid features with sharp teeth and keen senses.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "morningstar",
+          "javelin"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Reptilian",
+    "DistinctiveFeatures": "wearing bone and shell ornaments, tribal warrior stance, scaled hide decorated with ritual scars",
+    "Environment": "Swamps, marshes, tropical rivers",
+    "Name": "Lizardfolk",
+    "Genre": "Fantasy",
+    "Type": "Elemental",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A muscular humanoid with green or gray reptilian scales, standing 6-7 feet tall. Lizardfolk have powerful tails, clawed hands and feet, and elongated snouts filled with sharp teeth. Their eyes are cold and alien, with vertical slit pupils. They move with predatory grace.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "heavy club",
+          "javelin",
+          "spiked shield"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Humanoid",
+    "DistinctiveFeatures": "eyeless, with smooth skin where eyes should be, covered in ritual scars, crouched in listening pose",
+    "Environment": "Underdark caverns, deep caves",
+    "Name": "Grimlock",
+    "Genre": "Fantasy",
+    "Type": "Aberration",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A blind, pale gray humanoid standing 5-6 feet tall with muscular build. Grimlocks have no eyes, just smooth skin where the sockets should be. Their skin is thick and leathery, covered in ritual scars and tribal markings. They move by echolocation and scent, tilting their heads to listen.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "spiked bone club"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Humanoid",
+    "DistinctiveFeatures": "wearing mismatched leather armor, hooded cloak, bandana covering face, menacing stance with weapon drawn",
+    "Environment": "Forest roads, mountain passes, ruins",
+    "Name": "Bandit",
+    "Genre": "Fantasy",
+    "Type": "Humanoid",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A rough-looking human with weathered features, standing 5-6 feet tall. Bandits wear practical leather armor often decorated with trophies from previous victims. They have hardened expressions, scarred faces, and carry themselves with the confidence of experienced fighters.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "scimitar",
+          "light crossbow"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Humanoid",
+    "DistinctiveFeatures": "wearing chain mail with city/kingdom tabard, helmet, standing at attention in watchful stance",
+    "Environment": "City gates, castle walls, town squares",
+    "Name": "Guard",
+    "Genre": "Fantasy",
+    "Type": "Humanoid",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A disciplined human warrior in well-maintained armor, standing 5-6 feet tall. Guards wear chainmail, helmets, and tabards bearing their city's colors. They carry shields and spears, standing with military posture and alert, watchful expressions.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "spear"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Humanoid",
+    "DistinctiveFeatures": "wearing dark ritual robes with cult symbols, hood partially concealing face, holding ceremonial dagger",
+    "Environment": "Hidden temples, dark forests, abandoned ruins",
+    "Name": "Cultist",
+    "Genre": "Fantasy",
+    "Type": "Humanoid",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A fanatical human dressed in dark robes marked with sinister cult symbols. Cultists have intense, zealous expressions and wild eyes. Their robes are stained and tattered, often bearing unholy symbols painted in blood. They move with nervous, twitchy energy.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "scimitar"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Humanoid",
+    "DistinctiveFeatures": "wearing simple priest's robes, holding holy symbol on chain, peaceful expression, carrying sacred text",
+    "Environment": "Temples, shrines, monasteries",
+    "Name": "Acolyte",
+    "Genre": "Fantasy",
+    "Type": "Humanoid",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A young clergy member wearing simple religious robes, standing 5-6 feet tall. Acolytes have peaceful, devoted expressions and carry holy symbols. Their robes are clean and well-maintained, often bearing the colors of their deity. They move with humble, reverent bearing.",
+    "Alternatives": [
+      {
+        "Gender": [
+          "male",
+          "female"
+        ],
+        "Equipment": [
+          "club"
+        ]
+      }
+    ]
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Mammal",
+    "DistinctiveFeatures": "alert ears perked forward, fangs bared in snarl, pack-hunting posture, piercing predatory gaze",
+    "Environment": "Forests, wilderness",
+    "Name": "Wolf",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium beast with thick gray or brown fur, intelligent eyes, and powerful jaws. The wolf moves with predatory grace on four legs, standing about 3 feet at the shoulder. Its keen senses and pack mentality make it a formidable hunter."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Mammal",
+    "DistinctiveFeatures": "massive size with thick shaggy fur, powerful stance on hind legs, razor-sharp claws extended, fierce protective posture",
+    "Environment": "Forests, wilderness",
+    "Name": "Bear Brown",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A massive bear standing 8-9 feet tall when reared up, with thick dark brown fur, powerful shoulders, and a broad head. Brown bears have small eyes, rounded ears, and enormous paws tipped with long curved claws. They move with surprising speed and power despite their bulk."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Arachnid",
+    "DistinctiveFeatures": "eight glowing eyes, fangs dripping venom, crouched on sticky web, legs poised to strike",
+    "Environment": "Mountains, hills",
+    "Name": "Spider Giant",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A horse-sized spider with a bloated body covered in coarse black hair and eight long segmented legs. Giant spiders have clusters of eight eyes that glow faintly in darkness, and massive chelicerae dripping with venom. Their movements are silent and eerily precise."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Rodent",
+    "DistinctiveFeatures": "mangy diseased fur, yellow overgrown incisors, long hairless tail, hunched scavenging posture",
+    "Environment": "Mountains, hills",
+    "Name": "Rat Giant",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "small",
+    "PhysicalDescription": "A rat the size of a small dog, with matted gray-brown fur, a long hairless tail, and prominent yellow incisors. Giant rats have beady red eyes, twitching whiskers, and move with quick, jerky motions. They often carry disease and smell of rot and filth."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Mammal",
+    "DistinctiveFeatures": "bristling spiky fur, sharp tusks curving upward, aggressive charging stance, snorting and pawing ground",
+    "Environment": "Forests, wilderness",
+    "Name": "Boar",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A muscular wild pig standing 3 feet tall at the shoulder, with coarse black or brown bristly fur. Boars have powerful shoulders, short legs, and curved tusks protruding from their lower jaws. Their small eyes gleam with aggression, and they snort and grunt constantly."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Mammal",
+    "DistinctiveFeatures": "magnificent antlers spreading wide, alert ears, proud noble stance, powerful muscular build",
+    "Environment": "Forests, grasslands, mountains",
+    "Name": "Elk",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A majestic deer standing 5 feet tall at the shoulder with a powerful build. Elk have tan or brown coats with darker necks and legs, and males sport massive branching antlers spanning 4-5 feet. They have large brown eyes, tall ears, and move with graceful strength."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Mammal",
+    "DistinctiveFeatures": "sleek black coat, crouched hunting posture, yellow-green eyes glowing in shadows, muscles coiled to pounce",
+    "Environment": "Jungles, forests, mountain caves",
+    "Name": "Panther",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A sleek black big cat with a muscular build, standing 2 feet at the shoulder but 6 feet long. Panthers have glossy black fur, powerful jaws, retractable claws, and piercing yellow-green eyes. They move with fluid, silent grace, perfect hunters of the night."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Avian",
+    "DistinctiveFeatures": "massive wingspan spread wide, sharp talons extended, fierce predatory gaze, golden-brown plumage",
+    "Environment": "Mountains, hills",
+    "Name": "Eagle Giant",
+    "Genre": "Fantasy",
+    "Type": "Beast",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "An enormous eagle with a wingspan of 20 feet, golden-brown feathers, and a wickedly curved beak. Giant eagles have piercing golden eyes, powerful talons capable of carrying off prey, and regal bearing. Their cry echoes across mountains."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Corporeal",
+    "DistinctiveFeatures": "bones rattling with movement, tattered remnants of armor, eye sockets glowing with dim green necromantic light, weapon held in bony grip",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Skeleton",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead composed of animated bones held together by dark magic. The skeleton moves with jerky, unnatural motions, its empty eye sockets glowing with faint necromantic energy. Bones clatter as it walks, and it wields weapons with mechanical precision."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Corporeal",
+    "DistinctiveFeatures": "flesh rotting and falling off, vacant dead eyes, shambling with outstretched arms, clothing torn and decayed",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Zombie",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead corpse with rotting flesh, glazed eyes, and shambling gait. The zombie's skin is pallid and decaying, with exposed bone and muscle tissue visible. It moves slowly but relentlessly, showing no signs of pain or fatigue."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Corporeal",
+    "DistinctiveFeatures": "hunched feral posture, claws extended, mouth open revealing pointed teeth, covered in grave dirt and blood",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Ghoul",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead with rotting flesh, sharp claws, pointed teeth, and a hunched posture. Ghouls have sunken eyes, matted hair, and move with jerky, bestial motions. They emit a charnel stench and their tongues loll obscenely."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Corporeal",
+    "DistinctiveFeatures": "wearing ancient corroded armor, eyes glowing with malevolent red light, sword held in skeletal grip, aura of death visible as dark wisps",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Wight",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead warrior with desiccated flesh clinging to its bones, glowing eyes, and ancient armor. Wights move with the skill of trained soldiers, their bodies preserved by dark magic. They radiate an aura of death that drains life force."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Incorporeal",
+    "DistinctiveFeatures": "translucent and floating, tattered spectral robes flowing, face twisted in eternal anguish, reaching with ghostly hands",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Specter",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead spirit appearing as a translucent, ghostly humanoid with hollow eyes and tattered robes. Specters float silently through the air, their incorporeal forms radiating cold malevolence. Their touch drains life force and creates new spawn."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Incorporeal",
+    "DistinctiveFeatures": "two-dimensional silhouette against walls, barely visible shape shifting and writhing, no features except darker void where face should be",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Shadow",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead appearing as a dark, shadowy silhouette of a humanoid figure. Shadows are incorporeal and move silently across surfaces, their forms constantly shifting. Where they pass, they drain light and warmth, leaving an aura of cold darkness."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Corporeal",
+    "DistinctiveFeatures": "more decayed than ghoul with exposed bones, paralytic claws dripping ichor, foul stench visible as green miasma, hunched predatory stance",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Ghast",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "An advanced form of ghoul, more decayed and powerful. Ghasts have gray-green rotting flesh hanging from exposed bones, razor-sharp claws, and rows of needle-like teeth. Their eyes glow with unholy hunger, and they emit a nauseating stench that paralyzes victims. They move with predatory intelligence unlike common ghouls."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Incorporeal",
+    "DistinctiveFeatures": "hooded skeletal figure wreathed in darkness, glowing red eyes within deep hood, spectral robes flowing with dark energy, hands outstretched to drain life",
+    "Environment": "Crypts, graveyards, haunted ruins",
+    "Name": "Wraith",
+    "Genre": "Fantasy",
+    "Type": "Undead",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium undead spirit of pure hatred, appearing as a hooded, skeletal figure wrapped in shadowy robes. Wraiths have glowing red eyes visible within their hoods and move by floating. Their very presence drains warmth and light from their surroundings."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Hybrid",
+    "DistinctiveFeatures": "feathers bristling in aggressive display, massive beak open in screech, bear-like claws extended, owl eyes fixed in predatory stare",
+    "Environment": "Forests, wilderness",
+    "Name": "Owlbear",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "An eight-foot-tall monstrosity combining a giant owl and bear. Feathers cover its thick, shaggy bearlike body, with coloration ranging from yellowish-brown to brownish-black. The limpid pupils of its great round eyes stare furiously from its owlish head. Yellow-to-ivory beak and red-rimmed eyes complete its terrifying visage. Males weigh 1,300-1,500 pounds."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "disguised as treasure chest, one edge slightly ajar revealing rows of teeth, pseudopods beginning to form, surface texture shifting from wood to flesh",
+    "Environment": "Dungeons, treasure vaults, abandoned ruins",
+    "Name": "Mimic",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A shapeshifting predator that appears as common objects to lure prey. In its true amorphous form, it has rough speckled gray skin resembling granite. When attacking, it reveals a large gaping mouth full of sharp teeth, yellow-orange eyes, and glistening tentacles. Can polymorph into chests, doors, or other objects while retaining approximately 15 cubic feet of volume."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "antennae twitching toward metal, paddle-tail swishing, insect-like legs scuttling, mouth parts extended toward metal objects",
+    "Environment": "Underground tunnels, abandoned forges, scrapyards",
+    "Name": "Monster Rust",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium-sized creature resembling a small pony with four insect-like legs and a squat, humped body. Its hide is thick and lumpy, yellowish-tan on the belly and rust-red on the back. A bony shell of armor covers its body. Its tail ends in a double-ended paddle, and two long antennae protrude from its head under each eye, used to sense and corrode metal."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "massive mandibles dripping acid, chitinous plates gleaming, multiple eyes reflecting light, half-burrowed with dirt cascading off exoskeleton",
+    "Environment": "Grasslands, farmlands, forest clearings",
+    "Name": "Ankheg",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A large monstrosity resembling a massive burrowing insect with a chitinous exoskeleton. Ankhegs have multiple legs, powerful mandibles that drip acid, and segmented bodies. They can spit streams of acid and burst from the ground to ambush prey."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "eyes glowing with petrifying power, eight legs splayed in menacing stance, head raised to meet victim's gaze, stone statues of previous victims nearby",
+    "Environment": "Caverns, ruins, desolate badlands",
+    "Name": "Basilisk",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A medium monstrosity appearing as an eight-legged reptile with a serpentine body covered in dull brownish-yellow scales. The basilisk's eyes glow with supernatural power, capable of turning creatures to stone with its gaze. It moves with a slithering, undulating motion."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "rooster comb bright red, leathery wings spread, serpent tail coiled, small but aggressive stance, beak open in challenge",
+    "Environment": "Rocky terrain, ruins, scrublands",
+    "Name": "Cockatrice",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "small",
+    "PhysicalDescription": "A small monstrosity combining rooster, lizard, and bat features. The cockatrice has a rooster's head with a serpent's tail and leathery wings. Its feathers are dull green-brown and its wattle is bright red. Its touch can turn flesh to stone."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Aberration",
+    "DistinctiveFeatures": "mass of eyes and mouths writhing, ground beneath liquefying, multiple voices gibbering madly, amorphous body constantly shifting and reforming",
+    "Environment": "Underdark, far realms",
+    "Name": "Mouther Gibbering",
+    "Genre": "Fantasy",
+    "Type": "Aberration",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A horrifying blob of eyes and mouths constantly shifting and writhing. Gibbering mouthers are 3-4 feet across, with dozens of eyes and mouths appearing and disappearing across their surface. They babble incoherently, and the ground beneath them becomes soft and treacherous. Their bodies are wet and pulsating."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "crouched in web like spider, multiple eyes gleaming, clawed hands weaving silk, mandibles clicking, hunched arachnid-humanoid posture",
+    "Environment": "Forest depths, web-filled caves, dark woods",
+    "Name": "Ettercap",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A grotesque humanoid-spider hybrid standing 6 feet tall with gray-purple skin. Ettercaps have hunched postures, four arms ending in clawed hands, multiple dark eyes, and mandibles flanking a too-wide mouth. They can spin webs like spiders and move with unnatural, insectoid jerks."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Aberration",
+    "DistinctiveFeatures": "three eyes on stalks waving, tentacles reaching from refuse pile, massive central mouth filled with teeth, covered in filth and waste",
+    "Environment": "Underdark, far realms",
+    "Name": "Otyugh",
+    "Genre": "Fantasy",
+    "Type": "Aberration",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A bloated aberration with a central body resembling a mass of diseased flesh, standing 8 feet tall. Otyughs have three legs, two long tentacles tipped with ridges, and three eyes on retractable stalks above a gaping tooth-filled maw. They are covered in filth and excrement, dwelling in sewers and waste."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Aberration",
+    "DistinctiveFeatures": "massive lobster-like claws raised, tentacles around mouth writhing, armored shell glistening wet, multiple legs splayed in water",
+    "Environment": "Underdark, far realms",
+    "Name": "Chuul",
+    "Genre": "Fantasy",
+    "Type": "Aberration",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A horrifying crustacean-like aberration standing 8 feet tall with a thick armored shell. Chuuls have two massive claws, six legs, and a cluster of writhing tentacles surrounding their mouths. They are amphibious, with segmented armor and can sense magic. Their bodies drip with slime and water."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Magical Beast",
+    "DistinctiveFeatures": "worm-like body coiled, four tentacles surrounding lamprey mouth writhing, camouflaged against stone, rubbery gray skin glistening",
+    "Environment": "Underground caves, dark tunnels, Underdark",
+    "Name": "Grick",
+    "Genre": "Fantasy",
+    "Type": "Monstrosity",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A worm-like aberrant predator with a 6-foot-long gray rubbery body. Gricks have a lamprey-like mouth surrounded by four barbed tentacles, and can change their coloration to match stone. Their bodies are segmented and muscular, allowing them to move silently across cave walls and ceilings."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Aberration",
+    "DistinctiveFeatures": "single massive eye dominating face, emaciated hunched posture, long spindly claws, skin mottled and diseased, crouched in shadows",
+    "Environment": "Underdark, far realms",
+    "Name": "Nothic",
+    "Genre": "Fantasy",
+    "Type": "Aberration",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A cursed mage transformed into a hunched aberration with one massive cyclopean eye dominating its face. Nothics have mottled gray-green skin stretched over emaciated frames, long clawed fingers, and wide mouths filled with needle teeth. They are 4 feet tall, move in a shuffling crouch, and their eye gleams with corrupt intelligence."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Aberration",
+    "DistinctiveFeatures": "eel-like body undulating through water, three eyes along head glowing with psychic power, tentacles trailing with mucus dripping, ancient and malevolent presence",
+    "Environment": "Underdark, far realms",
+    "Name": "Aboleth",
+    "Genre": "Fantasy",
+    "Type": "Aberration",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "An ancient eel-like fish creature 20 feet long with slimy blue-green skin. Aboleths have three eyes set in a line along their heads, four long tentacles trailing from their bodies, and constantly secrete mucus that transforms water-breathers into air-breathers. They radiate psychic power and ancient evil."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Chromatic",
+    "DistinctiveFeatures": "crimson scales gleaming like molten metal, wings spread wide, smoke curling from nostrils, mouth open revealing rows of dagger teeth, treasure coins scattered beneath claws",
+    "Environment": "Volcanic mountains, desert badlands",
+    "Name": "Dragon Red Young",
+    "Genre": "Fantasy",
+    "Type": "Dragon",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A young red dragon 15-20 feet long with brilliant crimson scales that shimmer like molten metal. Red dragons have powerful muscular bodies, enormous leathery wings, long necks, and heads crowned with backward-sweeping horns. Their eyes burn like coals, and smoke rises from their nostrils. Even young, they radiate arrogance and greed."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Chromatic",
+    "DistinctiveFeatures": "electric blue scales crackling with static, frilled ears extended, tail whipping up sand, lightning arcing between horns",
+    "Environment": "Deserts, arid wastelands",
+    "Name": "Dragon Blue Young",
+    "Genre": "Fantasy",
+    "Type": "Dragon",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A young blue dragon 15-20 feet long with brilliant azure scales that crackle with electricity. Blue dragons have large frilled ears, a single prominent horn on their snouts, and multiple horns sweeping back from their skulls. Their eyes glow with electric blue light, and the smell of ozone surrounds them. They are sleek and vain."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Chromatic",
+    "DistinctiveFeatures": "forest green scales blending with foliage, crest of horns like a crown, acidic drool dripping from fangs, coiled in ambush posture among trees",
+    "Environment": "Forests, jungles",
+    "Name": "Dragon Green Young",
+    "Genre": "Fantasy",
+    "Type": "Dragon",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A young green dragon 15-20 feet long with emerald scales that blend perfectly with forest canopies. Green dragons have prominent crests running from nose to neck, multiple curving horns, and long sinuous bodies. Their eyes gleam with cruel intelligence, and acid drips from their fangs. They are master manipulators and schemers."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Chromatic",
+    "DistinctiveFeatures": "white scales like glacial ice, frost forming on ground beneath, wings folded against body, eyes glowing pale blue, breath misting in air",
+    "Environment": "Arctic, frozen peaks",
+    "Name": "Dragon White Young",
+    "Genre": "Fantasy",
+    "Type": "Dragon",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A young white dragon 15-20 feet long with scales like glacial ice, ranging from pure white to pale blue. White dragons have streamlined bodies adapted for snow and ice, backward-sweeping horns, and eyes that glow pale blue. Frost forms wherever they walk, and their breath mists even in warm air. They are savage and bestial among dragons."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Fire",
+    "DistinctiveFeatures": "humanoid form made of living flame, eyes blazing white-hot, flames roaring and crackling, heat waves distorting air around it, leaving scorched footprints",
+    "Environment": "Volcanic regions, elemental fire plane, burning ruins",
+    "Name": "Elemental Fire",
+    "Genre": "Fantasy",
+    "Type": "Elemental",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A living column of fire shaped roughly like a 12-foot-tall humanoid. Fire elementals have blazing bodies of red, orange, and yellow flames constantly shifting and roaring. Their eyes burn white-hot, and the air around them shimmers with intense heat. They leave scorched earth wherever they move and radiate waves of flame."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Water",
+    "DistinctiveFeatures": "humanoid form of flowing water, eyes like whirlpools, body constantly rippling and splashing, leaving wet trail, crashing like a wave",
+    "Environment": "Aquatic, coastal areas",
+    "Name": "Elemental Water",
+    "Genre": "Fantasy",
+    "Type": "Elemental",
+    "SchemaVersion": 1,
+    "Size": "large",
+    "PhysicalDescription": "A living mass of water shaped roughly like a 12-foot-tall humanoid. Water elementals have bodies of clear or blue-green water constantly flowing and rippling. Their eyes swirl like whirlpools, and their forms crash and splash with every movement. They can dissolve into puddles or rear up as towering waves."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Lesser Fiend",
+    "DistinctiveFeatures": "leathery bat wings folded, barbed tail coiled, holding tiny pitchfork, mischievous evil grin revealing sharp teeth, small horns on head",
+    "Environment": "Lower planes, summoned locations",
+    "Name": "Imp",
+    "Genre": "Fantasy",
+    "Type": "Fiend",
+    "SchemaVersion": 1,
+    "Size": "tiny",
+    "PhysicalDescription": "A tiny fiend with leathery red skin, small horns, a barbed tail, and bat-like wings. Imps stand about 2 feet tall with sharp features and gleaming eyes full of malice. They can shapeshift into rats, ravens, or spiders."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Lesser Fiend",
+    "DistinctiveFeatures": "crouched gargoyle-like posture, forked tail lashing, claws extended, fanged grin, green eyes glowing with malice",
+    "Environment": "Lower planes, summoned locations",
+    "Name": "Quasit",
+    "Genre": "Fantasy",
+    "Type": "Fiend",
+    "SchemaVersion": 1,
+    "Size": "tiny",
+    "PhysicalDescription": "A tiny fiend resembling a demonic imp with green scaly skin, small horns, fangs, and a forked tail. Quasits have bat-like wings and stand about 2 feet tall. Their eyes glow with cruel intelligence, and they can shapeshift into various small animals."
+  },
+  {
+    "Category": "Creature",
+    "Subtype": "Animated Object",
+    "DistinctiveFeatures": "empty suit of plate armor moving with purpose, helmet visor glowing with magical light, sword and shield held in gauntleted hands, moving with mechanical precision",
+    "Environment": "Castles, wizard towers, ancient armories",
+    "Name": "Armor Animated",
+    "Genre": "Fantasy",
+    "Type": "Construct",
+    "SchemaVersion": 1,
+    "Size": "medium",
+    "PhysicalDescription": "A complete suit of medieval plate armor animated by magic, standing 6 feet tall. Animated armor moves with mechanical precision, its empty helmet visor sometimes glowing with magical light. The armor appears to be worn by an invisible warrior, with sword and shield held at the ready. It clanks and creaks as it moves."
+  }
+]

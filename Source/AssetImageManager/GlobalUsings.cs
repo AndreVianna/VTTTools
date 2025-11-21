@@ -15,6 +15,9 @@ global using DotNetToolbox.Validation;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 
+global using VttTools.AssetImageManager.Application.Services;
+global using VttTools.AssetImageManager.Application.Validation;
+
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Processing;
 
@@ -24,6 +27,7 @@ global using VttTools.AssetImageManager.Domain.Common.ServiceContracts;
 global using VttTools.AssetImageManager.Domain.Diagnostics.Contracts;
 global using VttTools.AssetImageManager.Domain.Diagnostics.Enums;
 global using VttTools.AssetImageManager.Domain.Diagnostics.Models;
+global using VttTools.AssetImageManager.Domain.Files.Contracts;
 global using VttTools.AssetImageManager.Domain.Images.Contracts;
 global using VttTools.AssetImageManager.Domain.Images.Models;
 global using VttTools.AssetImageManager.Domain.Prompts.Contracts;
@@ -34,4 +38,6 @@ global using VttTools.AssetImageManager.Domain.Tokens.ServiceContracts;
 global using VttTools.AssetImageManager.Domain.Tokens.ValueObjects;
 global using VttTools.AssetImageManager.Infrastructure.Diagnostics;
 global using VttTools.AssetImageManager.Infrastructure.Clients;
+global using VttTools.AssetImageManager.Infrastructure.Clients.OpenAi;
+global using VttTools.AssetImageManager.Infrastructure.Output;
 global using VttTools.AssetImageManager.Infrastructure.Storage;

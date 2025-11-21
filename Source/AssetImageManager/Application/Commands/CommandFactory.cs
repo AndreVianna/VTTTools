@@ -24,15 +24,16 @@ internal static class CommandFactory {
             var limit = parseResult.GetValue(limitOption);
 
             if (inputFile is null) {
-                Console.Error.WriteLine("Error: Input file is required.");
+                ConsoleOutput.WriteError("Error: Input file is required.");
                 return 1;
             }
 
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
-            var imageStore = new HierarchicalImageStore(outputDir.FullName);
-            var cmd = new PrepareCommand(httpClientFactory, imageStore, config);
+            var imageStore = new HierarchicalFileStore(outputDir.FullName);
+            var entityLoader = new EntityLoaderService();
+            var cmd = new PrepareCommand(httpClientFactory, imageStore, config, entityLoader);
             var options = new PrepareOptions(inputFile.FullName, showAll, limit);
 
             return await cmd.ExecuteAsync(options, CancellationToken.None);
@@ -43,7 +44,7 @@ internal static class CommandFactory {
 
     public static Command CreateGenerateCommand(IConfigurationRoot config, ServiceCollection serviceCollection, DirectoryInfo outputDir, int delay, int limit, Option<FileInfo> inputFileOption, Option<string?> idOption, Option<int> variantsOption, Option<int?> limitOption) {
         var imageTypeArgument = new Argument<string>("imageType") {
-            Description = "Image type to generate: topdown, miniature, photo, portrait, or all",
+            Description = "Image type to generate: topdown, photo, portrait, or all",
             DefaultValueFactory = (_) => "all"
         };
 
@@ -62,32 +63,33 @@ internal static class CommandFactory {
             var variants = parseResult.GetValue(variantsOption);
 
             if (inputFile is null) {
-                Console.Error.WriteLine("Monsters file is required.");
+                ConsoleOutput.WriteError("Monsters file is required.");
                 return 1;
             }
 
             if (!inputFile.Exists) {
-                Console.Error.WriteLine($"Monsters file not found: {inputFile.FullName}");
+                ConsoleOutput.WriteError($"Monsters file not found: {inputFile.FullName}");
                 return 1;
             }
 
-            Console.WriteLine("Generating...");
-            Console.WriteLine($"  input file      : {inputFile.FullName}");
-            Console.WriteLine($"  image type      : {imageType}");
-            Console.WriteLine($"  id              : {id ?? "<all>"}");
-            Console.WriteLine($"  variants        : {variants}");
-            Console.WriteLine($"  delay (ms)      : {delay}");
-            Console.WriteLine($"  limit           : {(limit == 0 ? "<none>" : limit.ToString())}");
-            Console.WriteLine($"  output          : {outputDir.FullName}");
+            ConsoleOutput.WriteLine("Generating...");
+            ConsoleOutput.WriteLine($"  input file      : {inputFile.FullName}");
+            ConsoleOutput.WriteLine($"  image type      : {imageType}");
+            ConsoleOutput.WriteLine($"  id              : {id ?? "<all>"}");
+            ConsoleOutput.WriteLine($"  variants        : {variants}");
+            ConsoleOutput.WriteLine($"  delay (ms)      : {delay}");
+            ConsoleOutput.WriteLine($"  limit           : {(limit == 0 ? "<none>" : limit.ToString())}");
+            ConsoleOutput.WriteLine($"  output          : {outputDir.FullName}");
 
             using var serviceProvider = serviceCollection.BuildServiceProvider();
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
-            var imageStore = new HierarchicalImageStore(outputDir.FullName);
+            var imageStore = new HierarchicalFileStore(outputDir.FullName);
+            var entityLoader = new EntityLoaderService();
 
-            var cmd = new GenerateCommand(httpClientFactory, imageStore, config);
+            var cmd = new GenerateCommand(httpClientFactory, imageStore, config, entityLoader);
 
-            var options = new GenerateTokensOptions(
+            var options = new GenerateOptions(
                 InputPath: inputFile.FullName,
                 ImageType: imageType,
                 Limit: limit,
@@ -103,25 +105,32 @@ internal static class CommandFactory {
     }
 
     public static Command CreateListCommand(DirectoryInfo outputDir, Option<string?> idOrNameOption, Option<string?> filterKindOption) {
+        var importOption = new Option<string?>("--import", "-i") {
+            Description = "Import JSON file path to list entities from instead of storage"
+        };
+
         var listCommand = new Command("list", "List tokens")
         {
             idOrNameOption,
-            filterKindOption
+            filterKindOption,
+            importOption
         };
 
         listCommand.SetAction(async parseResult => {
             var idOrName = parseResult.GetValue(idOrNameOption);
             var typeFilter = Enum.TryParse<EntityType>(parseResult.GetValue(filterKindOption), out var tf) ? tf : (EntityType?)null;
+            var importPath = parseResult.GetValue(importOption);
 
-            Console.WriteLine("Listing tokens...");
-            Console.WriteLine($"  id or name: {idOrName ?? "<any>"}");
-            Console.WriteLine($"  kind filter: {(typeFilter.HasValue ? typeFilter.Value.ToString() : "<any>")}");
+            ConsoleOutput.WriteLine("Listing tokens...");
+            ConsoleOutput.WriteLine($"  id or name: {idOrName ?? "<any>"}");
+            ConsoleOutput.WriteLine($"  kind filter: {(typeFilter.HasValue ? typeFilter.Value.ToString() : "<any>")}");
+            ConsoleOutput.WriteLine($"  import from: {importPath ?? "<storage>"}");
 
-            var store = new HierarchicalImageStore(outputDir.FullName);
+            var store = new HierarchicalFileStore(outputDir.FullName);
 
             var cmd = new ListCommand(store);
 
-            var options = new ListTokensOptions(typeFilter, idOrName);
+            var options = new ListTokensOptions(typeFilter, idOrName, importPath);
 
             await cmd.ExecuteAsync(options);
 
@@ -139,14 +148,14 @@ internal static class CommandFactory {
         showCommand.SetAction(async parseResult => {
             var id = parseResult.GetValue(idOption);
             if (string.IsNullOrWhiteSpace(id)) {
-                Console.Error.WriteLine("Error: --id is required for 'token show'.");
+                ConsoleOutput.WriteError("Error: --id is required for 'token show'.");
                 return 1;
             }
 
-            Console.WriteLine("[AssetImageManager] Showing token info...");
-            Console.WriteLine($"  id or name: {id ?? "<any>"}");
+            ConsoleOutput.WriteLine("[AssetImageManager] Showing token info...");
+            ConsoleOutput.WriteLine($"  id or name: {id ?? "<any>"}");
 
-            var store = new HierarchicalImageStore(outputDir.FullName);
+            var store = new HierarchicalFileStore(outputDir.FullName);
 
             var cmd = new ShowCommand(store);
 

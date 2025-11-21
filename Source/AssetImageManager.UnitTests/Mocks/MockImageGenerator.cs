@@ -18,7 +18,7 @@ public sealed class MockImageGenerator : IImageGenerator {
         _images.Enqueue(fakeImage);
     }
 
-    public Task<ImageGenerationResponse> GenerateImageAsync(string model, string imageType, string? prompt = null, CancellationToken ct = default) {
+    public Task<ImageGenerationResponse> GenerateImageFileAsync(string model, string imageType, string? prompt = null, CancellationToken ct = default) {
         _receivedRequests.Add((model, imageType, prompt));
 
         if (_images.Count == 0) {

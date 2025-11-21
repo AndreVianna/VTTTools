@@ -27,7 +27,7 @@ public class VariantExpanderTests {
         Assert.Null(variants[0].Gender);
         Assert.Null(variants[0].Class);
         Assert.Null(variants[0].Equipment);
-        Assert.Null(variants[0].Vestiment);
+        Assert.Null(variants[0].Vestment);
         Assert.Null(variants[0].Material);
         Assert.Null(variants[0].Quality);
     }
@@ -159,7 +159,7 @@ public class VariantExpanderTests {
         Assert.Equal("male", firstVariant.Gender);
         Assert.Equal("warrior", firstVariant.Class);
         Assert.Equal("sword", firstVariant.Equipment);
-        Assert.Equal("leather", firstVariant.Vestiment);
+        Assert.Equal("leather", firstVariant.Vestment);
         Assert.Equal("iron", firstVariant.Material);
         Assert.Equal("normal", firstVariant.Quality);
     }
@@ -498,7 +498,7 @@ public class VariantExpanderTests {
     [Fact]
     public void ExpandAlternatives_WithSpecialCharacters_RemovesInvalidChars() {
         var alternatives = new AlternativeDefinition {
-            Equipment = ["Sword+1", "Shield (Medium)", "Vestiment [Heavy]"],
+            Equipment = ["Sword+1", "Shield (Medium)", "Vestment [Heavy]"],
             Gender = null,
             Class = null,
             Armor = null,

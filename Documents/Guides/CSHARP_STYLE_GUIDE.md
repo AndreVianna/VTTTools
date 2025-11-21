@@ -235,7 +235,8 @@ var activeSessions = await _storage.GetByUserIdAsync(userId, ct)
 | **Private Field** | _camelCase | `_storage`, `_logger` |
 | **Parameter** | camelCase | `userId`, `sessionData` |
 | **Local Variable** | camelCase | `session`, `result` |
-| **Const/Static Readonly** | PascalCase | `MaxRetries`, `DefaultTimeout` |
+| **public Const/Static Readonly** | PascalCase | `MaxRetries`, `DefaultTimeout` |
+| **private Const/Static Readonly** | _camelCase | `_maxRetries`, `_defaultTimeout` |
 
 ### Specific Naming Patterns
 
