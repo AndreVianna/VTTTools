@@ -1,10 +1,10 @@
 namespace VttTools.AssetImageManager.Application.Commands;
 
 public static class ConfirmationDialog {
-    public static bool Show(Dictionary<EntryDefinition, List<StructuralVariant>> entries) {
-        var totalVariants = entries.Sum(e => e.Value.Count);
+    public static bool Show(IReadOnlyList<Asset> entries) {
+        var totalVariants = entries.Sum(e => e.Tokens.Count);
         ConsoleOutput.WriteLine("=".PadRight(60, '='));
-        ConsoleOutput.WriteLine($"Total entities: {entries.Keys.Count}");
+        ConsoleOutput.WriteLine($"Total entities: {entries.Count}");
         ConsoleOutput.WriteLine($"Total variants: {totalVariants}");
 
         if (totalVariants > 50) {

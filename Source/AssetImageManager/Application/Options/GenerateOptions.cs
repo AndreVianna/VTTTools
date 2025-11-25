@@ -2,7 +2,6 @@
 
 public sealed record GenerateOptions(
     string InputPath,
-    string ImageType,
     int? Limit,
     int DelayMs,
-    string? IdFilter = null);
+    string? NameFilter = null);

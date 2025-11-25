@@ -1,6 +1,6 @@
 namespace VttTools.AssetImageManager.Application.Options;
 
 public sealed record ListTokensOptions(
-    EntityType? TypeFilter,
-    string? IdOrName,
+    AssetKind? KindFilter,
+    string? Name,
     string? ImportPath = null);

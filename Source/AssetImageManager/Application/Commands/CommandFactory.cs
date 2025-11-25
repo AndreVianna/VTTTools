@@ -32,8 +32,7 @@ internal static class CommandFactory {
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
             var imageStore = new HierarchicalFileStore(outputDir.FullName);
-            var entityLoader = new EntityLoaderService();
-            var cmd = new PrepareCommand(httpClientFactory, imageStore, config, entityLoader);
+            var cmd = new PrepareCommand(httpClientFactory, imageStore, config);
             var options = new PrepareOptions(inputFile.FullName, showAll, limit);
 
             return await cmd.ExecuteAsync(options, CancellationToken.None);
@@ -43,13 +42,7 @@ internal static class CommandFactory {
     }
 
     public static Command CreateGenerateCommand(IConfigurationRoot config, ServiceCollection serviceCollection, DirectoryInfo outputDir, int delay, int limit, Option<FileInfo> inputFileOption, Option<string?> idOption, Option<int> variantsOption, Option<int?> limitOption) {
-        var imageTypeArgument = new Argument<string>("imageType") {
-            Description = "Image type to generate: topdown, photo, portrait, or all",
-            DefaultValueFactory = (_) => "all"
-        };
-
         var generateCommand = new Command("generate", "Generate tokens for monsters from JSON") {
-            imageTypeArgument,
             inputFileOption,
             idOption,
             variantsOption,
@@ -57,7 +50,6 @@ internal static class CommandFactory {
         };
 
         generateCommand.SetAction(parseResult => {
-            var imageType = parseResult.GetValue(imageTypeArgument) ?? "all";
             var id = parseResult.GetValue(idOption);
             var inputFile = parseResult.GetValue(inputFileOption);
             var variants = parseResult.GetValue(variantsOption);
@@ -74,7 +66,6 @@ internal static class CommandFactory {
 
             ConsoleOutput.WriteLine("Generating...");
             ConsoleOutput.WriteLine($"  input file      : {inputFile.FullName}");
-            ConsoleOutput.WriteLine($"  image type      : {imageType}");
             ConsoleOutput.WriteLine($"  id              : {id ?? "<all>"}");
             ConsoleOutput.WriteLine($"  variants        : {variants}");
             ConsoleOutput.WriteLine($"  delay (ms)      : {delay}");
@@ -85,16 +76,14 @@ internal static class CommandFactory {
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
             var imageStore = new HierarchicalFileStore(outputDir.FullName);
-            var entityLoader = new EntityLoaderService();
 
-            var cmd = new GenerateCommand(httpClientFactory, imageStore, config, entityLoader);
+            var cmd = new GenerateCommand(httpClientFactory, imageStore, config);
 
             var options = new GenerateOptions(
                 InputPath: inputFile.FullName,
-                ImageType: imageType,
                 Limit: limit,
                 DelayMs: delay,
-                IdFilter: id
+                NameFilter: id
             );
 
             cmd.ExecuteAsync(options).GetAwaiter().GetResult();
@@ -118,7 +107,7 @@ internal static class CommandFactory {
 
         listCommand.SetAction(async parseResult => {
             var idOrName = parseResult.GetValue(idOrNameOption);
-            var typeFilter = Enum.TryParse<EntityType>(parseResult.GetValue(filterKindOption), out var tf) ? tf : (EntityType?)null;
+            var typeFilter = Enum.TryParse<AssetKind>(parseResult.GetValue(filterKindOption), out var tf) ? tf : (AssetKind?)null;
             var importPath = parseResult.GetValue(importOption);
 
             ConsoleOutput.WriteLine("Listing tokens...");
@@ -161,7 +150,7 @@ internal static class CommandFactory {
 
             var options = new ShowTokenOptions(id!);
 
-            await cmd.ExecuteAsync(options);
+            cmd.Execute(options);
 
             return 0;
         });

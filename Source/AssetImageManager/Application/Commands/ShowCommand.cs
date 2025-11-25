@@ -3,50 +3,35 @@ namespace VttTools.AssetImageManager.Application.Commands;
 public sealed class ShowCommand(IFileStore store) {
     private readonly IFileStore _store = store;
 
-    public async Task ExecuteAsync(ShowTokenOptions options, CancellationToken ct = default) {
-        var allSummaries = await _store.GetEntitySummariesAsync(null, null, null, ct);
+    public void Execute(ShowTokenOptions options) {
+        var assets = _store.GetAssets();
 
-        var matchingSummary = allSummaries.FirstOrDefault(s =>
-            string.Equals(s.Name, options.Id, StringComparison.OrdinalIgnoreCase));
+        var matchingSummary = assets.FirstOrDefault(s =>
+            string.Equals(s.Name, options.Name, StringComparison.OrdinalIgnoreCase));
 
         if (matchingSummary is null) {
-            ConsoleOutput.WriteLine($"No entity found with name '{options.Id}'.");
+            ConsoleOutput.WriteLine($"No entity found with name '{options.Name}'.");
             return;
         }
 
-        var entityInfo = await _store.GetEntityInfoAsync(
-            matchingSummary.Genre,
-            matchingSummary.Category,
-            matchingSummary.Type,
-            matchingSummary.Subtype,
-            matchingSummary.Name,
-            ct);
+        var entityInfo = _store.FindAsset(matchingSummary.Name);
 
         if (entityInfo is null) {
-            ConsoleOutput.WriteLine($"Error: Could not load details for entity '{options.Id}'.");
+            ConsoleOutput.WriteLine($"Error: Could not load details for entity '{options.Name}'.");
             return;
         }
 
         ConsoleOutput.WriteBlankLine();
         ConsoleOutput.WriteLine($"Entity: {entityInfo.Name}");
-        ConsoleOutput.WriteLine($"Genre: {entityInfo.Genre}");
-        ConsoleOutput.WriteLine($"Category: {entityInfo.Category}");
-        ConsoleOutput.WriteLine($"Type: {entityInfo.Type}");
-        ConsoleOutput.WriteLine($"Subtype: {entityInfo.Subtype}");
+        ConsoleOutput.WriteLine($"Kind: {entityInfo.Classification.Kind}");
+        ConsoleOutput.WriteLine($"Category: {entityInfo.Classification.Category}");
+        ConsoleOutput.WriteLine($"Type: {entityInfo.Classification.Type}");
+        ConsoleOutput.WriteLine($"Subtype: {entityInfo.Classification.Subtype}");
         ConsoleOutput.WriteBlankLine();
-        ConsoleOutput.WriteLine($"Total Variants: {entityInfo.Variants.Count}");
-        ConsoleOutput.WriteLine($"Total Poses: {entityInfo.Variants.Sum(v => v.Poses.Count)}");
+        ConsoleOutput.WriteLine($"Total Tokens: {entityInfo.Tokens.Count}");
         ConsoleOutput.WriteBlankLine();
 
-        foreach (var variant in entityInfo.Variants.OrderBy(v => v.VariantId)) {
-            ConsoleOutput.WriteLine($"Variant: {variant.VariantId} ({variant.Poses.Count} poses)");
-
-            foreach (var pose in variant.Poses.OrderBy(p => p.PoseNumber)) {
-                var sizeKb = pose.FileSizeBytes / 1024.0;
-                ConsoleOutput.WriteLine($"  Pose {pose.PoseNumber}: {Path.GetFileName(pose.FilePath)} ({sizeKb:F1} KB, created {pose.CreatedUtc:yyyy-MM-dd HH:mm:ss} UTC)");
-            }
-
-            ConsoleOutput.WriteBlankLine();
-        }
+        for (var i = 0; i < entityInfo.Tokens.Count; i++)
+            ConsoleOutput.WriteLine($"Token {i + 1}: {entityInfo.Tokens[i].Description}");
     }
 }

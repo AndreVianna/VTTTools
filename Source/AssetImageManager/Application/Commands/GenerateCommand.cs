@@ -1,33 +1,33 @@
 namespace VttTools.AssetImageManager.Application.Commands;
 
 public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
-                                    IFileStore imageStore,
-                                    IConfiguration config,
-                                    IEntityLoaderService entityLoader) {
+                                    IFileStore fileStore,
+                                    IConfiguration config) {
 
     public async Task<int> ExecuteAsync(GenerateOptions options, CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
 
         var validationResult = InputFileValidator.ValidateJsonFile(options.InputPath);
-        if (!validationResult.IsSuccess) {
-            ConsoleOutput.WriteError($"Error: {validationResult.ErrorMessage}");
+        if (!validationResult.IsSuccessful) {
+            ConsoleOutput.WriteError($"Error: {validationResult.Errors[0]}");
             return 1;
         }
 
-        var loadResult = await entityLoader.LoadAndValidateAsync(options.InputPath, new EntityOutputOptions(), ct);
-        if (loadResult.HasErrors) return 0;
-
-        var validEntries = loadResult.ValidEntries.ToDictionary(kv => kv.Key, kv => (List<StructuralVariant>)[.. kv.Value]);
-
-        validEntries = ApplyNameFilter(validEntries, options.IdFilter);
+        var assets = await fileStore.LoadAssetsAsync(options.InputPath, ct);
+        var validEntries = ApplyNameFilter(assets, options.NameFilter);
         if (validEntries.Count == 0) {
-            ConsoleOutput.WriteLine($"No entity matching '{options.IdFilter}' found in {options.InputPath}.");
+            ConsoleOutput.WriteLine($"No asset matching '{options.NameFilter}' found in {options.InputPath}.");
             return 0;
         }
 
-        if (options.Limit is not null && options.Limit < validEntries.Values.Count) {
-            validEntries = validEntries.Take(options.Limit.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
+        var variantCount = 0;
+        if (options.Limit is not null && options.Limit < validEntries.Sum(a => a.Tokens.Count)) {
+            validEntries = [..validEntries.TakeWhile(a => {
+                variantCount += a.Tokens.Count;
+                return variantCount <= options.Limit;
+            })];
         }
+        var totalTokens = validEntries.Sum(a => a.Tokens.Count);
 
         ConsoleOutput.WriteLine($"Loaded {validEntries.Count} entries from {options.InputPath}.");
 
@@ -37,64 +37,81 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
             return 0;
         }
 
-        var totalImages = validEntries.Sum(e => e.Value.Count * (options.ImageType.Trim().Equals("all", StringComparison.OrdinalIgnoreCase) ? ImageType.For(e.Key.Category).Length : 1));
         var generatedCount = await GenerateImagesAsync(validEntries, options.DelayMs, ct);
-        ConsoleOutput.WriteLine($"Generation complete. {generatedCount}/{totalImages} images generated.");
         ConsoleOutput.WriteLine($"Total time: {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff}.");
         return 0;
     }
 
-    private static Dictionary<EntryDefinition, List<StructuralVariant>> ApplyNameFilter(Dictionary<EntryDefinition, List<StructuralVariant>> entries, string? nameFilter) {
+    private static IReadOnlyList<Asset> ApplyNameFilter(IReadOnlyList<Asset> entries, string? nameFilter) {
         if (string.IsNullOrWhiteSpace(nameFilter)) {
             return entries;
         }
 
         var filter = nameFilter.Trim();
-        return entries.Where(e => e.Key.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToDictionary(kv => kv.Key, kv => kv.Value);
+        return [..entries.Where(e => e.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))];
     }
 
-    private async Task<int> GenerateImagesAsync(Dictionary<EntryDefinition, List<StructuralVariant>> entries, int delayMs, CancellationToken ct) {
+    private async Task<int> GenerateImagesAsync(IReadOnlyList<Asset> entries, int delayMs, CancellationToken ct) {
         ConsoleOutput.WriteBlankLine();
         ConsoleOutput.WriteLine("Generating images files...");
         ConsoleOutput.WriteBlankLine();
 
-        var totalFiles = entries.Sum(i => i.Value.Count * ImageType.For(i.Key.Category).Length);
+        var totalFiles = entries.Sum(i => ImageTypeFor(i.Classification.Kind, false).Count + (i.Tokens.Count * ImageTypeFor(i.Classification.Kind, true).Count));
 
         var replace = AllowOverwriteResult.Overwrite;
         var finalCost = 0.0;
         var processedCount = 0;
         var skipCount = 0;
         var previousIndex = -1;
-        foreach (var (index, entity, variant) in entries.SelectMany((e, i) => e.Value.Select(v => (index: i, entity: e.Key, variant: v)))) {
-            ct.ThrowIfCancellationRequested();
-            if (replace is AllowOverwriteResult.Cancel) {
-                skipCount = totalFiles - (processedCount + skipCount);
-                break;
-            }
 
-            if (previousIndex != index) {
-                ConsoleOutput.WriteLine($"[{index + 1}/{entries.Count}] {entity.Type} {entity.Name}");
-                previousIndex = index;
-            }
+        ct.ThrowIfCancellationRequested();
 
-            var imageTypes = ImageType.For(entity.Category);
-            var variants = variant.VariantId == "base" ? string.Empty : $" {variant.VariantId}";
-            ConsoleOutput.WriteLine($"Generating images for {entity.Name}{variants}... ");
-
-            var entryCost = 0.0;
-            foreach (var imageType in imageTypes) {
-                (replace, var imageCost) = await GenerateImageAsync(entity, variant, imageType, replace, ct);
+        foreach (var asset in entries) {
+            foreach (var imageType in ImageTypeFor(asset.Classification.Kind, false)) {
+                (replace, var imageCost) = await GenerateImageAsync(imageType, asset, 0, replace, ct);
                 if (replace is AllowOverwriteResult.Skip or AllowOverwriteResult.AlwaysSkip or AllowOverwriteResult.Cancel) {
                     skipCount++;
                 }
                 else {
                     processedCount++;
                 }
-                entryCost += imageCost;
-                if (delayMs > 0) await Task.Delay(delayMs, ct);
+                finalCost += imageCost;
+                if (delayMs > 0)
+                    await Task.Delay(delayMs, ct);
             }
-            ConsoleOutput.WriteLine($"Entry cost: ${entryCost:0.0000}");
-            finalCost += entryCost;
+            ConsoleOutput.WriteLine($"Asset cost: ${finalCost:0.0000}");
+
+            var index = 0;
+            foreach (var token in asset.Tokens) {
+                if (replace is AllowOverwriteResult.Cancel) {
+                    skipCount = totalFiles - (processedCount + skipCount);
+                    break;
+                }
+
+                if (previousIndex != index) {
+                    ConsoleOutput.WriteLine($"[{index + 1}/{entries.Count}] {asset.Classification.Kind} {asset.Name}");
+                    previousIndex = index;
+                }
+
+                var imageTypes = ImageTypeFor(asset.Classification.Kind, true);
+                ConsoleOutput.WriteLine($"Generating images for {asset.Name} {token.Description}... ");
+
+                var entryCost = 0.0;
+                foreach (var imageType in imageTypes) {
+                    (replace, var variantImageCost) = await GenerateImageAsync(imageType, asset, index, replace, ct);
+                    if (replace is AllowOverwriteResult.Skip or AllowOverwriteResult.AlwaysSkip or AllowOverwriteResult.Cancel) {
+                        skipCount++;
+                    }
+                    else {
+                        processedCount++;
+                    }
+                    entryCost += variantImageCost;
+                    if (delayMs > 0) await Task.Delay(delayMs, ct);
+                }
+                ConsoleOutput.WriteLine($"Entry cost: ${entryCost:0.0000}");
+                finalCost += entryCost;
+                index++;
+            }
         }
 
         ConsoleOutput.WriteBlankLine();
@@ -110,13 +127,14 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
         ConsoleOutput.WriteLine($" Total Entries: {entries.Count}; Expected Files: {totalFiles}; Processed: {processedCount}; Skipped: {skipCount}.");
         ConsoleOutput.WriteLine($"Total cost: ${finalCost:0.0000}");
 
+        ConsoleOutput.WriteLine($"Generation complete. {processedCount}/{totalFiles} images generated.");
         return 0;
     }
 
-    private async Task<(AllowOverwriteResult, double)> GenerateImageAsync(EntryDefinition entity, StructuralVariant variant, string imageType, AllowOverwriteResult skipOrOverwriteState, CancellationToken ct) {
+    private async Task<(AllowOverwriteResult, double)> GenerateImageAsync(string imageType, Asset asset, int tokenIndex, AllowOverwriteResult skipOrOverwriteState, CancellationToken ct) {
         ConsoleOutput.Write($"    {imageType}...");
 
-        var filePath = imageStore.FindImageFile(entity, variant, imageType);
+        var filePath = fileStore.FindImageFile(imageType, asset, tokenIndex);
         if (skipOrOverwriteState != AllowOverwriteResult.AlwaysOverwrite && filePath is not null) {
             if (skipOrOverwriteState is AllowOverwriteResult.AlwaysSkip) {
                 ConsoleOutput.Write(" Cost: $0.0000000 (0) + $0.0000000 (0) = $0.0000000 (0); ⚠ Skipped");
@@ -129,7 +147,7 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
             }
         }
 
-        var finalPrompt = await GetImagePromptAsync(entity, variant, imageType, ct);
+        var finalPrompt = await GetImagePromptAsync(imageType, asset, tokenIndex, ct);
         if (finalPrompt is null) return (skipOrOverwriteState, 0.0);
 
         var provider = config[$"Images:{imageType}:Provider"] ?? throw new InvalidOperationException($"{imageType} provider not configured.");
@@ -144,20 +162,20 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
 
         var result = await imageGenerator.GenerateImageFileAsync(model, imageType, finalPrompt, ct);
         if (result.IsSuccess) {
-            await imageStore.SaveImageAsync(entity, variant, result.Data, imageType, ct);
+            await fileStore.SaveImageAsync(imageType, asset, tokenIndex, result.Data, ct);
             Console.ForegroundColor = ConsoleColor.Green;
             ConsoleOutput.WriteLine($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✓ Success");
         }
         else {
             Console.ForegroundColor = ConsoleColor.Red;
-            ConsoleOutput.WriteLine($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✗ Failed to genrate image for {entity.Name} / {variant.VariantId} / {imageType}: {result.ErrorMessage}");
+            ConsoleOutput.WriteLine($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✗ Failed to genrate {imageType} for {asset.Name} #{tokenIndex}: {result.ErrorMessage}");
         }
         Console.ResetColor();
         return (skipOrOverwriteState, result.TotalCost);
     }
 
-    private async Task<string?> GetImagePromptAsync(EntryDefinition entity, StructuralVariant variant, string imageType, CancellationToken ct) {
-        var promptFilePath = imageStore.FindPromptFile(entity, variant, imageType);
+    private async Task<string?> GetImagePromptAsync(string imageType, Asset entity, int tokenIndex, CancellationToken ct) {
+        var promptFilePath = fileStore.FindPromptFile(imageType, entity, tokenIndex);
         if (promptFilePath is null) {
             ConsoleOutput.WriteError($" Error: Prompt file {promptFilePath} not found.");
             ConsoleOutput.WriteError("  Run 'token prepare' first to generate prompt files.");
@@ -165,4 +183,13 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
         }
         return await File.ReadAllTextAsync(promptFilePath, ct);
     }
+
+    private static IReadOnlyList<string> ImageTypeFor(AssetKind kind, bool isToken = false)
+        => kind switch {
+            AssetKind.Character when isToken => ["TopDown", "CloseUp"],
+            AssetKind.Creature when isToken => ["TopDown", "CloseUp"],
+            AssetKind.Object when isToken => ["TopDown"],
+            AssetKind.Object => ["TopDown", "Portrait"],
+            _ => ["TopDown", "CloseUp", "Portrait"],
+        };
 }

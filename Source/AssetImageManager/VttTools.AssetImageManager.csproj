@@ -41,4 +41,12 @@
     <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Output\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

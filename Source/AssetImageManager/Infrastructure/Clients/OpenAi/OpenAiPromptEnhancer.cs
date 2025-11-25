@@ -2,19 +2,20 @@ namespace VttTools.AssetImageManager.Infrastructure.Clients.OpenAi;
 
 public sealed class OpenAiPromptEnhancer(
     IHttpClientFactory httpClientFactory,
-    IConfiguration config) : IPromptEnhancer {
+    IConfiguration config)
+    : IPromptEnhancer {
     private readonly OpenAiHttpClientHelper _helper = new(httpClientFactory, config);
 
     public async Task<PromptEnhancerResponse> EnhancePromptAsync(
-        EntryDefinition entity,
-        StructuralVariant variant,
         string imageType,
+        Asset entity,
+        int tokenIndex,
         CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
         var model = GetModel();
 
         try {
-            var request = BuildRequest(entity, variant, imageType, model);
+            var request = BuildRequest(imageType, entity, tokenIndex, model);
             var response = await SendRequestAsync(request, model, ct);
             return ProcessResponse(response, model, stopwatch.Elapsed);
         }
@@ -33,14 +34,11 @@ public sealed class OpenAiPromptEnhancer(
         => config["PromptEnhancer:Model"]
             ?? throw new InvalidOperationException("OpenAI model is not configured.");
 
-    private object BuildRequest(
-        EntryDefinition entity,
-        StructuralVariant variant,
-        string imageType,
-        string model) => new {
+    private static object BuildRequest(string imageType, Asset asset, int tokenIndex, string model)
+        => new {
             model,
-            instructions = BuildSystemPrompt(entity, imageType),
-            input = BuildUserPrompt(entity, variant, imageType),
+            instructions = BuildSystemPrompt(imageType, asset),
+            input = BuildUserPrompt(imageType, asset, tokenIndex),
         };
 
     private async Task<OpenAiTextResponse> SendRequestAsync(
@@ -83,91 +81,62 @@ public sealed class OpenAiPromptEnhancer(
         return calculator.Calculate(usage.InputTokens, usage.OutputTokens);
     }
 
-    private string BuildSystemPrompt(EntryDefinition entity, string imageType) {
+    private static string BuildSystemPrompt(string imageType, Asset asset)
+        => $""""
+        You are an expert at creating image generation prompts for a high quality {asset.Classification.Kind} illustration.
+        Your task in to create a detailed prompt that generates an image that captures all of the details described below."
+        You MUST ensure that the image that the prompt describes is {ImageDescriptionFor(imageType, asset)} in a Virtual Tabletop Web Application.
+        You MUST also ensure that the image does not contain any border, frame, text, watermark, signature, blurry, multiple subjects, duplicates, cropped edges, cropped parts, distorted shapes, and incorrect forms, body parts or perspective."
+        The image MUST be a realistic color-pencil illustration, with vivid colors, good contrast, with focus on the {asset.Classification.Kind} described below."
+        The output MUST be a simple text that will be immediatelly submitted to an image generator AI."
+        It MUST not have any preamble or explanation or the result, only the prompt text tailored for image generation."
+        Here is the {asset.Classification.Kind} description:
+        """";
+
+    private static string ImageDescriptionFor(string imageType, Asset asset)
+        => imageType switch {
+            "TopDown" => $"a bird's eye, top-down of the {asset.Classification.Kind}, with a transparent background to be seamless integrated into a virtual battlemap",
+            "CloseUp" => $"a close-up of the main features of the {asset.Classification.Kind}, with a solid neutral background, to be used as a token on a virtual battlemap",
+            _ => $"a portrait of the {asset.Classification.Kind}, displaying it in full view, with an image background that highlights the {BackgroudFor(asset)}, to be used as the {asset.Classification.Kind} display",
+        };
+
+    private static string BackgroudFor(Asset asset) => asset.Classification.Kind switch {
+        AssetKind.Creature => $"{asset.Classification.Kind} in its natural environment",
+        AssetKind.Character => $"{asset.Classification.Kind}'s background",
+        _ => $"{asset.Classification.Kind}",
+    };
+
+    private static string BuildUserPrompt(string imageType, Asset asset, int tokenIndex) {
         var sb = new StringBuilder();
-        sb.AppendLine($"You are an expert at creating image generation prompts for a high quality {entity.Genre} {entity.Category} illustration.");
-        sb.AppendLine($"You MUST ensure that the image is {GetMainPrompt(imageType)}.");
-        sb.AppendLine($"You MUST also ensure that the image does not contain {GetNegativePrompt(imageType)}.");
-        sb.AppendLine("The output MUST be a simple text prompt to be immediatelly submitted to a image generation AI. It MUST not have any preamble or explanation or the result, only the prompt text tailored for image generation.");
+        sb.AppendLine($"{asset.Name}; {BuildType(asset)}.");
+        AppendAssetDescription(sb, asset);
+        AppendImageDescription(sb, imageType, asset, tokenIndex);
         return sb.ToString();
     }
 
-    private static string BuildUserPrompt(
-        EntryDefinition entity,
-        StructuralVariant variant,
-        string imageType) {
-        var sb = new StringBuilder();
-        sb.AppendLine("Create a detailed prompt that generates an image that captures all of the following elements:");
-        sb.AppendLine($"The image represents a{BuildDescription(entity, variant)} {entity.Name}. ");
-        AppendPhysicalDescription(sb, entity);
-        AppendDistinctiveFeatures(sb, entity);
-        AppendMaterialOrEquipment(sb, entity, variant);
-        AppendEnvironment(sb, entity, imageType);
-        return sb.ToString();
+    private static void AppendAssetDescription(StringBuilder sb, Asset asset) {
+        if (!string.IsNullOrWhiteSpace(asset.Description))
+            sb.AppendLine($"The subject is described as {asset.Description}. ");
     }
 
-    private static void AppendPhysicalDescription(StringBuilder sb, EntryDefinition entity) {
-        if (!string.IsNullOrWhiteSpace(entity.PhysicalDescription))
-            sb.AppendLine($"The subject is described as {entity.PhysicalDescription}. ");
-    }
-
-    private static void AppendDistinctiveFeatures(StringBuilder sb, EntryDefinition entity) {
-        if (!string.IsNullOrWhiteSpace(entity.DistinctiveFeatures))
-            sb.AppendLine($"The subject has these characteristics: {entity.DistinctiveFeatures}. ");
-    }
-
-    private static void AppendMaterialOrEquipment(
+    private static void AppendImageDescription(
         StringBuilder sb,
-        EntryDefinition entity,
-        StructuralVariant variant) {
-        if (entity.Category == "Object") {
-            if (!string.IsNullOrWhiteSpace(variant.Material) || !string.IsNullOrWhiteSpace(variant.Quality))
-                sb.AppendLine($"The subject is made of{BuildMaterial(variant)}.");
+        string imageType,
+        Asset asset,
+        int tokenIndex) {
+        if (imageType.Equals("Portrait", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(asset.Portrait?.Description)) {
+            sb.AppendLine(asset.Portrait.Description);
+            return;
         }
-        else if (!string.IsNullOrWhiteSpace(variant.Equipment) || !string.IsNullOrWhiteSpace(variant.Vestment)) {
-            sb.AppendLine($"The subject is{BuildEquipment(variant)}{BuildVestment(variant)}.");
-        }
+
+        if (tokenIndex >= 0 && tokenIndex < asset.Tokens.Count)
+            sb.AppendLine(asset.Tokens[tokenIndex].Description);
     }
 
-    private static void AppendEnvironment(StringBuilder sb, EntryDefinition entity, string imageType) {
-        if (imageType == ImageType.Portrait && !string.IsNullOrWhiteSpace(entity.Environment))
-            sb.Append($"The subject is shown in {entity.Environment}.");
-    }
-
-    private static string BuildDescription(EntryDefinition entity, StructuralVariant variant)
-        => Spaced(variant.Size) + Spaced(variant.Gender) + BuildType(entity);
-
-    private static string BuildType(EntryDefinition entity)
-        => string.IsNullOrWhiteSpace(entity.Type) ? ""
-        : string.IsNullOrWhiteSpace(entity.Subtype) ? $" {entity.Type}"
-        : $" {entity.Type} ({entity.Subtype})";
-
-    private static string BuildEquipment(StructuralVariant variant)
-        => string.IsNullOrWhiteSpace(variant.Equipment) ? ""
-        : $" holding {variant.Equipment}";
-
-    private static string BuildVestment(StructuralVariant variant)
-        => string.IsNullOrWhiteSpace(variant.Vestment) ? ""
-        : $" wearing {variant.Vestment}";
-
-    private static string BuildMaterial(StructuralVariant variant)
-        => string.IsNullOrWhiteSpace(variant.Material) ? ""
-        : string.IsNullOrWhiteSpace(variant.Quality) ? $" {variant.Material}"
-        : $" {variant.Quality} {variant.Material}";
-
-    private static string Spaced(string? value)
-        => string.IsNullOrWhiteSpace(value) ? "" : $" {value}";
-
-    private string GetMainPrompt(string imageType)
-        => config[$"Images:{imageType}:MainPrompt"]
-            ?? throw new InvalidOperationException($"{imageType} main prompt not configured.");
-
-    private string GetNegativePrompt(string imageType) {
-        var specificNegativesPrompt = config[$"Images:{imageType}:NegativePrompt"] ?? string.Empty;
-        return string.IsNullOrWhiteSpace(specificNegativesPrompt)
-            ? _genericNegativePrompt
-            : $"{_genericNegativePrompt}, {specificNegativesPrompt}";
-    }
+    private static string BuildType(Asset entity)
+        => string.IsNullOrWhiteSpace(entity.Classification.Type) ? ""
+        : string.IsNullOrWhiteSpace(entity.Classification.Subtype) ? $" {entity.Classification.Type}"
+        : $" {entity.Classification.Type} ({entity.Classification.Subtype})";
 
     private static PromptEnhancerResponse CreateErrorResponse(string errorMessage, TimeSpan duration)
         => new(
@@ -175,28 +144,4 @@ public sealed class OpenAiPromptEnhancer(
             IsSuccess: false,
             ErrorMessage: errorMessage,
             Duration: duration);
-
-    private const string _genericNegativePrompt = "border, frame, text, watermark, signature, blurry, low quality, cropped edges, multiple subjects, duplicates";
 }
-
-internal sealed record OpenAiTextResponse(
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("object")] string? ObjectType,
-    [property: JsonPropertyName("created_at")] long CreatedAt,
-    [property: JsonPropertyName("status")] string? Status,
-    [property: JsonPropertyName("error")] object? Error,
-    [property: JsonPropertyName("model")] string? Model,
-    [property: JsonPropertyName("output")] OpenAiOutputItem[]? Output,
-    [property: JsonPropertyName("usage")] OpenAiUsage? Usage);
-
-internal sealed record OpenAiOutputItem(
-    [property: JsonPropertyName("type")] string? Type,
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("status")] string? Status,
-    [property: JsonPropertyName("role")] string? Role,
-    [property: JsonPropertyName("content")] OpenAiContentItem[]? Content);
-
-internal sealed record OpenAiContentItem(
-    [property: JsonPropertyName("type")] string? Type,
-    [property: JsonPropertyName("text")] string? Text,
-    [property: JsonPropertyName("annotations")] object[]? Annotations);

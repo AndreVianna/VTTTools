@@ -1,3 +1,4 @@
 ﻿namespace VttTools.AssetImageManager.Application.Options;
 
-public sealed record ShowTokenOptions(string Id);
+public sealed record ShowTokenOptions(
+    string Name);

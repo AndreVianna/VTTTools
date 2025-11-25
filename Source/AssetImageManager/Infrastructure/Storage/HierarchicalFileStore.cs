@@ -2,7 +2,7 @@ namespace VttTools.AssetImageManager.Infrastructure.Storage;
 
 /// <summary>
 /// Stores VTT files (images and prompts) in a 7-level hierarchical folder structure.
-/// Hierarchy: files/{genre}/{category}/{type}/{subtype}/{entity}/{variant}/files
+/// Hierarchy: files/{genre}/{category}/{type}/{subtype}/{asset}/{variantIndex}/files
 /// Supports Windows long paths (\\?\ prefix for paths >260 characters).
 /// </summary>
 public sealed partial class HierarchicalFileStore(string rootPath)
@@ -12,192 +12,143 @@ public sealed partial class HierarchicalFileStore(string rootPath)
 
     private const string _imageFileExtension = ".png";
     private const string _promptFileExtension = ".md";
+    private const string _metadataFileName = ".asset.json";
 
-    public bool HasImageFiles(EntryDefinition entity, StructuralVariant variant) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-        var path = BuildVariantPath(entity, variant);
-        var imageTypes = ImageType.For(entity.Category);
-        return imageTypes.Any(it => File.Exists(Path.Combine(path, ImageType.ToFileName(it) + _imageFileExtension)));
+    private static readonly JsonSerializerOptions _jsonOptions = new() {
+        PropertyNameCaseInsensitive = true,
+        MaxDepth = 32
+    };
+
+    public async Task<List<Asset>> LoadAssetsAsync(string path, CancellationToken ct = default) {
+        var json = await File.ReadAllTextAsync(path, ct);
+        var assets = JsonSerializer.Deserialize<List<Asset>>(json, _jsonOptions) ?? [];
+        if (assets.Count == 0) {
+            ConsoleOutput.WriteLine("No assets found in file.");
+            return [];
+        }
+
+        ConsoleOutput.WriteLine($"{assets.Count} assets found in file.");
+        ConsoleOutput.WriteBlankLine();
+
+        return assets;
     }
 
-    public bool ImageFileExists(EntryDefinition entity, StructuralVariant variant, string imageType) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-        var path = BuildVariantPath(entity, variant);
-        return File.Exists(Path.Combine(path, ImageType.ToFileName(imageType) + _imageFileExtension));
+    public bool HasImageFiles(Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
+        var path = BuildVariantPath(asset, variantIndex);
+        var imageTypes = ImageTypeFor(asset.Classification.Kind);
+        return imageTypes.Any(it => File.Exists(Path.Combine(path, NormalizeFileName(it) + _imageFileExtension)));
+    }
+
+    public bool ImageFileExists(string imageType, Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
+        var path = BuildVariantPath(asset, variantIndex);
+        return File.Exists(Path.Combine(path, NormalizeFileName(imageType) + _imageFileExtension));
     }
 
     public IReadOnlyList<string> GetExistingImageFiles(
-        EntryDefinition entity,
-        StructuralVariant variant) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
+        Asset asset,
+        int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(entity, variant);
+        var variantPath = BuildVariantPath(asset, variantIndex);
         variantPath = PreparePathForWindows(variantPath);
         return !Directory.Exists(variantPath)
             ? []
-            : [.. ImageType.For(entity.Category).Select(it => Path.Combine(variantPath, ImageType.ToFileName(it) + _imageFileExtension)).Where(f => File.Exists(f))];
+            : [.. ImageTypeFor(asset.Classification.Kind).Select(it => Path.Combine(variantPath, NormalizeFileName(it) + _imageFileExtension)).Where(f => File.Exists(f))];
     }
 
-    public string? FindImageFile(EntryDefinition entity, StructuralVariant variant, string imageType) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
+    public string? FindImageFile(string imageType, Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(entity, variant);
+        var variantPath = BuildVariantPath(asset, variantIndex);
         variantPath = PreparePathForWindows(variantPath);
-        var filePath = Path.Combine(variantPath, ImageType.ToFileName(imageType) + _imageFileExtension);
+        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _imageFileExtension);
         return File.Exists(filePath) ? filePath : null;
     }
 
     public async Task<string> SaveImageAsync(
-        EntryDefinition entity,
-        StructuralVariant variant,
-        byte[] imageData,
         string imageType,
+        Asset asset,
+        int variantIndex,
+        byte[] content,
         CancellationToken ct = default) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-        ArgumentNullException.ThrowIfNull(imageData);
+        ArgumentNullException.ThrowIfNull(asset);
+        ArgumentNullException.ThrowIfNull(content);
         ArgumentException.ThrowIfNullOrWhiteSpace(imageType);
 
-        if (!ImageType.IsValid(imageType)) {
-            throw new ArgumentException($"Invalid image type: {imageType}. Valid types: {string.Join(", ", ImageType.All)}", nameof(imageType));
-        }
-
-        var variantPath = BuildVariantPath(entity, variant);
+        var variantPath = BuildVariantPath(asset, variantIndex);
         Directory.CreateDirectory(variantPath);
-        var filePath = Path.Combine(variantPath, ImageType.ToFileName(imageType) + _imageFileExtension);
+        await SaveAssetMetadataAsync(asset, ct);
+
+        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _imageFileExtension);
         filePath = PreparePathForWindows(filePath);
 
-        await File.WriteAllBytesAsync(filePath, imageData, ct);
+        await File.WriteAllBytesAsync(filePath, content, ct);
         return filePath;
     }
 
-    public bool HasPromptFiles(EntryDefinition entity, StructuralVariant variant) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-        var path = BuildVariantPath(entity, variant);
-        var imageTypes = ImageType.For(entity.Category);
-        return imageTypes.Any(it => File.Exists(Path.Combine(path, ImageType.ToFileName(it) + _promptFileExtension)));
+    public bool HasPromptFiles(Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
+        var path = BuildVariantPath(asset, variantIndex);
+        var imageTypes = ImageTypeFor(asset.Classification.Kind);
+        return imageTypes.Any(it => File.Exists(Path.Combine(path, NormalizeFileName(it) + _promptFileExtension)));
     }
 
-    public bool PromptFileExists(EntryDefinition entity, StructuralVariant variant, string imageType) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-        var path = BuildVariantPath(entity, variant);
-        return File.Exists(Path.Combine(path, ImageType.ToFileName(imageType) + _promptFileExtension));
+    public bool PromptFileExists(string imageType, Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
+        var path = BuildVariantPath(asset, variantIndex);
+        return File.Exists(Path.Combine(path, NormalizeFileName(imageType) + _promptFileExtension));
     }
 
-    public IReadOnlyList<string> GetExistingPromptFiles(EntryDefinition entity, StructuralVariant variant) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
+    public IReadOnlyList<string> GetExistingPromptFiles(Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(entity, variant);
+        var variantPath = BuildVariantPath(asset, variantIndex);
         variantPath = PreparePathForWindows(variantPath);
         return !Directory.Exists(variantPath)
             ? []
-            : [.. ImageType.For(entity.Category).Select(it => Path.Combine(variantPath, ImageType.ToFileName(it) + _promptFileExtension)).Where(f => File.Exists(f))];
+            : [.. ImageTypeFor(asset.Classification.Kind).Select(it => Path.Combine(variantPath, NormalizeFileName(it) + _promptFileExtension)).Where(f => File.Exists(f))];
     }
 
-    public string? FindPromptFile(EntryDefinition entity, StructuralVariant variant, string imageType) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
+    public string? FindPromptFile(string imageType, Asset asset, int variantIndex = 0) {
+        ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(entity, variant);
+        var variantPath = BuildVariantPath(asset, variantIndex);
         variantPath = PreparePathForWindows(variantPath);
-        var filePath = Path.Combine(variantPath, ImageType.ToFileName(imageType) + _promptFileExtension);
+        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _promptFileExtension);
         return File.Exists(filePath) ? filePath : null;
     }
 
     public async Task<string> SavePromptAsync(
-        EntryDefinition entity,
-        StructuralVariant variant,
-        string prompt,
         string imageType,
+        Asset asset,
+        int variantIndex,
+        string prompt,
         CancellationToken ct = default) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
+        ArgumentNullException.ThrowIfNull(asset);
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
         ArgumentException.ThrowIfNullOrWhiteSpace(imageType);
 
-        var variantPath = BuildVariantPath(entity, variant);
+        var variantPath = BuildVariantPath(asset, variantIndex);
         Directory.CreateDirectory(variantPath);
-        var filePath = Path.Combine(variantPath, ImageType.ToFileName(imageType) + _promptFileExtension);
+        await SaveAssetMetadataAsync(asset, ct);
+
+        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _promptFileExtension);
         filePath = PreparePathForWindows(filePath);
         await File.WriteAllTextAsync(filePath, prompt, ct);
         return filePath;
     }
 
-    public async Task<string> SaveMetadataAsync(
-        EntryDefinition entity,
-        StructuralVariant variant,
-        string metadataJson,
-        CancellationToken ct = default) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-        ArgumentException.ThrowIfNullOrWhiteSpace(metadataJson);
-
-        var variantPath = BuildVariantPath(entity, variant);
-        Directory.CreateDirectory(variantPath);
-
-        const string fileName = "metadata.json";
-        var filePath = Path.Combine(variantPath, fileName);
-        filePath = PreparePathForWindows(filePath);
-
-        await File.WriteAllTextAsync(filePath, metadataJson, ct);
-        return filePath;
-    }
-
-    public async Task<string?> LoadMetadataAsync(
-        EntryDefinition entity,
-        StructuralVariant variant,
-        CancellationToken ct = default) {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(variant);
-
-        var variantPath = BuildVariantPath(entity, variant);
-        const string fileName = "metadata.json";
-        var filePath = Path.Combine(variantPath, fileName);
-        filePath = PreparePathForWindows(filePath);
-
-        return !File.Exists(filePath) ? null : await File.ReadAllTextAsync(filePath, ct);
-    }
-
-    private string BuildVariantPath(EntryDefinition entity, StructuralVariant variant) {
-        var genre = string.IsNullOrWhiteSpace(entity.Genre) ? "Fantasy" : entity.Genre;
-
-        ValidatePathComponent(genre, nameof(entity.Genre));
-        ValidatePathComponent(entity.Name, nameof(entity.Name));
-        ValidatePathComponent(entity.Category, nameof(entity.Category));
-        ValidatePathComponent(entity.Type, nameof(entity.Type));
-        ValidatePathComponent(entity.Subtype, nameof(entity.Subtype));
-        ValidatePathComponent(variant.VariantId, nameof(variant.VariantId));
-
-        var entityName = entity.Name.ToLowerInvariant().Replace(" ", "_");
-
-        return Path.Combine(
+    private string BuildVariantPath(Asset asset, int variantIndex = 0)
+        => Path.Combine(
             _rootPath,
-            genre.ToLowerInvariant().Replace(" ", "_"),
-            entity.Category.ToLowerInvariant(),
-            entity.Type.ToLowerInvariant(),
-            entity.Subtype.ToLowerInvariant(),
-            entityName,
-            variant.VariantId
-        );
-    }
-
-    private static void ValidatePathComponent(string value, string paramName) {
-        if (string.IsNullOrWhiteSpace(value)) {
-            throw new ArgumentException($"{paramName} cannot be null or whitespace.", paramName);
-        }
-
-        if (value.Contains("..") || value.Contains('/') || value.Contains('\\') ||
-            Path.IsPathRooted(value) || value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
-            throw new ArgumentException($"{paramName} contains invalid filePath characters.", paramName);
-        }
-    }
+            NormalizeFolderName(asset.Classification.Kind.ToString()),
+            NormalizeFolderName(asset.Classification.Category),
+            NormalizeFolderName(asset.Classification.Type),
+            NormalizeFolderName(asset.Classification.Subtype, string.Empty),
+            NormalizeFolderName(asset.Name),
+            variantIndex == 0 ? string.Empty : NormalizeFolderName(variantIndex.ToString()));
 
     private static string PreparePathForWindows(string path) {
         if (!OperatingSystem.IsWindows()) {
@@ -209,171 +160,161 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         return fullPath.Length > _windowsMaxPathLength && !fullPath.StartsWith(@"\\?\") ? @"\\?\" + fullPath : fullPath;
     }
 
-    public Task<IReadOnlyList<EntitySummary>> GetEntitySummariesAsync(
+    public IReadOnlyList<Asset> GetAssets(
+        AssetKind? kindFilter = null,
         string? categoryFilter = null,
         string? typeFilter = null,
         string? subtypeFilter = null,
-        CancellationToken ct = default) {
-        var rootImagesPath = Path.Combine(_rootPath);
-        rootImagesPath = PreparePathForWindows(rootImagesPath);
+        string? nameFilter = null) {
+
+        var rootImagesPath = PreparePathForWindows(_rootPath);
+        var assets = new List<Asset>();
 
         if (!Directory.Exists(rootImagesPath)) {
-            return Task.FromResult<IReadOnlyList<EntitySummary>>([]);
+            return assets;
         }
 
-        var summaries = new List<EntitySummary>();
-        var genres = Directory.EnumerateDirectories(rootImagesPath);
+        ListItems(rootImagesPath, kindFilter?.ToString(), kindPath
+            => ListItems(kindPath, categoryFilter, categoryPath
+                => ListItems(categoryPath, typeFilter, typePath
+                    => ListItems(typePath, subtypeFilter, subtypePath
+                        => ListItems(subtypePath, nameFilter, namePath
+                            => {
+                                var kind = Path.GetFileName(kindPath)!;
+                                var category = Path.GetFileName(categoryPath)!;
+                                var type = Path.GetFileName(typePath)!;
+                                var subtype = Path.GetFileName(subtypePath)!;
+                                assets.Add(CreateAsset(Enum.Parse<AssetKind>(kind, true), category, type, subtype, namePath));
+                            })))));
 
-        foreach (var genrePath in genres) {
-            ct.ThrowIfCancellationRequested();
-
-            if (!Directory.Exists(genrePath)) {
-                continue;
-            }
-
-            var genreName = Path.GetFileName(genrePath) ?? string.Empty;
-            var categories = string.IsNullOrWhiteSpace(categoryFilter)
-                ? Directory.EnumerateDirectories(genrePath)
-                : [Path.Combine(genrePath, categoryFilter.ToLowerInvariant())];
-
-            foreach (var categoryPath in categories) {
-                ct.ThrowIfCancellationRequested();
-
-                if (!Directory.Exists(categoryPath)) {
-                    continue;
-                }
-
-                var categoryName = Path.GetFileName(categoryPath) ?? string.Empty;
-                var types = string.IsNullOrWhiteSpace(typeFilter)
-                    ? Directory.EnumerateDirectories(categoryPath)
-                    : [Path.Combine(categoryPath, typeFilter.ToLowerInvariant())];
-
-                foreach (var typePath in types) {
-                    ct.ThrowIfCancellationRequested();
-
-                    if (!Directory.Exists(typePath)) {
-                        continue;
-                    }
-
-                    var typeName = Path.GetFileName(typePath) ?? string.Empty;
-                    var subtypes = string.IsNullOrWhiteSpace(subtypeFilter)
-                        ? Directory.EnumerateDirectories(typePath)
-                        : [Path.Combine(typePath, subtypeFilter.ToLowerInvariant())];
-
-                    foreach (var subtypePath in subtypes) {
-                        ct.ThrowIfCancellationRequested();
-
-                        if (!Directory.Exists(subtypePath)) {
-                            continue;
-                        }
-
-                        var subtypeName = Path.GetFileName(subtypePath) ?? string.Empty;
-                        var entityDirs = Directory.EnumerateDirectories(subtypePath);
-
-                        foreach (var entityPath in entityDirs) {
-                            ct.ThrowIfCancellationRequested();
-
-                            var entityName = Path.GetFileName(entityPath) ?? string.Empty;
-                            var variantDirs = Directory.EnumerateDirectories(entityPath);
-                            var variantCount = 0;
-                            var totalImageCount = 0;
-
-                            foreach (var variantPath in variantDirs) {
-                                ct.ThrowIfCancellationRequested();
-
-                                variantCount++;
-                                var imageFiles = Directory.EnumerateFiles(variantPath, "*.png")
-                                    .Where(f => {
-                                        var name = Path.GetFileNameWithoutExtension(f);
-                                        return ImageType.All.Any(type => ImageType.ToFileName(type).Equals(name, StringComparison.OrdinalIgnoreCase));
-                                    });
-                                totalImageCount += imageFiles.Count();
-                            }
-
-                            summaries.Add(new EntitySummary(
-                                genreName,
-                                categoryName,
-                                typeName,
-                                subtypeName,
-                                entityName,
-                                variantCount,
-                                totalImageCount
-                            ));
-                        }
-                    }
-                }
-            }
-        }
-
-        return Task.FromResult<IReadOnlyList<EntitySummary>>(summaries);
+        return assets;
     }
 
-    public Task<EntityInfo?> GetEntityInfoAsync(
-        string genre,
-        string category,
-        string type,
-        string subtype,
-        string name,
-        CancellationToken ct = default) {
-        var entityName = name.ToLowerInvariant().Replace(" ", "_");
-        var genreFolder = genre.ToLowerInvariant().Replace(" ", "_");
+    private static void ListItems(string parentPath, string? filter, Action<string> execute) {
+        var assetFolders = string.IsNullOrWhiteSpace(filter)
+            ? Directory.EnumerateDirectories(parentPath)
+            : [Path.Combine(parentPath, NormalizeFolderName(filter))];
+        foreach (var assetPath in assetFolders) {
+            if (!Directory.Exists(assetPath)) continue;
+            execute(assetPath);
+        }
+    }
 
-        var entityPath = Path.Combine(
+    private static Asset CreateAsset(AssetKind kind, string category, string type, string? subtype, string assetPath) {
+        var name = LoadAssetName(assetPath) ?? Path.GetFileName(assetPath)!;
+        return new Asset {
+            Classification = new AssetClassification(kind, category, type, subtype),
+            Name = name,
+            Tokens = [.. Directory.EnumerateDirectories(assetPath).Select(d => new Resource {
+                Description = Path.GetFileName(d),
+            })]
+        };
+    }
+
+    public Asset? FindAsset(string name) {
+        var assetFolder = NormalizeFolderName(name);
+
+        var rootImagesPath = PreparePathForWindows(_rootPath);
+        if (!Directory.Exists(rootImagesPath)) return null;
+
+        var paths = Directory.EnumerateDirectories(rootImagesPath, assetFolder, new EnumerationOptions { RecurseSubdirectories = true });
+        if (!paths.Any()) return null;
+        var assetPath = paths.First();
+
+        var relativePath = Path.GetRelativePath(rootImagesPath, assetPath);
+        var pathParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        if (pathParts.Length < 4) return null;
+
+        var kind = Enum.Parse<AssetKind>(pathParts[0], true);
+        var category = pathParts[1];
+        var type = pathParts[2];
+
+        string? subtype = null;
+        if (pathParts.Length >= 4 && pathParts[3] != assetFolder) {
+            subtype = pathParts[3];
+        }
+
+        return CreateAsset(kind, category, type, subtype, assetPath);
+    }
+
+    private static IReadOnlyList<string> ImageTypeFor(AssetKind kind)
+        => kind switch {
+            AssetKind.Character => ["TopDown", "CloseUp", "Portrait"],
+            AssetKind.Creature => ["TopDown", "CloseUp", "Portrait"],
+            AssetKind.Object => ["TopDown", "Portrait"],
+            _ => []
+        };
+
+    private static string NormalizeFolderName(string? component, string? defaultValue = null) {
+        if (string.IsNullOrWhiteSpace(component))
+            return defaultValue ?? string.Empty;
+        var normalized = component.ToLowerInvariant()
+                                  .Replace(' ', '_');
+        normalized = SafeFolderNameChars().Replace(normalized, string.Empty);
+        return MultipleHyphens().Replace(normalized, "-").Trim('-');
+    }
+
+    private static string NormalizeFileName(string? component, string? defaultValue = null) {
+        if (string.IsNullOrWhiteSpace(component))
+            return defaultValue ?? string.Empty;
+        var normalized = component.ToLowerInvariant()
+                                  .Replace(", and ", "+")
+                                  .Replace(", ", "+")
+                                  .Replace(" and ", "+")
+                                  .Replace(" & ", "+")
+                                  .Replace(' ', '-');
+        normalized = SafeFileNameChars().Replace(normalized, string.Empty);
+        return MultipleHyphens().Replace(normalized, "-").Trim('-');
+    }
+
+    private async Task SaveAssetMetadataAsync(Asset asset, CancellationToken ct = default) {
+        var assetPath = BuildAssetPath(asset);
+        Directory.CreateDirectory(assetPath);
+        var metadataPath = Path.Combine(assetPath, _metadataFileName);
+        metadataPath = PreparePathForWindows(metadataPath);
+
+        var metadata = new { asset.Name };
+        var json = JsonSerializer.Serialize(metadata, _jsonOptions);
+        await File.WriteAllTextAsync(metadataPath, json, ct);
+    }
+
+    private static string? LoadAssetName(string assetPath) {
+        var metadataPath = Path.Combine(assetPath, _metadataFileName);
+        metadataPath = PreparePathForWindows(metadataPath);
+
+        if (!File.Exists(metadataPath)) {
+            return Path.GetFileName(assetPath);
+        }
+
+        try {
+            var json = File.ReadAllText(metadataPath);
+            var metadata = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonOptions);
+            if (metadata != null && metadata.TryGetValue("Name", out var nameElement)) {
+                return nameElement.GetString();
+            }
+        }
+        catch {
+        }
+
+        return Path.GetFileName(assetPath);
+    }
+
+    private string BuildAssetPath(Asset asset)
+        => Path.Combine(
             _rootPath,
-            genreFolder,
-            category.ToLowerInvariant(),
-            type.ToLowerInvariant(),
-            subtype.ToLowerInvariant(),
-            entityName
-        );
+            NormalizeFolderName(asset.Classification.Kind.ToString()),
+            NormalizeFolderName(asset.Classification.Category),
+            NormalizeFolderName(asset.Classification.Type),
+            NormalizeFolderName(asset.Classification.Subtype, string.Empty),
+            NormalizeFolderName(asset.Name));
 
-        entityPath = PreparePathForWindows(entityPath);
+    [GeneratedRegex(@"[^a-z0-9+-]")]
+    private static partial Regex SafeFileNameChars();
 
-        if (!Directory.Exists(entityPath)) {
-            return Task.FromResult<EntityInfo?>(null);
-        }
+    [GeneratedRegex(@"[^a-z0-9_]")]
+    private static partial Regex SafeFolderNameChars();
 
-        var variants = new List<VariantInfo>();
-        var variantDirs = Directory.EnumerateDirectories(entityPath);
-
-        foreach (var variantPath in variantDirs) {
-            ct.ThrowIfCancellationRequested();
-
-            var variantId = Path.GetFileName(variantPath) ?? string.Empty;
-            var poses = new List<PoseInfo>();
-
-            foreach (var imageType in ImageType.All) {
-                var fileName = $"{ImageType.ToFileName(imageType)}.png";
-                var imagePath = Path.Combine(variantPath, fileName);
-
-                if (File.Exists(imagePath)) {
-                    var fileInfo = new FileInfo(imagePath);
-                    poses.Add(new PoseInfo(
-                        Array.IndexOf(ImageType.All, imageType) + 1,
-                        imagePath,
-                        fileInfo.Length,
-                        fileInfo.CreationTimeUtc
-                    ));
-                }
-            }
-
-            poses.Sort((a, b) => a.PoseNumber.CompareTo(b.PoseNumber));
-
-            variants.Add(new VariantInfo(variantId, poses));
-        }
-
-        var entityInfo = new EntityInfo(
-            genre,
-            category,
-            type,
-            subtype,
-            name,
-            variants
-        );
-
-        return Task.FromResult<EntityInfo?>(entityInfo);
-    }
-
-    [GeneratedRegex(@"^(top-down|photo|portrait)\.png$")]
-    private static partial Regex ImageFileName();
+    [GeneratedRegex(@"-{2,}")]
+    private static partial Regex MultipleHyphens();
 }
