@@ -8,16 +8,34 @@ public class MediaStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Resource[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Resources
-                  .AsNoTrackingWithIdentityResolution()
+                  .AsNoTracking()
                   .Select(Mapper.AsResource);
         var result = await query.ToArrayAsync(ct);
         return result;
     }
 
     /// <inheritdoc />
-    public async Task<Resource?> GetByIdAsync(Guid id, CancellationToken ct = default) {
+    public async Task<Resource[]> SearchAsync(
+        string search,
+        CancellationToken ct = default) {
+        var query = context.Resources
+                  .AsNoTracking()
+                  .Select(Mapper.AsResource);
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            query = query.Where(a =>
+                EF.Functions.Like(a.Description, search) ||
+                EF.Functions.Contains(a.Features, search));
+        }
+
+        var result = await query.ToArrayAsync(ct);
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<Resource?> FindByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Resources
-                  .AsNoTrackingWithIdentityResolution()
+                  .AsNoTracking()
                   .FirstOrDefaultAsync(e => e.Id == id, ct);
         return entity.ToModel();
     }

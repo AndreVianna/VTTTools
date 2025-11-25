@@ -74,15 +74,14 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
             Background = a.Background != null ? new Resource {
                 Id = a.Background.Id,
                 Type = a.Background.Type,
+                Description = a.Background.Description,
+                Features = [..a.Background.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
                 Path = a.Background.Path,
-                Metadata = new ResourceMetadata {
-                    ContentType = a.Background.ContentType,
-                    FileName = a.Background.FileName,
-                    FileLength = a.Background.FileLength,
-                    ImageSize = a.Background.ImageSize,
-                    Duration = a.Background.Duration
-                },
-                Tags = a.Background.Tags
+                ContentType = a.Background.ContentType,
+                FileName = a.Background.FileName,
+                FileLength = a.Background.FileLength,
+                Size = a.Background.Size,
+                Duration = a.Background.Duration,
             } : null
         })];
     }

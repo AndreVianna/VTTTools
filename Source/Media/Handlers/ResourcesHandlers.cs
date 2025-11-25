@@ -77,7 +77,7 @@ internal static class ResourcesHandlers {
                 if (pngStream.Length > maxSize) {
                     await pngStream.DisposeAsync();
                     return Results.Problem(
-                        detail: $"Converted PNG image exceeds {maxSize / 1024.0 / 1024.0:F0}MB limit. Size: {pngStream.Length / 1024.0 / 1024.0:F2}MB",
+                        detail: $"Converted PNG image exceeds {maxSize / 1024.0 / 1024.0:F0}MB limit. TokenSize: {pngStream.Length / 1024.0 / 1024.0:F2}MB",
                         statusCode: StatusCodes.Status413RequestEntityTooLarge,
                         title: "Image too large after conversion.");
                 }
@@ -102,7 +102,7 @@ internal static class ResourcesHandlers {
                 if (pngStream.Length > maxSize) {
                     await pngStream.DisposeAsync();
                     return Results.Problem(
-                        detail: $"Converted PNG image exceeds {maxSize / 1024.0 / 1024.0:F0}MB limit. Size: {pngStream.Length / 1024.0 / 1024.0:F2}MB",
+                        detail: $"Converted PNG image exceeds {maxSize / 1024.0 / 1024.0:F0}MB limit. TokenSize: {pngStream.Length / 1024.0 / 1024.0:F2}MB",
                         statusCode: StatusCodes.Status413RequestEntityTooLarge,
                         title: "Image too large after conversion.");
                 }

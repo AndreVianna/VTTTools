@@ -3,6 +3,7 @@
 global using Azure.Storage.Blobs;
 global using Azure.Storage.Blobs.Models;
 
+global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Mvc;

@@ -3,6 +3,7 @@ namespace VttTools.AssetImageManager.UnitTests.Mocks;
 public sealed class MockHttpClientFactory
     : IHttpClientFactory, IDisposable {
     private readonly Queue<byte[]> _imageResponses = new();
+    private readonly Queue<string> _jsonResponses = new();
     private readonly List<CapturedRequest> _receivedRequests = [];
     private readonly MockHttpMessageHandler _handler;
 
@@ -28,8 +29,11 @@ public sealed class MockHttpClientFactory
 
     public void EnqueueImageData(byte[] imageData) => _imageResponses.Enqueue(imageData);
 
+    public void EnqueueJsonResponse(string jsonContent) => _jsonResponses.Enqueue(jsonContent);
+
     public void Reset() {
         _imageResponses.Clear();
+        _jsonResponses.Clear();
         _receivedRequests.Clear();
     }
 
@@ -38,15 +42,22 @@ public sealed class MockHttpClientFactory
             var capturedRequest = await CapturedRequest.FromHttpRequestMessageAsync(request);
             factory._receivedRequests.Add(capturedRequest);
 
-            if (factory._imageResponses.Count == 0) {
+            if (factory._jsonResponses.Count > 0) {
+                var jsonContent = factory._jsonResponses.Dequeue();
                 return new HttpResponseMessage(HttpStatusCode.OK) {
-                    Content = new ByteArrayContent([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+                    Content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json")
                 };
             }
 
-            var imageData = factory._imageResponses.Dequeue();
+            if (factory._imageResponses.Count > 0) {
+                var imageData = factory._imageResponses.Dequeue();
+                return new HttpResponseMessage(HttpStatusCode.OK) {
+                    Content = new ByteArrayContent(imageData)
+                };
+            }
+
             return new HttpResponseMessage(HttpStatusCode.OK) {
-                Content = new ByteArrayContent(imageData)
+                Content = new ByteArrayContent([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
             };
         }
     }

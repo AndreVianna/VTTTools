@@ -10,7 +10,7 @@ public class RoleTests {
         role.Id.Should().NotBeEmpty();
         role.Name.Should().BeNull();
         role.NormalizedName.Should().BeNull();
-        role.ConcurrencyStamp.Should().BeNull();
+        role.ConcurrencyStamp.Should().NotBeNull();
     }
 
     [Fact]

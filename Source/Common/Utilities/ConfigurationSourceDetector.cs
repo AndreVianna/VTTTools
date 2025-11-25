@@ -52,8 +52,8 @@ public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
     public static string DetermineCategory(string key) {
         var lower = key.ToLowerInvariant();
         return lower.StartsWith("jwt") || lower.StartsWith("identity") || lower.StartsWith("auth") ? "Security"
-            : lower.StartsWith("connectionstrings") || lower.StartsWith("blob") ? "Storage"
-            : lower.StartsWith("logging") ? "Application"
+            : lower.StartsWith("connectionstrings") || lower.StartsWith("blob") || lower.StartsWith("azure") ? "Storage"
+            : lower.StartsWith("logging") ? "Logging"
             : lower.StartsWith("email") || lower.StartsWith("smtp") ? "Email"
             : "General";
     }

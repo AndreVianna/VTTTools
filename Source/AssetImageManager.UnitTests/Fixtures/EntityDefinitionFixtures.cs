@@ -1,125 +1,51 @@
 namespace VttTools.AssetImageManager.UnitTests.Fixtures;
 
 public static class EntityDefinitionFixtures {
-    public static EntryDefinition CreateSimpleGoblin() => new() {
+    public static Asset CreateSimpleGoblin() => new() {
         Name = "Goblin",
-        Genre = "Fantasy",
-        Category = "creatures",
-        Type = "monsters",
-        Subtype = "humanoids",
-        PhysicalDescription = "Green-skinned, cunning creature",
-        DistinctiveFeatures = "Pointed ears and sharp teeth",
-        Environment = "caves and forests"
+        Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+        Description = "Green-skinned, cunning creature with pointed ears and sharp teeth",
+        Tokens = []
     };
 
-    public static EntryDefinition CreateGoblinWithVariants() => new() {
+    public static Asset CreateGoblinWithVariants() => new() {
         Name = "Goblin",
-        Genre = "Fantasy",
-        Category = "creatures",
-        Type = "monsters",
-        Subtype = "humanoids",
-        PhysicalDescription = "Green-skinned, cunning creature",
-        DistinctiveFeatures = "Pointed ears and sharp teeth",
-        Environment = "caves and forests",
-        Alternatives = [
-            new AlternativeDefinition {
-                Size = ["small"],
-                Gender = ["male", "female"],
-                Class = ["warrior", "shaman"],
-                Equipment = ["scimitar", "shortbow"],
-                Armor = null,
-                Material = null,
-                Quality = null
-            }
-        ]
+        Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+        Description = "Green-skinned, cunning creature with pointed ears and sharp teeth",
+        Tokens = []
     };
 
-    public static EntryDefinition CreateOrc() => new() {
+    public static Asset CreateOrc() => new() {
         Name = "Orc",
-        Genre = "Fantasy",
-        Category = "creatures",
-        Type = "monsters",
-        Subtype = "humanoids",
-        PhysicalDescription = "Muscular, grey-skinned brute",
-        DistinctiveFeatures = "Tusks and scarred face",
-        Environment = "mountains and wastelands"
+        Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Orc", "Common"),
+        Description = "Muscular, grey-skinned brute with tusks and scarred face",
+        Tokens = []
     };
 
-    public static EntryDefinition CreateDragonWithComplexVariants() => new() {
+    public static Asset CreateDragonWithComplexVariants() => new() {
         Name = "Dragon",
-        Genre = "Fantasy",
-        Category = "creatures",
-        Type = "monsters",
-        Subtype = "dragons",
-        PhysicalDescription = "Massive winged reptile",
-        DistinctiveFeatures = "Scales and horns",
-        Environment = "mountains and lairs",
-        Alternatives = [
-            new AlternativeDefinition {
-                Size = null,
-                Gender = null,
-                Class = ["ancient", "adult", "young"],
-                Equipment = null,
-                Armor = null,
-                Material = null,
-                Quality = null
-            }
-        ]
+        Classification = new AssetClassification(AssetKind.Creature, "Dragon", "Chromatic", "Red"),
+        Description = "Massive winged reptile with scales and horns",
+        Tokens = []
     };
 
-    public static EntryDefinition CreateChest() => new() {
+    public static Asset CreateChest() => new() {
         Name = "Treasure Chest",
-        Genre = "Fantasy",
-        Category = "objects",
-        Type = "containers",
-        Subtype = "chests",
-        PhysicalDescription = "Wooden chest with iron fittings",
-        DistinctiveFeatures = "Lock and hinges",
-        Environment = "dungeons",
-        Alternatives = [
-            new AlternativeDefinition {
-                Size = null,
-                Gender = null,
-                Class = null,
-                Equipment = null,
-                Armor = null,
-                Material = ["wood", "metal", "stone"],
-                Quality = ["common", "ornate"]
-            }
-        ]
+        Classification = new AssetClassification(AssetKind.Object, "Container", "Chest", "Wooden"),
+        Description = "Wooden chest with iron fittings, lock and hinges",
+        Tokens = []
     };
 
-    public static List<EntryDefinition> CreateMultipleEntities() => [
+    public static List<Asset> CreateMultipleEntities() => [
         CreateSimpleGoblin(),
         CreateOrc(),
         CreateGoblinWithVariants()
     ];
 
-    public static EntryDefinition CreateLargeVariantSet() {
-        var genders = new List<string> { "male", "female", "nonbinary" };
-        var classes = new List<string> { "warrior", "mage", "rogue", "cleric" };
-        var equipment = Enumerable.Range(1, 5).Select(i => $"Equipment{i}").ToList();
-
-        return new EntryDefinition {
-            Name = "TestEntity",
-            Genre = "Fantasy",
-            Category = "creatures",
-            Type = "monsters",
-            Subtype = "test",
-            PhysicalDescription = "Test entity",
-            DistinctiveFeatures = "Test features",
-            Environment = "test environment",
-            Alternatives = [
-                new AlternativeDefinition {
-                    Size = ["small"],
-                    Gender = genders,
-                    Class = classes,
-                    Equipment = equipment,
-                    Armor = null,
-                    Material = null,
-                    Quality = null
-                }
-            ]
-        };
-    }
+    public static Asset CreateLargeVariantSet() => new() {
+        Name = "TestEntity",
+        Classification = new AssetClassification(AssetKind.Creature, "Test", "Test", "Test"),
+        Description = "Test entity with test features",
+        Tokens = []
+    };
 }

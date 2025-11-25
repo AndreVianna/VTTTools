@@ -101,10 +101,8 @@ public class CampaignServiceTests {
             Id = backgroundId,
             Type = ResourceType.Image,
             Path = "test/background.jpg",
-            Metadata = new ResourceMetadata {
-                FileName = "background.jpg",
-                ContentType = "image/jpeg",
-            },
+            FileName = "background.jpg",
+            ContentType = "image/jpeg",
         };
         var request = new CreateCampaignData {
             Name = "New Campaign",
@@ -114,7 +112,7 @@ public class CampaignServiceTests {
             IsPublic = false,
         };
 
-        _mediaStorage.GetByIdAsync(backgroundId, Arg.Any<CancellationToken>()).Returns(background);
+        _mediaStorage.FindByIdAsync(backgroundId, Arg.Any<CancellationToken>()).Returns(background);
 
         // Act
         var result = await _service.CreateCampaignAsync(_userId, request, _ct);
@@ -123,7 +121,7 @@ public class CampaignServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Background.Should().NotBeNull();
         result.Value.Background.Should().BeEquivalentTo(background);
-        await _mediaStorage.Received(1).GetByIdAsync(backgroundId, Arg.Any<CancellationToken>());
+        await _mediaStorage.Received(1).FindByIdAsync(backgroundId, Arg.Any<CancellationToken>());
         await _campaignStorage.Received(1).AddAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>());
     }
 
@@ -191,10 +189,8 @@ public class CampaignServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "campaigns/background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/jpeg",
+                Size = new Size(1920, 1080),
             },
         };
         var allCampaigns = new Campaign[] { campaign };
@@ -324,10 +320,8 @@ public class CampaignServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/background",
-                Metadata = new ResourceMetadata {
-                    FileName = "background.png",
-                    ContentType = "image/png",
-                },
+                FileName = "background.png",
+                ContentType = "image/png",
             },
         };
         var request = new UpdatedCampaignData {
@@ -367,10 +361,8 @@ public class CampaignServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/campaign-background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/jpeg",
+                Size = new Size(1920, 1080),
             },
         };
         var request = new UpdatedCampaignData {
@@ -410,16 +402,14 @@ public class CampaignServiceTests {
             Id = newBackgroundId,
             Type = ResourceType.Image,
             Path = "test/new-background.jpg",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/jpeg",
-            },
+            ContentType = "image/jpeg",
         };
         var request = new UpdatedCampaignData {
             BackgroundId = newBackgroundId,
         };
 
         _campaignStorage.GetByIdAsync(campaignId, Arg.Any<CancellationToken>()).Returns(campaign);
-        _mediaStorage.GetByIdAsync(newBackgroundId, Arg.Any<CancellationToken>()).Returns(newBackground);
+        _mediaStorage.FindByIdAsync(newBackgroundId, Arg.Any<CancellationToken>()).Returns(newBackground);
 
         // Act
         var result = await _service.UpdateCampaignAsync(_userId, campaignId, request, _ct);
@@ -428,7 +418,7 @@ public class CampaignServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Background.Should().NotBeNull();
         result.Value.Background.Should().BeEquivalentTo(newBackground);
-        await _mediaStorage.Received(1).GetByIdAsync(newBackgroundId, Arg.Any<CancellationToken>());
+        await _mediaStorage.Received(1).FindByIdAsync(newBackgroundId, Arg.Any<CancellationToken>());
         await _campaignStorage.Received(1).UpdateAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>());
     }
 

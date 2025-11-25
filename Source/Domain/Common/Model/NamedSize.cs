@@ -1,77 +1,56 @@
 namespace VttTools.Common.Model;
 
-/// <summary>
-/// Represents a size with optional named category
-/// Supports square (1 dimension) and rectangular (2 dimensions) sizes
-/// </summary>
-public record NamedSize {
-    /// <summary>
-    /// Width in grid cells (supports fractional: 0.125, 0.25, 0.5, or whole numbers)
-    /// </summary>
-    public double Width { get; init; }
-
-    /// <summary>
-    /// Height in grid cells (supports fractional: 0.125, 0.25, 0.5, or whole numbers)
-    /// </summary>
-    public double Height { get; init; }
-
+public record NamedSize() {
     private const double _tolerance = 0.001;
 
-    /// <summary>
-    /// Gets the named size category based on current Width, Height, and IsSquare
-    /// Returns Custom for rectangular sizes or non-standard square sizes
-    /// </summary>
-    [NotMapped]
-    public SizeName Name {
-        get => Math.Abs(Width - Height) < _tolerance
-                ? FromSize(_tolerance)
-                : SizeName.Custom;
-        init {
-            var namedSize = FromName(value);
-            Width = namedSize.Width;
-            Height = namedSize.Height;
-        }
+    public static NamedSize Default => new(SizeName.Medium);
+
+    public static NamedSize Zero => new(SizeName.Zero);
+
+    public NamedSize(double size)
+        : this(size, size) {
     }
 
-    private static SizeName FromSize(double value)
-        => Math.Abs(value) < _tolerance ? SizeName.Zero
-         : Math.Abs(value - 0.125) < _tolerance ? SizeName.Miniscule
-         : Math.Abs(value - 0.25) < _tolerance ? SizeName.Tiny
-         : Math.Abs(value - 0.5) < _tolerance ? SizeName.Small
-         : Math.Abs(value - 1.0) < _tolerance ? SizeName.Medium
-         : Math.Abs(value - 2.0) < _tolerance ? SizeName.Large
-         : Math.Abs(value - 3.0) < _tolerance ? SizeName.Huge
-         : Math.Abs(value - 4.0) < _tolerance ? SizeName.Gargantuan
+    public NamedSize(double width, double height)
+        : this() {
+        Width = Math.Round(width, 3);
+        Height = Math.Round(height, 3);
+    }
+
+    public NamedSize(SizeName name)
+        : this() {
+        Name = name;
+    }
+
+    public double Width { get; init; }
+    public double Height { get; init; }
+
+    [NotMapped]
+    public SizeName Name {
+        get => FromSize(Width, Height);
+        init => (Width, Height) = FromName(value);
+    }
+
+    private static SizeName FromSize(double width, double height)
+        => Math.Abs(width - height) > _tolerance ? SizeName.Custom
+         : Math.Abs(width) <= _tolerance ? SizeName.Zero
+         : Math.Abs(width - 0.25) <= _tolerance ? SizeName.Tiny
+         : Math.Abs(width - 0.5) <= _tolerance ? SizeName.Small
+         : Math.Abs(width - 1.0) <= _tolerance ? SizeName.Medium
+         : Math.Abs(width - 2.0) <= _tolerance ? SizeName.Large
+         : Math.Abs(width - 3.0) <= _tolerance ? SizeName.Huge
+         : Math.Abs(width - 4.0) <= _tolerance ? SizeName.Gargantuan
          : SizeName.Custom;
 
-    /// <summary>
-    /// Creates a NamedSize from a SizeName enum value
-    /// </summary>
-    public static NamedSize FromName(SizeName name) => name switch {
-        SizeName.Zero => new() { Width = 0, Height = 0 },
-        SizeName.Miniscule => new() { Width = 0.125, Height = 0.125 },
-        SizeName.Tiny => new() { Width = 0.25, Height = 0.25 },
-        SizeName.Small => new() { Width = 0.5, Height = 0.5 },
-        SizeName.Medium => new() { Width = 1, Height = 1 },
-        SizeName.Large => new() { Width = 2, Height = 2 },
-        SizeName.Huge => new() { Width = 3, Height = 3 },
-        SizeName.Gargantuan => new() { Width = 4, Height = 4 },
-        SizeName.Custom => new() { Width = 1, Height = 1 },  // Default custom
-        _ => new() { Width = 1, Height = 1 }
+    private static (double, double) FromName(SizeName name)
+        => name switch {
+            SizeName.Zero => (0.0, 0.0),
+            SizeName.Tiny => (0.25, 0.25),
+            SizeName.Small => (0.5, 0.5),
+            SizeName.Medium => (1, 1),
+            SizeName.Large => (2, 2),
+            SizeName.Huge => (3, 3),
+            SizeName.Gargantuan => (4, 4),
+            _ => (1, 1)
     };
-
-    /// <summary>
-    /// Default size (Medium: 1x1 square)
-    /// </summary>
-    public static NamedSize Default => FromName(SizeName.Medium);
-
-    /// <summary>
-    /// Zero size (0x0)
-    /// </summary>
-    public static NamedSize Zero => FromName(SizeName.Zero);
-
-    /// <summary>
-    /// Creates a NamedSize from specified width and height
-    /// </summary>
-    public static NamedSize FromSize(double width, double? height = null) => new() { Width = width, Height = height ?? width };
 }

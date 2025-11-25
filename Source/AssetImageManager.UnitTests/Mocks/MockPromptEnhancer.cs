@@ -1,4 +1,4 @@
-using Request = (VttTools.AssetImageManager.Domain.Tokens.ServiceContracts.EntryDefinition entity, VttTools.AssetImageManager.Domain.Tokens.Models.StructuralVariant variant);
+using Request = (string imageType, VttTools.Assets.Model.Asset entity, int tokenIndex);
 
 namespace VttTools.AssetImageManager.UnitTests.Mocks;
 
@@ -25,12 +25,12 @@ public sealed class MockPromptEnhancer : IPromptEnhancer {
             TotalTokens: 0));
 
     public Task<PromptEnhancerResponse> EnhancePromptAsync(
-        EntryDefinition entity,
-        StructuralVariant variant,
         string imageType,
+        Asset entity,
+        int tokenIndex = 0,
         CancellationToken ct = default) {
 
-        _receivedRequests.Add((entity, variant));
+        _receivedRequests.Add((imageType, entity, tokenIndex));
 
         return _responses.Count == 0
             ? Task.FromResult(new PromptEnhancerResponse(

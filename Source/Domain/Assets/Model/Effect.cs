@@ -31,7 +31,7 @@ public record Effect {
     public EffectShape Shape { get; init; }
 
     /// <summary>
-    /// Size/radius of the effect in grid units (-1 for infinite)
+    /// TokenSize/radius of the effect in grid units (-1 for infinite)
     /// </summary>
     public double Size { get; init; }
 

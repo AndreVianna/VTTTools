@@ -2,7 +2,6 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
 using WorldEntity = VttTools.Data.Library.Entities.World;
-using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterEffectEntity = VttTools.Data.Library.Entities.EncounterEffect;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
@@ -10,7 +9,6 @@ using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterOpeningEntity = VttTools.Data.Library.Entities.EncounterOpening;
-using VttTools.Data.Helpers;
 
 namespace VttTools.Data.Library;
 
@@ -21,7 +19,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background != null ? entity.Background.ToModel() : null!,
+            Background = entity.Background != null ? entity.Background.ToModel() : null,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Campaigns = entity.Campaigns.AsQueryable().Select(AsCampaign!).ToList(),
@@ -31,11 +29,11 @@ internal static class Mapper {
     internal static Expression<Func<CampaignEntity, Campaign>> AsCampaign = entity
         => new() {
             OwnerId = entity.OwnerId,
-            World = entity.World != null ? entity.World.ToModel() : null!,
+            World = entity.World != null ? entity.World.ToModel() : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background != null ? entity.Background.ToModel() : null!,
+            Background = entity.Background != null ? entity.Background.ToModel() : null,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Adventures = entity.Adventures.AsQueryable().Select(AsAdventure!).ToList(),
@@ -44,8 +42,8 @@ internal static class Mapper {
     internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity
         => new() {
             OwnerId = entity.OwnerId,
-            World = entity.World != null ? entity.World.ToModel() : null!,
-            Campaign = entity.Campaign != null ? entity.Campaign.ToModel() : null!,
+            World = entity.World != null ? entity.World.ToModel() : null,
+            Campaign = entity.Campaign != null ? entity.Campaign.ToModel() : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -85,7 +83,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Adventure = entity.Adventure != null ? entity.Adventure.ToModel() : null!,
+            Adventure = entity.Adventure.ToModel(),
             Stage = new() {
                 Background = entity.Background != null ? entity.Background.ToModel() : null,
                 ZoomLevel = entity.ZoomLevel,
@@ -119,22 +117,6 @@ internal static class Mapper {
             Frame = entity.Frame,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
-        };
-
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Resource? ToModel(this ResourceEntity? entity)
-        => entity == null ? null : new() {
-            Id = entity.Id,
-            Type = entity.Type,
-            Path = entity.Path,
-            Metadata = new() {
-                ContentType = entity.ContentType,
-                FileName = entity.FileName,
-                FileLength = entity.FileLength,
-                ImageSize = entity.ImageSize,
-                Duration = entity.Duration,
-            },
-            Tags = entity.Tags,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]

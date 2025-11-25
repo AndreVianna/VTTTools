@@ -96,7 +96,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
             Style = data.Style.IsSet ? data.Style.Value : adventure.Style,
             Background = data.BackgroundId.IsSet
                 ? data.BackgroundId.Value.HasValue
-                    ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value.Value, ct)
+                    ? await mediaStorage.FindByIdAsync(data.BackgroundId.Value.Value, ct)
                     : null
                 : adventure.Background,
             IsPublished = data.IsListed.IsSet ? data.IsListed.Value : adventure.IsPublished,

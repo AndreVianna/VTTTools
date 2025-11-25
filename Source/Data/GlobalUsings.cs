@@ -1,11 +1,16 @@
 global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Linq.Expressions;
+global using System.Text.Json;
 
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.ChangeTracking;
+global using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+
+global using DotNetToolbox;
 
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
@@ -14,6 +19,7 @@ global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
 global using VttTools.Data.Builders;
 global using VttTools.Data.Game;
+global using VttTools.Data.Helpers;
 global using VttTools.Data.Library;
 global using VttTools.Data.Media;
 global using VttTools.Domain.Admin.ApiContracts;
@@ -29,7 +35,6 @@ global using VttTools.Library.Worlds.Model;
 global using VttTools.Library.Worlds.Storage;
 global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.Storage;
-global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Storage;
 global using VttTools.Media.Model;
 global using VttTools.Media.Storage;

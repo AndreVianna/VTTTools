@@ -20,10 +20,8 @@ public class ClonerTests {
             Background = new() {
                 Path = "path/to/background.png",
                 Type = ResourceType.Image,
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/png",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/png",
+                Size = new Size(1920, 1080),
             },
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
@@ -38,11 +36,8 @@ public class ClonerTests {
                         Background = new() {
                             Type = ResourceType.Image,
                             Path = "path/to/encounter/background.png",
-                            Metadata = new ResourceMetadata {
-                                ContentType = "image/png",
-                                ImageSize = new Size(800, 600),
-                            },
-                            Tags = ["dungeon", "dark" ],
+                            ContentType = "image/png",
+                            Size = new Size(800, 600),
                         },
                         ZoomLevel = 1.0f,
                         Panning = new(0, 0),
@@ -52,11 +47,8 @@ public class ClonerTests {
                         Sound = new() {
                             Type = ResourceType.Audio,
                             Path = "path/to/encounter/sound.mp3",
-                            Metadata = new ResourceMetadata {
-                                ContentType = "audio/mpeg",
-                                Duration = TimeSpan.FromMinutes(3),
-                            },
-                            Tags = ["ambient", "mysterious"],
+                            ContentType = "audio/mpeg",
+                            Duration = TimeSpan.FromMinutes(3),
                         },
                     },
                     Grid = new() {
@@ -79,7 +71,7 @@ public class ClonerTests {
         clone.Campaign.Should().BeEquivalentTo(original.Campaign);
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
-        clone.Background.Should().Be(original.Background);
+        clone.Background.Should().BeEquivalentTo(original.Background);
         clone.Style.Should().Be(original.Style);
         // NOTE: The cloner intentionally doesn't copy IsPublished and IsPublic - clones start as drafts
         clone.IsPublished.Should().BeFalse();
@@ -103,10 +95,8 @@ public class ClonerTests {
             Background = new() {
                 Path = "path/to/background.png",
                 Type = ResourceType.Image,
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/png",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/png",
+                Size = new Size(1920, 1080),
             },
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
@@ -138,7 +128,7 @@ public class ClonerTests {
         clone.Campaign.Should().BeEquivalentTo(original.Campaign);
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
-        clone.Background.Should().Be(original.Background);
+        clone.Background.Should().BeEquivalentTo(original.Background);
         clone.Style.Should().Be(original.Style);
         // NOTE: The cloner intentionally doesn't copy IsPublished and IsPublic - clones start as drafts
         clone.IsPublished.Should().BeFalse();
@@ -175,10 +165,8 @@ public class ClonerTests {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
                         Path = "assets/asset-1-image.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new Size(100, 100),
-                        },
+                        ContentType = "image/png",
+                        Size = new Size(100, 100),
                     },
                     Position = new(20, 30),
                     Size = new NamedSize { Width = 1, Height = 1 },
@@ -196,10 +184,8 @@ public class ClonerTests {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
                         Path = "assets/asset-2-image.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new Size(100, 100),
-                        },
+                        ContentType = "image/png",
+                        Size = new Size(100, 100),
                     },
                     Position = new(5, 10),
                     Size = new NamedSize { Width = 1, Height = 1 },
@@ -241,11 +227,8 @@ public class ClonerTests {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
                         Path = "assets/asset-1-image.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new Size(100, 100),
-                        },
-                        Tags = ["furniture", "indoor"],
+                        ContentType = "image/png",
+                        Size = new Size(100, 100),
                     },
                     Position = new(20, 30),
                     Size = new NamedSize { Width = 1, Height = 1 },
@@ -283,10 +266,8 @@ public class ClonerTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "assets/asset-1-image.png",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/png",
-                    ImageSize = new Size(100, 100),
-                },
+                ContentType = "image/png",
+                Size = new Size(100, 100),
             },
             Position = new(20, 30),
             Size = new NamedSize { Width = 1, Height = 1 },

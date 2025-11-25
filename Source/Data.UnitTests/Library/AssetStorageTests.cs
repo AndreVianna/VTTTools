@@ -19,7 +19,7 @@ public class AssetStorageTests
     [Fact]
     public async Task GetAllAsync_ReturnsAllAssets() {
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
-        // The seeding works but storage GetAllAsync has complex Include+Select that can't be translated
+        // The seeding works but storage SearchAsync has complex Include+Select that can't be translated
         var entities = await _context.Assets.ToArrayAsync(_ct);
 
         // Assert that seeding worked correctly
@@ -59,17 +59,16 @@ public class AssetStorageTests
 
         await _storage.AddAsync(asset, _ct);
 
-        var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
+        var dbAsset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == asset.Id, _ct);
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Kind.Should().Be(AssetKind.Monster);
+        dbAsset.Classification.Kind.Should().Be(AssetKind.Creature);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
         dbAsset.PortraitId.Should().Be(asset.Portrait?.Id);
-        dbAsset.TopDownId.Should().Be(asset.TopDown?.Id);
     }
 
     [Fact]
@@ -80,38 +79,23 @@ public class AssetStorageTests
         await _context.SaveChangesAsync(_ct);
 
         var portraitId = Guid.CreateVersion7();
-        var topDownId = Guid.CreateVersion7();
-        var asset = new MonsterAsset {
+        var asset = new Asset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
+            Classification = new(AssetKind.Creature, "test-category", "test-type", null),
             Name = "Updated Asset",
             Description = "Updated description",
             Portrait = new() {
                 Id = portraitId,
                 Type = ResourceType.Image,
                 Path = "assets/updated-portrait",
-                Metadata = new ResourceMetadata {
-                    FileName = "updated_portrait.png",
-                    ContentType = "image/png",
-                    FileLength = 1500,
-                    ImageSize = new(100, 100),
-                    Duration = TimeSpan.Zero,
-                },
-                Tags = [],
+                FileName = "updated_portrait.png",
+                ContentType = "image/png",
+                FileLength = 1500,
+                Size = new(100, 100),
+                Duration = TimeSpan.Zero,
             },
-            TopDown = new() {
-                Id = topDownId,
-                Type = ResourceType.Image,
-                Path = "assets/updated-topdown",
-                Metadata = new ResourceMetadata {
-                    FileName = "updated_topdown.png",
-                    ContentType = "image/png",
-                    FileLength = 1500,
-                    ImageSize = new(100, 100),
-                    Duration = TimeSpan.Zero,
-                },
-                Tags = [],
-            },
+            Tokens = [],
             IsPublished = true,
             IsPublic = true,
         };
@@ -119,23 +103,21 @@ public class AssetStorageTests
         var result = await _storage.UpdateAsync(asset, _ct);
 
         result.Should().BeTrue();
-        var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
+        var dbAsset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == asset.Id, _ct);
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Kind.Should().Be(AssetKind.Monster);
+        dbAsset.Classification.Kind.Should().Be(AssetKind.Creature);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
         dbAsset.PortraitId.Should().Be(portraitId);
-        dbAsset.TopDownId.Should().Be(topDownId);
     }
 
     [Fact]
     public async Task UpdateAsync_WithChangedImages_UpdatesImagesInDatabase() {
         var portraitId = Guid.CreateVersion7();
-        var topDownId = Guid.CreateVersion7();
         var resource1 = new Media.Entities.Resource {
             Id = portraitId,
             Type = ResourceType.Image,
@@ -143,68 +125,46 @@ public class AssetStorageTests
             ContentType = "image/png",
             FileName = "portrait.png",
             FileLength = 1000,
-        };
-        var resource2 = new Media.Entities.Resource {
-            Id = topDownId,
-            Type = ResourceType.Image,
-            Path = "assets/topdown",
-            ContentType = "image/png",
-            FileName = "topdown.png",
-            FileLength = 1000,
+            Size = new(100, 100),
         };
         await _context.Resources.AddAsync(resource1, _ct);
-        await _context.Resources.AddAsync(resource2, _ct);
 
-        var entity = new Assets.Entities.CharacterAsset {
+        var entity = new Assets.Entities.Asset {
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
-            Kind = AssetKind.Character,
+            Classification = new(AssetKind.Character, "test-category", "test-type", null),
             Name = "Asset With Images",
             Description = "Test description",
             IsPublished = false,
             IsPublic = false,
-            Size = NamedSize.FromName(SizeName.Medium),
+            TokenSize = new(SizeName.Medium),
             PortraitId = portraitId,
         };
 
         await _context.Assets.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
-        var newTopDownId = Guid.CreateVersion7();
-        var updatedAsset = new CharacterAsset {
+        var newPortraitId = Guid.CreateVersion7();
+        var updatedAsset = new Asset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
+            Classification = new(AssetKind.Character, "test-category", "test-type", null),
             Name = entity.Name,
             Description = entity.Description,
             Portrait = new() {
-                Id = portraitId,
+                Id = newPortraitId,
                 Type = ResourceType.Image,
-                Path = "assets/portrait",
-                Metadata = new ResourceMetadata {
-                    FileName = "portrait.png",
-                    ContentType = "image/png",
-                    FileLength = 1000,
-                    ImageSize = new(100, 100),
-                    Duration = TimeSpan.Zero,
-                },
-                Tags = [],
+                Path = "assets/new-portrait",
+                FileName = "new_portrait.png",
+                ContentType = "image/png",
+                FileLength = 1000,
+                Size = new(100, 100),
+                Duration = TimeSpan.Zero,
             },
-            TopDown = new() {
-                Id = newTopDownId,
-                Type = ResourceType.Image,
-                Path = "assets/new-topdown",
-                Metadata = new ResourceMetadata {
-                    FileName = "new_topdown.png",
-                    ContentType = "image/png",
-                    FileLength = 1000,
-                    ImageSize = new(100, 100),
-                    Duration = TimeSpan.Zero,
-                },
-                Tags = [],
-            },
+            Tokens = [],
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Size = NamedSize.FromName(SizeName.Medium),
+            TokenSize = new(SizeName.Medium),
         };
 
         var result = await _storage.UpdateAsync(updatedAsset, _ct);
@@ -213,8 +173,7 @@ public class AssetStorageTests
         var dbAsset = await _context.Assets
             .FirstAsync(a => a.Id == entity.Id, _ct);
         dbAsset.Should().NotBeNull();
-        dbAsset.PortraitId.Should().Be(portraitId);
-        dbAsset.TopDownId.Should().Be(newTopDownId);
+        dbAsset.PortraitId.Should().Be(newPortraitId);
     }
 
     [Fact]
@@ -228,7 +187,7 @@ public class AssetStorageTests
         await _storage.DeleteAsync(asset.Id, _ct);
 
         // Assert
-        var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
+        var dbAsset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == asset.Id, _ct);
         dbAsset.Should().BeNull();
     }
 }

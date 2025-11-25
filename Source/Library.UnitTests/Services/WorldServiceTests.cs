@@ -99,10 +99,8 @@ public class WorldServiceTests {
             Id = backgroundId,
             Type = ResourceType.Image,
             Path = "test/background.jpg",
-            Metadata = new ResourceMetadata {
-                FileName = "background.jpg",
-                ContentType = "image/jpeg",
-            },
+            FileName = "background.jpg",
+            ContentType = "image/jpeg",
         };
         var request = new CreateWorldData {
             Name = "New World",
@@ -112,7 +110,7 @@ public class WorldServiceTests {
             IsPublic = false,
         };
 
-        _mediaStorage.GetByIdAsync(backgroundId, Arg.Any<CancellationToken>()).Returns(background);
+        _mediaStorage.FindByIdAsync(backgroundId, Arg.Any<CancellationToken>()).Returns(background);
 
         // Act
         var result = await _service.CreateWorldAsync(_userId, request, _ct);
@@ -121,7 +119,7 @@ public class WorldServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Background.Should().NotBeNull();
         result.Value.Background.Should().BeEquivalentTo(background);
-        await _mediaStorage.Received(1).GetByIdAsync(backgroundId, Arg.Any<CancellationToken>());
+        await _mediaStorage.Received(1).FindByIdAsync(backgroundId, Arg.Any<CancellationToken>());
         await _worldStorage.Received(1).AddAsync(Arg.Any<World>(), Arg.Any<CancellationToken>());
     }
 
@@ -188,10 +186,8 @@ public class WorldServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "worlds/background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/jpeg",
+                Size = new Size(1920, 1080),
             },
         };
         var allWorlds = new World[] { world };
@@ -318,10 +314,8 @@ public class WorldServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/background",
-                Metadata = new ResourceMetadata {
-                    FileName = "background.png",
-                    ContentType = "image/png",
-                },
+                FileName = "background.png",
+                ContentType = "image/png",
             },
         };
         var request = new UpdatedWorldData {
@@ -361,10 +355,8 @@ public class WorldServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/world-background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/jpeg",
+                Size = new Size(1920, 1080),
             },
         };
         var request = new UpdatedWorldData {
@@ -404,16 +396,14 @@ public class WorldServiceTests {
             Id = newBackgroundId,
             Type = ResourceType.Image,
             Path = "test/new-background.jpg",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/jpeg",
-            },
+            ContentType = "image/jpeg",
         };
         var request = new UpdatedWorldData {
             BackgroundId = newBackgroundId,
         };
 
         _worldStorage.GetByIdAsync(worldId, Arg.Any<CancellationToken>()).Returns(world);
-        _mediaStorage.GetByIdAsync(newBackgroundId, Arg.Any<CancellationToken>()).Returns(newBackground);
+        _mediaStorage.FindByIdAsync(newBackgroundId, Arg.Any<CancellationToken>()).Returns(newBackground);
 
         // Act
         var result = await _service.UpdateWorldAsync(_userId, worldId, request, _ct);
@@ -422,7 +412,7 @@ public class WorldServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Background.Should().NotBeNull();
         result.Value.Background.Should().BeEquivalentTo(newBackground);
-        await _mediaStorage.Received(1).GetByIdAsync(newBackgroundId, Arg.Any<CancellationToken>());
+        await _mediaStorage.Received(1).FindByIdAsync(newBackgroundId, Arg.Any<CancellationToken>());
         await _worldStorage.Received(1).UpdateAsync(Arg.Any<World>(), Arg.Any<CancellationToken>());
     }
 

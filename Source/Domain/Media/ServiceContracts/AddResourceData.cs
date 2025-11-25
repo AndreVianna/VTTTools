@@ -2,10 +2,17 @@
 
 public record AddResourceData
     : Data {
+    public string? Description { get; init; }
+    public Map<HashSet<string>> Attributes { get; set; } = [];
+
     public string Path { get; init; } = string.Empty;
+    public string ContentType { get; init; } = string.Empty;
+    public string FileName { get; init; } = string.Empty;
+    public ulong FileLength { get; init; }
+    public Size ImageSize { get; init; } = Size.Zero;
+    public TimeSpan Duration { get; init; }
+
     public Stream Stream { get; init; } = null!;
-    public ResourceMetadata Metadata { get; init; } = new();
-    public string[] Tags { get; set; } = [];
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
@@ -15,18 +22,18 @@ public record AddResourceData
             result += new Error("Stream cannot be null.", nameof(Stream));
         else if (!Stream.CanRead)
             result += new Error("Stream must be readable.", nameof(Stream));
-        if (string.IsNullOrWhiteSpace(Metadata.ContentType))
-            result += new Error("Content type is required.", $"{nameof(Metadata)}.{nameof(ResourceMetadata.ContentType)}");
-        if (string.IsNullOrWhiteSpace(Metadata.FileName))
-            result += new Error("File name is required.", $"{nameof(Metadata)}.{nameof(ResourceMetadata.FileName)}");
-        if (Metadata.FileLength == 0)
-            result += new Error("File length cannot be zero.", $"{nameof(Metadata)}.{nameof(ResourceMetadata.FileLength)}");
-        if (Metadata.ImageSize.Width < 0)
-            result += new Error("Picture width cannot be negative.", $"{nameof(Metadata)}.{nameof(ResourceMetadata.ImageSize)}.{nameof(Size.Width)}");
-        if (Metadata.ImageSize.Height < 0)
-            result += new Error("Picture height cannot be negative.", $"{nameof(Metadata)}.{nameof(ResourceMetadata.ImageSize)}.{nameof(Size.Height)}");
-        if (Metadata.Duration < TimeSpan.Zero)
-            result += new Error("Duration cannot be negative.", $"{nameof(Metadata)}.{nameof(ResourceMetadata.Duration)}");
+        if (string.IsNullOrWhiteSpace(ContentType))
+            result += new Error("Content type is required.", nameof(ContentType));
+        if (string.IsNullOrWhiteSpace(FileName))
+            result += new Error("File name is required.", nameof(FileName));
+        if (FileLength == 0)
+            result += new Error("File length cannot be zero.", nameof(FileLength));
+        if (ImageSize.Width < 0)
+            result += new Error("Picture width cannot be negative.", $"{nameof(ImageSize)}.{nameof(Size.Width)}");
+        if (ImageSize.Height < 0)
+            result += new Error("Picture height cannot be negative.", $"{nameof(ImageSize)}.{nameof(Size.Height)}");
+        if (Duration < TimeSpan.Zero)
+            result += new Error("Duration cannot be negative.", nameof(Duration));
         return result;
     }
 }

@@ -1,5 +1,6 @@
 using Resource = VttTools.Media.Model.Resource;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
+using ResourceFeatureEntity = VttTools.Data.Media.Entities.ResourceFeature;
 
 namespace VttTools.Data.Media;
 
@@ -9,14 +10,12 @@ internal static class Mapper {
             Id = entity.Id,
             Type = entity.Type,
             Path = entity.Path,
-            Metadata = new() {
-                ContentType = entity.ContentType,
-                FileName = entity.FileName,
-                FileLength = entity.FileLength,
-                ImageSize = entity.ImageSize,
-                Duration = entity.Duration,
-            },
-            Tags = entity.Tags,
+            ContentType = entity.ContentType,
+            FileName = entity.FileName,
+            FileLength = entity.FileLength,
+            Size = entity.Size,
+            Duration = entity.Duration,
+            Features = new(entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())),
         };
 
     internal static Resource? ToModel(this ResourceEntity? entity)
@@ -24,14 +23,12 @@ internal static class Mapper {
             Id = entity.Id,
             Type = entity.Type,
             Path = entity.Path,
-            Metadata = new() {
-                ContentType = entity.ContentType,
-                FileName = entity.FileName,
-                FileLength = entity.FileLength,
-                ImageSize = entity.ImageSize,
-                Duration = entity.Duration,
-            },
-            Tags = entity.Tags,
+            ContentType = entity.ContentType,
+            FileName = entity.FileName,
+            FileLength = entity.FileLength,
+            Size = entity.Size,
+            Duration = entity.Duration,
+            Features = [..entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
         };
 
     internal static ResourceEntity ToEntity(this Resource model)
@@ -39,23 +36,33 @@ internal static class Mapper {
             Id = model.Id,
             Type = model.Type,
             Path = model.Path,
-            ContentType = model.Metadata.ContentType,
-            FileName = model.Metadata.FileName,
-            FileLength = model.Metadata.FileLength,
-            ImageSize = model.Metadata.ImageSize,
-            Duration = model.Metadata.Duration,
-            Tags = model.Tags,
+            ContentType = model.ContentType,
+            FileName = model.FileName,
+            FileLength = model.FileLength,
+            Size = model.Size,
+            Duration = model.Duration,
+            Features = [..model.Features.SelectMany(f => f.Value.Select((v, i) => new ResourceFeatureEntity{
+                ResourceId = model.Id,
+                Key = f.Key,
+                Index = i,
+                Value = v,
+            }))],
         };
 
     internal static void UpdateFrom(this ResourceEntity entity, Resource model) {
         entity.Id = model.Id;
         entity.Type = model.Type;
         entity.Path = model.Path;
-        entity.ContentType = model.Metadata.ContentType;
-        entity.FileName = model.Metadata.FileName;
-        entity.FileLength = model.Metadata.FileLength;
-        entity.ImageSize = model.Metadata.ImageSize;
-        entity.Duration = model.Metadata.Duration;
-        entity.Tags = model.Tags;
+        entity.ContentType = model.ContentType;
+        entity.FileName = model.FileName;
+        entity.FileLength = model.FileLength;
+        entity.Size = model.Size;
+        entity.Duration = model.Duration;
+        entity.Features = [..model.Features.SelectMany(f => f.Value.Select((v, i) => new ResourceFeatureEntity{
+            ResourceId = model.Id,
+            Key = f.Key,
+            Index = i,
+            Value = v,
+        }))];
     }
 }

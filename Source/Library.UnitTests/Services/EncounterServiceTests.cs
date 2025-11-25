@@ -258,21 +258,22 @@ public class EncounterServiceTests {
         };
 
         var portraitId = Guid.CreateVersion7();
-        var asset = new ObjectAsset {
+        var asset = new Asset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Test Asset",
+            Classification = new AssetClassification(AssetKind.Character, "Player", "Hero", null),
             Portrait = new Resource {
                 Id = portraitId,
                 Type = ResourceType.Image,
                 Path = "test/asset-portrait.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
+                ContentType = "image/png",
             },
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
         // NOTE: AddAssetAsync calls assetStorage.GetByIdAsync to validate the asset exists and check ownership
-        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
@@ -526,7 +527,7 @@ public class EncounterServiceTests {
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.GetByIdAsync(nonexistentAssetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
+        _assetStorage.FindByIdAsync(_userId, nonexistentAssetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
         var result = await _service.UpdateAssetAsync(_userId, encounterId, 99, data, _ct);
@@ -557,16 +558,19 @@ public class EncounterServiceTests {
             },
             Assets = [],
         };
-        var asset = new CreatureAsset {
+        var asset = new Asset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            TopDown = new Resource {
-                Id = resourceId,
-                Type = ResourceType.Image,
-                Path = "test/goblin-topdown.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Tokens = [
+                new Resource {
+                    Id = resourceId,
+                    Type = ResourceType.Image,
+                    Path = "test/goblin-topdown.png",
+                    ContentType = "image/png",
+                }
+            ],
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -575,7 +579,7 @@ public class EncounterServiceTests {
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
@@ -608,16 +612,19 @@ public class EncounterServiceTests {
             },
             Assets = [],
         };
-        var asset = new CreatureAsset {
+        var asset = new Asset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            TopDown = new Resource {
-                Id = resourceId,
-                Type = ResourceType.Image,
-                Path = "test/goblin-topdown.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Tokens = [
+                new Resource {
+                    Id = resourceId,
+                    Type = ResourceType.Image,
+                    Path = "test/goblin-topdown.png",
+                    ContentType = "image/png",
+                }
+            ],
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -626,7 +633,7 @@ public class EncounterServiceTests {
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
@@ -662,16 +669,19 @@ public class EncounterServiceTests {
             },
             Assets = [],
         };
-        var asset = new ObjectAsset {
+        var asset = new Asset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Treasure Chest",
-            TopDown = new Resource {
-                Id = resourceId,
-                Type = ResourceType.Image,
-                Path = "test/chest-topdown.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Classification = new AssetClassification(AssetKind.Object, "Container", "Chest", null),
+            Tokens = [
+                new Resource {
+                    Id = resourceId,
+                    Type = ResourceType.Image,
+                    Path = "test/chest-topdown.png",
+                    ContentType = "image/png",
+                }
+            ],
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -680,7 +690,7 @@ public class EncounterServiceTests {
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
@@ -716,16 +726,19 @@ public class EncounterServiceTests {
             },
             Assets = [],
         };
-        var asset = new CreatureAsset {
+        var asset = new Asset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            TopDown = new Resource {
-                Id = resourceId,
-                Type = ResourceType.Image,
-                Path = "test/goblin-topdown.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Tokens = [
+                new Resource {
+                    Id = resourceId,
+                    Type = ResourceType.Image,
+                    Path = "test/goblin-topdown.png",
+                    ContentType = "image/png",
+                }
+            ],
         };
         var data = new EncounterAssetAddData {
             Name = "Boss Goblin",
@@ -734,7 +747,7 @@ public class EncounterServiceTests {
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
@@ -769,27 +782,33 @@ public class EncounterServiceTests {
             },
             Assets = [],
         };
-        var goblinAsset = new CreatureAsset {
+        var goblinAsset = new Asset {
             Id = goblinAssetId,
             OwnerId = _userId,
             Name = "Goblin",
-            TopDown = new Resource {
-                Id = resourceId1,
-                Type = ResourceType.Image,
-                Path = "test/goblin-topdown.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Tokens = [
+                new Resource {
+                    Id = resourceId1,
+                    Type = ResourceType.Image,
+                    Path = "test/goblin-topdown.png",
+                    ContentType = "image/png",
+                }
+            ],
         };
-        var orcAsset = new CreatureAsset {
+        var orcAsset = new Asset {
             Id = orcAssetId,
             OwnerId = _userId,
             Name = "Orc",
-            TopDown = new Resource {
-                Id = resourceId2,
-                Type = ResourceType.Image,
-                Path = "test/orc-topdown.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Orc", null),
+            Tokens = [
+                new Resource {
+                    Id = resourceId2,
+                    Type = ResourceType.Image,
+                    Path = "test/orc-topdown.png",
+                    ContentType = "image/png",
+                }
+            ],
         };
         var data = new EncounterAssetAddData {
             Name = null,
@@ -798,8 +817,8 @@ public class EncounterServiceTests {
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.GetByIdAsync(goblinAssetId, Arg.Any<CancellationToken>()).Returns(goblinAsset);
-        _assetStorage.GetByIdAsync(orcAssetId, Arg.Any<CancellationToken>()).Returns(orcAsset);
+        _assetStorage.FindByIdAsync(_userId, goblinAssetId, Arg.Any<CancellationToken>()).Returns(goblinAsset);
+        _assetStorage.FindByIdAsync(_userId, orcAssetId, Arg.Any<CancellationToken>()).Returns(orcAsset);
         _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act

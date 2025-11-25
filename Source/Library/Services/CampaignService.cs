@@ -44,7 +44,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             Name = data.Name,
             Description = data.Description,
             Background = data.BackgroundId.HasValue
-                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct)
+                ? await mediaStorage.FindByIdAsync(data.BackgroundId.Value, ct)
                 : null,
             IsPublished = data.IsPublished,
             IsPublic = data.IsPublic,
@@ -91,7 +91,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             Description = data.Description.IsSet ? data.Description.Value : campaign.Description,
             Background = data.BackgroundId.IsSet
                 ? data.BackgroundId.Value.HasValue
-                    ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value.Value, ct)
+                    ? await mediaStorage.FindByIdAsync(data.BackgroundId.Value.Value, ct)
                     : null
                 : campaign.Background,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : campaign.IsPublished,

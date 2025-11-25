@@ -9,13 +9,13 @@ public partial class SeedApplicationSchema : Migration {
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(
             table: "Resources",
-            columns: ["Id", "Type", "ContentType", "Path", "FileName", "FileLength", "Duration", "Tags", "ImageSize_Height", "ImageSize_Width"],
+            columns: ["Id", "OwnerId", "Type", "ContentType", "Path", "FileName", "FileLength", "Duration", "Size_Height", "Size_Width"],
             values: new object[,]
             {
-                { new Guid("019A50F8-F3E5-702B-89D3-33D694391F66"), "Image", "image/png", "images/1f66/019a50f8f3e5702b89d333d694391f66", "wooden-crate.png", 1170, "00:00:00.0000000", "[]", 200, 200 },
-                { new Guid("019A50CE-4B04-7378-8E6E-372BDF798985"), "Image", "image/png", "images/8985/019a50ce4b0473788e6e372bdf798985", "goblin.png", 8193, "00:00:00.0000000", "[]", 200, 200 },
-                { new Guid("019A50F8-394B-79D2-9660-9B803391DD71"), "Image", "image/png", "images/dd71/019a50f8394b79d296609b803391dd71", "hero-character.png", 6821, "00:00:00.0000000", "[]", 200, 200 },
-                { new Guid("019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86"), "Image", "image/png", "images/fa86/019a50f8af0e7edebbabc1aa0775fa86", "treasure-chest.png", 2286, "00:00:00.0000000", "[]", 200, 200 },
+                { new Guid("019A50F8-F3E5-702B-89D3-33D694391F66"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Image", "image/png", "images/1f66/019a50f8f3e5702b89d333d694391f66", "wooden-crate.png", 1170, "00:00:00.0000000", 200, 200 },
+                { new Guid("019A50CE-4B04-7378-8E6E-372BDF798985"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Image", "image/png", "images/8985/019a50ce4b0473788e6e372bdf798985", "goblin.png", 8193, "00:00:00.0000000", 200, 200 },
+                { new Guid("019A50F8-394B-79D2-9660-9B803391DD71"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Image", "image/png", "images/dd71/019a50f8394b79d296609b803391dd71", "hero-character.png", 6821, "00:00:00.0000000", 200, 200 },
+                { new Guid("019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Image", "image/png", "images/fa86/019a50f8af0e7edebbabc1aa0775fa86", "treasure-chest.png", 2286, "00:00:00.0000000", 200, 200 },
             });
 
         migrationBuilder.InsertData(
@@ -53,14 +53,14 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Name], [Description], [MiniatureId], [IsPublished], [IsPublic], [Size_Height], [Size_Width], [StatBlockId], [TokenStyle_BorderColor], [TokenStyle_BackgroundColor], [TokenStyle_Shape], [IsMovable], [IsOpaque], [TriggerEffectId])
+            INSERT INTO [Assets] ([Id], [OwnerId], [Classification_Kind], [Classification_Category], [Classification_Type], [Classification_Subtype], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [TokenSize_Height], [TokenSize_Width])
             VALUES
-            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Monster', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'  , 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0, NULL, NULL, NULL, NULL, 1   , 0   , NULL),
-            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf Paladin Squire', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5),
+            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Monster'  , 'Monster', 'Fey', 'Goblinoid', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
+            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
+            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
+            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),
+            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Character', 'Elf', 'Paladin (Squire)', 'Pelotas', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
             """
         );
 
@@ -95,16 +95,11 @@ public partial class SeedApplicationSchema : Migration {
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder) {
-        migrationBuilder.DeleteData(
-            table: "EncounterAssets",
-            keyColumns: ["EncounterId", "Index"],
-            keyValues: new object[,]
-            {
-                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 0 },
-                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 1 },
-                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 2 },
-                { new Guid("019A26C8-0DF8-7BED-A5D5-12C035B72F91"), 3 },
-            });
+        migrationBuilder.Sql(
+            """
+            DELETE FROM [EncounterAssets];
+            """
+        );
 
         migrationBuilder.DeleteData(
             table: "EncounterWalls",

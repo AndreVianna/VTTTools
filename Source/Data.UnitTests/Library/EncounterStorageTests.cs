@@ -22,7 +22,7 @@ public class EncounterStorageTests
     [Fact]
     public async Task GetAllAsync_ReturnsAllEncounters() {
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
-        // The seeding works but storage GetAllAsync has complex Include+Select that can't be translated
+        // The seeding works but storage SearchAsync has complex Include+Select that can't be translated
         var encounterCount = await _context.Encounters.CountAsync(_ct);
         var encounterNames = await _context.Encounters.Select(s => s.Name).ToArrayAsync(_ct);
 

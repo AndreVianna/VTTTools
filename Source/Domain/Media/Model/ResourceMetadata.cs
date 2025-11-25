@@ -1,6 +1,7 @@
 namespace VttTools.Media.Model;
 
 public record ResourceMetadata {
+    public string Description { get; init; } = string.Empty;
     public string ContentType { get; init; } = string.Empty;
     public string FileName { get; init; } = string.Empty;
     public ulong FileLength { get; init; }

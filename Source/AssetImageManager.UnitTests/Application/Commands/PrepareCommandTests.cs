@@ -10,7 +10,8 @@ public sealed class PrepareCommandTests : IDisposable {
 
     private static readonly JsonSerializerOptions _jsonOptions = new() {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
     };
 
     public PrepareCommandTests() {
@@ -22,38 +23,13 @@ public sealed class PrepareCommandTests : IDisposable {
         _mockHttpClientFactory = new MockHttpClientFactory();
 
         _mockConfiguration = Substitute.For<IConfiguration>();
-        _mockConfiguration["Images:TopDown:Prompts:Creatures"]
-            .Returns("from above, bird's-eye view, top-down, game token");
-        _mockConfiguration["Images:TopDown:Prompts:Objects"]
-            .Returns("from above, bird's-eye view, top-down, product photography");
-        _mockConfiguration["Images:TopDown:Prompts:Characters"]
-            .Returns("from above, bird's-eye view, top-down, heroic pose");
-        _mockConfiguration["Images:Miniature:Prompts:Creatures"]
-            .Returns("full body, standing, isometric, game token");
-        _mockConfiguration["Images:Miniature:Prompts:Objects"]
-            .Returns("full view, product shot, isometric");
-        _mockConfiguration["Images:Miniature:Prompts:Characters"]
-            .Returns("full body, heroic stance, isometric");
-        _mockConfiguration["Images:Photo:Prompts:Creatures"]
-            .Returns("3/4 view, dynamic pose, character focus");
-        _mockConfiguration["Images:Photo:Prompts:Objects"]
-            .Returns((string?)null);
-        _mockConfiguration["Images:Photo:Prompts:Characters"]
-            .Returns("3/4 view, passport photo, heroic expression");
-        _mockConfiguration["Images:Portrait:Prompts:Creatures"]
-            .Returns("portrait, character art, upper body");
-        _mockConfiguration["Images:Portrait:Prompts:Objects"]
-            .Returns("close-up view, detailed shot");
-        _mockConfiguration["Images:Portrait:Prompts:Characters"]
-            .Returns("character portrait, heroic portrait");
-        _mockConfiguration["Images:TopDown:NegativePrompts:Token"]
-            .Returns("border, frame, text");
-        _mockConfiguration["Images:Portrait:NegativePrompts:Portrait"]
-            .Returns("border, frame, cropped face");
+        _mockConfiguration["PromptEnhancer:Provider"].Returns("OPENAI");
+        _mockConfiguration["PromptEnhancer:Model"].Returns("gpt-4");
+        _mockConfiguration["OpenAI:ApiKey"].Returns("test-key");
+        _mockConfiguration["OpenAI:Model"].Returns("gpt-4");
 
         _imageStore = new HierarchicalFileStore(_outputDir);
-        var entityLoader = new EntityLoaderService();
-        _command = new PrepareCommand(_mockHttpClientFactory, _imageStore, _mockConfiguration, entityLoader);
+        _command = new PrepareCommand(_mockHttpClientFactory, _imageStore, _mockConfiguration);
     }
 
     public void Dispose() {
@@ -125,46 +101,81 @@ public sealed class PrepareCommandTests : IDisposable {
 
     [Fact]
     public async Task Should_ReturnSuccess_When_SingleEntityWithNoVariants() {
-        var entity = EntityDefinitionFixtures.CreateSimpleGoblin();
-        var jsonFile = await CreateJsonFileAsync("single.json", [entity]);
+        SetConsoleInput("yes");
+        var entity = CreateAssetWithToken("Goblin", "A green-skinned creature");
+        var jsonFile = await CreateJsonFileAsync("single-entity.json", [entity]);
         var options = new PrepareOptions(jsonFile);
+
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down view");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up view");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for portrait view");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Equal(0, result);
+        result.Should().Be(0);
+        VerifyPromptFilesCreated(entity, 0, ["TopDown", "CloseUp", "Portrait"]);
     }
 
     [Fact]
     public async Task Should_ReturnSuccess_When_SingleEntityWithVariants() {
-        var entity = EntityDefinitionFixtures.CreateGoblinWithVariants();
-        var jsonFile = await CreateJsonFileAsync("variants.json", [entity]);
+        SetConsoleInput("yes");
+        var entity = CreateAssetWithTokens("Goblin", "A green-skinned creature", 2);
+        var jsonFile = await CreateJsonFileAsync("entity-with-variants.json", [entity]);
         var options = new PrepareOptions(jsonFile);
+
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 0");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 0");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for portrait token 0");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 1");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 1");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Equal(0, result);
+        result.Should().Be(0);
+        VerifyPromptFilesCreated(entity, 0, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp"]);
     }
 
     [Fact]
     public async Task Should_ReturnSuccess_When_MultipleEntities() {
-        var entities = EntityDefinitionFixtures.CreateMultipleEntities();
-        var jsonFile = await CreateJsonFileAsync("multiple.json", entities);
+        SetConsoleInput("yes");
+        var goblin = CreateAssetWithToken("Goblin", "A green-skinned creature");
+        var orc = CreateAssetWithToken("Orc", "A muscular grey-skinned brute");
+        var jsonFile = await CreateJsonFileAsync("multiple-entities.json", [goblin, orc]);
         var options = new PrepareOptions(jsonFile);
+
+        EnqueueOpenAiSuccessResponse("Enhanced goblin top-down");
+        EnqueueOpenAiSuccessResponse("Enhanced goblin close-up");
+        EnqueueOpenAiSuccessResponse("Enhanced goblin portrait");
+        EnqueueOpenAiSuccessResponse("Enhanced orc top-down");
+        EnqueueOpenAiSuccessResponse("Enhanced orc close-up");
+        EnqueueOpenAiSuccessResponse("Enhanced orc portrait");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Equal(0, result);
+        result.Should().Be(0);
+        VerifyPromptFilesCreated(goblin, 0, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(orc, 0, ["TopDown", "CloseUp", "Portrait"]);
     }
 
     [Fact]
     public async Task Should_ShowWarning_When_MoreThan50Variants() {
-        var entity = EntityDefinitionFixtures.CreateLargeVariantSet();
-        var jsonFile = await CreateJsonFileAsync("large.json", [entity]);
+        SetConsoleInput("yes");
+        var entity = CreateAssetWithTokens("TestEntity", "Test description", 55);
+        var jsonFile = await CreateJsonFileAsync("many-variants.json", [entity]);
         var options = new PrepareOptions(jsonFile);
+
+        for (var i = 0; i < 55; i++) {
+            EnqueueOpenAiSuccessResponse($"Enhanced prompt for token {i} top-down");
+            EnqueueOpenAiSuccessResponse($"Enhanced prompt for token {i} close-up");
+            if (i == 0) {
+                EnqueueOpenAiSuccessResponse($"Enhanced prompt for token {i} portrait");
+            }
+        }
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Equal(0, result);
+        result.Should().Be(0);
     }
 
     [Fact]
@@ -188,10 +199,111 @@ public sealed class PrepareCommandTests : IDisposable {
         Assert.True(true);
     }
 
-    private async Task<string> CreateJsonFileAsync(string fileName, List<EntryDefinition> entities) {
+    private async Task<string> CreateJsonFileAsync(string fileName, List<Asset> entities) {
         var filePath = Path.Combine(_tempDir, fileName);
         var json = JsonSerializer.Serialize(entities, _jsonOptions);
-        await File.WriteAllTextAsync(filePath, json);
+        await File.WriteAllTextAsync(filePath, json, TestContext.Current.CancellationToken);
         return filePath;
+    }
+
+    private static Asset CreateAssetWithToken(string name, string description) => new() {
+        Id = Guid.NewGuid(),
+        Name = name,
+        Description = description,
+        Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+        TokenSize = NamedSize.Default,
+        StatBlocks = [],
+        Tokens = [
+            new Resource {
+                Id = Guid.NewGuid(),
+                Description = description,
+                Type = ResourceType.Image,
+                Path = string.Empty,
+                ContentType = "image/png",
+                FileName = $"{name.ToLowerInvariant()}.png",
+                FileLength = 1024,
+                Size = Size.Zero,
+                Duration = TimeSpan.Zero
+            }
+        ]
+    };
+
+    private static Asset CreateAssetWithTokens(string name, string description, int tokenCount) {
+        var tokens = new List<Resource>();
+        for (var i = 0; i < tokenCount; i++) {
+            tokens.Add(new Resource {
+                Id = Guid.NewGuid(),
+                Description = $"{description} variant {i}",
+                Type = ResourceType.Image,
+                Path = string.Empty,
+                ContentType = "image/png",
+                FileName = $"{name.ToLowerInvariant()}-{i}.png",
+                FileLength = 1024,
+                Size = Size.Zero,
+                Duration = TimeSpan.Zero
+            });
+        }
+
+        return new Asset {
+            Id = Guid.NewGuid(),
+            Name = name,
+            Description = description,
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Test", "Common"),
+            TokenSize = NamedSize.Default,
+            StatBlocks = [],
+            Tokens = tokens
+        };
+    }
+
+    private void EnqueueOpenAiSuccessResponse(string promptText) {
+        var responseJson = $$"""
+        {
+            "id": "msg_{{Guid.NewGuid():N}}",
+            "object": "thread.message",
+            "created_at": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
+            "status": "completed",
+            "model": "gpt-4",
+            "output": [
+                {
+                    "type": "message",
+                    "id": "msg_item_{{Guid.NewGuid():N}}",
+                    "status": "completed",
+                    "role": "system"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_item_{{Guid.NewGuid():N}}",
+                    "status": "completed",
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "{{promptText}}"
+                        }
+                    ]
+                }
+            ],
+            "usage": {
+                "input_tokens": 100,
+                "output_tokens": 50,
+                "total_tokens": 150
+            }
+        }
+        """;
+
+        _mockHttpClientFactory.EnqueueJsonResponse(responseJson);
+    }
+
+    private void VerifyPromptFilesCreated(Asset entity, int tokenIndex, string[] imageTypes) {
+        foreach (var imageType in imageTypes) {
+            var filePath = _imageStore.FindPromptFile(imageType, entity, tokenIndex);
+            filePath.Should().NotBeNull($"Prompt file for {imageType} should be created");
+            File.Exists(filePath).Should().BeTrue($"Prompt file {filePath} should exist on disk");
+        }
+    }
+
+    private static void SetConsoleInput(string input) {
+        var reader = new StringReader(input + "\n");
+        Console.SetIn(reader);
     }
 }

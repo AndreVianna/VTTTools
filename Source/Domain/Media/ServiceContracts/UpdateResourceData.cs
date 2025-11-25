@@ -2,5 +2,6 @@
 
 public record UpdateResourceData
     : Data {
-    public Optional<ListPatcher<string>> Tags { get; set; }
+    public Optional<string?> Description { get; init; }
+    public Optional<Map<HashSet<string>>> Attributes { get; set; }
 }

@@ -17,7 +17,7 @@ public class GameSessionStorage(ApplicationDbContext context)
             .Include(s => s.Players)
             .Include(s => s.Messages)
             .Include(s => s.Events)
-            .AsNoTrackingWithIdentityResolution()
+            .AsNoTracking()
             .Select(s => new GameSession {
                 Id = s.Id,
                 OwnerId = s.OwnerId,
@@ -48,7 +48,7 @@ public class GameSessionStorage(ApplicationDbContext context)
             .Include(s => s.Players)
             .Include(s => s.Messages)
             .Include(s => s.Events)
-            .AsNoTrackingWithIdentityResolution()
+            .AsNoTracking()
             .Select(s => new GameSession {
                 Id = s.Id,
                 OwnerId = s.OwnerId,
@@ -80,7 +80,7 @@ public class GameSessionStorage(ApplicationDbContext context)
             .Include(s => s.Messages)
             .Include(s => s.Events)
             .Where(s => s.OwnerId == userId || s.Players.Any(p => p.UserId == userId))
-            .AsNoTrackingWithIdentityResolution()
+            .AsNoTracking()
             .Select(s => new GameSession {
                 Id = s.Id,
                 OwnerId = s.OwnerId,

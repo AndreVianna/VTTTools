@@ -120,7 +120,7 @@ public sealed class ConfigurationHealthCheckTests {
             ["Providers:OpenAI:ApiKey"] = "sk-test-key-12345",
             ["Providers:Stability:ApiKey"] = "sk-test-stability-key",
             ["Providers:Stability:Token:Model"] = "SD35",
-            ["Providers:Stability:Portrait:Model"] = "CORE"
+            ["Providers:Stability:Display:Model"] = "CORE"
         };
 
         var config = new ConfigurationBuilder()
@@ -190,7 +190,7 @@ public sealed class ConfigurationHealthCheckTests {
             configData["Providers:Stability:ApiKey"] = "sk-test-stability-key";
         }
         configData["Providers:Stability:Token:Model"] = "SD35";
-        configData["Providers:Stability:Portrait:Model"] = "CORE";
+        configData["Providers:Stability:Display:Model"] = "CORE";
 
         return new ConfigurationBuilder()
             .AddInMemoryCollection(configData)

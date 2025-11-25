@@ -44,10 +44,10 @@ public class ConfigurationServiceTests {
 
     [Fact]
     public async Task GetServiceConfigurationAsync_WithFrontend_ReturnsFrontendConfiguration() {
-        var result = await _sut.GetServiceConfigurationAsync("Frontend", TestContext.Current.CancellationToken);
+        var result = await _sut.GetServiceConfigurationAsync("WebClientApp", TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result.ServiceName.Should().Be("Frontend");
+        result.ServiceName.Should().Be("WebClientApp");
         result.Entries.Should().NotBeNull();
     }
 

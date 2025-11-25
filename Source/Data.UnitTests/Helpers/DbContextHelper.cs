@@ -2,7 +2,7 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
-using MonsterAssetEntity = VttTools.Data.Assets.Entities.MonsterAsset;
+using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 
 namespace VttTools.Data.Helpers;
 
@@ -30,7 +30,7 @@ internal static class DbContextHelper {
         => context.Dispose();
 
     private static void SeedAssets(ApplicationDbContext context, Guid currentUserId) {
-        // First add Tokens that will be referenced by Assets
+        // First add AssetTokens that will be referenced by Assets
         var resources = new[] {
             CreateTestResourceEntity("Asset 1 Display"),
             CreateTestResourceEntity("Asset 2 Display"),
@@ -40,12 +40,12 @@ internal static class DbContextHelper {
         context.Resources.AddRange(resources);
         context.SaveChanges();
 
-        // Then add Assets that reference the Tokens
+        // Then add Assets that reference the AssetTokens
         var assets = new[] {
-            CreateTestAssetEntity("Asset 1", AssetKind.Monster, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
+            CreateTestAssetEntity("Asset 1", isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
             CreateTestAssetEntity("Asset 2", ownerId: currentUserId, displayId: resources[1].Id),
-            CreateTestAssetEntity("Asset 3", AssetKind.Monster, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
-            CreateTestAssetEntity("Asset 4", AssetKind.Monster, isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), displayId: resources[3].Id),
+            CreateTestAssetEntity("Asset 3", isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
+            CreateTestAssetEntity("Asset 4", isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), displayId: resources[3].Id),
         };
 
         context.Assets.AddRange(assets);
@@ -53,7 +53,7 @@ internal static class DbContextHelper {
     }
 
     private static void SeedLibrary(ApplicationDbContext context, Guid currentUserId) {
-        // First add Tokens for Adventures and Encounters
+        // First add AssetTokens for Adventures and Encounters
         var adventureResources = new[] {
             CreateTestResourceEntity("Adventure 1 Background"),
             CreateTestResourceEntity("Adventure 2 Background"),
@@ -68,7 +68,7 @@ internal static class DbContextHelper {
         context.Resources.AddRange(encounterResources);
         context.SaveChanges();
 
-        // Then add Adventures that reference the Tokens
+        // Then add Adventures that reference the AssetTokens
         var adventures = new[] {
             CreateTestAdventureEntity("Adventure 1", isPublished: true, isPublic: true, ownerId: currentUserId, backgroundId: adventureResources[0].Id),
             CreateTestAdventureEntity("Adventure 2", ownerId: currentUserId, backgroundId: adventureResources[1].Id),
@@ -148,23 +148,20 @@ internal static class DbContextHelper {
             },
         };
 
-    public static MonsterAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
+    public static AssetEntity CreateTestAssetEntity(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => new() {
             Id = id,
             Name = name,
-            Kind = kind,
+            Classification = new(AssetKind.Creature, "test-category", "test-type", null),
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
             PortraitId = displayId,
-            TopDownId = displayId,
-            MiniatureId = displayId,
-            PhotoId = displayId,
         };
 
-    public static MonsterAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Monster, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
-        => CreateTestAssetEntity(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId, displayId);
+    public static AssetEntity CreateTestAssetEntity(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
+        => CreateTestAssetEntity(Guid.CreateVersion7(), name, isPublished, isPublic, ownerId, displayId);
 
     public static GameSessionEntity CreateTestGameSessionEntity(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {
@@ -186,9 +183,8 @@ internal static class DbContextHelper {
             FileName = fileName,
             ContentType = "image/png",
             FileLength = 1000,
-            ImageSize = new(100, 100),
+            Size = new(100, 100),
             Duration = TimeSpan.Zero,
-            Tags = [],
         };
 
     public static Adventure CreateTestAdventure(Guid id, string name, bool isPublished = false, bool isPublic = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null) => new() {
@@ -203,14 +199,11 @@ internal static class DbContextHelper {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = "test/adventure-background.jpg",
-            Metadata = new ResourceMetadata {
-                FileName = $"{name}_background.jpg",
-                ContentType = "image/jpeg",
-                FileLength = 2000,
-                ImageSize = new(1920, 1080),
-                Duration = TimeSpan.Zero,
-            },
-            Tags = [],
+            FileName = $"{name}_background.jpg",
+            ContentType = "image/jpeg",
+            FileLength = 2000,
+            Size = new(1920, 1080),
+            Duration = TimeSpan.Zero,
         },
         Encounters = [],
     };
@@ -228,14 +221,11 @@ internal static class DbContextHelper {
                     Id = Guid.CreateVersion7(),
                     Type = ResourceType.Image,
                     Path = "asset/1234",
-                    Metadata = new() {
-                        FileName = "some_file.png",
-                        ImageSize = new(10, 20),
-                        ContentType = "image/png",
-                        Duration = TimeSpan.Zero,
-                        FileLength = 2000,
-                    },
-                    Tags = [],
+                    FileName = "some_file.png",
+                    Size = new(10, 20),
+                    ContentType = "image/png",
+                    Duration = TimeSpan.Zero,
+                    FileLength = 2000,
                 },
                 ZoomLevel = 1,
                 Panning = new(0, 0),
@@ -243,14 +233,11 @@ internal static class DbContextHelper {
                     Id = Guid.CreateVersion7(),
                     Type = ResourceType.Audio,
                     Path = "asset/5678",
-                    Metadata = new() {
-                        FileName = "some_file.mp3",
-                        ImageSize = new(0, 0),
-                        ContentType = "audio/mpeg",
-                        Duration = TimeSpan.FromMinutes(2),
-                        FileLength = 2000,
-                    },
-                    Tags = [],
+                    FileName = "some_file.mp3",
+                    Size = new(0, 0),
+                    ContentType = "audio/mpeg",
+                    Duration = TimeSpan.FromMinutes(2),
+                    FileLength = 2000,
                 },
                 Light = Light.Nighttime,
                 Weather = Weather.Fog,
@@ -264,11 +251,12 @@ internal static class DbContextHelper {
             },
         };
 
-    public static MonsterAsset CreateTestAsset(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
+    public static Asset CreateTestAsset(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
         var imageId = Guid.CreateVersion7();
         return new() {
             Id = id,
             Name = name,
+            Classification = new(AssetKind.Creature, "test-category", "test-type", null),
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
@@ -277,32 +265,28 @@ internal static class DbContextHelper {
                 Id = imageId,
                 Type = ResourceType.Image,
                 Path = "test/path",
-                Metadata = new ResourceMetadata {
-                    FileName = $"{name}_portrait.png",
-                    ContentType = "image/png",
-                    FileLength = 1000,
-                    ImageSize = new(100, 100),
-                    Duration = TimeSpan.Zero,
-                },
-                Tags = [],
+                FileName = $"{name}_portrait.png",
+                ContentType = "image/png",
+                FileLength = 1000,
+                Size = new(100, 100),
+                Duration = TimeSpan.Zero,
             },
-            TopDown = new() {
-                Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
-                Path = "test/path",
-                Metadata = new ResourceMetadata {
+            Tokens = [
+                new() {
+                    Id = Guid.CreateVersion7(),
+                    Type = ResourceType.Image,
+                    Path = "test/path",
                     FileName = $"{name}_topdown.png",
                     ContentType = "image/png",
                     FileLength = 1000,
-                    ImageSize = new(100, 100),
+                    Size = new(100, 100),
                     Duration = TimeSpan.Zero,
-                },
-                Tags = [],
-            },
+                }
+            ],
         };
     }
 
-    public static MonsterAsset CreateTestAsset(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
+    public static Asset CreateTestAsset(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
         => CreateTestAsset(Guid.CreateVersion7(), name, isPublished, isPublic, ownerId);
 
     public static GameSession CreateTestGameSession(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)

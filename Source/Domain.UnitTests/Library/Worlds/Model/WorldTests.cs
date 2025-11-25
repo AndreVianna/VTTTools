@@ -28,11 +28,8 @@ public class WorldTests {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = "assets/world-background.png",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/png",
-                ImageSize = new Size(1920, 1080),
-            },
-            Tags = ["world", "background"],
+            ContentType = "image/png",
+            Size = new Size(1920, 1080),
         };
         var campaign = new Campaign { Id = Guid.CreateVersion7() };
         var adventure = new Adventure { Id = Guid.CreateVersion7() };

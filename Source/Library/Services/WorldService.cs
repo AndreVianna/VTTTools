@@ -41,7 +41,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
             Name = data.Name,
             Description = data.Description,
             Background = data.BackgroundId.HasValue
-                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct)
+                ? await mediaStorage.FindByIdAsync(data.BackgroundId.Value, ct)
                 : null,
             IsPublished = data.IsPublished,
             IsPublic = data.IsPublic,
@@ -88,7 +88,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
             Description = data.Description.IsSet ? data.Description.Value : world.Description,
             Background = data.BackgroundId.IsSet
                 ? data.BackgroundId.Value.HasValue
-                    ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value.Value, ct)
+                    ? await mediaStorage.FindByIdAsync(data.BackgroundId.Value.Value, ct)
                     : null
                 : world.Background,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : world.IsPublished,

@@ -285,13 +285,13 @@ public sealed class DoctorCommandTests : IDisposable {
         if (hasStabilityKey) {
             configData["Providers:Stability:ApiKey"] = "sk-test-stability-key";
             configData["Providers:Stability:Token:Model"] = "SD35";
-            configData["Providers:Stability:Portrait:Model"] = "CORE";
+            configData["Providers:Stability:Display:Model"] = "CORE";
             configData["Providers:Stability:BaseUrl"] = "https://api.stability.ai";
             configData["Providers:Stability:HealthPath"] = "/v1/user/account";
         }
         else {
             configData["Providers:Stability:Token:Model"] = "SD35";
-            configData["Providers:Stability:Portrait:Model"] = "CORE";
+            configData["Providers:Stability:Display:Model"] = "CORE";
         }
 
         return new ConfigurationBuilder()

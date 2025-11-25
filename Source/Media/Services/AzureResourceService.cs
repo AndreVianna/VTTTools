@@ -12,19 +12,19 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
         var blobClient = await GetBlobClient(data.Path, ct);
         var options = new BlobUploadOptions {
             Metadata = new Dictionary<string, string> {
-                ["ContentType"] = data.Metadata.ContentType,
-                ["FileName"] = data.Metadata.FileName,
-                ["FileLength"] = data.Metadata.FileLength.ToString(),
-                ["Width"] = data.Metadata.ImageSize.Width.ToString(),
-                ["Height"] = data.Metadata.ImageSize.Height.ToString(),
-                ["Duration"] = data.Metadata.Duration.ToString(),
+                ["ContentType"] = data.ContentType,
+                ["FileName"] = data.FileName,
+                ["FileLength"] = data.FileLength.ToString(),
+                ["Width"] = data.ImageSize.Width.ToString(),
+                ["Height"] = data.ImageSize.Height.ToString(),
+                ["Duration"] = data.Duration.ToString(),
                 ["OwnerId"] = ownerId.ToString(),
                 ["EntityType"] = entityType,
                 ["EntityId"] = entityId?.ToString() ?? "",
                 ["IsPublic"] = isPublic.ToString()
             },
             HttpHeaders = new() {
-                ContentType = data.Metadata.ContentType,
+                ContentType = data.ContentType,
             },
         };
         var response = await blobClient.UploadAsync(stream, options, ct);
@@ -32,8 +32,8 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
             return Result.Failure<Resource>(null!, response.GetRawResponse().ReasonPhrase);
 
         // Determine ResourceType from file metadata
-        var resourceType = data.Metadata.Duration > TimeSpan.Zero ? ResourceType.Video
-            : data.Metadata.ContentType.Contains("gif") || data.Metadata.ContentType.Contains("webp") ? ResourceType.Animation
+        var resourceType = data.Duration > TimeSpan.Zero ? ResourceType.Video
+            : data.ContentType.Contains("gif") || data.ContentType.Contains("webp") ? ResourceType.Animation
             : ResourceType.Image;
 
         // Extract resource ID from path (format: "resourceType/guid-suffix/guid")
@@ -45,9 +45,19 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
         var resource = new Resource {
             Id = resourceId,
             Type = resourceType,
+            Description = data.Description,
+            Features = [..data.Attributes],
+
             Path = data.Path,
-            Metadata = data.Metadata,
-            Tags = data.Tags,
+            ContentType = data.ContentType,
+            FileLength = data.FileLength,
+            FileName = data.FileName,
+            Duration = data.Duration,
+            Size = data.ImageSize,
+
+            OwnerId = ownerId,
+            IsPublished = false,
+            IsPublic = isPublic,
         };
         await mediaStorage.AddAsync(resource, ct);
 
@@ -56,23 +66,18 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
 
     /// <inheritdoc />
     public async Task<Result> UpdateResourceAsync(Guid id, UpdateResourceData data, CancellationToken ct = default) {
-        var resource = await mediaStorage.GetByIdAsync(id, ct);
+        var resource = await mediaStorage.FindByIdAsync(id, ct);
         if (resource is null)
             return Result.Failure("NotFound");
-        if (!data.Tags.IsSet)
-            return Result.Success();
-
-        var tags = data.Tags.Value.Items.Length > 0
-            ? data.Tags.Value.Items
-            : resource.Tags.Union(data.Tags.Value.Add).Except(data.Tags.Value.Remove);
-        resource = resource with { Tags = [.. tags] };
+        resource = resource with { Description = data.Description.IsSet ? data.Description.Value : resource.Description };
+        resource = resource with { Features = data.Attributes.IsSet ? data.Attributes.Value : resource.Features };
         await mediaStorage.UpdateAsync(resource, ct);
         return Result.Success();
     }
 
     /// <inheritdoc />
     public async Task<Result> DeleteResourceAsync(Guid id, CancellationToken ct = default) {
-        var resource = await mediaStorage.GetByIdAsync(id, ct);
+        var resource = await mediaStorage.FindByIdAsync(id, ct);
         if (resource is null)
             return Result.Failure("NotFound");
         var blobClient = await GetBlobClient(resource.Path, ct);
@@ -85,7 +90,7 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
 
     /// <inheritdoc />
     public async Task<ResourceFile?> ServeResourceAsync(Guid id, CancellationToken ct = default) {
-        var resource = await mediaStorage.GetByIdAsync(id, ct);
+        var resource = await mediaStorage.FindByIdAsync(id, ct);
         if (resource is null)
             return null;
         var blobClient = await GetBlobClient(resource.Path, ct);
@@ -95,20 +100,20 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
             : new() {
                 Stream = response.Value.Content,
                 ContentType = response.Value.ContentType,
-                FileName = response.Value.Details?.Metadata["FileName"] ?? resource.Metadata.FileName,
+                FileName = response.Value.Details?.Metadata["FileName"] ?? resource.FileName,
                 FileLength = ulong.TryParse(response.Value.Details?.Metadata["FileLength"], out var fileLength)
                     ? fileLength
-                    : resource.Metadata.FileLength,
+                    : resource.FileLength,
                 ImageSize = new Size(
                     int.TryParse(response.Value.Details?.Metadata["Width"], out var width)
                         ? width
-                        : resource.Metadata.ImageSize.Width,
+                        : resource.Size.Width,
                     int.TryParse(response.Value.Details?.Metadata["Height"], out var height)
                         ? height
-                        : resource.Metadata.ImageSize.Height),
+                        : resource.Size.Height),
                 Duration = TimeSpan.TryParse(response.Value.Details?.Metadata["Duration"], out var duration)
                     ? duration
-                    : resource.Metadata.Duration,
+                    : resource.Duration,
             };
     }
 

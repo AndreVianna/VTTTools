@@ -1,4 +1,3 @@
-
 using static VttTools.Utilities.ErrorCollectionExtensions;
 
 using IResult = Microsoft.AspNetCore.Http.IResult;
@@ -8,61 +7,67 @@ namespace VttTools.Assets.Handlers;
 internal static class AssetHandlers {
     internal static async Task<IResult> GetAssetsHandler(
         HttpContext context,
+        [FromQuery] string? availability,
         [FromQuery] string? kind,
+        [FromQuery] string? category,
+        [FromQuery] string? type,
+        [FromQuery] string? subtype,
         [FromQuery] string? search,
-        [FromQuery] bool? published,
-        [FromQuery] string? owner,
-        [FromQuery] int? page,
+        [FromQuery] int? pageIndex,
         [FromQuery] int? pageSize,
         [FromServices] IAssetService assetService) {
+        var cts = new CancellationTokenSource();
 
         var userId = context.User.GetUserId();
 
-        // Parse kind filter
-        AssetKind? kindFilter = null;
-        if (!string.IsNullOrEmpty(kind) && Enum.TryParse<AssetKind>(kind, ignoreCase: true, out var parsedKind)) {
-            kindFilter = parsedKind;
-        }
+        var kindFilter = Enum.TryParse<AssetKind>(kind, ignoreCase: true, out var parsedKind)
+            ? parsedKind
+            : (AssetKind?)null;
 
-        // If pagination requested, use paged endpoint
-        if (page.HasValue && pageSize.HasValue) {
-            var skip = (page.Value - 1) * pageSize.Value;
-            var (assets, totalCount) = await assetService.GetAssetsPagedAsync(userId, kindFilter, search, published, owner, skip, pageSize.Value);
-            return Results.Ok(new {
-                data = assets,
-                page = page.Value,
-                pageSize = pageSize.Value,
-                totalCount,
-                totalPages = (int)Math.Ceiling(totalCount / (double)pageSize.Value)
-            });
-        }
+        var availabilityFilter = Enum.TryParse<Availability>(availability, ignoreCase: true, out var parsedAvailability)
+            ? parsedAvailability
+            : (Availability?)null;
 
-        // No pagination - return all assets
-        var allAssets = await assetService.GetAssetsAsync(userId, kindFilter, search, published, owner);
-        return Results.Ok(allAssets);
+        var pagination = pageIndex.HasValue && pageSize.HasValue && pageIndex.Value >= 0 && pageSize.Value >= 1
+            ? new Pagination(pageIndex.Value, pageSize.Value)
+            : null;
+
+        var result = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, pagination, cts.Token);
+        return Results.Ok(result);
     }
 
-    internal static async Task<IResult> GetAssetByIdHandler([FromRoute] Guid id, [FromServices] IAssetService assetService)
-        => await assetService.GetAssetByIdAsync(id) is { } asset
-               ? Results.Ok(asset)
-               : Results.NotFound();
+    internal static async Task<IResult> GetAssetByIdHandler(
+        HttpContext context,
+        [FromRoute] Guid id,
+        [FromServices] IAssetService assetService) {
+        var cts = new CancellationTokenSource();
+
+        var userId = context.User.GetUserId();
+        var asset = await assetService.GetAssetByIdAsync(userId, id, cts.Token);
+
+        if (asset == null)
+            return Results.NotFound();
+
+        if (asset.OwnerId != userId && !(asset.IsPublic && asset.IsPublished))
+            return Results.Forbid();
+
+        asset = asset with { Tokens = [..asset.Tokens.Where(v => v.OwnerId == userId || (v.IsPublic && v.IsPublished))] };
+
+        return Results.Ok(asset);
+    }
 
     internal static async Task<IResult> CreateAssetHandler(HttpContext context, [FromBody] CreateAssetRequest request, [FromServices] IAssetService assetService) {
         var userId = context.User.GetUserId();
         var data = new CreateAssetData {
             Kind = request.Kind,
+            Category = request.Category,
+            Type = request.Type,
+            Subtype = request.Subtype,
             Name = request.Name,
             Description = request.Description,
             PortraitId = request.PortraitId,
-            TopDownId = request.TopDownId,
-            MiniatureId = request.MiniatureId,
-            PhotoId = request.PhotoId,
-            Size = request.Size,
-            IsPublished = request.IsPublished,
-            IsPublic = request.IsPublic,
-            ObjectData = request.ObjectData,
-            MonsterData = request.MonsterData,
-            CharacterData = request.CharacterData,
+            TokenSize = request.TokenSize,
+            TokenId = request.TokenId,
         };
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
@@ -76,18 +81,16 @@ internal static class AssetHandlers {
         var userId = context.User.GetUserId();
 
         var data = new UpdateAssetData {
+            Kind = request.Kind,
+            Category = request.Category,
+            Type = request.Type,
+            Subtype = request.Subtype,
             Name = request.Name,
             Description = request.Description,
-            Size = request.Size,
             PortraitId = request.PortraitId,
-            TopDownId = request.TopDownId,
-            MiniatureId = request.MiniatureId,
-            PhotoId = request.PhotoId,
+            TokenSize = request.TokenSize,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
-            ObjectData = request.ObjectData,
-            MonsterData = request.MonsterData,
-            CharacterData = request.CharacterData,
         };
 
         var result = await assetService.UpdateAssetAsync(userId, id, data);

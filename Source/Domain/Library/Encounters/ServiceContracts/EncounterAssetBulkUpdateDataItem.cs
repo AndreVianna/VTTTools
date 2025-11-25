@@ -20,7 +20,7 @@ public record EncounterAssetBulkUpdateDataItem
         if (Size.IsSet) {
             var size = Size.Value;
             if (size.Width <= 0 || size.Height <= 0)
-                return Result.Failure("Size dimensions must be positive");
+                return Result.Failure("TokenSize dimensions must be positive");
         }
 
         return Rotation.IsSet && (Rotation.Value < 0 || Rotation.Value >= 360)

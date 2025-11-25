@@ -11,6 +11,7 @@ global using System.Text.RegularExpressions;
 global using Azure;
 global using Azure.Storage.Blobs;
 
+global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Authentication;

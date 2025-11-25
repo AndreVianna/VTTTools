@@ -153,10 +153,8 @@ public class AdventureServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/background",
-                Metadata = new ResourceMetadata {
-                    FileName = "background.png",
-                    ContentType = "image/png",
-                },
+                FileName = "background.png",
+                ContentType = "image/png",
             },
         };
         var request = new UpdatedAdventureData {
@@ -208,10 +206,8 @@ public class AdventureServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/adventure-background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/jpeg",
+                Size = new Size(1920, 1080),
             },
         };
         var request = new UpdatedAdventureData {
@@ -359,10 +355,8 @@ public class AdventureServiceTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "adventures/background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new Size(1920, 1080),
-                },
+                ContentType = "image/jpeg",
+                Size = new Size(1920, 1080),
             },
         };
         var encounters = new[] {
@@ -377,8 +371,7 @@ public class AdventureServiceTests {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
                         Path = "path/to/image.png",
-                        Metadata = new() { ImageSize = new Size(100, 200) },
-                        Tags = ["encounter", "background"],
+                        Size = new Size(100, 200),
                     },
                     Light = Light.Twilight,
                     Weather = Weather.Clear,
@@ -387,8 +380,8 @@ public class AdventureServiceTests {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Audio,
                         Path = "path/to/sound.mp3",
-                        Metadata = new() { ContentType = "audio/mpeg", Duration = TimeSpan.FromMinutes(3) },
-                        Tags = ["ambient", "background"],
+                        ContentType = "audio/mpeg",
+                        Duration = TimeSpan.FromMinutes(3),
                     },
                 },
                 Assets = [

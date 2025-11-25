@@ -73,13 +73,11 @@ public static class Cloner {
             Id = original.Id,
             Type = original.Type,
             Path = original.Path,
-            Metadata = new() {
-                ContentType = original.Metadata.ContentType,
-                FileName = original.Metadata.FileName,
-                FileLength = original.Metadata.FileLength,
-                ImageSize = original.Metadata.ImageSize,
-                Duration = original.Metadata.Duration,
-            },
-            Tags = [.. original.Tags],
+            ContentType = original.ContentType,
+            FileName = original.FileName,
+            FileLength = original.FileLength,
+            Size = original.Size,
+            Duration = original.Duration,
+            Features = [.. original.Features],
         };
 }

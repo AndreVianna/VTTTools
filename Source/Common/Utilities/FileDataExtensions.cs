@@ -4,7 +4,7 @@ using Size = VttTools.Common.Model.Size;
 namespace VttTools.Utilities;
 
 public static class FileDataExtensions {
-    public static async Task<Result<AddResourceData>> ToData(this IFileData file, string path, Stream stream, params string[] tags) {
+    public static async Task<Result<AddResourceData>> ToData(this IFileData file, string path, Stream stream, Map<HashSet<string>>? attributes = null) {
         var result = await GetFileData(file.FileName, stream);
         if (stream.CanSeek)
             stream.Position = 0;
@@ -12,14 +12,12 @@ public static class FileDataExtensions {
             true => Result.Failure(result.Errors),
             _ => new AddResourceData {
                 Path = path,
-                Metadata = new ResourceMetadata {
-                    ContentType = GetContentType(file.FileName, file.ContentType),
-                    FileName = file.FileName,
-                    FileLength = (ulong)file.Length,
-                    ImageSize = new Size(result.Value.Size.Width, result.Value.Size.Height),
-                    Duration = result.Value.Duration,
-                },
-                Tags = tags,
+                ContentType = GetContentType(file.FileName, file.ContentType),
+                FileName = file.FileName,
+                FileLength = (ulong)file.Length,
+                ImageSize = new Size(result.Value.Size.Width, result.Value.Size.Height),
+                Duration = result.Value.Duration,
+                Attributes = attributes ?? [],
             },
         };
     }

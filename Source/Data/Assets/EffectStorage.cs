@@ -10,7 +10,7 @@ public class EffectStorage(ApplicationDbContext context) {
     public async Task<Effect[]> GetByOwnerAsync(Guid ownerId, CancellationToken ct = default) {
         var entities = await context.Effects
             .Include(e => e.Image)
-            .AsNoTrackingWithIdentityResolution()
+            .AsNoTracking()
             .Where(e => e.OwnerId == ownerId)
             .ToArrayAsync(ct);
 
@@ -23,7 +23,7 @@ public class EffectStorage(ApplicationDbContext context) {
     public async Task<Effect?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Effects
             .Include(e => e.Image)
-            .AsNoTrackingWithIdentityResolution()
+            .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
         return entity != null ? ToModel(entity) : null;
@@ -64,14 +64,12 @@ public class EffectStorage(ApplicationDbContext context) {
                 Id = entity.Image.Id,
                 Type = entity.Image.Type,
                 Path = entity.Image.Path,
-                Metadata = new() {
-                    ContentType = entity.Image.ContentType,
-                    FileName = entity.Image.FileName,
-                    FileLength = entity.Image.FileLength,
-                    ImageSize = entity.Image.ImageSize,
-                    Duration = entity.Image.Duration
-                },
-                Tags = entity.Image.Tags
+                ContentType = entity.Image.ContentType,
+                FileName = entity.Image.FileName,
+                FileLength = entity.Image.FileLength,
+                Size = entity.Image.Size,
+                Duration = entity.Image.Duration,
+                Features = [..entity.Image.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())]
             } : null,
             Category = entity.Category,
             CreatedAt = entity.CreatedAt

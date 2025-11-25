@@ -30,13 +30,11 @@ public class AzureResourceServiceTests {
         const string fileName = "test-image.png";
         var file = new AddResourceData {
             Path = $"images/{guidSuffix}/{guidString}",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/png",
-                FileLength = 12345,
-                ImageSize = new(100, 100),
-                Duration = TimeSpan.Zero,
-                FileName = fileName,
-            },
+            ContentType = "image/png",
+            FileLength = 12345,
+            ImageSize = new(100, 100),
+            Duration = TimeSpan.Zero,
+            FileName = fileName,
         };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -62,13 +60,11 @@ public class AzureResourceServiceTests {
         const string fileName = "test-image.png";
         var file = new AddResourceData {
             Path = $"images/{guidSuffix}/{guidString}",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/png",
-                FileLength = 12345,
-                ImageSize = new(100, 100),
-                Duration = TimeSpan.Zero,
-                FileName = fileName,
-            },
+            ContentType = "image/png",
+            FileLength = 12345,
+            ImageSize = new(100, 100),
+            Duration = TimeSpan.Zero,
+            FileName = fileName,
         };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -94,13 +90,11 @@ public class AzureResourceServiceTests {
             Id = id,
             Path = "test/path",
             Type = ResourceType.Image,
-            Metadata = new ResourceMetadata {
-                FileName = "test.png",
-                ContentType = "image/png",
-            },
+            FileName = "test.png",
+            ContentType = "image/png",
         };
 
-        _mediaStorage.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
+        _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
         _blobClient.DeleteIfExistsAsync(
                 DeleteSnapshotsOption.IncludeSnapshots,
                 null,
@@ -122,7 +116,7 @@ public class AzureResourceServiceTests {
         // Arrange
         var id = Guid.CreateVersion7();
 
-        _mediaStorage.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Resource?)null);
+        _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Resource?)null);
 
         // Act
         var result = await _service.DeleteResourceAsync(id, _ct);

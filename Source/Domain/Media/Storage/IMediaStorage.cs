@@ -10,9 +10,14 @@ public interface IMediaStorage {
     Task<Resource[]> GetAllAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Searches for resource templates matching the specified criteria.
+    /// </summary>
+    Task<Resource[]> SearchAsync(string search, CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves an resource by its ID.
     /// </summary>
-    Task<Resource?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Resource?> FindByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a new resource template.

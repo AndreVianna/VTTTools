@@ -28,11 +28,8 @@ public class EncounterTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "path/to/image.png",
-                Metadata = new() {
-                    ContentType = "image/png",
-                    ImageSize = new Size(800, 600),
-                },
-                Tags = ["tag1", "tag2"],
+                ContentType = "image/png",
+                Size = new Size(800, 600),
             },
             Light = Light.Twilight,
             Weather = Weather.Clear,
@@ -41,11 +38,8 @@ public class EncounterTests {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Audio,
                 Path = "path/to/sound.mp3",
-                Metadata = new() {
-                    ContentType = "audio/mpeg",
-                    Duration = TimeSpan.FromMinutes(3),
-                },
-                Tags = ["ambient", "background"],
+                ContentType = "audio/mpeg",
+                Duration = TimeSpan.FromMinutes(3),
             },
         };
         var encounterAsset = new EncounterAsset();

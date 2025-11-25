@@ -66,15 +66,18 @@ public partial class CreateApplicationSchema : Migration {
             name: "Resources",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Description = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
                 Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Undefined"),
                 ContentType = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                Path = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                Path = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                 FileName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 FileLength = table.Column<decimal>(type: "decimal(20,0)", nullable: false, defaultValue: 0m),
                 Duration = table.Column<TimeSpan>(type: "time", nullable: false, defaultValue: new TimeSpan(0, 0, 0, 0, 0)),
-                Tags = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "[]"),
-                ImageSize_Height = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                ImageSize_Width = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
+                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                IsPublic = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                Size_Height = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                Size_Width = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
             },
             constraints: table => table.PrimaryKey("PK_Resources", x => x.Id));
 
@@ -163,50 +166,24 @@ public partial class CreateApplicationSchema : Migration {
             name: "Assets",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Kind = table.Column<string>(type: "nvarchar(max)", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 PortraitId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                TopDownId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                MiniatureId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                PhotoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                Size_Height = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
-                Size_Width = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
-                StatBlockId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                TokenStyle_BorderColor = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                TokenStyle_BackgroundColor = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                TokenStyle_Shape = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                IsMovable = table.Column<bool>(type: "bit", nullable: true),
-                IsOpaque = table.Column<bool>(type: "bit", nullable: true),
-                TriggerEffectId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                Classification_Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                Classification_Kind = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                Classification_Subtype = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                Classification_Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                TokenSize_Height = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
+                TokenSize_Width = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0)
             },
             constraints: table => {
                 table.PrimaryKey("PK_Assets", x => x.Id);
-                table.CheckConstraint("CK_Asset_Photo_ObjectOnly", "(Kind != 'Object') OR (PhotoId IS NULL)");
-                table.ForeignKey(
-                    name: "FK_Assets_Resources_MiniatureId",
-                    column: x => x.MiniatureId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-                table.ForeignKey(
-                    name: "FK_Assets_Resources_PhotoId",
-                    column: x => x.PhotoId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Assets_Resources_PortraitId",
                     column: x => x.PortraitId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-                table.ForeignKey(
-                    name: "FK_Assets_Resources_TopDownId",
-                    column: x => x.TopDownId,
                     principalTable: "Resources",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -235,6 +212,24 @@ public partial class CreateApplicationSchema : Migration {
                     principalTable: "Resources",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "ResourceFeatures",
+            columns: table => new {
+                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Key = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
+                Value = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_ResourceFeatures", x => new { x.ResourceId, x.Key, x.Index });
+                table.ForeignKey(
+                    name: "FK_ResourceFeatures_Resources_ResourceId",
+                    column: x => x.ResourceId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
             });
 
         migrationBuilder.CreateTable(
@@ -272,6 +267,48 @@ public partial class CreateApplicationSchema : Migration {
                     name: "FK_Participants_Schedule_ScheduleId",
                     column: x => x.ScheduleId,
                     principalTable: "Schedule",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "AssetStatBlockValues",
+            columns: table => new {
+                AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Level = table.Column<int>(type: "int", nullable: false),
+                Key = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                Value = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
+                Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AssetStatBlockValues", x => new { x.AssetId, x.Level, x.Key });
+                table.ForeignKey(
+                    name: "FK_AssetStatBlockValues_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "AssetTokens",
+            columns: table => new {
+                AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                TokenId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AssetTokens", x => new { x.AssetId, x.TokenId });
+                table.ForeignKey(
+                    name: "FK_AssetTokens_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_AssetTokens_Resources_TokenId",
+                    column: x => x.TokenId,
+                    principalTable: "Resources",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
             });
@@ -574,13 +611,6 @@ public partial class CreateApplicationSchema : Migration {
             value: null);
 
         migrationBuilder.CreateIndex(
-            name: "IX_Users_AvatarId",
-            table: "Users",
-            column: "AvatarId",
-            unique: true,
-            filter: "[AvatarId] IS NOT NULL");
-
-        migrationBuilder.CreateIndex(
             name: "IX_Adventures_BackgroundId",
             table: "Adventures",
             column: "BackgroundId");
@@ -596,24 +626,20 @@ public partial class CreateApplicationSchema : Migration {
             column: "WorldId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Assets_MiniatureId",
-            table: "Assets",
-            column: "MiniatureId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Assets_PhotoId",
-            table: "Assets",
-            column: "PhotoId");
-
-        migrationBuilder.CreateIndex(
             name: "IX_Assets_PortraitId",
             table: "Assets",
             column: "PortraitId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Assets_TopDownId",
-            table: "Assets",
-            column: "TopDownId");
+            name: "IX_AssetTokens_AssetId_Index",
+            table: "AssetTokens",
+            columns: ["AssetId", "Index"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AssetTokens_TokenId",
+            table: "AssetTokens",
+            column: "TokenId");
 
         migrationBuilder.CreateIndex(
             name: "IX_AuditLogs_Action",
@@ -746,21 +772,15 @@ public partial class CreateApplicationSchema : Migration {
             name: "IX_Worlds_BackgroundId",
             table: "Worlds",
             column: "BackgroundId");
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Users_Resources_AvatarId",
-            table: "Users",
-            column: "AvatarId",
-            principalTable: "Resources",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.SetNull);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder) {
-        migrationBuilder.DropForeignKey(
-            name: "FK_Users_Resources_AvatarId",
-            table: "Users");
+        migrationBuilder.DropTable(
+            name: "AssetStatBlockValues");
+
+        migrationBuilder.DropTable(
+            name: "AssetTokens");
 
         migrationBuilder.DropTable(
             name: "AuditLogs");
@@ -799,6 +819,9 @@ public partial class CreateApplicationSchema : Migration {
             name: "Players");
 
         migrationBuilder.DropTable(
+            name: "ResourceFeatures");
+
+        migrationBuilder.DropTable(
             name: "StatBlocks");
 
         migrationBuilder.DropTable(
@@ -827,10 +850,6 @@ public partial class CreateApplicationSchema : Migration {
 
         migrationBuilder.DropTable(
             name: "Resources");
-
-        migrationBuilder.DropIndex(
-            name: "IX_Users_AvatarId",
-            table: "Users");
 
         migrationBuilder.DropColumn(
             name: "AvatarId",

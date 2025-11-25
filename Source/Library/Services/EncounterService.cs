@@ -22,7 +22,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             return result;
         var id = Guid.CreateVersion7();
         var stageId = data.BackgroundId ?? Guid.Empty;
-        var background = await mediaStorage.GetByIdAsync(stageId, ct);
+        var background = await mediaStorage.FindByIdAsync(stageId, ct);
         var encounter = new Encounter {
             Id = id,
             Name = data.Name,
@@ -31,9 +31,19 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
                 Background = new() {
                     Id = stageId,
                     Type = background?.Type ?? ResourceType.Undefined,
+                    Description = background?.Description ?? string.Empty,
+                    ContentType = background?.ContentType ?? string.Empty,
+
                     Path = background?.Path ?? string.Empty,
-                    Metadata = background?.Metadata ?? new(),
-                    Tags = background?.Tags ?? [],
+                    Features = background?.Features ?? [],
+                    FileName = background?.FileName ?? string.Empty,
+                    FileLength = background?.FileLength ?? 0,
+                    Size = background?.Size ?? Size.Zero,
+                    Duration = background?.Duration ?? TimeSpan.Zero,
+
+                    OwnerId = background?.OwnerId ?? Guid.Empty,
+                    IsPublished = background?.IsPublished ?? false,
+                    IsPublic = background?.IsPublic ?? false,
                 },
             },
             Grid = data.Grid,
@@ -96,15 +106,25 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
 
     private async Task<Encounter> SetBackground(Encounter encounter, EncounterUpdateData data, CancellationToken ct) {
         var backgroundId = data.Stage.Value.BackgroundId.Value ?? Guid.Empty;
-        var background = await mediaStorage.GetByIdAsync(backgroundId, ct);
+        var background = await mediaStorage.FindByIdAsync(backgroundId, ct);
         return encounter with {
             Stage = encounter.Stage with {
                 Background = new() {
                     Id = background?.Id ?? Guid.Empty,
-                    Type = background?.Type ?? ResourceType.Image,
+                    Type = background?.Type ?? ResourceType.Undefined,
+                    Description = background?.Description ?? string.Empty,
+                    ContentType = background?.ContentType ?? string.Empty,
+
                     Path = background?.Path ?? string.Empty,
-                    Metadata = background?.Metadata ?? new(),
-                    Tags = background?.Tags ?? [],
+                    Features = background?.Features ?? [],
+                    FileName = background?.FileName ?? string.Empty,
+                    FileLength = background?.FileLength ?? 0,
+                    Size = background?.Size ?? Size.Zero,
+                    Duration = background?.Duration ?? TimeSpan.Zero,
+
+                    OwnerId = background?.OwnerId ?? Guid.Empty,
+                    IsPublished = background?.IsPublished ?? false,
+                    IsPublic = background?.IsPublic ?? false,
                 },
             },
         };
@@ -119,15 +139,25 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
                 },
             };
         }
-        var sound = await mediaStorage.GetByIdAsync(soundId.Value, ct);
+        var sound = await mediaStorage.FindByIdAsync(soundId.Value, ct);
         return encounter with {
             Stage = encounter.Stage with {
                 Sound = new() {
                     Id = sound?.Id ?? Guid.Empty,
                     Type = sound?.Type ?? ResourceType.Audio,
+                    Description = sound?.Description ?? string.Empty,
+                    ContentType = sound?.ContentType ?? string.Empty,
+
                     Path = sound?.Path ?? string.Empty,
-                    Metadata = sound?.Metadata ?? new(),
-                    Tags = sound?.Tags ?? [],
+                    Features = sound?.Features ?? [],
+                    FileName = sound?.FileName ?? string.Empty,
+                    FileLength = sound?.FileLength ?? 0,
+                    Size = sound?.Size ?? Size.Zero,
+                    Duration = sound?.Duration ?? TimeSpan.Zero,
+
+                    OwnerId = sound?.OwnerId ?? Guid.Empty,
+                    IsPublished = sound?.IsPublished ?? false,
+                    IsPublic = sound?.IsPublic ?? false,
                 },
             },
         };
@@ -150,14 +180,14 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         return encounter?.Assets.ToArray() ?? [];
     }
 
-    private static string GenerateAssetInstanceName(Asset asset, uint number) => asset is MonsterAsset ? $"{asset.Name} #{number}" : asset.Name;
+    private static string GenerateAssetInstanceName(Asset asset, uint number) => asset.Classification.Kind == AssetKind.Creature ? $"{asset.Name} #{number}" : asset.Name;
 
     /// <inheritdoc />
     public async Task<Result<EncounterAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, EncounterAssetAddData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var asset = await assetStorage.GetByIdAsync(assetId, ct);
+        var asset = await assetStorage.FindByIdAsync(userId, assetId, ct);
         if (asset is null)
             return Result.Failure("NotFound");
         if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))
@@ -356,7 +386,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             if (result.HasErrors)
                 return result;
 
-            var asset = await assetStorage.GetByIdAsync(assetId, ct);
+            var asset = await assetStorage.FindByIdAsync(userId, assetId, ct);
             if (asset is null)
                 return Result.Failure("Asset not found");
             if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))

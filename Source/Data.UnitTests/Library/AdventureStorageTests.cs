@@ -20,7 +20,7 @@ public class AdventureStorageTests
     [Fact]
     public async Task GetAllAsync_ReturnsAllAdventures() {
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
-        // The seeding works but storage GetAllAsync has complex Include+Select that can't be translated
+        // The seeding works but storage SearchAsync has complex Include+Select that can't be translated
         var entities = await _context.Adventures.ToArrayAsync(_ct);
 
         // Assert that seeding worked correctly
@@ -112,10 +112,11 @@ public class AdventureStorageTests
                 Id = entity.BackgroundId.Value,
                 Type = ResourceType.Image,
                 Path = "adventures/updated-background.jpg",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/jpeg",
-                    ImageSize = new(1920, 1080),
-                },
+                FileName = "updated-background.jpg",
+                ContentType = "image/jpeg",
+                FileLength = 2000,
+                Size = new(1920, 1080),
+                Duration = TimeSpan.Zero,
             } : null,
             IsPublished = true,
             IsPublic = false,

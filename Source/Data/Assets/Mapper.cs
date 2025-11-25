@@ -1,227 +1,143 @@
-using Resource = VttTools.Media.Model.Resource;
 using Asset = VttTools.Assets.Model.Asset;
-using CharacterAsset = VttTools.Assets.Model.CharacterAsset;
-using MonsterAsset = VttTools.Assets.Model.MonsterAsset;
-using ObjectAsset = VttTools.Assets.Model.ObjectAsset;
-using TokenStyle = VttTools.Assets.Model.TokenStyle;
-
-using ResourceEntity = VttTools.Data.Media.Entities.Resource;
+using Resource = VttTools.Media.Model.Resource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
-using MonsterAssetEntity = VttTools.Data.Assets.Entities.MonsterAsset;
-using CharacterAssetEntity = VttTools.Data.Assets.Entities.CharacterAsset;
-using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
-using TokenStyleEntity = VttTools.Data.Assets.Entities.TokenStyle;
+using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
+using ResourceEntity = VttTools.Data.Media.Entities.Resource;
+using VttTools.Data.Assets.Entities;
 
 namespace VttTools.Data.Assets;
 
 internal static class Mapper {
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Asset? ToModel(this AssetEntity? entity)
-        => entity switch {
-            null => null,
-            ObjectAssetEntity obj => new ObjectAsset {
-                Id = obj.Id,
-                OwnerId = obj.OwnerId,
-                Name = obj.Name,
-                Description = obj.Description,
-                IsPublic = obj.IsPublic,
-                IsPublished = obj.IsPublished,
-                Portrait = obj.Portrait?.ToModel(),
-                TopDown = obj.TopDown?.ToModel(),
-                Miniature = obj.Miniature?.ToModel(),
-                Photo = obj.Photo?.ToModel(),
-                Size = new NamedSize {
-                    Width = Math.Round(obj.Size.Width, 3),
-                    Height = Math.Round(obj.Size.Height, 3),
-                },
-                IsMovable = obj.IsMovable,
-                IsOpaque = obj.IsOpaque,
-                TriggerEffectId = obj.TriggerEffectId
-            },
-            MonsterAssetEntity monster => new MonsterAsset {
-                Id = monster.Id,
-                OwnerId = monster.OwnerId,
-                Name = monster.Name,
-                Description = monster.Description,
-                IsPublic = monster.IsPublic,
-                IsPublished = monster.IsPublished,
-                Portrait = monster.Portrait?.ToModel(),
-                TopDown = monster.TopDown?.ToModel(),
-                Miniature = monster.Miniature?.ToModel(),
-                Photo = monster.Photo?.ToModel(),
-                Size = new NamedSize {
-                    Width = Math.Round(monster.Size.Width, 3),
-                    Height = Math.Round(monster.Size.Height, 3),
-                },
-                StatBlockId = monster.StatBlockId,
-                TokenStyle = monster.TokenStyle != null ? new TokenStyle {
-                    BorderColor = monster.TokenStyle.BorderColor,
-                    BackgroundColor = monster.TokenStyle.BackgroundColor,
-                    Shape = monster.TokenStyle.Shape
-                } : null
-            },
-            CharacterAssetEntity character => new CharacterAsset {
-                Id = character.Id,
-                OwnerId = character.OwnerId,
-                Name = character.Name,
-                Description = character.Description,
-                IsPublic = character.IsPublic,
-                IsPublished = character.IsPublished,
-                Portrait = character.Portrait?.ToModel(),
-                TopDown = character.TopDown?.ToModel(),
-                Miniature = character.Miniature?.ToModel(),
-                Photo = character.Photo?.ToModel(),
-                Size = new NamedSize {
-                    Width = Math.Round(character.Size.Width, 3),
-                    Height = Math.Round(character.Size.Height, 3),
-                },
-                StatBlockId = character.StatBlockId,
-                TokenStyle = character.TokenStyle != null ? new TokenStyle {
-                    BorderColor = character.TokenStyle.BorderColor,
-                    BackgroundColor = character.TokenStyle.BackgroundColor,
-                    Shape = character.TokenStyle.Shape
-                } : null
-            },
-            _ => throw new InvalidOperationException($"Unknown asset entity type: {entity.GetType()}")
+    internal static Expression<Func<AssetEntity, Asset>> AsAsset = entity
+        => new() {
+            Id = entity.Id,
+            OwnerId = entity.OwnerId,
+            Classification = entity.Classification,
+            Name = entity.Name,
+            Description = entity.Description,
+            TokenSize = entity.TokenSize,
+            StatBlocks = entity.StatBlock.GroupBy(stv => stv.Level)
+                .ToDictionary(g => g.Key, g => new Map<StatBlockValue>(g.ToDictionary(k => k.Key, v => new StatBlockValue(
+                    v.Type == AssetStatBlockValueType.Text ? v.Value : null,
+                    v.Type == AssetStatBlockValueType.Number ? decimal.Parse(v.Value!) : null,
+                    v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
+            IsPublic = entity.IsPublic,
+            IsPublished = entity.IsPublished,
+            Portrait = entity.Portrait != null ? entity.Portrait.ToModel() : null,
+            Tokens = entity.AssetTokens.AsQueryable().OrderBy(a => a.Index).Select(AsToken!).ToList(),
         };
 
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static Asset? ToModel(this AssetEntity? entity)
+        => entity is null
+           ? null
+           : new Asset {
+               Id = entity.Id,
+               OwnerId = entity.OwnerId,
+               Classification = entity.Classification,
+               Name = entity.Name,
+               Description = entity.Description,
+               IsPublic = entity.IsPublic,
+               IsPublished = entity.IsPublished,
+               TokenSize = entity.TokenSize,
+               StatBlocks = entity.StatBlock.GroupBy(stv => stv.Level)
+                    .ToDictionary(g => g.Key, g => new Map<StatBlockValue>(g.ToDictionary(k => k.Key, v => new StatBlockValue(
+                        v.Type == AssetStatBlockValueType.Text ? v.Value : null,
+                        v.Type == AssetStatBlockValueType.Number ? decimal.Parse(v.Value!) : null,
+                        v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
+               Portrait = entity.Portrait?.ToModel(),
+               Tokens = [..entity.AssetTokens.Select(v => v.Token.ToModel()!)],
+           };
+
     internal static AssetEntity ToEntity(this Asset model)
-        => model switch {
-            ObjectAsset obj => new ObjectAssetEntity {
-                Id = obj.Id,
-                OwnerId = obj.OwnerId,
-                Kind = AssetKind.Object,
-                Name = obj.Name,
-                Description = obj.Description,
-                PortraitId = obj.Portrait?.Id,
-                TopDownId = obj.TopDown?.Id,
-                MiniatureId = obj.Miniature?.Id,
-                PhotoId = obj.Photo?.Id,
-                IsPublic = obj.IsPublic,
-                IsPublished = obj.IsPublished,
-                Size = new NamedSize {
-                    Width = Math.Round(obj.Size.Width, 3),
-                    Height = Math.Round(obj.Size.Height, 3),
-                },
-                IsMovable = obj.IsMovable,
-                IsOpaque = obj.IsOpaque,
-                TriggerEffectId = obj.TriggerEffectId
-            },
-            MonsterAsset monster => new MonsterAssetEntity {
-                Id = monster.Id,
-                OwnerId = monster.OwnerId,
-                Kind = AssetKind.Monster,
-                Name = monster.Name,
-                Description = monster.Description,
-                PortraitId = monster.Portrait?.Id,
-                TopDownId = monster.TopDown?.Id,
-                MiniatureId = monster.Miniature?.Id,
-                PhotoId = monster.Photo?.Id,
-                IsPublic = monster.IsPublic,
-                IsPublished = monster.IsPublished,
-                Size = new NamedSize {
-                    Width = Math.Round(monster.Size.Width, 3),
-                    Height = Math.Round(monster.Size.Height, 3),
-                },
-                StatBlockId = monster.StatBlockId,
-                TokenStyle = monster.TokenStyle != null ? new TokenStyleEntity {
-                    BorderColor = monster.TokenStyle.BorderColor,
-                    BackgroundColor = monster.TokenStyle.BackgroundColor,
-                    Shape = monster.TokenStyle.Shape
-                } : null
-            },
-            CharacterAsset character => new CharacterAssetEntity {
-                Id = character.Id,
-                OwnerId = character.OwnerId,
-                Kind = AssetKind.Character,
-                Name = character.Name,
-                Description = character.Description,
-                PortraitId = character.Portrait?.Id,
-                TopDownId = character.TopDown?.Id,
-                MiniatureId = character.Miniature?.Id,
-                PhotoId = character.Photo?.Id,
-                IsPublic = character.IsPublic,
-                IsPublished = character.IsPublished,
-                Size = new NamedSize {
-                    Width = Math.Round(character.Size.Width, 3),
-                    Height = Math.Round(character.Size.Height, 3),
-                },
-                StatBlockId = character.StatBlockId,
-                TokenStyle = character.TokenStyle != null ? new TokenStyleEntity {
-                    BorderColor = character.TokenStyle.BorderColor,
-                    BackgroundColor = character.TokenStyle.BackgroundColor,
-                    Shape = character.TokenStyle.Shape
-                } : null
-            },
-            _ => throw new InvalidOperationException($"Unknown asset model type: {model.GetType()}")
+        => new() {
+            Id = model.Id,
+            OwnerId = model.OwnerId,
+            Classification = model.Classification,
+            Name = model.Name,
+            Description = model.Description,
+            IsPublic = model.IsPublic,
+            IsPublished = model.IsPublished,
+            TokenSize = model.TokenSize,
+            StatBlock = [..model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatBlockValue{
+                AssetId = model.Id,
+                Key = g.Key,
+                Level = f.Key,
+                Type = g.Value.IsFlag ? AssetStatBlockValueType.Flag
+                        : g.Value.IsNumber ? AssetStatBlockValueType.Number
+                        : AssetStatBlockValueType.Text,
+                Value = g.Value.Value is null ? null : $"{g.Value.Value}",
+            }))],
+            PortraitId = model.Portrait?.Id,
+            AssetTokens = [..model.Tokens.Select((t, i) => t.ToEntity(model.Id, i))],
         };
 
     internal static void UpdateFrom(this AssetEntity entity, Asset model) {
+        entity.Classification = model.Classification;
         entity.Name = model.Name;
         entity.Description = model.Description;
-        entity.PortraitId = model.Portrait?.Id;
-        entity.TopDownId = model.TopDown?.Id;
-        entity.MiniatureId = model.Miniature?.Id;
-        entity.PhotoId = model.Photo?.Id;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
-
-        switch (entity, model) {
-            case (ObjectAssetEntity objEntity, ObjectAsset objModel):
-                objEntity.Size = new NamedSize {
-                    Width = Math.Round(objModel.Size.Width, 3),
-                    Height = Math.Round(objModel.Size.Height, 3),
-                };
-                objEntity.IsMovable = objModel.IsMovable;
-                objEntity.IsOpaque = objModel.IsOpaque;
-                objEntity.TriggerEffectId = objModel.TriggerEffectId;
-                break;
-            case (MonsterAssetEntity monsterEntity, MonsterAsset monsterModel):
-                monsterEntity.Size = new NamedSize {
-                    Width = Math.Round(monsterModel.Size.Width, 3),
-                    Height = Math.Round(monsterModel.Size.Height, 3),
-                };
-                monsterEntity.StatBlockId = monsterModel.StatBlockId;
-                monsterEntity.TokenStyle = monsterModel.TokenStyle == null
-                    ? null
-                    : new TokenStyleEntity {
-                        BorderColor = monsterModel.TokenStyle.BorderColor,
-                        BackgroundColor = monsterModel.TokenStyle.BackgroundColor,
-                        Shape = monsterModel.TokenStyle.Shape
-                    };
-                break;
-            case (CharacterAssetEntity characterEntity, CharacterAsset characterModel):
-                characterEntity.Size = new NamedSize {
-                    Width = Math.Round(characterModel.Size.Width, 3),
-                    Height = Math.Round(characterModel.Size.Height, 3),
-                };
-                characterEntity.StatBlockId = characterModel.StatBlockId;
-                characterEntity.TokenStyle = characterModel.TokenStyle == null
-                    ? null
-                    : new TokenStyleEntity {
-                        BorderColor = characterModel.TokenStyle.BorderColor,
-                        BackgroundColor = characterModel.TokenStyle.BackgroundColor,
-                        Shape = characterModel.TokenStyle.Shape
-                    };
-                break;
-            default:
-                throw new InvalidOperationException($"Mismatched asset types: entity={entity.GetType()}, model={model.GetType()}");
-        }
+        entity.TokenSize = model.TokenSize;
+        entity.StatBlock = [..model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatBlockValue{
+            AssetId = model.Id,
+            Key = g.Key,
+            Level = f.Key,
+            Type = g.Value.IsFlag ? AssetStatBlockValueType.Flag
+                    : g.Value.IsNumber ? AssetStatBlockValueType.Number
+                    : AssetStatBlockValueType.Text,
+            Value = g.Value.Value is null ? null : $"{g.Value.Value}",
+        }))];
+        entity.PortraitId = model.Portrait?.Id;
     }
 
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Resource? ToModel(this ResourceEntity? entity)
-        => entity is null ? null : new() {
-            Id = entity.Id,
-            Type = entity.Type,
-            Path = entity.Path,
-            Metadata = new() {
-                ContentType = entity.ContentType,
-                FileName = entity.FileName,
-                FileLength = entity.FileLength,
-                ImageSize = entity.ImageSize,
-                Duration = entity.Duration,
-            },
-            Tags = entity.Tags,
+    internal static Expression<Func<AssetTokenEntity, Resource>> AsToken = entity
+        => new Resource {
+            Id = entity.TokenId,
+            OwnerId = entity.Token.OwnerId,
+            Description = entity.Token.Description,
+            IsPublished = entity.Token.IsPublished,
+            IsPublic = entity.Token.IsPublic,
+            Path = entity.Token.Path,
+            Type = entity.Token.Type,
+            Features = new(entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())),
+            ContentType = entity.Token.ContentType,
+            FileName = entity.Token.FileName,
+            FileLength = entity.Token.FileLength,
+            Size = entity.Token.Size,
+            Duration = entity.Token.Duration,
         };
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static Resource? ToModel(this AssetTokenEntity? entity)
+        => entity is null
+           ? null
+           : new Resource {
+               Id = entity.TokenId,
+               OwnerId = entity.Token.OwnerId,
+               Description = entity.Token.Description,
+               IsPublished = entity.Token.IsPublished,
+               IsPublic = entity.Token.IsPublic,
+               Path = entity.Token.Path,
+               Type = entity.Token.Type,
+               Features = [..entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
+               ContentType = entity.Token.ContentType,
+               FileName = entity.Token.FileName,
+               FileLength = entity.Token.FileLength,
+               Size = entity.Token.Size,
+               Duration = entity.Token.Duration,
+           };
+
+    internal static AssetTokenEntity ToEntity(this Resource model, Guid assetId, int index)
+        => new() {
+            TokenId = model.Id,
+            AssetId = assetId,
+            Index = index,
+        };
+
+    internal static void UpdateFrom(this AssetTokenEntity entity, Guid resourceId, Guid assetId, int index) {
+        entity.TokenId = resourceId;
+        entity.AssetId = assetId;
+        entity.Index = index;
+    }
 }

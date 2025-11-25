@@ -24,19 +24,21 @@ public class HierarchicalFileStoreTests {
 
         try {
             var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("male-warrior", "small", "male", "warrior", null, null, null, null);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Small green humanoid"
+            };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync(entity, variant, imageData, ImageType.TopDown, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             Assert.True(File.Exists(filePath));
-            Assert.Contains("fantasy", filePath);
-            Assert.Contains("creatures", filePath);
-            Assert.Contains("monsters", filePath);
-            Assert.Contains("humanoids", filePath);
-            Assert.Contains("male-warrior", filePath);
-            Assert.Contains("top-down.png", filePath);
+            Assert.Contains("creature", filePath.ToLowerInvariant());
+            Assert.Contains("humanoid", filePath.ToLowerInvariant());
+            Assert.Contains("goblinoid", filePath.ToLowerInvariant());
+            Assert.Contains("goblin", filePath.ToLowerInvariant());
+            Assert.Contains("topdown.png", filePath.ToLowerInvariant());
         }
         finally {
             if (Directory.Exists(tempDir)) {
@@ -46,18 +48,22 @@ public class HierarchicalFileStoreTests {
     }
 
     [Fact]
-    public async Task SaveImageAsync_WithUppercaseEntityName_ExtractsLowercaseFirstLetter() {
+    public async Task SaveImageAsync_WithUppercaseEntityName_CreatesLowercasePath() {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
         try {
             var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "Zombie", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "undead humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
+            var entity = new Asset {
+                Name = "Zombie",
+                Classification = new AssetClassification(AssetKind.Creature, "Undead", "Corporeal", null),
+                Description = "Undead humanoid"
+            };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync(entity, variant, imageData, ImageType.TopDown, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
 
-            Assert.Contains(Path.Combine("fantasy", "creatures", "monsters", "humanoids", "zombie"), filePath.ToLowerInvariant());
+            Assert.Contains("zombie", filePath.ToLowerInvariant());
+            Assert.Contains("undead", filePath.ToLowerInvariant());
         }
         finally {
             if (Directory.Exists(tempDir)) {
@@ -67,68 +73,132 @@ public class HierarchicalFileStoreTests {
     }
 
     [Fact]
-    public async Task SaveImageAsync_WithPathTraversalInCategory_ThrowsArgumentException() {
-        var store = new HierarchicalFileStore("C:\\VTTAssets");
-        var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "../../../etc/passwd", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-        var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+    public async Task SaveImageAsync_WithPathTraversalInCategory_SanitizesPath() {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            store.SaveImageAsync(entity, variant, imageData, ImageType.TopDown, TestContext.Current.CancellationToken));
+        try {
+            var store = new HierarchicalFileStore(tempDir);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "../../../etc", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        Assert.Contains("invalid path characters", exception.Message);
+            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+
+            filePath.Should().NotBeNull();
+            filePath.Should().Contain(tempDir);
+            var relativePath = Path.GetRelativePath(tempDir, filePath);
+            relativePath.Should().NotContain("..");
+            filePath.Should().Contain("etc");
+        }
+        finally {
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
     }
 
     [Fact]
-    public async Task SaveImageAsync_WithPathTraversalInEntityName_ThrowsArgumentException() {
-        var store = new HierarchicalFileStore("C:\\VTTAssets");
-        var entity = new EntryDefinition { Name = "../../evil", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "malicious entity", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-        var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+    public async Task SaveImageAsync_WithPathTraversalInEntityName_SanitizesPath() {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            store.SaveImageAsync(entity, variant, imageData, ImageType.TopDown, TestContext.Current.CancellationToken));
+        try {
+            var store = new HierarchicalFileStore(tempDir);
+            var entity = new Asset {
+                Name = "../../../passwd",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        Assert.Contains("invalid path characters", exception.Message);
+            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+
+            filePath.Should().NotBeNull();
+            filePath.Should().Contain(tempDir);
+            var relativePath = Path.GetRelativePath(tempDir, filePath);
+            relativePath.Should().NotContain("..");
+            filePath.Should().Contain("passwd");
+        }
+        finally {
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
     }
 
     [Fact]
-    public async Task SaveImageAsync_WithPathTraversalInVariantId_ThrowsArgumentException() {
-        var store = new HierarchicalFileStore("C:\\VTTAssets");
-        var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-        var variant = new StructuralVariant("../../../hacker", null, null, null, null, null, null, null);
-        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+    public async Task SaveImageAsync_WithDifferentVariantIndices_CreatesVariantFolders() {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            store.SaveImageAsync(entity, variant, imageData, ImageType.TopDown, TestContext.Current.CancellationToken));
+        try {
+            var store = new HierarchicalFileStore(tempDir);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        Assert.Contains("invalid path characters", exception.Message);
+            var baseVariantPath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var variant1Path = await store.SaveImageAsync("TopDown", entity, 1, imageData, TestContext.Current.CancellationToken);
+            var variant2Path = await store.SaveImageAsync("TopDown", entity, 2, imageData, TestContext.Current.CancellationToken);
+
+            File.Exists(baseVariantPath).Should().BeTrue();
+            File.Exists(variant1Path).Should().BeTrue();
+            File.Exists(variant2Path).Should().BeTrue();
+
+            baseVariantPath.Should().NotBe(variant1Path);
+            baseVariantPath.Should().NotBe(variant2Path);
+            variant1Path.Should().NotBe(variant2Path);
+
+            variant1Path.Should().Contain(Path.DirectorySeparatorChar + "1" + Path.DirectorySeparatorChar);
+            variant2Path.Should().Contain(Path.DirectorySeparatorChar + "2" + Path.DirectorySeparatorChar);
+        }
+        finally {
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
     }
 
     [Fact]
     public async Task SaveImageAsync_WithEmptyCategory_ThrowsArgumentException() {
         var store = new HierarchicalFileStore("C:\\VTTAssets");
-        var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-        var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
+        var entity = new Asset {
+            Name = "Goblin",
+            Classification = new AssetClassification(AssetKind.Creature, "", "Type", null),
+            Description = "Test"
+        };
         var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            store.SaveImageAsync(entity, variant, imageData, ImageType.TopDown, TestContext.Current.CancellationToken));
-
-        Assert.Contains("cannot be null or whitespace", exception.Message);
+        await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
     }
 
     [Fact]
-    public async Task SaveImageAsync_WithInvalidImageType_ThrowsArgumentException() {
-        var store = new HierarchicalFileStore("C:\\VTTAssets");
-        var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-        var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+    public async Task SaveImageAsync_WithInvalidImageType_SavesSuccessfully() {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            store.SaveImageAsync(entity, variant, imageData, "InvalidType", TestContext.Current.CancellationToken));
+        try {
+            var store = new HierarchicalFileStore(tempDir);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        Assert.Contains("Invalid image type", exception.Message);
+            var filePath = await store.SaveImageAsync("CustomType", entity, 0, imageData, TestContext.Current.CancellationToken);
+
+            Assert.True(File.Exists(filePath));
+            Assert.Contains("customtype.png", filePath.ToLowerInvariant());
+        }
+        finally {
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
     }
 
     [Fact]
@@ -137,14 +207,17 @@ public class HierarchicalFileStoreTests {
 
         try {
             var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync(entity, variant, imageData, ImageType.Portrait, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("Portrait", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             Assert.True(File.Exists(filePath));
-            Assert.Contains("portrait.png", filePath);
+            Assert.Contains("portrait.png", filePath.ToLowerInvariant());
         }
         finally {
             if (Directory.Exists(tempDir)) {
@@ -154,67 +227,66 @@ public class HierarchicalFileStoreTests {
     }
 
     [Fact]
-    public async Task GetExistingImageTypesAsync_WhenNoFilesExist_ReturnsEmptyList() {
-        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
+    public async Task SaveImageAsync_WithNullEntity_ThrowsArgumentNullException() {
+        var store = new HierarchicalFileStore("C:\\VTTAssets");
+        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        try {
-            var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            store.SaveImageAsync("TopDown", null!, 0, imageData, TestContext.Current.CancellationToken));
 
-            var existingTypes = store.GetExistingImageFiles(entity, variant);
-
-            Assert.Empty(existingTypes);
-        }
-        finally {
-            Directory.Delete(tempDir, recursive: true);
-        }
+        Assert.Equal("asset", exception.ParamName);
     }
 
     [Fact]
-    public async Task GetExistingImageTypesAsync_WithExistingImages_ReturnsCorrectTypes() {
-        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var variantDir = Path.Combine(tempDir, "fantasy", "creatures", "monsters", "humanoids", "goblin", "base");
-        Directory.CreateDirectory(variantDir);
+    public async Task SaveImageAsync_WithNullImageData_ThrowsArgumentNullException() {
+        var store = new HierarchicalFileStore("C:\\VTTAssets");
+        var entity = new Asset {
+            Name = "Goblin",
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+            Description = "Test"
+        };
 
-        try {
-            File.WriteAllText(Path.Combine(variantDir, "top-down.png"), "fake");
-            File.WriteAllText(Path.Combine(variantDir, "miniature.png"), "fake");
-            File.WriteAllText(Path.Combine(variantDir, "portrait.png"), "fake");
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            store.SaveImageAsync("TopDown", entity, 0, null!, TestContext.Current.CancellationToken));
 
-            var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-
-            var existingTypes = store.GetExistingImageFiles(entity, variant);
-
-            Assert.Equal(3, existingTypes.Count);
-            Assert.Contains(ImageType.TopDown, existingTypes);
-            Assert.Contains(ImageType.TopDown, existingTypes);
-            Assert.Contains(ImageType.Portrait, existingTypes);
-        }
-        finally {
-            Directory.Delete(tempDir, recursive: true);
-        }
+        Assert.Equal("content", exception.ParamName);
     }
 
     [Fact]
-    public async Task SaveMetadataAsync_WithValidInputs_CreatesMetadataFile() {
+    public async Task SaveImageAsync_WithEmptyImageType_ThrowsArgumentException() {
+        var store = new HierarchicalFileStore("C:\\VTTAssets");
+        var entity = new Asset {
+            Name = "Goblin",
+            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+            Description = "Test"
+        };
+        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            store.SaveImageAsync(string.Empty, entity, 0, imageData, TestContext.Current.CancellationToken));
+
+        Assert.Equal("imageType", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task SavePromptAsync_WithValidInputs_CreatesPromptFile() {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
         try {
             var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
-            const string metadataJson = "{\"test\": \"data\"}";
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            const string prompt = "A goblin warrior from top-down view";
 
-            var filePath = await store.SaveMetadataAsync(entity, variant, metadataJson, TestContext.Current.CancellationToken);
+            var filePath = await store.SavePromptAsync("TopDown", entity, 0, prompt, TestContext.Current.CancellationToken);
 
             Assert.True(File.Exists(filePath));
-            Assert.Contains("metadata.json", filePath);
+            Assert.Contains(".md", filePath);
             var content = await File.ReadAllTextAsync(filePath, TestContext.Current.CancellationToken);
-            Assert.Equal(metadataJson, content);
+            Assert.Equal(prompt, content);
         }
         finally {
             if (Directory.Exists(tempDir)) {
@@ -224,43 +296,95 @@ public class HierarchicalFileStoreTests {
     }
 
     [Fact]
-    public async Task LoadMetadataAsync_WhenFileExists_ReturnsContent() {
+    public async Task FindImageFile_WithExistingFile_ReturnsPath() {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var variantDir = Path.Combine(tempDir, "fantasy", "creatures", "monsters", "humanoids", "goblin", "base");
-        Directory.CreateDirectory(variantDir);
-        const string metadataJson = "{\"test\": \"data\"}";
-        await File.WriteAllTextAsync(Path.Combine(variantDir, "metadata.json"), metadataJson, TestContext.Current.CancellationToken);
 
         try {
             var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+            var savedPath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
 
-            var content = await store.LoadMetadataAsync(entity, variant, TestContext.Current.CancellationToken);
+            var foundPath = store.FindImageFile("TopDown", entity, 0);
 
-            Assert.Equal(metadataJson, content);
+            Assert.NotNull(foundPath);
+            Assert.Equal(savedPath, foundPath);
         }
         finally {
-            Directory.Delete(tempDir, recursive: true);
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
         }
     }
 
     [Fact]
-    public async Task LoadMetadataAsync_WhenFileDoesNotExist_ReturnsNull() {
+    public void FindImageFile_WithNonExistingFile_ReturnsNull() {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
 
         try {
             var store = new HierarchicalFileStore(tempDir);
-            var entity = new EntryDefinition { Name = "goblin", Genre = "Fantasy", Category = "creatures", Type = "monsters", Subtype = "humanoids", PhysicalDescription = "small green humanoid", DistinctiveFeatures = null, Environment = null, Alternatives = [new AlternativeDefinition { Gender = null, Class = null, Equipment = null, Armor = null, Material = null, Quality = null }] };
-            var variant = new StructuralVariant("base", null, null, null, null, null, null, null);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
 
-            var content = await store.LoadMetadataAsync(entity, variant, TestContext.Current.CancellationToken);
+            var foundPath = store.FindImageFile("TopDown", entity, 0);
 
-            Assert.Null(content);
+            Assert.Null(foundPath);
         }
         finally {
-            Directory.Delete(tempDir, recursive: true);
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void GetAssets_WithEmptyStore_ReturnsEmpty() {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+        try {
+            var store = new HierarchicalFileStore(tempDir);
+
+            var assets = store.GetAssets();
+
+            Assert.Empty(assets);
+        }
+        finally {
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task GetAssets_WithSavedAssets_ReturnsAssets() {
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+        try {
+            var store = new HierarchicalFileStore(tempDir);
+            var entity = new Asset {
+                Name = "Goblin",
+                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Description = "Test"
+            };
+            var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+            await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+
+            var assets = store.GetAssets();
+
+            Assert.Single(assets);
+            Assert.Equal("Goblin", assets[0].Name);
+        }
+        finally {
+            if (Directory.Exists(tempDir)) {
+                Directory.Delete(tempDir, recursive: true);
+            }
         }
     }
 }

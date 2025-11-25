@@ -33,11 +33,8 @@ public class AdventureTests {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = "assets/adventure-background.png",
-            Metadata = new ResourceMetadata {
-                ContentType = "image/png",
-                ImageSize = new Size(1920, 1080),
-            },
-            Tags = ["adventure", "background"],
+            ContentType = "image/png",
+            Size = new Size(1920, 1080),
         };
         const bool isVisible = true;
         const bool isPublic = true;

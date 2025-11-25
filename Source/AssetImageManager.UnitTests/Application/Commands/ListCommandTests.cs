@@ -27,13 +27,13 @@ public sealed class ListCommandTests : IDisposable {
     [Fact]
     public async Task Should_ReturnEmpty_When_NoEntitiesExist() {
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var summaries = await _imageStore.GetEntitySummariesAsync(ct: TestContext.Current.CancellationToken);
+        var summaries = _imageStore.GetAssets();
         Assert.Empty(summaries);
     }
 
@@ -42,52 +42,52 @@ public sealed class ListCommandTests : IDisposable {
         await CreateSampleHierarchyAsync();
 
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var summaries = await _imageStore.GetEntitySummariesAsync(ct: TestContext.Current.CancellationToken);
+        var summaries = _imageStore.GetAssets();
         Assert.NotEmpty(summaries);
     }
 
     [Fact]
-    public async Task Should_FilterByKind_When_TypeFilterSpecified() {
+    public async Task Should_FilterByKind_When_KindFilterSpecified() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
         var chest = EntityDefinitionFixtures.CreateChest();
 
-        await SaveEntityImageAsync(goblin, "base");
-        await SaveEntityImageAsync(chest, "base");
+        await SaveEntityImageAsync(goblin, 0);
+        await SaveEntityImageAsync(chest, 0);
 
         var options = new ListTokensOptions(
-            TypeFilter: EntityType.Creature,
-            IdOrName: null,
+            KindFilter: AssetKind.Creature,
+            Name: null,
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var summaries = await _imageStore.GetEntitySummariesAsync("creatures", null, null, TestContext.Current.CancellationToken);
+        var summaries = _imageStore.GetAssets(kindFilter: AssetKind.Creature);
         Assert.NotEmpty(summaries);
-        Assert.All(summaries, s => Assert.Equal("creatures", s.Category));
+        Assert.All(summaries, s => Assert.Equal(AssetKind.Creature, s.Classification.Kind));
     }
 
     [Fact]
-    public async Task Should_FilterByName_When_IdOrNameSpecified() {
+    public async Task Should_FilterByName_When_NameSpecified() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
         var orc = EntityDefinitionFixtures.CreateOrc();
 
-        await SaveEntityImageAsync(goblin, "base");
-        await SaveEntityImageAsync(orc, "base");
+        await SaveEntityImageAsync(goblin, 0);
+        await SaveEntityImageAsync(orc, 0);
 
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: "Goblin",
+            KindFilter: null,
+            Name: "Goblin",
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var allSummaries = await _imageStore.GetEntitySummariesAsync(ct: TestContext.Current.CancellationToken);
+        var allSummaries = _imageStore.GetAssets();
         var filtered = allSummaries.Where(s => string.Equals(s.Name, "goblin", StringComparison.OrdinalIgnoreCase)).ToList();
         Assert.Single(filtered);
     }
@@ -97,45 +97,46 @@ public sealed class ListCommandTests : IDisposable {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
         var orc = EntityDefinitionFixtures.CreateOrc();
 
-        await SaveEntityImageAsync(goblin, "base");
-        await SaveEntityImageAsync(orc, "base");
+        await SaveEntityImageAsync(goblin, 0);
+        await SaveEntityImageAsync(orc, 0);
 
         var options = new ListTokensOptions(
-            TypeFilter: EntityType.Creature,
-            IdOrName: "Goblin",
+            KindFilter: AssetKind.Creature,
+            Name: "Goblin",
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var summaries = await _imageStore.GetEntitySummariesAsync("creatures", null, null, TestContext.Current.CancellationToken);
+        var summaries = _imageStore.GetAssets(kindFilter: AssetKind.Creature);
         var filtered = summaries.Where(s => string.Equals(s.Name, "goblin", StringComparison.OrdinalIgnoreCase)).ToList();
         Assert.Single(filtered);
     }
 
     [Fact]
-    public async Task Should_ShowCorrectCounts() {
-        var entity = EntityDefinitionFixtures.CreateGoblinWithVariants();
-        var variant1 = new StructuralVariant("male-warrior-scimitar", "small", "male", "warrior", "scimitar", null, null, null);
-        var variant2 = new StructuralVariant("female-shaman-shortbow", "small", "female", "shaman", "shortbow", null, null, null);
+    public async Task Should_ShowCorrectTokenCounts_When_EntitiesHaveMultipleTokens() {
+        var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
+        var orc = EntityDefinitionFixtures.CreateOrc();
 
-        var fakeImage = new byte[1024];
-        await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync(entity, variant1, fakeImage, ImageType.Photo, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync(entity, variant2, fakeImage, ImageType.TopDown, TestContext.Current.CancellationToken);
+        await SaveEntityImageAsync(goblin, 1);
+        await SaveEntityImageAsync(goblin, 2);
+        await SaveEntityImageAsync(goblin, 3);
+
+        await SaveEntityImageAsync(orc, 1);
+        await SaveEntityImageAsync(orc, 2);
 
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var summaries = await _imageStore.GetEntitySummariesAsync(ct: TestContext.Current.CancellationToken);
-        var goblinSummary = summaries.FirstOrDefault(s => s.Name.Equals("goblin", StringComparison.OrdinalIgnoreCase));
+        var summaries = _imageStore.GetAssets();
+        var goblinSummary = summaries.First(s => s.Name == "Goblin");
+        var orcSummary = summaries.First(s => s.Name == "Orc");
 
-        Assert.NotNull(goblinSummary);
-        Assert.Equal(2, goblinSummary.VariantCount);
-        Assert.Equal(3, goblinSummary.TotalPoseCount);
+        Assert.Equal(3, goblinSummary.Tokens.Count);
+        Assert.Equal(2, orcSummary.Tokens.Count);
     }
 
     [Fact]
@@ -144,38 +145,36 @@ public sealed class ListCommandTests : IDisposable {
         var orc = EntityDefinitionFixtures.CreateOrc();
         var chest = EntityDefinitionFixtures.CreateChest();
 
-        await SaveEntityImageAsync(chest, "base");
-        await SaveEntityImageAsync(orc, "base");
-        await SaveEntityImageAsync(goblin, "base");
+        await SaveEntityImageAsync(chest, 0);
+        await SaveEntityImageAsync(orc, 0);
+        await SaveEntityImageAsync(goblin, 0);
 
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: null);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        var summaries = await _imageStore.GetEntitySummariesAsync(ct: TestContext.Current.CancellationToken);
-        var sorted = summaries.OrderBy(s => s.Category).ThenBy(s => s.Type).ThenBy(s => s.Subtype).ThenBy(s => s.Name).ToList();
+        var summaries = _imageStore.GetAssets();
 
-        Assert.Equal(summaries.Count, sorted.Count);
-        for (var i = 0; i < summaries.Count; i++) {
-            Assert.Equal(sorted[i].Name, summaries[i].Name);
-        }
+        Assert.Equal(3, summaries.Count);
+        Assert.Contains(summaries, s => s.Name == "Goblin");
+        Assert.Contains(summaries, s => s.Name == "Orc");
+        Assert.Contains(summaries, s => s.Name == "Treasure Chest");
     }
 
-    private async Task SaveEntityImageAsync(EntryDefinition entity, string variantId) {
-        var variant = new StructuralVariant(variantId, null, null, null, null, null, null, null);
+    private async Task SaveEntityImageAsync(Asset entity, int variantIndex) {
         var fakeImage = new byte[1024];
-        await _imageStore.SaveImageAsync(entity, variant, fakeImage, ImageType.TopDown);
+        await _imageStore.SaveImageAsync("TopDown", entity, variantIndex, fakeImage);
     }
 
     private async Task CreateSampleHierarchyAsync() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
         var orc = EntityDefinitionFixtures.CreateOrc();
 
-        await SaveEntityImageAsync(goblin, "base");
-        await SaveEntityImageAsync(orc, "base");
+        await SaveEntityImageAsync(goblin, 0);
+        await SaveEntityImageAsync(orc, 0);
     }
 
     [Fact]
@@ -185,25 +184,25 @@ public sealed class ListCommandTests : IDisposable {
         await File.WriteAllTextAsync(jsonFile, JsonSerializer.Serialize(entities, _jsonOptions), TestContext.Current.CancellationToken);
 
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: jsonFile);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
     }
 
     [Fact]
-    public async Task Should_FilterByType_When_ImportPathAndTypeFilterProvided() {
+    public async Task Should_FilterByKind_When_ImportPathAndKindFilterProvided() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
         var chest = EntityDefinitionFixtures.CreateChest();
-        var entities = new List<EntryDefinition> { goblin, chest };
+        var entities = new List<Asset> { goblin, chest };
 
         var jsonFile = Path.Combine(_tempDir, "mixed.json");
         await File.WriteAllTextAsync(jsonFile, JsonSerializer.Serialize(entities, _jsonOptions), TestContext.Current.CancellationToken);
 
         var options = new ListTokensOptions(
-            TypeFilter: EntityType.Creature,
-            IdOrName: null,
+            KindFilter: AssetKind.Creature,
+            Name: null,
             ImportPath: jsonFile);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
@@ -212,14 +211,14 @@ public sealed class ListCommandTests : IDisposable {
     [Fact]
     public async Task Should_CalculateVariantCounts_When_ImportPathWithVariants() {
         var entity = EntityDefinitionFixtures.CreateGoblinWithVariants();
-        var entities = new List<EntryDefinition> { entity };
+        var entities = new List<Asset> { entity };
 
         var jsonFile = Path.Combine(_tempDir, "variants.json");
         await File.WriteAllTextAsync(jsonFile, JsonSerializer.Serialize(entities, _jsonOptions), TestContext.Current.CancellationToken);
 
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: jsonFile);
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
@@ -228,8 +227,8 @@ public sealed class ListCommandTests : IDisposable {
     [Fact]
     public async Task Should_HandleMissingFile_When_ImportPathInvalid() {
         var options = new ListTokensOptions(
-            TypeFilter: null,
-            IdOrName: null,
+            KindFilter: null,
+            Name: null,
             ImportPath: Path.Combine(_tempDir, "missing.json"));
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
