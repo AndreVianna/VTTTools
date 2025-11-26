@@ -9,7 +9,7 @@ public record Asset {
     public string Description { get; init; } = string.Empty;
 
     public Resource? Portrait { get; init; }
-    public NamedSize TokenSize { get; set; } = NamedSize.Default;
+    public NamedSize TokenSize { get; init; } = NamedSize.Default;
     public List<Resource> Tokens { get; init; } = [];
 
     public Dictionary<int, Map<StatBlockValue>> StatBlocks { get; init; } = [];
