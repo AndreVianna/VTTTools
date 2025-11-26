@@ -133,11 +133,11 @@ public sealed class ShowCommandTests : IDisposable {
 
         await _imageStore.SaveImageAsync("TopDown", dragon, 3, fakeImage, TestContext.Current.CancellationToken);
 
-        var options = new ShowTokenOptions(Name: "Dragon");
+        var options = new ShowTokenOptions(Name: "Red Dragon");
 
         _command.Execute(options);
 
-        var entityInfo = _imageStore.FindAsset("Dragon");
+        var entityInfo = _imageStore.FindAsset("Red Dragon");
 
         entityInfo.Should().NotBeNull();
         entityInfo!.Tokens.Should().HaveCount(3);

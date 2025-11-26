@@ -9,12 +9,6 @@ public sealed class PrepareCommandTests : IDisposable {
     private readonly IFileStore _mockFileStore;
     private readonly IConfiguration _mockConfiguration;
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
-    };
-
     public PrepareCommandTests() {
         _tempDir = Path.Combine(Path.GetTempPath(), $"TokenManagerTests_{Guid.NewGuid():N}");
         _outputDir = Path.Combine(_tempDir, "output");
@@ -137,14 +131,13 @@ public sealed class PrepareCommandTests : IDisposable {
 
         EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 1");
         EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 1");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for portrait token 1");
         EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 2");
         EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 2");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp"]);
         VerifyPromptFilesCreated(entity, 2, ["TopDown", "CloseUp"]);
     }
 
@@ -158,16 +151,14 @@ public sealed class PrepareCommandTests : IDisposable {
 
         EnqueueOpenAiSuccessResponse("Enhanced goblin top-down");
         EnqueueOpenAiSuccessResponse("Enhanced goblin close-up");
-        EnqueueOpenAiSuccessResponse("Enhanced goblin portrait");
         EnqueueOpenAiSuccessResponse("Enhanced orc top-down");
         EnqueueOpenAiSuccessResponse("Enhanced orc close-up");
-        EnqueueOpenAiSuccessResponse("Enhanced orc portrait");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(goblin, 1, ["TopDown", "CloseUp", "Portrait"]);
-        VerifyPromptFilesCreated(orc, 1, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(goblin, 1, ["TopDown", "CloseUp"]);
+        VerifyPromptFilesCreated(orc, 1, ["TopDown", "CloseUp"]);
     }
 
     [Fact]

@@ -23,7 +23,7 @@ public static class EntityDefinitionFixtures {
     };
 
     public static Asset CreateDragonWithComplexVariants() => new() {
-        Name = "Dragon",
+        Name = "Red Dragon",
         Classification = new AssetClassification(AssetKind.Creature, "Dragon", "Chromatic", "Red"),
         Description = "Massive winged reptile with scales and horns",
         Tokens = []
