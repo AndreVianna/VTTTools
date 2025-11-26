@@ -2,8 +2,6 @@ using Asset = VttTools.Assets.Model.Asset;
 using Resource = VttTools.Media.Model.Resource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
-using Effect = VttTools.Assets.Model.Effect;
-using EffectEntity = VttTools.Data.Assets.Entities.Effect;
 
 namespace VttTools.Data.Assets;
 
@@ -140,49 +138,4 @@ internal static class Mapper {
         entity.AssetId = assetId;
         entity.Index = index;
     }
-
-    public static Expression<Func<EffectEntity, Effect>> AsEffect = entity
-        => new () {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            Shape = entity.Shape,
-            Size = entity.Size,
-            Direction = entity.Direction,
-            BoundedByStructures = entity.BoundedByStructures,
-            Image = entity.Image == null ? null : entity.Image.ToModel(),
-            Category = entity.Category,
-            CreatedAt = entity.CreatedAt
-        };
-
-    public static Effect ToModel(this EffectEntity entity)
-        => new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            Shape = entity.Shape,
-            Size = entity.Size,
-            Direction = entity.Direction,
-            BoundedByStructures = entity.BoundedByStructures,
-            Image = entity.Image?.ToModel(),
-            Category = entity.Category,
-            CreatedAt = entity.CreatedAt
-        };
-
-    public static EffectEntity ToEntity(this Effect model)
-        => new() {
-            Id = model.Id,
-            OwnerId = model.OwnerId,
-            Name = model.Name,
-            Description = model.Description,
-            Shape = model.Shape,
-            Size = model.Size,
-            Direction = model.Direction,
-            BoundedByStructures = model.BoundedByStructures,
-            ImageId = model.Image?.Id,
-            Category = model.Category,
-            CreatedAt = model.CreatedAt
-        };
 }

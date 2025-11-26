@@ -83,8 +83,8 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     switch (assetKind) {
       case AssetKind.Object:
         return 'Objects';
-      case AssetKind.Monster:
-        return 'Monsters';
+      case AssetKind.Creature:
+        return 'Creatures';
       case AssetKind.Character:
         return 'Characters';
       default:
@@ -97,7 +97,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     switch (assetKind) {
       case AssetKind.Object:
         return '#9E9E9E'; // Gray
-      case AssetKind.Monster:
+      case AssetKind.Creature:
         return '#4CAF50'; // Green
       case AssetKind.Character:
         return '#2196F3'; // Blue
@@ -274,7 +274,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                       >
                         {asset.description}
                       </Typography>
-                      <Chip label={asset.kind} size='small' sx={{ mt: 0.5, fontSize: '0.7rem' }} />
+                      <Chip label={asset.classification.kind} size='small' sx={{ mt: 0.5, fontSize: '0.7rem' }} />
                     </CardContent>
                   </Card>
                 </Grid>

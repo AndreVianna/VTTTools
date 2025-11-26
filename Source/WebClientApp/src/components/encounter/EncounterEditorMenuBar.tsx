@@ -178,7 +178,7 @@ export const EncounterEditorMenuBar: React.FC<EncounterEditorMenuBarProps> = ({
         <Typography variant='caption' color='text.secondary' sx={{ fontSize: '0.75rem', display: 'block', mb: 1 }}>
           Interactive monsters (characters, NPCs, monsters)
         </Typography>
-        <Button fullWidth variant='outlined' size='small' onClick={() => handleOpenAssetPicker(AssetKind.Monster)}>
+        <Button fullWidth variant='outlined' size='small' onClick={() => handleOpenAssetPicker(AssetKind.Creature)}>
           Browse Monsters
         </Button>
       </Menu>

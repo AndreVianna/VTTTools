@@ -9,8 +9,6 @@
  * - View Mode (default): Read-only display of asset details with metadata
  * - Edit Mode: Editable forms for updating asset properties
  * - Delete Mode: Confirmation dialog for asset deletion
- *
- * Supports ObjectAsset and MonsterAsset with polymorphic property editing
  */
 
 import {
@@ -38,6 +36,7 @@ import {
   Divider,
   IconButton,
   Stack,
+  TextField,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -46,23 +45,9 @@ import { useMemo, useState } from 'react';
 import { useDeleteAssetMutation, useUpdateAssetMutation } from '@/services/assetsApi';
 import {
   type Asset,
-  AssetKind,
-  type MonsterAsset,
-  type MonsterData,
-  type ObjectAsset,
-  type ObjectData,
   type UpdateAssetRequest,
 } from '@/types/domain';
-import { AssetBasicFields, AssetResourceManager, MonsterPropertiesForm, ObjectPropertiesForm } from './forms';
-
-// Type guards
-function isObjectAsset(asset: Asset): asset is ObjectAsset {
-  return asset.kind === AssetKind.Object && 'properties' in asset;
-}
-
-function isMonsterAsset(asset: Asset): asset is MonsterAsset {
-  return asset.kind === AssetKind.Monster && 'properties' in asset;
-}
+import { AssetBasicFields, AssetResourceManager } from './forms';
 
 export interface AssetEditDialogProps {
   open: boolean;
@@ -74,18 +59,14 @@ function createEditData(asset: Asset) {
   return {
     name: asset.name,
     description: asset.description,
+    category: asset.classification.category,
+    type: asset.classification.type,
+    subtype: asset.classification.subtype || '',
     portraitId: asset.portrait?.id,
-    topDownId: asset.topDown?.id,
-    miniatureId: asset.miniature?.id,
-    photoId: asset.photo?.id,
+    tokenId: asset.tokens[0]?.id,
     isPublic: asset.isPublic,
     isPublished: asset.isPublished,
-    size: asset.size,
-    isMovable: (asset as ObjectAsset).isMovable,
-    isOpaque: (asset as ObjectAsset).isOpaque,
-    triggerEffectId: (asset as ObjectAsset).triggerEffectId,
-    statBlockId: (asset as MonsterAsset).statBlockId,
-    tokenStyle: (asset as MonsterAsset).tokenStyle,
+    tokenSize: asset.tokenSize,
   };
 }
 
@@ -111,45 +92,19 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
 
   const editData = { ...createEditData(asset), ...modifiedFields };
 
-  const objectData: ObjectData = {
-    isMovable: editData.isMovable,
-    isOpaque: editData.isOpaque,
-    triggerEffectId: editData.triggerEffectId ?? undefined,
-  };
-  const monsterData: MonsterData = {
-    statBlockId: editData.statBlockId ?? undefined,
-    tokenStyle: editData.tokenStyle ?? undefined,
-  };
-
   const handleSave = async () => {
     try {
       const request: UpdateAssetRequest = {
+        name: editData.name.trim() || undefined,
+        description: editData.description,
+        category: editData.category,
+        type: editData.type,
+        subtype: editData.subtype.trim() || null,
+        portraitId: editData.portraitId,
+        tokenSize: editData.tokenSize,
         isPublic: editData.isPublic,
         isPublished: editData.isPublished,
-        description: editData.description,
-        size: editData.size,
-        portraitId: editData.portraitId,
-        topDownId: editData.topDownId,
-        miniatureId: editData.miniatureId,
-        photoId: editData.photoId,
       };
-
-      if (editData.name.trim()) {
-        request.name = editData.name;
-      }
-
-      if (asset.kind === AssetKind.Object) {
-        request.objectData = {
-          isMovable: editData.isMovable,
-          isOpaque: editData.isOpaque,
-          triggerEffectId: editData.triggerEffectId ?? undefined,
-        };
-      } else if (asset.kind === AssetKind.Monster) {
-        request.monsterData = {
-          statBlockId: editData.statBlockId ?? undefined,
-          tokenStyle: editData.tokenStyle ?? undefined,
-        };
-      }
 
       await updateAsset({ id: asset.id, request }).unwrap();
       setEditMode(false);
@@ -202,16 +157,11 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
         <DialogContent>
           <AssetResourceManager
             entityId={asset.id}
-            assetKind={asset.kind}
             portraitId={editData.portraitId}
-            topDownId={editData.topDownId}
-            miniatureId={editData.miniatureId}
-            photoId={editData.photoId}
-            onPortraitIdChange={(portraitId) => updateModifiedFields({ portraitId })}
-            onTopDownIdChange={(topDownId) => updateModifiedFields({ topDownId })}
-            onMiniatureIdChange={(miniatureId) => updateModifiedFields({ miniatureId })}
-            onPhotoIdChange={(photoId) => updateModifiedFields({ photoId })}
-            size={editData.size}
+            tokenId={editData.tokenId}
+            onPortraitChange={(portraitId) => updateModifiedFields({ portraitId })}
+            onTokenChange={(tokenId) => updateModifiedFields({ tokenId })}
+            tokenSize={editData.tokenSize}
             readOnly={!editMode}
           />
 
@@ -262,74 +212,39 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                       onIsPublishedChange={(isPublished) => updateModifiedFields({ isPublished })}
                       readOnly={false}
                     />
+
                     {/* Kind (Read-only) */}
                     <Box>
                       <Typography variant='caption' color='text.secondary'>
                         Kind
                       </Typography>
                       <Box sx={{ mt: 0.5 }}>
-                        <Chip label={asset.kind} color='primary' size='small' />
+                        <Chip label={asset.classification.kind} color='primary' size='small' />
                       </Box>
                     </Box>
+
+                    {/* Classification Fields */}
+                    <TextField
+                      label='Category'
+                      value={editData.category}
+                      onChange={(e) => updateModifiedFields({ category: e.target.value })}
+                      fullWidth
+                      required
+                    />
+                    <TextField
+                      label='Type'
+                      value={editData.type}
+                      onChange={(e) => updateModifiedFields({ type: e.target.value })}
+                      fullWidth
+                      required
+                    />
+                    <TextField
+                      label='Subtype'
+                      value={editData.subtype}
+                      onChange={(e) => updateModifiedFields({ subtype: e.target.value })}
+                      fullWidth
+                    />
                   </Stack>
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Accordion 2: Properties (collapsed) */}
-              <Accordion
-                disableGutters
-                sx={{
-                  bgcolor: 'background.paper',
-                  boxShadow: 'none',
-                  '&:before': { display: 'none' },
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  mb: 2,
-                }}
-              >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  sx={{
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                    minHeight: 48,
-                    '&.Mui-expanded': { minHeight: 48 },
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant='subtitle1' fontWeight={600}>
-                      Properties
-                    </Typography>
-                    <Chip label='Required' size='small' color='primary' />
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 3 }}>
-                  {isObjectAsset(asset) && objectData && (
-                    <ObjectPropertiesForm
-                      objectData={objectData}
-                      onChange={(data) =>
-                        updateModifiedFields({
-                          isMovable: data.isMovable,
-                          isOpaque: data.isOpaque,
-                          triggerEffectId: data.triggerEffectId,
-                        })
-                      }
-                    />
-                  )}
-
-                  {isMonsterAsset(asset) && monsterData && (
-                    <MonsterPropertiesForm
-                      monsterData={monsterData}
-                      onChange={(data) =>
-                        updateModifiedFields({
-                          statBlockId: data.statBlockId,
-                          tokenStyle: data.tokenStyle,
-                        })
-                      }
-                    />
-                  )}
                 </AccordionDetails>
               </Accordion>
             </>
@@ -353,33 +268,30 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({ open, asset, o
                   Kind
                 </Typography>
                 <Box sx={{ mt: 0.5 }}>
-                  <Chip label={asset.kind} color='primary' size='small' />
+                  <Chip label={asset.classification.kind} color='primary' size='small' />
                 </Box>
               </Box>
 
-              {isObjectAsset(asset) && objectData && (
-                <ObjectPropertiesForm
-                  objectData={objectData}
-                  onChange={(data) =>
-                    updateModifiedFields({
-                      isMovable: data.isMovable,
-                      isOpaque: data.isOpaque,
-                      triggerEffectId: data.triggerEffectId,
-                    })
-                  }
-                />
-              )}
-
-              {isMonsterAsset(asset) && monsterData && (
-                <MonsterPropertiesForm
-                  monsterData={monsterData}
-                  onChange={(data) =>
-                    updateModifiedFields({
-                      statBlockId: data.statBlockId,
-                      tokenStyle: data.tokenStyle,
-                    })
-                  }
-                />
+              {/* Classification (Read-only) */}
+              <Box>
+                <Typography variant='caption' color='text.secondary'>
+                  Category
+                </Typography>
+                <Typography variant='body2'>{asset.classification.category}</Typography>
+              </Box>
+              <Box>
+                <Typography variant='caption' color='text.secondary'>
+                  Type
+                </Typography>
+                <Typography variant='body2'>{asset.classification.type}</Typography>
+              </Box>
+              {asset.classification.subtype && (
+                <Box>
+                  <Typography variant='caption' color='text.secondary'>
+                    Subtype
+                  </Typography>
+                  <Typography variant='body2'>{asset.classification.subtype}</Typography>
+                </Box>
               )}
 
               {/* Metadata */}

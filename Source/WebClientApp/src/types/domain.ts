@@ -69,16 +69,29 @@ export enum Weather {
 // Asset Types (from Domain.Assets.ApiContracts)
 
 export enum AssetKind {
-  Object = 'Object',
-  Monster = 'Monster',
   Character = 'Character',
+  Creature = 'Creature',
+  Effect = 'Effect',
+  Object = 'Object',
 }
 
-export enum ImageType {
-  Portrait = 'Portrait',
-  TopDown = 'TopDown',
-  Miniature = 'Miniature',
-  Photo = 'Photo',
+export enum StatValueType {
+  Number = 'Number',
+  Text = 'Text',
+  Modifier = 'Modifier',
+}
+
+export interface StatBlockValue {
+  key: string;
+  value: string | null;
+  type: StatValueType;
+}
+
+export interface AssetClassification {
+  kind: AssetKind;
+  category: string;
+  type: string;
+  subtype: string | null;
 }
 
 export enum GridType {
@@ -87,17 +100,6 @@ export enum GridType {
   HexV = 'HexV',
   HexH = 'HexH',
   Isometric = 'Isometric',
-}
-
-export enum TokenShape {
-  Circle = 'Circle',
-  Square = 'Square',
-}
-
-export interface TokenStyle {
-  borderColor?: string;
-  backgroundColor?: string;
-  shape: TokenShape;
 }
 
 export enum SizeName {
@@ -115,96 +117,47 @@ export enum SizeName {
 export interface NamedSize {
   width: number;
   height: number;
-  isSquare: boolean;
-  // Computed name derived from width/height/isSquare on backend
-}
-
-// ObjectData replaces ObjectProperties (size moved to Asset root level)
-export interface ObjectData {
-  isMovable: boolean;
-  isOpaque: boolean;
-  triggerEffectId?: string | undefined;
-}
-
-// MonsterData replaces MonsterProperties (size moved to Asset root level)
-export interface MonsterData {
-  statBlockId?: string | undefined;
-  tokenStyle?: TokenStyle | undefined;
-}
-
-// CharacterData - player characters
-export interface CharacterData {
-  statBlockId?: string | undefined;
-  tokenStyle?: TokenStyle | undefined;
 }
 
 export interface CreateAssetRequest {
   kind: AssetKind;
+  category: string;
+  type: string;
+  subtype?: string;
   name: string;
   description: string;
-  portraitId?: string | undefined;
-  topDownId?: string | undefined;
-  miniatureId?: string | undefined;
-  photoId?: string | undefined;
-  size: NamedSize;
-  isPublished: boolean;
-  isPublic: boolean;
-  objectData?: ObjectData | undefined;
-  monsterData?: MonsterData | undefined;
-  characterData?: CharacterData | undefined;
+  tags?: string[];
+  portraitId?: string;
+  tokenSize?: NamedSize;
+  tokenId?: string;
 }
 
 export interface UpdateAssetRequest {
-  name?: string | undefined;
-  description?: string | undefined;
-  portraitId?: string | undefined;
-  topDownId?: string | undefined;
-  miniatureId?: string | undefined;
-  photoId?: string | undefined;
-  size?: NamedSize | undefined;
-  isPublished?: boolean | undefined;
-  isPublic?: boolean | undefined;
-  objectData?: ObjectData | undefined;
-  monsterData?: MonsterData | undefined;
-  characterData?: CharacterData | undefined;
+  kind?: AssetKind;
+  category?: string;
+  type?: string;
+  subtype?: string | null;
+  name?: string;
+  description?: string;
+  tags?: { add?: string[]; remove?: string[] };
+  portraitId?: string | null;
+  tokenSize?: NamedSize;
+  isPublished?: boolean;
+  isPublic?: boolean;
 }
 
-// Base Asset interface
 export interface Asset {
   id: string;
-  ownerId: string;
-  kind: AssetKind;
+  classification: AssetClassification;
   name: string;
   description: string;
+  portrait: MediaResource | null;
+  tokenSize: NamedSize;
+  tokens: MediaResource[];
+  statBlocks: Record<number, Record<string, StatBlockValue>>;
+  ownerId: string;
   isPublished: boolean;
   isPublic: boolean;
-  portrait?: MediaResource | undefined;
-  topDown?: MediaResource | undefined;
-  miniature?: MediaResource | undefined;
-  photo?: MediaResource | undefined;
-  size: NamedSize;
-}
-
-// ObjectAsset - environmental items
-export interface ObjectAsset extends Asset {
-  kind: AssetKind.Object;
-  isMovable: boolean;
-  isOpaque: boolean;
-  triggerEffectId?: string | undefined;
-}
-
-// MonsterAsset - monsters and NPCs
-export interface MonsterAsset extends Asset {
-  kind: AssetKind.Monster;
-  statBlockId?: string | undefined;
-  tokenStyle?: TokenStyle | undefined;
-}
-
-// CharacterAsset - player characters
-export interface CharacterAsset extends Asset {
-  kind: AssetKind.Character;
-  statBlockId?: string | undefined;
-  tokenStyle?: TokenStyle | undefined;
 }
 
 // Placed Asset - Frontend-only type for local placement state
@@ -272,38 +225,6 @@ export interface EncounterStructure {
   isOpen?: boolean;
   isLocked?: boolean;
   isSecret?: boolean;
-}
-
-// Effect Types (from Domain.Library.Encounters.Model)
-
-export enum EffectShape {
-  Circle = 'Circle',
-  Cone = 'Cone',
-  Square = 'Square',
-  Line = 'Line',
-}
-
-export interface Effect {
-  id: string;
-  ownerId: string;
-  name: string;
-  description?: string;
-  shape: EffectShape;
-  size: number;
-  direction?: number;
-  boundedByStructures: boolean;
-  visual?: MediaResource;
-  category?: string;
-  createdAt: string;
-}
-
-export interface EncounterEffect {
-  id: string;
-  encounterId: string;
-  effectId: string;
-  origin: { x: number; y: number };
-  size?: number;
-  direction?: number;
 }
 
 // StatBlock (stub - full implementation in future phase)
@@ -566,18 +487,18 @@ export enum ResourceType {
 
 export interface MediaResource {
   id: string;
+  description: string | null;
+  features: Record<string, string[]>;
   type: ResourceType;
-  path: string; // Blob storage path
-  metadata: ResourceMetadata;
-  tags: string[];
-}
-
-export interface ResourceMetadata {
+  path: string;
   contentType: string;
   fileName: string;
   fileLength: number;
-  imageSize?: { width: number; height: number };
-  duration?: string; // TimeSpan as string
+  size: { width: number; height: number };
+  duration: string;
+  ownerId: string;
+  isPublished: boolean;
+  isPublic: boolean;
 }
 
 // Authentication Types

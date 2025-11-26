@@ -81,7 +81,7 @@ export const CharactersPanel: React.FC<CharactersPanelProps> = ({
     localStorage.setItem(STORAGE_KEY_POSITION, labelPosition);
   }, [labelPosition]);
 
-  const characters = placedAssets.filter((a) => a.asset.kind === AssetKind.Character);
+  const characters = placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Character);
 
   const toggleAssetExpanded = (assetId: string) => {
     setExpandedAssets((prev) => {

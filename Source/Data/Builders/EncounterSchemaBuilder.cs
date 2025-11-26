@@ -1,6 +1,5 @@
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using EncounterAsset = VttTools.Data.Library.Entities.EncounterAsset;
-using EncounterEffect = VttTools.Data.Library.Entities.EncounterEffect;
 using EncounterOpening = VttTools.Data.Library.Entities.EncounterOpening;
 using EncounterRegion = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSource = VttTools.Data.Library.Entities.EncounterSource;
@@ -205,33 +204,6 @@ internal static class EncounterSchemaBuilder {
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => e.EncounterId);
-        });
-
-        builder.Entity<EncounterEffect>(entity => {
-            entity.ToTable("EncounterEffects");
-            entity.HasKey(e => new { e.EncounterId, e.Index });
-            entity.Property(e => e.EncounterId).IsRequired();
-            entity.Property(e => e.EffectId).IsRequired();
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Size);
-            entity.Property(e => e.Direction);
-
-            // Store Origin as ComplexProperty (Point)
-            entity.ComplexProperty(e => e.Origin, origin => {
-                origin.IsRequired();
-                origin.Property(p => p.X).IsRequired();
-                origin.Property(p => p.Y).IsRequired();
-            });
-
-            entity.HasOne(e => e.Encounter)
-                .WithMany()
-                .HasForeignKey(e => e.EncounterId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.Effect)
-                .WithMany()
-                .HasForeignKey(e => e.EffectId)
-                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

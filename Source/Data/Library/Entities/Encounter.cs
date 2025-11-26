@@ -26,5 +26,4 @@ public class Encounter {
     public ICollection<EncounterOpening> Openings { get; set; } = [];
     public ICollection<EncounterRegion> Regions { get; set; } = [];
     public ICollection<EncounterSource> Sources { get; set; } = [];
-    public ICollection<EncounterEffect> EncounterEffects { get; set; } = [];
 }

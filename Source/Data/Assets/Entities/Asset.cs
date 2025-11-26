@@ -16,6 +16,7 @@ public class Asset {
     public Resource? Portrait { get; set; }
     public NamedSize TokenSize { get; set; } = NamedSize.Default;
     public ICollection<AssetToken> AssetTokens { get; set; } = [];
+
     public ICollection<AssetStatBlockValue> StatBlock { get; set; } = [];
 
     public Guid OwnerId { get; set; }

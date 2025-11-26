@@ -2,8 +2,8 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Layer, Line, Rect } from 'react-konva';
-import { LayerName, LayerZIndex } from '@/services/layerManager';
-import type { MonsterAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
+import { LayerName } from '@/services/layerManager';
+import type { PlacedAsset } from '@/types/domain';
 import { getPlacementBehavior } from '@/types/placement';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
@@ -184,21 +184,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
     const selectedAssets = placedAssets.filter((a) => selectedAssetIds.includes(a.id));
     const behaviors = selectedAssets.map((asset) => {
-      const objectProperties =
-        asset.asset.kind === 'Object'
-          ? {
-              size: (asset.asset as ObjectAsset).size,
-              isMovable: (asset.asset as ObjectAsset).isMovable,
-              isOpaque: (asset.asset as ObjectAsset).isOpaque,
-            }
-          : undefined;
-      const monsterProperties =
-        asset.asset.kind === 'Monster'
-          ? {
-              size: (asset.asset as MonsterAsset).size,
-            }
-          : undefined;
-      return getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
+      return getPlacementBehavior(asset.asset.classification.kind);
     });
 
     return {
@@ -372,44 +358,12 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         // Node is positioned at center (with offsets), so position IS the center
         const assetCenter = assetNode.position();
 
-        const objectProperties =
-          asset.asset.kind === 'Object'
-            ? {
-                size: (asset.asset as ObjectAsset).size,
-                isMovable: (asset.asset as ObjectAsset).isMovable,
-                isOpaque: (asset.asset as ObjectAsset).isOpaque,
-              }
-            : undefined;
-        const monsterProperties =
-          asset.asset.kind === 'Monster'
-            ? {
-                size: (asset.asset as MonsterAsset).size,
-              }
-            : undefined;
-        const behavior = getPlacementBehavior(asset.asset.kind, objectProperties, monsterProperties);
+        const behavior = getPlacementBehavior(asset.asset.classification.kind);
 
         // Check collision with each other asset
         if (!behavior.allowOverlap) {
           for (const other of otherAssets) {
-            const otherObjectProperties =
-              other.asset.kind === 'Object'
-                ? {
-                    size: (other.asset as ObjectAsset).size,
-                    isMovable: (other.asset as ObjectAsset).isMovable,
-                    isOpaque: (other.asset as ObjectAsset).isOpaque,
-                  }
-                : undefined;
-            const otherMonsterProperties =
-              other.asset.kind === 'Monster'
-                ? {
-                    size: (other.asset as MonsterAsset).size,
-                  }
-                : undefined;
-            const otherBehavior = getPlacementBehavior(
-              other.asset.kind,
-              otherObjectProperties,
-              otherMonsterProperties,
-            );
+            const otherBehavior = getPlacementBehavior(other.asset.classification.kind);
 
             if (otherBehavior.allowOverlap) continue;
 
@@ -775,21 +729,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     placedAssets.forEach((placedAsset) => {
       const node = stage.findOne(`#${placedAsset.id}`);
       if (node) {
-        const objectProperties =
-          placedAsset.asset.kind === 'Object'
-            ? {
-                size: (placedAsset.asset as ObjectAsset).size,
-                isMovable: (placedAsset.asset as ObjectAsset).isMovable,
-                isOpaque: (placedAsset.asset as ObjectAsset).isOpaque,
-              }
-            : undefined;
-        const monsterProperties =
-          placedAsset.asset.kind === 'Monster'
-            ? {
-                size: (placedAsset.asset as MonsterAsset).size,
-              }
-            : undefined;
-        const behavior = getPlacementBehavior(placedAsset.asset.kind, objectProperties, monsterProperties);
+        const behavior = getPlacementBehavior(placedAsset.asset.classification.kind);
 
         const isDraggable =
           behavior.canMove &&

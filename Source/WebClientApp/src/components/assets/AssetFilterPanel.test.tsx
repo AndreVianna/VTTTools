@@ -230,7 +230,7 @@ describe('AssetFilterPanel', () => {
       const user = userEvent.setup();
 
       const activeFilters: AssetFilters = {
-        kind: AssetKind.Monster,
+        kind: AssetKind.Creature,
         showMine: false,
         showOthers: false,
         showPublic: false,
@@ -249,7 +249,7 @@ describe('AssetFilterPanel', () => {
       await user.click(resetButton);
 
       expect(mockOnFiltersChange).toHaveBeenCalledWith({
-        kind: AssetKind.Monster, // Kind is preserved (controlled by parent Tabs)
+        kind: AssetKind.Creature, // Kind is preserved (controlled by parent Tabs)
         showMine: true,
         showOthers: true,
         showPublic: true,
@@ -263,7 +263,7 @@ describe('AssetFilterPanel', () => {
       const user = userEvent.setup();
 
       const filters: AssetFilters = {
-        kind: AssetKind.Monster,
+        kind: AssetKind.Creature,
         showMine: false,
         showOthers: true,
         showPublic: true,
@@ -284,7 +284,7 @@ describe('AssetFilterPanel', () => {
       expect(mockOnFiltersChange).toHaveBeenCalled();
       const calledFilters = mockOnFiltersChange.mock.calls[0]?.[0];
       expect(calledFilters).toBeDefined();
-      expect(calledFilters?.kind).toBe(AssetKind.Monster);
+      expect(calledFilters?.kind).toBe(AssetKind.Creature);
     });
   });
 

@@ -3,7 +3,6 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
 using WorldEntity = VttTools.Data.Library.Entities.World;
 using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
-using EncounterEffectEntity = VttTools.Data.Library.Entities.EncounterEffect;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
@@ -75,7 +74,6 @@ internal static class Mapper {
             Openings = entity.Openings.AsQueryable().Select(AsEncounterOpening!).ToList(),
             Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
             Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
-            Effects = entity.EncounterEffects.AsQueryable().Select(AsEncounterEffect!).ToList(),
         };
 
     internal static Expression<Func<EncounterEntity, Encounter>> AsEncounter = entity
@@ -99,7 +97,6 @@ internal static class Mapper {
             Openings = entity.Openings.AsQueryable().Select(AsEncounterOpening!).ToList(),
             Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
             Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
-            Effects = entity.EncounterEffects.AsQueryable().Select(AsEncounterEffect!).ToList(),
         };
 
     internal static Expression<Func<EncounterAssetEntity, EncounterAsset>> AsEncounterAsset = entity
@@ -280,7 +277,6 @@ internal static class Mapper {
             Walls = [.. entity.Walls.Select(sb => sb.ToModel(entity.Grid)!)],
             Regions = [.. entity.Regions.Select(sr => sr.ToModel(entity.Grid)!)],
             Sources = [.. entity.Sources.Select(ss => ss.ToModel(entity.Grid)!)],
-            Effects = [.. entity.EncounterEffects.Select(se => se.ToModel()!)],
         };
 
     internal static EncounterEntity ToEntity(this Encounter model, Guid adventureId)
@@ -302,7 +298,6 @@ internal static class Mapper {
             Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id, model.Grid)) ?? [],
             Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id, model.Grid)) ?? [],
             Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
-            EncounterEffects = model.Effects?.ConvertAll(se => ToEntity(se, model.Id)) ?? [],
         };
 
     internal static EncounterEntity UpdateFrom(this EncounterEntity entity, Encounter model) {
@@ -380,22 +375,6 @@ internal static class Mapper {
             }
             else {
                 entity.Sources.Add(ToEntity(modelSource, entity.Id, model.Grid));
-            }
-        }
-
-        // Update Effects
-        var effectIndices = model.Effects.Select(se => se.Index).ToHashSet();
-        var effectsToRemove = entity.EncounterEffects.Where(ee => !effectIndices.Contains(ee.Index)).ToList();
-        foreach (var effectToRemove in effectsToRemove) {
-            entity.EncounterEffects.Remove(effectToRemove);
-        }
-        foreach (var modelEffect in model.Effects) {
-            var existingEffect = entity.EncounterEffects.FirstOrDefault(ee => ee.Index == modelEffect.Index);
-            if (existingEffect != null) {
-                UpdateFrom(existingEffect, entity.Id, modelEffect);
-            }
-            else {
-                entity.EncounterEffects.Add(ToEntity(modelEffect, entity.Id));
             }
         }
 
@@ -683,49 +662,6 @@ internal static class Mapper {
         entity.Opacity = model.Opacity;
         entity.Material = model.Material;
         entity.Color = model.Color;
-        return entity;
-    }
-
-    internal static Expression<Func<EncounterEffectEntity, EncounterEffect>> AsEncounterEffect = entity
-        => new() {
-            EffectId = entity.EffectId,
-            Index = entity.Index,
-            Name = entity.Name,
-            Origin = entity.Origin,
-            Size = entity.Size,
-            Direction = entity.Direction,
-        };
-
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterEffect? ToModel(this EncounterEffectEntity? entity)
-        => entity == null ? null : new() {
-            EffectId = entity.EffectId,
-            Index = entity.Index,
-            Name = entity.Name,
-            Origin = entity.Origin,
-            Size = entity.Size,
-            Direction = entity.Direction,
-        };
-
-    internal static EncounterEffectEntity ToEntity(this EncounterEffect model, Guid encounterId)
-        => new() {
-            EncounterId = encounterId,
-            EffectId = model.EffectId,
-            Index = model.Index,
-            Name = model.Name,
-            Origin = model.Origin,
-            Size = model.Size,
-            Direction = model.Direction,
-        };
-
-    internal static EncounterEffectEntity UpdateFrom(this EncounterEffectEntity entity, Guid encounterId, EncounterEffect model) {
-        entity.EncounterId = encounterId;
-        entity.EffectId = model.EffectId;
-        entity.Index = model.Index;
-        entity.Name = model.Name;
-        entity.Origin = model.Origin;
-        entity.Size = model.Size;
-        entity.Direction = model.Direction;
         return entity;
     }
 }

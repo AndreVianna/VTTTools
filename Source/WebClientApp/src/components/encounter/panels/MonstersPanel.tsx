@@ -80,7 +80,7 @@ export const MonstersPanel: React.FC<MonstersPanelProps> = ({
     localStorage.setItem(STORAGE_KEY_POSITION, labelPosition);
   }, [labelPosition]);
 
-  const monsters = placedAssets.filter((a) => a.asset.kind === AssetKind.Monster);
+  const monsters = placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Creature);
 
   const toggleAssetExpanded = (assetId: string) => {
     setExpandedAssets((prev) => {

@@ -17,5 +17,4 @@ public record Encounter {
     public List<EncounterOpening> Openings { get; init; } = [];
     public List<EncounterRegion> Regions { get; init; } = [];
     public List<EncounterSource> Sources { get; init; } = [];
-    public List<EncounterEffect> Effects { get; init; } = [];
 }

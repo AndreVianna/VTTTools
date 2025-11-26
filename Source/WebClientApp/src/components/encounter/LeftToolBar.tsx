@@ -400,7 +400,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             <MonstersPanel
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
-              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Monster })}
+              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
               {...(gridConfig ? { gridConfig } : {})}
               {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
               {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}

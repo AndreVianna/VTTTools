@@ -9,7 +9,7 @@ public partial class SeedApplicationSchema : Migration {
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(
             table: "Resources",
-            columns: ["Id", "OwnerId", "Type", "ContentType", "Path", "FileName", "FileLength", "Duration", "Size_Height", "Size_Width"],
+            columns: ["Id", "OwnerId", "Type", "ContentType", "Path", "FileName", "FileLength", "Duration", "Height", "Width"],
             values: new object[,]
             {
                 { new Guid("019A50F8-F3E5-702B-89D3-33D694391F66"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Image", "image/png", "images/1f66/019a50f8f3e5702b89d333d694391f66", "wooden-crate.png", 1170, "00:00:00.0000000", 200, 200 },
@@ -53,10 +53,10 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [Assets] ([Id], [OwnerId], [Classification_Kind], [Classification_Category], [Classification_Type], [Classification_Subtype], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [TokenSize_Height], [TokenSize_Width])
+            INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Category], [Type], [Subtype], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [TokenHeight], [TokenWidth])
             VALUES
             ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5),
-            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Monster'  , 'Monster', 'Fey', 'Goblinoid', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
+            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature' , 'Monster', 'Fey', 'Goblinoid', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
             ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
             ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
             ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),

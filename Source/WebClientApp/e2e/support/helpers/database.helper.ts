@@ -28,7 +28,6 @@ const ALLOWED_TABLES = [
   'Worlds',
   'Encounters',
   'EncounterAssets',
-  'EncounterEffects',
   'EncounterStructures',
   // Game tables
   'GameSessions',
@@ -40,7 +39,6 @@ const ALLOWED_TABLES = [
   // Media tables
   'Resources',
   // Other tables
-  'Effects',
   'Structures',
   'StatBlocks',
   // Password Reset & Audit tables (may or may not exist - allow for testing)
@@ -436,13 +434,12 @@ export class DatabaseHelper {
     const placeholders = encounterIds.map(() => '?').join(',');
     const query = `
             DELETE FROM EncounterAssets WHERE EncounterId IN (${placeholders});
-            DELETE FROM EncounterEffects WHERE EncounterId IN (${placeholders});
             DELETE FROM EncounterStructures WHERE EncounterId IN (${placeholders});
             DELETE FROM Encounters WHERE Id IN (${placeholders});
         `;
 
-    // encounterIds repeated 4 times (once for each DELETE)
-    await this.executeQuery(query, [...encounterIds, ...encounterIds, ...encounterIds, ...encounterIds]);
+    // encounterIds repeated 3 times (once for each DELETE)
+    await this.executeQuery(query, [...encounterIds, ...encounterIds, ...encounterIds]);
   }
 
   /**
@@ -709,7 +706,6 @@ export class DatabaseHelper {
   async deleteUserDataOnly(userId: string): Promise<void> {
     const query = `
             DELETE FROM EncounterAssets WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
-            DELETE FROM EncounterEffects WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
             DELETE FROM EncounterStructures WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
             DELETE FROM Assets WHERE OwnerId = ?;
             DELETE FROM Encounters WHERE OwnerId = ?;
@@ -717,12 +713,11 @@ export class DatabaseHelper {
             DELETE FROM Campaigns WHERE OwnerId = ?;
             DELETE FROM Worlds WHERE OwnerId = ?;
             DELETE FROM Structures WHERE OwnerId = ?;
-            DELETE FROM Effects WHERE OwnerId = ?;
             DELETE FROM GameSessions WHERE OwnerId = ?;
             DELETE FROM Schedule WHERE OwnerId = ?;
         `;
 
-    const params = Array(12).fill(userId);
+    const params = Array(10).fill(userId);
     await this.executeQuery(query, params);
   }
 

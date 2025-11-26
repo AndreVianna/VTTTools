@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardMedia,
-  Chip,
   CircularProgress,
   Grid,
   IconButton,
@@ -17,35 +16,25 @@ import { useState } from 'react';
 import { DisplayPreview } from '@/components/common/DisplayPreview';
 import { TokenPreview } from '@/components/common/TokenPreview';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { AssetKind, type NamedSize } from '@/types/domain';
+import type { NamedSize } from '@/types/domain';
 import { getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetResourceManagerProps {
-  assetKind: AssetKind;
-  portraitId?: string | undefined;
-  topDownId?: string | undefined;
-  miniatureId?: string | undefined;
-  photoId?: string | undefined;
-  onPortraitIdChange: (portraitId: string | undefined) => void;
-  onTopDownIdChange: (topDownId: string | undefined) => void;
-  onMiniatureIdChange: (miniatureId: string | undefined) => void;
-  onPhotoIdChange: (photoId: string | undefined) => void;
-  size: NamedSize;
+  portraitId?: string;
+  tokenId?: string;
+  onPortraitChange: (id: string | undefined) => void;
+  onTokenChange: (id: string | undefined) => void;
+  tokenSize?: NamedSize;
   readOnly?: boolean;
-  entityId?: string | undefined;
+  entityId?: string;
 }
 
 export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
-  assetKind,
   portraitId,
-  topDownId,
-  miniatureId,
-  photoId,
-  onPortraitIdChange,
-  onTopDownIdChange,
-  onMiniatureIdChange,
-  onPhotoIdChange,
-  size,
+  tokenId,
+  onPortraitChange,
+  onTokenChange,
+  tokenSize = { width: 1, height: 1 },
   readOnly = false,
   entityId,
 }) => {
@@ -84,7 +73,6 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     onRemove: () => void,
     onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void,
     useTokenPreview: boolean = false,
-    isDefault: boolean = false,
   ) => (
     <Box
       sx={{
@@ -105,7 +93,6 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant='subtitle2'>{title}</Typography>
-          {isDefault && <Chip label='Default' size='small' color='primary' />}
           <Typography variant='caption' color='text.secondary' sx={{ width: '100%' }}>
             {description}
           </Typography>
@@ -132,7 +119,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
       {imageId ? (
         <Box sx={{ position: 'relative', display: 'inline-block' }}>
           {useTokenPreview ? (
-            <TokenPreview imageUrl={getResourceUrl(imageId)} size={size} />
+            <TokenPreview imageUrl={getResourceUrl(imageId)} size={tokenSize} />
           ) : (
             <Card sx={{ width: 180 }}>
               <CardMedia
@@ -182,8 +169,6 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     </Box>
   );
 
-  const isObject = assetKind === AssetKind.Object;
-
   if (readOnly) {
     return (
       <Box>
@@ -191,17 +176,6 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
           Asset Images
         </Typography>
         <Grid container spacing={2}>
-          {topDownId && (
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <Typography variant='caption' color='text.secondary'>
-                  Top-Down
-                </Typography>
-                <Chip label='Default' size='small' color='primary' />
-              </Box>
-              <TokenPreview imageUrl={getResourceUrl(topDownId)} size={size} />
-            </Grid>
-          )}
           {portraitId && (
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
@@ -210,20 +184,12 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
               <DisplayPreview imageUrl={getResourceUrl(portraitId)} />
             </Grid>
           )}
-          {miniatureId && (
+          {tokenId && (
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
-                Miniature
+                Token
               </Typography>
-              <TokenPreview imageUrl={getResourceUrl(miniatureId)} size={size} />
-            </Grid>
-          )}
-          {!isObject && photoId && (
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
-                Photo
-              </Typography>
-              <DisplayPreview imageUrl={getResourceUrl(photoId)} />
+              <TokenPreview imageUrl={getResourceUrl(tokenId)} size={tokenSize} />
             </Grid>
           )}
         </Grid>
@@ -243,52 +209,24 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
         <Grid size={{ xs: 12, md: 6 }}>
           {renderImageSection(
             'Portrait',
-            'Full image for asset details and stat blocks',
+            'Full image for asset details and library views',
             portraitId,
-            () => onPortraitIdChange(undefined),
-            (e) => handleUpload(e, onPortraitIdChange),
-            false,
+            () => onPortraitChange(undefined),
+            (e) => handleUpload(e, onPortraitChange),
             false,
           )}
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
           {renderImageSection(
-            'Top-Down View',
-            'Bird\'s eye view for square/hex grids',
-            topDownId,
-            () => onTopDownIdChange(undefined),
-            (e) => handleUpload(e, onTopDownIdChange),
-            true,
+            'Token',
+            'Visual representation for encounter placement',
+            tokenId,
+            () => onTokenChange(undefined),
+            (e) => handleUpload(e, onTokenChange),
             true,
           )}
         </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          {renderImageSection(
-            'Miniature View',
-            'Isometric view for isometric maps',
-            miniatureId,
-            () => onMiniatureIdChange(undefined),
-            (e) => handleUpload(e, onMiniatureIdChange),
-            true,
-            false,
-          )}
-        </Grid>
-
-        {!isObject && (
-          <Grid size={{ xs: 12, md: 6 }}>
-            {renderImageSection(
-              'Photo',
-              '3/4 face view with frame (creatures only)',
-              photoId,
-              () => onPhotoIdChange(undefined),
-              (e) => handleUpload(e, onPhotoIdChange),
-              false,
-              false,
-            )}
-          </Grid>
-        )}
       </Grid>
     </Box>
   );

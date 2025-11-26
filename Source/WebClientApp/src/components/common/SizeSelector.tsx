@@ -37,9 +37,9 @@ const SIZE_MAP: Record<SizeName, { width: number; height: number }> = {
 };
 
 // Determine SizeName from dimensions
-function determineSizeName(width: number, height: number, isSquare: boolean): SizeName {
+function determineSizeName(width: number, height: number): SizeName {
   if (width === 0 && height === 0) return SizeName.Zero;
-  if (!isSquare) return SizeName.Custom;
+  if (width !== height) return SizeName.Custom;
 
   const tolerance = 0.001;
   if (Math.abs(width - 0.125) < tolerance) return SizeName.Miniscule;
@@ -65,9 +65,11 @@ function isValidSize(value: number): boolean {
 export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, label = 'Size', readOnly = false }) => {
   // Derive selectedName from value props
   const selectedName = useMemo(() => {
-    const computed = determineSizeName(value.width, value.height, value.isSquare);
+    const computed = determineSizeName(value.width, value.height);
     return computed;
-  }, [value.width, value.height, value.isSquare]);
+  }, [value.width, value.height]);
+
+  const isSquare = value.width === value.height;
 
   const handleNameChange = (event: SelectChangeEvent<SizeName>) => {
     const newName = Number(event.target.value) as SizeName;
@@ -76,7 +78,6 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
       const newValue = {
         width: value.width || 1,
         height: value.height || 1,
-        isSquare: false,
       };
       onChange(newValue);
     } else {
@@ -84,28 +85,23 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
       const newValue = {
         width: dimensions.width,
         height: dimensions.height,
-        isSquare: true,
       };
       onChange(newValue);
     }
   };
 
   const handleWidthChange = (newWidth: number) => {
-    if (value.isSquare) {
-      // Locked: Update both width and height
+    if (isSquare) {
       onChange({
         width: newWidth,
         height: newWidth,
-        isSquare: true,
       });
     } else {
-      // Unlocked: Update width only
       onChange({
         ...value,
         width: newWidth,
       });
     }
-    // Name will be re-derived automatically via useMemo
   };
 
   const handleHeightChange = (newHeight: number) => {
@@ -113,22 +109,18 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
       ...value,
       height: newHeight,
     });
-    // Name will be re-derived automatically via useMemo
   };
 
   const handleToggleLock = () => {
-    if (value.isSquare) {
-      // Unlock: Keep current values
+    if (isSquare) {
       onChange({
         ...value,
-        isSquare: false,
+        height: value.width === value.height ? value.height : value.width,
       });
     } else {
-      // Lock: Sync height to width
       onChange({
-        ...value,
+        width: value.width,
         height: value.width,
-        isSquare: true,
       });
     }
   };
@@ -136,7 +128,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
   if (readOnly) {
     const displayName =
       selectedName === SizeName.Custom
-        ? value.isSquare
+        ? isSquare
           ? `${value.width} (square)`
           : `${value.width} × ${value.height}`
         : Object.keys(SizeName).find((key) => SizeName[key as keyof typeof SizeName] === selectedName);
@@ -171,11 +163,11 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
           </Select>
         </FormControl>
 
-        {(selectedName === SizeName.Custom || !value.isSquare) && (
+        {(selectedName === SizeName.Custom || !isSquare) && (
           <>
             <TextField
-              label={value.isSquare ? '' : 'W'}
-              placeholder={value.isSquare ? 'Size' : 'Width'}
+              label={isSquare ? '' : 'W'}
+              placeholder={isSquare ? 'Size' : 'Width'}
               type='number'
               value={value.width}
               onChange={(e) => handleWidthChange(parseFloat(e.target.value) || 0)}
@@ -185,11 +177,11 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
               error={!isValidSize(value.width)}
             />
 
-            <IconButton onClick={handleToggleLock} size='small' color={value.isSquare ? 'primary' : 'default'}>
-              {value.isSquare ? <LockIcon /> : <LockOpenIcon />}
+            <IconButton onClick={handleToggleLock} size='small' color={isSquare ? 'primary' : 'default'}>
+              {isSquare ? <LockIcon /> : <LockOpenIcon />}
             </IconButton>
 
-            {!value.isSquare && (
+            {!isSquare && (
               <>
                 <Typography variant='body2' sx={{ lineHeight: 2.5 }}>
                   ×
@@ -210,8 +202,8 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange, lab
           </>
         )}
       </Box>
-      {(selectedName === SizeName.Custom || !value.isSquare) &&
-        (!isValidSize(value.width) || (!value.isSquare && !isValidSize(value.height))) && (
+      {(selectedName === SizeName.Custom || !isSquare) &&
+        (!isValidSize(value.width) || (!isSquare && !isValidSize(value.height))) && (
           <Typography variant='caption' color='error' sx={{ display: 'block', mt: 0.5 }}>
             Valid: 0.125 (⅛), 0.25 (¼), 0.5 (½), or whole numbers
           </Typography>

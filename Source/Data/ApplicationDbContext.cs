@@ -2,7 +2,6 @@ using Adventure = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using AuditLog = VttTools.Data.Audit.Entities.AuditLog;
 using Campaign = VttTools.Data.Library.Entities.Campaign;
-using Effect = VttTools.Data.Assets.Entities.Effect;
 using World = VttTools.Data.Library.Entities.World;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
@@ -17,7 +16,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     : IdentityDbContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>(options) {
     public DbSet<Resource> Resources { get; set; }
     public DbSet<Asset> Assets { get; set; }
-    public DbSet<Effect> Effects { get; set; }
     public DbSet<World> Worlds { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
@@ -36,7 +34,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         IdentitySchemaSeeder.Seed(builder);
         ResourceSchemaBuilder.ConfigureModel(builder);
         AssetSchemaBuilder.ConfigureModel(builder);
-        EffectSchemaBuilder.ConfigureModel(builder);
         StatBlockSchemaBuilder.ConfigureModel(builder);
         WorldSchemaBuilder.ConfigureModel(builder);
         CampaignSchemaBuilder.ConfigureModel(builder);

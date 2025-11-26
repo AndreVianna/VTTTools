@@ -24,6 +24,7 @@ import {
   Stack,
   Tab,
   Tabs,
+  TextField,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -32,13 +33,10 @@ import { useState } from 'react';
 import { useCreateAssetMutation } from '@/services/assetsApi';
 import {
   AssetKind,
-  type CharacterData,
   type CreateAssetRequest,
-  type MonsterData,
   type NamedSize,
-  type ObjectData,
 } from '@/types/domain';
-import { AssetBasicFields, AssetResourceManager, CharacterPropertiesForm, MonsterPropertiesForm, ObjectPropertiesForm } from './forms';
+import { AssetBasicFields, AssetResourceManager } from './forms';
 
 export interface AssetCreateDialogProps {
   open: boolean;
@@ -61,35 +59,23 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
   // Basic fields
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-
-  // Image IDs for the 4 image types
-  const [portraitId, setPortraitId] = useState<string | undefined>(undefined);
-  const [topDownId, setTopDownId] = useState<string | undefined>(undefined);
-  const [miniatureId, setMiniatureId] = useState<string | undefined>(undefined);
-  const [photoId, setPhotoId] = useState<string | undefined>(undefined);
-
-  // Visibility fields
   const [isPublic, setIsPublic] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
 
-  // Size moved to root level - shared between all asset types
-  const [size, setSize] = useState<NamedSize>({
+  // Classification fields
+  const [category, setCategory] = useState('');
+  const [type, setType] = useState('');
+  const [subtype, setSubtype] = useState('');
+
+  // Image IDs
+  const [portraitId, setPortraitId] = useState<string | undefined>(undefined);
+  const [tokenId, setTokenId] = useState<string | undefined>(undefined);
+
+  // Token size
+  const [tokenSize] = useState<NamedSize>({
     width: 1,
     height: 1,
-    isSquare: true,
   });
-
-  // Object-specific properties
-  const [objectData, setObjectData] = useState<ObjectData>({
-    isMovable: true,
-    isOpaque: false,
-  });
-
-  // Monster-specific properties (monsters/NPCs)
-  const [monsterData, setMonsterData] = useState<MonsterData>({});
-
-  // Character-specific properties (player characters)
-  const [characterData, setCharacterData] = useState<CharacterData>({});
 
   // RTK Query mutation
   const [createAsset, { isLoading: isSaving }] = useCreateAssetMutation();
@@ -98,24 +84,15 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     try {
       const request: CreateAssetRequest = {
         kind: selectedKind,
+        category,
+        type,
+        subtype: subtype.trim() || undefined,
         name,
         description,
         portraitId,
-        topDownId,
-        miniatureId,
-        photoId,
-        size,
-        isPublic,
-        isPublished,
+        tokenSize,
+        tokenId,
       };
-
-      if (selectedKind === AssetKind.Object) {
-        request.objectData = objectData;
-      } else if (selectedKind === AssetKind.Monster) {
-        request.monsterData = monsterData;
-      } else if (selectedKind === AssetKind.Character) {
-        request.characterData = characterData;
-      }
 
       await createAsset(request).unwrap();
       onClose();
@@ -130,11 +107,9 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
 
   const isFormValid = () => {
     if (name.trim().length < 3) return false;
-
-    if (isPublished && !isPublic) return false;
-
-    if (size.width <= 0 || size.height <= 0) return false;
-
+    if (!category.trim()) return false;
+    if (!type.trim()) return false;
+    if (tokenSize.width <= 0 || tokenSize.height <= 0) return false;
     return true;
   };
 
@@ -160,16 +135,12 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
       <DialogContent>
         <Box sx={{ mb: 3 }}>
           <AssetResourceManager
-            assetKind={selectedKind}
             portraitId={portraitId}
-            topDownId={topDownId}
-            miniatureId={miniatureId}
-            photoId={photoId}
-            onPortraitIdChange={setPortraitId}
-            onTopDownIdChange={setTopDownId}
-            onMiniatureIdChange={setMiniatureId}
-            onPhotoIdChange={setPhotoId}
-            size={size}
+            tokenId={tokenId}
+            onPortraitChange={setPortraitId}
+            onTokenChange={setTokenId}
+            tokenSize={tokenSize}
+            readOnly={false}
           />
         </Box>
 
@@ -225,13 +196,14 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                     sx={{ borderBottom: 1, borderColor: 'divider' }}
                   >
                     <Tab label='Character' value={AssetKind.Character} />
-                    <Tab label='Monster' value={AssetKind.Monster} />
+                    <Tab label='Creature' value={AssetKind.Creature} />
+                    <Tab label='Effect' value={AssetKind.Effect} />
                     <Tab label='Object' value={AssetKind.Object} />
                   </Tabs>
                 </Box>
               )}
 
-              {/* Basic Fields (Name, Description & Visibility) */}
+              {/* Basic Fields (Name & Description) */}
               <AssetBasicFields
                 name={name}
                 description={description}
@@ -242,91 +214,31 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 onIsPublicChange={setIsPublic}
                 onIsPublishedChange={setIsPublished}
               />
-            </Stack>
-          </AccordionDetails>
-        </Accordion>
 
-        {/* ACCORDION SECTION 2: Properties (Collapsed, Required, Flexible) */}
-        <Accordion
-          disableGutters
-          sx={{
-            bgcolor: 'background.paper',
-            boxShadow: 'none',
-            '&:before': { display: 'none' },
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 1,
-          }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-              minHeight: 48,
-              '&.Mui-expanded': { minHeight: 48 },
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                flexGrow: 1,
-              }}
-            >
-              <Typography variant='subtitle1' fontWeight={600}>
-                Properties
-              </Typography>
-              <Chip label='Required' size='small' />
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails sx={{ p: 3 }}>
-            <Stack spacing={3}>
-              {/* Size field - now at root level, common to all asset types */}
-              <Box>
-                <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
-                  Size (Grid Cells)
-                </Typography>
-                <Stack direction='row' spacing={2}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant='caption'>Width</Typography>
-                    <input
-                      type='number'
-                      value={size.width}
-                      onChange={(e) => setSize({ ...size, width: Number(e.target.value) })}
-                      min={0.5}
-                      step={0.5}
-                      style={{ width: '100%', padding: '8px' }}
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant='caption'>Height</Typography>
-                    <input
-                      type='number'
-                      value={size.height}
-                      onChange={(e) => setSize({ ...size, height: Number(e.target.value) })}
-                      min={0.5}
-                      step={0.5}
-                      style={{ width: '100%', padding: '8px' }}
-                    />
-                  </Box>
-                </Stack>
-              </Box>
-
-              {/* Kind-Specific Properties (without size) */}
-              {selectedKind === AssetKind.Object && (
-                <ObjectPropertiesForm objectData={objectData} onChange={setObjectData} />
-              )}
-
-              {selectedKind === AssetKind.Monster && (
-                <MonsterPropertiesForm monsterData={monsterData} onChange={setMonsterData} />
-              )}
-
-              {selectedKind === AssetKind.Character && (
-                <CharacterPropertiesForm characterData={characterData} onChange={setCharacterData} />
-              )}
+              {/* Classification Fields */}
+              <TextField
+                label='Category'
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                fullWidth
+                required
+                helperText='e.g., Humanoid, Beast, Furniture'
+              />
+              <TextField
+                label='Type'
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                fullWidth
+                required
+                helperText='e.g., Goblinoid, Mammal, Container'
+              />
+              <TextField
+                label='Subtype'
+                value={subtype}
+                onChange={(e) => setSubtype(e.target.value)}
+                fullWidth
+                helperText='Optional: e.g., Hobgoblin, Wolf'
+              />
             </Stack>
           </AccordionDetails>
         </Accordion>

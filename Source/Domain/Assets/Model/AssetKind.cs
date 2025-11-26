@@ -4,5 +4,6 @@ namespace VttTools.Assets.Model;
 public enum AssetKind {
     Character,
     Creature,
+    Effect,
     Object
 }

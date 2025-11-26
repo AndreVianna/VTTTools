@@ -80,7 +80,7 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
     localStorage.setItem(STORAGE_KEY_POSITION, labelPosition);
   }, [labelPosition]);
 
-  const objects = placedAssets.filter((a) => a.asset.kind === AssetKind.Object);
+  const objects = placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Object);
 
   const toggleAssetExpanded = (assetId: string) => {
     setExpandedAssets((prev) => {

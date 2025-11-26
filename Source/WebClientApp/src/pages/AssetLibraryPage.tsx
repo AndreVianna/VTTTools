@@ -164,7 +164,7 @@ export const AssetLibraryPage: React.FC = () => {
             Asset Library
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Manage your characters, monsters, and objects for encounters
+            Manage your characters, creatures, effects, and objects for encounters
           </Typography>
         </Box>
 
@@ -175,7 +175,8 @@ export const AssetLibraryPage: React.FC = () => {
           sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label='Characters' value={AssetKind.Character} />
-          <Tab label='Monsters' value={AssetKind.Monster} />
+          <Tab label='Creatures' value={AssetKind.Creature} />
+          <Tab label='Effects' value={AssetKind.Effect} />
           <Tab label='Objects' value={AssetKind.Object} />
         </Tabs>
 
@@ -270,10 +271,9 @@ export const AssetLibraryPage: React.FC = () => {
                       setCreateDialogOpen(true);
                     }}
                   >
-                    {/* Title: "Add Character/Monster/Object" */}
                     <CardContent sx={{ pb: 1 }}>
                       <Typography variant='subtitle2' component='h2' noWrap fontWeight={600} color='primary'>
-                        Add {selectedKind === AssetKind.Character ? 'Character' : selectedKind === AssetKind.Monster ? 'Monster' : 'Object'}
+                        Add {selectedKind === AssetKind.Character ? 'Character' : selectedKind === AssetKind.Creature ? 'Creature' : selectedKind === AssetKind.Effect ? 'Effect' : 'Object'}
                       </Typography>
                     </CardContent>
 
@@ -420,7 +420,7 @@ export const AssetLibraryPage: React.FC = () => {
                       {/* Card Actions */}
                       <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                         <Typography variant='caption' color='text.secondary' sx={{ flexGrow: 1 }}>
-                          {asset.size ? `${asset.size.width}×${asset.size.height} cells` : ''}
+                          {asset.tokenSize ? `${asset.tokenSize.width}×${asset.tokenSize.height} cells` : ''}
                         </Typography>
                         <Typography variant='caption' color='text.secondary'>
                           {asset.isPublic ? 'Public' : 'Private'}
