@@ -32,7 +32,7 @@ public sealed class ShowCommandTests : IDisposable {
     [Fact]
     public async Task Should_ShowEntityInfo_When_EntityExists() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
-        await SaveEntityImageAsync(goblin, 0, "TopDown");
+        await SaveEntityImageAsync(goblin, 1, "TopDown");
 
         var options = new ShowTokenOptions(Name: "Goblin");
 
@@ -107,7 +107,7 @@ public sealed class ShowCommandTests : IDisposable {
     [Fact]
     public async Task Should_HandleCaseInsensitiveNameLookup() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
-        await SaveEntityImageAsync(goblin, 0, "TopDown");
+        await SaveEntityImageAsync(goblin, 1, "TopDown");
 
         var options = new ShowTokenOptions(Name: "GOBLIN");
 
@@ -123,6 +123,7 @@ public sealed class ShowCommandTests : IDisposable {
         var dragon = EntityDefinitionFixtures.CreateDragonWithComplexVariants();
 
         var fakeImage = new byte[1024];
+        await _imageStore.SaveImageAsync("TopDown", dragon, 0, fakeImage, TestContext.Current.CancellationToken);
         await _imageStore.SaveImageAsync("TopDown", dragon, 1, fakeImage, TestContext.Current.CancellationToken);
         await _imageStore.SaveImageAsync("CloseUp", dragon, 1, fakeImage, TestContext.Current.CancellationToken);
         await _imageStore.SaveImageAsync("Portrait", dragon, 1, fakeImage, TestContext.Current.CancellationToken);
@@ -138,9 +139,9 @@ public sealed class ShowCommandTests : IDisposable {
 
         var entityInfo = _imageStore.FindAsset("Dragon");
 
-        Assert.NotNull(entityInfo);
-        Assert.Equal(3, entityInfo.Tokens.Count);
-        Assert.All(entityInfo.Tokens, Assert.NotNull);
+        entityInfo.Should().NotBeNull();
+        entityInfo!.Tokens.Should().HaveCount(3);
+        entityInfo.Tokens.Should().AllSatisfy(token => token.Should().NotBeNull());
     }
 
     private async Task SaveEntityImageAsync(Asset entity, int variantIndex, string imageType) {
@@ -148,3 +149,4 @@ public sealed class ShowCommandTests : IDisposable {
         await _imageStore.SaveImageAsync(imageType, entity, variantIndex, fakeImage);
     }
 }
+

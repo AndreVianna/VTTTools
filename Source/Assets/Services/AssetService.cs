@@ -11,10 +11,11 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                                                                     string? category,
                                                                     string? type,
                                                                     string? subtype,
-                                                                    string? search,
+                                                                    string? basicSearch,
+                                                                    ICollection<AdvancedSearchFilter>? advancedSearch,
                                                                     Pagination? pagination,
                                                                     CancellationToken ct = default)
-        => assetStorage.SearchAsync(userId, availability, kind, category, type, subtype, search, pagination, ct);
+        => assetStorage.SearchAsync(userId, availability, kind, category, type, subtype, basicSearch, advancedSearch, pagination, ct);
 
     public Task<Asset?> GetAssetByIdAsync(Guid userId, Guid id, CancellationToken ct = default)
         => assetStorage.FindByIdAsync(userId, id, ct);

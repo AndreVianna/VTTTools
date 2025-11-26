@@ -9,4 +9,14 @@ public class AssetStatBlockValue {
     [MaxLength(4096)]
     public string? Value { get; set; }
     public AssetStatBlockValueType Type { get; set; }
+
+    [JsonIgnore]
+    public decimal AsNumber => Type == AssetStatBlockValueType.Number ? Convert.ToDecimal(Value)
+                                       : throw new InvalidCastException("The value is not a number.");
+    [JsonIgnore]
+    public string AsText => Type == AssetStatBlockValueType.Text ? Convert.ToString(Value)!
+                                     : throw new InvalidCastException("The value is not text.");
+    [JsonIgnore]
+    public bool AsFlag => Type == AssetStatBlockValueType.Flag ? Convert.ToBoolean(Value)
+                                     : throw new InvalidCastException("The value is not a flag.");
 }

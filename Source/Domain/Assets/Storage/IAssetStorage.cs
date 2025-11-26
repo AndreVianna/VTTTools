@@ -11,6 +11,7 @@ public interface IAssetStorage {
         string? type = null,
         string? subtype = null,
         string? search = null,
+        ICollection<AdvancedSearchFilter>? filters = null,
         Pagination? pagination = null,
         CancellationToken ct = default);
 

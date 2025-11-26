@@ -1,3 +1,6 @@
+using Effect = VttTools.Assets.Model.Effect;
+using EffectEntity = VttTools.Data.Assets.Entities.Effect;
+
 namespace VttTools.Data.Assets;
 
 /// <summary>
@@ -7,14 +10,20 @@ public class EffectStorage(ApplicationDbContext context) {
     /// <summary>
     /// Gets all effects owned by a user
     /// </summary>
-    public async Task<Effect[]> GetByOwnerAsync(Guid ownerId, CancellationToken ct = default) {
-        var entities = await context.Effects
+    public async Task<(Effect[] effects, int totalCount)> GetByOwnerAsync(Guid ownerId, CancellationToken ct = default) {
+        var query = context.Effects
             .Include(e => e.Image)
-            .AsNoTracking()
             .Where(e => e.OwnerId == ownerId)
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        var totalCount = await query.CountAsync(ct);
+
+        var effects = await query
+            .Select(Mapper.AsEffect)
             .ToArrayAsync(ct);
 
-        return [.. entities.Select(ToModel)];
+        return (effects, totalCount);
     }
 
     /// <summary>
@@ -26,52 +35,15 @@ public class EffectStorage(ApplicationDbContext context) {
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
-        return entity != null ? ToModel(entity) : null;
+        return entity?.ToModel();
     }
 
     /// <summary>
     /// Adds a new effect
     /// </summary>
     public async Task AddAsync(Effect effect, CancellationToken ct = default) {
-        var entity = new Entities.Effect {
-            Id = effect.Id,
-            OwnerId = effect.OwnerId,
-            Name = effect.Name,
-            Description = effect.Description,
-            Shape = effect.Shape,
-            Size = effect.Size,
-            Direction = effect.Direction,
-            BoundedByStructures = effect.BoundedByStructures,
-            ImageId = effect.Image?.Id,
-            Category = effect.Category,
-            CreatedAt = effect.CreatedAt
-        };
-
+        var entity = effect.ToEntity();
         await context.Effects.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
     }
-    private static Effect ToModel(Entities.Effect entity)
-        => new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            Shape = entity.Shape,
-            Size = entity.Size,
-            Direction = entity.Direction,
-            BoundedByStructures = entity.BoundedByStructures,
-            Image = entity.Image != null ? new Resource {
-                Id = entity.Image.Id,
-                Type = entity.Image.Type,
-                Path = entity.Image.Path,
-                ContentType = entity.Image.ContentType,
-                FileName = entity.Image.FileName,
-                FileLength = entity.Image.FileLength,
-                Size = entity.Image.Size,
-                Duration = entity.Image.Duration,
-                Features = [..entity.Image.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())]
-            } : null,
-            Category = entity.Category,
-            CreatedAt = entity.CreatedAt
-        };
 }

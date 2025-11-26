@@ -1,3 +1,6 @@
+using Asset = VttTools.Assets.Model.Asset;
+using AssetEntity = VttTools.Data.Assets.Entities.Asset;
+
 namespace VttTools.Data.Assets;
 
 public class AssetStorage(ApplicationDbContext context)
@@ -21,6 +24,7 @@ public class AssetStorage(ApplicationDbContext context)
         string? type = null,
         string? subtype = null,
         string? search = null,
+        ICollection<AdvancedSearchFilter>? filters = null,
         Pagination? pagination = null,
         CancellationToken ct = default) {
 
@@ -53,15 +57,44 @@ public class AssetStorage(ApplicationDbContext context)
                 EF.Functions.Like(a.Description, search));
         }
 
+        query = AddAdvancedSearchFilters(filters, query);
+
         var totalCount = await query.CountAsync(ct);
 
         if (pagination is not null)
             query = query.Skip(pagination.Index * pagination.Size).Take(pagination.Size);
 
-        var entities = await query.ToArrayAsync(ct);
-        var assets = entities.Select(e => e.ToModel()).OfType<Asset>().ToArray();
+        var entities = query.Select(Mapper.AsAsset);
+        var assets = await entities.ToArrayAsync(ct);
 
         return (assets, totalCount);
+    }
+
+    private static IQueryable<AssetEntity> AddAdvancedSearchFilters(ICollection<AdvancedSearchFilter>? advancedSearch, IQueryable<AssetEntity> query) {
+        if (advancedSearch == null) return query;
+        foreach (var filter in advancedSearch) {
+            switch (filter.Operator) {
+                case FilterOperator.GreaterThan:
+                    query = query.Where(a => a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsNumber > filter.AsNumber));
+                    break;
+                case FilterOperator.LessThan:
+                    query = query.Where(a => a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsNumber < filter.AsNumber));
+                    break;
+                case FilterOperator.Contains:
+                    query = query.Where(a =>
+                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsText!.Contains(filter.AsText)) ||
+                        a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.AsText.Contains(filter.AsText))));
+                    break;
+                case FilterOperator.Equals:
+                    var textValue = filter.Value.ToString()!;
+                    query = query.Where(a =>
+                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.Value != null && sb.Value.Equals(filter.Value)) ||
+                        a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Equals(filter.Value))));
+                    break;
+            }
+        }
+
+        return query;
     }
 
     public async Task<Asset?> FindByIdAsync(Guid userId, Guid id, CancellationToken ct = default) {

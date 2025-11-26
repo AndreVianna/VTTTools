@@ -81,7 +81,7 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
             }
             ConsoleOutput.WriteLine($"Asset cost: ${finalCost:0.0000}");
 
-            var index = 0;
+            var index = 1;
             foreach (var token in asset.Tokens) {
                 if (replace is AllowOverwriteResult.Cancel) {
                     skipCount = totalFiles - (processedCount + skipCount);

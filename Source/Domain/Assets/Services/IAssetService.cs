@@ -8,7 +8,8 @@ public interface IAssetService {
                                                              string? category,
                                                              string? type,
                                                              string? subtype,
-                                                             string? search,
+                                                             string? basicSearch,
+                                                             ICollection<AdvancedSearchFilter>? advancedSearch,
                                                              Pagination? pagination,
                                                              CancellationToken ct = default);
     Task<Asset?> GetAssetByIdAsync(Guid userId, Guid id, CancellationToken ct = default);

@@ -1,5 +1,6 @@
 namespace VttTools.Assets.Model;
 
+[JsonConverter(typeof(StatBlockValueJsonConverter))]
 public readonly record struct StatBlockValue {
     private readonly string? _text;
     private readonly decimal? _number;

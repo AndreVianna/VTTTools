@@ -32,7 +32,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         base.OnModelCreating(builder);
         builder.Ignore<Size>();
         builder.Ignore<NamedSize>();
-        builder.Ignore<ResourceMetadata>();
         IdentitySchemaBuilder.ConfigureModel(builder);
         IdentitySchemaSeeder.Seed(builder);
         ResourceSchemaBuilder.ConfigureModel(builder);

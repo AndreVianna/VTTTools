@@ -13,6 +13,7 @@ internal static class AssetHandlers {
         [FromQuery] string? type,
         [FromQuery] string? subtype,
         [FromQuery] string? search,
+        [FromQuery] string[]? filter,
         [FromQuery] int? pageIndex,
         [FromQuery] int? pageSize,
         [FromServices] IAssetService assetService) {
@@ -28,11 +29,13 @@ internal static class AssetHandlers {
             ? parsedAvailability
             : (Availability?)null;
 
+        var advancedFilter = filter is null ? [] : AdvancedSearchFilter.Parse(filter);
+
         var pagination = pageIndex.HasValue && pageSize.HasValue && pageIndex.Value >= 0 && pageSize.Value >= 1
             ? new Pagination(pageIndex.Value, pageSize.Value)
             : null;
 
-        var result = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, pagination, cts.Token);
+        var result = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, advancedFilter, pagination, cts.Token);
         return Results.Ok(result);
     }
 

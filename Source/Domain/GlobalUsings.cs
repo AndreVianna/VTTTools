@@ -14,6 +14,7 @@ global using Microsoft.AspNetCore.Identity;
 global using VttTools.Admin.ApiContracts;
 global using VttTools.Domain.Admin.ApiContracts;
 global using VttTools.Assets.Model;
+global using VttTools.Assets.Storage;
 global using VttTools.Assets.ServiceContracts;
 global using VttTools.Audit.Model;
 global using VttTools.Common.ApiContracts;

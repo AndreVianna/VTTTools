@@ -1,8 +1,10 @@
 namespace VttTools.AssetImageManager.Infrastructure.Storage;
 
 /// <summary>
-/// Stores VTT files (images and prompts) in a 7-level hierarchical folder structure.
-/// Hierarchy: files/{genre}/{category}/{type}/{subtype}/{asset}/{variantIndex}/files
+/// Stores VTT files (images and prompts) in a hierarchical folder structure.
+/// Hierarchy: files/{genre}/{category}/{type}/{subtype}/{asset}/files
+/// tokenIndex=0 (base): filename.png (e.g., topdown.png, token.png, portrait.png)
+/// tokenIndex>0: filename_NN.png (e.g., topdown_01.png, token_01.png)
 /// Supports Windows long paths (\\?\ prefix for paths >260 characters).
 /// </summary>
 public sealed partial class HierarchicalFileStore(string rootPath)
@@ -35,15 +37,15 @@ public sealed partial class HierarchicalFileStore(string rootPath)
 
     public bool HasImageFiles(Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
-        var path = BuildVariantPath(asset, variantIndex);
+        var path = BuildVariantPath(asset);
         var imageTypes = ImageTypeFor(asset.Classification.Kind);
-        return imageTypes.Any(it => File.Exists(Path.Combine(path, NormalizeFileName(it) + _imageFileExtension)));
+        return imageTypes.Any(it => File.Exists(Path.Combine(path, BuildFileName(it, variantIndex) + _imageFileExtension)));
     }
 
     public bool ImageFileExists(string imageType, Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
-        var path = BuildVariantPath(asset, variantIndex);
-        return File.Exists(Path.Combine(path, NormalizeFileName(imageType) + _imageFileExtension));
+        var path = BuildVariantPath(asset);
+        return File.Exists(Path.Combine(path, BuildFileName(imageType, variantIndex) + _imageFileExtension));
     }
 
     public IReadOnlyList<string> GetExistingImageFiles(
@@ -51,19 +53,19 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(asset, variantIndex);
+        var variantPath = BuildVariantPath(asset);
         variantPath = PreparePathForWindows(variantPath);
         return !Directory.Exists(variantPath)
             ? []
-            : [.. ImageTypeFor(asset.Classification.Kind).Select(it => Path.Combine(variantPath, NormalizeFileName(it) + _imageFileExtension)).Where(f => File.Exists(f))];
+            : [.. ImageTypeFor(asset.Classification.Kind).Select(it => Path.Combine(variantPath, BuildFileName(it, variantIndex) + _imageFileExtension)).Where(f => File.Exists(f))];
     }
 
     public string? FindImageFile(string imageType, Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(asset, variantIndex);
+        var variantPath = BuildVariantPath(asset);
         variantPath = PreparePathForWindows(variantPath);
-        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _imageFileExtension);
+        var filePath = Path.Combine(variantPath, BuildFileName(imageType, variantIndex) + _imageFileExtension);
         return File.Exists(filePath) ? filePath : null;
     }
 
@@ -77,11 +79,11 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         ArgumentNullException.ThrowIfNull(content);
         ArgumentException.ThrowIfNullOrWhiteSpace(imageType);
 
-        var variantPath = BuildVariantPath(asset, variantIndex);
+        var variantPath = BuildVariantPath(asset);
         Directory.CreateDirectory(variantPath);
         await SaveAssetMetadataAsync(asset, ct);
 
-        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _imageFileExtension);
+        var filePath = Path.Combine(variantPath, BuildFileName(imageType, variantIndex) + _imageFileExtension);
         filePath = PreparePathForWindows(filePath);
 
         await File.WriteAllBytesAsync(filePath, content, ct);
@@ -90,33 +92,33 @@ public sealed partial class HierarchicalFileStore(string rootPath)
 
     public bool HasPromptFiles(Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
-        var path = BuildVariantPath(asset, variantIndex);
+        var path = BuildVariantPath(asset);
         var imageTypes = ImageTypeFor(asset.Classification.Kind);
-        return imageTypes.Any(it => File.Exists(Path.Combine(path, NormalizeFileName(it) + _promptFileExtension)));
+        return imageTypes.Any(it => File.Exists(Path.Combine(path, BuildFileName(it, variantIndex) + _promptFileExtension)));
     }
 
     public bool PromptFileExists(string imageType, Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
-        var path = BuildVariantPath(asset, variantIndex);
-        return File.Exists(Path.Combine(path, NormalizeFileName(imageType) + _promptFileExtension));
+        var path = BuildVariantPath(asset);
+        return File.Exists(Path.Combine(path, BuildFileName(imageType, variantIndex) + _promptFileExtension));
     }
 
     public IReadOnlyList<string> GetExistingPromptFiles(Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(asset, variantIndex);
+        var variantPath = BuildVariantPath(asset);
         variantPath = PreparePathForWindows(variantPath);
         return !Directory.Exists(variantPath)
             ? []
-            : [.. ImageTypeFor(asset.Classification.Kind).Select(it => Path.Combine(variantPath, NormalizeFileName(it) + _promptFileExtension)).Where(f => File.Exists(f))];
+            : [.. ImageTypeFor(asset.Classification.Kind).Select(it => Path.Combine(variantPath, BuildFileName(it, variantIndex) + _promptFileExtension)).Where(f => File.Exists(f))];
     }
 
     public string? FindPromptFile(string imageType, Asset asset, int variantIndex = 0) {
         ArgumentNullException.ThrowIfNull(asset);
 
-        var variantPath = BuildVariantPath(asset, variantIndex);
+        var variantPath = BuildVariantPath(asset);
         variantPath = PreparePathForWindows(variantPath);
-        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _promptFileExtension);
+        var filePath = Path.Combine(variantPath, BuildFileName(imageType, variantIndex) + _promptFileExtension);
         return File.Exists(filePath) ? filePath : null;
     }
 
@@ -130,25 +132,37 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
         ArgumentException.ThrowIfNullOrWhiteSpace(imageType);
 
-        var variantPath = BuildVariantPath(asset, variantIndex);
+        var variantPath = BuildVariantPath(asset);
         Directory.CreateDirectory(variantPath);
         await SaveAssetMetadataAsync(asset, ct);
 
-        var filePath = Path.Combine(variantPath, NormalizeFileName(imageType) + _promptFileExtension);
+        var filePath = Path.Combine(variantPath, BuildFileName(imageType, variantIndex) + _promptFileExtension);
         filePath = PreparePathForWindows(filePath);
         await File.WriteAllTextAsync(filePath, prompt, ct);
         return filePath;
     }
 
-    private string BuildVariantPath(Asset asset, int variantIndex = 0)
+    private string BuildVariantPath(Asset asset)
         => Path.Combine(
             _rootPath,
             NormalizeFolderName(asset.Classification.Kind.ToString()),
             NormalizeFolderName(asset.Classification.Category),
             NormalizeFolderName(asset.Classification.Type),
             NormalizeFolderName(asset.Classification.Subtype, string.Empty),
-            NormalizeFolderName(asset.Name),
-            variantIndex == 0 ? string.Empty : NormalizeFolderName(variantIndex.ToString()));
+            NormalizeFolderName(asset.Name));
+
+    private static string BuildFileName(string imageType, int tokenIndex) {
+        var baseName = imageType.ToLowerInvariant() switch {
+            "topdown" => "topdown",
+            "closeup" => "token",
+            "portrait" => "portrait",
+            _ => NormalizeFileName(imageType)
+        };
+
+        return tokenIndex == 0
+            ? baseName
+            : $"{baseName}_{tokenIndex:D2}";
+    }
 
     private static string PreparePathForWindows(string path) {
         if (!OperatingSystem.IsWindows()) {
@@ -202,12 +216,27 @@ public sealed partial class HierarchicalFileStore(string rootPath)
 
     private static Asset CreateAsset(AssetKind kind, string category, string type, string? subtype, string assetPath) {
         var name = LoadAssetName(assetPath) ?? Path.GetFileName(assetPath)!;
+        var assetPathWindows = PreparePathForWindows(assetPath);
+
+        var tokenFiles = Directory.Exists(assetPathWindows)
+            ? Directory.EnumerateFiles(assetPathWindows, "topdown_*.png")
+                .Concat(Directory.EnumerateFiles(assetPathWindows, "token_*.png"))
+                .Select(f => Path.GetFileNameWithoutExtension(f))
+                .Select(f => {
+                    var parts = f.Split('_');
+                    return parts.Length == 2 && int.TryParse(parts[1], out var idx) ? idx : -1;
+                })
+                .Where(idx => idx > 0)
+                .Distinct()
+                .Order()
+                .Select(idx => new Resource { Description = $"Token {idx}" })
+                .ToList()
+            : [];
+
         return new Asset {
             Classification = new AssetClassification(kind, category, type, subtype),
             Name = name,
-            Tokens = [.. Directory.EnumerateDirectories(assetPath).Select(d => new Resource {
-                Description = Path.GetFileName(d),
-            })]
+            Tokens = tokenFiles
         };
     }
 

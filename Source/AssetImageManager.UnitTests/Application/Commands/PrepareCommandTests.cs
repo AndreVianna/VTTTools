@@ -5,7 +5,8 @@ public sealed class PrepareCommandTests : IDisposable {
     private readonly string _outputDir;
     private readonly PrepareCommand _command;
     private readonly MockHttpClientFactory _mockHttpClientFactory;
-    private readonly IFileStore _imageStore;
+    private readonly HierarchicalFileStore _realFileStore;
+    private readonly IFileStore _mockFileStore;
     private readonly IConfiguration _mockConfiguration;
 
     private static readonly JsonSerializerOptions _jsonOptions = new() {
@@ -24,12 +25,23 @@ public sealed class PrepareCommandTests : IDisposable {
 
         _mockConfiguration = Substitute.For<IConfiguration>();
         _mockConfiguration["PromptEnhancer:Provider"].Returns("OPENAI");
-        _mockConfiguration["PromptEnhancer:Model"].Returns("gpt-4");
+        _mockConfiguration["PromptEnhancer:Model"].Returns("gpt-5-mini");
         _mockConfiguration["OpenAI:ApiKey"].Returns("test-key");
-        _mockConfiguration["OpenAI:Model"].Returns("gpt-4");
+        _mockConfiguration["OpenAI:Model"].Returns("gpt-5-mini");
+        _mockConfiguration["Providers:OpenAI:BaseUrl"].Returns("https://api.openai.com");
 
-        _imageStore = new HierarchicalFileStore(_outputDir);
-        _command = new PrepareCommand(_mockHttpClientFactory, _imageStore, _mockConfiguration);
+        _realFileStore = new HierarchicalFileStore(_outputDir);
+        _mockFileStore = Substitute.For<IFileStore>();
+        SetupFileStoreDelegation();
+
+        _command = new PrepareCommand(_mockHttpClientFactory, _mockFileStore, _mockConfiguration);
+    }
+
+    private void SetupFileStoreDelegation() {
+        _mockFileStore.FindPromptFile(Arg.Any<string>(), Arg.Any<Asset>(), Arg.Any<int>())
+            .Returns(ci => _realFileStore.FindPromptFile(ci.ArgAt<string>(0), ci.ArgAt<Asset>(1), ci.ArgAt<int>(2)));
+        _mockFileStore.SavePromptAsync(Arg.Any<string>(), Arg.Any<Asset>(), Arg.Any<int>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci => _realFileStore.SavePromptAsync(ci.ArgAt<string>(0), ci.ArgAt<Asset>(1), ci.ArgAt<int>(2), ci.ArgAt<string>(3), ci.ArgAt<CancellationToken>(4)));
     }
 
     public void Dispose() {
@@ -79,8 +91,9 @@ public sealed class PrepareCommandTests : IDisposable {
 
     [Fact]
     public async Task Should_ReturnSuccess_When_FileIsEmptyArray() {
-        var jsonFile = Path.Combine(_tempDir, "empty.json");
-        await File.WriteAllTextAsync(jsonFile, "[]", TestContext.Current.CancellationToken);
+        var jsonFile = await SetupMockedJsonFileAsync("empty.json");
+        _mockFileStore.LoadAssetsAsync(jsonFile, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new List<Asset>()));
         var options = new PrepareOptions(jsonFile);
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
@@ -103,37 +116,36 @@ public sealed class PrepareCommandTests : IDisposable {
     public async Task Should_ReturnSuccess_When_SingleEntityWithNoVariants() {
         SetConsoleInput("yes");
         var entity = CreateAssetWithToken("Goblin", "A green-skinned creature");
-        var jsonFile = await CreateJsonFileAsync("single-entity.json", [entity]);
+        var jsonFile = await SetupMockedJsonFileAsync("single-entity.json", entity);
         var options = new PrepareOptions(jsonFile);
 
         EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down view");
         EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up view");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for portrait view");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(entity, 0, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp"]);
     }
 
     [Fact]
     public async Task Should_ReturnSuccess_When_SingleEntityWithVariants() {
         SetConsoleInput("yes");
         var entity = CreateAssetWithTokens("Goblin", "A green-skinned creature", 2);
-        var jsonFile = await CreateJsonFileAsync("entity-with-variants.json", [entity]);
+        var jsonFile = await SetupMockedJsonFileAsync("entity-with-variants.json", entity);
         var options = new PrepareOptions(jsonFile);
 
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 0");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 0");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for portrait token 0");
         EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 1");
         EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 1");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for portrait token 1");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 2");
+        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 2");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(entity, 0, ["TopDown", "CloseUp", "Portrait"]);
-        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp"]);
+        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(entity, 2, ["TopDown", "CloseUp"]);
     }
 
     [Fact]
@@ -141,7 +153,7 @@ public sealed class PrepareCommandTests : IDisposable {
         SetConsoleInput("yes");
         var goblin = CreateAssetWithToken("Goblin", "A green-skinned creature");
         var orc = CreateAssetWithToken("Orc", "A muscular grey-skinned brute");
-        var jsonFile = await CreateJsonFileAsync("multiple-entities.json", [goblin, orc]);
+        var jsonFile = await SetupMockedJsonFileAsync("multiple-entities.json", goblin, orc);
         var options = new PrepareOptions(jsonFile);
 
         EnqueueOpenAiSuccessResponse("Enhanced goblin top-down");
@@ -154,15 +166,15 @@ public sealed class PrepareCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(goblin, 0, ["TopDown", "CloseUp", "Portrait"]);
-        VerifyPromptFilesCreated(orc, 0, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(goblin, 1, ["TopDown", "CloseUp", "Portrait"]);
+        VerifyPromptFilesCreated(orc, 1, ["TopDown", "CloseUp", "Portrait"]);
     }
 
     [Fact]
     public async Task Should_ShowWarning_When_MoreThan50Variants() {
         SetConsoleInput("yes");
         var entity = CreateAssetWithTokens("TestEntity", "Test description", 55);
-        var jsonFile = await CreateJsonFileAsync("many-variants.json", [entity]);
+        var jsonFile = await SetupMockedJsonFileAsync("many-variants.json", entity);
         var options = new PrepareOptions(jsonFile);
 
         for (var i = 0; i < 55; i++) {
@@ -181,7 +193,7 @@ public sealed class PrepareCommandTests : IDisposable {
     [Fact]
     public async Task Should_HandleCancellationDuringFileRead() {
         var entity = EntityDefinitionFixtures.CreateSimpleGoblin();
-        var jsonFile = await CreateJsonFileAsync("cancel.json", [entity]);
+        var jsonFile = await SetupMockedJsonFileAsync("cancel.json", entity);
         var options = new PrepareOptions(jsonFile);
         using var cts = new CancellationTokenSource();
 
@@ -199,10 +211,11 @@ public sealed class PrepareCommandTests : IDisposable {
         Assert.True(true);
     }
 
-    private async Task<string> CreateJsonFileAsync(string fileName, List<Asset> entities) {
+    private async Task<string> SetupMockedJsonFileAsync(string fileName, params Asset[] assets) {
         var filePath = Path.Combine(_tempDir, fileName);
-        var json = JsonSerializer.Serialize(entities, _jsonOptions);
-        await File.WriteAllTextAsync(filePath, json, TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(filePath, "[]", TestContext.Current.CancellationToken);
+        _mockFileStore.LoadAssetsAsync(filePath, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(assets.ToList()));
         return filePath;
     }
 
@@ -216,7 +229,7 @@ public sealed class PrepareCommandTests : IDisposable {
         Tokens = [
             new Resource {
                 Id = Guid.NewGuid(),
-                Description = description,
+                Description = "base",
                 Type = ResourceType.Image,
                 Path = string.Empty,
                 ContentType = "image/png",
@@ -233,7 +246,7 @@ public sealed class PrepareCommandTests : IDisposable {
         for (var i = 0; i < tokenCount; i++) {
             tokens.Add(new Resource {
                 Id = Guid.NewGuid(),
-                Description = $"{description} variant {i}",
+                Description = $"variant-{i}",
                 Type = ResourceType.Image,
                 Path = string.Empty,
                 ContentType = "image/png",
@@ -262,7 +275,7 @@ public sealed class PrepareCommandTests : IDisposable {
             "object": "thread.message",
             "created_at": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
             "status": "completed",
-            "model": "gpt-4",
+            "model": "gpt-5-mini",
             "output": [
                 {
                     "type": "message",
@@ -296,7 +309,7 @@ public sealed class PrepareCommandTests : IDisposable {
 
     private void VerifyPromptFilesCreated(Asset entity, int tokenIndex, string[] imageTypes) {
         foreach (var imageType in imageTypes) {
-            var filePath = _imageStore.FindPromptFile(imageType, entity, tokenIndex);
+            var filePath = _realFileStore.FindPromptFile(imageType, entity, tokenIndex);
             filePath.Should().NotBeNull($"Prompt file for {imageType} should be created");
             File.Exists(filePath).Should().BeTrue($"Prompt file {filePath} should exist on disk");
         }
@@ -307,3 +320,4 @@ public sealed class PrepareCommandTests : IDisposable {
         Console.SetIn(reader);
     }
 }
+

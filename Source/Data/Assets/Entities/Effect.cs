@@ -12,12 +12,15 @@ public class Effect {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string? Description { get; set; }
+
     public EffectShape Shape { get; set; }
-    public double Size { get; set; }
     public double? Direction { get; set; }
     public bool BoundedByStructures { get; set; }
+
     public Guid? ImageId { get; set; }
+    public double Size { get; set; }
     public Resource? Image { get; set; }
+
     [MaxLength(32)]
     public string? Category { get; set; }
     public DateTime CreatedAt { get; set; }

@@ -2,6 +2,7 @@ global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Linq.Expressions;
 global using System.Text.Json;
+global using System.Text.Json.Serialization;
 
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ global using VttTools.Assets.Storage;
 global using VttTools.Audit.Storage;
 global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
+global using VttTools.Data.Assets.Entities;
 global using VttTools.Data.Builders;
 global using VttTools.Data.Game;
 global using VttTools.Data.Helpers;

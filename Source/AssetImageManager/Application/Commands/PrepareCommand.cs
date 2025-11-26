@@ -54,7 +54,7 @@ public sealed class PrepareCommand(IHttpClientFactory httpClientFactory,
         var previousAssetIndex = -1;
         foreach (var (assetIndex, asset, tokenIndex, token) in assets.SelectMany((e, i) =>
             e.Tokens.Count > 0
-                ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi, token: (Resource?)v))
+                ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (Resource?)v))
                 : [(assetIndex: i, entity: e, tokenIndex: 0, token: (Resource?)null)])) {
             ct.ThrowIfCancellationRequested();
             if (replace is AllowOverwriteResult.Cancel) {

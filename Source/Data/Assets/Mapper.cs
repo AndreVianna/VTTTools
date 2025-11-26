@@ -2,13 +2,13 @@ using Asset = VttTools.Assets.Model.Asset;
 using Resource = VttTools.Media.Model.Resource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
-using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using VttTools.Data.Assets.Entities;
+using Effect = VttTools.Assets.Model.Effect;
+using EffectEntity = VttTools.Data.Assets.Entities.Effect;
 
 namespace VttTools.Data.Assets;
 
 internal static class Mapper {
-    internal static Expression<Func<AssetEntity, Asset>> AsAsset = entity
+    public static Expression<Func<AssetEntity, Asset>> AsAsset = entity
         => new() {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
@@ -28,7 +28,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Asset? ToModel(this AssetEntity? entity)
+    public static Asset? ToModel(this AssetEntity? entity)
         => entity is null
            ? null
            : new Asset {
@@ -49,7 +49,7 @@ internal static class Mapper {
                Tokens = [..entity.AssetTokens.Select(v => v.Token.ToModel()!)],
            };
 
-    internal static AssetEntity ToEntity(this Asset model)
+    public static AssetEntity ToEntity(this Asset model)
         => new() {
             Id = model.Id,
             OwnerId = model.OwnerId,
@@ -72,7 +72,7 @@ internal static class Mapper {
             AssetTokens = [..model.Tokens.Select((t, i) => t.ToEntity(model.Id, i))],
         };
 
-    internal static void UpdateFrom(this AssetEntity entity, Asset model) {
+    public static void UpdateFrom(this AssetEntity entity, Asset model) {
         entity.Classification = model.Classification;
         entity.Name = model.Name;
         entity.Description = model.Description;
@@ -91,7 +91,7 @@ internal static class Mapper {
         entity.PortraitId = model.Portrait?.Id;
     }
 
-    internal static Expression<Func<AssetTokenEntity, Resource>> AsToken = entity
+    public static Expression<Func<AssetTokenEntity, Resource>> AsToken = entity
         => new Resource {
             Id = entity.TokenId,
             OwnerId = entity.Token.OwnerId,
@@ -109,7 +109,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Resource? ToModel(this AssetTokenEntity? entity)
+    public static Resource? ToModel(this AssetTokenEntity? entity)
         => entity is null
            ? null
            : new Resource {
@@ -128,16 +128,61 @@ internal static class Mapper {
                Duration = entity.Token.Duration,
            };
 
-    internal static AssetTokenEntity ToEntity(this Resource model, Guid assetId, int index)
+    public static AssetTokenEntity ToEntity(this Resource model, Guid assetId, int index)
         => new() {
             TokenId = model.Id,
             AssetId = assetId,
             Index = index,
         };
 
-    internal static void UpdateFrom(this AssetTokenEntity entity, Guid resourceId, Guid assetId, int index) {
+    public static void UpdateFrom(this AssetTokenEntity entity, Guid resourceId, Guid assetId, int index) {
         entity.TokenId = resourceId;
         entity.AssetId = assetId;
         entity.Index = index;
     }
+
+    public static Expression<Func<EffectEntity, Effect>> AsEffect = entity
+        => new () {
+            Id = entity.Id,
+            OwnerId = entity.OwnerId,
+            Name = entity.Name,
+            Description = entity.Description,
+            Shape = entity.Shape,
+            Size = entity.Size,
+            Direction = entity.Direction,
+            BoundedByStructures = entity.BoundedByStructures,
+            Image = entity.Image == null ? null : entity.Image.ToModel(),
+            Category = entity.Category,
+            CreatedAt = entity.CreatedAt
+        };
+
+    public static Effect ToModel(this EffectEntity entity)
+        => new() {
+            Id = entity.Id,
+            OwnerId = entity.OwnerId,
+            Name = entity.Name,
+            Description = entity.Description,
+            Shape = entity.Shape,
+            Size = entity.Size,
+            Direction = entity.Direction,
+            BoundedByStructures = entity.BoundedByStructures,
+            Image = entity.Image?.ToModel(),
+            Category = entity.Category,
+            CreatedAt = entity.CreatedAt
+        };
+
+    public static EffectEntity ToEntity(this Effect model)
+        => new() {
+            Id = model.Id,
+            OwnerId = model.OwnerId,
+            Name = model.Name,
+            Description = model.Description,
+            Shape = model.Shape,
+            Size = model.Size,
+            Direction = model.Direction,
+            BoundedByStructures = model.BoundedByStructures,
+            ImageId = model.Image?.Id,
+            Category = model.Category,
+            CreatedAt = model.CreatedAt
+        };
 }

@@ -104,7 +104,7 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
                 FileLength = ulong.TryParse(response.Value.Details?.Metadata["FileLength"], out var fileLength)
                     ? fileLength
                     : resource.FileLength,
-                ImageSize = new Size(
+                Size = new Size(
                     int.TryParse(response.Value.Details?.Metadata["Width"], out var width)
                         ? width
                         : resource.Size.Width,

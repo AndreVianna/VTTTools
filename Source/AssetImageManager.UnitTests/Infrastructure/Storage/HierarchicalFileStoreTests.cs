@@ -153,8 +153,9 @@ public class HierarchicalFileStoreTests {
             baseVariantPath.Should().NotBe(variant2Path);
             variant1Path.Should().NotBe(variant2Path);
 
-            variant1Path.Should().Contain(Path.DirectorySeparatorChar + "1" + Path.DirectorySeparatorChar);
-            variant2Path.Should().Contain(Path.DirectorySeparatorChar + "2" + Path.DirectorySeparatorChar);
+            baseVariantPath.Should().EndWith("topdown.png");
+            variant1Path.Should().EndWith("topdown_01.png");
+            variant2Path.Should().EndWith("topdown_02.png");
         }
         finally {
             if (Directory.Exists(tempDir)) {
