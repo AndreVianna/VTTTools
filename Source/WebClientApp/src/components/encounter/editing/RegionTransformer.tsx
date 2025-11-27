@@ -15,7 +15,7 @@ import {
 import { getCrosshairPlusCursor, getGrabbingCursor, getMoveCursor, getPointerCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { SnapMode, snapToNearest } from '@/utils/structureSnapping';
+import { type SnapMode, snapToNearest } from '@/utils/structureSnapping';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
@@ -116,6 +116,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
       vertex2: Point;
     } | null>(null);
     const vertexRefs = useRef<Map<number, Konva.Group>>(new Map());
+    const currentSnapModeRef = useRef<SnapMode | null>(null);
 
     const previewVertices = previewVerticesDuringDrag ?? segment.vertices;
 
@@ -133,6 +134,21 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
         vertexRefs.current.delete(index);
       }
     }, [segment.vertices]);
+
+    useEffect(() => {
+      const updateSnapMode = (e: KeyboardEvent | MouseEvent) => {
+        if ('altKey' in e) {
+          currentSnapModeRef.current = getSnapModeFromEvent(e);
+        }
+      };
+
+      window.addEventListener('keydown', updateSnapMode);
+      window.addEventListener('keyup', updateSnapMode);
+      return () => {
+        window.removeEventListener('keydown', updateSnapMode);
+        window.removeEventListener('keyup', updateSnapMode);
+      };
+    }, []);
 
     const handleDeleteVertices = useCallback(() => {
       if (segment.vertices.length - selectedVertices.size < 3) {
@@ -242,17 +258,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
           return;
         }
 
-        let currentX = e.target.x();
-        let currentY = e.target.y();
-
-        const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.HalfSnap;
-
-        if (gridConfig.snap) {
-          const snapped = snapToNearest({ x: currentX, y: currentY }, gridConfig, currentSnapMode, 50);
-          currentX = snapped.x;
-          currentY = snapped.y;
-          e.target.position({ x: currentX, y: currentY });
-        }
+        const currentX = e.target.x();
+        const currentY = e.target.y();
 
         const oldX = dragStartPositionRef.current.x;
         const oldY = dragStartPositionRef.current.y;
@@ -279,7 +286,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
 
         setPreviewVerticesDuringDrag(newVertices);
       },
-      [segment.vertices, selectedVertices, gridConfig],
+      [segment.vertices, selectedVertices],
     );
 
     const handleVertexDragEnd = useCallback(
@@ -290,16 +297,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
           return;
         }
 
-        let finalX = e.target.x();
-        let finalY = e.target.y();
-
-        const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.HalfSnap;
-
-        if (gridConfig.snap) {
-          const snapped = snapToNearest({ x: finalX, y: finalY }, gridConfig, currentSnapMode, 50);
-          finalX = snapped.x;
-          finalY = snapped.y;
-        }
+        const finalX = e.target.x();
+        const finalY = e.target.y();
 
         const oldX = dragStartPositionRef.current.x;
         const oldY = dragStartPositionRef.current.y;
@@ -369,7 +368,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
         }
         setPreviewVerticesDuringDrag(null);
       },
-      [segment, selectedVertices, gridConfig, onVerticesChange, onLocalAction],
+      [segment, selectedVertices, onVerticesChange, onLocalAction],
     );
 
     const handleVertexClick = useCallback(
@@ -620,12 +619,23 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             />
           )}
 
+          {/* Filled region polygon */}
+          {verticesToUse.length >= 3 && (
+            <Line
+              points={verticesToUse.flatMap((v) => [v.x, v.y])}
+              fill={fillColor}
+              closed={true}
+              opacity={0.3}
+              listening={false}
+            />
+          )}
+
           {verticesToUse.map((vertex, index) => {
             const nextVertex = verticesToUse[(index + 1) % verticesToUse.length];
             if (!nextVertex) return null;
             const isLineSelected = selectedLineIndex === index;
             return (
-              <React.Fragment key={`line-segment-${vertex.x}-${vertex.y}-${nextVertex.x}-${nextVertex.y}`}>
+              <React.Fragment key={`line-segment-${index}`}>
                 <Line
                   points={[vertex.x, vertex.y, nextVertex.x, nextVertex.y]}
                   stroke={isLineSelected ? theme.palette.error.main : fillColor}
@@ -791,9 +801,10 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
 
           {verticesToUse.map((vertex, index) => {
             const isSelected = selectedVertices.has(index);
-            const isDragging = draggingVertexIndex === index;
 
             const groupProps: Record<string, unknown> = {
+              x: vertex.x,
+              y: vertex.y,
               draggable: true,
               listening: !isShiftPressed,
               ref: (node: Konva.Group | null) => {
@@ -804,6 +815,9 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                 }
               },
               dragBoundFunc: (pos: { x: number; y: number }) => {
+                if (gridConfig.snap && currentSnapModeRef.current !== null) {
+                  return snapToNearest(pos, gridConfig, currentSnapModeRef.current, 50);
+                }
                 return pos;
               },
               onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -844,13 +858,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
               },
             };
 
-            if (!isDragging) {
-              groupProps.x = vertex.x;
-              groupProps.y = vertex.y;
-            }
-
             return (
-              <Group key={`vertex-${vertex.x}-${vertex.y}-${index}`} {...groupProps}>
+              <Group key={`vertex-group-${index}`} {...groupProps}>
                 <Circle x={0} y={0} radius={25} fill='transparent' />
                 <Circle
                   x={0}

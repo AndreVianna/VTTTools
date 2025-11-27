@@ -1565,12 +1565,16 @@ const EncounterEditorPageInternal: React.FC = () => {
                     if (encounterRegion.type === 'FogOfWar') {
                       return null;
                     }
+                    if (isEditingRegionVertices && editingRegionIndex === encounterRegion.index) {
+                      return null;
+                    }
                     return (
                       <RegionRenderer
                         key={encounterRegion.id}
                         encounterRegion={encounterRegion}
                         activeScope={activeScope}
-                        onSelect={regionHandlers.handleRegionSelect}
+                        onSelect={regionHandlers.handleEditRegionVertices}
+                        isSelected={selectedRegionIndex === encounterRegion.index}
                       />
                     );
                   })}

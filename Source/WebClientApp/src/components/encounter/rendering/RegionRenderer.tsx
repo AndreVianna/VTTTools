@@ -14,9 +14,10 @@ export interface RegionRendererProps {
   encounterRegion: PlacedRegion;
   activeScope: InteractionScope;
   onSelect?: (index: number) => void;
+  isSelected?: boolean;
 }
 
-export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope, onSelect }) => {
+export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope, onSelect, isSelected = false }) => {
   const theme = useTheme();
   const isInteractive = isRegionInScope(activeScope);
 
@@ -54,11 +55,11 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
         id={encounterRegion.id}
         points={points}
         fill={color}
-        stroke={color}
-        strokeWidth={2}
-        opacity={0.3}
+        stroke={isSelected ? theme.palette.primary.main : color}
+        strokeWidth={isSelected ? 4 : 2}
+        opacity={isSelected ? 0.5 : 0.3}
         fillOpacity={0.3}
-        strokeOpacity={0.8}
+        strokeOpacity={isSelected ? 1 : 0.8}
         closed={true}
         listening={isInteractive}
         onClick={handleClick}
