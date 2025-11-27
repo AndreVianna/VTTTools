@@ -1,4 +1,5 @@
 import { useTheme } from '@mui/material/styles';
+import type Konva from 'konva';
 import type React from 'react';
 import { useMemo } from 'react';
 import { Line } from 'react-konva';
@@ -12,10 +13,19 @@ import { RegionLabelDisplay } from './RegionLabelDisplay';
 export interface RegionRendererProps {
   encounterRegion: PlacedRegion;
   activeScope: InteractionScope;
+  onSelect?: (index: number) => void;
 }
 
-export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope }) => {
+export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion, activeScope, onSelect }) => {
   const theme = useTheme();
+  const isInteractive = isRegionInScope(activeScope);
+
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (onSelect && isInteractive) {
+      e.cancelBubble = true;
+      onSelect(encounterRegion.index);
+    }
+  };
 
   const firstVertex = encounterRegion.vertices[0];
   if (!firstVertex) return null;
@@ -34,8 +44,6 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
 
   const points = [...encounterRegion.vertices, firstVertex].flatMap((v) => [v.x, v.y]);
 
-  const isInteractive = isRegionInScope(activeScope);
-
   if (import.meta.env.DEV && !encounterRegion.id) {
     console.warn('[RegionRenderer] Missing ID for region at index', encounterRegion.index);
   }
@@ -53,6 +61,21 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ encounterRegion,
         strokeOpacity={0.8}
         closed={true}
         listening={isInteractive}
+        onClick={handleClick}
+        hitStrokeWidth={10}
+        onMouseEnter={(e) => {
+          if (!isInteractive) return;
+          const container = e.target.getStage()?.container();
+          if (container) {
+            container.style.cursor = 'pointer';
+          }
+        }}
+        onMouseLeave={(e) => {
+          const container = e.target.getStage()?.container();
+          if (container) {
+            container.style.cursor = 'default';
+          }
+        }}
       />
       <RegionLabelDisplay centroid={centroid} label={labelText} />
     </>

@@ -334,7 +334,6 @@ export const encounterApi = createApi({
         poles: Pole[] | undefined;
         visibility: WallVisibility | undefined;
         isClosed: boolean | undefined;
-        material?: string | undefined;
         color?: string | undefined;
       }
     >({
@@ -367,7 +366,6 @@ export const encounterApi = createApi({
         poles?: Pole[] | undefined;
         visibility?: WallVisibility | undefined;
         isClosed?: boolean | undefined;
-        material?: string | undefined;
         color?: string | undefined;
       }
     >({

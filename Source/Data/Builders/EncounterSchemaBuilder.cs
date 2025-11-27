@@ -101,7 +101,6 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(WallVisibility.Normal);
             entity.Property(e => e.IsClosed).IsRequired().HasDefaultValue(false);
-            entity.Property(e => e.Material).IsRequired(false).HasMaxLength(32);
             entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
 
             entity.OwnsMany(e => e.Poles, poles => {

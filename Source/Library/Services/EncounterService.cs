@@ -448,7 +448,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             IsClosed = data.IsClosed,
             Visibility = data.Visibility,
             Poles = data.Poles,
-            Material = data.Material,
             Color = data.Color,
         };
 
@@ -473,7 +472,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             Poles = data.Poles.IsSet ? data.Poles.Value : encounterWall.Poles,
             IsClosed = data.IsClosed.IsSet ? data.IsClosed.Value : encounterWall.IsClosed,
             Visibility = data.Visibility.IsSet ? data.Visibility.Value : encounterWall.Visibility,
-            Material = data.Material.IsSet ? data.Material.Value : encounterWall.Material,
             Color = data.Color.IsSet ? data.Color.Value : encounterWall.Color,
         };
 

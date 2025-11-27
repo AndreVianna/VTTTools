@@ -17,6 +17,7 @@ import {
 } from '@/features/content-library/pages';
 import { useAuth } from '@/hooks/useAuth';
 import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
+import { AssetStudioPage } from '@/pages/AssetStudioPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
 import { EncounterEditorPage } from '@/pages/EncounterEditorPage';
@@ -96,6 +97,28 @@ function AppRoutes() {
               <AppLayout>
                 <ProtectedRoute authLevel='authorized'>
                   <AssetLibraryPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
+
+          <Route
+            path='/assets/new'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <AssetStudioPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
+
+          <Route
+            path='/assets/:id/edit'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <AssetStudioPage />
                 </ProtectedRoute>
               </AppLayout>
             }

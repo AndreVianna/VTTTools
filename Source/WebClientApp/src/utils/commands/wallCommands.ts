@@ -32,7 +32,6 @@ export class CreateWallCommand implements Command {
       poles: wall.poles,
       visibility: wall.visibility,
       isClosed: wall.isClosed,
-      material: wall.material,
       color: wall.color,
     });
     await onRefetch();
@@ -66,7 +65,6 @@ export class EditWallCommand implements Command {
       poles: oldWall.poles,
       visibility: oldWall.visibility,
       isClosed: oldWall.isClosed,
-      material: oldWall.material,
       color: oldWall.color,
     };
     await onUpdate(encounterId, wallIndex, updates);
@@ -80,7 +78,6 @@ export class EditWallCommand implements Command {
       poles: newWall.poles,
       visibility: newWall.visibility,
       isClosed: newWall.isClosed,
-      material: newWall.material,
       color: newWall.color,
     };
     await onUpdate(encounterId, wallIndex, updates);
@@ -118,7 +115,6 @@ export class DeleteWallCommand implements Command {
       poles: wall.poles,
       visibility: wall.visibility,
       isClosed: wall.isClosed,
-      material: wall.material,
       color: wall.color,
     });
     this.restoredIndex = restoredWall.index;
@@ -169,7 +165,6 @@ export class BreakWallCommand implements Command {
       poles: originalWall.poles,
       visibility: originalWall.visibility,
       isClosed: originalWall.isClosed,
-      material: originalWall.material,
       color: originalWall.color,
     };
     await onUpdate(encounterId, originalWallIndex, updates);
@@ -189,7 +184,6 @@ export class BreakWallCommand implements Command {
         poles: wall.poles,
         visibility: wall.visibility,
         isClosed: wall.isClosed,
-        material: wall.material,
         color: wall.color,
       });
       this.segmentIndices.push(addedWall.index);
@@ -236,7 +230,6 @@ export class MergeWallsCommand implements Command {
           poles: originalWall.poles,
           visibility: originalWall.visibility,
           isClosed: originalWall.isClosed,
-          material: originalWall.material,
           color: originalWall.color,
         };
         await onUpdate(encounterId, targetWallIndex, updates);
@@ -246,7 +239,6 @@ export class MergeWallsCommand implements Command {
           poles: originalWall.poles,
           visibility: originalWall.visibility,
           isClosed: originalWall.isClosed,
-          material: originalWall.material,
           color: originalWall.color,
         });
         this.restoredIndices.set(originalWall.index, restoredWall.index);
@@ -264,7 +256,6 @@ export class MergeWallsCommand implements Command {
       poles: mergedWall.poles,
       visibility: mergedWall.visibility,
       isClosed: mergedWall.isClosed,
-      material: mergedWall.material,
       color: mergedWall.color,
     };
     await onUpdate(encounterId, targetWallIndex, updates);
@@ -328,7 +319,6 @@ export class SplitWallsCommand implements Command {
           poles: originalWall.poles,
           isClosed: originalWall.isClosed,
           visibility: originalWall.visibility,
-          material: originalWall.material,
           color: originalWall.color,
         });
       }
@@ -352,7 +342,6 @@ export class SplitWallsCommand implements Command {
         poles: newWall.poles,
         isClosed: newWall.isClosed,
         visibility: newWall.visibility,
-        material: newWall.material,
         color: newWall.color,
       });
       this.restoredNewWallIndex = restoredNewWall.index;
@@ -367,7 +356,6 @@ export class SplitWallsCommand implements Command {
             poles: firstSegment.poles,
             isClosed: firstSegment.isClosed,
             visibility: firstSegment.visibility,
-            material: firstSegment.material,
             color: firstSegment.color,
           });
           indices.push(wallIndex);
@@ -381,7 +369,6 @@ export class SplitWallsCommand implements Command {
               poles: segment.poles,
               isClosed: segment.isClosed,
               visibility: segment.visibility,
-              material: segment.material,
               color: segment.color,
             });
             indices.push(addedWall.index);

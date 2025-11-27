@@ -33,6 +33,7 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "@vtttools/web-components": "file:../WebComponents",
     "axios": "^1.12.1",
     "dayjs": "^1.11.19",
     "react": "^19.1.1",

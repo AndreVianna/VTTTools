@@ -565,7 +565,6 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         poles: [{ x: 0, y: 0, h: 10 }],
         isClosed: false,
         visibility: WallVisibility.Normal,
-        material: undefined,
         color: '#808080',
       };
 
@@ -618,7 +617,6 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         poles: [{ x: 0, y: 0, h: 10 }],
         isClosed: false,
         visibility: WallVisibility.Normal,
-        material: undefined,
         color: '#808080',
       };
 
@@ -668,7 +666,6 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         poles: [{ x: 0, y: 0, h: 10 }],
         isClosed: false,
         visibility: WallVisibility.Normal,
-        material: undefined,
         color: '#808080',
       };
 

@@ -776,28 +776,6 @@ describe('splitWallAtPoints', () => {
       expect(result[1]?.name).toBe('Wall (2)');
     });
 
-    it('should inherit material from original wall', () => {
-      const wall = createWall([createPole(0, 0), createPole(100, 0)], 0);
-      wall.material = 'stone';
-      const splits: SplitPoint[] = [
-        {
-          wallIndex: 0,
-          edgeIndex: 0,
-          splitPosition: { x: 50, y: 0 },
-          splitType: 'intersection',
-        },
-      ];
-
-      const result = splitWallAtPoints({
-        wall,
-        wallIndex: 0,
-        splitPoints: splits,
-      });
-
-      expect(result[0]?.material).toBe('stone');
-      expect(result[1]?.material).toBe('stone');
-    });
-
     it('should inherit color from original wall', () => {
       const wall = createWall([createPole(0, 0), createPole(100, 0)], 0);
       wall.color = '#FF0000';

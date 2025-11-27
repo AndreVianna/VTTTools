@@ -7,6 +7,7 @@ import { AuditLogsPage } from '@pages/AuditLogsPage';
 import { UserListPage } from '@pages/Users/UserListPage';
 import { MaintenanceModePage } from '@pages/MaintenanceModePage';
 import { ConfigurationPage } from '@pages/ConfigurationPage';
+import { PublicLibraryPage } from '@pages/PublicLibraryPage';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
         <Route path="audit" element={<AuditLogsPage />} />
         <Route path="maintenance" element={<MaintenanceModePage />} />
         <Route path="config" element={<ConfigurationPage />} />
-        <Route path="library" element={<div>Public Library (Coming soon)</div>} />
+        <Route path="library" element={<PublicLibraryPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

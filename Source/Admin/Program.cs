@@ -13,6 +13,7 @@ internal static class Program {
         builder.AddRateLimiting();
         builder.AddServices();
         builder.AddAuditLogging();
+        builder.AddPublicLibrary();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
@@ -170,6 +171,7 @@ internal static class Program {
         builder.Services.AddScoped<IMaintenanceModeStorage, MaintenanceModeStorage>();
         builder.Services.AddScoped<IMaintenanceModeService, MaintenanceModeService>();
         builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+        builder.Services.AddScoped<ILibraryAdminService, LibraryAdminService>();
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root
@@ -191,6 +193,7 @@ internal static class Program {
         app.MapUserAdminEndpoints();
         app.MapMaintenanceModeEndpoints();
         app.MapConfigurationEndpoints();
+        app.MapLibraryAdminEndpoints();
         app.MapHub<VttTools.Admin.Hubs.AuditLogHub>("/hubs/audit");
     }
 }

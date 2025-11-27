@@ -443,26 +443,29 @@ const EncounterEditorPageInternal: React.FC = () => {
     },
   });
 
+  const isDrawingWall = drawingMode === 'wall' && drawingWallIndex !== null;
+  const isDrawingRegion = drawingMode === 'region' && drawingRegionIndex !== null;
+  const isDrawingBucketFill = drawingMode === 'bucketFill' && drawingRegionIndex !== null;
+  const isUsingDrawingTool = isDrawingWall || isDrawingRegion || isDrawingBucketFill || fogDrawingTool !== null;
+
   const keyboardState = useKeyboardState({
     gridConfig,
-    ...(drawingMode !== 'wall' &&
-      drawingMode !== 'region' &&
-      fogDrawingTool === null && {
-        onEscapeKey: () => {
-          if (isEditingVertices && wallTransaction.transaction.isActive) {
-            wallHandlers.handleCancelEditing();
-          } else if (assetManagement?.draggedAsset) {
-            assetManagement.setDraggedAsset(null);
-          } else if (activeScope !== null) {
-            setActiveScope(null);
-          }
-        },
-        onEnterKey: () => {
-          if (isEditingVertices && wallTransaction.transaction.isActive) {
-            wallHandlers.handleFinishEditing();
-          }
-        },
-      }),
+    ...(!isUsingDrawingTool && {
+      onEscapeKey: () => {
+        if (isEditingVertices && wallTransaction.transaction.isActive) {
+          wallHandlers.handleCancelEditing();
+        } else if (assetManagement?.draggedAsset) {
+          assetManagement.setDraggedAsset(null);
+        } else if (activeScope !== null) {
+          setActiveScope(null);
+        }
+      },
+      onEnterKey: () => {
+        if (isEditingVertices && wallTransaction.transaction.isActive) {
+          wallHandlers.handleFinishEditing();
+        }
+      },
+    }),
   });
 
   const canvasReadyState = useCanvasReadyState({
@@ -636,11 +639,19 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const prevActiveScopeRef = useRef<InteractionScope>(null);
   useEffect(() => {
-    if (prevActiveScopeRef.current !== activeScope && prevActiveScopeRef.current !== null) {
+    if (prevActiveScopeRef.current !== activeScope) {
       assetManagement.handleAssetSelected([]);
+      setSelectedWallIndex(null);
+      setSelectedRegionIndex(null);
+      setSelectedSourceIndex(null);
+      setSelectedOpeningIndex(null);
+      setIsEditingVertices(false);
+      if (wallTransaction.transaction.isActive) {
+        wallTransaction.rollbackTransaction();
+      }
     }
     prevActiveScopeRef.current = activeScope;
-  }, [activeScope, assetManagement.handleAssetSelected]);
+  }, [activeScope, assetManagement.handleAssetSelected, wallTransaction]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -782,7 +793,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                         poles: segment.poles,
                         isClosed: segment.isClosed,
                         visibility: selectedWall.visibility,
-                        material: selectedWall.material,
                         color: selectedWall.color,
                       };
                       syncedEncounter = addWallOptimistic(syncedEncounter, tempWall);
@@ -963,7 +973,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     async (properties: {
       visibility: WallVisibility;
       isClosed: boolean;
-      material?: string;
       defaultHeight: number;
       color?: string;
     }) => {
@@ -985,7 +994,6 @@ const EncounterEditorPageInternal: React.FC = () => {
         name: wallName,
         visibility: properties.visibility,
         isClosed: properties.isClosed,
-        material: properties.material,
         color: properties.color || '#808080',
       });
 
@@ -996,7 +1004,6 @@ const EncounterEditorPageInternal: React.FC = () => {
         poles: [],
         visibility: properties.visibility,
         isClosed: properties.isClosed,
-        material: properties.material,
         color: properties.color || '#808080',
       };
 
@@ -1563,6 +1570,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                         key={encounterRegion.id}
                         encounterRegion={encounterRegion}
                         activeScope={activeScope}
+                        onSelect={regionHandlers.handleRegionSelect}
                       />
                     );
                   })}
@@ -1579,6 +1587,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       walls={encounter.walls || []}
                       gridConfig={gridConfig}
                       activeScope={activeScope}
+                      onSelect={handleSourceSelect}
                     />
                   ))}
                 </Group>
@@ -1600,6 +1609,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                         {shouldRender && (
                           <WallRenderer
                             encounterWall={encounterWall}
+                            onClick={wallHandlers.handleEditVertices}
                             onContextMenu={contextMenus.wallContextMenu.handleOpen}
                             activeScope={activeScope}
                           />
@@ -1649,6 +1659,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                         wall={wall}
                         isSelected={selectedOpeningIndex === encounterOpening.index}
                         onSelect={() => handleOpeningSelect(encounterOpening.index)}
+                        activeScope={activeScope}
                       />
                     );
                   })}
@@ -1703,6 +1714,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                   }
                 }}
                 encounter={encounter}
+                activeScope={activeScope}
               />
             )}
 

@@ -10,17 +10,12 @@ import {
   Checkbox,
   Collapse,
   Divider,
-  FormControl,
   FormControlLabel,
   IconButton,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  MenuItem,
-  Select,
-  type SelectChangeEvent,
   TextField,
   Tooltip,
   Typography,
@@ -30,7 +25,7 @@ import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import { useUpdateEncounterWallMutation } from '@/services/encounterApi';
 import { type PlacedWall, type Pole, WallVisibility } from '@/types/domain';
-import { MATERIAL_OPTIONS, WALL_PRESETS, type WallPreset } from './wallsPanelTypes';
+import { WALL_PRESETS, type WallPreset } from './wallsPanelTypes';
 
 export interface WallsPanelProps {
   encounterId?: string;
@@ -42,7 +37,6 @@ export interface WallsPanelProps {
   onPlaceWall?: (properties: {
     visibility: WallVisibility;
     isClosed: boolean;
-    material?: string;
     defaultHeight: number;
     color?: string;
   }) => void;
@@ -70,8 +64,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
 
     const [visibility, setVisibility] = useState<WallVisibility>(WallVisibility.Normal);
     const [isClosed, setIsClosed] = useState(false);
-    const [material, setMaterial] = useState<string>('Stone');
-    const [customMaterial, setCustomMaterial] = useState<string>('');
     const [defaultHeight, setDefaultHeight] = useState<number>(10.0);
     const [defaultColor, setDefaultColor] = useState<string>('#808080');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -79,8 +71,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
     const [expandedWalls, setExpandedWalls] = useState<Set<number>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
     const [editedColors, setEditedColors] = useState<Map<number, string>>(new Map());
-    const [editedMaterials, setEditedMaterials] = useState<Map<number, string>>(new Map());
-    const [editedCustomMaterials, setEditedCustomMaterials] = useState<Map<number, string>>(new Map());
 
     const [editConflictOpen, setEditConflictOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<'delete' | 'place' | null>(null);
@@ -160,9 +150,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
     const handlePresetClick = (preset: WallPreset) => {
       setVisibility(preset.visibility);
       setIsClosed(preset.isClosed);
-      if (preset.material) {
-        setMaterial(preset.material);
-      }
       onPresetSelect?.(preset);
     };
 
@@ -183,7 +170,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       onPlaceWall?.({
         visibility,
         isClosed,
-        material: material === 'Custom' ? customMaterial : material,
         defaultHeight,
         color: defaultColor,
       });
@@ -225,7 +211,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         onPlaceWall?.({
           visibility,
           isClosed,
-          material: material === 'Custom' ? customMaterial : material,
           defaultHeight,
           color: defaultColor,
         });
@@ -238,10 +223,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       setEditConflictOpen(false);
       setPendingAction(null);
       setWallToDelete(null);
-    };
-
-    const handleMaterialChange = (e: SelectChangeEvent<string>) => {
-      setMaterial(e.target.value);
     };
 
     const toggleWallExpanded = (wallIndex: number) => {
@@ -259,16 +240,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
             newMap.delete(wallIndex);
             return newMap;
           });
-          setEditedMaterials((prevMaterials) => {
-            const newMap = new Map(prevMaterials);
-            newMap.delete(wallIndex);
-            return newMap;
-          });
-          setEditedCustomMaterials((prevCustom) => {
-            const newMap = new Map(prevCustom);
-            newMap.delete(wallIndex);
-            return newMap;
-          });
         } else {
           newSet.add(wallIndex);
         }
@@ -280,7 +251,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       wallIndex: number,
       updates: {
         name?: string;
-        material?: string;
         color?: string;
         poles?: Pole[];
       },
@@ -353,27 +323,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
           Default Values
         </Typography>
 
-        {/* Material + Color + Pole Height */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FormControl size='small' sx={{ flex: 2 }}>
-            <InputLabel id='label-material' sx={compactStyles.inputLabel}>
-              Material
-            </InputLabel>
-            <Select
-              labelId='label-material'
-              value={material}
-              label='Material'
-              onChange={handleMaterialChange}
-              sx={compactStyles.select}
-            >
-              {MATERIAL_OPTIONS.map((mat) => (
-                <MenuItem key={mat} value={mat} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                  {mat}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
           <input
             type='color'
             value={defaultColor}
@@ -395,21 +345,9 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
             onChange={(e) => setDefaultHeight(parseFloat(e.target.value))}
             size='small'
             InputProps={{ inputProps: { min: 0.5, max: 20.0, step: 0.5 } }}
-            sx={{ ...compactStyles.textField, width: 50 }}
+            sx={{ ...compactStyles.textField, width: 80 }}
           />
         </Box>
-
-        {material === 'Custom' && (
-          <TextField
-            label='Custom Material'
-            value={customMaterial}
-            onChange={(e) => setCustomMaterial(e.target.value)}
-            size='small'
-            fullWidth
-            inputProps={{ maxLength: 64 }}
-            sx={compactStyles.textField}
-          />
-        )}
 
         <Button variant='contained' onClick={handlePlaceWall} sx={compactStyles.button}>
           Place Wall
@@ -534,7 +472,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                         <ListItemText
                           primary={encounterWall.name}
                           primaryTypographyProps={{ fontSize: '10px' }}
-                          secondary={`${encounterWall.material || 'Unknown'} - ${encounterWall.poles.length} poles`}
+                          secondary={`${encounterWall.poles.length} poles`}
                           secondaryTypographyProps={{ fontSize: '8px' }}
                         />
                       )}
@@ -552,50 +490,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                         gap: 1,
                       }}
                     >
-                      {/* Material + Color + Pole Height */}
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FormControl size='small' sx={{ flex: 2 }} onClick={(e) => e.stopPropagation()}>
-                          <InputLabel id={`label-material-${encounterWall.index}`} sx={compactStyles.inputLabel}>
-                            Material
-                          </InputLabel>
-                          <Select
-                            labelId={`label-material-${encounterWall.index}`}
-                            value={(() => {
-                              const edited = editedMaterials.get(encounterWall.index);
-                              if (edited !== undefined) return edited;
-                              const current = encounterWall.material ?? 'Stone';
-                              return MATERIAL_OPTIONS.includes(current) ? current : 'Custom';
-                            })()}
-                            label='Material'
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setEditedMaterials((prev) => {
-                                const newMap = new Map(prev);
-                                newMap.set(encounterWall.index, newValue);
-                                return newMap;
-                              });
-                              if (newValue !== 'Custom') {
-                                handleWallPropertyUpdate(encounterWall.index, {
-                                  material: newValue,
-                                });
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              e.stopPropagation();
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            sx={compactStyles.select}
-                          >
-                            {MATERIAL_OPTIONS.map((mat) => (
-                              <MenuItem key={mat} value={mat} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                                {mat}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-
                         <input
                           type='color'
                           value={editedColors.get(encounterWall.index) ?? encounterWall.color ?? '#808080'}
@@ -645,51 +540,9 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                           InputProps={{
                             inputProps: { min: 0.5, max: 20.0, step: 0.5 },
                           }}
-                          sx={{ ...compactStyles.textField, width: 50 }}
+                          sx={{ ...compactStyles.textField, width: 80 }}
                         />
                       </Box>
-
-                      {(() => {
-                        const materialType = editedMaterials.get(encounterWall.index);
-                        const currentMaterial = encounterWall.material ?? 'Stone';
-                        const isCustomMode =
-                          materialType === 'Custom' ||
-                          (materialType === undefined && !MATERIAL_OPTIONS.includes(currentMaterial));
-                        return isCustomMode;
-                      })() && (
-                        <TextField
-                          label='Custom Material'
-                          value={(() => {
-                            const customValue = editedCustomMaterials.get(encounterWall.index);
-                            if (customValue !== undefined) return customValue;
-                            const current = encounterWall.material ?? '';
-                            return MATERIAL_OPTIONS.includes(current) ? '' : current;
-                          })()}
-                          onChange={(e) => {
-                            const newValue = e.target.value;
-                            setEditedCustomMaterials((prev) => {
-                              const newMap = new Map(prev);
-                              newMap.set(encounterWall.index, newValue);
-                              return newMap;
-                            });
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value.trim()) {
-                              handleWallPropertyUpdate(encounterWall.index, {
-                                material: e.target.value,
-                              });
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            e.stopPropagation();
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          size='small'
-                          fullWidth
-                          inputProps={{ maxLength: 64 }}
-                          sx={compactStyles.textField}
-                        />
-                      )}
                     </Box>
                   </Collapse>
                 </React.Fragment>

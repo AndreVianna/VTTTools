@@ -11,6 +11,7 @@ import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { getEffectiveLabelPosition, getEffectiveLabelVisibility } from '@/utils/displayHelpers';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
+import { type InteractionScope, isAssetInScope } from '@/utils/scopeFiltering';
 import { formatMonsterLabel } from './tokenPlacementUtils';
 
 const LABEL_PADDING = 4;
@@ -50,6 +51,8 @@ export interface TokenPlacementProps {
   onContextMenu?: (assetId: string, position: { x: number; y: number }) => void;
   /** Current encounter for display settings */
   encounter: Encounter;
+  /** Active interaction scope for filtering interactions */
+  activeScope?: InteractionScope;
 }
 
 const getTokenImageUrl = (asset: Asset): string | null => {
@@ -250,6 +253,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
   onImagesLoaded,
   snapMode,
   onContextMenu,
+  activeScope,
 }) => {
   const theme = useTheme();
   const [cursorPosition, setCursorPosition] = useState<{
@@ -610,6 +614,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
         const { pixelWidth, pixelHeight, formattedLabel } = renderData;
 
+        const isInteractive = isAssetInScope(placedAsset, activeScope);
         const isMonster = placedAsset.asset.kind === 'Monster';
 
         if (isMonster) {
@@ -636,7 +641,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
-                listening={true}
+                listening={isInteractive}
                 opacity={0.667}
                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                 onMouseLeave={() => setHoveredAssetId(null)}
@@ -701,7 +706,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
-                listening={true}
+                listening={isInteractive}
                 opacity={0.667}
                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                 onMouseLeave={() => setHoveredAssetId(null)}
@@ -723,7 +728,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 fill={labelColors.background}
                 stroke={labelColors.border}
                 strokeWidth={1}
-                listening={true}
+                listening={isInteractive}
                 opacity={0.667}
                 onMouseEnter={() => {
                   setHoveredAssetId(placedAsset.id);
@@ -783,7 +788,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
-                listening={true}
+                listening={isInteractive}
                 opacity={0.75}
                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                 onMouseLeave={() => setHoveredAssetId(null)}
@@ -821,7 +826,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 height={pixelHeight}
                 rotation={placedAsset.rotation}
                 draggable={false}
-                listening={true}
+                listening={isInteractive}
                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                 onMouseLeave={() => setHoveredAssetId(null)}
                 onContextMenu={(e) => {
@@ -886,7 +891,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               height={pixelHeight}
               rotation={placedAsset.rotation}
               draggable={false}
-              listening={true}
+              listening={isInteractive}
               opacity={0.75}
               onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
               onMouseLeave={() => setHoveredAssetId(null)}
@@ -908,7 +913,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
               fill={labelColors.background}
               stroke={labelColors.border}
               strokeWidth={1}
-              listening={true}
+              listening={isInteractive}
               opacity={0.75}
               onMouseEnter={() => {
                 setHoveredAssetId(placedAsset.id);

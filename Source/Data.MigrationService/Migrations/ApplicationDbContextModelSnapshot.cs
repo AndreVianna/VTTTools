@@ -824,10 +824,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("Material")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)

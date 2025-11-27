@@ -1,475 +1,367 @@
-// GENERATED: 2025-10-07 by Claude Code Phase 5 Step 2
-// WORLD: EPIC-001 Phase 5 - Asset Library UI
-// LAYER: UI (Page Component)
-
-/**
- * Asset Library Page
- * Browse, filter, and manage asset templates (Objects and Monsters)
- * Phase 5: Asset Library UI with Material-UI Card grid
- */
-
-import { AddCircleOutline as AddCircleOutlineIcon, Category as CategoryIcon } from '@mui/icons-material';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Chip,
-  Container,
+  Checkbox,
+  CircularProgress,
+  FormControlLabel,
+  FormGroup,
   Grid,
-  Pagination,
-  Skeleton,
-  Tab,
-  Tabs,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useState } from 'react';
 import {
-  AssetCreateDialog,
-  AssetEditDialog,
-  AssetFilterPanel,
-  type AssetFilters,
-  AssetSearchBar,
-} from '@/components/assets';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useGetAssetsQuery } from '@/services/assetsApi';
-import { type Asset, AssetKind } from '@/types/domain';
-import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
+  Add as AddIcon,
+  ExpandMore as ExpandMoreIcon,
+  FilterList as FilterListIcon,
+} from '@mui/icons-material';
+import {
+  AssetBrowserLayout,
+  AssetCardCompact,
+  AssetInspectorPanel,
+  AssetTableView,
+  AttributeRangeSlider,
+  BrowserToolbar,
+  TaxonomyTree,
+} from '@/components/assets/browser';
+import { useAssetBrowser } from '@/hooks/useAssetBrowser';
+import { useGetAssetsQuery, useDeleteAssetMutation } from '@/services/assetsApi';
+import type { Asset } from '@/types/domain';
 
-/**
- * Asset Library Page Component
- * Displays asset templates in a responsive Material-UI Card grid
- *
- * THEME SUPPORT: Adapts to dark/light mode
- * - Dark mode: Card backgrounds dark, text light
- * - Light mode: Card backgrounds light, text dark
- */
 export const AssetLibraryPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const browser = useAssetBrowser();
+  const [deleteAsset] = useDeleteAssetMutation();
 
-  // Kind selection via Tabs (major filter) - defaults to Characters
-  const [selectedKind, setSelectedKind] = useState<AssetKind>(AssetKind.Character);
+  const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(browser.queryParams);
 
-  // Comprehensive filter state
-  const [filters, setFilters] = useState<AssetFilters>({
-    showMine: true,
-    showOthers: true,
-    showPublic: true,
-    showPrivate: true,
-    showPublished: true,
-    showDraft: true,
-  });
-
-  // Search state with 300ms debounce
-  const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
-
-  // Pagination state (12 assets per page)
-  const [page, setPage] = useState(1);
-  const pageSize = 12;
-
-  // Preview dialog state
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
-
-  // Create dialog state
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-
-  // Build query params from selected kind and filters
-  const queryParams: Record<string, unknown> = {};
-
-  // Kind from Tabs (always set now, no 'all' option)
-  queryParams.kind = selectedKind;
-
-  // Ownership: Determine 'owner' param based on checkboxes
-  if (filters.showMine && !filters.showOthers) {
-    queryParams.owner = 'mine';
-  } else if (filters.showOthers && !filters.showMine) {
-    queryParams.owner = 'public';
-  } else if (filters.showMine && filters.showOthers) {
-    queryParams.owner = 'all';
-  }
-  // If neither checked, no results (don't send param, filter client-side)
-
-  // Search
-  if (debouncedSearch) {
-    queryParams.search = debouncedSearch;
-  }
-
-  // Published status
-  if (filters.showPublished && !filters.showDraft) {
-    queryParams.published = true;
-  } else if (filters.showDraft && !filters.showPublished) {
-    queryParams.published = false;
-  }
-
-  // Fetch assets from API with filters
-  const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(queryParams);
-
-  // Client-side filtering for visibility/status checkboxes (when showMine is checked)
-  const filteredAssets = React.useMemo(() => {
+  const filteredAssets = useMemo(() => {
     if (!allAssets) return [];
+    return browser.filterAssets(allAssets);
+  }, [allAssets, browser.filterAssets]);
 
-    // Apply visibility/status filters when "Mine" checkbox is checked
-    if (filters.showMine) {
-      return allAssets.filter((asset) => {
-        // Check visibility filter
-        const visibilityMatch = (filters.showPublic && asset.isPublic) || (filters.showPrivate && !asset.isPublic);
+  const selectedAsset = useMemo(() => {
+    if (!browser.selectedAssetId || !filteredAssets) return null;
+    return filteredAssets.find((a) => a.id === browser.selectedAssetId) || null;
+  }, [browser.selectedAssetId, filteredAssets]);
 
-        // Check status filter
-        const statusMatch =
-          (filters.showPublished && filters.showDraft) || // Both checked, show all
-          (filters.showPublished && asset.isPublished) ||
-          (filters.showDraft && !asset.isPublished);
+  const handleAssetClick = (asset: Asset) => {
+    browser.setSelectedAssetId(asset.id);
+  };
 
-        return visibilityMatch && statusMatch;
-      });
+  const handleAssetDoubleClick = (asset: Asset) => {
+    navigate(`/assets/${asset.id}/edit`);
+  };
+
+  const handleCreateNew = () => {
+    navigate('/assets/new');
+  };
+
+  const handleEditAsset = () => {
+    if (selectedAsset) {
+      navigate(`/assets/${selectedAsset.id}/edit`);
     }
+  };
 
-    // For "Others" only, no client-side filtering needed (backend already filtered to public published)
-    return allAssets;
-  }, [allAssets, filters.showMine, filters.showPublic, filters.showPrivate, filters.showPublished, filters.showDraft]);
+  const handleDeleteAsset = async () => {
+    if (selectedAsset && window.confirm(`Delete "${selectedAsset.name}"?`)) {
+      await deleteAsset(selectedAsset.id);
+      browser.setSelectedAssetId(null);
+    }
+  };
 
-  // Client-side pagination (slice assets for current page)
-  const totalAssets = filteredAssets?.length || 0;
-  const totalPages = Math.ceil(totalAssets / pageSize);
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const assets = filteredAssets?.slice(startIndex, endIndex);
+  const handleBulkDelete = async () => {
+    if (browser.selectedAssetIds.length === 0) return;
+    if (window.confirm(`Delete ${browser.selectedAssetIds.length} selected assets?`)) {
+      for (const id of browser.selectedAssetIds) {
+        await deleteAsset(id);
+      }
+      browser.clearSelection();
+    }
+  };
 
-  // Sync selectedKind with filters.kind for query
-  React.useEffect(() => {
-    setFilters((prev) => ({
-      ...prev,
-      kind: selectedKind,
-    }));
-  }, [selectedKind]);
-
-  // Reset to page 1 when filters change
-  React.useEffect(() => {
-    setPage(1);
-  }, []);
-
-  return (
-    <Container maxWidth='xl' sx={{ py: 4 }}>
-      {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant='h4' component='h1' gutterBottom>
-            Asset Library
-          </Typography>
-          <Typography variant='body2' color='text.secondary'>
-            Manage your characters, creatures, effects, and objects for encounters
-          </Typography>
-        </Box>
-
-        {/* Asset Kind Tabs (Major Filter) */}
-        <Tabs
-          value={selectedKind}
-          onChange={(_, newValue) => setSelectedKind(newValue)}
-          sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+  const leftSidebar = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ p: 1.5 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          startIcon={<AddIcon />}
+          onClick={handleCreateNew}
+          sx={{ mb: 2 }}
         >
-          <Tab label='Characters' value={AssetKind.Character} />
-          <Tab label='Creatures' value={AssetKind.Creature} />
-          <Tab label='Effects' value={AssetKind.Effect} />
-          <Tab label='Objects' value={AssetKind.Object} />
-        </Tabs>
-
-        {/* Search Bar */}
-        <AssetSearchBar value={searchQuery} onChange={setSearchQuery} fullWidth />
+          New Asset
+        </Button>
       </Box>
 
-      {/* Main Content Grid: Filter Panel + Asset Cards */}
-      <Grid container spacing={3}>
-        {/* Filter Panel Sidebar */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <AssetFilterPanel filters={filters} onFiltersChange={setFilters} />
-        </Grid>
-
-        {/* Asset Cards Area */}
-        <Grid size={{ xs: 12, md: 9 }}>
-          {/* Results Count */}
-          {allAssets && !isLoading && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
-              {totalAssets} {totalAssets === 1 ? 'asset' : 'assets'} found
-              {totalPages > 1 && ` (page ${page} of ${totalPages})`}
+      <Box sx={{ flexGrow: 1, overflow: 'auto', px: 1 }}>
+        <Accordion defaultExpanded disableGutters elevation={0}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              Classification
             </Typography>
-          )}
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0 }}>
+            <TaxonomyTree
+              assets={allAssets || []}
+              selectedPath={browser.selectedPath}
+              onPathChange={browser.setSelectedPath}
+              expandedNodes={browser.expandedTreeNodes}
+              onExpandedChange={browser.setExpandedTreeNodes}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-          {/* Loading State */}
-          {isLoading && (
-            <Grid container spacing={3}>
-              {Array.from({ length: 12 }, (_, index) => `loading-skeleton-${index}`).map((key) => (
-                <Grid key={key} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-                  <Card>
-                    <Box sx={{ paddingTop: '100%', position: 'relative' }}>
-                      <Skeleton
-                        variant='rectangular'
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                        }}
-                      />
-                    </Box>
-                    <CardContent>
-                      <Skeleton variant='text' width='60%' height={32} />
-                      <Skeleton variant='text' width='80%' />
-                      <Skeleton variant='rectangular' width={80} height={24} sx={{ mt: 1 }} />
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
+        <Accordion disableGutters elevation={0}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              Attributes
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0 }}>
+            <AttributeRangeSlider
+              label="HP"
+              min={0}
+              max={500}
+              value={browser.attributeFilters['HP'] || [0, 500]}
+              onChange={(v) => browser.setAttributeFilter('HP', v)}
+            />
+            <AttributeRangeSlider
+              label="AC"
+              min={0}
+              max={30}
+              value={browser.attributeFilters['AC'] || [0, 30]}
+              onChange={(v) => browser.setAttributeFilter('AC', v)}
+            />
+            <AttributeRangeSlider
+              label="CR"
+              min={0}
+              max={30}
+              value={browser.attributeFilters['CR'] || [0, 30]}
+              onChange={(v) => browser.setAttributeFilter('CR', v)}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-          {/* Error State */}
-          {error && (
-            <Alert
-              severity='error'
-              action={
-                <Button color='inherit' size='small' onClick={() => refetch()}>
-                  Retry
-                </Button>
-              }
-              sx={{ mb: 3 }}
-            >
-              Failed to load assets. Please try again.
-            </Alert>
-          )}
-
-          {/* Asset Cards Grid (always shown with virtual "Add" card) */}
-          {!isLoading && !error && assets && (
-            <>
-              <Grid container spacing={3}>
-                {/* Virtual "Add" Card (always first) */}
-                <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'all 0.2s',
-                      cursor: 'pointer',
-                      border: '2px dashed',
-                      borderColor: theme.palette.primary.main,
-                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: 4,
-                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                      },
-                    }}
-                    onClick={() => {
-                      setCreateDialogOpen(true);
-                    }}
-                  >
-                    <CardContent sx={{ pb: 1 }}>
-                      <Typography variant='subtitle2' component='h2' noWrap fontWeight={600} color='primary'>
-                        Add {selectedKind === AssetKind.Character ? 'Character' : selectedKind === AssetKind.Creature ? 'Creature' : selectedKind === AssetKind.Effect ? 'Effect' : 'Object'}
-                      </Typography>
-                    </CardContent>
-
-                    {/* Plus Icon in Image Area */}
-                    <CardMedia
-                      component='div'
-                      sx={{
-                        paddingTop: '100%', // 1:1 aspect ratio (square)
-                        position: 'relative',
-                        bgcolor: 'transparent',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <AddCircleOutlineIcon
-                          sx={{
-                            fontSize: 80,
-                            color: theme.palette.primary.main,
-                            opacity: 0.7,
-                          }}
-                        />
-                      </Box>
-                    </CardMedia>
-
-                    {/* Empty badge area for consistent height */}
-                    <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
-                      <Box sx={{ minHeight: '24px' }} />
-                    </CardContent>
-
-                    {/* Empty actions area for consistent height */}
-                    <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
-                      <Typography variant='caption' color='text.secondary' sx={{ flexGrow: 1 }}>
-                        &nbsp;
-                      </Typography>
-                    </CardActions>
-                  </Card>
-                </Grid>
-
-                {/* Regular Asset Cards */}
-                {assets.map((asset) => (
-                  <Grid key={asset.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-                    <Card
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        transition: 'all 0.2s',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 4,
-                        },
-                      }}
-                      onClick={() => {
-                        setSelectedAsset(asset);
-                        setPreviewOpen(true);
-                      }}
-                    >
-                      {/* Asset Name - Above Image */}
-                      <CardContent sx={{ pb: 1 }}>
-                        <Typography variant='subtitle2' component='h2' noWrap fontWeight={600}>
-                          {asset.name}
-                        </Typography>
-                      </CardContent>
-
-                      {/* Asset Image with Description Tooltip */}
-                      <Tooltip title={asset.description} arrow placement='top'>
-                        <CardMedia
-                          component='div'
-                          sx={{
-                            paddingTop: '100%', // 1:1 aspect ratio (square)
-                            position: 'relative',
-                            bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            {(() => {
-                              const image = getDefaultAssetImage(asset);
-                              const imageId = asset.portrait?.id || image?.id;
-
-                              return imageId ? (
-                                <img
-                                  src={getResourceUrl(imageId)}
-                                  alt={asset.name}
-                                  crossOrigin='use-credentials'
-                                  style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'contain',
-                                  }}
-                                />
-                              ) : (
-                                <CategoryIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-                              );
-                            })()}
-                          </Box>
-                        </CardMedia>
-                      </Tooltip>
-
-                      {/* Asset Info - Badges */}
-                      <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            gap: 0.5,
-                            flexWrap: 'wrap',
-                            minHeight: '24px',
-                          }}
-                        >
-                          {/* Published Badge */}
-                          {asset.isPublished && (
-                            <Chip
-                              label='Published'
-                              size='small'
-                              color='success'
-                              variant='outlined'
-                              sx={{ fontSize: '0.7rem' }}
-                            />
-                          )}
-                        </Box>
-                      </CardContent>
-
-                      {/* Card Actions */}
-                      <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
-                        <Typography variant='caption' color='text.secondary' sx={{ flexGrow: 1 }}>
-                          {asset.tokenSize ? `${asset.tokenSize.width}×${asset.tokenSize.height} cells` : ''}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          {asset.isPublic ? 'Public' : 'Private'}
-                        </Typography>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-
-              {/* Pagination (show if multiple pages) */}
-              {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={(_, value) => setPage(value)}
-                    color='primary'
-                    size='large'
-                    showFirstButton
-                    showLastButton
+        <Accordion disableGutters elevation={0}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              Ownership
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={browser.ownershipFilter === 'mine' || browser.ownershipFilter === 'all'}
+                    onChange={(e) =>
+                      browser.setOwnershipFilter(
+                        e.target.checked
+                          ? browser.ownershipFilter === 'others'
+                            ? 'all'
+                            : 'mine'
+                          : 'others'
+                      )
+                    }
                   />
-                </Box>
-              )}
-            </>
-          )}
-        </Grid>
-      </Grid>
+                }
+                label={<Typography variant="body2">Mine</Typography>}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={browser.ownershipFilter === 'others' || browser.ownershipFilter === 'all'}
+                    onChange={(e) =>
+                      browser.setOwnershipFilter(
+                        e.target.checked
+                          ? browser.ownershipFilter === 'mine'
+                            ? 'all'
+                            : 'others'
+                          : 'mine'
+                      )
+                    }
+                  />
+                }
+                label={<Typography variant="body2">Others</Typography>}
+              />
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
 
-      {/* Asset Edit Dialog */}
-      {selectedAsset && (
-        <AssetEditDialog
-          key={selectedAsset.id}
-          open={previewOpen}
-          asset={selectedAsset}
-          onClose={() => {
-            setPreviewOpen(false);
-            setSelectedAsset(null);
-          }}
-        />
-      )}
+        <Accordion disableGutters elevation={0}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              Status
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={browser.statusFilter === 'all' || browser.statusFilter === 'published'}
+                    onChange={(e) =>
+                      browser.setStatusFilter(
+                        e.target.checked
+                          ? browser.statusFilter === 'draft'
+                            ? 'all'
+                            : 'published'
+                          : 'draft'
+                      )
+                    }
+                  />
+                }
+                label={<Typography variant="body2">Published</Typography>}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={browser.statusFilter === 'all' || browser.statusFilter === 'draft'}
+                    onChange={(e) =>
+                      browser.setStatusFilter(
+                        e.target.checked
+                          ? browser.statusFilter === 'published'
+                            ? 'all'
+                            : 'draft'
+                          : 'published'
+                      )
+                    }
+                  />
+                }
+                label={<Typography variant="body2">Draft</Typography>}
+              />
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
 
-      {/* Asset Create Dialog */}
-      <AssetCreateDialog
-        key={createDialogOpen ? 'create' : 'closed'}
-        open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
-        fixedKind={selectedKind}
+        {(browser.selectedPath.length > 0 ||
+          browser.searchQuery ||
+          Object.keys(browser.attributeFilters).length > 0) && (
+          <Box sx={{ p: 1, pt: 2 }}>
+            <Button
+              size="small"
+              startIcon={<FilterListIcon />}
+              onClick={browser.resetFilters}
+              fullWidth
+              variant="outlined"
+            >
+              Reset Filters
+            </Button>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+
+  const mainContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <BrowserToolbar
+        searchQuery={browser.searchQuery}
+        onSearchChange={browser.setSearchQuery}
+        sortField={browser.sortField}
+        sortDirection={browser.sortDirection}
+        onSortChange={browser.setSort}
+        viewMode={browser.viewMode}
+        onViewModeChange={browser.setViewMode}
+        selectedCount={browser.selectedAssetIds.length}
+        onBulkDelete={handleBulkDelete}
+        totalCount={filteredAssets.length}
       />
-    </Container>
+
+      <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {error && (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => refetch()}>
+                Retry
+              </Button>
+            }
+          >
+            Failed to load assets. Please try again.
+          </Alert>
+        )}
+
+        {!isLoading && !error && filteredAssets.length === 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: theme.palette.text.secondary,
+            }}
+          >
+            <Typography variant="h6">No assets found</Typography>
+            <Typography variant="body2">Try adjusting your filters or create a new asset</Typography>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateNew} sx={{ mt: 2 }}>
+              Create Asset
+            </Button>
+          </Box>
+        )}
+
+        {!isLoading && !error && filteredAssets.length > 0 && browser.viewMode === 'table' && (
+          <AssetTableView
+            assets={filteredAssets}
+            selectedIds={browser.selectedAssetIds}
+            onSelectionChange={browser.setSelectedAssetIds}
+            onRowClick={handleAssetClick}
+            onRowDoubleClick={handleAssetDoubleClick}
+          />
+        )}
+
+        {!isLoading && !error && filteredAssets.length > 0 && browser.viewMode !== 'table' && (
+          <Grid container spacing={1.5}>
+            {filteredAssets.map((asset) => (
+              <Grid key={asset.id}>
+                <AssetCardCompact
+                  asset={asset}
+                  isSelected={browser.selectedAssetId === asset.id}
+                  isMultiSelectMode={browser.isMultiSelectMode}
+                  isChecked={browser.selectedAssetIds.includes(asset.id)}
+                  onClick={() => handleAssetClick(asset)}
+                  onDoubleClick={() => handleAssetDoubleClick(asset)}
+                  onCheckChange={() => browser.toggleAssetSelection(asset.id)}
+                  size={browser.viewMode === 'grid-large' ? 'large' : 'small'}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
+    </Box>
+  );
+
+  const rightSidebar = selectedAsset ? (
+    <AssetInspectorPanel asset={selectedAsset} onEdit={handleEditAsset} onDelete={handleDeleteAsset} />
+  ) : null;
+
+  return (
+    <AssetBrowserLayout
+      leftSidebar={leftSidebar}
+      mainContent={mainContent}
+      rightSidebar={rightSidebar}
+      rightSidebarOpen={browser.inspectorOpen}
+    />
   );
 };
+
+export default AssetLibraryPage;

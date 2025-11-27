@@ -1,11 +1,15 @@
-import { Fence as FenceIcon, VisibilityOff as VisibilityOffIcon, BorderAll as WallIcon } from '@mui/icons-material';
+import {
+  BorderAll as WallIcon,
+  Fence as FenceIcon,
+  VerticalShadesClosed as VeilIcon,
+  VisibilityOff as VisibilityOffIcon,
+} from '@mui/icons-material';
 import { WallVisibility } from '@/types/domain';
 
 export interface WallPreset {
   name: string;
   icon: typeof WallIcon;
   visibility: WallVisibility;
-  material?: string;
   isClosed: boolean;
 }
 
@@ -14,14 +18,12 @@ export const WALL_PRESETS: WallPreset[] = [
     name: 'Normal Wall',
     icon: WallIcon,
     visibility: WallVisibility.Normal,
-    material: 'Stone',
     isClosed: false,
   },
   {
     name: 'Fence',
     icon: FenceIcon,
     visibility: WallVisibility.Fence,
-    material: 'Wood',
     isClosed: false,
   },
   {
@@ -30,6 +32,10 @@ export const WALL_PRESETS: WallPreset[] = [
     visibility: WallVisibility.Invisible,
     isClosed: false,
   },
+  {
+    name: 'Veil',
+    icon: VeilIcon,
+    visibility: WallVisibility.Veil,
+    isClosed: false,
+  },
 ];
-
-export const MATERIAL_OPTIONS = ['Stone', 'Wood', 'Metal', 'Glass', 'Energy', 'Magic', 'Force', 'Custom'];

@@ -1,4 +1,5 @@
 import { useTheme } from '@mui/material/styles';
+import type Konva from 'konva';
 import type { Context } from 'konva/lib/Context';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -15,6 +16,7 @@ export interface SourceRendererProps {
   walls: EncounterWall[];
   gridConfig: GridConfig;
   activeScope: InteractionScope;
+  onSelect?: (index: number) => void;
 }
 
 export const SourceRenderer: React.FC<SourceRendererProps> = ({
@@ -22,8 +24,32 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
   walls,
   gridConfig,
   activeScope,
+  onSelect,
 }) => {
   const theme = useTheme();
+  const isInteractive = isSourceInScope(activeScope);
+
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (onSelect && isInteractive) {
+      e.cancelBubble = true;
+      onSelect(encounterSource.index);
+    }
+  };
+
+  const handleMouseEnter = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (!isInteractive) return;
+    const container = e.target.getStage()?.container();
+    if (container) {
+      container.style.cursor = 'pointer';
+    }
+  };
+
+  const handleMouseLeave = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const container = e.target.getStage()?.container();
+    if (container) {
+      container.style.cursor = 'default';
+    }
+  };
   const defaultColor = (() => {
     switch (encounterSource.type.toLowerCase()) {
       case 'light':
@@ -55,7 +81,6 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
   }, [encounterSource.position, encounterSource.type, effectiveRange, opaqueWalls, gridConfig.cellSize]);
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
-  const isInteractive = isSourceInScope(activeScope);
 
   const transparentColor = color.startsWith('#')
     ? `${color}00`
@@ -81,6 +106,9 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
         opacity={effectiveIntensity}
         {...gradientProps}
         listening={isInteractive}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       />
     );
   }
@@ -123,6 +151,9 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
         }
       }}
       listening={isInteractive}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     />
   );
 };

@@ -14,7 +14,6 @@ export interface WallSegment {
   poles: Pole[];
   isClosed: boolean;
   visibility: WallVisibility;
-  material?: string | undefined;
   color?: string | undefined;
 }
 
@@ -84,7 +83,6 @@ export const useWallTransaction = () => {
         name?: string;
         visibility?: WallVisibility;
         isClosed?: boolean;
-        material?: string | undefined;
         color?: string | undefined;
       },
     ) => {
@@ -103,7 +101,6 @@ export const useWallTransaction = () => {
               poles: [...wall.poles],
               isClosed: wall.isClosed,
               visibility: wall.visibility,
-              material: wall.material || undefined,
               color: wall.color || undefined,
             },
           ],
@@ -123,7 +120,6 @@ export const useWallTransaction = () => {
               poles: [],
               visibility: placementProperties?.visibility ?? WallVisibility.Normal,
               isClosed: placementProperties?.isClosed ?? false,
-              material: placementProperties?.material,
               color: placementProperties?.color || '#808080',
             },
           ],
@@ -271,7 +267,6 @@ export const useWallTransaction = () => {
                 poles: segment?.poles,
                 visibility: segment?.visibility,
                 isClosed: segment?.isClosed || false,
-                material: segment?.material || undefined,
                 color: segment?.color || undefined,
               };
 
@@ -288,7 +283,6 @@ export const useWallTransaction = () => {
                 poles: segment?.poles || [],
                 visibility: segment?.visibility || WallVisibility.Normal,
                 isClosed: segment?.isClosed || false,
-                material: segment?.material || undefined,
                 color: segment?.color || undefined,
               };
 

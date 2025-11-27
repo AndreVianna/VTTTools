@@ -618,6 +618,7 @@ export enum WallVisibility {
   Normal = 0,
   Fence = 1,
   Invisible = 2,
+  Veil = 3,
 }
 
 export interface EncounterWall {
@@ -627,7 +628,6 @@ export interface EncounterWall {
   poles: Pole[];
   visibility: WallVisibility;
   isClosed: boolean;
-  material?: string | undefined;
   color?: string | undefined;
 }
 

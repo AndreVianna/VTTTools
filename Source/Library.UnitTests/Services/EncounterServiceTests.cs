@@ -833,7 +833,7 @@ public class EncounterServiceTests {
     }
 
     [Fact]
-    public async Task AddWallAsync_WithMaterialAndColor_SavesPropertiesCorrectly() {
+    public async Task AddWallAsync_WithColor_SavesPropertiesCorrectly() {
         var encounterId = Guid.CreateVersion7();
         var encounter = new Encounter {
             Id = encounterId,
@@ -850,7 +850,6 @@ public class EncounterServiceTests {
             Poles = [new Pole(0, 0, 10), new Pole(10, 0, 10)],
             Visibility = WallVisibility.Normal,
             IsClosed = false,
-            Material = "stone",
             Color = "gray",
         };
 
@@ -861,17 +860,16 @@ public class EncounterServiceTests {
         var result = await _service.AddWallAsync(_userId, encounterId, data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Material.Should().Be("stone");
         result.Value.Color.Should().Be("gray");
         await _encounterStorage.Received(1).AddWallAsync(
             encounterId,
-            Arg.Is<EncounterWall>(w => w.Material == "stone" && w.Color == "gray"),
+            Arg.Is<EncounterWall>(w => w.Color == "gray"),
             Arg.Any<CancellationToken>()
         );
     }
 
     [Fact]
-    public async Task UpdateWallAsync_WithMaterialAndColor_UpdatesPropertiesCorrectly() {
+    public async Task UpdateWallAsync_WithColor_UpdatesPropertiesCorrectly() {
         var encounterId = Guid.CreateVersion7();
         const uint wallIndex = 1;
         var encounter = new Encounter {
@@ -889,13 +887,11 @@ public class EncounterServiceTests {
                     Poles = [new Pole(0, 0, 10), new Pole(10, 0, 10)],
                     Visibility = WallVisibility.Normal,
                     IsClosed = false,
-                    Material = "wood",
                     Color = "brown",
                 }
             ],
         };
         var data = new EncounterWallUpdateData {
-            Material = "metal",
             Color = "silver",
         };
 
@@ -908,13 +904,13 @@ public class EncounterServiceTests {
         result.IsSuccessful.Should().BeTrue();
         await _encounterStorage.Received(1).UpdateWallAsync(
             encounterId,
-            Arg.Is<EncounterWall>(w => w.Material == "metal" && w.Color == "silver"),
+            Arg.Is<EncounterWall>(w => w.Color == "silver"),
             Arg.Any<CancellationToken>()
         );
     }
 
     [Fact]
-    public async Task AddWallAsync_WithNullMaterialAndColor_SavesNullValues() {
+    public async Task AddWallAsync_WithNullColor_SavesNullValue() {
         var encounterId = Guid.CreateVersion7();
         var encounter = new Encounter {
             Id = encounterId,
@@ -931,7 +927,6 @@ public class EncounterServiceTests {
             Poles = [new Pole(0, 0, 10), new Pole(10, 0, 10)],
             Visibility = WallVisibility.Normal,
             IsClosed = false,
-            Material = null,
             Color = null,
         };
 
@@ -942,11 +937,10 @@ public class EncounterServiceTests {
         var result = await _service.AddWallAsync(_userId, encounterId, data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Material.Should().BeNull();
         result.Value.Color.Should().BeNull();
         await _encounterStorage.Received(1).AddWallAsync(
             encounterId,
-            Arg.Is<EncounterWall>(w => w.Material == null && w.Color == null),
+            Arg.Is<EncounterWall>(w => w.Color == null),
             Arg.Any<CancellationToken>()
         );
     }

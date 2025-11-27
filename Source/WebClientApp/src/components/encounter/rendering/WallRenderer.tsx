@@ -8,11 +8,12 @@ import { isWallInScope } from '@/utils/scopeFiltering';
 
 export interface WallRendererProps {
   encounterWall: EncounterWall;
+  onClick?: (index: number) => void;
   onContextMenu?: (index: number, position: { x: number; y: number }) => void;
   activeScope: InteractionScope;
 }
 
-export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onContextMenu, activeScope }) => {
+export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onClick, onContextMenu, activeScope }) => {
   const style = useMemo(() => {
     const wallColor = encounterWall.color || '#808080';
     const strokeColor = wallColor;
@@ -22,15 +23,22 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
         return {
           stroke: strokeColor,
           strokeWidth: 3,
-          dash: [8, 4],
+          dash: [4, 4],
           opacity: 0.9,
         };
       case WallVisibility.Invisible:
         return {
           stroke: strokeColor,
           strokeWidth: 3,
-          dash: [4, 4],
+          dash: [8, 4],
           opacity: 0.3,
+        };
+      case WallVisibility.Veil:
+        return {
+          stroke: strokeColor,
+          strokeWidth: 3,
+          dash: [8, 4, 2, 4],
+          opacity: 0.9,
         };
       default:
         return {
@@ -41,6 +49,15 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
         };
     }
   }, [encounterWall.visibility, encounterWall.color]);
+
+  const isWallScopeActive = activeScope === 'walls';
+
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (onClick && isWallScopeActive) {
+      e.cancelBubble = true;
+      onClick(encounterWall.index);
+    }
+  };
 
   const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
@@ -81,6 +98,15 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
 
   return (
     <Group>
+      {/* Black contour behind the wall line for visibility against map backgrounds */}
+      <Line
+        points={points}
+        stroke="#000000"
+        strokeWidth={style.strokeWidth + 2}
+        {...(style.dash && { dash: style.dash })}
+        opacity={style.opacity * 0.5}
+        listening={false}
+      />
       <Line
         id={wallId}
         points={points}
@@ -89,13 +115,14 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCon
         {...(style.dash && { dash: style.dash })}
         opacity={style.opacity}
         listening={isInteractive}
+        onClick={handleClick}
         onContextMenu={handleContextMenu}
         hitStrokeWidth={8}
         onMouseEnter={(e) => {
           if (!isInteractive) return;
           const container = e.target.getStage()?.container();
           if (container) {
-            container.style.cursor = 'context-menu';
+            container.style.cursor = isWallScopeActive ? 'pointer' : 'default';
           }
         }}
         onMouseLeave={(e) => {

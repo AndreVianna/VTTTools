@@ -208,7 +208,6 @@ internal static class EncounterHandlers {
             Poles = request.Poles,
             Visibility = request.Visibility,
             IsClosed = request.IsClosed,
-            Material = request.Material,
             Color = request.Color,
         };
         var result = await encounterService.AddWallAsync(userId, id, data);
@@ -219,7 +218,6 @@ internal static class EncounterHandlers {
                 Poles = [.. result.Value.Poles],
                 Visibility = result.Value.Visibility,
                 IsClosed = result.Value.IsClosed,
-                Material = result.Value.Material,
                 Color = result.Value.Color,
             })
             : result.Errors[0].Message == "NotFound"
@@ -236,7 +234,6 @@ internal static class EncounterHandlers {
             Poles = request.Poles,
             Visibility = request.Visibility,
             IsClosed = request.IsClosed,
-            Material = request.Material,
             Color = request.Color,
         };
         var result = await encounterService.UpdateWallAsync(userId, id, (uint)index, data);

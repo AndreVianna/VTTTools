@@ -188,7 +188,6 @@ export const useWallHandlers = ({
             })),
             isClosed: true,
             visibility: editedSegment.visibility,
-            material: editedSegment.material,
             color: editedSegment.color,
           })),
           ...openSegments.map((segmentPoles, index) => ({
@@ -202,7 +201,6 @@ export const useWallHandlers = ({
             })),
             isClosed: false,
             visibility: editedSegment.visibility,
-            material: editedSegment.material,
             color: editedSegment.color,
           })),
         ];
@@ -386,7 +384,6 @@ export const useWallHandlers = ({
         segment2Poles,
         breakingSegment.name,
         breakingSegment.visibility,
-        breakingSegment.material,
         breakingSegment.color,
         (tempId: number) => wallTransaction.removeSegment(tempId),
         (tempId: number, changes: Partial<WallSegment>) => wallTransaction.updateSegment(tempId, changes),

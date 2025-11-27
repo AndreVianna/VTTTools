@@ -521,7 +521,6 @@ export function createBreakWallAction(
   segment2Poles: Pole[],
   wallName: string,
   wallVisibility: WallVisibility,
-  wallMaterial: string | undefined,
   wallColor: string | undefined,
   onRemoveSegment: (tempId: number) => void,
   onUpdateSegment: (tempId: number, changes: { wallIndex: number; poles: Pole[]; isClosed: boolean }) => void,
@@ -531,7 +530,6 @@ export function createBreakWallAction(
     poles: Pole[];
     isClosed: boolean;
     visibility: WallVisibility;
-    material: string | undefined;
     color: string | undefined;
   }) => number,
 ): BreakWallAction {
@@ -570,7 +568,6 @@ export function createBreakWallAction(
         poles: [...segment2Poles],
         isClosed: false,
         visibility: wallVisibility,
-        material: wallMaterial,
         color: wallColor,
       });
     },

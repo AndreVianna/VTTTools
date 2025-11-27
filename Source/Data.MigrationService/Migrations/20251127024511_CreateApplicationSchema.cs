@@ -530,7 +530,6 @@ public partial class CreateApplicationSchema : Migration {
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Visibility = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                 IsClosed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                Material = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
                 Color = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
                 Poles = table.Column<string>(type: "nvarchar(max)", nullable: true)
             },

@@ -46,6 +46,11 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
   const { data: encounter } = useGetEncounterQuery(encounterId);
   const wall = encounter?.walls?.find((w) => w.index === wallIndex);
 
+  // Get isClosed and visibility from the transaction (user's selection) since the wall might not exist yet
+  const activeSegments = wallTransaction.getActiveSegments();
+  const transactionIsClosed = activeSegments[0]?.isClosed ?? wall?.isClosed ?? false;
+  const transactionVisibility = activeSegments[0]?.visibility ?? wall?.visibility;
+
   useEffect(() => {
     return () => {
       if (stageContainerRef.current) {
@@ -62,15 +67,16 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     const currentSegment = activeSegments[0];
 
     const segmentName = wall?.name || currentSegment?.name || '';
-    const segmentMaterial = wall?.material || currentSegment?.material;
     const segmentColor = wall?.color || currentSegment?.color;
     const segmentVisibility = wall?.visibility ?? currentSegment?.visibility ?? 0;
+    const userSelectedIsClosed = currentSegment?.isClosed ?? wall?.isClosed ?? false;
 
     const TOLERANCE = 5;
     const polePoints = poles.map((p) => ({ x: p.x, y: p.y }));
     const { closedWalls, openSegments } = decomposeSelfIntersectingPath(polePoints, TOLERANCE);
 
-    if (closedWalls.length > 0 || openSegments.length > 0) {
+    // If decomposition found self-intersecting segments, use those
+    if (closedWalls.length > 0 || openSegments.length > 1) {
       const allSegments = [
         ...closedWalls.map((wallPoles) => ({
           tempId: -1,
@@ -79,7 +85,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
           poles: wallPoles.map((p) => ({ x: p.x, y: p.y, h: defaultHeight })),
           isClosed: true,
           visibility: segmentVisibility,
-          material: segmentMaterial,
           color: segmentColor,
         })),
         ...openSegments.map((segmentPoles) => ({
@@ -93,7 +98,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
           })),
           isClosed: false,
           visibility: segmentVisibility,
-          material: segmentMaterial,
           color: segmentColor,
         })),
       ];
@@ -103,6 +107,18 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       return;
     }
 
+    // No self-intersection - use user's isClosed selection
+    const finalSegment = {
+      tempId: -1,
+      wallIndex: null as number | null,
+      name: segmentName,
+      poles: poles.map((p) => ({ x: p.x, y: p.y, h: defaultHeight })),
+      isClosed: userSelectedIsClosed,
+      visibility: segmentVisibility,
+      color: segmentColor,
+    };
+
+    wallTransaction.setAllSegments([finalSegment]);
     onFinish();
   }, [poles, encounter, wall, wallTransaction, defaultHeight, onFinish]);
 
@@ -251,7 +267,13 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         <VertexMarker key={`pole-${pole.x}-${pole.y}-${index}`} position={{ x: pole.x, y: pole.y }} />
       ))}
 
-      <WallPreview poles={poles} previewPoint={previewPoint} wall={wall} />
+      <WallPreview
+        poles={poles}
+        previewPoint={previewPoint}
+        wall={wall}
+        isClosed={transactionIsClosed}
+        visibility={transactionVisibility}
+      />
 
       {previewPoint && <VertexMarker position={previewPoint} preview />}
     </Group>

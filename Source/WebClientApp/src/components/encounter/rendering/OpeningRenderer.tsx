@@ -11,6 +11,7 @@ import {
     type PlacedOpening,
     type Point,
 } from '@/types/domain';
+import { type InteractionScope, isOpeningInScope } from '@/utils/scopeFiltering';
 
 export interface OpeningRendererProps {
     encounterOpening: PlacedOpening;
@@ -18,6 +19,7 @@ export interface OpeningRendererProps {
     isSelected?: boolean;
     onSelect?: () => void;
     onContextMenu?: (position: Point) => void;
+    activeScope: InteractionScope;
 }
 
 export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
@@ -26,8 +28,10 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
     isSelected = false,
     onSelect,
     onContextMenu,
+    activeScope,
 }) => {
     const theme = useTheme();
+    const isInteractive = isOpeningInScope(activeScope);
 
     const openingPosition = useMemo(() => {
         const startPoleIndex = encounterOpening.startPoleIndex;
@@ -153,12 +157,12 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
                     closed={true}
                     fill={color}
                     opacity={baseOpacity}
-                    listening={!!onSelect}
+                    listening={isInteractive && !!onSelect}
                     onClick={handleClick}
                     onContextMenu={handleContextMenu}
                     onMouseEnter={(e) => {
                         const container = e.target.getStage()?.container();
-                        if (container && onSelect) {
+                        if (container && isInteractive && onSelect) {
                             container.style.cursor = 'pointer';
                         }
                     }}
@@ -179,13 +183,13 @@ export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
                 {...(visibilityStyle.dash && { dash: visibilityStyle.dash })}
                 {...(isEthereal && { dash: [8, 8] })}
                 opacity={visibilityStyle.opacity}
-                listening={!!onSelect}
+                listening={isInteractive && !!onSelect}
                 onClick={handleClick}
                 onContextMenu={handleContextMenu}
                 hitStrokeWidth={10}
                 onMouseEnter={(e) => {
                     const container = e.target.getStage()?.container();
-                    if (container && onSelect) {
+                    if (container && isInteractive && onSelect) {
                         container.style.cursor = 'pointer';
                     }
                 }}

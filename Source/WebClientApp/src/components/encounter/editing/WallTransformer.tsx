@@ -139,6 +139,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     pole2: { x: number; y: number; h: number };
   } | null>(null);
   const circleRefs = useRef<Map<number, Konva.Group>>(new Map());
+  const currentSnapModeRef = useRef<SnapMode>(externalSnapMode ?? SnapMode.HalfSnap);
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   const [insertPreviewPos, setInsertPreviewPos] = useState<{
     x: number;
@@ -235,6 +236,28 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
       circleRefs.current.delete(index);
     }
   }, [poles]);
+
+  // Track keyboard state for snap mode
+  useEffect(() => {
+    const updateSnapMode = (e: KeyboardEvent | MouseEvent) => {
+      if ('altKey' in e) {
+        if (e.altKey && e.ctrlKey) {
+          currentSnapModeRef.current = SnapMode.QuarterSnap;
+        } else if (e.altKey) {
+          currentSnapModeRef.current = SnapMode.Free;
+        } else {
+          currentSnapModeRef.current = externalSnapMode ?? SnapMode.HalfSnap;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', updateSnapMode);
+    window.addEventListener('keyup', updateSnapMode);
+    return () => {
+      window.removeEventListener('keydown', updateSnapMode);
+      window.removeEventListener('keyup', updateSnapMode);
+    };
+  }, [externalSnapMode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -363,20 +386,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
       return;
     }
 
-    let currentX = e.target.x();
-    let currentY = e.target.y();
-
-    const currentSnapMode = e.evt
-      ? getSnapModeFromEvent(e.evt, externalSnapMode)
-      : (externalSnapMode ?? SnapMode.HalfSnap);
-
-    // Apply snapping
-    if (snapEnabled && gridConfig) {
-      const snapped = snapToNearest({ x: currentX, y: currentY }, gridConfig, currentSnapMode, 50);
-      currentX = snapped.x;
-      currentY = snapped.y;
-      e.target.position({ x: currentX, y: currentY });
-    }
+    // Position is already snapped by dragBoundFunc
+    const currentX = e.target.x();
+    const currentY = e.target.y();
 
     const oldX = dragStartPositionRef.current.x;
     const oldY = dragStartPositionRef.current.y;
@@ -412,19 +424,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
       return;
     }
 
-    let finalX = e.target.x();
-    let finalY = e.target.y();
-
-    const currentSnapMode = e.evt
-      ? getSnapModeFromEvent(e.evt, externalSnapMode)
-      : (externalSnapMode ?? SnapMode.HalfSnap);
-
-    // Apply final snapping
-    if (snapEnabled && gridConfig) {
-      const snapped = snapToNearest({ x: finalX, y: finalY }, gridConfig, currentSnapMode, 50);
-      finalX = snapped.x;
-      finalY = snapped.y;
-    }
+    // Position is already snapped by dragBoundFunc
+    const finalX = e.target.x();
+    const finalY = e.target.y();
 
     const oldX = dragStartPositionRef.current.x;
     const oldY = dragStartPositionRef.current.y;
@@ -961,7 +963,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
         {polesToUse.map((pole, index) => {
           const isSelected = selectedPoles.has(index);
-          const isDragging = draggingIndex === index;
 
           const groupProps: Record<string, unknown> = {
             draggable: true,
@@ -974,6 +975,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
               }
             },
             dragBoundFunc: (pos: { x: number; y: number }) => {
+              // Apply snapping during drag using the tracked snap mode
+              if (snapEnabled && gridConfig && currentSnapModeRef.current !== SnapMode.Free) {
+                return snapToNearest(pos, gridConfig, currentSnapModeRef.current, 50);
+              }
               return pos;
             },
             onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -1045,13 +1050,12 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             },
           };
 
-          if (!isDragging) {
-            groupProps.x = pole.x;
-            groupProps.y = pole.y;
-          }
+          // Use pole position from poles array - Konva controls position during drag via dragBoundFunc
+          groupProps.x = pole.x;
+          groupProps.y = pole.y;
 
           return (
-            <Group key={`pole-${pole.x}-${pole.y}-${index}`} {...groupProps}>
+            <Group key={`pole-group-${index}`} {...groupProps}>
               {/* Large invisible circle - captures all events */}
               <Circle x={0} y={0} radius={25} fill='transparent' />
               {/* Small visible circle - visual representation only */}

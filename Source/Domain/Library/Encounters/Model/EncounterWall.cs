@@ -8,7 +8,5 @@ public record EncounterWall {
     public WallVisibility Visibility { get; init; }
     public bool IsClosed { get; init; }
     [MaxLength(32)]
-    public string? Material { get; init; }
-    [MaxLength(32)]
     public string? Color { get; init; }
 }

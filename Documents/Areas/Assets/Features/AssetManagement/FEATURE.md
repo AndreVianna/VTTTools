@@ -7,6 +7,7 @@
 ---
 
 ## Change Log
+- *2025-11-26* — **2.0.0** — Phase 3 UI implementation completed (Asset Browser + Asset Studio)
 - *2025-10-02* — **1.0.0** — Feature specification created from domain model
 
 ---
@@ -35,25 +36,105 @@
 ## UI Presentation
 
 ### Feature UI Overview
-- **Has UI Components**: yes (future implementation)
-- **Primary UI Type**: API_ENDPOINT (backend implementation priority)
-- **UI Complexity**: High - grid views, filters, search, bulk operations
-- **Estimated UI Components**: 12 components (asset grid, asset cards, filters, search, forms, detail views)
+- **Has UI Components**: yes (implemented)
+- **Primary UI Type**: DESKTOP_DASHBOARD (data-rich layout optimized for desktop)
+- **UI Complexity**: High - multi-pane layouts, taxonomy tree, search, bulk operations
+- **Estimated UI Components**: 20+ components (browser layout, studio layout, panels, grids, toolbars)
 
 ### Use Case UI Breakdown
-- **Create Asset**: API_ENDPOINT - No UI yet (backend only)
-- **Get Asset**: API_ENDPOINT - No UI yet (backend only)
-- **Update Asset**: API_ENDPOINT - No UI yet (backend only)
-- **Delete Asset**: API_ENDPOINT - No UI yet (backend only)
-- **List Assets**: API_ENDPOINT - No UI yet (backend only)
-- **List Assets By Owner**: API_ENDPOINT - No UI yet (backend only)
-- **List Public Assets**: API_ENDPOINT - No UI yet (backend only)
-- **List Assets By Type**: API_ENDPOINT - No UI yet (backend only)
+- **Create Asset**: FORM_DIALOG - Asset Studio 3-pane editor (`/assets/new`)
+- **Get Asset**: DETAIL_PANEL - Asset Inspector Panel in Browser right sidebar
+- **Update Asset**: FORM_DIALOG - Asset Studio 3-pane editor (`/assets/:id/edit`)
+- **Delete Asset**: CONFIRM_DIALOG - Confirmation from Browser or Studio toolbar
+- **List Assets**: DATA_TABLE/GRID - Asset Browser with card/table views (`/assets`)
+- **List Assets By Owner**: FILTER - Ownership filter in Browser left sidebar
+- **List Public Assets**: FILTER - Status filter in Browser left sidebar
+- **List Assets By Type**: TREE_VIEW - Taxonomy tree in Browser left sidebar
 
 ### UI Integration Points
-- **Navigation Entries**: "Asset Library" menu item (future)
-- **Routes Required**: /assets, /assets/:id, /assets/new, /assets/:id/edit (future)
-- **Shared Components**: AssetCard, AssetGrid, AssetFilters, AssetTypeSelector (future)
+- **Navigation Entries**: "Library" menu item in main navigation
+- **Routes**: `/assets` (Browser), `/assets/new` (Create), `/assets/:id/edit` (Edit)
+- **Shared Components**: See Component Architecture below
+
+### Component Architecture
+
+#### Asset Browser (Mail Client Layout)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ AssetLibraryPage                                                │
+├──────────────┬────────────────────────────┬─────────────────────┤
+│ Left (250px) │ Center (fluid)             │ Right (300px)       │
+│              │                            │ (collapsible)       │
+├──────────────┼────────────────────────────┼─────────────────────┤
+│ • New Asset  │ BrowserToolbar             │ AssetInspectorPanel │
+│   Button     │ ├─ Search                  │ ├─ Portrait         │
+│              │ ├─ Sort                    │ ├─ Name/Category    │
+│ TaxonomyTree │ └─ View Toggle             │ ├─ Tokens           │
+│ ├─ Kind      │                            │ ├─ Quick Stats      │
+│ ├─ Category  │ AssetTableView (table)     │ └─ Actions          │
+│ ├─ Type      │ or                         │                     │
+│ └─ Subtype   │ AssetCardCompact (grid)    │                     │
+│              │                            │                     │
+│ Attributes   │                            │                     │
+│ ├─ HP Range  │                            │                     │
+│ ├─ AC Range  │                            │                     │
+│ └─ CR Range  │                            │                     │
+│              │                            │                     │
+│ Ownership    │                            │                     │
+│ Status       │                            │                     │
+└──────────────┴────────────────────────────┴─────────────────────┘
+```
+
+**Browser Components** (`src/components/assets/browser/`):
+- `AssetBrowserLayout.tsx` - 3-column mail client layout container
+- `TaxonomyTree.tsx` - Collapsible tree with Kind/Category/Type/Subtype hierarchy
+- `BrowserToolbar.tsx` - Search, sort, view mode toggle
+- `AssetTableView.tsx` - MUI DataGrid table view
+- `AssetCardCompact.tsx` - Card view for grid display
+- `AssetInspectorPanel.tsx` - Right sidebar detail panel
+- `AttributeRangeSlider.tsx` - HP/AC/CR range filters
+
+#### Asset Studio (3-Pane Editor)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ StudioToolbar                                                   │
+│ ├─ Back Button                                                  │
+│ ├─ Title + Dirty Indicator                                      │
+│ ├─ Status Chip (Draft/Published)                                │
+│ └─ Actions (Delete, Publish/Unpublish, Save)                    │
+├──────────────────┬────────────────────────┬─────────────────────┤
+│ Visual (30%)     │ Data (40%)             │ Metadata (30%)      │
+├──────────────────┼────────────────────────┼─────────────────────┤
+│ VisualIdentity   │ DataPanel              │ MetadataPanel       │
+│ Panel            │                        │                     │
+│                  │ PropertyGrid           │ ├─ Name             │
+│ ├─ Portrait      │ ├─ Core Stats          │ ├─ Description      │
+│ │   (large)      │ │  ├─ HP               │ ├─ Classification   │
+│ │                │ │  ├─ AC               │ │  (Breadcrumb)     │
+│ └─ Tokens        │ │  └─ Speed            │ ├─ Token Size       │
+│    (gallery)     │ ├─ Ability Scores      │ └─ Visibility       │
+│                  │ │  ├─ STR/DEX/CON      │                     │
+│                  │ │  └─ INT/WIS/CHA      │                     │
+│                  │ └─ Other               │                     │
+│                  │    └─ Custom props     │                     │
+└──────────────────┴────────────────────────┴─────────────────────┘
+```
+
+**Studio Components** (`src/components/assets/studio/`):
+- `AssetStudioLayout.tsx` - 3-pane (30%/40%/30%) layout container
+- `StudioToolbar.tsx` - Back, title, save/delete/publish actions
+- `VisualIdentityPanel.tsx` - Portrait and tokens management
+- `DataPanel.tsx` - Stat blocks with level tabs
+- `PropertyGrid.tsx` - VS-style collapsible key/value editor
+- `MetadataPanel.tsx` - Name, description, classification, visibility
+- `BreadcrumbTaxonomyInput.tsx` - Breadcrumb-style Kind>Category>Type selector
+
+**Page Components** (`src/pages/`):
+- `AssetLibraryPage.tsx` - Browser page with filter state management
+- `AssetStudioPage.tsx` - Create/Edit page with form state management
+
+**Hooks** (`src/hooks/`):
+- `useAssetBrowser.ts` - Browser state: filters, selection, sorting, view mode
 
 ---
 
@@ -125,23 +206,45 @@
 
 ### Implementation Phases
 
-#### Phase 1: Core CRUD Operations (Priority: Critical)
+#### Phase 1: Core CRUD Operations ✅ COMPLETED
 - **Create Asset**: Foundation capability for asset creation with validation
 - **Get Asset**: Essential retrieval operation for detail views
 - **Update Asset**: Modify asset properties with ownership checks
 - **Delete Asset**: Remove assets with usage validation
 
-#### Phase 2: Query Operations (Priority: High)
+#### Phase 2: Query Operations ✅ COMPLETED
 - **List Assets**: Admin operation for all assets
 - **List Assets By Owner**: User's personal asset library
 - **List Public Assets**: Community-shared assets browsing
 - **List Assets By Type**: Filtered queries by asset category
 
-#### Phase 3: Frontend UI (Priority: Medium, future work)
-- Asset library grid view
-- Asset creation/edit forms
-- Asset detail pages
-- Search and filter components
+#### Phase 3: Frontend UI ✅ COMPLETED (2025-11-26)
+- **Asset Browser** (Mail Client Layout):
+  - 3-column layout: Left sidebar (250px) | Center (fluid) | Right inspector (300px, collapsible)
+  - TaxonomyTree with collapsible Kind/Category/Type/Subtype hierarchy
+  - Progressive indentation for tree levels
+  - Auto-collapse: clicking a Kind collapses other Kinds
+  - Card view (large/small) and table view toggle
+  - Search, sort, and filter capabilities
+  - Attribute range sliders (HP, AC, CR)
+  - Ownership and status filters
+  - Bulk selection and delete operations
+
+- **Asset Studio** (3-Pane Editor):
+  - 3-pane layout: Visual (30%) | Data (40%) | Metadata (30%)
+  - Portrait and token management in Visual panel
+  - PropertyGrid with collapsible sections (Core Stats, Ability Scores, Other)
+  - Breadcrumb-style taxonomy input for classification
+  - Token size selector
+  - Visibility toggle (Public/Draft)
+  - Save/Delete/Publish/Unpublish actions in toolbar
+  - Dirty state tracking with unsaved changes warning
+
+#### Phase 4: Smart Resource Picker (Priority: Medium, future work)
+- Modal dialog for selecting portraits and tokens
+- Integration with Media area for resource browsing
+- Upload new resources inline
+- Preview and selection capabilities
 
 ### Dependencies & Prerequisites
 - **Technical Dependencies**:
@@ -149,12 +252,36 @@
   - ASP.NET Core for REST API
   - Identity area for User entity
   - Media area for Resource entity
+  - React 18+ with TypeScript
+  - MUI v6+ (Material UI)
+  - MUI X Data Grid v8+
+  - RTK Query for API state management
 - **Area Dependencies**:
   - Identity: User entity and authentication
   - Media: Resource entity for images
 - **External Dependencies**:
   - Database (SQL Server or PostgreSQL)
   - File storage for asset images (Azure Blob or S3)
+
+---
+
+## Design Decisions
+
+### Desktop-First Approach
+The UI is optimized for desktop use only. VTT (Virtual Tabletop) tools are inherently desktop applications, so no mobile responsiveness is implemented. Fixed widths and multi-column layouts are used throughout.
+
+### TaxonomyTree Behavior
+- All root nodes (Kinds) are always visible
+- Clicking a Kind expands it and collapses other Kinds
+- Children are progressively indented (12px per level)
+- Clicking the same node toggles selection off
+- Expand/collapse chevrons allow toggling without changing selection
+
+### Asset Studio Layout
+The 3-pane layout mirrors professional asset editors:
+- **Visual panel** (left): What the asset looks like
+- **Data panel** (center): Game mechanics and stats
+- **Metadata panel** (right): Organizational and system properties
 
 ---
 

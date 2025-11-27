@@ -14,13 +14,13 @@ import {
 import { Box, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { AssetPicker } from '@/components/common';
 import type { Asset, PlacedAsset, PlacedOpening, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import type { OpeningPlacementProperties, SourcePlacementProperties } from './panels';
 import { CharactersPanel, FogOfWarPanel, MonstersPanel, ObjectsPanel, OpeningsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import { QuickSummonDialog, type PlacementSettings } from './quicksummon';
 
 export type PanelType =
   | 'regions'
@@ -48,8 +48,8 @@ export interface LeftToolBarProps {
   onPlaceWall?: (properties: {
     visibility: WallVisibility;
     isClosed: boolean;
-    material?: string;
     defaultHeight: number;
+    color?: string;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
   onCancelEditing?: () => void;
@@ -64,6 +64,7 @@ export interface LeftToolBarProps {
   placedAssets?: PlacedAsset[] | undefined;
   selectedAssetIds?: string[] | undefined;
   onAssetSelectForPlacement?: (asset: Asset) => void;
+  onAssetPlaceWithSettings?: (asset: Asset, settings: PlacementSettings, tokenIndex: number) => void;
   onPlacedAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onPlacedAssetDelete?: (assetId: string) => void;
   onPlacedAssetRename?: (assetId: string, newName: string) => void;
@@ -115,6 +116,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   placedAssets = [],
   selectedAssetIds = [],
   onAssetSelectForPlacement,
+  onAssetPlaceWithSettings,
   onPlacedAssetSelect,
   onPlacedAssetDelete,
   onPlacedAssetRename,
@@ -445,14 +447,27 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       </Drawer>
 
       {assetPickerOpen.kind && (
-        <AssetPicker
+        <QuickSummonDialog
           open={assetPickerOpen.open}
           onClose={() => setAssetPickerOpen({ open: false })}
-          onSelect={(asset) => {
+          onPlace={(asset, settings, tokenIndex) => {
             setAssetPickerOpen({ open: false });
-            onAssetSelectForPlacement?.(asset);
+            if (onAssetPlaceWithSettings) {
+              onAssetPlaceWithSettings(asset, settings, tokenIndex);
+            } else {
+              onAssetSelectForPlacement?.(asset);
+            }
           }}
           kind={assetPickerOpen.kind}
+          title={
+            assetPickerOpen.kind === AssetKind.Creature
+              ? 'Place Creature'
+              : assetPickerOpen.kind === AssetKind.Character
+                ? 'Place Character'
+                : assetPickerOpen.kind === AssetKind.Object
+                  ? 'Place Object'
+                  : 'Place Asset'
+          }
         />
       )}
     </>

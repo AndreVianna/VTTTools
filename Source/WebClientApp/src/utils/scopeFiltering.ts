@@ -7,7 +7,6 @@ export type InteractionScope =
   | 'objects'
   | 'monsters'
   | 'characters'
-  | 'effects'
   | 'sources'
   | 'fogOfWar'
   | null;
@@ -18,18 +17,18 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
   }
 
   if (scope === null || scope === undefined) {
-    return true;
+    return false;
   }
+
+  const assetKind = asset.asset.classification.kind;
 
   switch (scope) {
     case 'objects':
-      return asset.asset.kind === 'Object';
+      return assetKind === 'Object';
     case 'monsters':
-      return asset.asset.kind === 'Monster';
+      return assetKind === 'Creature';
     case 'characters':
-      return asset.asset.kind === 'Character';
-    case 'effects':
-      return false;
+      return assetKind === 'Character';
     case 'regions':
     case 'walls':
     case 'openings':
@@ -42,17 +41,17 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
 }
 
 export function isWallInScope(scope: InteractionScope | undefined): boolean {
-  return scope === null || scope === undefined ? true : scope === 'walls';
+  return scope === 'walls';
 }
 
 export function isOpeningInScope(scope: InteractionScope | undefined): boolean {
-  return scope === null || scope === undefined ? true : scope === 'openings';
+  return scope === 'openings';
 }
 
 export function isRegionInScope(scope: InteractionScope | undefined): boolean {
-  return scope === null || scope === undefined ? true : scope === 'regions';
+  return scope === 'regions';
 }
 
 export function isSourceInScope(scope: InteractionScope | undefined): boolean {
-  return scope === null || scope === undefined ? true : scope === 'sources';
+  return scope === 'sources';
 }

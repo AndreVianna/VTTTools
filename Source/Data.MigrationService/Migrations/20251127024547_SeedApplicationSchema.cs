@@ -74,10 +74,10 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [EncounterWalls] ([EncounterId], [Index], [Name], [Visibility], [IsClosed], [Material], [Color], [Poles])
+            INSERT INTO [EncounterWalls] ([EncounterId], [Index], [Name], [Visibility], [IsClosed], [Color], [Poles])
             VALUES
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, 'Wall 1', 0, 0, 'Stone', '#808080', '[{"H":10,"X":35,"Y":15},{"H":10,"X":31.5,"Y":20.5},{"H":10,"X":23,"Y":20.5},{"H":10,"X":20,"Y":15.5}]'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, 'Wall 2', 0, 1, 'Stone', '#808080', '[{"H":10,"X":36,"Y":15.5},{"H":10,"X":36,"Y":17.5},{"H":10,"X":38,"Y":17.5},{"H":10,"X":38,"Y":15.5}]');
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, 'Wall 1', 0, 0, '#808080', '[{"H":10,"X":35,"Y":15},{"H":10,"X":31.5,"Y":20.5},{"H":10,"X":23,"Y":20.5},{"H":10,"X":20,"Y":15.5}]'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, 'Wall 2', 0, 1, '#808080', '[{"H":10,"X":36,"Y":15.5},{"H":10,"X":36,"Y":17.5},{"H":10,"X":38,"Y":17.5},{"H":10,"X":38,"Y":15.5}]');
             """
         );
 

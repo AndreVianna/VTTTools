@@ -16,7 +16,7 @@ const mockEncounterWall: EncounterWall = {
   ],
   visibility: WallVisibility.Normal,
   isClosed: false,
-  material: 'Stone',
+  color: '#808080',
 };
 
 const renderComponent = (props = {}) => {
@@ -28,7 +28,7 @@ const renderComponent = (props = {}) => {
 };
 
 describe('WallsPanel', () => {
-  it('renders 3 wall type preset icons', () => {
+  it('renders 4 wall type preset icons', () => {
     renderComponent();
 
     expect(screen.getByText('Wall Type Presets')).toBeInTheDocument();
@@ -38,17 +38,17 @@ describe('WallsPanel', () => {
         (b) =>
           b.getAttribute('aria-label')?.includes('Normal') ||
           b.getAttribute('aria-label')?.includes('Fence') ||
-          b.getAttribute('aria-label')?.includes('Invisible'),
+          b.getAttribute('aria-label')?.includes('Invisible') ||
+          b.getAttribute('aria-label')?.includes('Veil'),
       );
-    expect(presetButtons.length).toBeGreaterThanOrEqual(3);
+    expect(presetButtons.length).toBeGreaterThanOrEqual(4);
   });
 
   it('renders wall property controls', () => {
     renderComponent();
 
     expect(screen.getByLabelText(/Closed/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Material/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Default Height/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Height/i)).toBeInTheDocument();
   });
 
   it('calls onPresetSelect when preset is clicked', () => {
@@ -81,7 +81,6 @@ describe('WallsPanel', () => {
         visibility: WallVisibility.Normal,
         isClosed: false,
         defaultHeight: 10.0,
-        material: 'Stone',
       }),
     );
   });
@@ -92,7 +91,7 @@ describe('WallsPanel', () => {
     });
 
     expect(screen.getByText('Stone Wall')).toBeInTheDocument();
-    expect(screen.getByText('Stone - 2 poles')).toBeInTheDocument();
+    expect(screen.getByText('2 poles')).toBeInTheDocument();
   });
 
   it('displays "No walls placed" when empty', () => {
@@ -217,7 +216,6 @@ describe('WallsPanel', () => {
         visibility: WallVisibility.Normal,
         isClosed: false,
         defaultHeight: 10.0,
-        material: 'Stone',
       }),
     );
   });

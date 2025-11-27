@@ -442,7 +442,6 @@ internal static class Mapper {
             Poles = entity.Poles,
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
-            Material = entity.Material,
             Color = entity.Color,
         };
 
@@ -454,7 +453,6 @@ internal static class Mapper {
             Poles = entity.Poles.ConvertAll(p => GridConverter.PoleToPixel(p, grid)),
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
-            Material = entity.Material,
             Color = entity.Color,
         };
 
@@ -466,7 +464,6 @@ internal static class Mapper {
             Poles = [.. model.Poles.Select(p => GridConverter.PoleToGrid(p, grid))],
             Visibility = model.Visibility,
             IsClosed = model.IsClosed,
-            Material = model.Material,
             Color = model.Color,
         };
 
@@ -477,7 +474,6 @@ internal static class Mapper {
         entity.Poles = [.. model.Poles.Select(p => GridConverter.PoleToGrid(p, grid))];
         entity.Visibility = model.Visibility;
         entity.IsClosed = model.IsClosed;
-        entity.Material = model.Material;
         entity.Color = model.Color;
         return entity;
     }
