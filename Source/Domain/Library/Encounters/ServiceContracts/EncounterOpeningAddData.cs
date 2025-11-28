@@ -7,10 +7,8 @@ public record EncounterOpeningAddData
     public required string Type { get; init; }
 
     public required uint WallIndex { get; init; }
-    public required double CenterPosition { get; init; }
-
-    public required double Width { get; init; }
-    public required double Height { get; init; }
+    public required Pole StartPole { get; init; }
+    public required Pole EndPole { get; init; }
 
     public required OpeningVisibility Visibility { get; init; }
     public required OpeningState State { get; init; }
@@ -22,8 +20,8 @@ public record EncounterOpeningAddData
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
 
-        if (string.IsNullOrWhiteSpace(Name) || Name.Length > 128)
-            result += new Error("Opening name must be between 1 and 128 characters.", nameof(Name));
+        if (Name.Length > 128)
+            result += new Error("Opening name must not exceed 128 characters.", nameof(Name));
 
         if (Description?.Length > 512)
             result += new Error("Opening description must not exceed 512 characters.", nameof(Description));
@@ -31,20 +29,11 @@ public record EncounterOpeningAddData
         if (string.IsNullOrWhiteSpace(Type) || Type.Length > 32)
             result += new Error("Opening type must be between 1 and 32 characters.", nameof(Type));
 
-        if (CenterPosition < 0)
-            result += new Error("Opening center position must be greater than or equal to 0.", nameof(CenterPosition));
+        if (StartPole.H <= 0)
+            result += new Error("Opening height must be greater than 0.", nameof(StartPole));
 
-        if (Width <= 0)
-            result += new Error("Opening width must be greater than 0.", nameof(Width));
-
-        if (Height <= 0)
-            result += new Error("Opening height must be greater than 0.", nameof(Height));
-
-        if (Width > 30)
-            result += new Error("Opening width must not exceed 30 feet.", nameof(Width));
-
-        if (Height > 30)
-            result += new Error("Opening height must not exceed 30 feet.", nameof(Height));
+        if (StartPole.H > 30)
+            result += new Error("Opening height must not exceed 30 feet.", nameof(StartPole));
 
         if (Material?.Length > 32)
             result += new Error("Opening material must not exceed 32 characters.", nameof(Material));

@@ -512,7 +512,13 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (wall.Poles.Count < 2)
             return Result.Failure($"Wall with index {data.WallIndex} must have at least 2 poles");
 
-        var (startPoleIndex, endPoleIndex, updatedPoles) = FindOrInsertPoles(wall.Poles, data.CenterPosition, data.Width);
+        var (startPoleIndex, endPoleIndex, updatedPoles) = InsertOpeningPoles(wall.Poles, data.StartPole, data.EndPole);
+
+        var dx = data.EndPole.X - data.StartPole.X;
+        var dy = data.EndPole.Y - data.StartPole.Y;
+        var widthPixels = Math.Sqrt((dx * dx) + (dy * dy));
+        var widthFeet = widthPixels / encounter.Grid.CellSize.Width;
+        var heightFeet = data.StartPole.H;
 
         var openingIndex = encounter.Openings.Count > 0 ? encounter.Openings.Max(o => o.Index) + 1 : 1;
         var opening = new EncounterOpening {
@@ -523,7 +529,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             WallIndex = data.WallIndex,
             StartPoleIndex = startPoleIndex,
             EndPoleIndex = endPoleIndex,
-            Size = new Dimension(data.Width, data.Height),
+            Size = new Dimension(widthFeet, heightFeet),
             Visibility = data.Visibility,
             State = data.State,
             Opacity = data.Opacity,
@@ -540,48 +546,69 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         return opening;
     }
 
-    private static (uint startPoleIndex, uint endPoleIndex, List<Pole> updatedPoles) FindOrInsertPoles(
+    private static (uint startPoleIndex, uint endPoleIndex, List<Pole> updatedPoles) InsertOpeningPoles(
         IReadOnlyList<Pole> existingPoles,
-        double centerPosition,
-        double openingWidth) {
-        const double poleTolerance = 0.5;
+        Pole startPole,
+        Pole endPole) {
+        const double poleTolerance = 5.0;
         var poles = existingPoles.ToList();
-        var halfWidth = openingWidth / 2.0;
-        var startPosition = centerPosition - halfWidth;
-        var endPosition = centerPosition + halfWidth;
 
-        var startPoleIndex = FindOrCreatePole(poles, startPosition, poleTolerance);
-        var endPoleIndex = FindOrCreatePole(poles, endPosition, poleTolerance);
+        var startPoleIndex = FindOrInsertPoleAtPosition(poles, startPole, poleTolerance);
+        var endPoleIndex = FindOrInsertPoleAtPosition(poles, endPole, poleTolerance);
+
+        if (startPoleIndex > endPoleIndex)
+            (startPoleIndex, endPoleIndex) = (endPoleIndex, startPoleIndex);
 
         return (startPoleIndex, endPoleIndex, poles);
     }
 
-    private static uint FindOrCreatePole(List<Pole> poles, double targetPosition, double tolerance) {
+    private static uint FindOrInsertPoleAtPosition(List<Pole> poles, Pole targetPole, double tolerance) {
+        if (poles.Count == 0)
+            throw new InvalidOperationException("Cannot insert pole on wall with no existing poles");
+
         for (var i = 0; i < poles.Count; i++) {
-            var distance = Math.Abs(poles[i].X - targetPosition);
+            var dx = poles[i].X - targetPole.X;
+            var dy = poles[i].Y - targetPole.Y;
+            var distance = Math.Sqrt((dx * dx) + (dy * dy));
             if (distance < tolerance)
                 return (uint)i;
         }
 
-        if (poles.Count == 0)
-            throw new InvalidOperationException("Cannot create pole on wall with no existing poles");
+        var insertIndex = FindInsertionIndex(poles, targetPole);
+        poles.Insert(insertIndex, targetPole);
+        return (uint)insertIndex;
+    }
 
-        var newPole = new Pole(targetPosition, poles[0].Y, poles[0].H);
-
-        if (targetPosition < poles[0].X) {
-            poles.Insert(0, newPole);
-            return 0;
-        }
-
+    private static int FindInsertionIndex(List<Pole> poles, Pole targetPole) {
         for (var i = 0; i < poles.Count - 1; i++) {
-            if (poles[i].X < targetPosition && targetPosition < poles[i + 1].X) {
-                poles.Insert(i + 1, newPole);
-                return (uint)(i + 1);
-            }
+            if (IsPointOnSegment(targetPole, poles[i], poles[i + 1]))
+                return i + 1;
         }
+        return poles.Count;
+    }
 
-        poles.Add(newPole);
-        return (uint)(poles.Count - 1);
+    private static bool IsPointOnSegment(Pole point, Pole segmentStart, Pole segmentEnd) {
+        var segmentDx = segmentEnd.X - segmentStart.X;
+        var segmentDy = segmentEnd.Y - segmentStart.Y;
+        var segmentLength = Math.Sqrt((segmentDx * segmentDx) + (segmentDy * segmentDy));
+
+        if (segmentLength < 0.001)
+            return false;
+
+        var pointDx = point.X - segmentStart.X;
+        var pointDy = point.Y - segmentStart.Y;
+
+        var t = ((pointDx * segmentDx) + (pointDy * segmentDy)) / (segmentLength * segmentLength);
+        if (t is < 0 or > 1)
+            return false;
+
+        var projectedX = segmentStart.X + (t * segmentDx);
+        var projectedY = segmentStart.Y + (t * segmentDy);
+
+        var distanceToSegment = Math.Sqrt(((point.X - projectedX) * (point.X - projectedX)) +
+                                          ((point.Y - projectedY) * (point.Y - projectedY)));
+
+        return distanceToSegment < 5.0;
     }
 
     /// <inheritdoc />

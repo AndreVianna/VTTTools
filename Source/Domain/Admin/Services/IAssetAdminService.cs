@@ -13,4 +13,12 @@ public interface IAssetAdminService {
         CancellationToken ct = default);
     Task DeleteAssetAsync(Guid id, CancellationToken ct = default);
     Task TransferAssetOwnershipAsync(Guid id, TransferOwnershipRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<AssetTaxonomyNode>> GetAssetTaxonomyAsync(CancellationToken ct = default);
 }
+
+public sealed record AssetTaxonomyNode(
+    string Id,
+    string Label,
+    int Count,
+    IReadOnlyList<string> Path,
+    IReadOnlyList<AssetTaxonomyNode> Children);

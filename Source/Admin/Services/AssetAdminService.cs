@@ -1,3 +1,6 @@
+using AssetClassification = VttTools.Assets.Model.AssetClassification;
+using AssetKind = VttTools.Assets.Model.AssetKind;
+
 namespace VttTools.Admin.Services;
 
 public sealed class AssetAdminService(
@@ -22,6 +25,22 @@ public sealed class AssetAdminService(
                 a => a.OwnerId,
                 a => a.IsPublished,
                 a => a.IsPublic);
+
+            if (!string.IsNullOrWhiteSpace(request.Kind) && Enum.TryParse<AssetKind>(request.Kind, ignoreCase: true, out var kind)) {
+                query = query.Where(a => a.Classification.Kind == kind);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Category)) {
+                query = query.Where(a => a.Classification.Category == request.Category);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Type)) {
+                query = query.Where(a => a.Classification.Type == request.Type);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Subtype)) {
+                query = query.Where(a => a.Classification.Subtype == request.Subtype);
+            }
 
             var totalCount = await query.CountAsync(ct);
 
@@ -188,6 +207,115 @@ public sealed class AssetAdminService(
             Logger.LogError(ex, "Error transferring ownership of asset {AssetId}", id);
             throw;
         }
+    }
+
+    public async Task<IReadOnlyList<AssetTaxonomyNode>> GetAssetTaxonomyAsync(CancellationToken ct = default) {
+        try {
+            var classifications = await DbContext.Assets
+                .Select(a => new AssetClassification(
+                    a.Classification.Kind,
+                    a.Classification.Category,
+                    a.Classification.Type,
+                    a.Classification.Subtype))
+                .ToListAsync(ct);
+
+            var tree = BuildTaxonomyTree(classifications);
+
+            Logger.LogInformation("Asset taxonomy retrieved with {KindCount} kinds", tree.Count);
+
+            return tree;
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error retrieving asset taxonomy");
+            throw;
+        }
+    }
+
+    private static IReadOnlyList<AssetTaxonomyNode> BuildTaxonomyTree(List<AssetClassification> classifications) {
+        var kindCounts = new Dictionary<string, int>();
+        var kindCategoryMap = new Dictionary<string, Dictionary<string, Dictionary<string, Dictionary<string, int>>>>();
+
+        foreach (var c in classifications) {
+            var kindKey = c.Kind.ToString();
+
+            kindCounts[kindKey] = kindCounts.GetValueOrDefault(kindKey) + 1;
+
+            if (!kindCategoryMap.TryGetValue(kindKey, out var categoryMap)) {
+                categoryMap = [];
+                kindCategoryMap[kindKey] = categoryMap;
+            }
+
+            if (string.IsNullOrEmpty(c.Category)) continue;
+
+            if (!categoryMap.TryGetValue(c.Category, out var typeMap)) {
+                typeMap = [];
+                categoryMap[c.Category] = typeMap;
+            }
+
+            if (string.IsNullOrEmpty(c.Type)) continue;
+
+            if (!typeMap.TryGetValue(c.Type, out var subtypeMap)) {
+                subtypeMap = [];
+                typeMap[c.Type] = subtypeMap;
+            }
+
+            var subtypeKey = c.Subtype ?? "";
+            subtypeMap[subtypeKey] = subtypeMap.GetValueOrDefault(subtypeKey) + 1;
+        }
+
+        var tree = new List<AssetTaxonomyNode>();
+
+        foreach (var (kind, kindCount) in kindCounts) {
+            var kindChildren = new List<AssetTaxonomyNode>();
+
+            if (kindCategoryMap.TryGetValue(kind, out var categoryMap)) {
+                foreach (var (category, typeMap) in categoryMap) {
+                    var categoryChildren = new List<AssetTaxonomyNode>();
+                    var categoryCount = 0;
+
+                    foreach (var (type, subtypeMap) in typeMap) {
+                        var typeChildren = new List<AssetTaxonomyNode>();
+                        var typeCount = subtypeMap.Values.Sum();
+
+                        foreach (var (subtype, count) in subtypeMap) {
+                            if (!string.IsNullOrEmpty(subtype)) {
+                                typeChildren.Add(new AssetTaxonomyNode(
+                                    $"{kind}/{category}/{type}/{subtype}",
+                                    subtype,
+                                    count,
+                                    [kind, category, type, subtype],
+                                    []));
+                            }
+                        }
+
+                        categoryChildren.Add(new AssetTaxonomyNode(
+                            $"{kind}/{category}/{type}",
+                            type,
+                            typeCount,
+                            [kind, category, type],
+                            typeChildren));
+
+                        categoryCount += typeCount;
+                    }
+
+                    kindChildren.Add(new AssetTaxonomyNode(
+                        $"{kind}/{category}",
+                        category,
+                        categoryCount,
+                        [kind, category],
+                        categoryChildren));
+                }
+            }
+
+            tree.Add(new AssetTaxonomyNode(
+                kind,
+                kind,
+                kindCount,
+                [kind],
+                kindChildren));
+        }
+
+        return tree;
     }
 
     private static LibraryContentResponse MapToContentResponse(Asset asset, string? ownerName) => new() {

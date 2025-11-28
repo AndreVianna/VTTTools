@@ -27,5 +27,21 @@ public static class CampaignAdminEndpointsMapper {
         campaignsGroup.MapPost("/{id:guid}/transfer", CampaignAdminHandlers.TransferOwnershipHandler)
             .WithName("TransferCampaignOwnership")
             .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        campaignsGroup.MapGet("/{id:guid}/adventures", CampaignAdminHandlers.GetAdventuresHandler)
+            .WithName("GetCampaignAdventures")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        campaignsGroup.MapPost("/{id:guid}/adventures", CampaignAdminHandlers.CreateAdventureHandler)
+            .WithName("CreateCampaignAdventure")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        campaignsGroup.MapPost("/{id:guid}/adventures/{adventureId:guid}/clone", CampaignAdminHandlers.CloneAdventureHandler)
+            .WithName("CloneCampaignAdventure")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        campaignsGroup.MapDelete("/{id:guid}/adventures/{adventureId:guid}", CampaignAdminHandlers.RemoveAdventureHandler)
+            .WithName("RemoveCampaignAdventure")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
     }
 }

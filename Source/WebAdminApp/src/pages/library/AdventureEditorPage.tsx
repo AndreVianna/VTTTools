@@ -1,249 +1,199 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  FormControlLabel,
-  IconButton,
-  Paper,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
-import { SaveStatusIndicator, type SaveStatus } from '@vtttools/web-components';
-import { libraryService, type LibraryContentResponse, type UpdateContentRequest } from '@services/libraryService';
+import { AdventureDetailPage, type Adventure, type Encounter } from '@vtttools/web-components';
+import { libraryService, type LibraryContentResponse } from '@services/libraryService';
+
+const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || '';
+
+function mapToAdventure(response: LibraryContentResponse): Adventure {
+  return {
+    id: response.id,
+    type: 0,
+    ownerId: response.ownerId,
+    name: response.name,
+    description: response.description,
+    isPublished: response.isPublished,
+    background: null,
+    style: null,
+    isOneShot: false,
+  };
+}
+
+function mapToEncounter(response: LibraryContentResponse): Encounter {
+  return {
+    id: response.id,
+    adventure: null,
+    name: response.name,
+    description: response.description,
+    isPublished: response.isPublished,
+    light: { ambient: 1, explored: 0.5, unexplored: 0 },
+    weather: { type: 'clear', intensity: 0 },
+    elevation: 0,
+    grid: {
+      type: 1,
+      cellSize: { width: 50, height: 50 },
+      offset: { left: 0, top: 0 },
+      snap: true,
+    },
+    stage: {
+      width: 1920,
+      height: 1080,
+      background: null,
+      foreground: null,
+    },
+  };
+}
 
 export function AdventureEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [adventure, setAdventure] = useState<LibraryContentResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [isPublished, setIsPublished] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [adventure, setAdventure] = useState<Adventure | null>(null);
+  const [encounters, setEncounters] = useState<Encounter[]>([]);
+  const [isLoadingAdventure, setIsLoadingAdventure] = useState(true);
+  const [isLoadingEncounters, setIsLoadingEncounters] = useState(false);
+  const [adventureError, setAdventureError] = useState<unknown>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadAdventure = useCallback(async () => {
     if (!id) return;
 
     try {
-      setLoading(true);
-      setError(null);
+      setIsLoadingAdventure(true);
+      setAdventureError(null);
       const data = await libraryService.getAdventureById(id);
-      setAdventure(data);
+      setAdventure(mapToAdventure(data));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load adventure');
+      setAdventureError(err);
     } finally {
-      setLoading(false);
+      setIsLoadingAdventure(false);
+    }
+  }, [id]);
+
+  const loadEncounters = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setIsLoadingEncounters(true);
+      const data = await libraryService.getEncountersByAdventureId(id);
+      setEncounters(data.map(mapToEncounter));
+    } catch (err) {
+      console.error('Failed to load encounters:', err);
+    } finally {
+      setIsLoadingEncounters(false);
     }
   }, [id]);
 
   useEffect(() => {
     loadAdventure();
-  }, [loadAdventure]);
+    loadEncounters();
+  }, [loadAdventure, loadEncounters]);
 
-  useEffect(() => {
-    if (adventure && !isInitialized) {
-      setName(adventure.name);
-      setDescription(adventure.description);
-      setIsPublished(adventure.isPublished);
-      setIsPublic(adventure.isPublic);
-      setIsInitialized(true);
-    }
-  }, [adventure, isInitialized]);
+  const handleBack = useCallback(() => {
+    navigate('/admin/library');
+  }, [navigate]);
 
-  const hasUnsavedChanges = useCallback(() => {
-    if (!adventure || !isInitialized) return false;
-    return (
-      name !== adventure.name ||
-      description !== adventure.description ||
-      isPublished !== adventure.isPublished ||
-      isPublic !== adventure.isPublic
-    );
-  }, [adventure, isInitialized, name, description, isPublished, isPublic]);
-
-  const saveChanges = useCallback(
-    async (overrides?: Partial<UpdateContentRequest>) => {
-      if (!id || !adventure || !isInitialized) return;
-
-      const currentData: UpdateContentRequest = {
-        name,
-        description,
-        isPublished,
-        isPublic,
-        ...overrides,
-      };
-
-      const hasChanges =
-        currentData.name !== adventure.name ||
-        currentData.description !== adventure.description ||
-        currentData.isPublished !== adventure.isPublished ||
-        currentData.isPublic !== adventure.isPublic;
-
-      if (!hasChanges) return;
-
-      setSaveStatus('saving');
-      try {
-        const updated = await libraryService.updateAdventure(id, currentData);
-        setAdventure(updated);
-        setSaveStatus('saved');
-      } catch (err) {
-        console.error('Failed to save adventure:', err);
-        setSaveStatus('error');
-      }
+  const handleNavigateToCampaign = useCallback(
+    (campaignId: string) => {
+      navigate(`/admin/library/campaigns/${campaignId}`);
     },
-    [id, adventure, isInitialized, name, description, isPublished, isPublic]
+    [navigate]
   );
 
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges()) {
-        e.preventDefault();
-        e.returnValue = '';
+  const handleUpdateAdventure = useCallback(
+    async (request: { name?: string; description?: string; isPublished?: boolean; backgroundId?: string }) => {
+      if (!id) return;
+
+      const updated = await libraryService.updateAdventure(id, {
+        name: request.name,
+        description: request.description,
+        isPublished: request.isPublished,
+      });
+      setAdventure(mapToAdventure(updated));
+    },
+    [id]
+  );
+
+  const handleUploadFile = useCallback(
+    async (_file: File, _type: string, _resource: string, _entityId: string): Promise<{ id: string }> => {
+      setIsUploading(true);
+      try {
+        console.warn('File upload not yet implemented in Admin');
+        return { id: '' };
+      } finally {
+        setIsUploading(false);
       }
-    };
+    },
+    []
+  );
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && hasUnsavedChanges()) {
-        saveChanges();
+  const handleCreateEncounter = useCallback(
+    async (request: { name: string; description: string }): Promise<{ id: string }> => {
+      if (!id) throw new Error('Adventure ID is required');
+
+      const created = await libraryService.createEncounterForAdventure(id, {
+        name: request.name,
+        description: request.description,
+      });
+      setEncounters((prev) => [...prev, mapToEncounter(created)]);
+      return { id: created.id };
+    },
+    [id]
+  );
+
+  const handleCloneEncounter = useCallback(
+    async (encounterId: string): Promise<void> => {
+      if (!id) return;
+
+      const cloned = await libraryService.cloneEncounterInAdventure(id, encounterId);
+      setEncounters((prev) => [...prev, mapToEncounter(cloned)]);
+    },
+    [id]
+  );
+
+  const handleRemoveEncounter = useCallback(
+    async (encounterId: string): Promise<void> => {
+      if (!id) return;
+
+      setIsDeleting(true);
+      try {
+        await libraryService.removeEncounterFromAdventure(id, encounterId);
+        setEncounters((prev) => prev.filter((e) => e.id !== encounterId));
+      } finally {
+        setIsDeleting(false);
       }
-    };
+    },
+    [id]
+  );
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [hasUnsavedChanges, saveChanges]);
-
-  const handleBack = () => {
-    navigate('/admin/library');
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error || !adventure) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error || 'Adventure not found'}
-        </Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={handleBack}>
-          Back to Library
-        </Button>
-      </Box>
-    );
-  }
+  const handleOpenEncounter = useCallback(
+    (encounterId: string) => {
+      navigate(`/admin/library/encounters/${encounterId}`);
+    },
+    [navigate]
+  );
 
   return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <IconButton onClick={handleBack} aria-label="Back to library">
-            <ArrowBackIcon />
-          </IconButton>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" component="h1">
-              Edit Adventure
-            </Typography>
-          </Box>
-          <SaveStatusIndicator status={saveStatus} />
-          <Button
-            variant="contained"
-            startIcon={saveStatus === 'saving' ? <CircularProgress size={16} /> : <SaveIcon />}
-            onClick={() => saveChanges()}
-            disabled={saveStatus === 'saving' || !hasUnsavedChanges()}
-          >
-            Save
-          </Button>
-        </Box>
-
-        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-          <Chip
-            label={adventure.ownerName || 'Unknown Owner'}
-            variant="outlined"
-            size="small"
-          />
-          <Chip
-            label={`ID: ${adventure.id.slice(0, 8)}...`}
-            variant="outlined"
-            size="small"
-          />
-        </Stack>
-
-        <Stack spacing={3}>
-          <TextField
-            fullWidth
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => saveChanges()}
-            required
-          />
-
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => saveChanges()}
-            multiline
-            rows={4}
-          />
-
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublished}
-                  onChange={(e) => {
-                    const newValue = e.target.checked;
-                    setIsPublished(newValue);
-                    saveChanges({ isPublished: newValue });
-                  }}
-                />
-              }
-              label="Published"
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublic}
-                  onChange={(e) => {
-                    const newValue = e.target.checked;
-                    setIsPublic(newValue);
-                    saveChanges({ isPublic: newValue });
-                  }}
-                />
-              }
-              label="Public"
-            />
-          </Box>
-        </Stack>
-      </Paper>
-    </Box>
+    <AdventureDetailPage
+      adventureId={id || ''}
+      adventure={adventure}
+      campaign={null}
+      encounters={encounters}
+      isLoadingAdventure={isLoadingAdventure}
+      isLoadingEncounters={isLoadingEncounters}
+      adventureError={adventureError}
+      isUploading={isUploading}
+      isDeleting={isDeleting}
+      mediaBaseUrl={MEDIA_BASE_URL}
+      onBack={handleBack}
+      onNavigateToCampaign={handleNavigateToCampaign}
+      onUpdateAdventure={handleUpdateAdventure}
+      onUploadFile={handleUploadFile}
+      onCreateEncounter={handleCreateEncounter}
+      onCloneEncounter={handleCloneEncounter}
+      onRemoveEncounter={handleRemoveEncounter}
+      onOpenEncounter={handleOpenEncounter}
+    />
   );
 }

@@ -1112,15 +1112,24 @@ const EncounterEditorPageInternal: React.FC = () => {
   }, []);
 
   const handleOpeningPlacementComplete = useCallback(
-    async (wallIndex: number, centerPosition: number) => {
+    async (
+      wallIndex: number,
+      startPole: { x: number; y: number; h: number },
+      endPole: { x: number; y: number; h: number },
+    ) => {
       if (!encounterId || !encounter || !openingPlacementProperties) return;
 
       try {
         await addEncounterOpening({
           encounterId,
-          ...openingPlacementProperties,
+          type: openingPlacementProperties.type,
+          visibility: openingPlacementProperties.visibility,
+          state: openingPlacementProperties.state,
+          opacity: openingPlacementProperties.opacity,
+          ...(openingPlacementProperties.color && { color: openingPlacementProperties.color }),
           name: `${openingPlacementProperties.type} ${(encounter.openings?.length || 0) + 1}`,
-          centerPosition,
+          startPole,
+          endPole,
           wallIndex,
         }).unwrap();
 
@@ -1612,6 +1621,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                         {shouldRender && (
                           <WallRenderer
                             encounterWall={encounterWall}
+                            openings={placedOpenings.filter((o) => o.wallIndex === encounterWall.index)}
                             onClick={wallHandlers.handleEditVertices}
                             onContextMenu={contextMenus.wallContextMenu.handleOpen}
                             activeScope={activeScope}

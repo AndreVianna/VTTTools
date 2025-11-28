@@ -551,9 +551,8 @@ export const encounterApi = createApi({
         description?: string;
         type: string;
         wallIndex: number;
-        centerPosition: number;
-        width: number;
-        height: number;
+        startPole: { x: number; y: number; h: number };
+        endPole: { x: number; y: number; h: number };
         visibility?: OpeningVisibility;
         state?: OpeningState;
         opacity?: OpeningOpacity;

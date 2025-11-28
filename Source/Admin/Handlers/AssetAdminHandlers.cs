@@ -95,4 +95,16 @@ public static class AssetAdminHandlers {
             return Results.Problem("An unexpected error occurred while transferring ownership");
         }
     }
+
+    public static async Task<IResult> GetTaxonomyHandler(
+        IAssetAdminService service,
+        CancellationToken ct) {
+        try {
+            var taxonomy = await service.GetAssetTaxonomyAsync(ct);
+            return Results.Ok(taxonomy);
+        }
+        catch (Exception) {
+            return Results.Problem("An unexpected error occurred while retrieving asset taxonomy");
+        }
+    }
 }

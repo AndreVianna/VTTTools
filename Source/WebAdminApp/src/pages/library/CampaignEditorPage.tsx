@@ -1,249 +1,178 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  FormControlLabel,
-  IconButton,
-  Paper,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
-import { SaveStatusIndicator, type SaveStatus } from '@vtttools/web-components';
-import { libraryService, type LibraryContentResponse, type UpdateContentRequest } from '@services/libraryService';
+import { CampaignDetailPage, type Campaign, type Adventure } from '@vtttools/web-components';
+import { libraryService, type LibraryContentResponse } from '@services/libraryService';
+
+const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || '';
+
+function mapToCampaign(response: LibraryContentResponse): Campaign {
+  return {
+    id: response.id,
+    ownerId: response.ownerId,
+    name: response.name,
+    description: response.description,
+    isPublished: response.isPublished,
+    isPublic: response.isPublic,
+    background: null,
+    adventures: [],
+  };
+}
+
+function mapToAdventure(response: LibraryContentResponse): Adventure {
+  return {
+    id: response.id,
+    type: 0,
+    ownerId: response.ownerId,
+    name: response.name,
+    description: response.description,
+    isPublished: response.isPublished,
+    background: null,
+    style: null,
+    isOneShot: false,
+  };
+}
 
 export function CampaignEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [campaign, setCampaign] = useState<LibraryContentResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [isPublished, setIsPublished] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [adventures, setAdventures] = useState<Adventure[]>([]);
+  const [isLoadingCampaign, setIsLoadingCampaign] = useState(true);
+  const [isLoadingAdventures, setIsLoadingAdventures] = useState(false);
+  const [campaignError, setCampaignError] = useState<unknown>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadCampaign = useCallback(async () => {
     if (!id) return;
 
     try {
-      setLoading(true);
-      setError(null);
+      setIsLoadingCampaign(true);
+      setCampaignError(null);
       const data = await libraryService.getCampaignById(id);
-      setCampaign(data);
+      setCampaign(mapToCampaign(data));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load campaign');
+      setCampaignError(err);
     } finally {
-      setLoading(false);
+      setIsLoadingCampaign(false);
+    }
+  }, [id]);
+
+  const loadAdventures = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setIsLoadingAdventures(true);
+      const data = await libraryService.getAdventuresByCampaignId(id);
+      setAdventures(data.map(mapToAdventure));
+    } catch (err) {
+      console.error('Failed to load adventures:', err);
+    } finally {
+      setIsLoadingAdventures(false);
     }
   }, [id]);
 
   useEffect(() => {
     loadCampaign();
-  }, [loadCampaign]);
+    loadAdventures();
+  }, [loadCampaign, loadAdventures]);
 
-  useEffect(() => {
-    if (campaign && !isInitialized) {
-      setName(campaign.name);
-      setDescription(campaign.description);
-      setIsPublished(campaign.isPublished);
-      setIsPublic(campaign.isPublic);
-      setIsInitialized(true);
-    }
-  }, [campaign, isInitialized]);
+  const handleBack = useCallback(() => {
+    navigate('/admin/library');
+  }, [navigate]);
 
-  const hasUnsavedChanges = useCallback(() => {
-    if (!campaign || !isInitialized) return false;
-    return (
-      name !== campaign.name ||
-      description !== campaign.description ||
-      isPublished !== campaign.isPublished ||
-      isPublic !== campaign.isPublic
-    );
-  }, [campaign, isInitialized, name, description, isPublished, isPublic]);
+  const handleUpdateCampaign = useCallback(
+    async (request: { name?: string; description?: string; isPublished?: boolean; backgroundId?: string }) => {
+      if (!id) return;
 
-  const saveChanges = useCallback(
-    async (overrides?: Partial<UpdateContentRequest>) => {
-      if (!id || !campaign || !isInitialized) return;
-
-      const currentData: UpdateContentRequest = {
-        name,
-        description,
-        isPublished,
-        isPublic,
-        ...overrides,
-      };
-
-      const hasChanges =
-        currentData.name !== campaign.name ||
-        currentData.description !== campaign.description ||
-        currentData.isPublished !== campaign.isPublished ||
-        currentData.isPublic !== campaign.isPublic;
-
-      if (!hasChanges) return;
-
-      setSaveStatus('saving');
-      try {
-        const updated = await libraryService.updateCampaign(id, currentData);
-        setCampaign(updated);
-        setSaveStatus('saved');
-      } catch (err) {
-        console.error('Failed to save campaign:', err);
-        setSaveStatus('error');
-      }
+      const updated = await libraryService.updateCampaign(id, {
+        name: request.name,
+        description: request.description,
+        isPublished: request.isPublished,
+      });
+      setCampaign(mapToCampaign(updated));
     },
-    [id, campaign, isInitialized, name, description, isPublished, isPublic]
+    [id]
   );
 
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges()) {
-        e.preventDefault();
-        e.returnValue = '';
+  const handleUploadFile = useCallback(
+    async (_file: File, _type: string, _resource: string, _entityId: string): Promise<{ id: string }> => {
+      setIsUploading(true);
+      try {
+        console.warn('File upload not yet implemented in Admin');
+        return { id: '' };
+      } finally {
+        setIsUploading(false);
       }
-    };
+    },
+    []
+  );
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && hasUnsavedChanges()) {
-        saveChanges();
+  const handleCreateAdventure = useCallback(
+    async (request: { name: string; description: string; style: number }): Promise<{ id: string }> => {
+      if (!id) throw new Error('Campaign ID is required');
+
+      const created = await libraryService.createAdventureForCampaign(id, {
+        name: request.name,
+        description: request.description,
+      });
+      setAdventures((prev) => [...prev, mapToAdventure(created)]);
+      return { id: created.id };
+    },
+    [id]
+  );
+
+  const handleCloneAdventure = useCallback(
+    async (adventureId: string): Promise<void> => {
+      if (!id) return;
+
+      const cloned = await libraryService.cloneAdventureInCampaign(id, adventureId);
+      setAdventures((prev) => [...prev, mapToAdventure(cloned)]);
+    },
+    [id]
+  );
+
+  const handleRemoveAdventure = useCallback(
+    async (adventureId: string): Promise<void> => {
+      if (!id) return;
+
+      setIsDeleting(true);
+      try {
+        await libraryService.removeAdventureFromCampaign(id, adventureId);
+        setAdventures((prev) => prev.filter((a) => a.id !== adventureId));
+      } finally {
+        setIsDeleting(false);
       }
-    };
+    },
+    [id]
+  );
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [hasUnsavedChanges, saveChanges]);
-
-  const handleBack = () => {
-    navigate('/admin/library');
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error || !campaign) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error || 'Campaign not found'}
-        </Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={handleBack}>
-          Back to Library
-        </Button>
-      </Box>
-    );
-  }
+  const handleOpenAdventure = useCallback(
+    (adventureId: string) => {
+      navigate(`/admin/library/adventures/${adventureId}`);
+    },
+    [navigate]
+  );
 
   return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <IconButton onClick={handleBack} aria-label="Back to library">
-            <ArrowBackIcon />
-          </IconButton>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" component="h1">
-              Edit Campaign
-            </Typography>
-          </Box>
-          <SaveStatusIndicator status={saveStatus} />
-          <Button
-            variant="contained"
-            startIcon={saveStatus === 'saving' ? <CircularProgress size={16} /> : <SaveIcon />}
-            onClick={() => saveChanges()}
-            disabled={saveStatus === 'saving' || !hasUnsavedChanges()}
-          >
-            Save
-          </Button>
-        </Box>
-
-        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-          <Chip
-            label={campaign.ownerName || 'Unknown Owner'}
-            variant="outlined"
-            size="small"
-          />
-          <Chip
-            label={`ID: ${campaign.id.slice(0, 8)}...`}
-            variant="outlined"
-            size="small"
-          />
-        </Stack>
-
-        <Stack spacing={3}>
-          <TextField
-            fullWidth
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => saveChanges()}
-            required
-          />
-
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => saveChanges()}
-            multiline
-            rows={4}
-          />
-
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublished}
-                  onChange={(e) => {
-                    const newValue = e.target.checked;
-                    setIsPublished(newValue);
-                    saveChanges({ isPublished: newValue });
-                  }}
-                />
-              }
-              label="Published"
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublic}
-                  onChange={(e) => {
-                    const newValue = e.target.checked;
-                    setIsPublic(newValue);
-                    saveChanges({ isPublic: newValue });
-                  }}
-                />
-              }
-              label="Public"
-            />
-          </Box>
-        </Stack>
-      </Paper>
-    </Box>
+    <CampaignDetailPage
+      campaignId={id || ''}
+      campaign={campaign}
+      adventures={adventures}
+      isLoadingCampaign={isLoadingCampaign}
+      isLoadingAdventures={isLoadingAdventures}
+      campaignError={campaignError}
+      isUploading={isUploading}
+      isDeleting={isDeleting}
+      mediaBaseUrl={MEDIA_BASE_URL}
+      onBack={handleBack}
+      onUpdateCampaign={handleUpdateCampaign}
+      onUploadFile={handleUploadFile}
+      onCreateAdventure={handleCreateAdventure}
+      onCloneAdventure={handleCloneAdventure}
+      onRemoveAdventure={handleRemoveAdventure}
+      onOpenAdventure={handleOpenAdventure}
+    />
   );
 }

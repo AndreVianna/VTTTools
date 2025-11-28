@@ -177,6 +177,122 @@ public sealed class CampaignAdminService(
         }
     }
 
+    public async Task<IReadOnlyList<LibraryContentResponse>> GetAdventuresByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken ct = default) {
+        try {
+            var adventures = await DbContext.Adventures
+                .Where(a => a.CampaignId == campaignId)
+                .ToListAsync(ct);
+
+            var owners = await GetOwnerDictionaryAsync(adventures.Select(a => a.OwnerId), ct);
+
+            var result = new List<LibraryContentResponse>();
+            foreach (var adventure in adventures) {
+                var ownerName = owners.GetValueOrDefault(adventure.OwnerId);
+                result.Add(MapAdventureToContentResponse(adventure, ownerName));
+            }
+
+            Logger.LogInformation("Retrieved {Count} adventures for campaign {CampaignId}", result.Count, campaignId);
+            return result.AsReadOnly();
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error retrieving adventures for campaign {CampaignId}", campaignId);
+            throw;
+        }
+    }
+
+    public async Task<LibraryContentResponse> CreateAdventureForCampaignAsync(
+        Guid campaignId,
+        string name,
+        string description,
+        CancellationToken ct = default) {
+        try {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
+
+            var campaign = await DbContext.Campaigns.FindAsync([campaignId], ct)
+                ?? throw new KeyNotFoundException($"Campaign with ID {campaignId} not found");
+
+            var adventure = new Adventure {
+                CampaignId = campaignId,
+                WorldId = campaign.WorldId,
+                OwnerId = campaign.OwnerId,
+                Name = name,
+                Description = description,
+                IsPublished = false,
+                IsPublic = false
+            };
+
+            DbContext.Adventures.Add(adventure);
+            await DbContext.SaveChangesAsync(ct);
+
+            Logger.LogInformation("Created adventure {AdventureId} '{Name}' for campaign {CampaignId}", adventure.Id, name, campaignId);
+
+            var ownerName = await GetOwnerNameAsync(adventure.OwnerId);
+            return MapAdventureToContentResponse(adventure, ownerName);
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error creating adventure for campaign {CampaignId}", campaignId);
+            throw;
+        }
+    }
+
+    public async Task<LibraryContentResponse> CloneAdventureAsync(
+        Guid campaignId,
+        Guid adventureId,
+        string? newName,
+        CancellationToken ct = default) {
+        try {
+            var adventure = await DbContext.Adventures
+                .FirstOrDefaultAsync(a => a.Id == adventureId && a.CampaignId == campaignId, ct)
+                ?? throw new KeyNotFoundException($"Adventure {adventureId} not found in campaign {campaignId}");
+
+            var clonedAdventure = new Adventure {
+                CampaignId = campaignId,
+                WorldId = adventure.WorldId,
+                OwnerId = adventure.OwnerId,
+                Name = newName ?? $"{adventure.Name} (Copy)",
+                Description = adventure.Description,
+                Style = adventure.Style,
+                IsOneShot = adventure.IsOneShot,
+                IsPublished = false,
+                IsPublic = false
+            };
+
+            DbContext.Adventures.Add(clonedAdventure);
+            await DbContext.SaveChangesAsync(ct);
+
+            Logger.LogInformation("Cloned adventure {AdventureId} to {ClonedId} for campaign {CampaignId}", adventureId, clonedAdventure.Id, campaignId);
+
+            var ownerName = await GetOwnerNameAsync(clonedAdventure.OwnerId);
+            return MapAdventureToContentResponse(clonedAdventure, ownerName);
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error cloning adventure {AdventureId} in campaign {CampaignId}", adventureId, campaignId);
+            throw;
+        }
+    }
+
+    public async Task RemoveAdventureFromCampaignAsync(
+        Guid campaignId,
+        Guid adventureId,
+        CancellationToken ct = default) {
+        try {
+            var adventure = await DbContext.Adventures
+                .FirstOrDefaultAsync(a => a.Id == adventureId && a.CampaignId == campaignId, ct)
+                ?? throw new KeyNotFoundException($"Adventure {adventureId} not found in campaign {campaignId}");
+
+            DbContext.Adventures.Remove(adventure);
+            await DbContext.SaveChangesAsync(ct);
+
+            Logger.LogInformation("Removed adventure {AdventureId} from campaign {CampaignId}", adventureId, campaignId);
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error removing adventure {AdventureId} from campaign {CampaignId}", adventureId, campaignId);
+            throw;
+        }
+    }
+
     private static LibraryContentResponse MapToContentResponse(Campaign campaign, string? ownerName)
         => new() {
             Id = campaign.Id,
@@ -186,6 +302,19 @@ public sealed class CampaignAdminService(
             Description = campaign.Description,
             IsPublished = campaign.IsPublished,
             IsPublic = campaign.IsPublic,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = null
+    };
+
+    private static LibraryContentResponse MapAdventureToContentResponse(Adventure adventure, string? ownerName)
+        => new() {
+            Id = adventure.Id,
+            OwnerId = adventure.OwnerId,
+            OwnerName = ownerName,
+            Name = adventure.Name,
+            Description = adventure.Description,
+            IsPublished = adventure.IsPublished,
+            IsPublic = adventure.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
     };

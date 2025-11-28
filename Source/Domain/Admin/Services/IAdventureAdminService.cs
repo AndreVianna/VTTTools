@@ -13,4 +13,9 @@ public interface IAdventureAdminService {
         CancellationToken ct = default);
     Task DeleteAdventureAsync(Guid id, CancellationToken ct = default);
     Task TransferAdventureOwnershipAsync(Guid id, TransferOwnershipRequest request, CancellationToken ct = default);
+
+    Task<IReadOnlyList<LibraryContentResponse>> GetEncountersByAdventureIdAsync(Guid adventureId, CancellationToken ct = default);
+    Task<LibraryContentResponse> CreateEncounterForAdventureAsync(Guid adventureId, string name, string description, CancellationToken ct = default);
+    Task<LibraryContentResponse> CloneEncounterAsync(Guid adventureId, Guid encounterId, string? newName, CancellationToken ct = default);
+    Task RemoveEncounterFromAdventureAsync(Guid adventureId, Guid encounterId, CancellationToken ct = default);
 }

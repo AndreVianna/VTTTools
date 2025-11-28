@@ -27,5 +27,9 @@ public static class AssetAdminEndpointsMapper {
         assetsGroup.MapPost("/{id:guid}/transfer", AssetAdminHandlers.TransferOwnershipHandler)
             .WithName("TransferAssetOwnership")
             .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        assetsGroup.MapGet("/taxonomy", AssetAdminHandlers.GetTaxonomyHandler)
+            .WithName("GetAssetTaxonomy")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
     }
 }

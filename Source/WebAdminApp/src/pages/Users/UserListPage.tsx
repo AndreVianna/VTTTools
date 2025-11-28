@@ -184,7 +184,8 @@ export function UserListPage() {
             headerName: 'Email',
             flex: 1,
             minWidth: 200,
-            sortable: true
+            sortable: true,
+            hideable: false,
         },
         {
             field: 'displayName',
@@ -243,6 +244,7 @@ export function UserListPage() {
             headerName: 'Actions',
             width: 150,
             sortable: false,
+            hideable: false,
             renderCell: (params: GridRenderCellParams<UserListItem>) => (
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
                     <IconButton

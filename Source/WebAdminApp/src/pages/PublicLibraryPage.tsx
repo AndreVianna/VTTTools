@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -23,12 +23,15 @@ import {
   DialogActions,
   IconButton,
   Tooltip,
+  Collapse,
+  useTheme,
 } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
   GridRenderCellParams,
   GridRowSelectionModel,
+  GRID_CHECKBOX_SELECTION_COL_DEF,
 } from '@mui/x-data-grid';
 import {
   FilterList as FilterListIcon,
@@ -38,6 +41,11 @@ import {
   SwapHoriz as TransferIcon,
   Refresh as RefreshIcon,
   Add as AddIcon,
+  Category as CategoryIcon,
+  Folder as FolderIcon,
+  FolderOpen as FolderOpenIcon,
+  ChevronRight as ChevronRightIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { ConfirmDialog, ContentEditorDialog, type ContentFormData } from '@vtttools/web-components';
@@ -48,13 +56,13 @@ import {
   type LibrarySearchRequest,
   type LibraryContentResponse,
   type TransferOwnershipRequest,
+  type AssetTaxonomyNode,
 } from '@services/libraryService';
 
 const CONTENT_TYPES: { value: ContentType; label: string }[] = [
   { value: 'world', label: 'Worlds' },
   { value: 'campaign', label: 'Campaigns' },
   { value: 'adventure', label: 'Adventures' },
-  { value: 'encounter', label: 'Encounters' },
   { value: 'asset', label: 'Assets' },
 ];
 
@@ -71,11 +79,196 @@ interface FilterState {
   isPublic: boolean | '';
 }
 
+interface AssetFilterState {
+  taxonomyPath: string[];
+  ownerSearch: string;
+  status: 'all' | 'published' | 'draft';
+  visibility: 'all' | 'public' | 'private';
+}
+
 const DEFAULT_FILTERS: FilterState = {
   search: '',
   ownerType: '',
   isPublished: '',
   isPublic: '',
+};
+
+const DEFAULT_ASSET_FILTERS: AssetFilterState = {
+  taxonomyPath: [],
+  ownerSearch: '',
+  status: 'all',
+  visibility: 'all',
+};
+
+interface TaxonomyTreeNodeRowProps {
+  node: AssetTaxonomyNode;
+  depth: number;
+  isSelected: boolean;
+  isExpanded: boolean;
+  hasChildren: boolean;
+  onSelect: () => void;
+  onToggleExpand: () => void;
+}
+
+const TaxonomyTreeNodeRow: React.FC<TaxonomyTreeNodeRowProps> = ({
+  node,
+  depth,
+  isSelected,
+  isExpanded,
+  hasChildren,
+  onSelect,
+  onToggleExpand,
+}) => {
+  const theme = useTheme();
+  const indentPx = depth * 12;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect();
+    if (hasChildren && !isExpanded) {
+      onToggleExpand();
+    }
+  };
+
+  const handleExpandClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleExpand();
+  };
+
+  const Icon = depth === 0 ? CategoryIcon : hasChildren ? (isExpanded ? FolderOpenIcon : FolderIcon) : FolderIcon;
+
+  return (
+    <Box
+      onClick={handleClick}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+        py: 0.5,
+        px: 1,
+        pl: `${8 + indentPx}px`,
+        cursor: 'pointer',
+        borderRadius: 1,
+        backgroundColor: isSelected ? theme.palette.action.selected : 'transparent',
+        '&:hover': {
+          backgroundColor: isSelected ? theme.palette.action.selected : theme.palette.action.hover,
+        },
+      }}
+    >
+      {hasChildren ? (
+        <Box
+          onClick={handleExpandClick}
+          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        >
+          {isExpanded ? (
+            <ExpandMoreIcon fontSize="small" sx={{ color: theme.palette.text.secondary }} />
+          ) : (
+            <ChevronRightIcon fontSize="small" sx={{ color: theme.palette.text.secondary }} />
+          )}
+        </Box>
+      ) : (
+        <Box sx={{ width: 20 }} />
+      )}
+      <Icon fontSize="small" sx={{ color: theme.palette.text.secondary }} />
+      <Typography variant="body2" sx={{ flexGrow: 1 }}>
+        {node.label}
+      </Typography>
+      <Typography
+        variant="caption"
+        sx={{
+          color: theme.palette.text.secondary,
+          backgroundColor: theme.palette.action.hover,
+          borderRadius: 1,
+          px: 0.75,
+          minWidth: 24,
+          textAlign: 'center',
+        }}
+      >
+        {node.count}
+      </Typography>
+    </Box>
+  );
+};
+
+interface TaxonomyTreeProps {
+  taxonomy: AssetTaxonomyNode[];
+  selectedPath: string[];
+  onPathChange: (path: string[]) => void;
+  expandedNodes: string[];
+  onExpandedChange: (nodes: string[]) => void;
+}
+
+const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
+  taxonomy,
+  selectedPath,
+  onPathChange,
+  expandedNodes,
+  onExpandedChange,
+}) => {
+  const isNodeExpanded = useCallback(
+    (nodeId: string) => expandedNodes.includes(nodeId),
+    [expandedNodes]
+  );
+
+  const toggleNodeExpansion = useCallback(
+    (nodeId: string, depth: number) => {
+      if (expandedNodes.includes(nodeId)) {
+        onExpandedChange(expandedNodes.filter((id) => id !== nodeId && !id.startsWith(nodeId + '/')));
+      } else {
+        if (depth === 0) {
+          const otherRootNodes = taxonomy.map((n) => n.id).filter((id) => id !== nodeId);
+          const newExpanded = expandedNodes.filter(
+            (id) => !otherRootNodes.some((rootId) => id === rootId || id.startsWith(rootId + '/'))
+          );
+          onExpandedChange([...newExpanded, nodeId]);
+        } else {
+          onExpandedChange([...expandedNodes, nodeId]);
+        }
+      }
+    },
+    [expandedNodes, onExpandedChange, taxonomy]
+  );
+
+  const handleSelect = useCallback(
+    (node: AssetTaxonomyNode) => {
+      const currentPath = selectedPath.join('/');
+      const nodePath = node.path.join('/');
+      if (currentPath === nodePath) {
+        onPathChange([]);
+      } else {
+        onPathChange(node.path);
+      }
+    },
+    [selectedPath, onPathChange]
+  );
+
+  const renderNode = (node: AssetTaxonomyNode, depth: number): React.ReactNode => {
+    const nodeId = node.id;
+    const isExpanded = isNodeExpanded(nodeId);
+    const isSelected = selectedPath.join('/') === node.path.join('/');
+    const hasChildren = node.children.length > 0;
+
+    return (
+      <Box key={nodeId}>
+        <TaxonomyTreeNodeRow
+          node={node}
+          depth={depth}
+          isSelected={isSelected}
+          isExpanded={isExpanded}
+          hasChildren={hasChildren}
+          onSelect={() => handleSelect(node)}
+          onToggleExpand={() => toggleNodeExpansion(nodeId, depth)}
+        />
+        {hasChildren && (
+          <Collapse in={isExpanded}>
+            {node.children.map((child) => renderNode(child, depth + 1))}
+          </Collapse>
+        )}
+      </Box>
+    );
+  };
+
+  return <Box>{taxonomy.map((node) => renderNode(node, 0))}</Box>;
 };
 
 function filtersToRequest(filters: FilterState): Omit<LibrarySearchRequest, 'skip' | 'take'> {
@@ -85,6 +278,39 @@ function filtersToRequest(filters: FilterState): Omit<LibrarySearchRequest, 'ski
   if (filters.isPublished !== '') request.isPublished = filters.isPublished;
   if (filters.isPublic !== '') request.isPublic = filters.isPublic;
   return request;
+}
+
+function assetFiltersToRequest(
+  filters: AssetFilterState
+): Omit<LibrarySearchRequest, 'skip' | 'take'> {
+  const request: Omit<LibrarySearchRequest, 'skip' | 'take'> = {};
+
+  if (filters.ownerSearch) {
+    request.search = filters.ownerSearch;
+  }
+
+  if (filters.status === 'published') {
+    request.isPublished = true;
+  } else if (filters.status === 'draft') {
+    request.isPublished = false;
+  }
+
+  if (filters.visibility === 'public') {
+    request.isPublic = true;
+  } else if (filters.visibility === 'private') {
+    request.isPublic = false;
+  }
+
+  return request;
+}
+
+function taxonomyPathToFilters(path: string[]): Pick<LibrarySearchRequest, 'kind' | 'category' | 'type' | 'subtype'> {
+  const filters: Pick<LibrarySearchRequest, 'kind' | 'category' | 'type' | 'subtype'> = {};
+  if (path.length >= 1) filters.kind = path[0];
+  if (path.length >= 2) filters.category = path[1];
+  if (path.length >= 3) filters.type = path[2];
+  if (path.length >= 4) filters.subtype = path[3];
+  return filters;
 }
 
 export function PublicLibraryPage() {
@@ -105,6 +331,11 @@ export function PublicLibraryPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [tempFilters, setTempFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
+  const [assetFilters, setAssetFilters] = useState<AssetFilterState>(DEFAULT_ASSET_FILTERS);
+  const [taxonomyExpandedNodes, setTaxonomyExpandedNodes] = useState<string[]>([]);
+  const [taxonomy, setTaxonomy] = useState<AssetTaxonomyNode[]>([]);
+  const [taxonomyLoading, setTaxonomyLoading] = useState(false);
+
   const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -120,6 +351,7 @@ export function PublicLibraryPage() {
 
   const currentContentType = CONTENT_TYPES[activeTab]?.value ?? 'world';
   const currentContentLabel = CONTENT_TYPES[activeTab]?.label ?? 'Worlds';
+  const isAssetTab = currentContentType === 'asset';
 
   const loadConfig = useCallback(async () => {
     try {
@@ -134,15 +366,45 @@ export function PublicLibraryPage() {
     loadConfig();
   }, [loadConfig]);
 
+  const loadTaxonomy = useCallback(async () => {
+    try {
+      setTaxonomyLoading(true);
+      const data = await libraryService.getAssetTaxonomy();
+      setTaxonomy(data ?? []);
+    } catch (err) {
+      console.error('Failed to load asset taxonomy:', err);
+      setTaxonomy([]);
+    } finally {
+      setTaxonomyLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAssetTab) {
+      loadTaxonomy();
+    }
+  }, [isAssetTab, loadTaxonomy]);
+
   const loadContent = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
+      let requestFilters: Omit<LibrarySearchRequest, 'skip' | 'take'>;
+
+      if (isAssetTab) {
+        requestFilters = {
+          ...assetFiltersToRequest(assetFilters),
+          ...taxonomyPathToFilters(assetFilters.taxonomyPath),
+        };
+      } else {
+        requestFilters = filtersToRequest(filters);
+      }
+
       const request: LibrarySearchRequest = {
         skip: paginationModel.page * paginationModel.pageSize,
         take: paginationModel.pageSize,
-        ...filtersToRequest(filters),
+        ...requestFilters,
       };
 
       const response = await libraryService.searchContent(currentContentType, request);
@@ -153,7 +415,7 @@ export function PublicLibraryPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentContentType, paginationModel, filters]);
+  }, [currentContentType, paginationModel, filters, isAssetTab, assetFilters]);
 
   useEffect(() => {
     loadContent();
@@ -170,14 +432,36 @@ export function PublicLibraryPage() {
     setPaginationModel({ ...paginationModel, page: 0 });
   };
 
+  const handleResetAssetFilters = () => {
+    setAssetFilters(DEFAULT_ASSET_FILTERS);
+    setTaxonomyExpandedNodes([]);
+    setPaginationModel({ ...paginationModel, page: 0 });
+  };
+
+  const hasActiveAssetFilters = useMemo(() => {
+    return (
+      assetFilters.taxonomyPath.length > 0 ||
+      assetFilters.ownerSearch.length > 0 ||
+      assetFilters.status !== 'all' ||
+      assetFilters.visibility !== 'all'
+    );
+  }, [assetFilters]);
+
+  const handleTaxonomyPathChange = (path: string[]) => {
+    setAssetFilters({ ...assetFilters, taxonomyPath: path });
+    setPaginationModel({ ...paginationModel, page: 0 });
+  };
+
   const handleCreate = async (data: ContentFormData) => {
-    const serviceMethod = {
+    const serviceMethodMap: Record<string, (request: { name: string; description?: string }) => Promise<LibraryContentResponse>> = {
       world: libraryService.createWorld,
       campaign: libraryService.createCampaign,
       adventure: libraryService.createAdventure,
-      encounter: libraryService.createEncounter,
       asset: libraryService.createAsset,
-    }[currentContentType];
+    };
+
+    const serviceMethod = serviceMethodMap[currentContentType];
+    if (!serviceMethod) return;
 
     await serviceMethod({ name: data.name, description: data.description });
     setCreateDialogOpen(false);
@@ -272,10 +556,15 @@ export function PublicLibraryPage() {
 
   const columns: GridColDef<LibraryContentResponse>[] = [
     {
+      ...GRID_CHECKBOX_SELECTION_COL_DEF,
+      hideable: false,
+    },
+    {
       field: 'name',
       headerName: 'Name',
       flex: 1,
       minWidth: 200,
+      hideable: false,
     },
     {
       field: 'description',
@@ -327,6 +616,7 @@ export function PublicLibraryPage() {
       width: 130,
       sortable: false,
       disableColumnMenu: true,
+      hideable: false,
       display: 'flex',
       renderCell: (params: GridRenderCellParams<LibraryContentResponse>) => (
         <Stack direction="row" spacing={0.5} alignItems="center">
@@ -442,6 +732,102 @@ export function PublicLibraryPage() {
     </Paper>
   );
 
+  const renderTaxonomyPanel = () => (
+    <Paper sx={{ p: 2, height: 'fit-content', position: 'sticky', top: 24 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CategoryIcon color="primary" />
+          <Typography variant="h6">Categories</Typography>
+        </Box>
+        {assetFilters.taxonomyPath.length > 0 && (
+          <Button
+            size="small"
+            startIcon={<ClearIcon />}
+            onClick={() => handleTaxonomyPathChange([])}
+          >
+            Clear
+          </Button>
+        )}
+      </Box>
+
+      {taxonomyLoading ? (
+        <Box sx={{ py: 2 }}>
+          <Skeleton variant="rectangular" height={200} />
+        </Box>
+      ) : taxonomy.length > 0 ? (
+        <TaxonomyTree
+          taxonomy={taxonomy}
+          selectedPath={assetFilters.taxonomyPath}
+          onPathChange={handleTaxonomyPathChange}
+          expandedNodes={taxonomyExpandedNodes}
+          onExpandedChange={setTaxonomyExpandedNodes}
+        />
+      ) : (
+        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+          No categories available
+        </Typography>
+      )}
+    </Paper>
+  );
+
+  const renderAssetFilterRow = () => (
+    <Paper sx={{ p: 2, mb: 2 }}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <TextField
+          size="small"
+          placeholder="Search by owner name..."
+          value={assetFilters.ownerSearch}
+          onChange={(e) => {
+            setAssetFilters({ ...assetFilters, ownerSearch: e.target.value });
+            setPaginationModel({ ...paginationModel, page: 0 });
+          }}
+          sx={{ minWidth: 200 }}
+        />
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={assetFilters.status}
+            label="Status"
+            onChange={(e) => {
+              setAssetFilters({
+                ...assetFilters,
+                status: e.target.value as 'all' | 'published' | 'draft',
+              });
+              setPaginationModel({ ...paginationModel, page: 0 });
+            }}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="published">Published</MenuItem>
+            <MenuItem value="draft">Draft</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Visibility</InputLabel>
+          <Select
+            value={assetFilters.visibility}
+            label="Visibility"
+            onChange={(e) => {
+              setAssetFilters({
+                ...assetFilters,
+                visibility: e.target.value as 'all' | 'public' | 'private',
+              });
+              setPaginationModel({ ...paginationModel, page: 0 });
+            }}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="public">Public</MenuItem>
+            <MenuItem value="private">Private</MenuItem>
+          </Select>
+        </FormControl>
+        {hasActiveAssetFilters && (
+          <Button size="small" startIcon={<ClearIcon />} onClick={handleResetAssetFilters}>
+            Reset All
+          </Button>
+        )}
+      </Stack>
+    </Paper>
+  );
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -462,13 +848,15 @@ export function PublicLibraryPage() {
           >
             Refresh
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<FilterListIcon />}
-            onClick={() => setFiltersOpen(!filtersOpen)}
-          >
-            {filtersOpen ? 'Hide Filters' : 'Show Filters'}
-          </Button>
+          {!isAssetTab && (
+            <Button
+              variant="outlined"
+              startIcon={<FilterListIcon />}
+              onClick={() => setFiltersOpen(!filtersOpen)}
+            >
+              {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+            </Button>
+          )}
         </Stack>
       </Box>
 
@@ -488,7 +876,7 @@ export function PublicLibraryPage() {
         </Tabs>
       </Paper>
 
-      {filtersOpen && renderFilters()}
+      {!isAssetTab && filtersOpen && renderFilters()}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -496,43 +884,92 @@ export function PublicLibraryPage() {
         </Alert>
       )}
 
-      {loading && !content.length ? (
-        <Paper sx={{ p: 2 }}>
-          <Skeleton variant="rectangular" height={400} />
-        </Paper>
-      ) : (
-        <Paper sx={{ height: 600, width: '100%' }}>
-          <DataGrid
-            rows={content}
-            columns={columns}
-            loading={loading}
-            pageSizeOptions={[10, 25, 50, 100]}
-            paginationMode="server"
-            rowCount={totalCount}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            checkboxSelection
-            disableRowSelectionOnClick
-            rowSelectionModel={selectedRows}
-            onRowSelectionModelChange={setSelectedRows}
-            slots={{
-              noRowsOverlay: () => (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
+      {isAssetTab ? (
+        <Box sx={{ display: 'flex', gap: 3 }}>
+          <Box sx={{ width: 280, flexShrink: 0 }}>
+            {renderTaxonomyPanel()}
+          </Box>
+          <Box sx={{ flexGrow: 1 }}>
+            {renderAssetFilterRow()}
+            {loading && !content.length ? (
+              <Paper sx={{ p: 2 }}>
+                <Skeleton variant="rectangular" height={400} />
+              </Paper>
+            ) : (
+              <Paper sx={{ height: 600, width: '100%' }}>
+                <DataGrid
+                  rows={content}
+                  columns={columns}
+                  loading={loading}
+                  pageSizeOptions={[10, 25, 50, 100]}
+                  paginationMode="server"
+                  rowCount={totalCount}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={setPaginationModel}
+                  checkboxSelection
+                  disableRowSelectionOnClick
+                  rowSelectionModel={selectedRows}
+                  onRowSelectionModelChange={setSelectedRows}
+                  slots={{
+                    noRowsOverlay: () => (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                        }}
+                      >
+                        <Typography variant="body1" color="text.secondary">
+                          No {currentContentLabel.toLowerCase()} found
+                        </Typography>
+                      </Box>
+                    ),
                   }}
-                >
-                  <Typography variant="body1" color="text.secondary">
-                    No {currentContentLabel.toLowerCase()} found
-                  </Typography>
-                </Box>
-              ),
-            }}
-          />
-        </Paper>
+                />
+              </Paper>
+            )}
+          </Box>
+        </Box>
+      ) : (
+        loading && !content.length ? (
+          <Paper sx={{ p: 2 }}>
+            <Skeleton variant="rectangular" height={400} />
+          </Paper>
+        ) : (
+          <Paper sx={{ height: 600, width: '100%' }}>
+            <DataGrid
+              rows={content}
+              columns={columns}
+              loading={loading}
+              pageSizeOptions={[10, 25, 50, 100]}
+              paginationMode="server"
+              rowCount={totalCount}
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
+              checkboxSelection
+              disableRowSelectionOnClick
+              rowSelectionModel={selectedRows}
+              onRowSelectionModelChange={setSelectedRows}
+              slots={{
+                noRowsOverlay: () => (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                    }}
+                  >
+                    <Typography variant="body1" color="text.secondary">
+                      No {currentContentLabel.toLowerCase()} found
+                    </Typography>
+                  </Box>
+                ),
+              }}
+            />
+          </Paper>
+        )
       )}
 
       <ContentEditorDialog

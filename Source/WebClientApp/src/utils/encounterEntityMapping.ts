@@ -36,7 +36,7 @@ function isEncounterMappings(value: unknown): value is EncounterMappings {
     if (!encounterMappings || typeof encounterMappings !== 'object') return false;
 
     const mappings = encounterMappings as Record<string, unknown>;
-    const requiredTypes: EncounterEntityType[] = ['assets', 'walls', 'regions', 'sources', 'effects'];
+    const requiredTypes: EncounterEntityType[] = ['assets', 'walls', 'openings', 'regions', 'sources', 'effects'];
     for (const type of requiredTypes) {
       if (!(type in mappings) || typeof mappings[type] !== 'object') return false;
     }
@@ -113,7 +113,9 @@ export function getIndexByDomId(
   validateId(encounterId, 'encounterId');
   validateId(domId, 'domId');
   const encounterMappings = getEncounterMappings(encounterId);
-  return encounterMappings[entityType][domId];
+  const typeMapping = encounterMappings[entityType];
+  if (!typeMapping) return undefined;
+  return typeMapping[domId];
 }
 
 export function getDomIdByIndex(
@@ -123,7 +125,9 @@ export function getDomIdByIndex(
 ): string | undefined {
   validateId(encounterId, 'encounterId');
   const encounterMappings = getEncounterMappings(encounterId);
-  const entries = Object.entries(encounterMappings[entityType]);
+  const typeMapping = encounterMappings[entityType];
+  if (!typeMapping) return undefined;
+  const entries = Object.entries(typeMapping);
   const entry = entries.find(([, idx]) => idx === index);
   return entry?.[0];
 }

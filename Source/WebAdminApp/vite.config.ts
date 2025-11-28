@@ -26,6 +26,28 @@ export default defineConfig(({ mode }) => {
         '@config': resolve(__dirname, 'src/config'),
         '@theme': resolve(__dirname, 'src/theme'),
       },
+      dedupe: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        '@emotion/react',
+        '@emotion/styled',
+        '@mui/material',
+        '@mui/icons-material',
+        '@reduxjs/toolkit',
+        'react-redux',
+        'react-router-dom',
+      ],
+    },
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        '@emotion/react',
+        '@emotion/styled',
+        '@mui/material',
+        '@mui/icons-material',
+      ],
     },
     define: {
       __ASPIRE_HEALTH__: JSON.stringify(true),

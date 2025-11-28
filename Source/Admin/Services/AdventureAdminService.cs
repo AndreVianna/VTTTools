@@ -176,6 +176,107 @@ public sealed class AdventureAdminService(
         }
     }
 
+    public async Task<IReadOnlyList<LibraryContentResponse>> GetEncountersByAdventureIdAsync(
+        Guid adventureId,
+        CancellationToken ct = default) {
+        try {
+            var encounters = await DbContext.Encounters
+                .Where(e => e.AdventureId == adventureId)
+                .ToListAsync(ct);
+
+            var result = encounters.ConvertAll(MapEncounterToContentResponse)
+;
+
+            Logger.LogInformation("Retrieved {Count} encounters for adventure {AdventureId}", result.Count, adventureId);
+            return result.AsReadOnly();
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error retrieving encounters for adventure {AdventureId}", adventureId);
+            throw;
+        }
+    }
+
+    public async Task<LibraryContentResponse> CreateEncounterForAdventureAsync(
+        Guid adventureId,
+        string name,
+        string description,
+        CancellationToken ct = default) {
+        try {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
+
+            var adventure = await DbContext.Adventures.FindAsync([adventureId], ct)
+                ?? throw new KeyNotFoundException($"Adventure with ID {adventureId} not found");
+
+            var encounter = new Encounter {
+                AdventureId = adventureId,
+                Name = name,
+                Description = description,
+                IsPublished = false
+            };
+
+            DbContext.Encounters.Add(encounter);
+            await DbContext.SaveChangesAsync(ct);
+
+            Logger.LogInformation("Created encounter {EncounterId} '{Name}' for adventure {AdventureId}", encounter.Id, name, adventureId);
+
+            return MapEncounterToContentResponse(encounter);
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error creating encounter for adventure {AdventureId}", adventureId);
+            throw;
+        }
+    }
+
+    public async Task<LibraryContentResponse> CloneEncounterAsync(
+        Guid adventureId,
+        Guid encounterId,
+        string? newName,
+        CancellationToken ct = default) {
+        try {
+            var encounter = await DbContext.Encounters
+                .FirstOrDefaultAsync(e => e.Id == encounterId && e.AdventureId == adventureId, ct)
+                ?? throw new KeyNotFoundException($"Encounter {encounterId} not found in adventure {adventureId}");
+
+            var clonedEncounter = new Encounter {
+                AdventureId = adventureId,
+                Name = newName ?? $"{encounter.Name} (Copy)",
+                Description = encounter.Description,
+                IsPublished = false
+            };
+
+            DbContext.Encounters.Add(clonedEncounter);
+            await DbContext.SaveChangesAsync(ct);
+
+            Logger.LogInformation("Cloned encounter {EncounterId} to {ClonedId} for adventure {AdventureId}", encounterId, clonedEncounter.Id, adventureId);
+
+            return MapEncounterToContentResponse(clonedEncounter);
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error cloning encounter {EncounterId} in adventure {AdventureId}", encounterId, adventureId);
+            throw;
+        }
+    }
+
+    public async Task RemoveEncounterFromAdventureAsync(
+        Guid adventureId,
+        Guid encounterId,
+        CancellationToken ct = default) {
+        try {
+            var encounter = await DbContext.Encounters
+                .FirstOrDefaultAsync(e => e.Id == encounterId && e.AdventureId == adventureId, ct)
+                ?? throw new KeyNotFoundException($"Encounter {encounterId} not found in adventure {adventureId}");
+
+            DbContext.Encounters.Remove(encounter);
+            await DbContext.SaveChangesAsync(ct);
+
+            Logger.LogInformation("Removed encounter {EncounterId} from adventure {AdventureId}", encounterId, adventureId);
+        }
+        catch (Exception ex) {
+            Logger.LogError(ex, "Error removing encounter {EncounterId} from adventure {AdventureId}", encounterId, adventureId);
+            throw;
+        }
+    }
+
     private static LibraryContentResponse MapToContentResponse(Adventure adventure, string? ownerName)
         => new() {
             Id = adventure.Id,
@@ -185,6 +286,19 @@ public sealed class AdventureAdminService(
             Description = adventure.Description,
             IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = null
+    };
+
+    private static LibraryContentResponse MapEncounterToContentResponse(Encounter encounter)
+        => new() {
+            Id = encounter.Id,
+            OwnerId = Guid.Empty,
+            OwnerName = null,
+            Name = encounter.Name,
+            Description = encounter.Description,
+            IsPublished = encounter.IsPublished,
+            IsPublic = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
     };

@@ -16,6 +16,10 @@ export interface LibrarySearchRequest {
   isPublic?: boolean;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  kind?: string;
+  category?: string;
+  type?: string;
+  subtype?: string;
 }
 
 export interface LibraryContentResponse {
@@ -57,6 +61,14 @@ export interface TransferOwnershipRequest {
   targetUserId?: string;
 }
 
+export interface AssetTaxonomyNode {
+  id: string;
+  label: string;
+  count: number;
+  path: string[];
+  children: AssetTaxonomyNode[];
+}
+
 function buildSearchParams(request: LibrarySearchRequest): URLSearchParams {
   const params = new URLSearchParams();
 
@@ -69,6 +81,10 @@ function buildSearchParams(request: LibrarySearchRequest): URLSearchParams {
   if (request.isPublic !== undefined) params.append('isPublic', request.isPublic.toString());
   if (request.sortBy) params.append('sortBy', request.sortBy);
   if (request.sortOrder) params.append('sortOrder', request.sortOrder);
+  if (request.kind) params.append('kind', request.kind);
+  if (request.category) params.append('category', request.category);
+  if (request.type) params.append('type', request.type);
+  if (request.subtype) params.append('subtype', request.subtype);
 
   return params;
 }
@@ -234,6 +250,81 @@ export const libraryService = {
     await apiClient.post(`${API_BASE}/assets/${id}/transfer`, request);
   },
 
+  async getCampaignsByWorldId(worldId: string): Promise<LibraryContentResponse[]> {
+    const response = await apiClient.get<LibraryContentResponse[]>(`${API_BASE}/worlds/${worldId}/campaigns`);
+    return response.data;
+  },
+
+  async createCampaignForWorld(worldId: string, request: CreateContentRequest): Promise<LibraryContentResponse> {
+    const response = await apiClient.post<LibraryContentResponse>(
+      `${API_BASE}/worlds/${worldId}/campaigns`,
+      request
+    );
+    return response.data;
+  },
+
+  async cloneCampaignInWorld(worldId: string, campaignId: string, name?: string): Promise<LibraryContentResponse> {
+    const response = await apiClient.post<LibraryContentResponse>(
+      `${API_BASE}/worlds/${worldId}/campaigns/${campaignId}/clone`,
+      { name }
+    );
+    return response.data;
+  },
+
+  async removeCampaignFromWorld(worldId: string, campaignId: string): Promise<void> {
+    await apiClient.delete(`${API_BASE}/worlds/${worldId}/campaigns/${campaignId}`);
+  },
+
+  async getAdventuresByCampaignId(campaignId: string): Promise<LibraryContentResponse[]> {
+    const response = await apiClient.get<LibraryContentResponse[]>(`${API_BASE}/campaigns/${campaignId}/adventures`);
+    return response.data;
+  },
+
+  async createAdventureForCampaign(campaignId: string, request: CreateContentRequest): Promise<LibraryContentResponse> {
+    const response = await apiClient.post<LibraryContentResponse>(
+      `${API_BASE}/campaigns/${campaignId}/adventures`,
+      request
+    );
+    return response.data;
+  },
+
+  async cloneAdventureInCampaign(campaignId: string, adventureId: string, name?: string): Promise<LibraryContentResponse> {
+    const response = await apiClient.post<LibraryContentResponse>(
+      `${API_BASE}/campaigns/${campaignId}/adventures/${adventureId}/clone`,
+      { name }
+    );
+    return response.data;
+  },
+
+  async removeAdventureFromCampaign(campaignId: string, adventureId: string): Promise<void> {
+    await apiClient.delete(`${API_BASE}/campaigns/${campaignId}/adventures/${adventureId}`);
+  },
+
+  async getEncountersByAdventureId(adventureId: string): Promise<LibraryContentResponse[]> {
+    const response = await apiClient.get<LibraryContentResponse[]>(`${API_BASE}/adventures/${adventureId}/encounters`);
+    return response.data;
+  },
+
+  async createEncounterForAdventure(adventureId: string, request: CreateContentRequest): Promise<LibraryContentResponse> {
+    const response = await apiClient.post<LibraryContentResponse>(
+      `${API_BASE}/adventures/${adventureId}/encounters`,
+      request
+    );
+    return response.data;
+  },
+
+  async cloneEncounterInAdventure(adventureId: string, encounterId: string, name?: string): Promise<LibraryContentResponse> {
+    const response = await apiClient.post<LibraryContentResponse>(
+      `${API_BASE}/adventures/${adventureId}/encounters/${encounterId}/clone`,
+      { name }
+    );
+    return response.data;
+  },
+
+  async removeEncounterFromAdventure(adventureId: string, encounterId: string): Promise<void> {
+    await apiClient.delete(`${API_BASE}/adventures/${adventureId}/encounters/${encounterId}`);
+  },
+
   async searchContent(
     contentType: ContentType,
     request: LibrarySearchRequest
@@ -314,5 +405,10 @@ export const libraryService = {
     };
 
     await apiClient.post(`${API_BASE}/${endpointMap[contentType]}/${id}/transfer`, request);
+  },
+
+  async getAssetTaxonomy(): Promise<AssetTaxonomyNode[]> {
+    const response = await apiClient.get<AssetTaxonomyNode[]>(`${API_BASE}/assets/taxonomy`);
+    return response.data;
   },
 };

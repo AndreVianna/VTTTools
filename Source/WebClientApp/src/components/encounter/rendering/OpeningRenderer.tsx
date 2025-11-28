@@ -2,270 +2,218 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import type React from 'react';
 import { useMemo } from 'react';
-import { Group, Line, Rect, Text } from 'react-konva';
-import {
-    type EncounterWall,
-    OpeningOpacity,
-    OpeningState,
-    OpeningVisibility,
-    type PlacedOpening,
-    type Point,
-} from '@/types/domain';
+import { Circle, Group, Line, Rect, Text } from 'react-konva';
+import { type EncounterWall, OpeningState, OpeningVisibility, type PlacedOpening, type Point } from '@/types/domain';
 import { type InteractionScope, isOpeningInScope } from '@/utils/scopeFiltering';
 
 export interface OpeningRendererProps {
-    encounterOpening: PlacedOpening;
-    wall: EncounterWall;
-    isSelected?: boolean;
-    onSelect?: () => void;
-    onContextMenu?: (position: Point) => void;
-    activeScope: InteractionScope;
+  encounterOpening: PlacedOpening;
+  wall: EncounterWall;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  onContextMenu?: (position: Point) => void;
+  activeScope: InteractionScope;
 }
 
 export const OpeningRenderer: React.FC<OpeningRendererProps> = ({
-    encounterOpening,
-    wall,
-    isSelected = false,
-    onSelect,
-    onContextMenu,
-    activeScope,
+  encounterOpening,
+  wall,
+  isSelected = false,
+  onSelect,
+  onContextMenu,
+  activeScope,
 }) => {
-    const theme = useTheme();
-    const isInteractive = isOpeningInScope(activeScope);
+  const theme = useTheme();
+  const isInteractive = isOpeningInScope(activeScope);
 
-    const openingPosition = useMemo(() => {
-        const startPoleIndex = encounterOpening.startPoleIndex;
-        const endPoleIndex = encounterOpening.endPoleIndex;
+  const openingPosition = useMemo(() => {
+    const startPoleIndex = encounterOpening.startPoleIndex;
+    const endPoleIndex = encounterOpening.endPoleIndex;
 
-        if (startPoleIndex < 0 || endPoleIndex >= wall.poles.length) {
-            return null;
-        }
-
-        const startPole = wall.poles[startPoleIndex];
-        const endPole = wall.poles[endPoleIndex];
-
-        if (!startPole || !endPole) {
-            return null;
-        }
-
-        return {
-            start: startPole,
-            end: endPole,
-        };
-    }, [encounterOpening.startPoleIndex, encounterOpening.endPoleIndex, wall.poles]);
-
-    const getOpacityValue = (opacity: OpeningOpacity): number => {
-        switch (opacity) {
-            case OpeningOpacity.Opaque:
-                return 1.0;
-            case OpeningOpacity.Translucent:
-                return 0.7;
-            case OpeningOpacity.Transparent:
-                return 0.3;
-            case OpeningOpacity.Ethereal:
-                return 0.5;
-            default:
-                return 1.0;
-        }
-    };
-
-    const getVisibilityStyle = (visibility: OpeningVisibility) => {
-        switch (visibility) {
-            case OpeningVisibility.Visible:
-                return { opacity: 1, dash: undefined };
-            case OpeningVisibility.Secret:
-                return { opacity: 0.8, dash: [4, 4] };
-            case OpeningVisibility.Concealed:
-                return { opacity: 0.2, dash: undefined };
-            default:
-                return { opacity: 1, dash: undefined };
-        }
-    };
-
-    const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-        e.cancelBubble = true;
-        if (onSelect) {
-            onSelect();
-        }
-    };
-
-    const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
-        e.evt.preventDefault();
-        e.cancelBubble = true;
-        if (onContextMenu) {
-            const stage = e.target.getStage();
-            const pointerPosition = stage?.getPointerPosition();
-            if (stage && pointerPosition) {
-                const scale = stage.scaleX();
-                onContextMenu({
-                    x: (pointerPosition.x - stage.x()) / scale,
-                    y: (pointerPosition.y - stage.y()) / scale,
-                });
-            }
-        }
-    };
-
-    if (!openingPosition) {
-        return null;
+    if (startPoleIndex < 0 || endPoleIndex >= wall.poles.length) {
+      return null;
     }
 
-    const { start, end } = openingPosition;
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const startPole = wall.poles[startPoleIndex];
+    const endPole = wall.poles[endPoleIndex];
 
-    if (distance === 0) {
-        return null;
+    if (!startPole || !endPole) {
+      return null;
     }
 
-    const normalX = -dy / distance;
-    const normalY = dx / distance;
+    return {
+      start: startPole,
+      end: endPole,
+    };
+  }, [encounterOpening.startPoleIndex, encounterOpening.endPoleIndex, wall.poles]);
 
-    const centerX = (start.x + end.x) / 2;
-    const centerY = (start.y + end.y) / 2;
-
-    const height = encounterOpening.height;
-    const heightPixels = height * 5;
-
-    const p1 = { x: start.x, y: start.y };
-    const p2 = { x: end.x, y: end.y };
-    const p3 = { x: end.x + normalX * heightPixels, y: end.y + normalY * heightPixels };
-    const p4 = { x: start.x + normalX * heightPixels, y: start.y + normalY * heightPixels };
-
-    const color = encounterOpening.color || theme.palette.grey[600];
-    const visibilityStyle = getVisibilityStyle(encounterOpening.visibility);
-    const baseOpacity = getOpacityValue(encounterOpening.opacity) * visibilityStyle.opacity;
-
-    const isOpen = encounterOpening.state === OpeningState.Open;
-    const isLocked = encounterOpening.state === OpeningState.Locked;
-    const isBarred = encounterOpening.state === OpeningState.Barred;
-    const isEthereal = encounterOpening.opacity === OpeningOpacity.Ethereal;
-
-    const strokeWidth = 2;
-    const selectionStrokeWidth = 4;
-
-    if (import.meta.env.DEV && !encounterOpening.id) {
-        console.warn('[OpeningRenderer] Missing ID for opening', encounterOpening.name);
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    e.cancelBubble = true;
+    if (onSelect) {
+      onSelect();
     }
+  };
 
-    return (
-        <Group>
-            {!isOpen && (
-                <Line
-                    id={`${encounterOpening.id}-fill`}
-                    points={[p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y]}
-                    closed={true}
-                    fill={color}
-                    opacity={baseOpacity}
-                    listening={isInteractive && !!onSelect}
-                    onClick={handleClick}
-                    onContextMenu={handleContextMenu}
-                    onMouseEnter={(e) => {
-                        const container = e.target.getStage()?.container();
-                        if (container && isInteractive && onSelect) {
-                            container.style.cursor = 'pointer';
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        const container = e.target.getStage()?.container();
-                        if (container) {
-                            container.style.cursor = 'default';
-                        }
-                    }}
-                />
-            )}
+  const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    e.evt.preventDefault();
+    e.cancelBubble = true;
+    if (onContextMenu) {
+      const stage = e.target.getStage();
+      const pointerPosition = stage?.getPointerPosition();
+      if (stage && pointerPosition) {
+        const scale = stage.scaleX();
+        onContextMenu({
+          x: (pointerPosition.x - stage.x()) / scale,
+          y: (pointerPosition.y - stage.y()) / scale,
+        });
+      }
+    }
+  };
 
-            <Line
-                id={`${encounterOpening.id}-stroke`}
-                points={[p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, p1.x, p1.y]}
-                stroke={isSelected ? theme.palette.primary.main : color}
-                strokeWidth={isSelected ? selectionStrokeWidth : strokeWidth}
-                {...(visibilityStyle.dash && { dash: visibilityStyle.dash })}
-                {...(isEthereal && { dash: [8, 8] })}
-                opacity={visibilityStyle.opacity}
-                listening={isInteractive && !!onSelect}
-                onClick={handleClick}
-                onContextMenu={handleContextMenu}
-                hitStrokeWidth={10}
-                onMouseEnter={(e) => {
-                    const container = e.target.getStage()?.container();
-                    if (container && isInteractive && onSelect) {
-                        container.style.cursor = 'pointer';
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    const container = e.target.getStage()?.container();
-                    if (container) {
-                        container.style.cursor = 'default';
-                    }
-                }}
+  if (!openingPosition) {
+    return null;
+  }
+
+  const { start, end } = openingPosition;
+
+  const centerX = (start.x + end.x) / 2;
+  const centerY = (start.y + end.y) / 2;
+
+  const isSecret = encounterOpening.visibility === OpeningVisibility.Secret;
+  const lineColor = isSecret ? '#FF0000' : '#0000FF';
+
+  const strokeWidth = 2;
+
+  const isOpen = encounterOpening.state === OpeningState.Open;
+  const isClosed = encounterOpening.state === OpeningState.Closed;
+  const isLocked = encounterOpening.state === OpeningState.Locked;
+
+  if (import.meta.env.DEV && !encounterOpening.id) {
+    console.warn('[OpeningRenderer] Missing ID for opening', encounterOpening.name);
+  }
+
+  return (
+    <Group>
+      {isSelected && (
+        <Line
+          points={[start.x, start.y, end.x, end.y]}
+          stroke={theme.palette.primary.main}
+          strokeWidth={strokeWidth + 2}
+          listening={false}
+        />
+      )}
+
+      <Line
+        id={encounterOpening.id}
+        points={[start.x, start.y, end.x, end.y]}
+        stroke={lineColor}
+        strokeWidth={strokeWidth}
+        listening={isInteractive && !!onSelect}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+        hitStrokeWidth={10}
+        onMouseEnter={(e) => {
+          const container = e.target.getStage()?.container();
+          if (container && isInteractive && onSelect) {
+            container.style.cursor = 'pointer';
+          }
+        }}
+        onMouseLeave={(e) => {
+          const container = e.target.getStage()?.container();
+          if (container) {
+            container.style.cursor = 'default';
+          }
+        }}
+      />
+
+      <Group x={centerX} y={centerY}>
+        {isOpen && (
+          <Group>
+            <Circle
+              radius={6}
+              fill={theme.palette.background.paper}
+              stroke={lineColor}
+              strokeWidth={1}
+              listening={false}
             />
+            <Line
+              points={[-3, -2, 0, 2, 3, -2]}
+              stroke={lineColor}
+              strokeWidth={1.5}
+              listening={false}
+            />
+          </Group>
+        )}
 
-            {isBarred && (
-                <>
-                    <Line
-                        id={`${encounterOpening.id}-bar-1`}
-                        points={[p1.x, p1.y, p3.x, p3.y]}
-                        stroke={color}
-                        strokeWidth={strokeWidth}
-                        opacity={baseOpacity}
-                        listening={false}
-                    />
-                    <Line
-                        id={`${encounterOpening.id}-bar-2`}
-                        points={[p2.x, p2.y, p4.x, p4.y]}
-                        stroke={color}
-                        strokeWidth={strokeWidth}
-                        opacity={baseOpacity}
-                        listening={false}
-                    />
-                </>
-            )}
+        {isClosed && (
+          <Group>
+            <Circle
+              radius={6}
+              fill={theme.palette.background.paper}
+              stroke={lineColor}
+              strokeWidth={1}
+              listening={false}
+            />
+            <Rect
+              x={-3}
+              y={-3}
+              width={6}
+              height={6}
+              fill={lineColor}
+              listening={false}
+            />
+          </Group>
+        )}
 
-            {isLocked && (
-                <Group x={centerX} y={centerY}>
-                    <Rect
-                        id={`${encounterOpening.id}-lock-body`}
-                        x={-4}
-                        y={-2}
-                        width={8}
-                        height={6}
-                        fill={theme.palette.warning.main}
-                        stroke={theme.palette.warning.dark}
-                        strokeWidth={1}
-                        cornerRadius={1}
-                        listening={false}
-                    />
-                    <Rect
-                        id={`${encounterOpening.id}-lock-shackle`}
-                        x={-3}
-                        y={-6}
-                        width={6}
-                        height={4}
-                        stroke={theme.palette.warning.dark}
-                        strokeWidth={1.5}
-                        cornerRadius={3}
-                        listening={false}
-                    />
-                </Group>
-            )}
+        {isLocked && (
+          <Group>
+            <Circle
+              radius={8}
+              fill={theme.palette.background.paper}
+              stroke={theme.palette.warning.main}
+              strokeWidth={1}
+              listening={false}
+            />
+            <Rect
+              x={-4}
+              y={-2}
+              width={8}
+              height={6}
+              fill={theme.palette.warning.main}
+              stroke={theme.palette.warning.dark}
+              strokeWidth={1}
+              cornerRadius={1}
+              listening={false}
+            />
+            <Rect
+              x={-3}
+              y={-6}
+              width={6}
+              height={4}
+              stroke={theme.palette.warning.dark}
+              strokeWidth={1.5}
+              cornerRadius={3}
+              listening={false}
+            />
+          </Group>
+        )}
+      </Group>
 
-            {isSelected && (
-                <Text
-                    id={`${encounterOpening.id}-label`}
-                    x={centerX}
-                    y={centerY + heightPixels / 2 + 5}
-                    text={encounterOpening.name}
-                    fontSize={10}
-                    fill={theme.palette.primary.main}
-                    fontStyle='bold'
-                    align='center'
-                    offsetX={encounterOpening.name.length * 2.5}
-                    listening={false}
-                />
-            )}
-        </Group>
-    );
+      {isSelected && (
+        <Text
+          x={centerX}
+          y={centerY + 12}
+          text={encounterOpening.name}
+          fontSize={10}
+          fill={theme.palette.primary.main}
+          fontStyle="bold"
+          align="center"
+          offsetX={encounterOpening.name.length * 2.5}
+          listening={false}
+        />
+      )}
+    </Group>
+  );
 };
 
 OpeningRenderer.displayName = 'OpeningRenderer';

@@ -27,5 +27,21 @@ public static class AdventureAdminEndpointsMapper {
         adventuresGroup.MapPost("/{id:guid}/transfer", AdventureAdminHandlers.TransferOwnershipHandler)
             .WithName("TransferAdventureOwnership")
             .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        adventuresGroup.MapGet("/{id:guid}/encounters", AdventureAdminHandlers.GetEncountersHandler)
+            .WithName("GetAdventureEncounters")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        adventuresGroup.MapPost("/{id:guid}/encounters", AdventureAdminHandlers.CreateEncounterHandler)
+            .WithName("CreateAdventureEncounter")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        adventuresGroup.MapPost("/{id:guid}/encounters/{encounterId:guid}/clone", AdventureAdminHandlers.CloneEncounterHandler)
+            .WithName("CloneAdventureEncounter")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
+
+        adventuresGroup.MapDelete("/{id:guid}/encounters/{encounterId:guid}", AdventureAdminHandlers.RemoveEncounterHandler)
+            .WithName("RemoveAdventureEncounter")
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"));
     }
 }

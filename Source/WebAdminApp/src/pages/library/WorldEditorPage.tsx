@@ -1,249 +1,174 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  FormControlLabel,
-  IconButton,
-  Paper,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
-import { SaveStatusIndicator, type SaveStatus } from '@vtttools/web-components';
-import { libraryService, type LibraryContentResponse, type UpdateContentRequest } from '@services/libraryService';
+import { WorldDetailPage, type World, type Campaign } from '@vtttools/web-components';
+import { libraryService, type LibraryContentResponse } from '@services/libraryService';
+
+const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || '';
+
+function mapToWorld(response: LibraryContentResponse): World {
+  return {
+    id: response.id,
+    ownerId: response.ownerId,
+    name: response.name,
+    description: response.description,
+    isPublished: response.isPublished,
+    isPublic: response.isPublic,
+    background: null,
+    campaigns: [],
+  };
+}
+
+function mapToCampaign(response: LibraryContentResponse): Campaign {
+  return {
+    id: response.id,
+    ownerId: response.ownerId,
+    name: response.name,
+    description: response.description,
+    isPublished: response.isPublished,
+    isPublic: response.isPublic,
+    background: null,
+    adventures: [],
+  };
+}
 
 export function WorldEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [world, setWorld] = useState<LibraryContentResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [isPublished, setIsPublished] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [world, setWorld] = useState<World | null>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoadingWorld, setIsLoadingWorld] = useState(true);
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
+  const [worldError, setWorldError] = useState<unknown>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadWorld = useCallback(async () => {
     if (!id) return;
 
     try {
-      setLoading(true);
-      setError(null);
+      setIsLoadingWorld(true);
+      setWorldError(null);
       const data = await libraryService.getWorldById(id);
-      setWorld(data);
+      setWorld(mapToWorld(data));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load world');
+      setWorldError(err);
     } finally {
-      setLoading(false);
+      setIsLoadingWorld(false);
+    }
+  }, [id]);
+
+  const loadCampaigns = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setIsLoadingCampaigns(true);
+      const data = await libraryService.getCampaignsByWorldId(id);
+      setCampaigns(data.map(mapToCampaign));
+    } catch (err) {
+      console.error('Failed to load campaigns:', err);
+    } finally {
+      setIsLoadingCampaigns(false);
     }
   }, [id]);
 
   useEffect(() => {
     loadWorld();
-  }, [loadWorld]);
+    loadCampaigns();
+  }, [loadWorld, loadCampaigns]);
 
-  useEffect(() => {
-    if (world && !isInitialized) {
-      setName(world.name);
-      setDescription(world.description);
-      setIsPublished(world.isPublished);
-      setIsPublic(world.isPublic);
-      setIsInitialized(true);
-    }
-  }, [world, isInitialized]);
+  const handleBack = useCallback(() => {
+    navigate('/admin/library');
+  }, [navigate]);
 
-  const hasUnsavedChanges = useCallback(() => {
-    if (!world || !isInitialized) return false;
-    return (
-      name !== world.name ||
-      description !== world.description ||
-      isPublished !== world.isPublished ||
-      isPublic !== world.isPublic
-    );
-  }, [world, isInitialized, name, description, isPublished, isPublic]);
+  const handleUpdateWorld = useCallback(
+    async (request: { name?: string; description?: string; isPublished?: boolean; backgroundId?: string }) => {
+      if (!id) return;
 
-  const saveChanges = useCallback(
-    async (overrides?: Partial<UpdateContentRequest>) => {
-      if (!id || !world || !isInitialized) return;
-
-      const currentData: UpdateContentRequest = {
-        name,
-        description,
-        isPublished,
-        isPublic,
-        ...overrides,
-      };
-
-      const hasChanges =
-        currentData.name !== world.name ||
-        currentData.description !== world.description ||
-        currentData.isPublished !== world.isPublished ||
-        currentData.isPublic !== world.isPublic;
-
-      if (!hasChanges) return;
-
-      setSaveStatus('saving');
-      try {
-        const updated = await libraryService.updateWorld(id, currentData);
-        setWorld(updated);
-        setSaveStatus('saved');
-      } catch (err) {
-        console.error('Failed to save world:', err);
-        setSaveStatus('error');
-      }
+      const updated = await libraryService.updateWorld(id, {
+        name: request.name,
+        description: request.description,
+        isPublished: request.isPublished,
+      });
+      setWorld(mapToWorld(updated));
     },
-    [id, world, isInitialized, name, description, isPublished, isPublic]
+    [id]
   );
 
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges()) {
-        e.preventDefault();
-        e.returnValue = '';
+  const handleUploadFile = useCallback(
+    async (_file: File, _type: string, _resource: string, _entityId: string): Promise<{ id: string }> => {
+      setIsUploading(true);
+      try {
+        console.warn('File upload not yet implemented in Admin');
+        return { id: '' };
+      } finally {
+        setIsUploading(false);
       }
-    };
+    },
+    []
+  );
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && hasUnsavedChanges()) {
-        saveChanges();
+  const handleCreateCampaign = useCallback(
+    async (request: { name: string; description: string }): Promise<{ id: string }> => {
+      if (!id) throw new Error('World ID is required');
+
+      const created = await libraryService.createCampaignForWorld(id, request);
+      setCampaigns((prev) => [...prev, mapToCampaign(created)]);
+      return { id: created.id };
+    },
+    [id]
+  );
+
+  const handleCloneCampaign = useCallback(
+    async (campaignId: string): Promise<void> => {
+      if (!id) return;
+
+      const cloned = await libraryService.cloneCampaignInWorld(id, campaignId);
+      setCampaigns((prev) => [...prev, mapToCampaign(cloned)]);
+    },
+    [id]
+  );
+
+  const handleRemoveCampaign = useCallback(
+    async (campaignId: string): Promise<void> => {
+      if (!id) return;
+
+      setIsDeleting(true);
+      try {
+        await libraryService.removeCampaignFromWorld(id, campaignId);
+        setCampaigns((prev) => prev.filter((c) => c.id !== campaignId));
+      } finally {
+        setIsDeleting(false);
       }
-    };
+    },
+    [id]
+  );
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [hasUnsavedChanges, saveChanges]);
-
-  const handleBack = () => {
-    navigate('/admin/library');
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error || !world) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error || 'World not found'}
-        </Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={handleBack}>
-          Back to Library
-        </Button>
-      </Box>
-    );
-  }
+  const handleOpenCampaign = useCallback(
+    (campaignId: string) => {
+      navigate(`/admin/library/campaigns/${campaignId}`);
+    },
+    [navigate]
+  );
 
   return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <IconButton onClick={handleBack} aria-label="Back to library">
-            <ArrowBackIcon />
-          </IconButton>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" component="h1">
-              Edit World
-            </Typography>
-          </Box>
-          <SaveStatusIndicator status={saveStatus} />
-          <Button
-            variant="contained"
-            startIcon={saveStatus === 'saving' ? <CircularProgress size={16} /> : <SaveIcon />}
-            onClick={() => saveChanges()}
-            disabled={saveStatus === 'saving' || !hasUnsavedChanges()}
-          >
-            Save
-          </Button>
-        </Box>
-
-        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-          <Chip
-            label={world.ownerName || 'Unknown Owner'}
-            variant="outlined"
-            size="small"
-          />
-          <Chip
-            label={`ID: ${world.id.slice(0, 8)}...`}
-            variant="outlined"
-            size="small"
-          />
-        </Stack>
-
-        <Stack spacing={3}>
-          <TextField
-            fullWidth
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => saveChanges()}
-            required
-          />
-
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => saveChanges()}
-            multiline
-            rows={4}
-          />
-
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublished}
-                  onChange={(e) => {
-                    const newValue = e.target.checked;
-                    setIsPublished(newValue);
-                    saveChanges({ isPublished: newValue });
-                  }}
-                />
-              }
-              label="Published"
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublic}
-                  onChange={(e) => {
-                    const newValue = e.target.checked;
-                    setIsPublic(newValue);
-                    saveChanges({ isPublic: newValue });
-                  }}
-                />
-              }
-              label="Public"
-            />
-          </Box>
-        </Stack>
-      </Paper>
-    </Box>
+    <WorldDetailPage
+      worldId={id || ''}
+      world={world}
+      campaigns={campaigns}
+      isLoadingWorld={isLoadingWorld}
+      isLoadingCampaigns={isLoadingCampaigns}
+      worldError={worldError}
+      isUploading={isUploading}
+      isDeleting={isDeleting}
+      mediaBaseUrl={MEDIA_BASE_URL}
+      onBack={handleBack}
+      onUpdateWorld={handleUpdateWorld}
+      onUploadFile={handleUploadFile}
+      onCreateCampaign={handleCreateCampaign}
+      onCloneCampaign={handleCloneCampaign}
+      onRemoveCampaign={handleRemoveCampaign}
+      onOpenCampaign={handleOpenCampaign}
+    />
   );
 }

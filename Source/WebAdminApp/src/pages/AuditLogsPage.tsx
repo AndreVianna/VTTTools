@@ -249,6 +249,7 @@ export function AuditLogsPage() {
             width: 50,
             sortable: false,
             disableColumnMenu: true,
+            hideable: false,
             renderCell: (params: GridRenderCellParams<GridRow>) => {
                 const row = params.row;
                 if (isDetailRow(row)) {
@@ -381,6 +382,7 @@ export function AuditLogsPage() {
             field: 'timestamp',
             headerName: 'Timestamp',
             width: 180,
+            hideable: false,
             renderCell: (params: GridRenderCellParams<GridRow>) => {
                 if (isDetailRow(params.row)) return null;
                 return (

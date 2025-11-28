@@ -275,6 +275,7 @@ internal static class Mapper {
             Grid = entity.Grid,
             Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel(entity.Grid)!)],
             Walls = [.. entity.Walls.Select(sb => sb.ToModel(entity.Grid)!)],
+            Openings = [.. entity.Openings.Select(o => o.ToModel()!)],
             Regions = [.. entity.Regions.Select(sr => sr.ToModel(entity.Grid)!)],
             Sources = [.. entity.Sources.Select(ss => ss.ToModel(entity.Grid)!)],
         };
@@ -296,6 +297,7 @@ internal static class Mapper {
             Grid = model.Grid,
             EncounterAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id, model.Grid)) ?? [],
             Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id, model.Grid)) ?? [],
+            Openings = model.Openings?.ConvertAll(o => ToEntity(o, model.Id)) ?? [],
             Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id, model.Grid)) ?? [],
             Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
         };
@@ -375,6 +377,22 @@ internal static class Mapper {
             }
             else {
                 entity.Sources.Add(ToEntity(modelSource, entity.Id, model.Grid));
+            }
+        }
+
+        // Update Openings
+        var openingIndices = model.Openings.Select(o => o.Index).ToHashSet();
+        var openingsToRemove = entity.Openings.Where(eo => !openingIndices.Contains(eo.Index)).ToList();
+        foreach (var openingToRemove in openingsToRemove) {
+            entity.Openings.Remove(openingToRemove);
+        }
+        foreach (var modelOpening in model.Openings) {
+            var existingOpening = entity.Openings.FirstOrDefault(eo => eo.Index == modelOpening.Index);
+            if (existingOpening != null) {
+                UpdateFrom(existingOpening, entity.Id, modelOpening);
+            }
+            else {
+                entity.Openings.Add(ToEntity(modelOpening, entity.Id));
             }
         }
 

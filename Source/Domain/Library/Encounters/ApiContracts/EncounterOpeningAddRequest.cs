@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace VttTools.Library.Encounters.ApiContracts;
 
 public record EncounterOpeningAddRequest {
@@ -11,10 +13,12 @@ public record EncounterOpeningAddRequest {
     public string Type { get; init; } = string.Empty;
 
     public uint WallIndex { get; init; }
-    public double CenterPosition { get; init; }
 
-    public double Width { get; init; }
-    public double Height { get; init; }
+    [JsonPropertyName("startPole")]
+    public required PoleRequest StartPole { get; init; }
+
+    [JsonPropertyName("endPole")]
+    public required PoleRequest EndPole { get; init; }
 
     public OpeningVisibility Visibility { get; init; } = OpeningVisibility.Visible;
     public OpeningState State { get; init; } = OpeningState.Closed;
@@ -25,4 +29,15 @@ public record EncounterOpeningAddRequest {
 
     [MaxLength(16)]
     public string? Color { get; init; }
+}
+
+public record PoleRequest {
+    [JsonPropertyName("x")]
+    public double X { get; init; }
+
+    [JsonPropertyName("y")]
+    public double Y { get; init; }
+
+    [JsonPropertyName("h")]
+    public double H { get; init; }
 }
