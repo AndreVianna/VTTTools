@@ -37,16 +37,13 @@ internal static class AssetHandlers {
 
         var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, advancedFilter, pagination, cts.Token);
 
-        if (pagination is null)
-            return Results.Ok(assets);
-
         return Results.Ok(new {
-            data = assets,
-            page = pagination.Index,
-            pageSize = pagination.Size,
-            totalCount,
-            totalPages = (int)Math.Ceiling((double)totalCount / pagination.Size),
-        });
+                data = assets,
+                page = pagination?.Index ?? 0,
+                pageSize = pagination?.Size ?? assets.Length,
+                totalCount,
+                totalPages = pagination is null ? 1 : (int)Math.Ceiling((double)totalCount / pagination.Size),
+            });
     }
 
     internal static async Task<IResult> GetAssetByIdHandler(

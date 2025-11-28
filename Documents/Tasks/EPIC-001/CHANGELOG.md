@@ -6,6 +6,114 @@ Concise version history with links to detailed phase documentation.
 
 ## 2025-11 (Phase 8.8 - Manual Testing & Refinements)
 
+### 2025-11-27 (v1.22.0) - Asset Management System Redesign
+
+**Delivered**: Complete asset management system overhaul with new Browser and Studio pages
+**Effort**: 40h+
+**Status**: ✅ Complete
+**Grade**: A
+
+**Key Changes**:
+
+**Asset Browser** (New Page):
+- Taxonomy tree navigation with hierarchical category/subcategory filtering
+- Dual view modes: Card grid view and Table view
+- Asset inspector panel with detailed asset information
+- Token carousel for assets with multiple tokens
+- Attribute range sliders for filtering by numeric properties
+- Compact asset cards with hover previews
+- Browser toolbar with search, filters, and view controls
+
+**Asset Studio** (New Page):
+- Dedicated asset editing environment
+- Breadcrumb taxonomy input for category navigation
+- Data panel for core asset properties
+- Metadata panel for extended attributes
+- Property grid for structured property editing
+- Visual identity panel for portrait/token management
+- Studio toolbar with save/cancel/delete actions
+- Streamlined `AssetResourceManager` component
+
+**Quick Summon System**:
+- `QuickSummonDialog` - Modal for rapid asset searching and selection
+- `QuickSummonResultsTable` - Paginated results with sorting
+- `QuickSummonStagingPanel` - Stage multiple assets before placement
+- `useQuickSummon` hook - State management for summon workflow
+- Support for batch asset placement on encounter map
+
+**Domain Model Updates**:
+- Simplified asset type definitions in `domain.ts`
+- Removed redundant property forms (Character/Monster/Object)
+- Updated asset helpers and display utilities
+- Streamlined scope filtering logic
+
+**Files Created**:
+- `components/assets/browser/` - 8 new components
+- `components/assets/studio/` - 7 new components
+- `components/encounter/quicksummon/` - 5 new files
+- `hooks/useAssetBrowser.ts` - Browser state management
+- `pages/AssetStudioPage.tsx` - New studio page
+
+**Files Removed**:
+- `AssetCreateDialog.tsx`, `AssetEditDialog.tsx` - Replaced by Studio
+- `CharacterPropertiesForm.tsx`, `MonsterPropertiesForm.tsx`, `ObjectPropertiesForm.tsx`
+
+---
+
+### 2025-11-27 (v1.21.0) - Region System Enhancements Complete
+
+**Delivered**: Region clipping, null regions, and illumination opacity improvements
+**Effort**: 8h
+**Status**: ✅ Complete
+**Grade**: A
+
+**Key Changes**:
+
+**Region Clipping** (Same type, different value):
+- When placing/editing a region that overlaps existing regions of the same type but different value/label, existing regions are now clipped (trimmed)
+- Uses `polygon-clipping` library's `.difference()` operation
+- Three scenarios handled:
+  - Complete coverage → delete existing region
+  - Partial overlap → update vertices
+  - Split into parts → create multiple new regions with suffixed names (a, b, c...)
+- Proper undo/redo support via BatchCommand
+
+**Null Regions** (Normal Terrain/Illumination):
+- "Normal" terrain and "Normal" illumination now act as erasers
+- Placing Normal clips ALL overlapping regions of that type without creating a new region
+- Restores area to default state (no region coverage)
+- Functions: `isNullRegion()`, `findRegionsForNullClip()`, `detectNullRegionClip()`
+
+**Illumination Opacity**:
+- Illumination regions now use black color with varying transparency
+- Bright: 25% opacity (yellow tint)
+- Normal: 0% (transparent - no region)
+- Dim: 50% opacity (black)
+- Dark: 75% opacity (black)
+- Dynamic opacity rendering in RegionRenderer and RegionTransformer
+
+**Snapping Removed from Merge/Clip**:
+- Vertices from merge/clip operations are now placed at exact computed coordinates
+- Prevents gaps between adjacent regions
+- Snapping only applies when user manually edits vertices
+
+**Left Toolbar UX**:
+- Panel now auto-opens on hover when a scope is already selected
+- No click required if scope is active
+
+**Files Modified**:
+- `regionMergeUtils.ts` - Added clipping functions, null region detection
+- `regionColorUtils.ts` - Illumination opacity system
+- `useRegionTransaction.ts` - Clip and null clip detection
+- `useClipRegions.ts` (NEW) - Clip execution hook
+- `useRegionHandlers.ts` - Clip and null clip handling
+- `RegionRenderer.tsx`, `RegionTransformer.tsx` - Dynamic opacity
+- `LeftToolBar.tsx` - Hover-to-open behavior
+
+**Tests**: Updated unit tests for new signatures
+
+---
+
 ### 2025-11-08 (v1.13.0) - Asset Rotation System Complete
 
 **Delivered**: Interactive rotation handles for encounter assets with mouse-based interaction

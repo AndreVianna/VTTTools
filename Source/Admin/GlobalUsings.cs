@@ -1,5 +1,6 @@
 global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
+global using System.Linq.Expressions;
 global using System.Security.Claims;
 global using System.Threading.RateLimiting;
 
@@ -9,6 +10,8 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.RateLimiting;
 global using Microsoft.AspNetCore.SignalR;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Options;
 
 global using VttTools.Admin.ApiContracts;
 global using VttTools.Admin.EndpointMappers;
@@ -21,12 +24,16 @@ global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
 global using VttTools.Common.Services;
 global using VttTools.Common.Utilities;
+global using VttTools.Configuration;
 global using VttTools.Data;
+global using VttTools.Data.Assets.Entities;
 global using VttTools.Data.Audit;
 global using VttTools.Data.Maintenance;
 global using VttTools.Data.Extensions;
+global using VttTools.Data.Library.Entities;
 global using VttTools.Data.Options;
 global using VttTools.Domain.Admin.ApiContracts;
+global using VttTools.Domain.Admin.ApiContracts.Library;
 global using VttTools.Domain.Admin.Services;
 global using VttTools.Extensions;
 global using VttTools.HealthChecks;

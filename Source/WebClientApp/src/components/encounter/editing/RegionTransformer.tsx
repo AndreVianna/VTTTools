@@ -1,9 +1,9 @@
 import { useTheme } from '@mui/material';
 import type Konva from 'konva';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Line, Rect } from 'react-konva';
 import type { RegionSegment } from '@/hooks/useRegionTransaction';
-import type { Point } from '@/types/domain';
+import type { PlacedRegion, Point } from '@/types/domain';
 import {
   createDeleteVertexAction,
   createInsertVertexAction,
@@ -14,8 +14,9 @@ import {
 } from '@/types/regionUndoActions';
 import { getCrosshairPlusCursor, getGrabbingCursor, getMoveCursor, getPointerCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
+import { getRegionColor, getRegionFillOpacity, isTransparentRegion } from '@/utils/regionColorUtils';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { type SnapMode, snapToNearest } from '@/utils/structureSnapping';
+import { SnapMode, snapToNearest } from '@/utils/structureSnapping';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
@@ -74,6 +75,7 @@ export interface RegionTransformerProps {
   encounterId: string;
   regionIndex: number;
   segment: RegionSegment;
+  allRegions: PlacedRegion[];
   gridConfig: GridConfig;
   viewport: { x: number; y: number; scale: number };
   onVerticesChange: (vertices: Point[]) => void;
@@ -81,11 +83,10 @@ export interface RegionTransformerProps {
   onFinish?: () => void;
   onCancel?: () => void;
   onLocalAction?: (action: LocalAction) => void;
-  color?: string;
 }
 
 export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
-  ({ segment, gridConfig, onVerticesChange, onFinish, onCancel, onLocalAction, color }) => {
+  ({ segment, allRegions, gridConfig, onVerticesChange, onFinish, onCancel, onLocalAction }) => {
     const theme = useTheme();
 
     const [selectedVertices, setSelectedVertices] = useState<Set<number>>(new Set());
@@ -423,7 +424,24 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
 
     const marqueeRect = getMarqueeRect();
     const verticesToUse = previewVertices;
-    const fillColor = color || theme.palette.primary.main;
+
+    const segmentAsRegion = useMemo(
+      (): PlacedRegion => ({
+        id: `segment-${segment.tempId}`,
+        encounterId: '',
+        index: segment.regionIndex ?? -1,
+        name: segment.name,
+        type: segment.type,
+        vertices: segment.vertices,
+        ...(segment.value !== undefined && { value: segment.value }),
+        ...(segment.label !== undefined && { label: segment.label }),
+      }),
+      [segment],
+    );
+
+    const fillColor = getRegionColor(segmentAsRegion, allRegions);
+    const fillOpacity = getRegionFillOpacity(segmentAsRegion);
+    const isTransparent = isTransparentRegion(segmentAsRegion);
 
     return (
       <Group name='RegionTransformer'>
@@ -623,9 +641,10 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
           {verticesToUse.length >= 3 && (
             <Line
               points={verticesToUse.flatMap((v) => [v.x, v.y])}
-              fill={fillColor}
+              fill={isTransparent ? 'transparent' : fillColor}
+              {...(isTransparent && { stroke: theme.palette.grey[500], strokeWidth: 2 })}
               closed={true}
-              opacity={0.3}
+              opacity={isTransparent ? 0.5 : segment.type === 'Illumination' ? fillOpacity : 0.3}
               listening={false}
             />
           )}

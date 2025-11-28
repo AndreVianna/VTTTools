@@ -8,6 +8,13 @@ import { UserListPage } from '@pages/Users/UserListPage';
 import { MaintenanceModePage } from '@pages/MaintenanceModePage';
 import { ConfigurationPage } from '@pages/ConfigurationPage';
 import { PublicLibraryPage } from '@pages/PublicLibraryPage';
+import {
+  WorldEditorPage,
+  CampaignEditorPage,
+  AdventureEditorPage,
+  EncounterEditorPage,
+  AssetEditorPage,
+} from '@pages/library';
 
 function App() {
   return (
@@ -28,6 +35,11 @@ function App() {
         <Route path="maintenance" element={<MaintenanceModePage />} />
         <Route path="config" element={<ConfigurationPage />} />
         <Route path="library" element={<PublicLibraryPage />} />
+        <Route path="library/worlds/:id" element={<WorldEditorPage />} />
+        <Route path="library/campaigns/:id" element={<CampaignEditorPage />} />
+        <Route path="library/adventures/:id" element={<AdventureEditorPage />} />
+        <Route path="library/encounters/:id" element={<EncounterEditorPage />} />
+        <Route path="library/assets/:id" element={<AssetEditorPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

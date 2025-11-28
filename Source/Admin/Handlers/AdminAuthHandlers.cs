@@ -1,4 +1,3 @@
-
 namespace VttTools.Admin.Handlers;
 
 public static class AdminAuthHandlers {

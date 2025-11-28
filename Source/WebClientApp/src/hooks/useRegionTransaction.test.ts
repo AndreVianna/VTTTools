@@ -2,7 +2,6 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { Light, Weather } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
 import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
 import { useRegionTransaction } from './useRegionTransaction';
@@ -592,13 +591,6 @@ describe('useRegionTransaction', () => {
           sources: [],
         };
 
-        const gridConfig: GridConfig = {
-          type: 0,
-          cellSize: { width: 50, height: 50 },
-          offset: { left: 0, top: 0 },
-          snap: true,
-        };
-
         act(() => {
           result.current.startTransaction('placement', undefined, {
             type: 'Elevation',
@@ -621,11 +613,10 @@ describe('useRegionTransaction', () => {
               updateEncounterRegion: mockUpdateEncounterRegion,
             },
             encounter,
-            gridConfig,
           );
         });
 
-        expect(mockMergePolygons).toHaveBeenCalledWith(expect.any(Array), gridConfig);
+        expect(mockMergePolygons).toHaveBeenCalledWith(expect.any(Array));
       });
     });
 

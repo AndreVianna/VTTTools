@@ -1,9 +1,16 @@
 import { useCallback, useState } from 'react';
 import type { useAddEncounterRegionMutation, useUpdateEncounterRegionMutation } from '@/services/encounterApi';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
-import { findMergeableRegions, mergePolygons } from '@/utils/regionMergeUtils';
+import {
+  type ClipResult,
+  computeClipResults,
+  findClippableRegions,
+  findMergeableRegions,
+  findRegionsForNullClip,
+  isNullRegion,
+  mergePolygons,
+} from '@/utils/regionMergeUtils';
 
 export type TransactionType = 'placement' | 'editing' | 'modification' | null;
 
@@ -38,11 +45,12 @@ export interface RegionTransaction {
 export interface CommitResult {
   success: boolean;
   regionIndex?: number;
-  action?: 'create' | 'edit' | 'merge';
+  action?: 'create' | 'edit' | 'merge' | 'clip' | 'nullClip';
   targetRegionIndex?: number;
   mergedVertices?: Point[];
   regionsToDelete?: number[];
   originalRegions?: EncounterRegion[];
+  clipResults?: ClipResult[];
   error?: string;
 }
 
@@ -214,7 +222,7 @@ export const useRegionTransaction = () => {
   }, []);
 
   const detectRegionMerge = useCallback(
-    (encounter: Encounter, segment: RegionSegment, gridConfig?: GridConfig): CommitResult | null => {
+    (encounter: Encounter, segment: RegionSegment): CommitResult | null => {
       const mergeableRegions = findMergeableRegions(
         encounter.regions,
         segment.vertices,
@@ -238,7 +246,7 @@ export const useRegionTransaction = () => {
       }
 
       const allVertices = [segment.vertices, ...mergeableRegions.map((r) => r.vertices)];
-      const mergedVertices = mergePolygons(allVertices, gridConfig);
+      const mergedVertices = mergePolygons(allVertices);
 
       const regionsToDelete: number[] = [];
       for (const r of sortedRegions.slice(1)) {
@@ -256,6 +264,61 @@ export const useRegionTransaction = () => {
         mergedVertices,
         regionsToDelete,
         originalRegions: mergeableRegions,
+      };
+    },
+    [],
+  );
+
+  const detectRegionClip = useCallback(
+    (encounter: Encounter, segment: RegionSegment): CommitResult | null => {
+      const clippableRegions = findClippableRegions(
+        encounter.regions,
+        segment.vertices,
+        segment.type,
+        segment.value,
+        segment.label,
+      );
+
+      if (clippableRegions.length === 0) {
+        return null;
+      }
+
+      const clipResults = computeClipResults(clippableRegions, segment.vertices);
+
+      return {
+        success: true,
+        action: 'clip',
+        clipResults,
+        originalRegions: clippableRegions,
+      };
+    },
+    [],
+  );
+
+  const detectNullRegionClip = useCallback(
+    (encounter: Encounter, segment: RegionSegment): CommitResult | null => {
+      if (!isNullRegion(segment.type, segment.label)) {
+        return null;
+      }
+
+      const regionsToClip = findRegionsForNullClip(encounter.regions, segment.vertices, segment.type);
+
+      if (regionsToClip.length === 0) {
+        return {
+          success: true,
+          action: 'nullClip',
+          clipResults: [],
+          originalRegions: [],
+        };
+      }
+
+      const clipResults = computeClipResults(regionsToClip, segment.vertices);
+
+      return {
+        success: true,
+        action: 'nullClip',
+        clipResults,
+        originalRegions: regionsToClip,
       };
     },
     [],
@@ -339,7 +402,6 @@ export const useRegionTransaction = () => {
       encounterId: string,
       apiHooks: ApiHooks,
       currentEncounter?: Encounter,
-      gridConfig?: GridConfig,
     ): Promise<CommitResult> => {
       try {
         if (!transaction.segment) {
@@ -352,10 +414,30 @@ export const useRegionTransaction = () => {
         const segment = transaction.segment;
 
         if (currentEncounter?.regions) {
-          const mergeResult = detectRegionMerge(currentEncounter, segment, gridConfig);
+          const nullClipResult = detectNullRegionClip(currentEncounter, segment);
+          if (nullClipResult) {
+            return nullClipResult;
+          }
+
+          const mergeResult = detectRegionMerge(currentEncounter, segment);
           if (mergeResult) {
             return mergeResult;
           }
+
+          const clipResult = detectRegionClip(currentEncounter, segment);
+          if (clipResult) {
+            return clipResult;
+          }
+        }
+
+        if (isNullRegion(segment.type, segment.label)) {
+          clearTransactionState();
+          return {
+            success: true,
+            action: 'nullClip',
+            clipResults: [],
+            originalRegions: [],
+          };
         }
 
         const validation = validateSegmentVertices(segment.vertices);
@@ -377,7 +459,7 @@ export const useRegionTransaction = () => {
         };
       }
     },
-    [transaction, detectRegionMerge, validateSegmentVertices, persistRegionToBackend, clearTransactionState],
+    [transaction, detectNullRegionClip, detectRegionMerge, detectRegionClip, validateSegmentVertices, persistRegionToBackend, clearTransactionState],
   );
 
   const rollbackTransaction = useCallback(() => {

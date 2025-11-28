@@ -2,9 +2,10 @@ import { isPlainObject as isPlainObject$2, nanoid, formatProdErrorMessage, creat
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useMemo, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, CircularProgress, Box, Paper, Typography, useTheme as useTheme$3, Fade, FormControl, Select, MenuItem, TextField, IconButton, Collapse, Slider, Card, Checkbox, Chip, CardMedia, InputAdornment, Tooltip, ToggleButtonGroup, ToggleButton, Divider, CardContent, CardActions } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, CircularProgress, Box, Paper, Typography, useTheme as useTheme$3, Fade, FormControl, Select, MenuItem, TextField, IconButton, Collapse, Slider, Card, Checkbox, Chip, CardMedia, InputAdornment, Tooltip, ToggleButtonGroup, ToggleButton, Divider, Stack, FormControlLabel, Switch, CardContent, CardActions, Alert, alpha as alpha$1, Grid, Breadcrumbs, Link, InputLabel } from '@mui/material';
 import { ThemeContext } from '@emotion/react';
 import { Error as Error$1, CheckCircle, Lock, LockOpen, ExpandMore, ChevronRight, Category, FolderOpen, Folder, ChevronLeft, Clear, Search, GridView, ViewModule, TableRows, Label, Publish, Delete, Edit } from '@mui/icons-material';
+import emStyled from '@emotion/styled';
 
 var Light = /* @__PURE__ */ ((Light2) => {
   Light2[Light2["Black"] = -10] = "Black";
@@ -5804,6 +5805,326 @@ function formatMuiErrorMessage(code, ...args) {
 
 const THEME_ID = '$$material';
 
+/* eslint-disable */
+// Inspired by https://github.com/garycourt/murmurhash-js
+// Ported from https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash2.cpp#L37-L86
+function murmur2(str) {
+  // 'm' and 'r' are mixing constants generated offline.
+  // They're not really 'magic', they just happen to work well.
+  // const m = 0x5bd1e995;
+  // const r = 24;
+  // Initialize the hash
+  var h = 0; // Mix 4 bytes at a time into the hash
+
+  var k,
+      i = 0,
+      len = str.length;
+
+  for (; len >= 4; ++i, len -= 4) {
+    k = str.charCodeAt(i) & 0xff | (str.charCodeAt(++i) & 0xff) << 8 | (str.charCodeAt(++i) & 0xff) << 16 | (str.charCodeAt(++i) & 0xff) << 24;
+    k =
+    /* Math.imul(k, m): */
+    (k & 0xffff) * 0x5bd1e995 + ((k >>> 16) * 0xe995 << 16);
+    k ^=
+    /* k >>> r: */
+    k >>> 24;
+    h =
+    /* Math.imul(k, m): */
+    (k & 0xffff) * 0x5bd1e995 + ((k >>> 16) * 0xe995 << 16) ^
+    /* Math.imul(h, m): */
+    (h & 0xffff) * 0x5bd1e995 + ((h >>> 16) * 0xe995 << 16);
+  } // Handle the last few bytes of the input array
+
+
+  switch (len) {
+    case 3:
+      h ^= (str.charCodeAt(i + 2) & 0xff) << 16;
+
+    case 2:
+      h ^= (str.charCodeAt(i + 1) & 0xff) << 8;
+
+    case 1:
+      h ^= str.charCodeAt(i) & 0xff;
+      h =
+      /* Math.imul(h, m): */
+      (h & 0xffff) * 0x5bd1e995 + ((h >>> 16) * 0xe995 << 16);
+  } // Do a few final mixes of the hash to ensure the last few
+  // bytes are well-incorporated.
+
+
+  h ^= h >>> 13;
+  h =
+  /* Math.imul(h, m): */
+  (h & 0xffff) * 0x5bd1e995 + ((h >>> 16) * 0xe995 << 16);
+  return ((h ^ h >>> 15) >>> 0).toString(36);
+}
+
+var unitlessKeys = {
+  animationIterationCount: 1,
+  aspectRatio: 1,
+  borderImageOutset: 1,
+  borderImageSlice: 1,
+  borderImageWidth: 1,
+  boxFlex: 1,
+  boxFlexGroup: 1,
+  boxOrdinalGroup: 1,
+  columnCount: 1,
+  columns: 1,
+  flex: 1,
+  flexGrow: 1,
+  flexPositive: 1,
+  flexShrink: 1,
+  flexNegative: 1,
+  flexOrder: 1,
+  gridRow: 1,
+  gridRowEnd: 1,
+  gridRowSpan: 1,
+  gridRowStart: 1,
+  gridColumn: 1,
+  gridColumnEnd: 1,
+  gridColumnSpan: 1,
+  gridColumnStart: 1,
+  msGridRow: 1,
+  msGridRowSpan: 1,
+  msGridColumn: 1,
+  msGridColumnSpan: 1,
+  fontWeight: 1,
+  lineHeight: 1,
+  opacity: 1,
+  order: 1,
+  orphans: 1,
+  scale: 1,
+  tabSize: 1,
+  widows: 1,
+  zIndex: 1,
+  zoom: 1,
+  WebkitLineClamp: 1,
+  // SVG-related properties
+  fillOpacity: 1,
+  floodOpacity: 1,
+  stopOpacity: 1,
+  strokeDasharray: 1,
+  strokeDashoffset: 1,
+  strokeMiterlimit: 1,
+  strokeOpacity: 1,
+  strokeWidth: 1
+};
+
+function memoize$1(fn) {
+  var cache = Object.create(null);
+  return function (arg) {
+    if (cache[arg] === undefined) cache[arg] = fn(arg);
+    return cache[arg];
+  };
+}
+
+var hyphenateRegex = /[A-Z]|^ms/g;
+var animationRegex = /_EMO_([^_]+?)_([^]*?)_EMO_/g;
+
+var isCustomProperty = function isCustomProperty(property) {
+  return property.charCodeAt(1) === 45;
+};
+
+var isProcessableValue = function isProcessableValue(value) {
+  return value != null && typeof value !== 'boolean';
+};
+
+var processStyleName = /* #__PURE__ */memoize$1(function (styleName) {
+  return isCustomProperty(styleName) ? styleName : styleName.replace(hyphenateRegex, '-$&').toLowerCase();
+});
+
+var processStyleValue = function processStyleValue(key, value) {
+  switch (key) {
+    case 'animation':
+    case 'animationName':
+      {
+        if (typeof value === 'string') {
+          return value.replace(animationRegex, function (match, p1, p2) {
+            cursor = {
+              name: p1,
+              styles: p2,
+              next: cursor
+            };
+            return p1;
+          });
+        }
+      }
+  }
+
+  if (unitlessKeys[key] !== 1 && !isCustomProperty(key) && typeof value === 'number' && value !== 0) {
+    return value + 'px';
+  }
+
+  return value;
+};
+
+function handleInterpolation(mergedProps, registered, interpolation) {
+  if (interpolation == null) {
+    return '';
+  }
+
+  var componentSelector = interpolation;
+
+  if (componentSelector.__emotion_styles !== undefined) {
+
+    return componentSelector;
+  }
+
+  switch (typeof interpolation) {
+    case 'boolean':
+      {
+        return '';
+      }
+
+    case 'object':
+      {
+        var keyframes = interpolation;
+
+        if (keyframes.anim === 1) {
+          cursor = {
+            name: keyframes.name,
+            styles: keyframes.styles,
+            next: cursor
+          };
+          return keyframes.name;
+        }
+
+        var serializedStyles = interpolation;
+
+        if (serializedStyles.styles !== undefined) {
+          var next = serializedStyles.next;
+
+          if (next !== undefined) {
+            // not the most efficient thing ever but this is a pretty rare case
+            // and there will be very few iterations of this generally
+            while (next !== undefined) {
+              cursor = {
+                name: next.name,
+                styles: next.styles,
+                next: cursor
+              };
+              next = next.next;
+            }
+          }
+
+          var styles = serializedStyles.styles + ";";
+          return styles;
+        }
+
+        return createStringFromObject(mergedProps, registered, interpolation);
+      }
+  } // finalize string values (regular strings and functions interpolated into css calls)
+
+
+  var asString = interpolation;
+
+  {
+    return asString;
+  }
+}
+
+function createStringFromObject(mergedProps, registered, obj) {
+  var string = '';
+
+  if (Array.isArray(obj)) {
+    for (var i = 0; i < obj.length; i++) {
+      string += handleInterpolation(mergedProps, registered, obj[i]) + ";";
+    }
+  } else {
+    for (var key in obj) {
+      var value = obj[key];
+
+      if (typeof value !== 'object') {
+        var asString = value;
+
+        if (isProcessableValue(asString)) {
+          string += processStyleName(key) + ":" + processStyleValue(key, asString) + ";";
+        }
+      } else {
+
+        if (Array.isArray(value) && typeof value[0] === 'string' && (registered == null)) {
+          for (var _i = 0; _i < value.length; _i++) {
+            if (isProcessableValue(value[_i])) {
+              string += processStyleName(key) + ":" + processStyleValue(key, value[_i]) + ";";
+            }
+          }
+        } else {
+          var interpolated = handleInterpolation(mergedProps, registered, value);
+
+          switch (key) {
+            case 'animation':
+            case 'animationName':
+              {
+                string += processStyleName(key) + ":" + interpolated + ";";
+                break;
+              }
+
+            default:
+              {
+
+                string += key + "{" + interpolated + "}";
+              }
+          }
+        }
+      }
+    }
+  }
+
+  return string;
+}
+
+var labelPattern = /label:\s*([^\s;{]+)\s*(;|$)/g; // this is the cursor for keyframes
+// keyframes are stored on the SerializedStyles object as a linked list
+
+var cursor;
+function serializeStyles(args, registered, mergedProps) {
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && args[0].styles !== undefined) {
+    return args[0];
+  }
+
+  var stringMode = true;
+  var styles = '';
+  cursor = undefined;
+  var strings = args[0];
+
+  if (strings == null || strings.raw === undefined) {
+    stringMode = false;
+    styles += handleInterpolation(mergedProps, registered, strings);
+  } else {
+    var asTemplateStringsArr = strings;
+
+    styles += asTemplateStringsArr[0];
+  } // we start at 1 since we've already handled the first arg
+
+
+  for (var i = 1; i < args.length; i++) {
+    styles += handleInterpolation(mergedProps, registered, args[i]);
+
+    if (stringMode) {
+      var templateStringsArr = strings;
+
+      styles += templateStringsArr[i];
+    }
+  } // using a global regex with .exec is stateful so lastIndex has to be reset each time
+
+
+  labelPattern.lastIndex = 0;
+  var identifierName = '';
+  var match; // https://esbench.com/bench/5b809c2cf2949800a0f61fb5
+
+  while ((match = labelPattern.exec(styles)) !== null) {
+    identifierName += '-' + match[1];
+  }
+
+  var name = murmur2(styles) + identifierName;
+
+  return {
+    name: name,
+    styles: styles,
+    next: cursor
+  };
+}
+
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
@@ -6997,6 +7318,46 @@ function requirePropTypes () {
 
 var propTypesExports = /*@__PURE__*/ requirePropTypes();
 const PropTypes = /*@__PURE__*/getDefaultExportFromCjs(propTypesExports);
+
+/**
+ * @mui/styled-engine v7.3.5
+ *
+ * @license MIT
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+function styled$1(tag, options) {
+  const stylesFactory = emStyled(tag, options);
+  if (process.env.NODE_ENV !== 'production') {
+    return (...styles) => {
+      const component = typeof tag === 'string' ? `"${tag}"` : 'component';
+      if (styles.length === 0) {
+        console.error([`MUI: Seems like you called \`styled(${component})()\` without a \`style\` argument.`, 'You must provide a `styles` argument: `styled("div")(styleYouForgotToPass)`.'].join('\n'));
+      } else if (styles.some(style => style === undefined)) {
+        console.error(`MUI: the styled(${component})(...args) API requires all its args to be defined.`);
+      }
+      return stylesFactory(...styles);
+    };
+  }
+  return stylesFactory;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function internal_mutateStyles(tag, processor) {
+  // Emotion attaches all the styles as `__emotion_styles`.
+  // Ref: https://github.com/emotion-js/emotion/blob/16d971d0da229596d6bcc39d282ba9753c9ee7cf/packages/styled/src/base.js#L186
+  if (Array.isArray(tag.__emotion_styles)) {
+    tag.__emotion_styles = processor(tag.__emotion_styles);
+  }
+}
+
+// Emotion only accepts an array, but we want to avoid allocations
+const wrapper = [];
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function internal_serializeStyles(styles) {
+  wrapper[0] = styles;
+  return serializeStyles(wrapper);
+}
 
 var reactIs = {exports: {}};
 
@@ -8651,16 +9012,16 @@ function createTheme$1(options = {}, ...args) {
   return muiTheme;
 }
 
-function isObjectEmpty(obj) {
+function isObjectEmpty$1(obj) {
   return Object.keys(obj).length === 0;
 }
 function useTheme$2(defaultTheme = null) {
   const contextTheme = React.useContext(ThemeContext);
-  return !contextTheme || isObjectEmpty(contextTheme) ? defaultTheme : contextTheme;
+  return !contextTheme || isObjectEmpty$1(contextTheme) ? defaultTheme : contextTheme;
 }
 
-const systemDefaultTheme = createTheme$1();
-function useTheme$1(defaultTheme = systemDefaultTheme) {
+const systemDefaultTheme$1 = createTheme$1();
+function useTheme$1(defaultTheme = systemDefaultTheme$1) {
   return useTheme$2(defaultTheme);
 }
 
@@ -8681,6 +9042,8 @@ const createClassNameGenerator = () => {
 };
 const ClassNameGenerator = createClassNameGenerator();
 
+function r(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r(e[t]))&&(n&&(n+=" "),n+=f);}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r(e))&&(n&&(n+=" "),n+=t);return n}
+
 const globalStateClasses = {
   active: 'active',
   checked: 'checked',
@@ -8698,6 +9061,413 @@ const globalStateClasses = {
 function generateUtilityClass(componentName, slot, globalStatePrefix = 'Mui') {
   const globalStateClass = globalStateClasses[slot];
   return globalStateClass ? `${globalStatePrefix}-${globalStateClass}` : `${ClassNameGenerator.generate(componentName)}-${slot}`;
+}
+
+function generateUtilityClasses(componentName, slots, globalStatePrefix = 'Mui') {
+  const result = {};
+  slots.forEach(slot => {
+    result[slot] = generateUtilityClass(componentName, slot, globalStatePrefix);
+  });
+  return result;
+}
+
+function getFunctionComponentName(Component, fallback = '') {
+  return Component.displayName || Component.name || fallback;
+}
+function getWrappedName(outerType, innerType, wrapperName) {
+  const functionName = getFunctionComponentName(innerType);
+  return outerType.displayName || (functionName !== '' ? `${wrapperName}(${functionName})` : wrapperName);
+}
+
+/**
+ * cherry-pick from
+ * https://github.com/facebook/react/blob/769b1f270e1251d9dbdce0fcbd9e92e502d059b8/packages/shared/getComponentName.js
+ * originally forked from recompose/getDisplayName
+ */
+function getDisplayName(Component) {
+  if (Component == null) {
+    return undefined;
+  }
+  if (typeof Component === 'string') {
+    return Component;
+  }
+  if (typeof Component === 'function') {
+    return getFunctionComponentName(Component, 'Component');
+  }
+
+  // TypeScript can't have components as objects but they exist in the form of `memo` or `Suspense`
+  if (typeof Component === 'object') {
+    switch (Component.$$typeof) {
+      case reactIsExports.ForwardRef:
+        return getWrappedName(Component, Component.render, 'ForwardRef');
+      case reactIsExports.Memo:
+        return getWrappedName(Component, Component.type, 'memo');
+      default:
+        return undefined;
+    }
+  }
+  return undefined;
+}
+
+function preprocessStyles(input) {
+  const {
+    variants,
+    ...style
+  } = input;
+  const result = {
+    variants,
+    style: internal_serializeStyles(style),
+    isProcessed: true
+  };
+
+  // Not supported on styled-components
+  if (result.style === style) {
+    return result;
+  }
+  if (variants) {
+    variants.forEach(variant => {
+      if (typeof variant.style !== 'function') {
+        variant.style = internal_serializeStyles(variant.style);
+      }
+    });
+  }
+  return result;
+}
+
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable no-labels */
+/* eslint-disable no-lone-blocks */
+
+const systemDefaultTheme = createTheme$1();
+
+// Update /system/styled/#api in case if this changes
+function shouldForwardProp(prop) {
+  return prop !== 'ownerState' && prop !== 'theme' && prop !== 'sx' && prop !== 'as';
+}
+function shallowLayer(serialized, layerName) {
+  if (layerName && serialized && typeof serialized === 'object' && serialized.styles && !serialized.styles.startsWith('@layer') // only add the layer if it is not already there.
+  ) {
+    serialized.styles = `@layer ${layerName}{${String(serialized.styles)}}`;
+  }
+  return serialized;
+}
+function defaultOverridesResolver(slot) {
+  if (!slot) {
+    return null;
+  }
+  return (_props, styles) => styles[slot];
+}
+function attachTheme(props, themeId, defaultTheme) {
+  props.theme = isObjectEmpty(props.theme) ? defaultTheme : props.theme[themeId] || props.theme;
+}
+function processStyle(props, style, layerName) {
+  /*
+   * Style types:
+   *  - null/undefined
+   *  - string
+   *  - CSS style object: { [cssKey]: [cssValue], variants }
+   *  - Processed style object: { style, variants, isProcessed: true }
+   *  - Array of any of the above
+   */
+
+  const resolvedStyle = typeof style === 'function' ? style(props) : style;
+  if (Array.isArray(resolvedStyle)) {
+    return resolvedStyle.flatMap(subStyle => processStyle(props, subStyle, layerName));
+  }
+  if (Array.isArray(resolvedStyle?.variants)) {
+    let rootStyle;
+    if (resolvedStyle.isProcessed) {
+      rootStyle = layerName ? shallowLayer(resolvedStyle.style, layerName) : resolvedStyle.style;
+    } else {
+      const {
+        variants,
+        ...otherStyles
+      } = resolvedStyle;
+      rootStyle = layerName ? shallowLayer(internal_serializeStyles(otherStyles), layerName) : otherStyles;
+    }
+    return processStyleVariants(props, resolvedStyle.variants, [rootStyle], layerName);
+  }
+  if (resolvedStyle?.isProcessed) {
+    return layerName ? shallowLayer(internal_serializeStyles(resolvedStyle.style), layerName) : resolvedStyle.style;
+  }
+  return layerName ? shallowLayer(internal_serializeStyles(resolvedStyle), layerName) : resolvedStyle;
+}
+function processStyleVariants(props, variants, results = [], layerName = undefined) {
+  let mergedState; // We might not need it, initialized lazily
+
+  variantLoop: for (let i = 0; i < variants.length; i += 1) {
+    const variant = variants[i];
+    if (typeof variant.props === 'function') {
+      mergedState ??= {
+        ...props,
+        ...props.ownerState,
+        ownerState: props.ownerState
+      };
+      if (!variant.props(mergedState)) {
+        continue;
+      }
+    } else {
+      for (const key in variant.props) {
+        if (props[key] !== variant.props[key] && props.ownerState?.[key] !== variant.props[key]) {
+          continue variantLoop;
+        }
+      }
+    }
+    if (typeof variant.style === 'function') {
+      mergedState ??= {
+        ...props,
+        ...props.ownerState,
+        ownerState: props.ownerState
+      };
+      results.push(layerName ? shallowLayer(internal_serializeStyles(variant.style(mergedState)), layerName) : variant.style(mergedState));
+    } else {
+      results.push(layerName ? shallowLayer(internal_serializeStyles(variant.style), layerName) : variant.style);
+    }
+  }
+  return results;
+}
+function createStyled(input = {}) {
+  const {
+    themeId,
+    defaultTheme = systemDefaultTheme,
+    rootShouldForwardProp = shouldForwardProp,
+    slotShouldForwardProp = shouldForwardProp
+  } = input;
+  function styleAttachTheme(props) {
+    attachTheme(props, themeId, defaultTheme);
+  }
+  const styled = (tag, inputOptions = {}) => {
+    // If `tag` is already a styled component, filter out the `sx` style function
+    // to prevent unnecessary styles generated by the composite components.
+    internal_mutateStyles(tag, styles => styles.filter(style => style !== styleFunctionSx));
+    const {
+      name: componentName,
+      slot: componentSlot,
+      skipVariantsResolver: inputSkipVariantsResolver,
+      skipSx: inputSkipSx,
+      // TODO v6: remove `lowercaseFirstLetter()` in the next major release
+      // For more details: https://github.com/mui/material-ui/pull/37908
+      overridesResolver = defaultOverridesResolver(lowercaseFirstLetter(componentSlot)),
+      ...options
+    } = inputOptions;
+    const layerName = componentName && componentName.startsWith('Mui') || !!componentSlot ? 'components' : 'custom';
+
+    // if skipVariantsResolver option is defined, take the value, otherwise, true for root and false for other slots.
+    const skipVariantsResolver = inputSkipVariantsResolver !== undefined ? inputSkipVariantsResolver :
+    // TODO v6: remove `Root` in the next major release
+    // For more details: https://github.com/mui/material-ui/pull/37908
+    componentSlot && componentSlot !== 'Root' && componentSlot !== 'root' || false;
+    const skipSx = inputSkipSx || false;
+    let shouldForwardPropOption = shouldForwardProp;
+
+    // TODO v6: remove `Root` in the next major release
+    // For more details: https://github.com/mui/material-ui/pull/37908
+    if (componentSlot === 'Root' || componentSlot === 'root') {
+      shouldForwardPropOption = rootShouldForwardProp;
+    } else if (componentSlot) {
+      // any other slot specified
+      shouldForwardPropOption = slotShouldForwardProp;
+    } else if (isStringTag(tag)) {
+      // for string (html) tag, preserve the behavior in emotion & styled-components.
+      shouldForwardPropOption = undefined;
+    }
+    const defaultStyledResolver = styled$1(tag, {
+      shouldForwardProp: shouldForwardPropOption,
+      label: generateStyledLabel(componentName, componentSlot),
+      ...options
+    });
+    const transformStyle = style => {
+      // - On the server Emotion doesn't use React.forwardRef for creating components, so the created
+      //   component stays as a function. This condition makes sure that we do not interpolate functions
+      //   which are basically components used as a selectors.
+      // - `style` could be a styled component from a babel plugin for component selectors, This condition
+      //   makes sure that we do not interpolate them.
+      if (style.__emotion_real === style) {
+        return style;
+      }
+      if (typeof style === 'function') {
+        return function styleFunctionProcessor(props) {
+          return processStyle(props, style, props.theme.modularCssLayers ? layerName : undefined);
+        };
+      }
+      if (isPlainObject(style)) {
+        const serialized = preprocessStyles(style);
+        return function styleObjectProcessor(props) {
+          if (!serialized.variants) {
+            return props.theme.modularCssLayers ? shallowLayer(serialized.style, layerName) : serialized.style;
+          }
+          return processStyle(props, serialized, props.theme.modularCssLayers ? layerName : undefined);
+        };
+      }
+      return style;
+    };
+    const muiStyledResolver = (...expressionsInput) => {
+      const expressionsHead = [];
+      const expressionsBody = expressionsInput.map(transformStyle);
+      const expressionsTail = [];
+
+      // Preprocess `props` to set the scoped theme value.
+      // This must run before any other expression.
+      expressionsHead.push(styleAttachTheme);
+      if (componentName && overridesResolver) {
+        expressionsTail.push(function styleThemeOverrides(props) {
+          const theme = props.theme;
+          const styleOverrides = theme.components?.[componentName]?.styleOverrides;
+          if (!styleOverrides) {
+            return null;
+          }
+          const resolvedStyleOverrides = {};
+
+          // TODO: v7 remove iteration and use `resolveStyleArg(styleOverrides[slot])` directly
+          // eslint-disable-next-line guard-for-in
+          for (const slotKey in styleOverrides) {
+            resolvedStyleOverrides[slotKey] = processStyle(props, styleOverrides[slotKey], props.theme.modularCssLayers ? 'theme' : undefined);
+          }
+          return overridesResolver(props, resolvedStyleOverrides);
+        });
+      }
+      if (componentName && !skipVariantsResolver) {
+        expressionsTail.push(function styleThemeVariants(props) {
+          const theme = props.theme;
+          const themeVariants = theme?.components?.[componentName]?.variants;
+          if (!themeVariants) {
+            return null;
+          }
+          return processStyleVariants(props, themeVariants, [], props.theme.modularCssLayers ? 'theme' : undefined);
+        });
+      }
+      if (!skipSx) {
+        expressionsTail.push(styleFunctionSx);
+      }
+
+      // This function can be called as a tagged template, so the first argument would contain
+      // CSS `string[]` values.
+      if (Array.isArray(expressionsBody[0])) {
+        const inputStrings = expressionsBody.shift();
+
+        // We need to add placeholders in the tagged template for the custom functions we have
+        // possibly added (attachTheme, overrides, variants, and sx).
+        const placeholdersHead = new Array(expressionsHead.length).fill('');
+        const placeholdersTail = new Array(expressionsTail.length).fill('');
+        let outputStrings;
+        // prettier-ignore
+        {
+          outputStrings = [...placeholdersHead, ...inputStrings, ...placeholdersTail];
+          outputStrings.raw = [...placeholdersHead, ...inputStrings.raw, ...placeholdersTail];
+        }
+
+        // The only case where we put something before `attachTheme`
+        expressionsHead.unshift(outputStrings);
+      }
+      const expressions = [...expressionsHead, ...expressionsBody, ...expressionsTail];
+      const Component = defaultStyledResolver(...expressions);
+      if (tag.muiName) {
+        Component.muiName = tag.muiName;
+      }
+      if (process.env.NODE_ENV !== 'production') {
+        Component.displayName = generateDisplayName(componentName, componentSlot, tag);
+      }
+      return Component;
+    };
+    if (defaultStyledResolver.withConfig) {
+      muiStyledResolver.withConfig = defaultStyledResolver.withConfig;
+    }
+    return muiStyledResolver;
+  };
+  return styled;
+}
+function generateDisplayName(componentName, componentSlot, tag) {
+  if (componentName) {
+    return `${componentName}${capitalize(componentSlot || '')}`;
+  }
+  return `Styled(${getDisplayName(tag)})`;
+}
+function generateStyledLabel(componentName, componentSlot) {
+  let label;
+  if (process.env.NODE_ENV !== 'production') {
+    if (componentName) {
+      // TODO v6: remove `lowercaseFirstLetter()` in the next major release
+      // For more details: https://github.com/mui/material-ui/pull/37908
+      label = `${componentName}-${lowercaseFirstLetter(componentSlot || 'Root')}`;
+    }
+  }
+  return label;
+}
+function isObjectEmpty(object) {
+  // eslint-disable-next-line
+  for (const _ in object) {
+    return false;
+  }
+  return true;
+}
+
+// https://github.com/emotion-js/emotion/blob/26ded6109fcd8ca9875cc2ce4564fee678a3f3c5/packages/styled/src/utils.js#L40
+function isStringTag(tag) {
+  return typeof tag === 'string' &&
+  // 96 is one less than the char code
+  // for "a" so this is checking that
+  // it's a lowercase character
+  tag.charCodeAt(0) > 96;
+}
+function lowercaseFirstLetter(string) {
+  if (!string) {
+    return string;
+  }
+  return string.charAt(0).toLowerCase() + string.slice(1);
+}
+
+/**
+ * Add keys, values of `defaultProps` that does not exist in `props`
+ * @param defaultProps
+ * @param props
+ * @param mergeClassNameAndStyle If `true`, merges `className` and `style` props instead of overriding them.
+ *   When `false` (default), props override defaultProps. When `true`, `className` values are concatenated
+ *   and `style` objects are merged with props taking precedence.
+ * @returns resolved props
+ */
+function resolveProps(defaultProps, props, mergeClassNameAndStyle = false) {
+  const output = {
+    ...props
+  };
+  for (const key in defaultProps) {
+    if (Object.prototype.hasOwnProperty.call(defaultProps, key)) {
+      const propName = key;
+      if (propName === 'components' || propName === 'slots') {
+        output[propName] = {
+          ...defaultProps[propName],
+          ...output[propName]
+        };
+      } else if (propName === 'componentsProps' || propName === 'slotProps') {
+        const defaultSlotProps = defaultProps[propName];
+        const slotProps = props[propName];
+        if (!slotProps) {
+          output[propName] = defaultSlotProps || {};
+        } else if (!defaultSlotProps) {
+          output[propName] = slotProps;
+        } else {
+          output[propName] = {
+            ...slotProps
+          };
+          for (const slotKey in defaultSlotProps) {
+            if (Object.prototype.hasOwnProperty.call(defaultSlotProps, slotKey)) {
+              const slotPropName = slotKey;
+              output[propName][slotPropName] = resolveProps(defaultSlotProps[slotPropName], slotProps[slotPropName], mergeClassNameAndStyle);
+            }
+          }
+        }
+      } else if (propName === 'className' && mergeClassNameAndStyle && props.className) {
+        output.className = clsx(defaultProps?.className, props?.className);
+      } else if (propName === 'style' && mergeClassNameAndStyle && props.style) {
+        output.style = {
+          ...defaultProps?.style,
+          ...props?.style
+        };
+      } else if (output[propName] === undefined) {
+        output[propName] = defaultProps[propName];
+      }
+    }
+  }
+  return output;
 }
 
 function clamp(val, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) {
@@ -9006,6 +9776,82 @@ function private_safeEmphasize(color, coefficient, warning) {
   } catch (error) {
     return color;
   }
+}
+
+const PropsContext = /*#__PURE__*/React.createContext(undefined);
+process.env.NODE_ENV !== "production" ? {
+  // ┌────────────────────────────── Warning ──────────────────────────────┐
+  // │ These PropTypes are generated from the TypeScript type definitions. │
+  // │ To update them, edit the TypeScript types and run `pnpm proptypes`. │
+  // └─────────────────────────────────────────────────────────────────────┘
+  /**
+   * @ignore
+   */
+  children: PropTypes.node,
+  /**
+   * @ignore
+   */
+  value: PropTypes.object
+} : void 0;
+function getThemeProps(params) {
+  const {
+    theme,
+    name,
+    props
+  } = params;
+  if (!theme || !theme.components || !theme.components[name]) {
+    return props;
+  }
+  const config = theme.components[name];
+  if (config.defaultProps) {
+    // compatible with v5 signature
+    return resolveProps(config.defaultProps, props, theme.components.mergeClassNameAndStyle);
+  }
+  if (!config.styleOverrides && !config.variants) {
+    // v6 signature, no property 'defaultProps'
+    return resolveProps(config, props, theme.components.mergeClassNameAndStyle);
+  }
+  return props;
+}
+function useDefaultProps$1({
+  props,
+  name
+}) {
+  const ctx = React.useContext(PropsContext);
+  return getThemeProps({
+    props,
+    name,
+    theme: {
+      components: ctx
+    }
+  });
+}
+
+/* eslint-disable @typescript-eslint/naming-convention */
+
+// We need to pass an argument as `{ theme }` for PigmentCSS, but we don't want to
+// allocate more objects.
+const arg = {
+  theme: undefined
+};
+
+/**
+ * Memoize style function on theme.
+ * Intended to be used in styled() calls that only need access to the theme.
+ */
+function unstable_memoTheme(styleFn) {
+  let lastValue;
+  let lastTheme;
+  return function styleMemoized(props) {
+    let value = lastValue;
+    if (value === undefined || props.theme !== lastTheme) {
+      arg.theme = props.theme;
+      value = preprocessStyles(styleFn(arg));
+      lastValue = value;
+      lastTheme = props.theme;
+    }
+    return value;
+  };
 }
 
 /**
@@ -9348,6 +10194,60 @@ function createGetColorSchemeSelector(selector) {
     }
     return '&';
   };
+}
+
+/* eslint no-restricted-syntax: 0, prefer-template: 0, guard-for-in: 0
+   ---
+   These rules are preventing the performance optimizations below.
+ */
+
+/**
+ * Compose classes from multiple sources.
+ *
+ * @example
+ * ```tsx
+ * const slots = {
+ *  root: ['root', 'primary'],
+ *  label: ['label'],
+ * };
+ *
+ * const getUtilityClass = (slot) => `MuiButton-${slot}`;
+ *
+ * const classes = {
+ *   root: 'my-root-class',
+ * };
+ *
+ * const output = composeClasses(slots, getUtilityClass, classes);
+ * // {
+ * //   root: 'MuiButton-root MuiButton-primary my-root-class',
+ * //   label: 'MuiButton-label',
+ * // }
+ * ```
+ *
+ * @param slots a list of classes for each possible slot
+ * @param getUtilityClass a function to resolve the class based on the slot name
+ * @param classes the input classes from props
+ * @returns the resolved classes for all slots
+ */
+function composeClasses(slots, getUtilityClass, classes = undefined) {
+  const output = {};
+  for (const slotName in slots) {
+    const slot = slots[slotName];
+    let buffer = '';
+    let start = true;
+    for (let i = 0; i < slot.length; i += 1) {
+      const value = slot[i];
+      if (value) {
+        buffer += (start === true ? '' : ' ') + getUtilityClass(value);
+        start = false;
+        if (classes && classes[value]) {
+          buffer += ' ' + classes[value];
+        }
+      }
+    }
+    output[slotName] = buffer;
+  }
+  return output;
 }
 
 const common = {
@@ -10796,6 +11696,19 @@ function useTheme() {
   }
   return theme[THEME_ID] || theme;
 }
+
+// copied from @mui/system/createStyled
+function slotShouldForwardProp(prop) {
+  return prop !== 'ownerState' && prop !== 'theme' && prop !== 'sx' && prop !== 'as';
+}
+
+const rootShouldForwardProp = prop => slotShouldForwardProp(prop) && prop !== 'classes';
+
+const styled = createStyled({
+  themeId: THEME_ID,
+  defaultTheme,
+  rootShouldForwardProp
+});
 
 function ConfirmDialog({
   open,
@@ -12291,6 +13204,160 @@ const AssetInspectorPanel = ({
   ] });
 };
 
+const DEFAULT_FORM_DATA = {
+  name: "",
+  description: "",
+  isPublished: false,
+  isPublic: false
+};
+function ContentEditorDialog({
+  open,
+  onClose,
+  onSave,
+  title,
+  contentTypeName,
+  initialData,
+  isLoading = false,
+  showVisibility = true
+}) {
+  const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    if (open && initialData) {
+      setFormData({
+        name: initialData.name ?? "",
+        description: initialData.description ?? "",
+        isPublished: initialData.isPublished ?? false,
+        isPublic: initialData.isPublic ?? false
+      });
+    } else if (!open) {
+      setFormData(DEFAULT_FORM_DATA);
+      setError(null);
+    }
+  }, [open, initialData]);
+  const handleChange = (field) => (event) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+  const handleSwitchChange = (field) => (event) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: event.target.checked
+    }));
+  };
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) {
+      setError("Name is required");
+      return;
+    }
+    try {
+      setSaving(true);
+      setError(null);
+      await onSave(formData);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const handleClose = () => {
+    if (!saving && !isLoading) {
+      onClose();
+    }
+  };
+  const isDisabled = saving || isLoading;
+  return /* @__PURE__ */ jsxs(
+    Dialog,
+    {
+      open,
+      onClose: handleClose,
+      maxWidth: "sm",
+      fullWidth: true,
+      "aria-labelledby": "content-editor-dialog-title",
+      children: [
+        /* @__PURE__ */ jsx(DialogTitle, { id: "content-editor-dialog-title", children: title }),
+        /* @__PURE__ */ jsx(DialogContent, { children: /* @__PURE__ */ jsxs(Stack, { spacing: 3, sx: { mt: 1 }, children: [
+          /* @__PURE__ */ jsx(
+            TextField,
+            {
+              autoFocus: true,
+              fullWidth: true,
+              label: "Name",
+              value: formData.name,
+              onChange: handleChange("name"),
+              disabled: isDisabled,
+              required: true,
+              error: !!error && !formData.name.trim(),
+              helperText: error && !formData.name.trim() ? error : `Enter the ${contentTypeName.toLowerCase()} name`
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            TextField,
+            {
+              fullWidth: true,
+              label: "Description",
+              value: formData.description,
+              onChange: handleChange("description"),
+              disabled: isDisabled,
+              multiline: true,
+              rows: 4,
+              helperText: `Optional description for the ${contentTypeName.toLowerCase()}`
+            }
+          ),
+          /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", gap: 2, flexWrap: "wrap" }, children: [
+            /* @__PURE__ */ jsx(
+              FormControlLabel,
+              {
+                control: /* @__PURE__ */ jsx(
+                  Switch,
+                  {
+                    checked: formData.isPublished,
+                    onChange: handleSwitchChange("isPublished"),
+                    disabled: isDisabled
+                  }
+                ),
+                label: "Published"
+              }
+            ),
+            showVisibility && /* @__PURE__ */ jsx(
+              FormControlLabel,
+              {
+                control: /* @__PURE__ */ jsx(
+                  Switch,
+                  {
+                    checked: formData.isPublic,
+                    onChange: handleSwitchChange("isPublic"),
+                    disabled: isDisabled
+                  }
+                ),
+                label: "Public"
+              }
+            )
+          ] }),
+          error && formData.name.trim() && /* @__PURE__ */ jsx(Box, { sx: { color: "error.main", fontSize: "0.875rem" }, children: error })
+        ] }) }),
+        /* @__PURE__ */ jsxs(DialogActions, { sx: { px: 3, pb: 2 }, children: [
+          /* @__PURE__ */ jsx(Button, { onClick: handleClose, disabled: isDisabled, children: "Cancel" }),
+          /* @__PURE__ */ jsx(
+            Button,
+            {
+              variant: "contained",
+              onClick: handleSubmit,
+              disabled: isDisabled || !formData.name.trim(),
+              startIcon: saving ? /* @__PURE__ */ jsx(CircularProgress, { size: 16 }) : void 0,
+              children: saving ? "Saving..." : "Save"
+            }
+          )
+        ] })
+      ]
+    }
+  );
+}
+
 function ContentCard({ item, onClick, actions, badges, metadata }) {
   const handleClick = () => {
     onClick(item.id);
@@ -12496,6 +13563,241 @@ function EditableTitle({
   );
 }
 
+const WORLD_DEFAULT_BACKGROUND$1 = "/assets/backgrounds/world.png";
+function WorldCard({ world, mediaBaseUrl, onOpen, onDuplicate, onDelete }) {
+  const handleClone = (event) => {
+    event.stopPropagation();
+    onDuplicate(world.id);
+  };
+  const handleDelete = (event) => {
+    event.stopPropagation();
+    onDelete(world.id);
+  };
+  const badges = /* @__PURE__ */ jsx(Fragment, { children: world.isPublished && /* @__PURE__ */ jsx(PublishedBadge, {}) });
+  const campaignCount = world.campaigns?.length ?? 0;
+  const metadata = /* @__PURE__ */ jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
+    campaignCount,
+    " ",
+    campaignCount === 1 ? "campaign" : "campaigns"
+  ] });
+  const actions = /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", justifyContent: "space-between", width: "100%" }, children: [
+    /* @__PURE__ */ jsx(Button, { id: `btn-clone-world-${world.id}`, size: "small", variant: "outlined", onClick: handleClone, children: "Clone" }),
+    /* @__PURE__ */ jsx(Button, { id: `btn-delete-world-${world.id}`, size: "small", variant: "outlined", color: "error", onClick: handleDelete, children: "Delete" })
+  ] });
+  const backgroundUrl = world.background ? `${mediaBaseUrl}/${world.background.id}` : WORLD_DEFAULT_BACKGROUND$1;
+  return /* @__PURE__ */ jsx(
+    ContentCard,
+    {
+      item: {
+        id: world.id,
+        type: ContentType.World,
+        name: world.name,
+        isPublished: world.isPublished,
+        thumbnailUrl: backgroundUrl
+      },
+      onClick: onOpen,
+      badges,
+      metadata,
+      actions
+    }
+  );
+}
+
+const CAMPAIGN_DEFAULT_BACKGROUND$1 = "/assets/backgrounds/campaign.png";
+function CampaignCard({ campaign, mediaBaseUrl, onOpen, onDuplicate, onDelete }) {
+  const handleClone = (event) => {
+    event.stopPropagation();
+    onDuplicate(campaign.id);
+  };
+  const handleDelete = (event) => {
+    event.stopPropagation();
+    onDelete(campaign.id);
+  };
+  const badges = /* @__PURE__ */ jsx(Fragment, { children: campaign.isPublished && /* @__PURE__ */ jsx(PublishedBadge, {}) });
+  const adventureCount = campaign.adventures?.length ?? 0;
+  const metadata = /* @__PURE__ */ jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
+    adventureCount,
+    " ",
+    adventureCount === 1 ? "adventure" : "adventures"
+  ] });
+  const actions = /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", justifyContent: "space-between", width: "100%" }, children: [
+    /* @__PURE__ */ jsx(Button, { id: `btn-clone-campaign-${campaign.id}`, size: "small", variant: "outlined", onClick: handleClone, children: "Clone" }),
+    /* @__PURE__ */ jsx(
+      Button,
+      {
+        id: `btn-delete-campaign-${campaign.id}`,
+        size: "small",
+        variant: "outlined",
+        color: "error",
+        onClick: handleDelete,
+        children: "Delete"
+      }
+    )
+  ] });
+  const backgroundUrl = campaign.background ? `${mediaBaseUrl}/${campaign.background.id}` : CAMPAIGN_DEFAULT_BACKGROUND$1;
+  return /* @__PURE__ */ jsx(
+    ContentCard,
+    {
+      item: {
+        id: campaign.id,
+        type: ContentType.Campaign,
+        name: campaign.name,
+        isPublished: campaign.isPublished,
+        thumbnailUrl: backgroundUrl
+      },
+      onClick: onOpen,
+      badges,
+      metadata,
+      actions
+    }
+  );
+}
+
+const ADVENTURE_DEFAULT_BACKGROUND$1 = "/assets/backgrounds/adventure.png";
+const getAdventureStyleLabel = (style) => {
+  switch (style) {
+    case AdventureStyle.Generic:
+      return "Generic";
+    case AdventureStyle.OpenWorld:
+      return "Open World";
+    case AdventureStyle.DungeonCrawl:
+      return "Dungeon Crawl";
+    case AdventureStyle.HackNSlash:
+      return "Hack-n-Slash";
+    case AdventureStyle.Survival:
+      return "Survival";
+    case AdventureStyle.GoalDriven:
+      return "Goal Driven";
+    case AdventureStyle.RandomlyGenerated:
+      return "Randomly Generated";
+    default:
+      return "Unknown";
+  }
+};
+const getAdventureStyleColor = (style) => {
+  switch (style) {
+    case AdventureStyle.Generic:
+      return "primary";
+    case AdventureStyle.OpenWorld:
+      return "success";
+    case AdventureStyle.DungeonCrawl:
+      return "warning";
+    case AdventureStyle.HackNSlash:
+      return "secondary";
+    case AdventureStyle.Survival:
+      return "info";
+    case AdventureStyle.GoalDriven:
+      return "primary";
+    case AdventureStyle.RandomlyGenerated:
+      return "info";
+    default:
+      return "primary";
+  }
+};
+function AdventureCard({ adventure, mediaBaseUrl, onOpen, onDuplicate, onDelete }) {
+  const handleClone = (event) => {
+    event.stopPropagation();
+    onDuplicate(adventure.id);
+  };
+  const handleDelete = (event) => {
+    event.stopPropagation();
+    onDelete(adventure.id);
+  };
+  const badges = /* @__PURE__ */ jsxs(Fragment, { children: [
+    adventure.isOneShot && /* @__PURE__ */ jsx(Chip, { label: "One-Shot", size: "small", color: "info", variant: "filled" }),
+    adventure.style != null && /* @__PURE__ */ jsx(
+      Chip,
+      {
+        label: getAdventureStyleLabel(adventure.style),
+        size: "small",
+        color: getAdventureStyleColor(adventure.style),
+        variant: "outlined"
+      }
+    ),
+    adventure.isPublished && /* @__PURE__ */ jsx(PublishedBadge, {})
+  ] });
+  const encounterCount = adventure.encounterCount ?? adventure.encounters?.length ?? 0;
+  const metadata = /* @__PURE__ */ jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
+    encounterCount,
+    " ",
+    encounterCount === 1 ? "encounter" : "encounters"
+  ] });
+  const actions = /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", justifyContent: "space-between", width: "100%" }, children: [
+    /* @__PURE__ */ jsx(Button, { id: `btn-clone-adventure-${adventure.id}`, size: "small", variant: "outlined", onClick: handleClone, children: "Clone" }),
+    /* @__PURE__ */ jsx(
+      Button,
+      {
+        id: `btn-delete-adventure-${adventure.id}`,
+        size: "small",
+        variant: "outlined",
+        color: "error",
+        onClick: handleDelete,
+        children: "Delete"
+      }
+    )
+  ] });
+  const backgroundUrl = adventure.background ? `${mediaBaseUrl}/${adventure.background.id}` : ADVENTURE_DEFAULT_BACKGROUND$1;
+  return /* @__PURE__ */ jsx(
+    ContentCard,
+    {
+      item: {
+        id: adventure.id,
+        type: ContentType.Adventure,
+        name: adventure.name,
+        isPublished: adventure.isPublished,
+        thumbnailUrl: backgroundUrl
+      },
+      onClick: onOpen,
+      badges,
+      metadata,
+      actions
+    }
+  );
+}
+
+const ENCOUNTER_DEFAULT_BACKGROUND = "/assets/backgrounds/tavern.png";
+function EncounterCard({ encounter, mediaBaseUrl, onOpen, onDuplicate, onDelete }) {
+  const handleClone = (event) => {
+    event.stopPropagation();
+    onDuplicate(encounter.id);
+  };
+  const handleDelete = (event) => {
+    event.stopPropagation();
+    onDelete(encounter.id);
+  };
+  const thumbnailUrl = encounter.stage.background ? `${mediaBaseUrl}/${encounter.stage.background.id}` : ENCOUNTER_DEFAULT_BACKGROUND;
+  const badges = encounter.isPublished ? /* @__PURE__ */ jsx(PublishedBadge, {}) : void 0;
+  const actions = /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", justifyContent: "space-between", width: "100%" }, children: [
+    /* @__PURE__ */ jsx(Button, { id: `btn-clone-encounter-${encounter.id}`, size: "small", variant: "outlined", onClick: handleClone, children: "Clone" }),
+    /* @__PURE__ */ jsx(
+      Button,
+      {
+        id: `btn-delete-encounter-${encounter.id}`,
+        size: "small",
+        variant: "outlined",
+        color: "error",
+        onClick: handleDelete,
+        children: "Delete"
+      }
+    )
+  ] });
+  return /* @__PURE__ */ jsx(
+    ContentCard,
+    {
+      item: {
+        id: encounter.id,
+        type: ContentType.Adventure,
+        name: encounter.name,
+        isPublished: encounter.isPublished,
+        thumbnailUrl
+      },
+      onClick: onOpen,
+      badges,
+      actions
+    }
+  );
+}
+
 function useAutoSave({ data, originalData, onSave, delay = 3e3, enabled = true }) {
   const [saveStatus, setSaveStatus] = useState("idle");
   const isMountedRef = useRef(false);
@@ -12568,6 +13870,1670 @@ function useInfiniteScroll({ hasMore, isLoading, onLoadMore, threshold = 500 }) 
   return { sentinelRef };
 }
 
+const memoTheme = unstable_memoTheme;
+
+process.env.NODE_ENV !== "production" ? {
+  // ┌────────────────────────────── Warning ──────────────────────────────┐
+  // │ These PropTypes are generated from the TypeScript type definitions. │
+  // │ To update them, edit the TypeScript types and run `pnpm proptypes`. │
+  // └─────────────────────────────────────────────────────────────────────┘
+  /**
+   * @ignore
+   */
+  children: PropTypes.node,
+  /**
+   * @ignore
+   */
+  value: PropTypes.object.isRequired
+} : void 0;
+function useDefaultProps(params) {
+  return useDefaultProps$1(params);
+}
+
+function getSvgIconUtilityClass(slot) {
+  return generateUtilityClass('MuiSvgIcon', slot);
+}
+generateUtilityClasses('MuiSvgIcon', ['root', 'colorPrimary', 'colorSecondary', 'colorAction', 'colorError', 'colorDisabled', 'fontSizeInherit', 'fontSizeSmall', 'fontSizeMedium', 'fontSizeLarge']);
+
+const useUtilityClasses = ownerState => {
+  const {
+    color,
+    fontSize,
+    classes
+  } = ownerState;
+  const slots = {
+    root: ['root', color !== 'inherit' && `color${capitalize(color)}`, `fontSize${capitalize(fontSize)}`]
+  };
+  return composeClasses(slots, getSvgIconUtilityClass, classes);
+};
+const SvgIconRoot = styled('svg', {
+  name: 'MuiSvgIcon',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const {
+      ownerState
+    } = props;
+    return [styles.root, ownerState.color !== 'inherit' && styles[`color${capitalize(ownerState.color)}`], styles[`fontSize${capitalize(ownerState.fontSize)}`]];
+  }
+})(memoTheme(({
+  theme
+}) => ({
+  userSelect: 'none',
+  width: '1em',
+  height: '1em',
+  display: 'inline-block',
+  flexShrink: 0,
+  transition: theme.transitions?.create?.('fill', {
+    duration: (theme.vars ?? theme).transitions?.duration?.shorter
+  }),
+  variants: [{
+    props: props => !props.hasSvgAsChild,
+    style: {
+      // the <svg> will define the property that has `currentColor`
+      // for example heroicons uses fill="none" and stroke="currentColor"
+      fill: 'currentColor'
+    }
+  }, {
+    props: {
+      fontSize: 'inherit'
+    },
+    style: {
+      fontSize: 'inherit'
+    }
+  }, {
+    props: {
+      fontSize: 'small'
+    },
+    style: {
+      fontSize: theme.typography?.pxToRem?.(20) || '1.25rem'
+    }
+  }, {
+    props: {
+      fontSize: 'medium'
+    },
+    style: {
+      fontSize: theme.typography?.pxToRem?.(24) || '1.5rem'
+    }
+  }, {
+    props: {
+      fontSize: 'large'
+    },
+    style: {
+      fontSize: theme.typography?.pxToRem?.(35) || '2.1875rem'
+    }
+  },
+  // TODO v5 deprecate color prop, v6 remove for sx
+  ...Object.entries((theme.vars ?? theme).palette).filter(([, value]) => value && value.main).map(([color]) => ({
+    props: {
+      color
+    },
+    style: {
+      color: (theme.vars ?? theme).palette?.[color]?.main
+    }
+  })), {
+    props: {
+      color: 'action'
+    },
+    style: {
+      color: (theme.vars ?? theme).palette?.action?.active
+    }
+  }, {
+    props: {
+      color: 'disabled'
+    },
+    style: {
+      color: (theme.vars ?? theme).palette?.action?.disabled
+    }
+  }, {
+    props: {
+      color: 'inherit'
+    },
+    style: {
+      color: undefined
+    }
+  }]
+})));
+const SvgIcon = /*#__PURE__*/React.forwardRef(function SvgIcon(inProps, ref) {
+  const props = useDefaultProps({
+    props: inProps,
+    name: 'MuiSvgIcon'
+  });
+  const {
+    children,
+    className,
+    color = 'inherit',
+    component = 'svg',
+    fontSize = 'medium',
+    htmlColor,
+    inheritViewBox = false,
+    titleAccess,
+    viewBox = '0 0 24 24',
+    ...other
+  } = props;
+  const hasSvgAsChild = /*#__PURE__*/React.isValidElement(children) && children.type === 'svg';
+  const ownerState = {
+    ...props,
+    color,
+    component,
+    fontSize,
+    instanceFontSize: inProps.fontSize,
+    inheritViewBox,
+    viewBox,
+    hasSvgAsChild
+  };
+  const more = {};
+  if (!inheritViewBox) {
+    more.viewBox = viewBox;
+  }
+  const classes = useUtilityClasses(ownerState);
+  return /*#__PURE__*/jsxs(SvgIconRoot, {
+    as: component,
+    className: clsx(classes.root, className),
+    focusable: "false",
+    color: htmlColor,
+    "aria-hidden": titleAccess ? undefined : true,
+    role: titleAccess ? 'img' : undefined,
+    ref: ref,
+    ...more,
+    ...other,
+    ...(hasSvgAsChild && children.props),
+    ownerState: ownerState,
+    children: [hasSvgAsChild ? children.props.children : children, titleAccess ? /*#__PURE__*/jsx("title", {
+      children: titleAccess
+    }) : null]
+  });
+});
+process.env.NODE_ENV !== "production" ? SvgIcon.propTypes /* remove-proptypes */ = {
+  // ┌────────────────────────────── Warning ──────────────────────────────┐
+  // │ These PropTypes are generated from the TypeScript type definitions. │
+  // │    To update them, edit the d.ts file and run `pnpm proptypes`.     │
+  // └─────────────────────────────────────────────────────────────────────┘
+  /**
+   * Node passed into the SVG element.
+   */
+  children: PropTypes.node,
+  /**
+   * Override or extend the styles applied to the component.
+   */
+  classes: PropTypes.object,
+  /**
+   * @ignore
+   */
+  className: PropTypes.string,
+  /**
+   * The color of the component.
+   * It supports both default and custom theme colors, which can be added as shown in the
+   * [palette customization guide](https://mui.com/material-ui/customization/palette/#custom-colors).
+   * You can use the `htmlColor` prop to apply a color attribute to the SVG element.
+   * @default 'inherit'
+   */
+  color: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([PropTypes.oneOf(['inherit', 'action', 'disabled', 'primary', 'secondary', 'error', 'info', 'success', 'warning']), PropTypes.string]),
+  /**
+   * The component used for the root node.
+   * Either a string to use a HTML element or a component.
+   */
+  component: PropTypes.elementType,
+  /**
+   * The fontSize applied to the icon. Defaults to 24px, but can be configure to inherit font size.
+   * @default 'medium'
+   */
+  fontSize: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([PropTypes.oneOf(['inherit', 'large', 'medium', 'small']), PropTypes.string]),
+  /**
+   * Applies a color attribute to the SVG element.
+   */
+  htmlColor: PropTypes.string,
+  /**
+   * If `true`, the root node will inherit the custom `component`'s viewBox and the `viewBox`
+   * prop will be ignored.
+   * Useful when you want to reference a custom `component` and have `SvgIcon` pass that
+   * `component`'s viewBox to the root node.
+   * @default false
+   */
+  inheritViewBox: PropTypes.bool,
+  /**
+   * The shape-rendering attribute. The behavior of the different options is described on the
+   * [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/shape-rendering).
+   * If you are having issues with blurry icons you should investigate this prop.
+   */
+  shapeRendering: PropTypes.string,
+  /**
+   * The system prop that allows defining system overrides as well as additional CSS styles.
+   */
+  sx: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object, PropTypes.bool])), PropTypes.func, PropTypes.object]),
+  /**
+   * Provides a human-readable title for the element that contains it.
+   * https://www.w3.org/TR/SVG-access/#Equivalent
+   */
+  titleAccess: PropTypes.string,
+  /**
+   * Allows you to redefine what the coordinates without units mean inside an SVG element.
+   * For example, if the SVG element is 500 (width) by 200 (height),
+   * and you pass viewBox="0 0 50 20",
+   * this means that the coordinates inside the SVG will go from the top left corner (0,0)
+   * to bottom right (50,20) and each unit will be worth 10px.
+   * @default '0 0 24 24'
+   */
+  viewBox: PropTypes.string
+} : void 0;
+SvgIcon.muiName = 'SvgIcon';
+
+function createSvgIcon(path, displayName) {
+  function Component(props, ref) {
+    return /*#__PURE__*/jsx(SvgIcon, {
+      "data-testid": process.env.NODE_ENV !== 'production' ? `${displayName}Icon` : undefined,
+      ref: ref,
+      ...props,
+      children: path
+    });
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    // Need to set `displayName` on the inner component for React.memo.
+    // React prior to 16.14 ignores `displayName` on the wrapper.
+    Component.displayName = `${displayName}Icon`;
+  }
+  Component.muiName = SvgIcon.muiName;
+  return /*#__PURE__*/React.memo(/*#__PURE__*/React.forwardRef(Component));
+}
+
+const AddIcon = createSvgIcon(/*#__PURE__*/jsx("path", {
+  d: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+}), 'Add');
+
+const ArrowBackIcon = createSvgIcon(/*#__PURE__*/jsx("path", {
+  d: "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"
+}), 'ArrowBack');
+
+const CheckCircleIcon = createSvgIcon(/*#__PURE__*/jsx("path", {
+  d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"
+}), 'CheckCircle');
+
+const PhotoCameraIcon = createSvgIcon([/*#__PURE__*/jsx("circle", {
+  cx: "12",
+  cy: "12",
+  r: "3.2"
+}, "0"), /*#__PURE__*/jsx("path", {
+  d: "M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5"
+}, "1")], 'PhotoCamera');
+
+const WORLD_DEFAULT_BACKGROUND = "/assets/backgrounds/world.png";
+function WorldDetailPage({
+  worldId,
+  world,
+  campaigns,
+  isLoadingWorld,
+  isLoadingCampaigns,
+  worldError,
+  isUploading,
+  isDeleting,
+  mediaBaseUrl,
+  onBack,
+  onUpdateWorld,
+  onUploadFile,
+  onCreateCampaign,
+  onCloneCampaign,
+  onRemoveCampaign,
+  onOpenCampaign
+}) {
+  const theme = useTheme$3();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState(null);
+  useEffect(() => {
+    if (world && !isInitialized) {
+      queueMicrotask(() => {
+        setName(world.name);
+        setDescription(world.description);
+        setIsPublished(world.isPublished);
+        setIsInitialized(true);
+      });
+    }
+  }, [world, isInitialized]);
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const hasUnsavedChanges = useCallback(() => {
+    if (!world || !isInitialized) return false;
+    return name !== world.name || description !== world.description || isPublished !== world.isPublished;
+  }, [world, isInitialized, name, description, isPublished]);
+  const saveChanges = useCallback(
+    async (overrides) => {
+      if (!worldId || !world || !isInitialized) {
+        return;
+      }
+      const currentData = {
+        name,
+        description,
+        isPublished,
+        ...overrides
+      };
+      const hasChanges = currentData.name !== world.name || currentData.description !== world.description || currentData.isPublished !== world.isPublished;
+      if (!hasChanges) {
+        return;
+      }
+      setSaveStatus("saving");
+      try {
+        await onUpdateWorld(currentData);
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2e3);
+      } catch (error) {
+        console.error("Failed to save world changes:", error);
+        setSaveStatus("error");
+      }
+    },
+    [worldId, world, isInitialized, name, description, isPublished, onUpdateWorld]
+  );
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges()) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && hasUnsavedChanges()) {
+        saveChanges();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [hasUnsavedChanges, saveChanges]);
+  const handleBackgroundUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !worldId) return;
+    try {
+      setSaveStatus("saving");
+      const result = await onUploadFile(file, "world", "background", worldId);
+      await onUpdateWorld({ backgroundId: result.id });
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2e3);
+    } catch (error) {
+      console.error("Failed to upload world background:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleAddCampaign = async () => {
+    if (worldId) {
+      try {
+        const campaign = await onCreateCampaign({
+          name: "New Campaign",
+          description: ""
+        });
+        onOpenCampaign(campaign.id);
+      } catch (error) {
+        console.error("Failed to create campaign:", error);
+        setSaveStatus("error");
+      }
+    }
+  };
+  const handleDuplicateCampaign = async (campaignId) => {
+    if (!worldId) return;
+    try {
+      await onCloneCampaign(campaignId);
+    } catch (error) {
+      console.error("Failed to duplicate campaign:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleDeleteCampaign = (campaignId) => {
+    const campaign = campaigns.find((c) => c.id === campaignId);
+    if (!campaign) return;
+    setCampaignToDelete({ id: campaignId, name: campaign.name });
+    setDeleteDialogOpen(true);
+  };
+  const handleConfirmDelete = async () => {
+    if (!campaignToDelete || !worldId) return;
+    try {
+      await onRemoveCampaign(campaignToDelete.id);
+      setDeleteDialogOpen(false);
+      setCampaignToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete campaign:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setCampaignToDelete(null);
+  };
+  if (isLoadingWorld) {
+    return /* @__PURE__ */ jsx(
+      Box,
+      {
+        sx: {
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%"
+        },
+        children: /* @__PURE__ */ jsx(CircularProgress, {})
+      }
+    );
+  }
+  if (worldError || !world) {
+    return /* @__PURE__ */ jsxs(Box, { sx: { p: 3 }, children: [
+      /* @__PURE__ */ jsx(Alert, { severity: "error", children: "Failed to load world. Please try again." }),
+      /* @__PURE__ */ jsx(Button, { startIcon: /* @__PURE__ */ jsx(ArrowBackIcon, {}), onClick: onBack, sx: { mt: 2 }, children: "Back to Library" })
+    ] });
+  }
+  const getSaveIndicator = (status) => {
+    switch (status) {
+      case "saving":
+        return /* @__PURE__ */ jsxs(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "text.secondary"
+            },
+            children: [
+              /* @__PURE__ */ jsx(CircularProgress, { size: 16 }),
+              /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Saving..." })
+            ]
+          }
+        );
+      case "saved":
+        return /* @__PURE__ */ jsxs(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "success.main"
+            },
+            children: [
+              /* @__PURE__ */ jsx(CheckCircleIcon, { fontSize: "small" }),
+              /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Saved" })
+            ]
+          }
+        );
+      case "error":
+        return /* @__PURE__ */ jsx(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "error.main"
+            },
+            children: /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Save failed" })
+          }
+        );
+      default:
+        return null;
+    }
+  };
+  const backgroundUrl = world.background ? `${mediaBaseUrl}/${world.background.id}` : WORLD_DEFAULT_BACKGROUND;
+  return /* @__PURE__ */ jsxs(
+    Box,
+    {
+      id: "world-detail-container",
+      sx: {
+        minHeight: "100vh",
+        backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "scroll",
+        bgcolor: "background.default",
+        position: "relative",
+        "&::before": backgroundUrl ? {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background: theme.palette.mode === "dark" ? "linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 40%)" : "linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, transparent 40%)",
+          pointerEvents: "none",
+          zIndex: 0
+        } : {}
+      },
+      children: [
+        /* @__PURE__ */ jsx(Box, { sx: { p: 3 }, children: /* @__PURE__ */ jsxs(
+          Paper,
+          {
+            elevation: 3,
+            sx: {
+              p: 3,
+              backgroundColor: alpha$1(theme.palette.background.paper, 0.85),
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: `1px solid ${alpha$1(theme.palette.divider, 0.2)}`
+            },
+            children: [
+              /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 2, mb: 3 }, children: [
+                /* @__PURE__ */ jsx(IconButton, { id: "btn-back-to-library", onClick: onBack, "aria-label": "Back to library", children: /* @__PURE__ */ jsx(ArrowBackIcon, {}) }),
+                /* @__PURE__ */ jsx(Box, { sx: { flex: 1 }, children: /* @__PURE__ */ jsx(
+                  TextField,
+                  {
+                    id: "input-world-name",
+                    value: name,
+                    onChange: (e) => setName(e.target.value),
+                    onBlur: () => saveChanges(),
+                    variant: "standard",
+                    fullWidth: true,
+                    placeholder: "World Name",
+                    inputProps: {
+                      style: { fontSize: "2rem", fontWeight: 500 }
+                    }
+                  }
+                ) }),
+                getSaveIndicator(saveStatus)
+              ] }),
+              /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", gap: 3 }, children: [
+                /* @__PURE__ */ jsx(Box, { sx: { flexShrink: 0 }, children: backgroundUrl ? /* @__PURE__ */ jsx(
+                  Box,
+                  {
+                    sx: {
+                      width: 384,
+                      height: 216,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      position: "relative",
+                      border: `1px solid ${theme.palette.divider}`,
+                      backgroundImage: `url(${backgroundUrl})`,
+                      backgroundSize: "contain",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      bgcolor: "background.default"
+                    },
+                    children: /* @__PURE__ */ jsxs(
+                      IconButton,
+                      {
+                        component: "label",
+                        disabled: isUploading,
+                        sx: {
+                          position: "absolute",
+                          bottom: 8,
+                          right: 8,
+                          bgcolor: "rgba(0, 0, 0, 0.6)",
+                          color: "white",
+                          "&:hover": { bgcolor: "rgba(0, 0, 0, 0.8)" },
+                          "&:disabled": { bgcolor: "rgba(0, 0, 0, 0.3)" }
+                        },
+                        "aria-label": "Change background image",
+                        children: [
+                          /* @__PURE__ */ jsx(PhotoCameraIcon, { fontSize: "small" }),
+                          /* @__PURE__ */ jsx("input", { type: "file", hidden: true, accept: "image/*", onChange: handleBackgroundUpload })
+                        ]
+                      }
+                    )
+                  }
+                ) : /* @__PURE__ */ jsx(
+                  Box,
+                  {
+                    sx: {
+                      width: 216,
+                      height: 216,
+                      borderRadius: 2,
+                      border: `2px dashed ${theme.palette.divider}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: "action.hover",
+                      flexShrink: 0
+                    },
+                    children: /* @__PURE__ */ jsxs(Button, { component: "label", variant: "outlined", startIcon: /* @__PURE__ */ jsx(PhotoCameraIcon, {}), disabled: isUploading, children: [
+                      "Upload",
+                      /* @__PURE__ */ jsx("input", { type: "file", hidden: true, accept: "image/*", onChange: handleBackgroundUpload })
+                    ] })
+                  }
+                ) }),
+                /* @__PURE__ */ jsxs(Box, { sx: { flex: 1, display: "flex", flexDirection: "column", gap: 2 }, children: [
+                  /* @__PURE__ */ jsx(Box, { sx: { display: "flex", gap: 2, alignItems: "center" }, children: /* @__PURE__ */ jsx(
+                    FormControlLabel,
+                    {
+                      control: /* @__PURE__ */ jsx(
+                        Switch,
+                        {
+                          checked: isPublished,
+                          onChange: (e) => {
+                            const newValue = e.target.checked;
+                            setIsPublished(newValue);
+                            saveChanges({ isPublished: newValue });
+                          },
+                          size: "small"
+                        }
+                      ),
+                      label: "Published"
+                    }
+                  ) }),
+                  /* @__PURE__ */ jsx(
+                    TextField,
+                    {
+                      id: "input-world-description",
+                      value: description,
+                      onChange: (e) => setDescription(e.target.value),
+                      onBlur: () => saveChanges(),
+                      multiline: true,
+                      rows: 5,
+                      fullWidth: true,
+                      placeholder: "World description...",
+                      variant: "outlined"
+                    }
+                  )
+                ] })
+              ] })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsx(Box, { sx: { px: 3, pb: 3 }, children: /* @__PURE__ */ jsxs(
+          Paper,
+          {
+            elevation: 2,
+            sx: {
+              p: 3,
+              backgroundColor: alpha$1(theme.palette.background.paper, 0.75),
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)"
+            },
+            children: [
+              /* @__PURE__ */ jsxs(
+                Box,
+                {
+                  sx: {
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxs(Typography, { variant: "h5", component: "h2", children: [
+                      "Campaigns (",
+                      campaigns.length,
+                      ")"
+                    ] }),
+                    /* @__PURE__ */ jsx(Button, { id: "btn-add-campaign", variant: "contained", startIcon: /* @__PURE__ */ jsx(AddIcon, {}), onClick: handleAddCampaign, children: "Add Campaign" })
+                  ]
+                }
+              ),
+              isLoadingCampaigns && /* @__PURE__ */ jsx(Box, { sx: { display: "flex", justifyContent: "center", py: 8 }, children: /* @__PURE__ */ jsx(CircularProgress, {}) }),
+              !isLoadingCampaigns && campaigns.length === 0 && /* @__PURE__ */ jsxs(Box, { sx: { textAlign: "center", py: 8 }, children: [
+                /* @__PURE__ */ jsx(Typography, { variant: "h6", gutterBottom: true, children: "No campaigns yet" }),
+                /* @__PURE__ */ jsx(Typography, { variant: "body2", color: "text.secondary", paragraph: true, children: "Add your first campaign to this world" }),
+                /* @__PURE__ */ jsx(Button, { variant: "contained", startIcon: /* @__PURE__ */ jsx(AddIcon, {}), onClick: handleAddCampaign, children: "Add Campaign" })
+              ] }),
+              !isLoadingCampaigns && campaigns.length > 0 && /* @__PURE__ */ jsx(Grid, { container: true, spacing: 3, children: campaigns.map((campaign) => /* @__PURE__ */ jsx(Grid, { size: { xs: 12, sm: 6, md: 4, lg: 3 }, children: /* @__PURE__ */ jsx(
+                CampaignCard,
+                {
+                  campaign,
+                  mediaBaseUrl,
+                  onOpen: onOpenCampaign,
+                  onDuplicate: handleDuplicateCampaign,
+                  onDelete: handleDeleteCampaign
+                }
+              ) }, campaign.id)) })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsx(
+          ConfirmDialog,
+          {
+            open: deleteDialogOpen,
+            onClose: handleCancelDelete,
+            onConfirm: handleConfirmDelete,
+            title: "Delete Campaign",
+            message: `Are you sure you want to delete "${campaignToDelete?.name}"? This action cannot be undone.`,
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            severity: "error",
+            isLoading: isDeleting
+          }
+        )
+      ]
+    }
+  );
+}
+
+const CAMPAIGN_DEFAULT_BACKGROUND = "/assets/backgrounds/campaign.png";
+function CampaignDetailPage({
+  campaignId,
+  campaign,
+  adventures,
+  isLoadingCampaign,
+  isLoadingAdventures,
+  campaignError,
+  isUploading,
+  isDeleting,
+  mediaBaseUrl,
+  onBack,
+  onUpdateCampaign,
+  onUploadFile,
+  onCreateAdventure,
+  onCloneAdventure,
+  onRemoveAdventure,
+  onOpenAdventure
+}) {
+  const theme = useTheme$3();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [adventureToDelete, setAdventureToDelete] = useState(null);
+  useEffect(() => {
+    if (campaign && !isInitialized) {
+      queueMicrotask(() => {
+        setName(campaign.name);
+        setDescription(campaign.description);
+        setIsPublished(campaign.isPublished);
+        setIsInitialized(true);
+      });
+    }
+  }, [campaign, isInitialized]);
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const hasUnsavedChanges = useCallback(() => {
+    if (!campaign || !isInitialized) return false;
+    return name !== campaign.name || description !== campaign.description || isPublished !== campaign.isPublished;
+  }, [campaign, isInitialized, name, description, isPublished]);
+  const saveChanges = useCallback(
+    async (overrides) => {
+      if (!campaignId || !campaign || !isInitialized) {
+        return;
+      }
+      const currentData = {
+        name,
+        description,
+        isPublished,
+        ...overrides
+      };
+      const hasChanges = currentData.name !== campaign.name || currentData.description !== campaign.description || currentData.isPublished !== campaign.isPublished;
+      if (!hasChanges) {
+        return;
+      }
+      setSaveStatus("saving");
+      try {
+        await onUpdateCampaign(currentData);
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2e3);
+      } catch (error) {
+        console.error("Failed to save campaign changes:", error);
+        setSaveStatus("error");
+      }
+    },
+    [campaignId, campaign, isInitialized, name, description, isPublished, onUpdateCampaign]
+  );
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges()) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && hasUnsavedChanges()) {
+        saveChanges();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [hasUnsavedChanges, saveChanges]);
+  const handleBackgroundUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !campaignId) return;
+    try {
+      setSaveStatus("saving");
+      const result = await onUploadFile(file, "campaign", "background", campaignId);
+      await onUpdateCampaign({ backgroundId: result.id });
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2e3);
+    } catch (error) {
+      console.error("Failed to upload campaign background:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleAddAdventure = async () => {
+    if (campaignId) {
+      try {
+        const adventure = await onCreateAdventure({
+          name: "New Adventure",
+          description: "",
+          style: 0
+        });
+        onOpenAdventure(adventure.id);
+      } catch (error) {
+        console.error("Failed to create adventure:", error);
+        setSaveStatus("error");
+      }
+    }
+  };
+  const handleDuplicateAdventure = async (adventureId) => {
+    if (!campaignId) return;
+    try {
+      await onCloneAdventure(adventureId);
+    } catch (error) {
+      console.error("Failed to duplicate adventure:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleDeleteAdventure = (adventureId) => {
+    const adventure = adventures.find((a) => a.id === adventureId);
+    if (!adventure) return;
+    setAdventureToDelete({ id: adventureId, name: adventure.name });
+    setDeleteDialogOpen(true);
+  };
+  const handleConfirmDelete = async () => {
+    if (!adventureToDelete || !campaignId) return;
+    try {
+      await onRemoveAdventure(adventureToDelete.id);
+      setDeleteDialogOpen(false);
+      setAdventureToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete adventure:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setAdventureToDelete(null);
+  };
+  if (isLoadingCampaign) {
+    return /* @__PURE__ */ jsx(
+      Box,
+      {
+        sx: {
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%"
+        },
+        children: /* @__PURE__ */ jsx(CircularProgress, {})
+      }
+    );
+  }
+  if (campaignError || !campaign) {
+    return /* @__PURE__ */ jsxs(Box, { sx: { p: 3 }, children: [
+      /* @__PURE__ */ jsx(Alert, { severity: "error", children: "Failed to load campaign. Please try again." }),
+      /* @__PURE__ */ jsx(Button, { startIcon: /* @__PURE__ */ jsx(ArrowBackIcon, {}), onClick: onBack, sx: { mt: 2 }, children: "Back to Library" })
+    ] });
+  }
+  const getSaveIndicator = (status) => {
+    switch (status) {
+      case "saving":
+        return /* @__PURE__ */ jsxs(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "text.secondary"
+            },
+            children: [
+              /* @__PURE__ */ jsx(CircularProgress, { size: 16 }),
+              /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Saving..." })
+            ]
+          }
+        );
+      case "saved":
+        return /* @__PURE__ */ jsxs(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "success.main"
+            },
+            children: [
+              /* @__PURE__ */ jsx(CheckCircleIcon, { fontSize: "small" }),
+              /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Saved" })
+            ]
+          }
+        );
+      case "error":
+        return /* @__PURE__ */ jsx(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "error.main"
+            },
+            children: /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Save failed" })
+          }
+        );
+      default:
+        return null;
+    }
+  };
+  const backgroundUrl = campaign.background ? `${mediaBaseUrl}/${campaign.background.id}` : CAMPAIGN_DEFAULT_BACKGROUND;
+  return /* @__PURE__ */ jsxs(
+    Box,
+    {
+      id: "campaign-detail-container",
+      sx: {
+        minHeight: "100vh",
+        backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "scroll",
+        bgcolor: "background.default",
+        position: "relative",
+        "&::before": backgroundUrl ? {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background: theme.palette.mode === "dark" ? "linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 40%)" : "linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, transparent 40%)",
+          pointerEvents: "none",
+          zIndex: 0
+        } : {}
+      },
+      children: [
+        /* @__PURE__ */ jsx(Box, { sx: { p: 3 }, children: /* @__PURE__ */ jsxs(
+          Paper,
+          {
+            elevation: 3,
+            sx: {
+              p: 3,
+              backgroundColor: alpha$1(theme.palette.background.paper, 0.85),
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: `1px solid ${alpha$1(theme.palette.divider, 0.2)}`
+            },
+            children: [
+              /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 2, mb: 3 }, children: [
+                /* @__PURE__ */ jsx(IconButton, { id: "btn-back-to-library", onClick: onBack, "aria-label": "Back to library", children: /* @__PURE__ */ jsx(ArrowBackIcon, {}) }),
+                /* @__PURE__ */ jsx(Box, { sx: { flex: 1 }, children: /* @__PURE__ */ jsx(
+                  TextField,
+                  {
+                    id: "input-campaign-name",
+                    value: name,
+                    onChange: (e) => setName(e.target.value),
+                    onBlur: () => saveChanges(),
+                    variant: "standard",
+                    fullWidth: true,
+                    placeholder: "Campaign Name",
+                    inputProps: {
+                      style: { fontSize: "2rem", fontWeight: 500 }
+                    }
+                  }
+                ) }),
+                getSaveIndicator(saveStatus)
+              ] }),
+              /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", gap: 3 }, children: [
+                /* @__PURE__ */ jsx(Box, { sx: { flexShrink: 0 }, children: backgroundUrl ? /* @__PURE__ */ jsx(
+                  Box,
+                  {
+                    sx: {
+                      width: 384,
+                      height: 216,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      position: "relative",
+                      border: `1px solid ${theme.palette.divider}`,
+                      backgroundImage: `url(${backgroundUrl})`,
+                      backgroundSize: "contain",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      bgcolor: "background.default"
+                    },
+                    children: /* @__PURE__ */ jsxs(
+                      IconButton,
+                      {
+                        component: "label",
+                        disabled: isUploading,
+                        sx: {
+                          position: "absolute",
+                          bottom: 8,
+                          right: 8,
+                          bgcolor: "rgba(0, 0, 0, 0.6)",
+                          color: "white",
+                          "&:hover": { bgcolor: "rgba(0, 0, 0, 0.8)" },
+                          "&:disabled": { bgcolor: "rgba(0, 0, 0, 0.3)" }
+                        },
+                        "aria-label": "Change background image",
+                        children: [
+                          /* @__PURE__ */ jsx(PhotoCameraIcon, { fontSize: "small" }),
+                          /* @__PURE__ */ jsx("input", { type: "file", hidden: true, accept: "image/*", onChange: handleBackgroundUpload })
+                        ]
+                      }
+                    )
+                  }
+                ) : /* @__PURE__ */ jsx(
+                  Box,
+                  {
+                    sx: {
+                      width: 216,
+                      height: 216,
+                      borderRadius: 2,
+                      border: `2px dashed ${theme.palette.divider}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: "action.hover",
+                      flexShrink: 0
+                    },
+                    children: /* @__PURE__ */ jsxs(Button, { component: "label", variant: "outlined", startIcon: /* @__PURE__ */ jsx(PhotoCameraIcon, {}), disabled: isUploading, children: [
+                      "Upload",
+                      /* @__PURE__ */ jsx("input", { type: "file", hidden: true, accept: "image/*", onChange: handleBackgroundUpload })
+                    ] })
+                  }
+                ) }),
+                /* @__PURE__ */ jsxs(Box, { sx: { flex: 1, display: "flex", flexDirection: "column", gap: 2 }, children: [
+                  /* @__PURE__ */ jsx(Box, { sx: { display: "flex", gap: 2, alignItems: "center" }, children: /* @__PURE__ */ jsx(
+                    FormControlLabel,
+                    {
+                      control: /* @__PURE__ */ jsx(
+                        Switch,
+                        {
+                          checked: isPublished,
+                          onChange: (e) => {
+                            const newValue = e.target.checked;
+                            setIsPublished(newValue);
+                            saveChanges({ isPublished: newValue });
+                          },
+                          size: "small"
+                        }
+                      ),
+                      label: "Published"
+                    }
+                  ) }),
+                  /* @__PURE__ */ jsx(
+                    TextField,
+                    {
+                      id: "input-campaign-description",
+                      value: description,
+                      onChange: (e) => setDescription(e.target.value),
+                      onBlur: () => saveChanges(),
+                      multiline: true,
+                      rows: 5,
+                      fullWidth: true,
+                      placeholder: "Campaign description...",
+                      variant: "outlined"
+                    }
+                  )
+                ] })
+              ] })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsx(Box, { sx: { px: 3, pb: 3 }, children: /* @__PURE__ */ jsxs(
+          Paper,
+          {
+            elevation: 2,
+            sx: {
+              p: 3,
+              backgroundColor: alpha$1(theme.palette.background.paper, 0.75),
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)"
+            },
+            children: [
+              /* @__PURE__ */ jsxs(
+                Box,
+                {
+                  sx: {
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxs(Typography, { variant: "h5", component: "h2", children: [
+                      "Adventures (",
+                      adventures.length,
+                      ")"
+                    ] }),
+                    /* @__PURE__ */ jsx(Button, { id: "btn-add-adventure", variant: "contained", startIcon: /* @__PURE__ */ jsx(AddIcon, {}), onClick: handleAddAdventure, children: "Add Adventure" })
+                  ]
+                }
+              ),
+              isLoadingAdventures && /* @__PURE__ */ jsx(Box, { sx: { display: "flex", justifyContent: "center", py: 8 }, children: /* @__PURE__ */ jsx(CircularProgress, {}) }),
+              !isLoadingAdventures && adventures.length === 0 && /* @__PURE__ */ jsxs(Box, { sx: { textAlign: "center", py: 8 }, children: [
+                /* @__PURE__ */ jsx(Typography, { variant: "h6", gutterBottom: true, children: "No adventures yet" }),
+                /* @__PURE__ */ jsx(Typography, { variant: "body2", color: "text.secondary", paragraph: true, children: "Add your first adventure to this campaign" }),
+                /* @__PURE__ */ jsx(Button, { variant: "contained", startIcon: /* @__PURE__ */ jsx(AddIcon, {}), onClick: handleAddAdventure, children: "Add Adventure" })
+              ] }),
+              !isLoadingAdventures && adventures.length > 0 && /* @__PURE__ */ jsx(Grid, { container: true, spacing: 3, children: adventures.map((adventure) => /* @__PURE__ */ jsx(Grid, { size: { xs: 12, sm: 6, md: 4, lg: 3 }, children: /* @__PURE__ */ jsx(
+                AdventureCard,
+                {
+                  adventure,
+                  mediaBaseUrl,
+                  onOpen: onOpenAdventure,
+                  onDuplicate: handleDuplicateAdventure,
+                  onDelete: handleDeleteAdventure
+                }
+              ) }, adventure.id)) })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsx(
+          ConfirmDialog,
+          {
+            open: deleteDialogOpen,
+            onClose: handleCancelDelete,
+            onConfirm: handleConfirmDelete,
+            title: "Delete Adventure",
+            message: `Are you sure you want to delete "${adventureToDelete?.name}"? This action cannot be undone.`,
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            severity: "error",
+            isLoading: isDeleting
+          }
+        )
+      ]
+    }
+  );
+}
+
+const ADVENTURE_DEFAULT_BACKGROUND = "/assets/backgrounds/adventure.png";
+function AdventureDetailPage({
+  adventureId,
+  adventure,
+  campaign,
+  encounters,
+  isLoadingAdventure,
+  isLoadingEncounters,
+  adventureError,
+  isUploading,
+  isDeleting,
+  mediaBaseUrl,
+  onBack,
+  onNavigateToCampaign,
+  onUpdateAdventure,
+  onUploadFile,
+  onCreateEncounter,
+  onCloneEncounter,
+  onRemoveEncounter,
+  onOpenEncounter
+}) {
+  const theme = useTheme$3();
+  const [editedFields, setEditedFields] = useState({});
+  const [lastSyncedAdventureId, setLastSyncedAdventureId] = useState(adventure?.id);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [encounterToDelete, setEncounterToDelete] = useState(null);
+  const [saveStatus, setSaveStatus] = useState("idle");
+  if (adventure && adventure.id !== lastSyncedAdventureId) {
+    setLastSyncedAdventureId(adventure.id);
+    setEditedFields({});
+  }
+  const name = editedFields.name ?? adventure?.name ?? "";
+  const description = editedFields.description ?? adventure?.description ?? "";
+  const style = editedFields.style ?? adventure?.style ?? AdventureStyle.Generic;
+  const isOneShot = editedFields.isOneShot ?? adventure?.isOneShot ?? false;
+  const isPublished = editedFields.isPublished ?? adventure?.isPublished ?? false;
+  const hasUnsavedChanges = useCallback(() => {
+    if (!adventure) return false;
+    return name !== adventure.name || description !== adventure.description || style !== adventure.style || isOneShot !== adventure.isOneShot || isPublished !== adventure.isPublished;
+  }, [adventure, name, description, style, isOneShot, isPublished]);
+  const saveChanges = useCallback(
+    async (overrides) => {
+      if (!adventureId || !adventure) {
+        return;
+      }
+      const currentData = {
+        name,
+        description,
+        style,
+        isOneShot,
+        isPublished,
+        ...overrides
+      };
+      const hasChanges = currentData.name !== adventure.name || currentData.description !== adventure.description || currentData.style !== adventure.style || currentData.isOneShot !== adventure.isOneShot || currentData.isPublished !== adventure.isPublished;
+      if (!hasChanges) {
+        return;
+      }
+      setSaveStatus("saving");
+      try {
+        await onUpdateAdventure(currentData);
+        setEditedFields({});
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2e3);
+      } catch (_error) {
+        setSaveStatus("error");
+      }
+    },
+    [adventureId, adventure, name, description, style, isOneShot, isPublished, onUpdateAdventure]
+  );
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges()) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && hasUnsavedChanges()) {
+        saveChanges();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [hasUnsavedChanges, saveChanges]);
+  const handleBackgroundUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !adventureId) return;
+    try {
+      setSaveStatus("saving");
+      const result = await onUploadFile(file, "adventure", "background", adventureId);
+      await onUpdateAdventure({ backgroundId: result.id });
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2e3);
+    } catch (_error) {
+      setSaveStatus("error");
+    }
+  };
+  const handleAddEncounter = async () => {
+    if (adventureId) {
+      try {
+        const encounter = await onCreateEncounter({
+          name: "New Encounter",
+          description: "",
+          grid: {
+            type: 1,
+            cellSize: { width: 50, height: 50 },
+            offset: { left: 0, top: 0 },
+            snap: true
+          }
+        });
+        onOpenEncounter(encounter.id);
+      } catch (_error) {
+        setSaveStatus("error");
+      }
+    }
+  };
+  const handleDuplicateEncounter = async (encounterId) => {
+    if (!adventureId) return;
+    try {
+      await onCloneEncounter(encounterId);
+    } catch (error) {
+      console.error("Failed to duplicate encounter:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleDeleteEncounter = (encounterId) => {
+    const encounter = encounters.find((s) => s.id === encounterId);
+    if (!encounter) return;
+    setEncounterToDelete({ id: encounterId, name: encounter.name });
+    setDeleteDialogOpen(true);
+  };
+  const handleConfirmDelete = async () => {
+    if (!encounterToDelete || !adventureId) return;
+    try {
+      await onRemoveEncounter(encounterToDelete.id);
+      setDeleteDialogOpen(false);
+      setEncounterToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete encounter:", error);
+      setSaveStatus("error");
+    }
+  };
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setEncounterToDelete(null);
+  };
+  if (isLoadingAdventure) {
+    return /* @__PURE__ */ jsx(
+      Box,
+      {
+        sx: {
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%"
+        },
+        children: /* @__PURE__ */ jsx(CircularProgress, {})
+      }
+    );
+  }
+  if (adventureError || !adventure) {
+    return /* @__PURE__ */ jsxs(Box, { sx: { p: 3 }, children: [
+      /* @__PURE__ */ jsx(Alert, { severity: "error", children: "Failed to load adventure. Please try again." }),
+      /* @__PURE__ */ jsx(Button, { startIcon: /* @__PURE__ */ jsx(ArrowBackIcon, {}), onClick: onBack, sx: { mt: 2 }, children: "Back to Library" })
+    ] });
+  }
+  const getSaveIndicator = (status) => {
+    switch (status) {
+      case "saving":
+        return /* @__PURE__ */ jsxs(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "text.secondary"
+            },
+            children: [
+              /* @__PURE__ */ jsx(CircularProgress, { size: 16 }),
+              /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Saving..." })
+            ]
+          }
+        );
+      case "saved":
+        return /* @__PURE__ */ jsxs(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "success.main"
+            },
+            children: [
+              /* @__PURE__ */ jsx(CheckCircleIcon, { fontSize: "small" }),
+              /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Saved" })
+            ]
+          }
+        );
+      case "error":
+        return /* @__PURE__ */ jsx(
+          Box,
+          {
+            sx: {
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "error.main"
+            },
+            children: /* @__PURE__ */ jsx(Typography, { variant: "caption", children: "Save failed" })
+          }
+        );
+      default:
+        return null;
+    }
+  };
+  const backgroundUrl = adventure.background ? `${mediaBaseUrl}/${adventure.background.id}` : ADVENTURE_DEFAULT_BACKGROUND;
+  return /* @__PURE__ */ jsxs(
+    Box,
+    {
+      id: "adventure-detail-container",
+      sx: {
+        minHeight: "100vh",
+        backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "scroll",
+        bgcolor: "background.default",
+        position: "relative",
+        "&::before": backgroundUrl ? {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background: theme.palette.mode === "dark" ? "linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 40%)" : "linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, transparent 40%)",
+          pointerEvents: "none",
+          zIndex: 0
+        } : {}
+      },
+      children: [
+        /* @__PURE__ */ jsx(Box, { sx: { p: 3 }, children: /* @__PURE__ */ jsxs(
+          Paper,
+          {
+            elevation: 3,
+            sx: {
+              p: 3,
+              backgroundColor: alpha$1(theme.palette.background.paper, 0.85),
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: `1px solid ${alpha$1(theme.palette.divider, 0.2)}`
+            },
+            children: [
+              campaign && /* @__PURE__ */ jsxs(Breadcrumbs, { id: "breadcrumb-adventure-navigation", "aria-label": "breadcrumb", sx: { mb: 2 }, children: [
+                /* @__PURE__ */ jsx(
+                  Link,
+                  {
+                    id: "breadcrumb-campaign-link",
+                    component: "button",
+                    variant: "body2",
+                    onClick: () => onNavigateToCampaign(campaign.id),
+                    sx: {
+                      cursor: "pointer",
+                      textDecoration: "none",
+                      "&:hover": { textDecoration: "underline" }
+                    },
+                    children: campaign.name
+                  }
+                ),
+                /* @__PURE__ */ jsx(Typography, { id: "breadcrumb-adventure-current", variant: "body2", color: "text.primary", "aria-current": "page", children: adventure.name })
+              ] }),
+              /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 2, mb: 3 }, children: [
+                /* @__PURE__ */ jsx(IconButton, { id: "btn-back-to-library", onClick: onBack, "aria-label": "Back to library", children: /* @__PURE__ */ jsx(ArrowBackIcon, {}) }),
+                /* @__PURE__ */ jsx(Box, { sx: { flex: 1 }, children: /* @__PURE__ */ jsx(
+                  TextField,
+                  {
+                    id: "input-adventure-name",
+                    value: name,
+                    onChange: (e) => {
+                      setEditedFields((prev) => ({ ...prev, name: e.target.value }));
+                    },
+                    onBlur: () => saveChanges(),
+                    variant: "standard",
+                    fullWidth: true,
+                    placeholder: "Adventure Name",
+                    inputProps: {
+                      style: { fontSize: "2rem", fontWeight: 500 }
+                    }
+                  }
+                ) }),
+                getSaveIndicator(saveStatus)
+              ] }),
+              /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", gap: 3 }, children: [
+                /* @__PURE__ */ jsx(Box, { sx: { flexShrink: 0 }, children: backgroundUrl ? /* @__PURE__ */ jsx(
+                  Box,
+                  {
+                    sx: {
+                      width: 384,
+                      height: 216,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      position: "relative",
+                      border: `1px solid ${theme.palette.divider}`,
+                      backgroundImage: `url(${backgroundUrl})`,
+                      backgroundSize: "contain",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      bgcolor: "background.default"
+                    },
+                    children: /* @__PURE__ */ jsxs(
+                      IconButton,
+                      {
+                        component: "label",
+                        disabled: isUploading,
+                        sx: {
+                          position: "absolute",
+                          bottom: 8,
+                          right: 8,
+                          bgcolor: "rgba(0, 0, 0, 0.6)",
+                          color: "white",
+                          "&:hover": { bgcolor: "rgba(0, 0, 0, 0.8)" },
+                          "&:disabled": { bgcolor: "rgba(0, 0, 0, 0.3)" }
+                        },
+                        "aria-label": "Change background image",
+                        children: [
+                          /* @__PURE__ */ jsx(PhotoCameraIcon, { fontSize: "small" }),
+                          /* @__PURE__ */ jsx("input", { type: "file", hidden: true, accept: "image/*", onChange: handleBackgroundUpload })
+                        ]
+                      }
+                    )
+                  }
+                ) : /* @__PURE__ */ jsx(
+                  Box,
+                  {
+                    sx: {
+                      width: 216,
+                      height: 216,
+                      borderRadius: 2,
+                      border: `2px dashed ${theme.palette.divider}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: "action.hover",
+                      flexShrink: 0
+                    },
+                    children: /* @__PURE__ */ jsxs(Button, { component: "label", variant: "outlined", startIcon: /* @__PURE__ */ jsx(PhotoCameraIcon, {}), disabled: isUploading, children: [
+                      "Upload",
+                      /* @__PURE__ */ jsx("input", { type: "file", hidden: true, accept: "image/*", onChange: handleBackgroundUpload })
+                    ] })
+                  }
+                ) }),
+                /* @__PURE__ */ jsxs(Box, { sx: { flex: 1, display: "flex", flexDirection: "column", gap: 2 }, children: [
+                  /* @__PURE__ */ jsxs(Box, { sx: { display: "flex", gap: 2, alignItems: "center" }, children: [
+                    /* @__PURE__ */ jsxs(FormControl, { size: "small", sx: { minWidth: 200 }, children: [
+                      /* @__PURE__ */ jsx(InputLabel, { id: "label-adventure-style", children: "Style" }),
+                      /* @__PURE__ */ jsxs(
+                        Select,
+                        {
+                          id: "select-adventure-style",
+                          labelId: "label-adventure-style",
+                          value: style,
+                          label: "Style",
+                          onChange: (e) => {
+                            const newStyle = e.target.value;
+                            setEditedFields((prev) => ({ ...prev, style: newStyle }));
+                            saveChanges({ style: newStyle });
+                          },
+                          children: [
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.Generic, children: "Generic" }),
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.OpenWorld, children: "Open World" }),
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.DungeonCrawl, children: "Dungeon Crawl" }),
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.HackNSlash, children: "Hack-n-Slash" }),
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.Survival, children: "Survival" }),
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.GoalDriven, children: "Goal Driven" }),
+                            /* @__PURE__ */ jsx(MenuItem, { value: AdventureStyle.RandomlyGenerated, children: "Randomly Generated" })
+                          ]
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsx(
+                      FormControlLabel,
+                      {
+                        control: /* @__PURE__ */ jsx(
+                          Switch,
+                          {
+                            checked: isOneShot,
+                            onChange: (e) => {
+                              const newValue = e.target.checked;
+                              setEditedFields((prev) => ({ ...prev, isOneShot: newValue }));
+                              saveChanges({ isOneShot: newValue });
+                            },
+                            size: "small"
+                          }
+                        ),
+                        label: "One-Shot"
+                      }
+                    ),
+                    /* @__PURE__ */ jsx(
+                      FormControlLabel,
+                      {
+                        control: /* @__PURE__ */ jsx(
+                          Switch,
+                          {
+                            checked: isPublished,
+                            onChange: (e) => {
+                              const newValue = e.target.checked;
+                              setEditedFields((prev) => ({ ...prev, isPublished: newValue }));
+                              saveChanges({ isPublished: newValue });
+                            },
+                            size: "small"
+                          }
+                        ),
+                        label: "Published"
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ jsx(
+                    TextField,
+                    {
+                      id: "input-adventure-description",
+                      value: description,
+                      onChange: (e) => {
+                        setEditedFields((prev) => ({ ...prev, description: e.target.value }));
+                      },
+                      onBlur: () => saveChanges(),
+                      multiline: true,
+                      rows: 5,
+                      fullWidth: true,
+                      placeholder: "Adventure description...",
+                      variant: "outlined"
+                    }
+                  )
+                ] })
+              ] })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsx(Box, { sx: { px: 3, pb: 3 }, children: /* @__PURE__ */ jsxs(
+          Paper,
+          {
+            elevation: 2,
+            sx: {
+              p: 3,
+              backgroundColor: alpha$1(theme.palette.background.paper, 0.75),
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)"
+            },
+            children: [
+              /* @__PURE__ */ jsxs(
+                Box,
+                {
+                  sx: {
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxs(Typography, { variant: "h5", component: "h2", children: [
+                      "Encounters (",
+                      encounters.length,
+                      ")"
+                    ] }),
+                    /* @__PURE__ */ jsx(Button, { id: "btn-add-encounter", variant: "contained", startIcon: /* @__PURE__ */ jsx(AddIcon, {}), onClick: handleAddEncounter, children: "Add Encounter" })
+                  ]
+                }
+              ),
+              isLoadingEncounters && /* @__PURE__ */ jsx(Box, { sx: { display: "flex", justifyContent: "center", py: 8 }, children: /* @__PURE__ */ jsx(CircularProgress, {}) }),
+              !isLoadingEncounters && encounters.length === 0 && /* @__PURE__ */ jsxs(Box, { sx: { textAlign: "center", py: 8 }, children: [
+                /* @__PURE__ */ jsx(Typography, { variant: "h6", gutterBottom: true, children: "No encounters yet" }),
+                /* @__PURE__ */ jsx(Typography, { variant: "body2", color: "text.secondary", paragraph: true, children: "Add your first encounter to this adventure" }),
+                /* @__PURE__ */ jsx(Button, { variant: "contained", startIcon: /* @__PURE__ */ jsx(AddIcon, {}), onClick: handleAddEncounter, children: "Add Encounter" })
+              ] }),
+              !isLoadingEncounters && encounters.length > 0 && /* @__PURE__ */ jsx(Grid, { container: true, spacing: 3, children: encounters.map((encounter) => /* @__PURE__ */ jsx(Grid, { size: { xs: 12, sm: 6, md: 4, lg: 3 }, children: /* @__PURE__ */ jsx(
+                EncounterCard,
+                {
+                  encounter,
+                  mediaBaseUrl,
+                  onOpen: onOpenEncounter,
+                  onDuplicate: handleDuplicateEncounter,
+                  onDelete: handleDeleteEncounter
+                }
+              ) }, encounter.id)) })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsx(
+          ConfirmDialog,
+          {
+            open: deleteDialogOpen,
+            onClose: handleCancelDelete,
+            onConfirm: handleConfirmDelete,
+            title: "Delete Encounter",
+            message: `Are you sure you want to delete "${encounterToDelete?.name}"? This action cannot be undone.`,
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            severity: "error",
+            isLoading: isDeleting
+          }
+        )
+      ]
+    }
+  );
+}
+
 const getDefaultGrid = () => ({
   type: 1,
   cellSize: { width: 50, height: 50 },
@@ -12580,5 +15546,5 @@ const getDefaultStage = () => ({
   panning: { x: 0, y: 0 }
 });
 
-export { AdventureStyle, AssetCardCompact, AssetInspectorPanel, AssetKind, AttributeRangeSlider, BrowserToolbar, ConfirmDialog, ContentCard, ContentType, DisplayPreview, EditableTitle, EditingBlocker, GameSessionStatus, GridType, LabelPosition, LabelVisibility, LibraryProvider, Light, LoadingOverlay, OpeningOpacity, OpeningState, OpeningVisibility, PublishedBadge, ResourceType, SaveStatusIndicator, SizeName, SizeSelector, StatValueType, TaxonomyTree, TokenCarousel, TokenPreview, WallVisibility, Weather, adventureTagTypes, applyAssetSnapshot, assetTagTypes, calculateAssetSize, campaignTagTypes, checkAssetOverlap, configureMediaUrls, createAdventureEndpoints, createApiBaseQuery, createAssetEndpoints, createAssetSnapshot, createBreakWallAction, createCampaignEndpoints, createDeletePoleAction, createDeleteVertexAction, createEncounterEndpoints, createInsertPoleAction, createInsertVertexAction, createMoveLineAction, createMovePoleAction, createMoveVertexAction, createMultiMovePoleAction, createMultiMoveVertexAction, createPlacePoleAction, createPlaceVertexAction, createRegionMoveLineAction, createWorldEndpoints, encounterTagTypes, getDefaultAssetImage, getDefaultGrid, getDefaultStage, getPlacementBehavior, getResourceUrl, snapAssetPosition, snapToGrid, useAutoSave, useDebounce, useInfiniteScroll, useLibrary, useLibraryOptional, validatePlacement, worldTagTypes };
+export { AdventureCard, AdventureDetailPage, AdventureStyle, AssetCardCompact, AssetInspectorPanel, AssetKind, AttributeRangeSlider, BrowserToolbar, CampaignCard, CampaignDetailPage, ConfirmDialog, ContentCard, ContentEditorDialog, ContentType, DisplayPreview, EditableTitle, EditingBlocker, EncounterCard, GameSessionStatus, GridType, LabelPosition, LabelVisibility, LibraryProvider, Light, LoadingOverlay, OpeningOpacity, OpeningState, OpeningVisibility, PublishedBadge, ResourceType, SaveStatusIndicator, SizeName, SizeSelector, StatValueType, TaxonomyTree, TokenCarousel, TokenPreview, WallVisibility, Weather, WorldCard, WorldDetailPage, adventureTagTypes, applyAssetSnapshot, assetTagTypes, calculateAssetSize, campaignTagTypes, checkAssetOverlap, configureMediaUrls, createAdventureEndpoints, createApiBaseQuery, createAssetEndpoints, createAssetSnapshot, createBreakWallAction, createCampaignEndpoints, createDeletePoleAction, createDeleteVertexAction, createEncounterEndpoints, createInsertPoleAction, createInsertVertexAction, createMoveLineAction, createMovePoleAction, createMoveVertexAction, createMultiMovePoleAction, createMultiMoveVertexAction, createPlacePoleAction, createPlaceVertexAction, createRegionMoveLineAction, createWorldEndpoints, encounterTagTypes, getDefaultAssetImage, getDefaultGrid, getDefaultStage, getPlacementBehavior, getResourceUrl, snapAssetPosition, snapToGrid, useAutoSave, useDebounce, useInfiniteScroll, useLibrary, useLibraryOptional, validatePlacement, worldTagTypes };
 //# sourceMappingURL=index.js.map

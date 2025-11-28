@@ -16,5 +16,8 @@ export * from './components/common';
 // Components - Assets
 export * from './components/assets';
 
+// Components - Library
+export * from './components/library';
+
 // Features - Content Library
 export * from './features/content-library';

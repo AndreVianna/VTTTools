@@ -35,6 +35,65 @@ export declare interface Adventure {
     encounters?: Encounter[];
 }
 
+export declare function AdventureCard({ adventure, mediaBaseUrl, onOpen, onDuplicate, onDelete }: AdventureCardProps): JSX.Element;
+
+export declare interface AdventureCardProps {
+    adventure: Adventure;
+    mediaBaseUrl: string;
+    onOpen: (id: string) => void;
+    onDuplicate: (id: string) => void;
+    onDelete: (id: string) => void;
+}
+
+export declare function AdventureDetailPage({ adventureId, adventure, campaign, encounters, isLoadingAdventure, isLoadingEncounters, adventureError, isUploading, isDeleting, mediaBaseUrl, onBack, onNavigateToCampaign, onUpdateAdventure, onUploadFile, onCreateEncounter, onCloneEncounter, onRemoveEncounter, onOpenEncounter, }: AdventureDetailPageProps): JSX.Element;
+
+export declare interface AdventureDetailPageProps {
+    adventureId: string;
+    adventure: Adventure | null;
+    campaign: Campaign | null;
+    encounters: Encounter[];
+    isLoadingAdventure: boolean;
+    isLoadingEncounters: boolean;
+    adventureError: unknown;
+    isUploading: boolean;
+    isDeleting: boolean;
+    mediaBaseUrl: string;
+    onBack: () => void;
+    onNavigateToCampaign: (campaignId: string) => void;
+    onUpdateAdventure: (request: {
+        name?: string;
+        description?: string;
+        style?: AdventureStyle;
+        isOneShot?: boolean;
+        isPublished?: boolean;
+        backgroundId?: string;
+    }) => Promise<void>;
+    onUploadFile: (file: File, type: string, resource: string, entityId: string) => Promise<{
+        id: string;
+    }>;
+    onCreateEncounter: (request: {
+        name: string;
+        description: string;
+        grid: {
+            type: number;
+            cellSize: {
+                width: number;
+                height: number;
+            };
+            offset: {
+                left: number;
+                top: number;
+            };
+            snap: boolean;
+        };
+    }) => Promise<{
+        id: string;
+    }>;
+    onCloneEncounter: (encounterId: string) => Promise<void>;
+    onRemoveEncounter: (encounterId: string) => Promise<void>;
+    onOpenEncounter: (encounterId: string) => void;
+}
+
 export declare enum AdventureStyle {
     Generic = 0,
     OpenWorld = 1,
@@ -181,6 +240,50 @@ export declare interface Campaign {
     adventures?: Adventure[];
 }
 
+export declare function CampaignCard({ campaign, mediaBaseUrl, onOpen, onDuplicate, onDelete }: CampaignCardProps): JSX.Element;
+
+export declare interface CampaignCardProps {
+    campaign: Campaign;
+    mediaBaseUrl: string;
+    onOpen: (id: string) => void;
+    onDuplicate: (id: string) => void;
+    onDelete: (id: string) => void;
+}
+
+export declare function CampaignDetailPage({ campaignId, campaign, adventures, isLoadingCampaign, isLoadingAdventures, campaignError, isUploading, isDeleting, mediaBaseUrl, onBack, onUpdateCampaign, onUploadFile, onCreateAdventure, onCloneAdventure, onRemoveAdventure, onOpenAdventure, }: CampaignDetailPageProps): JSX.Element;
+
+export declare interface CampaignDetailPageProps {
+    campaignId: string;
+    campaign: Campaign | null;
+    adventures: Adventure[];
+    isLoadingCampaign: boolean;
+    isLoadingAdventures: boolean;
+    campaignError: unknown;
+    isUploading: boolean;
+    isDeleting: boolean;
+    mediaBaseUrl: string;
+    onBack: () => void;
+    onUpdateCampaign: (request: {
+        name?: string;
+        description?: string;
+        isPublished?: boolean;
+        backgroundId?: string;
+    }) => Promise<void>;
+    onUploadFile: (file: File, type: string, resource: string, entityId: string) => Promise<{
+        id: string;
+    }>;
+    onCreateAdventure: (request: {
+        name: string;
+        description: string;
+        style: number;
+    }) => Promise<{
+        id: string;
+    }>;
+    onCloneAdventure: (adventureId: string) => Promise<void>;
+    onRemoveAdventure: (adventureId: string) => Promise<void>;
+    onOpenAdventure: (adventureId: string) => void;
+}
+
 export declare type CampaignTagType = (typeof campaignTagTypes)[number];
 
 export declare const campaignTagTypes: readonly ["Campaign", "CampaignAdventures"];
@@ -227,6 +330,26 @@ export declare interface ContentCardProps {
     actions?: default_2.ReactNode;
     badges?: default_2.ReactNode;
     metadata?: default_2.ReactNode;
+}
+
+export declare function ContentEditorDialog({ open, onClose, onSave, title, contentTypeName, initialData, isLoading, showVisibility, }: ContentEditorDialogProps): JSX.Element;
+
+export declare interface ContentEditorDialogProps {
+    open: boolean;
+    onClose: () => void;
+    onSave: (data: ContentFormData) => Promise<void>;
+    title: string;
+    contentTypeName: string;
+    initialData?: Partial<ContentFormData> | undefined;
+    isLoading?: boolean | undefined;
+    showVisibility?: boolean | undefined;
+}
+
+export declare interface ContentFormData {
+    name: string;
+    description: string;
+    isPublished: boolean;
+    isPublic: boolean;
 }
 
 export declare interface ContentItemSummary {
@@ -833,6 +956,16 @@ export declare interface EncounterAssetData {
     isLocked: boolean;
     isVisible: boolean;
     controlledBy: string | null;
+}
+
+export declare function EncounterCard({ encounter, mediaBaseUrl, onOpen, onDuplicate, onDelete }: EncounterCardProps): JSX.Element;
+
+export declare interface EncounterCardProps {
+    encounter: Encounter;
+    mediaBaseUrl: string;
+    onOpen: (id: string) => void;
+    onDuplicate: (id: string) => void;
+    onDelete: (id: string) => void;
 }
 
 export declare interface EncounterListItem {
@@ -1725,6 +1858,49 @@ export declare interface World {
     isPublic: boolean;
     background?: MediaResource | null;
     campaigns?: Campaign[];
+}
+
+export declare function WorldCard({ world, mediaBaseUrl, onOpen, onDuplicate, onDelete }: WorldCardProps): JSX.Element;
+
+export declare interface WorldCardProps {
+    world: World;
+    mediaBaseUrl: string;
+    onOpen: (id: string) => void;
+    onDuplicate: (id: string) => void;
+    onDelete: (id: string) => void;
+}
+
+export declare function WorldDetailPage({ worldId, world, campaigns, isLoadingWorld, isLoadingCampaigns, worldError, isUploading, isDeleting, mediaBaseUrl, onBack, onUpdateWorld, onUploadFile, onCreateCampaign, onCloneCampaign, onRemoveCampaign, onOpenCampaign, }: WorldDetailPageProps): JSX.Element;
+
+export declare interface WorldDetailPageProps {
+    worldId: string;
+    world: World | null;
+    campaigns: Campaign[];
+    isLoadingWorld: boolean;
+    isLoadingCampaigns: boolean;
+    worldError: unknown;
+    isUploading: boolean;
+    isDeleting: boolean;
+    mediaBaseUrl: string;
+    onBack: () => void;
+    onUpdateWorld: (request: {
+        name?: string;
+        description?: string;
+        isPublished?: boolean;
+        backgroundId?: string;
+    }) => Promise<void>;
+    onUploadFile: (file: File, type: string, resource: string, entityId: string) => Promise<{
+        id: string;
+    }>;
+    onCreateCampaign: (request: {
+        name: string;
+        description: string;
+    }) => Promise<{
+        id: string;
+    }>;
+    onCloneCampaign: (campaignId: string) => Promise<void>;
+    onRemoveCampaign: (campaignId: string) => Promise<void>;
+    onOpenCampaign: (campaignId: string) => void;
 }
 
 export declare type WorldTagType = (typeof worldTagTypes)[number];

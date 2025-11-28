@@ -16,13 +16,14 @@ import {
   updateRegionOptimistic,
 } from '@/utils/encounterStateUtils';
 import type { GridConfig } from '@/utils/gridCalculator';
+import { useClipRegions } from './useClipRegions';
 import { useMergeRegions } from './useMergeRegions';
 
 interface UseRegionHandlersProps {
   encounterId: string | undefined;
   encounter: Encounter | null;
   regionTransaction: ReturnType<typeof import('@/hooks/useRegionTransaction').useRegionTransaction>;
-  gridConfig: GridConfig;
+  gridConfig?: GridConfig;
   selectedRegionIndex: number | null;
   editingRegionIndex: number | null;
   originalRegionVertices: Point[] | null;
@@ -51,7 +52,7 @@ export const useRegionHandlers = ({
   encounterId,
   encounter,
   regionTransaction,
-  gridConfig,
+  gridConfig: _gridConfig,
   selectedRegionIndex,
   editingRegionIndex,
   originalRegionVertices,
@@ -73,6 +74,18 @@ export const useRegionHandlers = ({
   refetch,
 }: UseRegionHandlersProps) => {
   const { executeMerge } = useMergeRegions({
+    encounterId,
+    encounter,
+    addEncounterRegion,
+    updateEncounterRegion,
+    removeEncounterRegion,
+    setEncounter,
+    setErrorMessage,
+    recordAction,
+    refetch,
+  });
+
+  const { executeClip } = useClipRegions({
     encounterId,
     encounter,
     addEncounterRegion,
@@ -167,7 +180,6 @@ export const useRegionHandlers = ({
       encounterId,
       { addEncounterRegion, updateEncounterRegion },
       encounterForCommit || undefined,
-      gridConfig,
     );
 
     if (result.action === 'merge') {
@@ -209,6 +221,130 @@ export const useRegionHandlers = ({
           setOriginalRegionVertices(null);
         },
       });
+      return;
+    }
+
+    if (result.action === 'clip' && result.clipResults) {
+      const segment = regionTransaction.transaction.segment;
+      if (!segment) {
+        setErrorMessage('No segment found for clip operation');
+        regionTransaction.rollbackTransaction();
+        setEditingRegionIndex(null);
+        setSelectedRegionIndex(null);
+        setIsEditingRegionVertices(false);
+        setOriginalRegionVertices(null);
+        return;
+      }
+
+      await executeClip({
+        clipResults: result.clipResults,
+        clipperVertices: segment.vertices,
+        onSuccess: async () => {
+          const originalRegion = regionTransaction.transaction.originalRegion;
+          if (originalRegion && segment) {
+            const newRegion: EncounterRegion = {
+              encounterId: encounter?.id,
+              index: editingRegionIndex,
+              name: segment.name,
+              vertices: segment.vertices,
+              type: segment.type,
+              ...(segment.value !== undefined && { value: segment.value }),
+              ...(segment.label !== undefined && { label: segment.label }),
+              ...(segment.color !== undefined && { color: segment.color }),
+            };
+
+            try {
+              await updateEncounterRegion({
+                encounterId,
+                regionIndex: editingRegionIndex,
+                name: segment.name,
+                vertices: segment.vertices,
+                type: segment.type,
+                ...(segment.value !== undefined && { value: segment.value }),
+                ...(segment.label !== undefined && { label: segment.label }),
+                ...(segment.color !== undefined && { color: segment.color }),
+              }).unwrap();
+
+              const command = new EditRegionCommand({
+                encounterId,
+                regionIndex: editingRegionIndex,
+                oldRegion: originalRegion,
+                newRegion: newRegion,
+                onUpdate: async (encounterId, regionIndex, updates) => {
+                  await updateEncounterRegion({
+                    encounterId,
+                    regionIndex,
+                    ...updates,
+                  }).unwrap();
+                },
+                onRefetch: async () => {
+                  const { data } = await refetch();
+                  if (data) setEncounter(data);
+                },
+              });
+              recordAction(command);
+            } catch (error) {
+              console.error('Failed to update edited region after clip:', error);
+            }
+          }
+
+          regionTransaction.clearTransaction();
+          setEditingRegionIndex(null);
+          setSelectedRegionIndex(null);
+          setIsEditingRegionVertices(false);
+          setOriginalRegionVertices(null);
+        },
+        onError: () => {
+          regionTransaction.rollbackTransaction();
+          if (originalRegionVertices && editingRegionIndex !== null) {
+            const revertedEncounter = updateRegionOptimistic(encounter, editingRegionIndex, {
+              vertices: originalRegionVertices,
+            });
+            setEncounter(revertedEncounter);
+          }
+          setEditingRegionIndex(null);
+          setSelectedRegionIndex(null);
+          setIsEditingRegionVertices(false);
+          setOriginalRegionVertices(null);
+        },
+      });
+      return;
+    }
+
+    if (result.action === 'nullClip') {
+      const segment = regionTransaction.transaction.segment;
+      if (result.clipResults && result.clipResults.length > 0 && segment) {
+        await executeClip({
+          clipResults: result.clipResults,
+          clipperVertices: segment.vertices,
+          onSuccess: () => {
+            regionTransaction.clearTransaction();
+            setEditingRegionIndex(null);
+            setSelectedRegionIndex(null);
+            setIsEditingRegionVertices(false);
+            setOriginalRegionVertices(null);
+          },
+          onError: () => {
+            regionTransaction.rollbackTransaction();
+            if (originalRegionVertices && editingRegionIndex !== null) {
+              const revertedEncounter = updateRegionOptimistic(encounter, editingRegionIndex, {
+                vertices: originalRegionVertices,
+              });
+              setEncounter(revertedEncounter);
+            }
+            setEditingRegionIndex(null);
+            setSelectedRegionIndex(null);
+            setIsEditingRegionVertices(false);
+            setOriginalRegionVertices(null);
+          },
+        });
+      } else {
+        regionTransaction.clearTransaction();
+        setEditingRegionIndex(null);
+        setSelectedRegionIndex(null);
+        setIsEditingRegionVertices(false);
+        setOriginalRegionVertices(null);
+      }
       return;
     }
 
@@ -254,7 +390,22 @@ export const useRegionHandlers = ({
         recordAction(command);
       }
 
-      // Clear the transaction state
+      // Update encounter state with the edited vertices before hiding the transformer
+      // This prevents a flash of the old region while waiting for the API cache to update
+      if (segment && editingRegionIndex !== null && encounterId) {
+        const updatedEncounter = updateRegionOptimistic(encounter, editingRegionIndex, {
+          vertices: segment.vertices,
+          name: segment.name,
+          type: segment.type,
+          ...(segment.value !== undefined && { value: segment.value }),
+          ...(segment.label !== undefined && { label: segment.label }),
+        });
+        setEncounter(updatedEncounter);
+
+        const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions, encounterId);
+        setPlacedRegions(hydratedRegions);
+      }
+
       regionTransaction.clearTransaction();
 
       setEditingRegionIndex(null);
@@ -283,15 +434,16 @@ export const useRegionHandlers = ({
     editingRegionIndex,
     originalRegionVertices,
     regionTransaction,
-    gridConfig,
     addEncounterRegion,
     updateEncounterRegion,
     setEncounter,
+    setPlacedRegions,
     setEditingRegionIndex,
     setSelectedRegionIndex,
     setIsEditingRegionVertices,
     setOriginalRegionVertices,
     setErrorMessage,
+    executeClip,
     executeMerge,
     recordAction,
     refetch,
@@ -309,7 +461,6 @@ export const useRegionHandlers = ({
         encounterId,
         { addEncounterRegion, updateEncounterRegion },
         encounterForCommit || undefined,
-        gridConfig,
       );
 
       if (result.action === 'merge') {
@@ -337,6 +488,100 @@ export const useRegionHandlers = ({
             setDrawingRegionIndex(null);
           },
         });
+        return;
+      }
+
+      if (result.action === 'clip' && result.clipResults) {
+        const segment = regionTransaction.transaction.segment;
+        if (!segment) {
+          setErrorMessage('No segment found for clip operation');
+          regionTransaction.rollbackTransaction();
+          setDrawingRegionIndex(null);
+          return;
+        }
+
+        await executeClip({
+          clipResults: result.clipResults,
+          clipperVertices: segment.vertices,
+          onSuccess: async () => {
+            const newRegionData = {
+              encounterId,
+              name: segment.name,
+              type: segment.type,
+              vertices: segment.vertices,
+              ...(segment.value !== undefined && { value: segment.value }),
+              ...(segment.label !== undefined && { label: segment.label }),
+              ...(segment.color !== undefined && { color: segment.color }),
+            };
+
+            try {
+              const createdResult = await addEncounterRegion(newRegionData).unwrap();
+
+              const command = new CreateRegionCommand({
+                encounterId,
+                region: {
+                  ...newRegionData,
+                  index: createdResult.index,
+                },
+                onCreate: async (encounterId, regionData) => {
+                  const result = await addEncounterRegion({
+                    encounterId,
+                    ...regionData,
+                  }).unwrap();
+                  return result;
+                },
+                onRemove: async (encounterId, regionIndex) => {
+                  await removeEncounterRegion({
+                    encounterId,
+                    regionIndex,
+                  }).unwrap();
+                },
+                onRefetch: async () => {
+                  const { data } = await refetch();
+                  if (data) setEncounter(data);
+                },
+              });
+              recordAction(command);
+            } catch (error) {
+              console.error('Failed to create new region after clip:', error);
+            }
+
+            regionTransaction.clearTransaction();
+            setDrawingRegionIndex(null);
+          },
+          onError: () => {
+            regionTransaction.rollbackTransaction();
+            const cleanEncounter = removeRegionOptimistic(encounter, -1);
+            setEncounter(cleanEncounter);
+            setDrawingRegionIndex(null);
+          },
+        });
+        return;
+      }
+
+      if (result.action === 'nullClip') {
+        const segment = regionTransaction.transaction.segment;
+
+        const cleanEncounter = removeRegionOptimistic(encounter, -1);
+        setEncounter(cleanEncounter);
+
+        if (result.clipResults && result.clipResults.length > 0 && segment) {
+          await executeClip({
+            clipResults: result.clipResults,
+            clipperVertices: segment.vertices,
+            onSuccess: () => {
+              regionTransaction.clearTransaction();
+              setDrawingRegionIndex(null);
+            },
+            onError: () => {
+              regionTransaction.rollbackTransaction();
+              setDrawingRegionIndex(null);
+            },
+          });
+        } else {
+          regionTransaction.clearTransaction();
+          setDrawingRegionIndex(null);
+        }
         return;
       }
 
@@ -405,13 +650,13 @@ export const useRegionHandlers = ({
     drawingMode,
     drawingRegionIndex,
     regionTransaction,
-    gridConfig,
     addEncounterRegion,
     updateEncounterRegion,
     removeEncounterRegion,
     setEncounter,
     setDrawingRegionIndex,
     setErrorMessage,
+    executeClip,
     executeMerge,
     recordAction,
     refetch,
@@ -585,7 +830,6 @@ export const useRegionHandlers = ({
       encounter,
       drawingRegionIndex,
       regionTransaction,
-      gridConfig,
       addEncounterRegion,
       updateEncounterRegion,
       removeEncounterRegion,

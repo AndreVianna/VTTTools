@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EncounterRegion, Point } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
-import { GridType } from '@/utils/gridCalculator';
 import { findMergeableRegions, findSharedEdge, mergePolygons, polygonsOverlap, regionsMatch } from './regionMergeUtils';
 
 vi.mock('polygon-clipping', () => ({
@@ -547,13 +545,6 @@ describe('findMergeableRegions', () => {
 });
 
 describe('mergePolygons', () => {
-  const gridConfig: GridConfig = {
-    type: GridType.Square,
-    cellSize: { width: 50, height: 50 },
-    offset: { left: 0, top: 0 },
-    snap: true,
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -708,7 +699,7 @@ describe('mergePolygons', () => {
       y: 5,
     });
 
-    const result = mergePolygons([v1, v2], gridConfig);
+    const result = mergePolygons([v1, v2]);
     expect(result).toBeDefined();
   });
 

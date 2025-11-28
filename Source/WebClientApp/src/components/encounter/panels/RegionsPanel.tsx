@@ -26,10 +26,11 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import { useUpdateEncounterRegionMutation } from '@/services/encounterApi';
 import type { PlacedRegion } from '@/types/domain';
+import { getRegionColor, getRegionFillOpacity, sortRegions } from '@/utils/regionColorUtils';
 import { ILLUMINATION_VALUES, REGION_PRESETS, type RegionPreset, TERRAIN_VALUES } from './regionsPanelTypes';
 
 export interface RegionsPanelProps {
@@ -38,8 +39,8 @@ export interface RegionsPanelProps {
   selectedRegionIndex?: number | null;
   placementMode?: 'polygon' | 'bucketFill' | null;
   onPresetSelect?: (preset: RegionPreset) => void;
-  onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
-  onBucketFillRegion?: (properties: { name: string; type: string; value?: number; label?: string; color?: string }) => void;
+  onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string }) => void;
+  onBucketFillRegion?: (properties: { name: string; type: string; value?: number; label?: string }) => void;
   onRegionSelect?: (regionIndex: number) => void;
   onRegionDelete?: (regionIndex: number) => void;
   onEditVertices?: (regionIndex: number) => void;
@@ -54,10 +55,6 @@ const getSuggestedRegionName = (regions: PlacedRegion[]): string => {
     }),
   );
   return `Region ${maxIndex + 1}`;
-};
-
-const isValidHexColor = (color: string): boolean => {
-  return /^#[0-9A-F]{6}$/i.test(color);
 };
 
 export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
@@ -79,13 +76,11 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     const [regionType, setRegionType] = useState<string>('Elevation');
     const [value, setValue] = useState<number>(0);
     const [label, setLabel] = useState<string>('Normal');
-    const [color, setColor] = useState<string>('#ed6c02');
     const [selectedRegionType, setSelectedRegionType] = useState<string>('Elevation');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [regionToDelete, setRegionToDelete] = useState<number | null>(null);
     const [expandedRegions, setExpandedRegions] = useState<Set<number>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
-    const [editedColors, setEditedColors] = useState<Map<number, string>>(new Map());
     const [editedTypes, setEditedTypes] = useState<Map<number, string>>(new Map());
     const [editedValues, setEditedValues] = useState<Map<number, number>>(new Map());
     const [editedLabels, setEditedLabels] = useState<Map<number, string>>(new Map());
@@ -144,7 +139,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
 
     const handlePresetClick = (preset: RegionPreset) => {
       setRegionType(preset.type);
-      setColor(preset.color);
       setSelectedRegionType(preset.type);
       if (preset.defaultValue !== undefined) {
         setValue(preset.defaultValue);
@@ -161,11 +155,9 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         type: string;
         value?: number;
         label?: string;
-        color?: string;
       } = {
         name,
         type: regionType,
-        color,
       };
 
       if (regionType === 'Elevation') {
@@ -185,11 +177,9 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         type: string;
         value?: number;
         label?: string;
-        color?: string;
       } = {
         name,
         type: regionType,
-        color,
       };
 
       if (regionType === 'Elevation') {
@@ -215,11 +205,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
           newSet.delete(regionIndex);
           setEditedNames((prevNames) => {
             const newMap = new Map(prevNames);
-            newMap.delete(regionIndex);
-            return newMap;
-          });
-          setEditedColors((prevColors) => {
-            const newMap = new Map(prevColors);
             newMap.delete(regionIndex);
             return newMap;
           });
@@ -252,7 +237,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         type?: string;
         value?: number;
         label?: string;
-        color?: string;
       },
     ) => {
       if (!encounterId) return;
@@ -268,7 +252,10 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
       }
     };
 
-    const filteredRegions = encounterRegions.filter((region) => region.type === selectedRegionType);
+    const filteredAndSortedRegions = useMemo(() => {
+      const filtered = encounterRegions.filter((region) => region.type === selectedRegionType);
+      return sortRegions(filtered);
+    }, [encounterRegions, selectedRegionType]);
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -317,65 +304,46 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
           sx={compactStyles.textField}
         />
 
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
-          {regionType === 'Elevation' ? (
-            <TextField
-              id='input-region-value'
-              label='Value (feet)'
-              type='number'
-              value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
-              size='small'
-              sx={{ ...compactStyles.textField, flex: 1 }}
-              InputProps={{ inputProps: { min: -100, max: 100, step: 5 } }}
-            />
-          ) : (
-            <FormControl size='small' sx={{ flex: 1 }}>
-              <InputLabel id='label-region-label' sx={compactStyles.inputLabel}>
-                Label
-              </InputLabel>
-              <Select
-                id='select-region-label'
-                labelId='label-region-label'
-                value={label}
-                label='Label'
-                onChange={(e) => setLabel(e.target.value)}
-                sx={compactStyles.select}
-              >
-                {regionType === 'Terrain' &&
-                  TERRAIN_VALUES.map((val) => (
-                    <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                      {val}
-                    </MenuItem>
-                  ))}
-                {regionType === 'Illumination' &&
-                  ILLUMINATION_VALUES.map((val) => (
-                    <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                      {val}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-          )}
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
-            <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>Color</Typography>
-            <input
-              id='input-region-color'
-              type='color'
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              style={{
-                width: '32px',
-                height: '32px',
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: '4px',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            />
-          </Box>
-        </Box>
+        {regionType === 'Elevation' ? (
+          <TextField
+            id='input-region-value'
+            label='Value (feet)'
+            type='number'
+            value={value}
+            onChange={(e) => setValue(Number(e.target.value))}
+            size='small'
+            fullWidth
+            sx={compactStyles.textField}
+            InputProps={{ inputProps: { min: -100, max: 100, step: 5 } }}
+          />
+        ) : (
+          <FormControl size='small' fullWidth>
+            <InputLabel id='label-region-label' sx={compactStyles.inputLabel}>
+              Label
+            </InputLabel>
+            <Select
+              id='select-region-label'
+              labelId='label-region-label'
+              value={label}
+              label='Label'
+              onChange={(e) => setLabel(e.target.value)}
+              sx={compactStyles.select}
+            >
+              {regionType === 'Terrain' &&
+                TERRAIN_VALUES.map((val) => (
+                  <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                    {val}
+                  </MenuItem>
+                ))}
+              {regionType === 'Illumination' &&
+                ILLUMINATION_VALUES.map((val) => (
+                  <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                    {val}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant='caption' sx={{ fontSize: '11px', fontWeight: 500 }}>
@@ -422,7 +390,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         <Divider sx={{ my: 0.5 }} />
 
         <Typography variant='overline' sx={compactStyles.sectionHeader}>
-          Placed {selectedRegionType} Regions ({filteredRegions.length})
+          Placed {selectedRegionType} Regions ({filteredAndSortedRegions.length})
         </Typography>
 
         <List
@@ -434,7 +402,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
             borderRadius: 1,
           }}
         >
-          {filteredRegions.length === 0 ? (
+          {filteredAndSortedRegions.length === 0 ? (
             <ListItem>
               <ListItemText
                 primary={
@@ -450,8 +418,10 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
               />
             </ListItem>
           ) : (
-            filteredRegions.map((encounterRegion) => {
+            filteredAndSortedRegions.map((encounterRegion) => {
               const isExpanded = expandedRegions.has(encounterRegion.index);
+              const regionColor = getRegionColor(encounterRegion, encounterRegions);
+              const regionOpacity = getRegionFillOpacity(encounterRegion);
 
               return (
                 <React.Fragment key={encounterRegion.id}>
@@ -510,6 +480,19 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
                           <ExpandMoreIcon sx={{ fontSize: 14 }} />
                         )}
                       </IconButton>
+
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '2px',
+                          backgroundColor: regionColor === 'transparent' ? 'transparent' : regionColor,
+                          opacity: regionOpacity,
+                          border: `1px solid ${regionColor === 'transparent' ? theme.palette.grey[500] : regionColor}`,
+                          mr: 1,
+                          flexShrink: 0,
+                        }}
+                      />
 
                       {isExpanded ? (
                         <TextField
@@ -572,83 +555,51 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
                         gap: 1,
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FormControl size='small' sx={{ flex: 1 }} onClick={(e) => e.stopPropagation()}>
-                          <InputLabel id={`label-type-${encounterRegion.index}`} sx={compactStyles.inputLabel}>
-                            Type
-                          </InputLabel>
-                          <Select
-                            labelId={`label-type-${encounterRegion.index}`}
-                            value={editedTypes.get(encounterRegion.index) ?? encounterRegion.type}
-                            label='Type'
-                            onChange={(e) => {
-                              const newType = e.target.value;
-                              setEditedTypes((prev) => new Map(prev).set(encounterRegion.index, newType));
-
-                              const updates: {
-                                type: string;
-                                value?: number;
-                                label?: string;
-                              } = { type: newType };
-
-                              if (newType === 'Elevation') {
-                                updates.value = 0;
-                              } else {
-                                updates.label = 'Normal';
-                              }
-
-                              handleRegionPropertyUpdate(encounterRegion.index, updates);
-                            }}
-                            onKeyDown={(e) => {
-                              e.stopPropagation();
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            sx={compactStyles.select}
-                          >
-                            <MenuItem value='Elevation' sx={{ fontSize: '11px', minHeight: '32px' }}>
-                              Elevation
-                            </MenuItem>
-                            <MenuItem value='Terrain' sx={{ fontSize: '11px', minHeight: '32px' }}>
-                              Terrain
-                            </MenuItem>
-                            <MenuItem value='Illumination' sx={{ fontSize: '11px', minHeight: '32px' }}>
-                              Illumination
-                            </MenuItem>
-                          </Select>
-                        </FormControl>
-
-                        <input
-                          type='color'
-                          value={editedColors.get(encounterRegion.index) ?? encounterRegion.color ?? '#ed6c02'}
+                      <FormControl size='small' fullWidth onClick={(e) => e.stopPropagation()}>
+                        <InputLabel id={`label-type-${encounterRegion.index}`} sx={compactStyles.inputLabel}>
+                          Type
+                        </InputLabel>
+                        <Select
+                          labelId={`label-type-${encounterRegion.index}`}
+                          value={editedTypes.get(encounterRegion.index) ?? encounterRegion.type}
+                          label='Type'
                           onChange={(e) => {
-                            const newColor = e.target.value;
-                            if (!isValidHexColor(newColor)) return;
+                            const newType = e.target.value;
+                            setEditedTypes((prev) => new Map(prev).set(encounterRegion.index, newType));
 
-                            setEditedColors((prev) => {
-                              const newMap = new Map(prev);
-                              newMap.set(encounterRegion.index, newColor);
-                              return newMap;
-                            });
-                            handleRegionPropertyUpdate(encounterRegion.index, {
-                              color: newColor,
-                            });
+                            const updates: {
+                              type: string;
+                              value?: number;
+                              label?: string;
+                            } = { type: newType };
+
+                            if (newType === 'Elevation') {
+                              updates.value = 0;
+                            } else {
+                              updates.label = 'Normal';
+                            }
+
+                            handleRegionPropertyUpdate(encounterRegion.index, updates);
                           }}
                           onKeyDown={(e) => {
                             e.stopPropagation();
                           }}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            border: `1px solid ${theme.palette.divider}`,
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            padding: 0,
+                          onClick={(e) => {
+                            e.stopPropagation();
                           }}
-                        />
-                      </Box>
+                          sx={compactStyles.select}
+                        >
+                          <MenuItem value='Elevation' sx={{ fontSize: '11px', minHeight: '32px' }}>
+                            Elevation
+                          </MenuItem>
+                          <MenuItem value='Terrain' sx={{ fontSize: '11px', minHeight: '32px' }}>
+                            Terrain
+                          </MenuItem>
+                          <MenuItem value='Illumination' sx={{ fontSize: '11px', minHeight: '32px' }}>
+                            Illumination
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
 
                       {(editedTypes.get(encounterRegion.index) ?? encounterRegion.type) === 'Elevation' ? (
                         <TextField

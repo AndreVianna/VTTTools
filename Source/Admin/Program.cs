@@ -171,7 +171,12 @@ internal static class Program {
         builder.Services.AddScoped<IMaintenanceModeStorage, MaintenanceModeStorage>();
         builder.Services.AddScoped<IMaintenanceModeService, MaintenanceModeService>();
         builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
-        builder.Services.AddScoped<ILibraryAdminService, LibraryAdminService>();
+        builder.Services.AddScoped<ILibraryConfigService, LibraryConfigService>();
+        builder.Services.AddScoped<IWorldAdminService, WorldAdminService>();
+        builder.Services.AddScoped<ICampaignAdminService, CampaignAdminService>();
+        builder.Services.AddScoped<IAdventureAdminService, AdventureAdminService>();
+        builder.Services.AddScoped<IEncounterAdminService, EncounterAdminService>();
+        builder.Services.AddScoped<IAssetAdminService, AssetAdminService>();
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root

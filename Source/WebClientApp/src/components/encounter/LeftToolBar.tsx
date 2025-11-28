@@ -231,6 +231,11 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     <>
       <Box
         ref={toolbarRef}
+        onMouseEnter={() => {
+          if (activeScope && !isPanelVisible) {
+            setIsPanelVisible(true);
+          }
+        }}
         sx={{
           position: 'absolute',
           left: 0,

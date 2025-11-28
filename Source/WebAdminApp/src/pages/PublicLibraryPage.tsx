@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -39,14 +40,13 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
+import { ConfirmDialog, ContentEditorDialog, type ContentFormData } from '@vtttools/web-components';
 import {
   libraryService,
   type ContentType,
   type OwnerType,
   type LibrarySearchRequest,
   type LibraryContentResponse,
-  type CreateContentRequest,
-  type UpdateContentRequest,
   type TransferOwnershipRequest,
 } from '@services/libraryService';
 
@@ -88,6 +88,7 @@ function filtersToRequest(filters: FilterState): Omit<LibrarySearchRequest, 'ski
 }
 
 export function PublicLibraryPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [content, setContent] = useState<LibraryContentResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -107,13 +108,6 @@ export function PublicLibraryPage() {
   const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [createForm, setCreateForm] = useState<CreateContentRequest>({ name: '', description: '' });
-  const [creating, setCreating] = useState(false);
-
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<LibraryContentResponse | null>(null);
-  const [editForm, setEditForm] = useState<UpdateContentRequest>({});
-  const [updating, setUpdating] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState<LibraryContentResponse | null>(null);
@@ -176,58 +170,22 @@ export function PublicLibraryPage() {
     setPaginationModel({ ...paginationModel, page: 0 });
   };
 
-  const handleCreate = async () => {
-    try {
-      setCreating(true);
-      setError(null);
+  const handleCreate = async (data: ContentFormData) => {
+    const serviceMethod = {
+      world: libraryService.createWorld,
+      campaign: libraryService.createCampaign,
+      adventure: libraryService.createAdventure,
+      encounter: libraryService.createEncounter,
+      asset: libraryService.createAsset,
+    }[currentContentType];
 
-      const serviceMethod = {
-        world: libraryService.createWorld,
-        campaign: libraryService.createCampaign,
-        adventure: libraryService.createAdventure,
-        encounter: libraryService.createEncounter,
-        asset: libraryService.createAsset,
-      }[currentContentType];
-
-      await serviceMethod(createForm);
-      setCreateDialogOpen(false);
-      setCreateForm({ name: '', description: '' });
-      loadContent();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create content');
-    } finally {
-      setCreating(false);
-    }
+    await serviceMethod({ name: data.name, description: data.description });
+    setCreateDialogOpen(false);
+    loadContent();
   };
 
   const handleEdit = (item: LibraryContentResponse) => {
-    setEditingItem(item);
-    setEditForm({
-      name: item.name,
-      description: item.description,
-      isPublished: item.isPublished,
-      isPublic: item.isPublic,
-    });
-    setEditDialogOpen(true);
-  };
-
-  const handleUpdate = async () => {
-    if (!editingItem) return;
-
-    try {
-      setUpdating(true);
-      setError(null);
-
-      await libraryService.updateContent(currentContentType, editingItem.id, editForm);
-      setEditDialogOpen(false);
-      setEditingItem(null);
-      setEditForm({});
-      loadContent();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update content');
-    } finally {
-      setUpdating(false);
-    }
+    navigate(`/admin/library/${currentContentType}s/${item.id}`);
   };
 
   const handleDelete = (item: LibraryContentResponse) => {
@@ -329,6 +287,7 @@ export function PublicLibraryPage() {
       field: 'ownerId',
       headerName: 'Owner',
       width: 150,
+      display: 'flex',
       renderCell: (params: GridRenderCellParams<LibraryContentResponse>) => (
         getOwnerChip(params.row.ownerId, params.row.ownerName)
       ),
@@ -337,6 +296,7 @@ export function PublicLibraryPage() {
       field: 'isPublished',
       headerName: 'Status',
       width: 120,
+      display: 'flex',
       renderCell: (params: GridRenderCellParams<LibraryContentResponse>) => (
         getPublishedChip(params.row.isPublished)
       ),
@@ -345,6 +305,7 @@ export function PublicLibraryPage() {
       field: 'isPublic',
       headerName: 'Visibility',
       width: 100,
+      display: 'flex',
       renderCell: (params: GridRenderCellParams<LibraryContentResponse>) => (
         getPublicChip(params.row.isPublic)
       ),
@@ -352,7 +313,8 @@ export function PublicLibraryPage() {
     {
       field: 'createdAt',
       headerName: 'Created',
-      width: 150,
+      width: 120,
+      display: 'flex',
       renderCell: (params: GridRenderCellParams<LibraryContentResponse>) => (
         <Typography variant="body2">
           {dayjs(params.value).format('MM/DD/YYYY')}
@@ -362,11 +324,12 @@ export function PublicLibraryPage() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 150,
+      width: 130,
       sortable: false,
       disableColumnMenu: true,
+      display: 'flex',
       renderCell: (params: GridRenderCellParams<LibraryContentResponse>) => (
-        <Stack direction="row" spacing={0.5}>
+        <Stack direction="row" spacing={0.5} alignItems="center">
           <Tooltip title="Edit">
             <IconButton size="small" onClick={() => handleEdit(params.row)}>
               <EditIcon fontSize="small" />
@@ -572,112 +535,26 @@ export function PublicLibraryPage() {
         </Paper>
       )}
 
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create New {currentContentLabel.slice(0, -1)}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Name"
-              value={createForm.name}
-              onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-              required
-            />
-            <TextField
-              fullWidth
-              label="Description"
-              value={createForm.description || ''}
-              onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-              multiline
-              rows={3}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleCreate}
-            disabled={!createForm.name || creating}
-          >
-            {creating ? 'Creating...' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ContentEditorDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onSave={handleCreate}
+        title={`Create New ${currentContentLabel.slice(0, -1)}`}
+        contentTypeName={currentContentLabel.slice(0, -1)}
+        showVisibility={false}
+      />
 
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit {currentContentLabel.slice(0, -1)}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Name"
-              value={editForm.name || ''}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Description"
-              value={editForm.description || ''}
-              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-              multiline
-              rows={3}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={editForm.isPublished?.toString() || 'false'}
-                label="Status"
-                onChange={(e) =>
-                  setEditForm({ ...editForm, isPublished: e.target.value === 'true' })
-                }
-              >
-                <MenuItem value="false">Draft</MenuItem>
-                <MenuItem value="true">Published</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Visibility</InputLabel>
-              <Select
-                value={editForm.isPublic?.toString() || 'false'}
-                label="Visibility"
-                onChange={(e) =>
-                  setEditForm({ ...editForm, isPublic: e.target.value === 'true' })
-                }
-              >
-                <MenuItem value="false">Private</MenuItem>
-                <MenuItem value="true">Public</MenuItem>
-              </Select>
-            </FormControl>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpdate} disabled={updating}>
-            {updating ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete "{deletingItem?.name}"? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleConfirmDelete}
-            disabled={deleting}
-          >
-            {deleting ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Delete"
+        message={`Are you sure you want to delete "${deletingItem?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        severity="error"
+        isLoading={deleting}
+      />
 
       <Dialog open={transferDialogOpen} onClose={() => setTransferDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Transfer Ownership</DialogTitle>

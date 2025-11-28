@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-
 namespace VttTools.Admin.Handlers;
 
 public static class HealthCheckHandlers {

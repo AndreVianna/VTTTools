@@ -1,9 +1,7 @@
 import polygonClipping from 'polygon-clipping';
 import type { EncounterRegion, Point } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
 import { distanceBetweenPoints, lineLineIntersection } from '@/utils/lineOfSightCalculation';
 import { cleanPolygonVertices, pointsEqual } from '@/utils/polygonUtils';
-import { SnapMode, snapToNearest } from '@/utils/structureSnapping';
 
 interface Bounds {
   minX: number;
@@ -159,7 +157,137 @@ export function findMergeableRegions(
   return mergeable;
 }
 
-export function mergePolygons(verticesList: Point[][], gridConfig?: GridConfig): Point[] {
+export function findClippableRegions(
+  existingRegions: EncounterRegion[] | undefined,
+  newVertices: Point[],
+  type: string,
+  value?: number,
+  label?: string,
+): EncounterRegion[] {
+  if (!existingRegions || existingRegions.length === 0) return [];
+
+  const clippable: EncounterRegion[] = [];
+
+  for (const region of existingRegions) {
+    const normalizedRegionValue = region.value ?? undefined;
+    const normalizedValue = value ?? undefined;
+    const normalizedRegionLabel = region.label ?? undefined;
+    const normalizedLabel = label ?? undefined;
+
+    const typeMatch = region.type === type;
+    const valueMatch = normalizedRegionValue === normalizedValue;
+    const labelMatch = normalizedRegionLabel === normalizedLabel;
+
+    if (!typeMatch) continue;
+    if (valueMatch && labelMatch) continue;
+
+    const overlaps = polygonsOverlap(region.vertices, newVertices);
+
+    if (overlaps) {
+      clippable.push(region);
+    }
+  }
+
+  return clippable;
+}
+
+export function isNullRegion(type: string, label?: string): boolean {
+  if (type === 'Terrain' && label === 'Normal') return true;
+  if (type === 'Illumination' && label === 'Normal') return true;
+  return false;
+}
+
+export function findRegionsForNullClip(
+  existingRegions: EncounterRegion[] | undefined,
+  newVertices: Point[],
+  type: string,
+): EncounterRegion[] {
+  if (!existingRegions || existingRegions.length === 0) return [];
+
+  const clippable: EncounterRegion[] = [];
+
+  for (const region of existingRegions) {
+    if (region.type !== type) continue;
+
+    const overlaps = polygonsOverlap(region.vertices, newVertices);
+
+    if (overlaps) {
+      clippable.push(region);
+    }
+  }
+
+  return clippable;
+}
+
+export interface ClipResult {
+  regionIndex: number;
+  originalRegion: EncounterRegion;
+  resultPolygons: Point[][];
+}
+
+export function clipPolygon(existingVertices: Point[], clipVertices: Point[]): Point[][] {
+  if (existingVertices.length < 3 || clipVertices.length < 3) {
+    return [existingVertices];
+  }
+
+  try {
+    const existingRing = existingVertices.map((p) => [p.x, p.y] as [number, number]);
+    const clipRing = clipVertices.map((p) => [p.x, p.y] as [number, number]);
+    const existingPoly = [existingRing];
+    const clipPoly = [clipRing];
+
+    const difference = polygonClipping.difference(existingPoly, clipPoly);
+
+    if (difference.length === 0) {
+      return [];
+    }
+
+    const resultPolygons: Point[][] = [];
+
+    for (const polygon of difference) {
+      const outerRing = polygon[0];
+      if (!outerRing || outerRing.length < 3) continue;
+
+      let vertices: Point[] = outerRing.map(([x, y]) => ({
+        x: x as number,
+        y: y as number,
+      }));
+
+      vertices = deduplicateVertices(vertices);
+      vertices = cleanPolygonVertices(vertices, true);
+
+      if (vertices.length >= 3) {
+        resultPolygons.push(vertices);
+      }
+    }
+
+    return resultPolygons;
+  } catch (error) {
+    console.error('Polygon clip failed:', error);
+    return [existingVertices];
+  }
+}
+
+export function computeClipResults(
+  clippableRegions: EncounterRegion[],
+  clipperVertices: Point[],
+): ClipResult[] {
+  const results: ClipResult[] = [];
+
+  for (const region of clippableRegions) {
+    const resultPolygons = clipPolygon(region.vertices, clipperVertices);
+
+    results.push({
+      regionIndex: region.index,
+      originalRegion: region,
+      resultPolygons,
+    });
+  }
+
+  return results;
+}
+
+export function mergePolygons(verticesList: Point[][]): Point[] {
   if (verticesList.length === 0) return [];
   const firstVertices = verticesList[0];
   if (verticesList.length === 1) return firstVertices || [];
@@ -219,11 +347,6 @@ export function mergePolygons(verticesList: Point[][], gridConfig?: GridConfig):
     const selfIntersections = findSelfIntersections(mergedVertices);
     if (selfIntersections.length > 0) {
       mergedVertices = insertIntersectionVertices(mergedVertices, selfIntersections);
-    }
-
-    if (gridConfig && intersections.length > 0) {
-      const intersectionSet = new Set(intersections);
-      mergedVertices = snapIntersectionPoints(mergedVertices, intersectionSet, gridConfig);
     }
 
     mergedVertices = deduplicateVertices(mergedVertices);
@@ -316,16 +439,6 @@ function deduplicateVertices(vertices: Point[], tolerance = 0.001): Point[] {
   }
 
   return result;
-}
-
-function snapIntersectionPoints(vertices: Point[], intersectionSet: Set<Point>, gridConfig: GridConfig): Point[] {
-  return vertices.map((vertex) => {
-    const isIntersection = Array.from(intersectionSet).some((p) => pointsEqual(p, vertex));
-    if (isIntersection) {
-      return snapToNearest(vertex, gridConfig, SnapMode.HalfSnap, 10);
-    }
-    return vertex;
-  });
 }
 
 function calculatePolygonBounds(vertices: Point[]): Bounds {

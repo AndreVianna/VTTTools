@@ -30,6 +30,7 @@ import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
 import { GroupName, LayerName, LayerZIndex, layerManager } from '@services/layerManager';
 import { type GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
+import { sortRegionsForRendering } from '@utils/regionColorUtils';
 import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -914,12 +915,9 @@ const EncounterEditorPageInternal: React.FC = () => {
   }, [encounter, regionTransaction]);
 
   const handleStructurePlacementFinish = useCallback(async () => {
-    console.log('[EncounterEditorPage] handleStructurePlacementFinish called, activePanel:', activePanel);
     try {
       if (activePanel === 'regions') {
-        console.log('[EncounterEditorPage] Calling regionHandlers.handleStructurePlacementFinish');
         await regionHandlers.handleStructurePlacementFinish();
-        console.log('[EncounterEditorPage] regionHandlers.handleStructurePlacementFinish completed');
       } else if (activePanel === 'walls') {
         await wallHandlers.handleWallPlacementFinish();
       } else {
@@ -1555,10 +1553,10 @@ const EncounterEditorPageInternal: React.FC = () => {
 
             {/* Layer 2: GameWorld (structures, objects, monsters) */}
             <Layer name={LayerName.GameWorld} listening={true}>
-              {/* Regions - render first (bottom of GameWorld) */}
+              {/* Regions - render first (bottom of GameWorld), sorted from min to max so highest renders on top */}
               {scopeVisibility.regions && placedRegions && placedRegions.length > 0 && (
                 <Group name={GroupName.Structure}>
-                  {placedRegions.map((encounterRegion) => {
+                  {sortRegionsForRendering(placedRegions).map((encounterRegion) => {
                     if (encounterRegion.index === -1 && drawingRegionIndex !== null) {
                       return null;
                     }
@@ -1572,6 +1570,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       <RegionRenderer
                         key={encounterRegion.id}
                         encounterRegion={encounterRegion}
+                        allRegions={placedRegions}
                         activeScope={activeScope}
                         onSelect={regionHandlers.handleEditRegionVertices}
                         isSelected={selectedRegionIndex === encounterRegion.index}
@@ -1682,6 +1681,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       encounterId={encounterId || ''}
                       regionIndex={editingRegionIndex}
                       segment={regionTransaction.transaction.segment}
+                      allRegions={placedRegions}
                       gridConfig={gridConfig}
                       viewport={viewportControls.viewport}
                       onVerticesChange={(newVertices: Point[]) =>
@@ -1691,9 +1691,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                       onFinish={regionHandlers.handleFinishEditingRegion}
                       onCancel={regionHandlers.handleCancelEditingRegion}
                       onLocalAction={(action: LocalAction) => regionTransaction.pushLocalAction(action)}
-                      {...(regionTransaction.transaction.segment.color && {
-                        color: regionTransaction.transaction.segment.color,
-                      })}
                     />
                   </Group>
                 )}
