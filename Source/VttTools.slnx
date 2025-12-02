@@ -10,6 +10,8 @@
     <Project Path="Core/VttTools.Core.csproj">
       <BuildType Solution="Debug|Any CPU" Project="Release" />
     </Project>
+  </Folder>
+  <Folder Name="/Source/0 Domain/">
     <Project Path="Domain/VttTools.Domain.csproj" />
   </Folder>
   <Folder Name="/Source/1 Storage/">
@@ -56,6 +58,8 @@
     <Project Path="Core.UnitTests/VttTools.Core.UnitTests.csproj">
       <BuildType Solution="Debug|Any CPU" Project="Release" />
     </Project>
+  </Folder>
+  <Folder Name="/Tests/0 Domain/">
     <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests/1 Storage/">

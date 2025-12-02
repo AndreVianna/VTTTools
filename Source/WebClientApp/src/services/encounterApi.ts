@@ -3,10 +3,12 @@ import type {
   CreateEncounterRequest,
   Encounter,
   EncounterAsset,
+  EncounterLightSource,
   EncounterRegion,
-  EncounterSource,
+  EncounterSoundSource,
   EncounterWall,
   EncounterWallSegment,
+  LightSourceType,
   Point,
   UpdateEncounterRequest,
 } from '@/types/domain';
@@ -35,7 +37,7 @@ export interface EncounterAssetBulkUpdate {
 export const encounterApi = createApi({
   reducerPath: 'encounterApi',
   baseQuery: createEnhancedBaseQuery('/api/encounters'),
-  tagTypes: ['Encounter', 'EncounterAsset', 'EncounterWall', 'EncounterRegion', 'EncounterSource'],
+  tagTypes: ['Encounter', 'EncounterAsset', 'EncounterWall', 'EncounterRegion', 'EncounterLightSource', 'EncounterSoundSource'],
   endpoints: (builder) => ({
     getEncounter: builder.query<Encounter, string>({
       query: (id) => `/${id}`,
@@ -454,80 +456,144 @@ export const encounterApi = createApi({
       ],
     }),
 
-    getEncounterSources: builder.query<EncounterSource[], string>({
-      query: (encounterId) => `/${encounterId}/sources`,
+    getEncounterLightSources: builder.query<EncounterLightSource[], string>({
+      query: (encounterId) => `/${encounterId}/lights`,
       providesTags: (result, _error, encounterId) => [
         ...(result?.map(({ index }) => ({
-          type: 'EncounterSource' as const,
+          type: 'EncounterLightSource' as const,
           id: `${encounterId}-${index}`,
         })) ?? []),
-        { type: 'EncounterSource', id: `ENCOUNTER_${encounterId}` },
+        { type: 'EncounterLightSource', id: `ENCOUNTER_${encounterId}` },
       ],
     }),
 
-    addEncounterSource: builder.mutation<
-      EncounterSource,
+    addEncounterLightSource: builder.mutation<
+      EncounterLightSource,
       {
         encounterId: string;
-        name: string;
-        type: string;
+        name?: string;
+        type: LightSourceType;
         position: Point;
-        isDirectional: boolean;
-        direction: number;
-        spread: number;
         range: number;
-        intensity: number;
-        color: string;
-        hasGradient: boolean;
+        direction?: number;
+        arc?: number;
+        color?: string;
+        isOn?: boolean;
       }
     >({
       query: ({ encounterId, ...body }) => ({
-        url: `/${encounterId}/sources`,
+        url: `/${encounterId}/lights`,
         method: 'POST',
         body,
       }),
       invalidatesTags: (_result, _error, { encounterId }) => [
-        { type: 'EncounterSource', id: `ENCOUNTER_${encounterId}` },
+        { type: 'EncounterLightSource', id: `ENCOUNTER_${encounterId}` },
         { type: 'Encounter', id: encounterId },
       ],
     }),
 
-    updateEncounterSource: builder.mutation<
+    updateEncounterLightSource: builder.mutation<
       void,
       {
         encounterId: string;
         sourceIndex: number;
         name?: string;
-        type?: string;
+        type?: LightSourceType;
         position?: Point;
-        isDirectional?: boolean;
-        direction?: number;
-        spread?: number;
         range?: number;
-        intensity?: number;
+        direction?: number;
+        arc?: number;
         color?: string;
-        hasGradient?: boolean;
+        isOn?: boolean;
       }
     >({
       query: ({ encounterId, sourceIndex, ...body }) => ({
-        url: `/${encounterId}/sources/${sourceIndex}`,
+        url: `/${encounterId}/lights/${sourceIndex}`,
         method: 'PATCH',
         body,
       }),
       invalidatesTags: (_result, _error, { encounterId, sourceIndex }) => [
-        { type: 'EncounterSource', id: `${encounterId}-${sourceIndex}` },
+        { type: 'EncounterLightSource', id: `${encounterId}-${sourceIndex}` },
         { type: 'Encounter', id: encounterId },
       ],
     }),
 
-    removeEncounterSource: builder.mutation<void, { encounterId: string; sourceIndex: number }>({
+    removeEncounterLightSource: builder.mutation<void, { encounterId: string; sourceIndex: number }>({
       query: ({ encounterId, sourceIndex }) => ({
-        url: `/${encounterId}/sources/${sourceIndex}`,
+        url: `/${encounterId}/lights/${sourceIndex}`,
         method: 'DELETE',
       }),
       invalidatesTags: (_result, _error, { encounterId, sourceIndex }) => [
-        { type: 'EncounterSource', id: `${encounterId}-${sourceIndex}` },
-        { type: 'EncounterSource', id: `ENCOUNTER_${encounterId}` },
+        { type: 'EncounterLightSource', id: `${encounterId}-${sourceIndex}` },
+        { type: 'EncounterLightSource', id: `ENCOUNTER_${encounterId}` },
+        { type: 'Encounter', id: encounterId },
+      ],
+    }),
+
+    getEncounterSoundSources: builder.query<EncounterSoundSource[], string>({
+      query: (encounterId) => `/${encounterId}/sounds`,
+      providesTags: (result, _error, encounterId) => [
+        ...(result?.map(({ index }) => ({
+          type: 'EncounterSoundSource' as const,
+          id: `${encounterId}-${index}`,
+        })) ?? []),
+        { type: 'EncounterSoundSource', id: `ENCOUNTER_${encounterId}` },
+      ],
+    }),
+
+    addEncounterSoundSource: builder.mutation<
+      EncounterSoundSource,
+      {
+        encounterId: string;
+        name?: string;
+        position: Point;
+        range: number;
+        resourceId?: string;
+        isPlaying?: boolean;
+      }
+    >({
+      query: ({ encounterId, ...body }) => ({
+        url: `/${encounterId}/sounds`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { encounterId }) => [
+        { type: 'EncounterSoundSource', id: `ENCOUNTER_${encounterId}` },
+        { type: 'Encounter', id: encounterId },
+      ],
+    }),
+
+    updateEncounterSoundSource: builder.mutation<
+      void,
+      {
+        encounterId: string;
+        sourceIndex: number;
+        name?: string;
+        position?: Point;
+        range?: number;
+        resourceId?: string;
+        isPlaying?: boolean;
+      }
+    >({
+      query: ({ encounterId, sourceIndex, ...body }) => ({
+        url: `/${encounterId}/sounds/${sourceIndex}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { encounterId, sourceIndex }) => [
+        { type: 'EncounterSoundSource', id: `${encounterId}-${sourceIndex}` },
+        { type: 'Encounter', id: encounterId },
+      ],
+    }),
+
+    removeEncounterSoundSource: builder.mutation<void, { encounterId: string; sourceIndex: number }>({
+      query: ({ encounterId, sourceIndex }) => ({
+        url: `/${encounterId}/sounds/${sourceIndex}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { encounterId, sourceIndex }) => [
+        { type: 'EncounterSoundSource', id: `${encounterId}-${sourceIndex}` },
+        { type: 'EncounterSoundSource', id: `ENCOUNTER_${encounterId}` },
         { type: 'Encounter', id: encounterId },
       ],
     }),
@@ -556,8 +622,12 @@ export const {
   useAddEncounterRegionMutation,
   useUpdateEncounterRegionMutation,
   useRemoveEncounterRegionMutation,
-  useGetEncounterSourcesQuery,
-  useAddEncounterSourceMutation,
-  useUpdateEncounterSourceMutation,
-  useRemoveEncounterSourceMutation,
+  useGetEncounterLightSourcesQuery,
+  useAddEncounterLightSourceMutation,
+  useUpdateEncounterLightSourceMutation,
+  useRemoveEncounterLightSourceMutation,
+  useGetEncounterSoundSourcesQuery,
+  useAddEncounterSoundSourceMutation,
+  useUpdateEncounterSoundSourceMutation,
+  useRemoveEncounterSoundSourceMutation,
 } = encounterApi;

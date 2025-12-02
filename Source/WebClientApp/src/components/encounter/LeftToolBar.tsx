@@ -7,18 +7,19 @@ import {
   ViewInAr as ObjectsIcon,
   Person as CharactersIcon,
   Layers as RegionsIcon,
-  LightMode as SourcesIcon,
+  LightMode as LightsIcon,
+  VolumeUp as SoundsIcon,
   BorderAll as WallsIcon,
 } from '@mui/icons-material';
 import { Box, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall } from '@/types/domain';
+import type { Asset, EncounterLightSource, EncounterSoundSource, PlacedAsset, PlacedRegion, PlacedWall } from '@/types/domain';
 import { AssetKind, type SegmentType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
-import type { SourcePlacementProperties } from './panels';
-import { CharactersPanel, FogOfWarPanel, MonstersPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import type { LightPlacementProperties, SoundPlacementProperties } from './panels';
+import { CharactersPanel, FogOfWarPanel, LightsPanel, MonstersPanel, ObjectsPanel, RegionsPanel, SoundsPanel, WallsPanel } from './panels';
 import { QuickSummonDialog, type PlacementSettings } from './quicksummon';
 
 export type PanelType =
@@ -27,7 +28,8 @@ export type PanelType =
   | 'objects'
   | 'monsters'
   | 'characters'
-  | 'sources'
+  | 'lights'
+  | 'sounds'
   | 'fogOfWar';
 
 export interface LeftToolBarProps {
@@ -65,12 +67,14 @@ export interface LeftToolBarProps {
   onPlacedAssetDelete?: (assetId: string) => void;
   onPlacedAssetRename?: (assetId: string, newName: string) => void;
   onPlacedAssetUpdate?: (assetId: string, updates: Partial<PlacedAsset>) => void;
-  encounterSources?: PlacedSource[] | undefined;
-  selectedSourceIndex?: number | null | undefined;
-  onSourceSelect?: (index: number) => void;
-  onSourceDelete?: (index: number) => void;
-  onPlaceSource?: (properties: SourcePlacementProperties) => void;
-  onEditSource?: (index: number, updates: Partial<PlacedSource>) => void;
+  encounterLightSources?: EncounterLightSource[] | undefined;
+  encounterSoundSources?: EncounterSoundSource[] | undefined;
+  selectedLightSourceIndex?: number | null | undefined;
+  selectedSoundSourceIndex?: number | null | undefined;
+  onLightSourceSelect?: (index: number) => void;
+  onSoundSourceSelect?: (index: number) => void;
+  onPlaceLight?: (properties: LightPlacementProperties) => void;
+  onPlaceSound?: (properties: SoundPlacementProperties) => void;
   onFogHideAll?: () => void;
   onFogRevealAll?: () => void;
   onFogModeChange?: (mode: 'add' | 'subtract') => void;
@@ -111,12 +115,14 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onPlacedAssetDelete,
   onPlacedAssetRename,
   onPlacedAssetUpdate,
-  encounterSources,
-  selectedSourceIndex,
-  onSourceSelect,
-  onSourceDelete,
-  onPlaceSource,
-  onEditSource,
+  encounterLightSources,
+  encounterSoundSources,
+  selectedLightSourceIndex,
+  selectedSoundSourceIndex,
+  onLightSourceSelect,
+  onSoundSourceSelect,
+  onPlaceLight,
+  onPlaceSound,
   onFogHideAll,
   onFogRevealAll,
   onFogModeChange,
@@ -225,7 +231,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
     { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },
     { key: 'characters', icon: CharactersIcon, label: 'Characters' },
-    { key: 'sources', icon: SourcesIcon, label: 'Sources' },
+    { key: 'lights', icon: LightsIcon, label: 'Lights' },
+    { key: 'sounds', icon: SoundsIcon, label: 'Sounds' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
   ];
 
@@ -420,15 +427,22 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
-          {activePanel === 'sources' && (
-            <SourcesPanel
+          {activePanel === 'lights' && (
+            <LightsPanel
               encounterId={encounterId || ''}
-              encounterSources={encounterSources || []}
-              selectedSourceIndex={selectedSourceIndex !== undefined ? selectedSourceIndex : null}
-              onSourceSelect={onSourceSelect || (() => {})}
-              onSourceDelete={onSourceDelete || (() => {})}
-              onPlaceSource={onPlaceSource || (() => {})}
-              {...(onEditSource ? { onEditSource } : {})}
+              lightSources={encounterLightSources || []}
+              selectedSourceIndex={selectedLightSourceIndex ?? null}
+              onSourceSelect={onLightSourceSelect || (() => {})}
+              onPlaceLight={onPlaceLight || (() => {})}
+            />
+          )}
+          {activePanel === 'sounds' && (
+            <SoundsPanel
+              encounterId={encounterId || ''}
+              soundSources={encounterSoundSources || []}
+              selectedSourceIndex={selectedSoundSourceIndex ?? null}
+              onSourceSelect={onSoundSourceSelect || (() => {})}
+              onPlaceSound={onPlaceSound || (() => {})}
             />
           )}
           {activePanel === 'fogOfWar' && (

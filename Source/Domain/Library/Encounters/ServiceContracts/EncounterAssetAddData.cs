@@ -7,9 +7,6 @@ public record EncounterAssetAddData
 
     public Frame Frame { get; init; } = new Frame();
 
-    /// <summary>
-    /// Single image reference for this asset instance.
-    /// </summary>
     public Guid? ImageId { get; init; }
 
     public NamedSize Size { get; init; } = NamedSize.Zero;

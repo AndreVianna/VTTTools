@@ -203,14 +203,12 @@ internal static class EncounterHandlers {
     internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterWallAddRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
         var data = new EncounterWallAddData {
-            Name = request.Name,
             Segments = request.Segments,
         };
         var result = await encounterService.AddWallAsync(userId, id, data);
         return result.IsSuccessful
             ? Results.Ok(new EncounterWallResponse {
                 Index = result.Value.Index,
-                Name = result.Value.Name,
                 Segments = [.. result.Value.Segments],
             })
             : result.Errors[0].Message == "NotFound"
@@ -223,7 +221,6 @@ internal static class EncounterHandlers {
     internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterWallUpdateRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
         var data = new EncounterWallUpdateData {
-            Name = request.Name,
             Segments = request.Segments,
         };
         var result = await encounterService.UpdateWallAsync(userId, id, (uint)index, data);
@@ -302,32 +299,30 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterSourceAddRequest request, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> AddLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterLightSourceAddRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterSourceAddData {
+        var data = new EncounterLightSourceAddData {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
-            IsDirectional = request.IsDirectional,
-            Direction = request.Direction,
             Range = request.Range,
-            Spread = request.Spread,
-            HasGradient = request.HasGradient,
-            Intensity = request.Intensity,
+            Direction = request.Direction,
+            Arc = request.Arc,
+            Color = request.Color,
+            IsOn = request.IsOn,
         };
-        var result = await encounterService.AddSourceAsync(userId, id, data);
+        var result = await encounterService.AddLightSourceAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.Ok(new EncounterSourceResponse {
+            ? Results.Ok(new EncounterLightSourceResponse {
                 Index = result.Value.Index,
                 Name = result.Value.Name,
                 Type = result.Value.Type,
                 Position = result.Value.Position,
-                IsDirectional = result.Value.IsDirectional,
-                Direction = result.Value.Direction,
                 Range = result.Value.Range,
-                Spread = result.Value.Spread,
-                HasGradient = result.Value.HasGradient,
-                Intensity = result.Value.Intensity,
+                Direction = result.Value.Direction,
+                Arc = result.Value.Arc,
+                Color = result.Value.Color,
+                IsOn = result.Value.IsOn,
             })
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
@@ -336,20 +331,19 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterSourceUpdateRequest request, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> UpdateLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterLightSourceUpdateRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterSourceUpdateData {
+        var data = new EncounterLightSourceUpdateData {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
-            IsDirectional = request.IsDirectional,
-            Direction = request.Direction,
             Range = request.Range,
-            Spread = request.Spread,
-            HasGradient = request.HasGradient,
-            Intensity = request.Intensity,
+            Direction = request.Direction,
+            Arc = request.Arc,
+            Color = request.Color,
+            IsOn = request.IsOn,
         };
-        var result = await encounterService.UpdateSourceAsync(userId, id, (uint)index, data);
+        var result = await encounterService.UpdateLightSourceAsync(userId, id, (uint)index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -359,9 +353,66 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> RemoveSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> RemoveLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveSourceAsync(userId, id, (uint)index);
+        var result = await encounterService.RemoveLightSourceAsync(userId, id, (uint)index);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> AddSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterSoundSourceAddRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterSoundSourceAddData {
+            Name = request.Name,
+            Position = request.Position,
+            Range = request.Range,
+            ResourceId = request.ResourceId,
+            IsPlaying = request.IsPlaying,
+        };
+        var result = await encounterService.AddSoundSourceAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(new EncounterSoundSourceResponse {
+                Index = result.Value.Index,
+                Name = result.Value.Name,
+                Position = result.Value.Position,
+                Range = result.Value.Range,
+                ResourceId = result.Value.Resource?.Id,
+                IsPlaying = result.Value.IsPlaying,
+            })
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> UpdateSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterSoundSourceUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterSoundSourceUpdateData {
+            Name = request.Name,
+            Position = request.Position,
+            Range = request.Range,
+            ResourceId = request.ResourceId,
+            IsPlaying = request.IsPlaying,
+        };
+        var result = await encounterService.UpdateSoundSourceAsync(userId, id, (uint)index, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> RemoveSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var result = await encounterService.RemoveSoundSourceAsync(userId, id, (uint)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

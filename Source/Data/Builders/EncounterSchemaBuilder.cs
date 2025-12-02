@@ -1,9 +1,10 @@
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using EncounterAsset = VttTools.Data.Library.Entities.EncounterAsset;
-using EncounterWallSegment = VttTools.Data.Library.Entities.EncounterWallSegment;
 using EncounterRegion = VttTools.Data.Library.Entities.EncounterRegion;
-using EncounterSource = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWall = VttTools.Data.Library.Entities.EncounterWall;
+using EncounterWallSegment = VttTools.Data.Library.Entities.EncounterWallSegment;
+using EncounterLightSource = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterSoundSource = VttTools.Data.Library.Entities.EncounterSoundSource;
 
 namespace VttTools.Data.Builders;
 
@@ -22,14 +23,14 @@ internal static class EncounterSchemaBuilder {
                 panningBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0.0).HasColumnName("PanningX");
                 panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0.0).HasColumnName("PanningY");
             });
-            entity.Property(e => e.Light).IsRequired().HasConversion<string>().HasDefaultValue(Light.Ambient);
+            entity.Property(e => e.AmbientLight).IsRequired().HasConversion<string>().HasDefaultValue(AmbientLight.Default);
             entity.Property(e => e.Weather).IsRequired().HasConversion<string>().HasDefaultValue(Weather.Clear);
-            entity.Property(e => e.Elevation).IsRequired().HasDefaultValue(0.0f);
+            entity.Property(e => e.GroundElevation).IsRequired().HasDefaultValue(0.0f);
             entity.HasOne(e => e.Background).WithMany()
                 .HasForeignKey(e => e.BackgroundId).IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(e => e.Sound).WithMany()
-                .HasForeignKey(e => e.SoundId).IsRequired(false)
+            entity.HasOne(e => e.AmbientSound).WithMany()
+                .HasForeignKey(e => e.AmbientSoundId).IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
@@ -54,9 +55,8 @@ internal static class EncounterSchemaBuilder {
             entity.Property(ea => ea.AssetId).IsRequired();
             entity.Property(ea => ea.EncounterId).IsRequired();
             entity.Property(ea => ea.Index).IsRequired();
-            entity.Property(ea => ea.Number).IsRequired();
 
-            entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
+            entity.Property(ea => ea.Name).IsRequired(false).HasMaxLength(128);
             entity.Property(ea => ea.Notes).HasMaxLength(4096);
             entity.Property(ea => ea.ImageId);
 
@@ -98,8 +98,6 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.EncounterId).IsRequired();
             entity.Property(e => e.Index).IsRequired();
 
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-
             entity.HasOne(e => e.Encounter)
                 .WithMany(s => s.Walls)
                 .HasForeignKey(e => e.EncounterId)
@@ -114,6 +112,8 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.EncounterId).IsRequired();
             entity.Property(e => e.WallIndex).IsRequired();
             entity.Property(e => e.Index).IsRequired();
+
+            entity.Property(e => e.Name).IsRequired(false).HasMaxLength(128);
 
             entity.ComplexProperty(e => e.StartPole, pole => {
                 pole.IsRequired();
@@ -147,8 +147,8 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.EncounterId).IsRequired();
             entity.Property(e => e.Index).IsRequired();
 
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.Name).IsRequired(false).HasMaxLength(128);
+            entity.Property(e => e.Type).IsRequired().HasConversion<string>().HasDefaultValue(RegionType.Elevation);
             entity.Property(e => e.Value).IsRequired();
 
             entity.OwnsMany(e => e.Vertices, vertices => {
@@ -165,19 +165,18 @@ internal static class EncounterSchemaBuilder {
             entity.HasIndex(e => e.EncounterId);
         });
 
-        builder.Entity<EncounterSource>(entity => {
-            entity.ToTable("EncounterSources");
+        builder.Entity<EncounterLightSource>(entity => {
+            entity.ToTable("EncounterLightSources");
             entity.HasKey(e => new { e.EncounterId, e.Index });
             entity.Property(e => e.EncounterId).IsRequired();
             entity.Property(e => e.Index).IsRequired();
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
-            entity.Property(e => e.Direction).IsRequired().HasDefaultValue(0.0);
-            entity.Property(e => e.IsDirectional).IsRequired();
+            entity.Property(e => e.Name).IsRequired(false).HasMaxLength(128);
+            entity.Property(e => e.Type).IsRequired().HasConversion<string>().HasDefaultValue(LightSourceType.Natural);
             entity.Property(e => e.Range).IsRequired().HasDefaultValue(0.0);
-            entity.Property(e => e.Spread).IsRequired().HasDefaultValue(0.0);
-            entity.Property(e => e.Intensity).IsRequired().HasDefaultValue(100.0);
-            entity.Property(e => e.HasGradient).IsRequired();
+            entity.Property(e => e.Direction).IsRequired(false);
+            entity.Property(e => e.Arc).IsRequired(false);
+            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(16);
+            entity.Property(e => e.IsOn).IsRequired();
 
             entity.ComplexProperty(e => e.Position, position => {
                 position.IsRequired();
@@ -186,7 +185,34 @@ internal static class EncounterSchemaBuilder {
             });
 
             entity.HasOne(e => e.Encounter)
-                .WithMany(s => s.Sources)
+                .WithMany(s => s.LightSources)
+                .HasForeignKey(e => e.EncounterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.EncounterId);
+        });
+
+        builder.Entity<EncounterSoundSource>(entity => {
+            entity.ToTable("EncounterSoundSources");
+            entity.HasKey(e => new { e.EncounterId, e.Index });
+            entity.Property(e => e.EncounterId).IsRequired();
+            entity.Property(e => e.Index).IsRequired();
+            entity.Property(e => e.Name).IsRequired(false).HasMaxLength(128);
+            entity.Property(e => e.Range).IsRequired().HasDefaultValue(0.0);
+            entity.Property(e => e.IsPlaying).IsRequired();
+
+            entity.ComplexProperty(e => e.Position, position => {
+                position.IsRequired();
+                position.Property(p => p.X).IsRequired().HasDefaultValue(0.0).HasColumnName("X");
+                position.Property(p => p.Y).IsRequired().HasDefaultValue(0.0).HasColumnName("Y");
+            });
+
+            entity.HasOne(e => e.Resource).WithMany()
+                .HasForeignKey(e => e.ResourceId).IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Encounter)
+                .WithMany(s => s.SoundSources)
                 .HasForeignKey(e => e.EncounterId)
                 .OnDelete(DeleteBehavior.Cascade);
 

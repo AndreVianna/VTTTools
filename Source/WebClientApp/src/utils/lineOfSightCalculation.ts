@@ -1,4 +1,4 @@
-import { type EncounterSource, type EncounterWall, type Point, SegmentState, SegmentType } from '@/types/domain';
+import { type EncounterLightSource, type EncounterWall, type Point, SegmentState, SegmentType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface Ray {
@@ -66,21 +66,14 @@ export function castRay(ray: Ray, opaqueSegments: LineSegment[]): Point {
   return closestIntersection ?? rayEnd;
 }
 
-function isSegmentOpaque(type: SegmentType, state: SegmentState): boolean {
-  switch (type) {
-    case SegmentType.Wall:
-      return true;
-    case SegmentType.Fence:
-      return false;
-    case SegmentType.Door:
-    case SegmentType.Window:
-      return state !== SegmentState.Open;
-    case SegmentType.Passage:
-    case SegmentType.Opening:
-      return false;
-    default:
-      return true;
+function isSegmentOpaque(segment: { type: SegmentType; state: SegmentState; isOpaque: boolean }): boolean {
+  if (segment.type === SegmentType.Door) {
+    return segment.isOpaque && segment.state === SegmentState.Closed;
   }
+  if (segment.type === SegmentType.Window) {
+    return false;
+  }
+  return segment.isOpaque;
 }
 
 export function extractOpaqueSegments(encounterWalls: EncounterWall[]): LineSegment[] {
@@ -88,7 +81,7 @@ export function extractOpaqueSegments(encounterWalls: EncounterWall[]): LineSegm
 
   for (const encounterWall of encounterWalls) {
     for (const wallSegment of encounterWall.segments) {
-      if (isSegmentOpaque(wallSegment.type, wallSegment.state)) {
+      if (isSegmentOpaque(wallSegment)) {
         segments.push({
           start: { x: wallSegment.startPole.x, y: wallSegment.startPole.y },
           end: { x: wallSegment.endPole.x, y: wallSegment.endPole.y },
@@ -101,16 +94,49 @@ export function extractOpaqueSegments(encounterWalls: EncounterWall[]): LineSegm
 }
 
 export function calculateLineOfSight(
-  source: EncounterSource,
+  source: EncounterLightSource,
   range: number,
   encounterWalls: EncounterWall[],
   gridConfig: GridConfig,
 ): Point[] {
   const rangeInPixels = range * gridConfig.cellSize.width;
+  const segments = extractOpaqueSegments(encounterWalls);
+
+  const isDirectional = source.direction !== undefined && source.arc !== undefined;
+
+  if (isDirectional) {
+    const directionRadians = (source.direction! * Math.PI) / 180;
+    const halfArcRadians = ((source.arc! / 2) * Math.PI) / 180;
+
+    const startAngle = directionRadians - halfArcRadians;
+    const endAngle = directionRadians + halfArcRadians;
+
+    const rayCount = Math.max(12, Math.ceil((source.arc! / 360) * 72));
+    const angleStep = (endAngle - startAngle) / Math.max(1, rayCount - 1);
+
+    const losPoints: Point[] = [];
+
+    losPoints.push(source.position);
+
+    for (let i = 0; i < rayCount; i++) {
+      const angle = startAngle + i * angleStep;
+      const ray: Ray = {
+        origin: source.position,
+        angle,
+        maxDistance: rangeInPixels,
+      };
+
+      const rayEnd = castRay(ray, segments);
+      losPoints.push(rayEnd);
+    }
+
+    losPoints.push(source.position);
+
+    return losPoints;
+  }
+
   const rayCount = 72;
   const angleStep = (2 * Math.PI) / rayCount;
-
-  const segments = extractOpaqueSegments(encounterWalls);
 
   const losPoints: Point[] = [];
   for (let i = 0; i < rayCount; i++) {

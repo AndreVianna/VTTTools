@@ -2,7 +2,7 @@
 
 public record EncounterAssetUpdateRequest
     : Request {
-    public Optional<string> Name { get; init; }
+    public Optional<string?> Name { get; init; }
 
     public Optional<bool> IsVisible { get; set; }
     public Optional<bool> IsLocked { get; set; }

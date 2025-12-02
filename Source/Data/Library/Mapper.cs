@@ -2,12 +2,15 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
 using WorldEntity = VttTools.Data.Library.Entities.World;
-using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
-using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
-using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
+using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterWallSegmentEntity = VttTools.Data.Library.Entities.EncounterWallSegment;
+using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
+using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSoundSource;
+using Resource = VttTools.Media.Model.Resource;
+using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library;
 
@@ -63,16 +66,17 @@ internal static class Mapper {
                 Background = entity.Background != null ? entity.Background.ToModel() : null,
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
-                Light = entity.Light,
+                Light = entity.AmbientLight,
                 Weather = entity.Weather,
-                Elevation = entity.Elevation,
-                Sound = entity.Sound != null ? entity.Sound.ToModel() : null,
+                Elevation = entity.GroundElevation,
+                Sound = entity.AmbientSound != null ? entity.AmbientSound.ToModel() : null,
             },
             Grid = entity.Grid,
             Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
             Walls = entity.Walls.AsQueryable().Select(AsEncounterWall!).ToList(),
             Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
-            Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
+            LightSources = entity.LightSources.AsQueryable().Select(AsEncounterLightSource!).ToList(),
+            SoundSources = entity.SoundSources.AsQueryable().Select(AsEncounterSoundSource!).ToList(),
         };
 
     internal static Expression<Func<EncounterEntity, Encounter>> AsEncounter = entity
@@ -85,23 +89,23 @@ internal static class Mapper {
                 Background = entity.Background != null ? entity.Background.ToModel() : null,
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
-                Light = entity.Light,
+                Light = entity.AmbientLight,
                 Weather = entity.Weather,
-                Elevation = entity.Elevation,
-                Sound = entity.Sound != null ? entity.Sound.ToModel() : null,
+                Elevation = entity.GroundElevation,
+                Sound = entity.AmbientSound != null ? entity.AmbientSound.ToModel() : null,
             },
             Grid = entity.Grid,
             Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
             Walls = entity.Walls.AsQueryable().Select(AsEncounterWall!).ToList(),
             Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
-            Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
+            LightSources = entity.LightSources.AsQueryable().Select(AsEncounterLightSource!).ToList(),
+            SoundSources = entity.SoundSources.AsQueryable().Select(AsEncounterSoundSource!).ToList(),
         };
 
     internal static Expression<Func<EncounterAssetEntity, EncounterAsset>> AsEncounterAsset = entity
         => new() {
             AssetId = entity.AssetId,
             Index = entity.Index,
-            Number = entity.Number,
             Name = entity.Name,
             Notes = entity.Notes,
             Image = entity.Image == null ? null : entity.Image.ToModel(),
@@ -265,16 +269,17 @@ internal static class Mapper {
                 Background = entity.Background?.ToModel(),
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
-                Light = entity.Light,
+                Light = entity.AmbientLight,
                 Weather = entity.Weather,
-                Elevation = entity.Elevation,
-                Sound = entity.Sound?.ToModel(),
+                Elevation = entity.GroundElevation,
+                Sound = entity.AmbientSound?.ToModel(),
             },
             Grid = entity.Grid,
             Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel(entity.Grid)!)],
             Walls = [.. entity.Walls.Select(sb => sb.ToModel(entity.Grid)!)],
             Regions = [.. entity.Regions.Select(sr => sr.ToModel(entity.Grid)!)],
-            Sources = [.. entity.Sources.Select(ss => ss.ToModel(entity.Grid)!)],
+            LightSources = [.. entity.LightSources.Select(ss => ss.ToModel(entity.Grid)!)],
+            SoundSources = [.. entity.SoundSources.Select(ss => ss.ToModel(entity.Grid)!)],
         };
 
     internal static EncounterEntity ToEntity(this Encounter model, Guid adventureId)
@@ -287,15 +292,16 @@ internal static class Mapper {
             BackgroundId = model.Stage.Background?.Id,
             ZoomLevel = model.Stage.ZoomLevel,
             Panning = model.Stage.Panning,
-            Light = model.Stage.Light,
+            AmbientLight = model.Stage.Light,
             Weather = model.Stage.Weather,
-            Elevation = model.Stage.Elevation,
-            SoundId = model.Stage.Sound?.Id,
+            GroundElevation = model.Stage.Elevation,
+            AmbientSoundId = model.Stage.Sound?.Id,
             Grid = model.Grid,
             EncounterAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id, model.Grid)) ?? [],
             Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id, model.Grid)) ?? [],
             Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id, model.Grid)) ?? [],
-            Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
+            LightSources = model.LightSources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
+            SoundSources = model.SoundSources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
         };
 
     internal static EncounterEntity UpdateFrom(this EncounterEntity entity, Encounter model) {
@@ -306,10 +312,10 @@ internal static class Mapper {
         entity.BackgroundId = model.Stage.Background?.Id;
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
-        entity.Light = model.Stage.Light;
+        entity.AmbientLight = model.Stage.Light;
         entity.Weather = model.Stage.Weather;
-        entity.Elevation = model.Stage.Elevation;
-        entity.SoundId = model.Stage.Sound?.Id;
+        entity.GroundElevation = model.Stage.Elevation;
+        entity.AmbientSoundId = model.Stage.Sound?.Id;
         entity.Grid = model.Grid;
 
         // Update EncounterAssets
@@ -360,19 +366,33 @@ internal static class Mapper {
             }
         }
 
-        // Update Sources
-        var sourceIndices = model.Sources.Select(ss => ss.Index).ToHashSet();
-        var sourcesToRemove = entity.Sources.Where(es => !sourceIndices.Contains(es.Index)).ToList();
-        foreach (var sourceToRemove in sourcesToRemove) {
-            entity.Sources.Remove(sourceToRemove);
+        // Update Light Sources
+        var lightSourceIndices = model.LightSources.Select(ss => ss.Index).ToHashSet();
+        foreach (var lightSourceToRemove in entity.LightSources.Where(es => !lightSourceIndices.Contains(es.Index)).ToList()) {
+            entity.LightSources.Remove(lightSourceToRemove);
         }
-        foreach (var modelSource in model.Sources) {
-            var existingSource = entity.Sources.FirstOrDefault(es => es.Index == modelSource.Index);
-            if (existingSource != null) {
-                UpdateFrom(existingSource, entity.Id, modelSource, model.Grid);
+        foreach (var modelLightSource in model.LightSources) {
+            var existingLightSource = entity.LightSources.FirstOrDefault(es => es.Index == modelLightSource.Index);
+            if (existingLightSource != null) {
+                UpdateFrom(existingLightSource, entity.Id, modelLightSource, model.Grid);
             }
             else {
-                entity.Sources.Add(ToEntity(modelSource, entity.Id, model.Grid));
+                entity.LightSources.Add(ToEntity(modelLightSource, entity.Id, model.Grid));
+            }
+        }
+
+        // Update Sound Sources
+        var soundSourceIndices = model.SoundSources.Select(ss => ss.Index).ToHashSet();
+        foreach (var soundSourceToRemove in entity.SoundSources.Where(es => !soundSourceIndices.Contains(es.Index)).ToList()) {
+            entity.SoundSources.Remove(soundSourceToRemove);
+        }
+        foreach (var modelSoundSource in model.SoundSources) {
+            var existingSoundSource = entity.SoundSources.FirstOrDefault(es => es.Index == modelSoundSource.Index);
+            if (existingSoundSource != null) {
+                UpdateFrom(existingSoundSource, entity.Id, modelSoundSource, model.Grid);
+            }
+            else {
+                entity.SoundSources.Add(ToEntity(modelSoundSource, entity.Id, model.Grid));
             }
         }
 
@@ -384,7 +404,6 @@ internal static class Mapper {
         => entity == null ? null : new() {
             AssetId = entity.AssetId,
             Index = entity.Index,
-            Number = entity.Number,
             Name = entity.Name,
             Notes = entity.Notes,
             Image = entity.Image?.ToModel(),
@@ -402,7 +421,6 @@ internal static class Mapper {
             EncounterId = encounterId,
             AssetId = model.AssetId,
             Index = model.Index,
-            Number = model.Number,
             Name = model.Name,
             Notes = model.Notes,
             ImageId = model.Image?.Id,
@@ -419,7 +437,6 @@ internal static class Mapper {
         entity.EncounterId = encounterId;
         entity.AssetId = model.AssetId;
         entity.Index = model.Index;
-        entity.Number = model.Number;
         entity.Name = model.Name;
         entity.Notes = model.Notes;
         entity.ImageId = model.Image?.Id;
@@ -436,7 +453,6 @@ internal static class Mapper {
     internal static Expression<Func<EncounterWallEntity, EncounterWall>> AsEncounterWall = entity
         => new() {
             Index = entity.Index,
-            Name = entity.Name,
             Segments = entity.Segments.AsQueryable().Select(s => s.ToModel()!).ToList(),
         };
 
@@ -444,21 +460,13 @@ internal static class Mapper {
     internal static EncounterWall? ToModel(this EncounterWallEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
-            Name = entity.Name,
-            Segments = entity.Segments.ConvertAll(s => new EncounterWallSegment {
-                Index = s.Index,
-                StartPole = GridConverter.PoleToPixel(s.StartPole, grid),
-                EndPole = GridConverter.PoleToPixel(s.EndPole, grid),
-                Type = s.Type,
-                State = s.State,
-            }),
+            Segments = entity.Segments.ConvertAll(s => s.ToModel(grid)),
         };
 
     internal static EncounterWallEntity ToEntity(this EncounterWall model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
-            Name = model.Name,
             Segments = [.. model.Segments.Select(s => new EncounterWallSegmentEntity {
                 EncounterId = encounterId,
                 WallIndex = model.Index,
@@ -473,7 +481,6 @@ internal static class Mapper {
     internal static EncounterWallEntity UpdateFrom(this EncounterWallEntity entity, Guid encounterId, EncounterWall model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
-        entity.Name = model.Name;
         entity.Segments = [.. model.Segments.Select(s => new EncounterWallSegmentEntity {
             EncounterId = encounterId,
             WallIndex = model.Index,
@@ -485,6 +492,63 @@ internal static class Mapper {
         })];
         return entity;
     }
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static EncounterWallSegment? ToModel(this EncounterWallSegmentEntity? entity, Grid grid)
+        => entity == null ? null : new() {
+            Index = entity.Index,
+            Name = entity.Name,
+            StartPole = GridConverter.PoleToPixel(entity.StartPole, grid),
+            EndPole = GridConverter.PoleToPixel(entity.EndPole, grid),
+            Type = entity.Type,
+            IsOpaque = entity.IsOpaque,
+            State = entity.State,
+        };
+
+    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, uint wallIndex, Grid grid)
+        => new() {
+            EncounterId = encounterId,
+            WallIndex = wallIndex,
+            Index = model.Index,
+            StartPole = GridConverter.PoleToGrid(model.StartPole, grid),
+            EndPole = GridConverter.PoleToGrid(model.EndPole, grid),
+            Type = model.Type,
+            IsOpaque = model.IsOpaque,
+            State = model.State,
+        };
+
+    internal static EncounterWallSegmentEntity UpdateFrom(this EncounterWallSegmentEntity entity, Guid encounterId, uint wallIndex, EncounterWallSegment model, Grid grid) {
+        entity.EncounterId = encounterId;
+        entity.WallIndex = wallIndex;
+        entity.Index = model.Index;
+        entity.StartPole = GridConverter.PoleToGrid(model.StartPole, grid);
+        entity.EndPole = GridConverter.PoleToGrid(model.EndPole, grid);
+        entity.Type = model.Type;
+        entity.IsOpaque = model.IsOpaque;
+        entity.State = model.State;
+        return entity;
+    }
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static EncounterWallSegment? ToModel(this EncounterWallSegmentEntity? entity)
+        => entity == null ? null : new() {
+            Index = entity.Index,
+            StartPole = entity.StartPole,
+            EndPole = entity.EndPole,
+            Type = entity.Type,
+            State = entity.State,
+        };
+
+    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, uint wallIndex)
+        => new() {
+            EncounterId = encounterId,
+            WallIndex = wallIndex,
+            Index = model.Index,
+            StartPole = model.StartPole,
+            EndPole = model.EndPole,
+            Type = model.Type,
+            State = model.State,
+        };
 
     internal static Expression<Func<EncounterRegionEntity, EncounterRegion>> AsEncounterRegion = entity
         => new() {
@@ -525,83 +589,101 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<EncounterSourceEntity, EncounterSource>> AsEncounterSource = entity
+    internal static Expression<Func<EncounterLightSourceEntity, EncounterLightSource>> AsEncounterLightSource = entity
         => new() {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
             Position = entity.Position,
-            IsDirectional = entity.IsDirectional,
             Direction = entity.Direction,
             Range = entity.Range,
-            Spread = entity.Spread,
-            Intensity = entity.Intensity,
-            HasGradient = entity.HasGradient,
+            Arc = entity.Arc,
+            Color = entity.Color,
+            IsOn = entity.IsOn,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterSource? ToModel(this EncounterSourceEntity? entity, Grid grid)
+    internal static EncounterLightSource? ToModel(this EncounterLightSourceEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
             Position = GridConverter.PointToPixel(entity.Position, grid),
-            IsDirectional = entity.IsDirectional,
             Direction = entity.Direction,
             Range = entity.Range,
-            Spread = entity.Spread,
-            Intensity = entity.Intensity,
-            HasGradient = entity.HasGradient,
+            Arc = entity.Arc,
+            Color = entity.Color,
+            IsOn = entity.IsOn,
         };
 
-    internal static EncounterSourceEntity ToEntity(this EncounterSource model, Guid encounterId, Grid grid)
+    internal static EncounterLightSourceEntity ToEntity(this EncounterLightSource model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
             Position = GridConverter.PointToGrid(model.Position, grid),
-            IsDirectional = model.IsDirectional,
             Direction = model.Direction,
             Range = model.Range,
-            Spread = model.Spread,
-            Intensity = model.Intensity,
-            HasGradient = model.HasGradient,
+            Arc = model.Arc,
+            Color = model.Color,
+            IsOn = model.IsOn,
         };
 
-    internal static EncounterSourceEntity UpdateFrom(this EncounterSourceEntity entity, Guid encounterId, EncounterSource model, Grid grid) {
+    internal static EncounterLightSourceEntity UpdateFrom(this EncounterLightSourceEntity entity, Guid encounterId, EncounterLightSource model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
         entity.Position = GridConverter.PointToGrid(model.Position, grid);
-        entity.IsDirectional = model.IsDirectional;
         entity.Direction = model.Direction;
         entity.Range = model.Range;
-        entity.Spread = model.Spread;
-        entity.Intensity = model.Intensity;
-        entity.HasGradient = model.HasGradient;
+        entity.Arc = model.Arc;
+        entity.Color = model.Color;
+        entity.IsOn = model.IsOn;
         return entity;
     }
 
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterWallSegment? ToModel(this EncounterWallSegmentEntity? entity)
-        => entity == null ? null : new() {
+    internal static Expression<Func<EncounterSoundSourceEntity, EncounterSoundSource>> AsEncounterSoundSource = entity
+        => new() {
             Index = entity.Index,
-            StartPole = entity.StartPole,
-            EndPole = entity.EndPole,
-            Type = entity.Type,
-            State = entity.State,
+            Name = entity.Name,
+            Position = entity.Position,
+            Range = entity.Range,
+            Resource = entity.Resource != null ? entity.Resource.ToModel() : null,
+            IsPlaying = entity.IsPlaying,
         };
 
-    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, uint wallIndex)
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static EncounterSoundSource? ToModel(this EncounterSoundSourceEntity? entity, Grid grid)
+        => entity == null ? null : new() {
+            Index = entity.Index,
+            Name = entity.Name,
+            Position = GridConverter.PointToPixel(entity.Position, grid),
+            Range = entity.Range,
+            Resource = entity.Resource?.ToModel(),
+            IsPlaying = entity.IsPlaying,
+        };
+
+    internal static EncounterSoundSourceEntity ToEntity(this EncounterSoundSource model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
-            WallIndex = wallIndex,
             Index = model.Index,
-            StartPole = model.StartPole,
-            EndPole = model.EndPole,
-            Type = model.Type,
-            State = model.State,
+            Name = model.Name,
+            Position = GridConverter.PointToGrid(model.Position, grid),
+            Range = model.Range,
+            ResourceId = model.Resource?.Id,
+            IsPlaying = model.IsPlaying,
         };
+
+    internal static EncounterSoundSourceEntity UpdateFrom(this EncounterSoundSourceEntity entity, Guid encounterId, EncounterSoundSource model, Grid grid) {
+        entity.EncounterId = encounterId;
+        entity.Index = model.Index;
+        entity.Name = model.Name;
+        entity.Position = GridConverter.PointToGrid(model.Position, grid);
+        entity.Range = model.Range;
+        entity.ResourceId = model.Resource?.Id;
+        entity.IsPlaying = model.IsPlaying;
+        return entity;
+    }
 }

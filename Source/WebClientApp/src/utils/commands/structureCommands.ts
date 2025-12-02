@@ -1,4 +1,4 @@
-import type { EncounterRegion, EncounterSource, EncounterWall, Point } from '@/types/domain';
+import type { EncounterRegion, EncounterLightSource, EncounterSoundSource, EncounterWall, Point } from '@/types/domain';
 import type { Command } from '@/utils/commands';
 import { getPolesFromWall } from '@/utils/wallUtils';
 
@@ -155,7 +155,7 @@ export interface PlaceSourceCommandParams {
     range?: number,
     intensity?: number,
     hasGradient?: boolean,
-  ) => Promise<EncounterSource>;
+  ) => Promise<EncounterLightSource | EncounterSoundSource>;
   removeSourceFn: (encounterId: string, id: number) => Promise<void>;
 }
 
@@ -192,7 +192,7 @@ export class PlaceSourceCommand implements Command {
 
 export interface RemoveSourceCommandParams {
   encounterId: string;
-  encounterSource: EncounterSource;
+  encounterSource: EncounterLightSource | EncounterSoundSource;
   placeSourceFn: (
     encounterId: string,
     id: number,
@@ -200,7 +200,7 @@ export interface RemoveSourceCommandParams {
     range?: number,
     intensity?: number,
     hasGradient?: boolean,
-  ) => Promise<EncounterSource>;
+  ) => Promise<EncounterLightSource | EncounterSoundSource>;
   removeSourceFn: (encounterId: string, id: number) => Promise<void>;
 }
 
@@ -223,8 +223,8 @@ export class RemoveSourceCommand implements Command {
       this.params.encounterSource.index,
       this.params.encounterSource.position,
       this.params.encounterSource.range,
-      this.params.encounterSource.intensity,
-      this.params.encounterSource.hasGradient,
+      undefined,
+      undefined,
     );
   }
 }

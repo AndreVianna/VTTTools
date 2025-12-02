@@ -117,13 +117,13 @@ export function getRegionColor(region: PlacedRegion, allRegions: PlacedRegion[])
 export function sortRegions(regions: PlacedRegion[]): PlacedRegion[] {
   return [...regions].sort((a, b) => {
     if (a.type === 'Elevation' && b.type === 'Elevation') {
-      return (b.value ?? 0) - (a.value ?? 0);
+      return (a.value ?? 0) - (b.value ?? 0);
     }
     if (a.type === 'Terrain' && b.type === 'Terrain') {
-      return (b.value ?? 0) - (a.value ?? 0);
+      return (a.value ?? 0) - (b.value ?? 0);
     }
     if (a.type === 'Illumination' && b.type === 'Illumination') {
-      return (b.value ?? 0) - (a.value ?? 0);
+      return (a.value ?? 0) - (b.value ?? 0);
     }
     return 0;
   });

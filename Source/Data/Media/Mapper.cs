@@ -21,6 +21,7 @@ internal static class Mapper {
             IsPublic = entity.IsPublic,
         };
 
+    [return: NotNullIfNotNull(nameof(entity))]
     internal static Resource? ToModel(this ResourceEntity? entity)
         => entity == null ? null : new() {
             Id = entity.Id,

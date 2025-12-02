@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251202014655_SeedApplicationSchema")]
+    [Migration("20251202183253_SeedApplicationSchema")]
     partial class SeedApplicationSchema
     {
         /// <inheritdoc />
@@ -404,6 +404,15 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("AdventureId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AmbientLight")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Default");
+
+                    b.Property<Guid?>("AmbientSoundId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("BackgroundId")
                         .HasColumnType("uniqueidentifier");
 
@@ -412,7 +421,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Elevation")
+                    b.Property<float>("GroundElevation")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("real")
                         .HasDefaultValue(0f);
@@ -420,19 +429,10 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Light")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("Ambient");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
-
-                    b.Property<Guid?>("SoundId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Weather")
                         .IsRequired()
@@ -518,9 +518,9 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("AdventureId");
 
-                    b.HasIndex("BackgroundId");
+                    b.HasIndex("AmbientSoundId");
 
-                    b.HasIndex("SoundId");
+                    b.HasIndex("BackgroundId");
 
                     b.ToTable("Encounters", (string)null);
                 });
@@ -558,16 +558,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasDefaultValue(true);
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("Number")
-                        .HasColumnType("bigint");
 
                     b.Property<float>("Rotation")
                         .ValueGeneratedOnAdd()
@@ -649,7 +645,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("EncounterAssets", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterLightSource", b =>
                 {
                     b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
@@ -657,52 +653,20 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<long>("Index")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                    b.Property<float?>("Arc")
+                        .HasColumnType("real");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                    b.Property<string>("Color")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
+                    b.Property<float?>("Direction")
+                        .HasColumnType("real");
 
-                    b.HasKey("EncounterId", "Index");
-
-                    b.HasIndex("EncounterId");
-
-                    b.ToTable("EncounterRegions", (string)null);
-                });
-
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSource", b =>
-                {
-                    b.Property<Guid>("EncounterId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long>("Index")
-                        .HasColumnType("bigint");
-
-                    b.Property<float>("Direction")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("real")
-                        .HasDefaultValue(0f);
-
-                    b.Property<bool>("HasGradient")
-                        .HasColumnType("bit");
-
-                    b.Property<float>("Intensity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("real")
-                        .HasDefaultValue(100f);
-
-                    b.Property<bool>("IsDirectional")
+                    b.Property<bool>("IsOn")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -711,17 +675,13 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("real")
                         .HasDefaultValue(0f);
 
-                    b.Property<float>("Spread")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("real")
-                        .HasDefaultValue(0f);
-
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Natural");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterSource.Position#Point", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterLightSource.Position#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -742,7 +702,84 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("EncounterId");
 
-                    b.ToTable("EncounterSources", (string)null);
+                    b.ToTable("EncounterLightSources", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
+                {
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Index")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Elevation");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
+
+                    b.HasKey("EncounterId", "Index");
+
+                    b.HasIndex("EncounterId");
+
+                    b.ToTable("EncounterRegions", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSoundSource", b =>
+                {
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Index")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsPlaying")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<float>("Range")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("real")
+                        .HasDefaultValue(0f);
+
+                    b.Property<Guid?>("ResourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterSoundSource.Position#Point", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<double>("X")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("float")
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("X");
+
+                            b1.Property<double>("Y")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("float")
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("Y");
+                        });
+
+                    b.HasKey("EncounterId", "Index");
+
+                    b.HasIndex("EncounterId");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("EncounterSoundSources", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
@@ -752,11 +789,6 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<long>("Index")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
 
                     b.HasKey("EncounterId", "Index");
 
@@ -775,6 +807,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<long>("Index")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("IsOpaque")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("State")
                         .IsRequired()
@@ -1515,21 +1554,21 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "AmbientSound")
+                        .WithMany()
+                        .HasForeignKey("AmbientSoundId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Sound")
-                        .WithMany()
-                        .HasForeignKey("SoundId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Adventure");
 
-                    b.Navigation("Background");
+                    b.Navigation("AmbientSound");
 
-                    b.Navigation("Sound");
+                    b.Navigation("Background");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterAsset", b =>
@@ -1556,6 +1595,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Encounter");
 
                     b.Navigation("Image");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterLightSource", b =>
+                {
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
+                        .WithMany("LightSources")
+                        .HasForeignKey("EncounterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Encounter");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
@@ -1594,15 +1644,22 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Vertices");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSoundSource", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
-                        .WithMany("Sources")
+                        .WithMany("SoundSources")
                         .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
+                        .WithMany()
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Encounter");
+
+                    b.Navigation("Resource");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
@@ -1751,9 +1808,11 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Navigation("EncounterAssets");
 
+                    b.Navigation("LightSources");
+
                     b.Navigation("Regions");
 
-                    b.Navigation("Sources");
+                    b.Navigation("SoundSources");
 
                     b.Navigation("Walls");
                 });

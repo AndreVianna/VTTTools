@@ -2,16 +2,28 @@ import { GroupName } from '@/services/layerManager';
 import type {
   Asset,
   EncounterAsset,
+  EncounterLightSource,
   EncounterRegion,
-  EncounterSource,
+  EncounterSoundSource,
   EncounterWall,
   PlacedAsset,
+  PlacedLightSource,
   PlacedRegion,
-  PlacedSource,
+  PlacedSoundSource,
   PlacedWall,
 } from '@/types/domain';
-import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityEnum } from '@/types/domain';
+import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityEnum, RegionType } from '@/types/domain';
 import { generateUniqueId, getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
+
+function convertRegionTypeToString(type: string | number): string {
+  if (typeof type === 'string') return type;
+  return RegionType[type] ?? 'Elevation';
+}
+
+function convertRegionTypeToNumber(type: string | number): number {
+  if (typeof type === 'number') return type;
+  return RegionType[type as keyof typeof RegionType] ?? RegionType.Elevation;
+}
 
 function getAssetLayer(asset: Asset): GroupName {
   if (asset.classification.kind === 'Creature') {
@@ -176,6 +188,7 @@ export function hydratePlacedRegions(encounterRegions: EncounterRegion[], encoun
     return {
       ...region,
       id: domId,
+      type: convertRegionTypeToString(region.type),
     };
   });
 }
@@ -184,22 +197,42 @@ export function dehydratePlacedRegions(placedRegions: PlacedRegion[]): Encounter
   return placedRegions.map(({ id, ...region }) => region);
 }
 
-export function hydratePlacedSources(encounterSources: EncounterSource[], encounterId: string): PlacedSource[] {
-  return encounterSources.map((source) => {
-    let domId = getDomIdByIndex(encounterId, 'sources', source.index);
+export function hydratePlacedLightSources(encounterLightSources: EncounterLightSource[], encounterId: string): PlacedLightSource[] {
+  return encounterLightSources.map((lightSource) => {
+    let domId = getDomIdByIndex(encounterId, 'lightSources', lightSource.index);
 
     if (!domId) {
-      domId = generateUniqueId('source', 'sources');
-      setEntityMapping(encounterId, 'sources', domId, source.index);
+      domId = generateUniqueId('light-source', 'lightSources');
+      setEntityMapping(encounterId, 'lightSources', domId, lightSource.index);
     }
 
     return {
-      ...source,
+      ...lightSource,
       id: domId,
     };
   });
 }
 
-export function dehydratePlacedSources(placedSources: PlacedSource[]): EncounterSource[] {
-  return placedSources.map(({ id, ...source }) => source);
+export function dehydratePlacedLightSources(placedLightSources: PlacedLightSource[]): EncounterLightSource[] {
+  return placedLightSources.map(({ id, ...lightSource }) => lightSource);
+}
+
+export function hydratePlacedSoundSources(encounterSoundSources: EncounterSoundSource[], encounterId: string): PlacedSoundSource[] {
+  return encounterSoundSources.map((soundSource) => {
+    let domId = getDomIdByIndex(encounterId, 'soundSources', soundSource.index);
+
+    if (!domId) {
+      domId = generateUniqueId('sound-source', 'soundSources');
+      setEntityMapping(encounterId, 'soundSources', domId, soundSource.index);
+    }
+
+    return {
+      ...soundSource,
+      id: domId,
+    };
+  });
+}
+
+export function dehydratePlacedSoundSources(placedSoundSources: PlacedSoundSource[]): EncounterSoundSource[] {
+  return placedSoundSources.map(({ id, ...soundSource }) => soundSource);
 }

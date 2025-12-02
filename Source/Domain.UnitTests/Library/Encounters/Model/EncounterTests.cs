@@ -31,7 +31,7 @@ public class EncounterTests {
                 ContentType = "image/png",
                 Size = new Size(800, 600),
             },
-            Light = Light.Twilight,
+            Light = AmbientLight.Twilight,
             Weather = Weather.Clear,
             Elevation = 20.0f,
             Sound = new Resource {

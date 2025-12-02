@@ -16,13 +16,14 @@ public class Encounter {
     public float ZoomLevel { get; set; } = 1;
     public Point Panning { get; set; } = Point.Zero;
     public Grid Grid { get; set; } = new();
-    public Light Light { get; set; }
+    public float GroundElevation { get; set; }
     public Weather Weather { get; set; }
-    public float Elevation { get; set; }
-    public Guid? SoundId { get; set; }
-    public Resource? Sound { get; set; }
+    public AmbientLight AmbientLight { get; set; }
+    public Guid? AmbientSoundId { get; set; }
+    public Resource? AmbientSound { get; set; }
     public ICollection<EncounterAsset> EncounterAssets { get; set; } = [];
     public ICollection<EncounterWall> Walls { get; set; } = [];
     public ICollection<EncounterRegion> Regions { get; set; } = [];
-    public ICollection<EncounterSource> Sources { get; set; } = [];
+    public ICollection<EncounterLightSource> LightSources { get; set; } = [];
+    public ICollection<EncounterSoundSource> SoundSources { get; set; } = [];
 }

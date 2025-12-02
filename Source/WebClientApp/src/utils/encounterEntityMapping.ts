@@ -1,4 +1,4 @@
-export type EncounterEntityType = 'assets' | 'walls' | 'regions' | 'sources' | 'effects';
+export type EncounterEntityType = 'assets' | 'walls' | 'regions' | 'lightSources' | 'soundSources' | 'effects';
 
 const STORAGE_KEY = 'encounter-mappings';
 const MAX_ID_GENERATION_ATTEMPTS = 10;
@@ -9,7 +9,8 @@ interface EntityTypeMappings {
   assets: Record<string, number>;
   walls: Record<string, number>;
   regions: Record<string, number>;
-  sources: Record<string, number>;
+  lightSources: Record<string, number>;
+  soundSources: Record<string, number>;
   effects: Record<string, number>;
 }
 
@@ -35,7 +36,7 @@ function isEncounterMappings(value: unknown): value is EncounterMappings {
     if (!encounterMappings || typeof encounterMappings !== 'object') return false;
 
     const mappings = encounterMappings as Record<string, unknown>;
-    const requiredTypes: EncounterEntityType[] = ['assets', 'walls', 'regions', 'sources', 'effects'];
+    const requiredTypes: EncounterEntityType[] = ['assets', 'walls', 'regions', 'lightSources', 'soundSources', 'effects'];
     for (const type of requiredTypes) {
       if (!(type in mappings) || typeof mappings[type] !== 'object') return false;
     }
@@ -77,7 +78,8 @@ function getEncounterMappings(encounterId: string): EntityTypeMappings {
       assets: {},
       walls: {},
       regions: {},
-      sources: {},
+      lightSources: {},
+      soundSources: {},
       effects: {},
     }
   );

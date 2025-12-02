@@ -2,12 +2,15 @@ import type Konva from 'konva';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
-import { useAddEncounterSourceMutation } from '@/services/encounterApi';
-import type { EncounterSource, EncounterWall, Point } from '@/types/domain';
+import {
+  useAddEncounterLightSourceMutation,
+  useAddEncounterSoundSourceMutation,
+} from '@/services/encounterApi';
+import type { EncounterLightSource, EncounterWall, Point, LightSourceType } from '@/types/domain';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
-import { SourcePreview } from './SourcePreview';
+import { LightSourcePreview, SoundSourcePreview } from './SourcePreview';
 import { VertexMarker } from './VertexMarker';
 
 const MIN_RANGE = 0.5;
@@ -15,9 +18,29 @@ const MAX_RANGE = 50.0;
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 
+export interface LightSourceDrawingProps {
+  sourceType: 'light';
+  name?: string;
+  type: LightSourceType;
+  isDirectional: boolean;
+  direction?: number;
+  arc?: number;
+  color?: string;
+  isOn?: boolean;
+}
+
+export interface SoundSourceDrawingProps {
+  sourceType: 'sound';
+  name?: string;
+  resourceId?: string;
+  isPlaying?: boolean;
+}
+
+export type SourceDrawingConfig = LightSourceDrawingProps | SoundSourceDrawingProps;
+
 export interface SourceDrawingToolProps {
   encounterId: string;
-  source: EncounterSource;
+  source: SourceDrawingConfig;
   walls: EncounterWall[];
   gridConfig: GridConfig;
   onComplete: (success: boolean) => void;
@@ -37,11 +60,13 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
   const [currentRange, setCurrentRange] = useState<number>(0);
   const [currentDirection, setCurrentDirection] = useState<number>(0);
-  const [currentSpread, setCurrentSpread] = useState<number>(45);
-  const [addSource] = useAddEncounterSourceMutation();
+  const [currentArc, setCurrentArc] = useState<number>(45);
+  const [addLightSource] = useAddEncounterLightSourceMutation();
+  const [addSoundSource] = useAddEncounterSoundSourceMutation();
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const isDirectional = source.isDirectional;
+  const isLight = source.sourceType === 'light';
+  const isDirectional = isLight && source.isDirectional;
 
   useEffect(() => {
     return () => {
@@ -70,19 +95,30 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       }
 
       try {
-        await addSource({
-          encounterId,
-          name: source.name,
-          type: source.type,
-          position: centerPos,
-          isDirectional,
-          direction: currentDirection,
-          spread: currentSpread,
-          range: rangeToUse,
-          intensity: source.intensity,
-          hasGradient: source.hasGradient,
-          color: source.color,
-        }).unwrap();
+        if (isLight) {
+          const lightSource = source as LightSourceDrawingProps;
+          await addLightSource({
+            encounterId,
+            name: lightSource.name,
+            type: lightSource.type,
+            position: centerPos,
+            direction: isDirectional ? currentDirection : undefined,
+            arc: isDirectional ? currentArc : undefined,
+            range: rangeToUse,
+            color: lightSource.color,
+            isOn: lightSource.isOn ?? true,
+          }).unwrap();
+        } else {
+          const soundSource = source as SoundSourceDrawingProps;
+          await addSoundSource({
+            encounterId,
+            name: soundSource.name,
+            position: centerPos,
+            range: rangeToUse,
+            resourceId: soundSource.resourceId,
+            isPlaying: soundSource.isPlaying ?? true,
+          }).unwrap();
+        }
 
         if (stageContainerRef.current) {
           stageContainerRef.current.style.cursor = 'default';
@@ -100,11 +136,13 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       centerPos,
       currentRange,
       currentDirection,
-      currentSpread,
+      currentArc,
       encounterId,
       source,
+      isLight,
       isDirectional,
-      addSource,
+      addLightSource,
+      addSoundSource,
       onComplete,
     ],
   );
@@ -122,7 +160,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     setPreviewPoint(null);
     setCurrentRange(0);
     setCurrentDirection(0);
-    setCurrentSpread(45);
+    setCurrentArc(45);
   }, []);
 
   useEffect(() => {
@@ -173,7 +211,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     return Math.atan2(dy, dx) * (180 / Math.PI);
   }, []);
 
-  const calculateSpreadAngle = useCallback(
+  const calculateArcAngle = useCallback(
     (apex: Point, direction: number, mouse: Point): number => {
       const mouseAngle = calculateDirection(apex, mouse);
       let angleDiff = mouseAngle - direction;
@@ -181,8 +219,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       while (angleDiff > 180) angleDiff -= 360;
       while (angleDiff < -180) angleDiff += 360;
 
-      const spreadAngle = Math.abs(angleDiff) * 2;
-      return Math.min(180, Math.max(0, Math.round(spreadAngle / 5) * 5));
+      const arcAngle = Math.abs(angleDiff) * 2;
+      return Math.min(180, Math.max(0, Math.round(arcAngle / 5) * 5));
     },
     [calculateDirection],
   );
@@ -205,8 +243,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           setCurrentDirection(newDirection);
         }
       } else if (placementPhase === 2 && centerPos && isDirectional && currentRange > 0) {
-        const newSpread = calculateSpreadAngle(centerPos, currentDirection, snappedPos);
-        setCurrentSpread(newSpread);
+        const newArc = calculateArcAngle(centerPos, currentDirection, snappedPos);
+        setCurrentArc(newArc);
       }
     },
     [
@@ -219,7 +257,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       getStagePosition,
       calculateRange,
       calculateDirection,
-      calculateSpreadAngle,
+      calculateArcAngle,
     ],
   );
 
@@ -252,8 +290,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       } else if (placementPhase === 2 && isDirectional) {
         if (!centerPos) return;
 
-        const newSpread = calculateSpreadAngle(centerPos, currentDirection, snappedPos);
-        setCurrentSpread(newSpread);
+        const newArc = calculateArcAngle(centerPos, currentDirection, snappedPos);
+        setCurrentArc(newArc);
         handleFinish();
       }
     },
@@ -266,7 +304,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       getStagePosition,
       calculateRange,
       calculateDirection,
-      calculateSpreadAngle,
+      calculateArcAngle,
       handleFinish,
       handleFinishWithRange,
     ],
@@ -293,6 +331,43 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     }
   }, []);
 
+  const renderPreview = () => {
+    if (!centerPos || placementPhase < 1 || currentRange <= 0) return null;
+
+    if (isLight) {
+      const lightSource = source as LightSourceDrawingProps;
+      const tempLightSource: EncounterLightSource = {
+        index: -1,
+        name: lightSource.name,
+        type: lightSource.type,
+        position: centerPos,
+        range: currentRange,
+        direction: isDirectional ? currentDirection : undefined,
+        arc: isDirectional ? currentArc : undefined,
+        color: lightSource.color,
+        isOn: lightSource.isOn ?? true,
+      };
+
+      return (
+        <LightSourcePreview
+          centerPos={centerPos}
+          range={currentRange}
+          lightSource={tempLightSource}
+          walls={walls}
+          gridConfig={gridConfig}
+        />
+      );
+    }
+
+    return (
+      <SoundSourcePreview
+        centerPos={centerPos}
+        range={currentRange}
+        gridConfig={gridConfig}
+      />
+    );
+  };
+
   return (
     <Group>
       <Rect
@@ -300,7 +375,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
         y={INTERACTION_RECT_OFFSET}
         width={INTERACTION_RECT_SIZE}
         height={INTERACTION_RECT_SIZE}
-        fill='transparent'
+        fill="transparent"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -311,19 +386,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       {centerPos && placementPhase > 0 && (
         <>
           <VertexMarker position={centerPos} preview />
-          {placementPhase >= 1 && currentRange > 0 && (
-            <SourcePreview
-              centerPos={centerPos}
-              range={currentRange}
-              source={{
-                ...source,
-                direction: currentDirection,
-                spread: currentSpread,
-              }}
-              walls={walls}
-              gridConfig={gridConfig}
-            />
-          )}
+          {renderPreview()}
         </>
       )}
 

@@ -12,10 +12,15 @@ export type { RegionsPanelProps } from './RegionsPanel';
 export { RegionsPanel } from './RegionsPanel';
 export type { RegionPreset } from './regionsPanelTypes';
 export type {
-  SourcePlacementProperties,
-  SourcesPanelProps,
-} from './SourcesPanel';
-export { SourcesPanel } from './SourcesPanel';
+  LightPlacementProperties,
+  LightsPanelProps,
+} from './LightsPanel';
+export { LightsPanel } from './LightsPanel';
+export type {
+  SoundPlacementProperties,
+  SoundsPanelProps,
+} from './SoundsPanel';
+export { SoundsPanel } from './SoundsPanel';
 export type { WallsPanelProps } from './WallsPanel';
 export { WallsPanel } from './WallsPanel';
 export type { FogOfWarPanelProps } from './FogOfWarPanel';

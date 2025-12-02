@@ -11,8 +11,7 @@ public class EncounterAsset {
     public Asset Asset { get; set; } = null!;
 
     [MaxLength(128)]
-    public string Name { get; set; } = string.Empty;
-    public uint Number { get; set; }
+    public string? Name { get; set; }
 
     public bool IsLocked { get; set; }
     public bool IsVisible { get; set; } = true;

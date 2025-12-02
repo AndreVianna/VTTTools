@@ -1,7 +1,7 @@
-import type { EncounterRegion, EncounterSource, EncounterWall } from '@/types/domain';
+import type { EncounterRegion, EncounterLightSource, EncounterSoundSource, EncounterWall } from '@/types/domain';
 
 export const isEncounterWall = (
-  structure: EncounterWall | EncounterRegion | EncounterSource,
+  structure: EncounterWall | EncounterRegion | EncounterLightSource | EncounterSoundSource,
 ): structure is EncounterWall => {
   return (
     'visibility' in structure &&
@@ -13,23 +13,41 @@ export const isEncounterWall = (
 };
 
 export const isEncounterRegion = (
-  structure: EncounterWall | EncounterRegion | EncounterSource,
+  structure: EncounterWall | EncounterRegion | EncounterLightSource | EncounterSoundSource,
 ): structure is EncounterRegion => {
   return 'vertices' in structure && 'type' in structure && !('poles' in structure) && !('position' in structure);
 };
 
-export const isEncounterSource = (
-  structure: EncounterWall | EncounterRegion | EncounterSource,
-): structure is EncounterSource => {
+export const isEncounterLightSource = (
+  structure: EncounterWall | EncounterRegion | EncounterLightSource | EncounterSoundSource,
+): structure is EncounterLightSource => {
   return (
     'position' in structure &&
     'direction' in structure &&
     'hasGradient' in structure &&
+    'type' in structure &&
+    'isOn' in structure &&
     !('poles' in structure) &&
-    !('vertices' in structure)
+    !('vertices' in structure) &&
+    !('isPlaying' in structure)
+  );
+};
+
+export const isEncounterSoundSource = (
+  structure: EncounterWall | EncounterRegion | EncounterLightSource | EncounterSoundSource,
+): structure is EncounterSoundSource => {
+  return (
+    'position' in structure &&
+    'direction' in structure &&
+    'hasGradient' in structure &&
+    'isPlaying' in structure &&
+    !('poles' in structure) &&
+    !('vertices' in structure) &&
+    !('type' in structure)
   );
 };
 
 isEncounterWall.displayName = 'isEncounterWall';
 isEncounterRegion.displayName = 'isEncounterRegion';
-isEncounterSource.displayName = 'isEncounterSource';
+isEncounterLightSource.displayName = 'isEncounterLightSource';
+isEncounterSoundSource.displayName = 'isEncounterSoundSource';

@@ -41,7 +41,7 @@ public class ClonerTests {
                         },
                         ZoomLevel = 1.0f,
                         Panning = new(0, 0),
-                        Light = Light.Candlelight,
+                        Light = AmbientLight.Candlelight,
                         Weather = Weather.Fog,
                         Elevation = 10.0f,
                         Sound = new() {
@@ -156,7 +156,6 @@ public class ClonerTests {
                     AssetId = Guid.CreateVersion7(),
                     Index = 1,
                     Name = "Asset 1",
-                    Number = 1,
                     IsVisible = true,
                     Image = new() {
                         Id = Guid.CreateVersion7(),
@@ -176,7 +175,6 @@ public class ClonerTests {
                     AssetId = Guid.CreateVersion7(),
                     Index = 2,
                     Name = "Asset 2",
-                    Number = 2,
                     Image = new() {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
@@ -219,7 +217,6 @@ public class ClonerTests {
                     AssetId = Guid.CreateVersion7(),
                     Index = 1,
                     Name = "Asset 1",
-                    Number = 1,
                     Image = new() {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
@@ -258,7 +255,6 @@ public class ClonerTests {
             AssetId = Guid.CreateVersion7(),
             Index = 1,
             Name = "Original Asset",
-            Number = 1,
             Image = new() {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
@@ -281,7 +277,6 @@ public class ClonerTests {
         clone.Should().NotBeNull();
         // NOTE: Cloner copies properties as-is, no special transformations
         clone.Index.Should().Be(original.Index);
-        clone.Number.Should().Be(original.Number);
         clone.Name.Should().Be(original.Name);
         clone.Position.Should().BeEquivalentTo(original.Position);
         clone.IsLocked.Should().Be(original.IsLocked);

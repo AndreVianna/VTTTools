@@ -22,8 +22,11 @@ internal static class EncounterEndpointsMapper {
         encounters.MapPost("/{id:guid}/regions", EncounterHandlers.AddRegionHandler);
         encounters.MapPatch("/{id:guid}/regions/{index:int}", EncounterHandlers.UpdateRegionHandler);
         encounters.MapDelete("/{id:guid}/regions/{index:int}", EncounterHandlers.RemoveRegionHandler);
-        encounters.MapPost("/{id:guid}/sources", EncounterHandlers.AddSourceHandler);
-        encounters.MapPatch("/{id:guid}/sources/{index:int}", EncounterHandlers.UpdateSourceHandler);
-        encounters.MapDelete("/{id:guid}/sources/{index:int}", EncounterHandlers.RemoveSourceHandler);
+        encounters.MapPost("/{id:guid}/lights", EncounterHandlers.AddLightSourceHandler);
+        encounters.MapPatch("/{id:guid}/lights/{index:int}", EncounterHandlers.UpdateLightSourceHandler);
+        encounters.MapDelete("/{id:guid}/lights/{index:int}", EncounterHandlers.RemoveLightSourceHandler);
+        encounters.MapPost("/{id:guid}/sounds", EncounterHandlers.AddSoundSourceHandler);
+        encounters.MapPatch("/{id:guid}/sounds/{index:int}", EncounterHandlers.UpdateSoundSourceHandler);
+        encounters.MapDelete("/{id:guid}/sounds/{index:int}", EncounterHandlers.RemoveSoundSourceHandler);
     }
 }

@@ -2,11 +2,10 @@
 
 public record EncounterAsset {
     public Guid AssetId { get; init; }
-    public int VariantIndex { get; init; }
     public uint Index { get; init; }
-    public uint Number { get; init; }
+
     [MaxLength(128)]
-    public string Name { get; init; } = string.Empty;
+    public string? Name { get; init; }
 
     public Position Position { get; init; } = Position.Zero;
     public float Rotation { get; init; }

@@ -10,12 +10,12 @@ import {
   GridRenderer,
   type LayerVisibilityType,
   LeftToolBar,
+  LightSourceRenderer,
   RegionBucketFillTool,
   RegionDrawingTool,
   RegionRenderer,
   RegionTransformer,
   SourceDrawingTool,
-  SourceRenderer,
   TokenDragHandle,
   TokenPlacement,
   TopToolBar,
@@ -23,7 +23,8 @@ import {
   WallRenderer,
   WallTransformer,
 } from '@components/encounter';
-import type { SourcePlacementProperties } from '@components/encounter/panels';
+import type { LightPlacementProperties, SoundPlacementProperties } from '@components/encounter/panels';
+import { LightContextMenu, SoundContextMenu, SoundSourceRenderer } from '@components/encounter';
 import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
 import { GroupName, LayerName, layerManager } from '@services/layerManager';
@@ -56,10 +57,13 @@ import {
   usePatchEncounterMutation,
   useRemoveEncounterAssetMutation,
   useRemoveEncounterRegionMutation,
-  useRemoveEncounterSourceMutation,
+  useRemoveEncounterLightSourceMutation,
+  useRemoveEncounterSoundSourceMutation,
   useRemoveEncounterWallMutation,
   useUpdateEncounterAssetMutation,
   useUpdateEncounterRegionMutation,
+  useUpdateEncounterLightSourceMutation,
+  useUpdateEncounterSoundSourceMutation,
   useUpdateEncounterWallMutation,
 } from '@/services/encounterApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
@@ -70,10 +74,14 @@ import {
   type EncounterWall,
   type PlacedAsset,
   type PlacedRegion,
-  type PlacedSource,
   type PlacedWall,
   type Point,
   type Pole,
+  type EncounterLightSource,
+  type EncounterSoundSource,
+  type PlacedLightSource,
+  type PlacedSoundSource,
+  LightSourceType,
   type UpdateEncounterRequest,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
@@ -87,7 +95,8 @@ import {
 import {
   hydratePlacedAssets,
   hydratePlacedRegions,
-  hydratePlacedSources,
+  hydratePlacedLightSources,
+  hydratePlacedSoundSources,
   hydratePlacedWalls,
 } from '@/utils/encounterMappers';
 import {
@@ -162,7 +171,10 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [addEncounterRegion] = useAddEncounterRegionMutation();
   const [updateEncounterRegion] = useUpdateEncounterRegionMutation();
   const [removeEncounterRegion] = useRemoveEncounterRegionMutation();
-  const [removeEncounterSource] = useRemoveEncounterSourceMutation();
+  const [removeEncounterLightSource] = useRemoveEncounterLightSourceMutation();
+  const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
+  const [updateEncounterLightSource] = useUpdateEncounterLightSourceMutation();
+  const [updateEncounterSoundSource] = useUpdateEncounterSoundSourceMutation();
 
   useEffect(() => {
     if (encounterId) {
@@ -175,7 +187,8 @@ const EncounterEditorPageInternal: React.FC = () => {
   const encounterRef = useRef<Encounter | null>(null);
   const [placedWalls, setPlacedWalls] = useState<PlacedWall[]>([]);
   const [placedRegions, setPlacedRegions] = useState<PlacedRegion[]>([]);
-  const [placedSources, setPlacedSources] = useState<PlacedSource[]>([]);
+  const [placedLightSources, setPlacedLightSources] = useState<PlacedLightSource[]>([]);
+  const [placedSoundSources, setPlacedSoundSources] = useState<PlacedSoundSource[]>([]);
 
   useEffect(() => {
     encounterRef.current = encounter;
@@ -217,9 +230,14 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [originalRegionVertices, setOriginalRegionVertices] = useState<Point[] | null>(null);
   const [regionPlacementMode, setRegionPlacementMode] = useState<'polygon' | 'bucketFill' | null>(null);
 
-  const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
-  const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
+  const [selectedLightSourceIndex, setSelectedLightSourceIndex] = useState<number | null>(null);
+  const [selectedSoundSourceIndex, setSelectedSoundSourceIndex] = useState<number | null>(null);
+  const [sourcePlacementProperties, setSourcePlacementProperties] = useState<
+    (LightPlacementProperties | SoundPlacementProperties) & { sourceType: 'light' | 'sound' } | null
+  >(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [lightContextMenuPosition, setLightContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
+  const [soundContextMenuPosition, setSoundContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
 
   const [fogMode, setFogMode] = useState<'add' | 'subtract'>('add');
   const [fogDrawingTool, setFogDrawingTool] = useState<'polygon' | 'bucketFill' | null>(null);
@@ -233,7 +251,8 @@ const EncounterEditorPageInternal: React.FC = () => {
     objects: true,
     monsters: true,
     characters: true,
-    sources: true,
+    lights: true,
+    sounds: true,
     fogOfWar: true,
   });
 
@@ -273,7 +292,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       objects: true,
       monsters: true,
       characters: true,
-      sources: true,
+      lights: true,
+      sounds: true,
       fogOfWar: true,
     });
     setGridConfig((prev) => ({
@@ -289,7 +309,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       objects: false,
       monsters: false,
       characters: false,
-      sources: false,
+      lights: false,
+      sounds: false,
       fogOfWar: false,
     });
     setGridConfig((prev) => ({
@@ -550,7 +571,8 @@ const EncounterEditorPageInternal: React.FC = () => {
 
         const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
         const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
-        const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
+        const hydratedLightSources = hydratePlacedLightSources(encounterData.lightSources || [], encounterId || '');
+        const hydratedSoundSources = hydratePlacedSoundSources(encounterData.soundSources || [], encounterId || '');
 
         setEncounter(encounterData);
         setGridConfig({
@@ -566,7 +588,8 @@ const EncounterEditorPageInternal: React.FC = () => {
         assetManagement.setPlacedAssets(hydratedAssets);
         setPlacedWalls(hydratedWalls);
         setPlacedRegions(hydratedRegions);
-        setPlacedSources(hydratedSources);
+        setPlacedLightSources(hydratedLightSources);
+        setPlacedSoundSources(hydratedSoundSources);
         setIsInitialized(true);
       } catch (error) {
         if (!isMounted) return;
@@ -586,7 +609,8 @@ const EncounterEditorPageInternal: React.FC = () => {
         assetManagement.setPlacedAssets([]);
         setPlacedWalls([]);
         setPlacedRegions([]);
-        setPlacedSources([]);
+        setPlacedLightSources([]);
+        setPlacedSoundSources([]);
         setIsInitialized(true);
       } finally {
         if (isMounted) {
@@ -607,10 +631,12 @@ const EncounterEditorPageInternal: React.FC = () => {
       setEncounter(encounterData);
       const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
       const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
-      const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
+      const hydratedLightSources = hydratePlacedLightSources(encounterData.lightSources || [], encounterId || '');
+      const hydratedSoundSources = hydratePlacedSoundSources(encounterData.soundSources || [], encounterId || '');
       setPlacedWalls(hydratedWalls);
       setPlacedRegions(hydratedRegions);
-      setPlacedSources(hydratedSources);
+      setPlacedLightSources(hydratedLightSources);
+      setPlacedSoundSources(hydratedSoundSources);
     }
   }, [encounterData, isInitialized, encounterId]);
 
@@ -659,7 +685,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       assetManagement.handleAssetSelected([]);
       setSelectedWallIndex(null);
       setSelectedRegionIndex(null);
-      setSelectedSourceIndex(null);
+      setSelectedLightSourceIndex(null);
+      setSelectedSoundSourceIndex(null);
       setIsEditingVertices(false);
       setPreviewWallPoles(null);
       if (wallTransaction.transaction.isActive) {
@@ -1030,50 +1057,107 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, encounter, wallTransaction],
   );
 
-  const handleSourceSelect = useCallback((index: number) => {
-    setSelectedSourceIndex(index);
+  const handleLightSourceSelect = useCallback((index: number) => {
+    setSelectedLightSourceIndex(index);
+    setSelectedSoundSourceIndex(null);
   }, []);
 
-  const handleSourceDelete = useCallback(
+  const handleSoundSourceSelect = useCallback((index: number) => {
+    setSelectedSoundSourceIndex(index);
+    setSelectedLightSourceIndex(null);
+  }, []);
+
+  const handleLightSourceDelete = useCallback(
     async (index: number) => {
-      if (!encounterId || !encounter) return;
-
-      const source = placedSources.find((s) => s.index === index);
+      if (!encounterId) return;
+      const source = placedLightSources.find((s) => s.index === index);
       if (!source) return;
-
-      const sourceId = source.id;
-
       try {
-        await removeEncounterSource({
-          encounterId,
-          sourceIndex: index,
-        }).unwrap();
-
-        const { removeEntityMapping } = await import('@/utils/encounterEntityMapping');
-        removeEntityMapping(encounterId, 'sources', sourceId);
-
-        const { data: updatedEncounter } = await refetch();
-        if (updatedEncounter) {
-          setEncounter(updatedEncounter);
-          const hydratedSources = hydratePlacedSources(updatedEncounter.sources || [], encounterId);
-          setPlacedSources(hydratedSources);
+        await removeEncounterLightSource({ encounterId, sourceIndex: index }).unwrap();
+        if (selectedLightSourceIndex === index) {
+          setSelectedLightSourceIndex(null);
         }
-
-        if (selectedSourceIndex === index) {
-          setSelectedSourceIndex(null);
-        }
+        refetch();
       } catch (error) {
-        console.error('Failed to delete source:', error);
-        setErrorMessage('Failed to delete source. Please try again.');
+        console.error('Failed to delete light source:', error);
       }
     },
-    [encounterId, encounter, placedSources, removeEncounterSource, selectedSourceIndex, refetch],
+    [encounterId, placedLightSources, removeEncounterLightSource, selectedLightSourceIndex, refetch],
   );
 
-  const handlePlaceSource = useCallback((properties: SourcePlacementProperties) => {
-    setSourcePlacementProperties(properties);
+  const handleSoundSourceDelete = useCallback(
+    async (index: number) => {
+      if (!encounterId) return;
+      const source = placedSoundSources.find((s) => s.index === index);
+      if (!source) return;
+      try {
+        await removeEncounterSoundSource({ encounterId, sourceIndex: index }).unwrap();
+        if (selectedSoundSourceIndex === index) {
+          setSelectedSoundSourceIndex(null);
+        }
+        refetch();
+      } catch (error) {
+        console.error('Failed to delete sound source:', error);
+      }
+    },
+    [encounterId, placedSoundSources, removeEncounterSoundSource, selectedSoundSourceIndex, refetch],
+  );
+
+  const handlePlaceLight = useCallback((properties: LightPlacementProperties) => {
+    setSourcePlacementProperties({ ...properties, sourceType: 'light' });
     setActiveTool('sourceDrawing');
   }, []);
+
+  const handlePlaceSound = useCallback((properties: SoundPlacementProperties) => {
+    setSourcePlacementProperties({ ...properties, sourceType: 'sound' });
+    setActiveTool('sourceDrawing');
+  }, []);
+
+  const handleLightSourceContextMenu = useCallback((sourceIndex: number, position: { x: number; y: number }) => {
+    setSelectedLightSourceIndex(sourceIndex);
+    setSelectedSoundSourceIndex(null);
+    setLightContextMenuPosition({ left: position.x, top: position.y });
+  }, []);
+
+  const handleSoundSourceContextMenu = useCallback((sourceIndex: number, position: { x: number; y: number }) => {
+    setSelectedSoundSourceIndex(sourceIndex);
+    setSelectedLightSourceIndex(null);
+    setSoundContextMenuPosition({ left: position.x, top: position.y });
+  }, []);
+
+  const handleLightContextMenuClose = useCallback(() => {
+    setLightContextMenuPosition(null);
+  }, []);
+
+  const handleSoundContextMenuClose = useCallback(() => {
+    setSoundContextMenuPosition(null);
+  }, []);
+
+  const handleLightSourceUpdate = useCallback(
+    async (sourceIndex: number, updates: Partial<EncounterLightSource>) => {
+      if (!encounterId) return;
+      try {
+        await updateEncounterLightSource({ encounterId, sourceIndex, ...updates }).unwrap();
+        refetch();
+      } catch (error) {
+        console.error('Failed to update light source:', error);
+      }
+    },
+    [encounterId, updateEncounterLightSource, refetch],
+  );
+
+  const handleSoundSourceUpdate = useCallback(
+    async (sourceIndex: number, updates: Partial<EncounterSoundSource>) => {
+      if (!encounterId) return;
+      try {
+        await updateEncounterSoundSource({ encounterId, sourceIndex, ...updates }).unwrap();
+        refetch();
+      } catch (error) {
+        console.error('Failed to update sound source:', error);
+      }
+    },
+    [encounterId, updateEncounterSoundSource, refetch],
+  );
 
   const handleSourcePlacementFinish = useCallback((success: boolean) => {
     if (success) {
@@ -1399,11 +1483,14 @@ const EncounterEditorPageInternal: React.FC = () => {
             }}
             onPlacedAssetRename={assetManagement.handleAssetRename}
             onPlacedAssetUpdate={handlePlacedAssetUpdate}
-            encounterSources={placedSources}
-            selectedSourceIndex={selectedSourceIndex}
-            onSourceSelect={handleSourceSelect}
-            onSourceDelete={handleSourceDelete}
-            onPlaceSource={handlePlaceSource}
+            encounterLightSources={placedLightSources}
+            encounterSoundSources={placedSoundSources}
+            selectedLightSourceIndex={selectedLightSourceIndex}
+            selectedSoundSourceIndex={selectedSoundSourceIndex}
+            onLightSourceSelect={handleLightSourceSelect}
+            onSoundSourceSelect={handleSoundSourceSelect}
+            onPlaceLight={handlePlaceLight}
+            onPlaceSound={handlePlaceSound}
             onFogHideAll={handleFogHideAll}
             onFogRevealAll={handleFogRevealAll}
             onFogModeChange={handleFogModeChange}
@@ -1491,17 +1578,34 @@ const EncounterEditorPageInternal: React.FC = () => {
                 </Group>
               )}
 
-              {/* Sources - render second */}
-              {scopeVisibility.sources && encounter && placedSources && placedSources.length > 0 && (
+              {encounter && scopeVisibility.lights && placedLightSources.length > 0 && (
                 <Group name={GroupName.Structure}>
-                  {placedSources.map((encounterSource) => (
-                    <SourceRenderer
-                      key={encounterSource.id}
-                      encounterSource={encounterSource}
+                  {placedLightSources.map((lightSource) => (
+                    <LightSourceRenderer
+                      key={lightSource.id}
+                      encounterLightSource={lightSource}
                       walls={encounter.walls || []}
                       gridConfig={gridConfig}
                       activeScope={activeScope}
-                      onSelect={handleSourceSelect}
+                      onSelect={handleLightSourceSelect}
+                      onContextMenu={handleLightSourceContextMenu}
+                      isSelected={selectedLightSourceIndex === lightSource.index}
+                    />
+                  ))}
+                </Group>
+              )}
+
+              {encounter && scopeVisibility.sounds && placedSoundSources.length > 0 && (
+                <Group name={GroupName.Structure}>
+                  {placedSoundSources.map((soundSource) => (
+                    <SoundSourceRenderer
+                      key={soundSource.id}
+                      encounterSoundSource={soundSource}
+                      gridConfig={gridConfig}
+                      activeScope={activeScope}
+                      onSelect={handleSoundSourceSelect}
+                      onContextMenu={handleSoundSourceContextMenu}
+                      isSelected={selectedSoundSourceIndex === soundSource.index}
                     />
                   ))}
                 </Group>
@@ -1696,14 +1800,25 @@ const EncounterEditorPageInternal: React.FC = () => {
                 {activeTool === 'sourceDrawing' && sourcePlacementProperties && encounter && (
                   <SourceDrawingTool
                     encounterId={encounterId || ''}
-                    source={{
-                      index: -1,
-                      name: `${sourcePlacementProperties.type} Source ${(encounter.sources?.length || 0) + 1}`,
-                      position: { x: 0, y: 0 },
-                      range: 0,
-                      intensity: 1,
-                      ...sourcePlacementProperties,
-                    }}
+                    source={
+                      sourcePlacementProperties.sourceType === 'light'
+                        ? {
+                            sourceType: 'light' as const,
+                            name: sourcePlacementProperties.name,
+                            type: (sourcePlacementProperties as LightPlacementProperties).type,
+                            isDirectional: (sourcePlacementProperties as LightPlacementProperties).isDirectional,
+                            direction: (sourcePlacementProperties as LightPlacementProperties).direction,
+                            arc: (sourcePlacementProperties as LightPlacementProperties).arc,
+                            color: (sourcePlacementProperties as LightPlacementProperties).color,
+                            isOn: (sourcePlacementProperties as LightPlacementProperties).isOn,
+                          }
+                        : {
+                            sourceType: 'sound' as const,
+                            name: sourcePlacementProperties.name,
+                            resourceId: (sourcePlacementProperties as SoundPlacementProperties).resourceId,
+                            isPlaying: (sourcePlacementProperties as SoundPlacementProperties).isPlaying,
+                          }
+                    }
                     walls={encounter.walls || []}
                     gridConfig={gridConfig}
                     onComplete={handleSourcePlacementFinish}
@@ -1806,6 +1921,32 @@ const EncounterEditorPageInternal: React.FC = () => {
         onRegionUpdate={regionHandlers.handleRegionPropertyUpdate}
         errorMessage={errorMessage}
         onErrorMessageClose={() => setErrorMessage(null)}
+      />
+
+      <LightContextMenu
+        anchorPosition={lightContextMenuPosition}
+        open={lightContextMenuPosition !== null}
+        onClose={handleLightContextMenuClose}
+        encounterLightSource={
+          selectedLightSourceIndex !== null
+            ? placedLightSources.find((s) => s.index === selectedLightSourceIndex) || null
+            : null
+        }
+        onLightSourceUpdate={handleLightSourceUpdate}
+        onLightSourceDelete={handleLightSourceDelete}
+      />
+
+      <SoundContextMenu
+        anchorPosition={soundContextMenuPosition}
+        open={soundContextMenuPosition !== null}
+        onClose={handleSoundContextMenuClose}
+        encounterSoundSource={
+          selectedSoundSourceIndex !== null
+            ? placedSoundSources.find((s) => s.index === selectedSoundSourceIndex) || null
+            : null
+        }
+        onSoundSourceUpdate={handleSoundSourceUpdate}
+        onSoundSourceDelete={handleSoundSourceDelete}
       />
 
       {assetPickerOpen.kind && (

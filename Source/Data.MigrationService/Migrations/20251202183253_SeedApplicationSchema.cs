@@ -78,79 +78,79 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [EncounterWalls] ([EncounterId], [Index], [Name])
+            INSERT INTO [EncounterWalls] ([EncounterId], [Index])
             VALUES
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, 'Wall 1'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, 'Wall 2'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 'Wall 1'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1, 'Wall 2'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 'Wall 3'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3, 'Wall 4');
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3);
             """
         );
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [EncounterWallSegments] ([EncounterId], [WallIndex], [Index], [Type], [StartX], [StartY], [StartH], [EndX], [EndY], [EndH], [State])
+            INSERT INTO [EncounterWallSegments] ([EncounterId], [WallIndex], [Index], [Type], [IsOpaque], [StartX], [StartY], [StartH], [EndX], [EndY], [EndH], [State])
             VALUES
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0,  0, 'Wall',   35.00, 15.00, 10, 31.50, 20.50, 10, 'Visible'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0,  1, 'Wall',   31.50, 20.50, 10, 23.00, 20.50, 10, 'Visible'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0,  2, 'Wall',   23.00, 20.50, 10, 30.00, 15.50, 10, 'Visible'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1,  0, 'Wall',   36.00, 15.50, 10, 36.00, 17.50, 10, 'Visible'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1,  1, 'Wall',   36.00, 17.50, 10, 38.00, 17.50, 10, 'Visible'),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1,  2, 'Wall',   38.00, 17.50, 10, 38.00, 15.50, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  0, 'Wall',    5.00, 15.00, 10,  3.50, 15.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  1, 'Wall',    3.50, 15.00, 10,  3.50, 14.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  2, 'Window',  3.50, 14.00, 10,  3.50, 13.50, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  3, 'Wall',    3.50, 13.50, 10,  3.50, 13.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  4, 'Wall',    3.50, 13.00, 10,  4.00, 13.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  5, 'Wall',    4.00, 13.00, 10,  4.00, 11.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  6, 'Wall',    4.00, 11.00, 10,  4.25, 11.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  7, 'Window',  4.25, 11.00, 10,  4.82, 11.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  8, 'Wall',    4.82, 11.00, 10,  6.20, 11.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  9, 'Window',  6.20, 11.00, 10,  6.79, 11.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 10, 'Wall',    6.79, 11.00, 10,  7.00, 11.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 11, 'Wall',    7.00, 11.00, 10,  7.00, 14.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 12, 'Door',    7.00, 14.00, 10,  7.00, 15.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 13, 'Wall',    7.00, 15.00, 10,  7.00, 16.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 14, 'Wall',    7.00, 16.00, 10,  6.32, 16.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 15, 'Window',  6.32, 16.00, 10,  5.75, 16.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 16, 'Wall',    5.75, 16.00, 10,  5.00, 16.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  0, 'Wall',   11.50, 14.00, 10, 12.76, 14.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  1, 'Window', 12.76, 14.00, 10, 13.23, 14.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  2, 'Wall',   13.23, 14.00, 10, 13.50, 14.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  3, 'Wall',   13.50, 14.00, 10, 13.50, 16.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  4, 'Wall',   13.50, 16.00, 10, 12.50, 16.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  5, 'Wall',   12.50, 16.00, 10, 12.50, 15.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  6, 'Wall',   12.50, 15.00, 10, 11.50, 15.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  0, 'Wall',    4.00,  3.00, 10,  4.00,  5.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  1, 'Wall',    4.00,  5.00, 10,  3.50,  5.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  2, 'Wall',    3.50,  5.00, 10,  3.50,  5.27, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  3, 'Window',  3.50,  5.27, 10,  3.50,  5.83, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  4, 'Wall',    3.50,  5.83, 10,  3.50,  6.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  5, 'Wall',    3.50,  6.00, 10,  3.00,  6.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  6, 'Wall',    3.00,  6.00, 10,  3.00,  7.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  7, 'Wall',    3.00,  7.00, 10,  5.54,  7.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  8, 'Door',    5.54,  7.00, 10,  6.47,  7.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  9, 'Wall',    6.47,  7.00, 10,  7.00,  7.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 10, 'Wall',    7.00,  7.00, 10,  7.00,  3.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 11, 'Wall',    7.00,  3.00, 10,  5.81,  3.00, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 12, 'Window',  5.81,  3.00, 10,  5.20,  3.00, 10, 'Closed'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  0, 'Wall',    5.00,  3.00, 10,  5.00,  4.50, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  1, 'Wall',    5.00,  4.50, 10,  5.22,  4.50, 10, 'Visible'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  2, 'Passage',   5.22,  4.50, 10,  5.80,  4.50, 10, 'Open'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  3, 'Wall',    5.80,  4.50, 10,  7.00,  4.50, 10, 'Visible');
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0,  0, 'Wall', 1,   35.00, 15.00, 10, 31.50, 20.50, 10, 'Visible'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0,  1, 'Wall', 1,   31.50, 20.50, 10, 23.00, 20.50, 10, 'Visible'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0,  2, 'Wall', 1,   23.00, 20.50, 10, 30.00, 15.50, 10, 'Visible'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1,  0, 'Wall', 1,   36.00, 15.50, 10, 36.00, 17.50, 10, 'Visible'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1,  1, 'Wall', 1,   36.00, 17.50, 10, 38.00, 17.50, 10, 'Visible'),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1,  2, 'Wall', 1,   38.00, 17.50, 10, 38.00, 15.50, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  0, 'Wall', 1,    5.00, 15.00, 10,  3.50, 15.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  1, 'Wall', 1,    3.50, 15.00, 10,  3.50, 14.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  2, 'Window', 1,  3.50, 14.00, 10,  3.50, 13.50, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  3, 'Wall', 1,    3.50, 13.50, 10,  3.50, 13.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  4, 'Wall', 1,    3.50, 13.00, 10,  4.00, 13.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  5, 'Wall', 1,    4.00, 13.00, 10,  4.00, 11.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  6, 'Wall', 1,    4.00, 11.00, 10,  4.25, 11.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  7, 'Window', 1,  4.25, 11.00, 10,  4.82, 11.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  8, 'Wall', 1,    4.82, 11.00, 10,  6.20, 11.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0,  9, 'Window', 1,  6.20, 11.00, 10,  6.79, 11.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 10, 'Wall', 1,    6.79, 11.00, 10,  7.00, 11.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 11, 'Wall', 1,    7.00, 11.00, 10,  7.00, 14.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 12, 'Door', 1,    7.00, 14.00, 10,  7.00, 15.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 13, 'Wall', 1,    7.00, 15.00, 10,  7.00, 16.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 14, 'Wall', 1,    7.00, 16.00, 10,  6.32, 16.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 15, 'Window', 1,  6.32, 16.00, 10,  5.75, 16.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 16, 'Wall', 1,    5.75, 16.00, 10,  5.00, 16.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  0, 'Wall', 1,   11.50, 14.00, 10, 12.76, 14.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  1, 'Window', 1, 12.76, 14.00, 10, 13.23, 14.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  2, 'Wall', 1,   13.23, 14.00, 10, 13.50, 14.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  3, 'Wall', 1,   13.50, 14.00, 10, 13.50, 16.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  4, 'Wall', 1,   13.50, 16.00, 10, 12.50, 16.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  5, 'Wall', 1,   12.50, 16.00, 10, 12.50, 15.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1,  6, 'Wall', 1,   12.50, 15.00, 10, 11.50, 15.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  0, 'Wall', 1,    4.00,  3.00, 10,  4.00,  5.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  1, 'Wall', 1,    4.00,  5.00, 10,  3.50,  5.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  2, 'Wall', 1,    3.50,  5.00, 10,  3.50,  5.27, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  3, 'Window', 1,  3.50,  5.27, 10,  3.50,  5.83, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  4, 'Wall', 1,    3.50,  5.83, 10,  3.50,  6.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  5, 'Wall', 1,    3.50,  6.00, 10,  3.00,  6.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  6, 'Wall', 1,    3.00,  6.00, 10,  3.00,  7.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  7, 'Wall', 1,    3.00,  7.00, 10,  5.54,  7.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  8, 'Door', 1,    5.54,  7.00, 10,  6.47,  7.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2,  9, 'Wall', 1,    6.47,  7.00, 10,  7.00,  7.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 10, 'Wall', 1,    7.00,  7.00, 10,  7.00,  3.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 11, 'Wall', 1,    7.00,  3.00, 10,  5.81,  3.00, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 2, 12, 'Window', 1,  5.81,  3.00, 10,  5.20,  3.00, 10, 'Closed'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  0, 'Wall', 1,    5.00,  3.00, 10,  5.00,  4.50, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  1, 'Wall', 1,    5.00,  4.50, 10,  5.22,  4.50, 10, 'Visible'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  2, 'Door', 0,   5.22,  4.50, 10,  5.80,  4.50, 10, 'Open'),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 3,  3, 'Wall', 1,    5.80,  4.50, 10,  7.00,  4.50, 10, 'Visible');
             """
         );
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [EncounterAssets] ([EncounterId], [Index], [AssetId], [Name], [Number], [IsLocked], [IsVisible], [ImageId], [Rotation], [Elevation], [ControlledBy], [Notes], [FrameBackground], [FrameBorderColor], [FrameBorderThickness], [FrameShape], [X], [Y], [Height], [Width])
+            INSERT INTO [EncounterAssets] ([EncounterId], [Index], [AssetId], [Name], [IsLocked], [IsVisible], [ImageId], [Rotation], [Elevation], [ControlledBy], [Notes], [FrameBackground], [FrameBorderColor], [FrameBorderThickness], [FrameShape], [X], [Y], [Height], [Width])
             VALUES
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, '019A0363-9294-749D-9323-B759664A5436', 'Wooden Create', 1, 0, 1, '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 26.5, 22.5, 50, 50),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, '019A07E6-82A2-7286-ACAB-7CCB6CF652BD', 'Wide Chest', 1, 0, 1, '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 30, 21.5, 50, 100),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, '019A0363-E277-7FA4-9A78-654F24400B79', 'Goblin #1', 1, 0, 1, '019A50CE-4B04-7378-8E6E-372BDF798985', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 33.5, 20.5, 50, 50),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 3, '019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', 'Elf Paladin Squire #1', 1, 0, 1, '019A50F8-394B-79D2-9660-9B803391DD71', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 21.5, 19.5, 50, 50);
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, '019A0363-9294-749D-9323-B759664A5436', 'Wooden Create', 0, 1, '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 26.5, 22.5, 50, 50),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, '019A07E6-82A2-7286-ACAB-7CCB6CF652BD', 'Wide Chest', 0, 1, '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 30, 21.5, 50, 100),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, '019A0363-E277-7FA4-9A78-654F24400B79', 'Goblin #1', 0, 1, '019A50CE-4B04-7378-8E6E-372BDF798985', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 33.5, 20.5, 50, 50),
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 3, '019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', 'Elf Paladin Squire', 0, 1, '019A50F8-394B-79D2-9660-9B803391DD71', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 21.5, 19.5, 50, 50);
             """
         );
     }

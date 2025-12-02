@@ -236,7 +236,6 @@ public class EncounterServiceTests {
                 new EncounterAsset {
                     AssetId = assetId, // Same assetId to provide baseline for index calculation
                     Index = 0,
-                    Number = 1,
                     Name = "Existing Asset Instance",
                     Position = new Position(0, 0),
                     Size = new NamedSize { Width = 1, Height = 1 }

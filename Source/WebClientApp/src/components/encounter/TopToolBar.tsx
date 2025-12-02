@@ -7,7 +7,8 @@ import {
   Person as CharactersIcon,
   Redo as RedoIcon,
   Layers as RegionsIcon,
-  LightMode as SourcesIcon,
+  LightMode as LightsIcon,
+  VolumeUp as SoundsIcon,
   Undo as UndoIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
@@ -26,7 +27,8 @@ export type LayerVisibilityType =
   | 'objects'
   | 'monsters'
   | 'characters'
-  | 'sources'
+  | 'lights'
+  | 'sounds'
   | 'fogOfWar';
 
 export interface TopToolBarProps {
@@ -75,7 +77,8 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
     { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },
     { key: 'characters', icon: CharactersIcon, label: 'Characters' },
-    { key: 'sources', icon: SourcesIcon, label: 'Sources' },
+    { key: 'lights', icon: LightsIcon, label: 'Lights' },
+    { key: 'sounds', icon: SoundsIcon, label: 'Sounds' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' },
   ];
 

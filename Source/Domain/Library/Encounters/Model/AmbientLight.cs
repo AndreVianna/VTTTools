@@ -1,12 +1,12 @@
 ﻿namespace VttTools;
 
-public enum Light {
+public enum AmbientLight {
     Black = -10,
     Darkness = -5,
     Nighttime = -3,
     Dim = -2,
     Twilight = -1,
-    Ambient = 0,
+    Default = 0,
     Candlelight = 1,
     Torchlight = 2,
     Artificial = 3,

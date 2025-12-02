@@ -8,7 +8,11 @@ export type {
   RegionDrawingToolProps,
   RegionPreviewProps,
   SourceDrawingToolProps,
-  SourcePreviewProps,
+  SourceDrawingConfig,
+  LightSourceDrawingProps,
+  SoundSourceDrawingProps,
+  LightSourcePreviewProps,
+  SoundSourcePreviewProps,
   VertexMarkerProps,
   WallDrawingToolProps,
   WallPreviewProps,
@@ -19,7 +23,8 @@ export {
   RegionDrawingTool,
   RegionPreview,
   SourceDrawingTool,
-  SourcePreview,
+  LightSourcePreview,
+  SoundSourcePreview,
   VertexMarker,
   WallDrawingTool,
   WallPreview,
@@ -74,19 +79,21 @@ export type { RotationHandleProps } from './RotationHandle';
 export { RotationHandle } from './RotationHandle';
 export type {
   FogOfWarRendererProps,
+  LightSourceRendererProps,
   RegionLabelDisplayProps,
   RegionRendererProps,
+  SoundSourceRendererProps,
   SourceRangeDisplayProps,
-  SourceRendererProps,
   WallRendererProps,
 } from './rendering';
 // Rendering components
 export {
   FogOfWarRenderer,
+  LightSourceRenderer,
   RegionLabelDisplay,
   RegionRenderer,
+  SoundSourceRenderer,
   SourceRangeDisplay,
-  SourceRenderer,
   WallRenderer,
 } from './rendering';
 export type { StageConfig, StageConfigPanelProps } from './StageConfigPanel';
@@ -102,5 +109,9 @@ export { TokenPlacement } from './TokenPlacement';
 export type { LayerVisibilityType, TopToolBarProps } from './TopToolBar';
 export { TopToolBar } from './TopToolBar';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
+export type { LightContextMenuProps } from './LightContextMenu';
+export { LightContextMenu } from './LightContextMenu';
 export { RegionContextMenu } from './RegionContextMenu';
+export type { SoundContextMenuProps } from './SoundContextMenu';
+export { SoundContextMenu } from './SoundContextMenu';
 export { WallContextMenu } from './WallContextMenu';

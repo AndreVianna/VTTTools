@@ -373,7 +373,7 @@ public class AdventureServiceTests {
                         Path = "path/to/image.png",
                         Size = new Size(100, 200),
                     },
-                    Light = Light.Twilight,
+                    Light = AmbientLight.Twilight,
                     Weather = Weather.Clear,
                     Elevation = 20.0f,
                     Sound = new Resource {

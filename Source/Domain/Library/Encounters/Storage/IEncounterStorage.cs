@@ -90,22 +90,42 @@ public interface IEncounterStorage {
     Task<bool> DeleteRegionAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves a encounter source by its ID.
+    /// Retrieves a encounter light source by its ID.
     /// </summary>
-    Task<EncounterSource?> GetSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<EncounterLightSource?> GetLightSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds a encounter source to a encounter.
+    /// Adds a encounter light source to a encounter.
     /// </summary>
-    Task<bool> AddSourceAsync(Guid id, EncounterSource encounterSource, CancellationToken ct = default);
+    Task<bool> AddLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default);
 
     /// <summary>
-    /// Updates a encounter source.
+    /// Updates a encounter light source.
     /// </summary>
-    Task<bool> UpdateSourceAsync(Guid id, EncounterSource encounterSource, CancellationToken ct = default);
+    Task<bool> UpdateLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default);
 
     /// <summary>
-    /// Deletes a encounter source.
+    /// Deletes a encounter light source.
     /// </summary>
-    Task<bool> DeleteSourceAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<bool> DeleteLightSourceAsync(Guid id, uint index, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a encounter sound source by its ID.
+    /// </summary>
+    Task<EncounterSoundSource?> GetSoundSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a encounter sound source to a encounter.
+    /// </summary>
+    Task<bool> AddSoundSourceAsync(Guid id, EncounterSoundSource soundSource, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a encounter sound source.
+    /// </summary>
+    Task<bool> UpdateSoundSourceAsync(Guid id, EncounterSoundSource soundSource, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a encounter sound source.
+    /// </summary>
+    Task<bool> DeleteSoundSourceAsync(Guid id, uint index, CancellationToken ct = default);
 }

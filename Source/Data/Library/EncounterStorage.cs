@@ -1,6 +1,7 @@
-using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
-using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
+using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
+using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSoundSource;
 
 namespace VttTools.Data.Library;
 
@@ -13,7 +14,7 @@ public class EncounterStorage(ApplicationDbContext context)
     public Task<Encounter[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Encounters
                   .Include(e => e.Background)
-                  .Include(e => e.Sound)
+                  .Include(e => e.AmbientSound)
                   .Include(e => e.EncounterAssets)
                   .AsSplitQuery()
                   .AsNoTracking()
@@ -26,7 +27,7 @@ public class EncounterStorage(ApplicationDbContext context)
     public Task<Encounter[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default) {
         var query = context.Encounters
                   .Include(e => e.Background)
-                  .Include(e => e.Sound)
+                  .Include(e => e.AmbientSound)
                   .Include(e => e.EncounterAssets)
                   .Where(e => e.AdventureId == adventureId)
                   .AsSplitQuery()
@@ -40,13 +41,14 @@ public class EncounterStorage(ApplicationDbContext context)
     public async Task<Encounter?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Encounters
                   .Include(e => e.Background)
-                  .Include(e => e.Sound)
+                  .Include(e => e.AmbientSound)
                   .Include(e => e.EncounterAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Include(e => e.Walls)
                     .ThenInclude(w => w.Segments)
                   .Include(e => e.Regions)
-                  .Include(e => e.Sources)
+                  .Include(e => e.LightSources)
+                  .Include(e => e.SoundSources)
                   .Include(e => e.Adventure)
                   .AsSplitQuery()
                   .AsNoTracking()
@@ -84,7 +86,8 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(s => s.Walls)
                 .ThenInclude(w => w.Segments)
             .Include(s => s.Regions)
-            .Include(s => s.Sources)
+            .Include(s => s.LightSources)
+            .Include(s => s.SoundSources)
             .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.Id == encounter.Id, ct);
 
@@ -211,8 +214,8 @@ public class EncounterStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<EncounterSource?> GetSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default) {
-        var entity = await context.Set<EncounterSourceEntity>()
+    public async Task<EncounterLightSource?> GetLightSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterLightSourceEntity>()
             .Include(ss => ss.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == index, ct);
@@ -220,34 +223,77 @@ public class EncounterStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<bool> AddSourceAsync(Guid id, EncounterSource encounterSource, CancellationToken ct = default) {
+    public async Task<bool> AddLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default) {
         var encounter = await context.Encounters.FindAsync([id], ct);
         if (encounter == null) return false;
-        var entity = encounterSource.ToEntity(id, encounter.Grid);
-        await context.Set<EncounterSourceEntity>().AddAsync(entity, ct);
+        var entity = lightSource.ToEntity(id, encounter.Grid);
+        await context.Set<EncounterLightSourceEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
 
     /// <inheritdoc />
-    public async Task<bool> UpdateSourceAsync(Guid id, EncounterSource encounterSource, CancellationToken ct = default) {
-        var entity = await context.Set<EncounterSourceEntity>()
+    public async Task<bool> UpdateLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterLightSourceEntity>()
             .Include(s => s.Encounter)
-            .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == encounterSource.Index, ct);
+            .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == lightSource.Index, ct);
         if (entity == null)
             return false;
-        entity.UpdateFrom(id, encounterSource, entity.Encounter.Grid);
+        entity.UpdateFrom(id, lightSource, entity.Encounter.Grid);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteSourceAsync(Guid id, uint index, CancellationToken ct = default) {
-        var entity = await context.Set<EncounterSourceEntity>()
+    public async Task<bool> DeleteLightSourceAsync(Guid id, uint index, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterLightSourceEntity>()
             .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == index, ct);
         if (entity == null)
             return false;
-        context.Set<EncounterSourceEntity>().Remove(entity);
+        context.Set<EncounterLightSourceEntity>().Remove(entity);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<EncounterSoundSource?> GetSoundSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterSoundSourceEntity>()
+            .Include(ss => ss.Encounter)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == index, ct);
+        return entity?.ToModel(entity.Encounter.Grid);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> AddSoundSourceAsync(Guid id, EncounterSoundSource soundSource, CancellationToken ct = default) {
+        var encounter = await context.Encounters.FindAsync([id], ct);
+        if (encounter == null)
+            return false;
+        var entity = soundSource.ToEntity(id, encounter.Grid);
+        await context.Set<EncounterSoundSourceEntity>().AddAsync(entity, ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateSoundSourceAsync(Guid id, EncounterSoundSource soundSource, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterSoundSourceEntity>()
+            .Include(s => s.Encounter)
+            .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == soundSource.Index, ct);
+        if (entity == null)
+            return false;
+        entity.UpdateFrom(id, soundSource, entity.Encounter.Grid);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteSoundSourceAsync(Guid id, uint index, CancellationToken ct = default) {
+        var entity = await context.Set<EncounterSoundSourceEntity>()
+            .FirstOrDefaultAsync(ss => ss.EncounterId == id && ss.Index == index, ct);
+        if (entity == null)
+            return false;
+        context.Set<EncounterSoundSourceEntity>().Remove(entity);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }

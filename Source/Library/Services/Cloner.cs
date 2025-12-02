@@ -30,7 +30,6 @@ public static class Cloner {
         => new() {
             AssetId = original.AssetId,
             Index = original.Index,
-            Number = original.Number,
             Name = original.Name,
             Notes = original.Notes,
             Image = original.Image,

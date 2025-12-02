@@ -392,7 +392,8 @@ export interface Encounter {
   assets: EncounterAsset[];
   walls: EncounterWall[];
   regions: EncounterRegion[];
-  sources: EncounterSource[];
+  lightSources: EncounterLightSource[];
+  soundSources: EncounterSoundSource[];
 }
 
 export interface EncounterAsset {
@@ -606,7 +607,7 @@ export enum LabelPosition {
 }
 
 // Structure Types - Phase 8.8 Value Object Implementation
-// EncounterWall, EncounterRegion, and EncounterSource as value objects embedded in Encounter
+// EncounterWall, EncounterRegion, EncounterLightSource, and EncounterSoundSource as value objects embedded in Encounter
 
 export interface Point {
   x: number;
@@ -622,26 +623,36 @@ export interface Pole {
 
 export enum SegmentType {
   Wall = 0,
-  Fence = 1,
-  Door = 2,
-  Passage = 3,
-  Window = 4,
-  Opening = 5,
+  Door = 1,
+  Window = 2,
 }
 
 export enum SegmentState {
   Open = 0,
   Closed = 1,
   Locked = 2,
-  Visible = 2, // alias for Locked, valid only for barriers
   Secret = 3,
+}
+
+export enum LightSourceType {
+  Natural = 0,
+  Artificial = 1,
+  Supernatural = 2,
+}
+
+export enum RegionType {
+  Elevation = 0,
+  Terrain = 1,
+  Illumination = 2,
 }
 
 export interface EncounterWallSegment {
   index: number;
+  name?: string;
   startPole: Pole;
   endPole: Pole;
   type: SegmentType;
+  isOpaque: boolean;
   state: SegmentState;
 }
 
@@ -670,20 +681,31 @@ export interface PlacedRegion extends EncounterRegion {
   id: string;
 }
 
-export interface EncounterSource {
+export interface EncounterLightSource {
   index: number;
-  name: string;
-  type: string;
+  name?: string;
+  type: LightSourceType;
   position: Point;
-  isDirectional: boolean;
-  direction: number;
-  spread: number;
   range: number;
-  intensity: number;
-  hasGradient: boolean;
-  color: string;
+  direction?: number;
+  arc?: number;
+  color?: string;
+  isOn: boolean;
 }
 
-export interface PlacedSource extends EncounterSource {
+export interface EncounterSoundSource {
+  index: number;
+  name?: string;
+  position: Point;
+  range: number;
+  resourceId?: string;
+  isPlaying: boolean;
+}
+
+export interface PlacedLightSource extends EncounterLightSource {
+  id: string;
+}
+
+export interface PlacedSoundSource extends EncounterSoundSource {
   id: string;
 }

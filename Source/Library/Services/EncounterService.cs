@@ -1,9 +1,11 @@
+using System.Globalization;
+
 using EncounterAssetBulkUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
 using EncounterAssetUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
 
 namespace VttTools.Library.Services;
 
-public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage assetStorage, IMediaStorage mediaStorage)
+public partial class EncounterService(IEncounterStorage encounterStorage, IAssetStorage assetStorage, IMediaStorage mediaStorage)
     : IEncounterService {
     /// <inheritdoc />
     public Task<Encounter[]> GetEncountersAsync(CancellationToken ct = default)
@@ -19,31 +21,11 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (result.HasErrors)
             return result;
         var id = Guid.CreateVersion7();
-        var stageId = data.BackgroundId ?? Guid.Empty;
-        var background = await mediaStorage.FindByIdAsync(stageId, ct);
         var encounter = new Encounter {
             Id = id,
             Name = data.Name,
             Description = data.Description,
-            Stage = new() {
-                Background = new() {
-                    Id = stageId,
-                    Type = background?.Type ?? ResourceType.Undefined,
-                    Description = background?.Description ?? string.Empty,
-                    ContentType = background?.ContentType ?? string.Empty,
-
-                    Path = background?.Path ?? string.Empty,
-                    Features = background?.Features ?? [],
-                    FileName = background?.FileName ?? string.Empty,
-                    FileLength = background?.FileLength ?? 0,
-                    Size = background?.Size ?? Size.Zero,
-                    Duration = background?.Duration ?? TimeSpan.Zero,
-
-                    OwnerId = background?.OwnerId ?? Guid.Empty,
-                    IsPublished = background?.IsPublished ?? false,
-                    IsPublic = background?.IsPublic ?? false,
-                },
-            },
+            Stage = new() { Background = data.BackgroundId.HasValue ? new() { Id = data.BackgroundId.Value } : null },
             Grid = data.Grid,
         };
         await encounterStorage.UpdateAsync(encounter, ct);
@@ -96,69 +78,30 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             }
         };
         if (data.Stage.Value.BackgroundId.IsSet)
-            encounter = await SetBackground(encounter, data, ct);
+            encounter = await SetBackground(encounter, data.Stage.Value.BackgroundId.Value, ct);
         if (data.Stage.Value.SoundId.IsSet)
-            encounter = await SetSound(encounter, data, ct);
+            encounter = await SetSound(encounter, data.Stage.Value.SoundId.Value, ct);
         return encounter;
     }
 
-    private async Task<Encounter> SetBackground(Encounter encounter, EncounterUpdateData data, CancellationToken ct) {
-        var backgroundId = data.Stage.Value.BackgroundId.Value ?? Guid.Empty;
-        var background = await mediaStorage.FindByIdAsync(backgroundId, ct);
-        return encounter with {
-            Stage = encounter.Stage with {
-                Background = new() {
-                    Id = background?.Id ?? Guid.Empty,
-                    Type = background?.Type ?? ResourceType.Undefined,
-                    Description = background?.Description ?? string.Empty,
-                    ContentType = background?.ContentType ?? string.Empty,
-
-                    Path = background?.Path ?? string.Empty,
-                    Features = background?.Features ?? [],
-                    FileName = background?.FileName ?? string.Empty,
-                    FileLength = background?.FileLength ?? 0,
-                    Size = background?.Size ?? Size.Zero,
-                    Duration = background?.Duration ?? TimeSpan.Zero,
-
-                    OwnerId = background?.OwnerId ?? Guid.Empty,
-                    IsPublished = background?.IsPublished ?? false,
-                    IsPublic = background?.IsPublic ?? false,
-                },
-            },
-        };
+    private async Task<Encounter> SetBackground(Encounter encounter, Guid? backgroundId, CancellationToken ct) {
+        if (backgroundId is null)
+            return encounter with { Stage = encounter.Stage with { Background = null } };
+        var media = await mediaStorage.FindByIdAsync(backgroundId.Value, ct);
+        if (media is null)
+            return encounter with { Stage = encounter.Stage with { Background = null } };
+        var background = new Resource { Id = media.Id };
+        return encounter with { Stage = encounter.Stage with { Background = background } };
     }
 
-    private async Task<Encounter> SetSound(Encounter encounter, EncounterUpdateData data, CancellationToken ct) {
-        var soundId = data.Stage.Value.SoundId.Value;
-        if (soundId is null) {
-            return encounter with {
-                Stage = encounter.Stage with {
-                    Sound = null,
-                },
-            };
-        }
-        var sound = await mediaStorage.FindByIdAsync(soundId.Value, ct);
-        return encounter with {
-            Stage = encounter.Stage with {
-                Sound = new() {
-                    Id = sound?.Id ?? Guid.Empty,
-                    Type = sound?.Type ?? ResourceType.Audio,
-                    Description = sound?.Description ?? string.Empty,
-                    ContentType = sound?.ContentType ?? string.Empty,
-
-                    Path = sound?.Path ?? string.Empty,
-                    Features = sound?.Features ?? [],
-                    FileName = sound?.FileName ?? string.Empty,
-                    FileLength = sound?.FileLength ?? 0,
-                    Size = sound?.Size ?? Size.Zero,
-                    Duration = sound?.Duration ?? TimeSpan.Zero,
-
-                    OwnerId = sound?.OwnerId ?? Guid.Empty,
-                    IsPublished = sound?.IsPublished ?? false,
-                    IsPublic = sound?.IsPublic ?? false,
-                },
-            },
-        };
+    private async Task<Encounter> SetSound(Encounter encounter, Guid? soundId, CancellationToken ct) {
+        if (soundId is null)
+            return encounter with { Stage = encounter.Stage with { Sound = null } };
+        var media = await mediaStorage.FindByIdAsync(soundId.Value, ct);
+        if (media is null)
+            return encounter with { Stage = encounter.Stage with { Sound = null } };
+        var background = new Resource { Id = media.Id };
+        return encounter with { Stage = encounter.Stage with { Sound = background } };
     }
 
     /// <inheritdoc />
@@ -178,7 +121,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         return encounter?.Assets.ToArray() ?? [];
     }
 
-    private static string GenerateAssetInstanceName(Asset asset, uint number) => asset.Classification.Kind == AssetKind.Creature ? $"{asset.Name} #{number}" : asset.Name;
+    private static string GenerateAssetInstanceName(AssetKind kind, string name, uint number) => kind == AssetKind.Creature ? $"{name} #{number}" : name;
 
     /// <inheritdoc />
     public async Task<Result<EncounterAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, EncounterAssetAddData data, CancellationToken ct = default) {
@@ -196,15 +139,13 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
 
         var imageId = data.ImageId;
 
-        var number = encounter.Assets.Any(sa => sa.AssetId == assetId)
-            ? encounter.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
-            : 1u;
+        var name = data.Name ?? asset.Name;
+        var number = encounter.Assets.Max(sa => ExtractAssetNumberOrDefault(sa.Name, name)) + 1;
 
         var encounterAsset = new EncounterAsset {
             AssetId = assetId,
             Index = encounter.Assets.Count != 0 ? encounter.Assets.Max(sa => sa.Index) + 1 : 0,
-            Number = number,
-            Name = data.Name ?? GenerateAssetInstanceName(asset, number),
+            Name = GenerateAssetInstanceName(asset.Classification.Kind, name, number),
             Image = imageId is null ? null : new Resource { Id = imageId.Value },
             Position = data.Position,
             Size = data.Size,
@@ -231,9 +172,12 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         var asset = encounter.Assets.FirstOrDefault(sa => sa.Index == index);
         if (asset is null)
             return Result.Failure("NotFound");
+
+        var name = ExtractAssetNameOrDefault(asset.Name);
+        var number = encounter.Assets.Max(sa => ExtractAssetNumberOrDefault(sa.Name, name!)) + 1;
         var encounterAsset = asset.Clone() with {
             Index = encounter.Assets.Max(sa => sa.Index) + 1,
-            Number = encounter.Assets.Where(sa => sa.AssetId == asset.AssetId).Max(sa => sa.Number) + 1,
+            Name = $"{name} #{number}",
             ControlledBy = userId,
             Position = new Position(0, 0),
             IsLocked = false,
@@ -333,11 +277,8 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         // Clone each asset
         foreach (var index in assetIndices) {
             var asset = encounter.Assets.First(sa => sa.Index == index);
-            var currentMaxNumber = encounter.Assets.Where(sa => sa.AssetId == asset.AssetId).Max(sa => sa.Number);
-
             var encounterAsset = asset.Clone() with {
                 Index = ++currentMaxIndex,
-                Number = currentMaxNumber + 1,
                 ControlledBy = userId,
                 Position = new Position(0, 0),
                 IsLocked = false,
@@ -391,16 +332,12 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
                 return Result.Failure("NotAllowed");
 
             var imageId = data.ImageId;
-
-            var number = encounter.Assets.Any(sa => sa.AssetId == assetId)
-                ? encounter.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
-                : 1u;
-
+            var name = data.Name ?? asset.Name;
+            var number = encounter.Assets.Max(sa => ExtractAssetNumberOrDefault(sa.Name, name)) + 1;
             var encounterAsset = new EncounterAsset {
                 AssetId = assetId,
                 Index = ++currentMaxIndex,
-                Number = number,
-                Name = data.Name ?? GenerateAssetInstanceName(asset, number),
+                Name = GenerateAssetInstanceName(asset.Classification.Kind, name, number),
                 Notes = data.Notes,
                 Image = imageId is null ? null : new Resource { Id = imageId.Value },
                 Position = data.Position,
@@ -442,7 +379,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         var index = encounter.Walls.Count != 0 ? encounter.Walls.Max(sw => sw.Index) + 1 : 0;
         var encounterWall = new EncounterWall {
             Index = index,
-            Name = data.Name ?? $"Wall {index + 1}",
             Segments = data.Segments,
         };
 
@@ -463,7 +399,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
 
         wall = wall with {
             Index = index,
-            Name = data.Name.IsSet ? data.Name.Value : wall.Name,
             Segments = data.Segments.IsSet ? data.Segments.Value : wall.Segments,
         };
 
@@ -546,7 +481,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
     }
 
     /// <inheritdoc />
-    public async Task<Result<EncounterSource>> AddSourceAsync(Guid userId, Guid id, EncounterSourceAddData data, CancellationToken ct = default) {
+    public async Task<Result<EncounterLightSource>> AddLightSourceAsync(Guid userId, Guid id, EncounterLightSourceAddData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
@@ -557,31 +492,30 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (result.HasErrors)
             return result;
 
-        var index = encounter.Sources.Count != 0 ? encounter.Sources.Max(ss => ss.Index) + 1 : 0;
-        var encounterSource = new EncounterSource {
+        var index = encounter.LightSources.Count != 0 ? encounter.LightSources.Max(ss => ss.Index) + 1 : 0;
+        var encounterLightSource = new EncounterLightSource {
             Index = index,
-            Name = data.Name ?? $"Source {index + 1}",
+            Name = data.Name ?? $"LightSource {index + 1}",
             Type = data.Type,
             Position = data.Position,
-            IsDirectional = data.IsDirectional,
-            Direction = data.Direction,
             Range = data.Range,
-            Spread = data.Spread,
-            Intensity = data.Intensity,
-            HasGradient = data.HasGradient,
+            Direction = data.Direction,
+            Arc = data.Arc,
+            Color = data.Color,
+            IsOn = data.IsOn,
         };
 
-        await encounterStorage.AddSourceAsync(id, encounterSource, ct);
-        return encounterSource;
+        await encounterStorage.AddLightSourceAsync(id, encounterLightSource, ct);
+        return encounterLightSource;
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateSourceAsync(Guid userId, Guid id, uint index, EncounterSourceUpdateData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, uint index, EncounterLightSourceUpdateData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterSource = encounter.Sources.FirstOrDefault(b => b.Index == index);
-        if (encounterSource is null)
+        var encounterLightSource = encounter.LightSources.FirstOrDefault(b => b.Index == index);
+        if (encounterLightSource is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
@@ -590,35 +524,124 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (result.HasErrors)
             return result;
 
-        encounterSource = encounterSource with {
+        encounterLightSource = encounterLightSource with {
             Index = index,
-            Type = data.Type.IsSet ? data.Type.Value : encounterSource.Type,
-            Name = data.Name.IsSet ? data.Name.Value : encounterSource.Name,
-            Position = data.Position.IsSet ? data.Position.Value : encounterSource.Position,
-            IsDirectional = data.IsDirectional.IsSet ? data.IsDirectional.Value : encounterSource.IsDirectional,
-            Direction = data.Direction.IsSet ? data.Direction.Value : encounterSource.Direction,
-            Range = data.Range.IsSet ? data.Range.Value : encounterSource.Range,
-            Spread = data.Spread.IsSet ? data.Spread.Value : encounterSource.Spread,
-            HasGradient = data.HasGradient.IsSet ? data.HasGradient.Value : encounterSource.HasGradient,
-            Intensity = data.Intensity.IsSet ? data.Intensity.Value : encounterSource.Intensity,
+            Type = data.Type.IsSet ? data.Type.Value : encounterLightSource.Type,
+            Name = data.Name.IsSet ? data.Name.Value : encounterLightSource.Name,
+            Position = data.Position.IsSet ? data.Position.Value : encounterLightSource.Position,
+            Range = data.Range.IsSet ? data.Range.Value : encounterLightSource.Range,
+            Direction = data.Direction.IsSet ? data.Direction.Value : encounterLightSource.Direction,
+            Arc = data.Arc.IsSet ? data.Arc.Value : encounterLightSource.Arc,
+            Color = data.Color.IsSet ? data.Color.Value : encounterLightSource.Color,
+            IsOn = data.IsOn.IsSet ? data.IsOn.Value : encounterLightSource.IsOn,
         };
 
-        await encounterStorage.UpdateSourceAsync(id, encounterSource, ct);
+        await encounterStorage.UpdateLightSourceAsync(id, encounterLightSource, ct);
         return Result.Success();
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default) {
+    public async Task<Result> RemoveLightSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterSource = encounter.Sources.FirstOrDefault(b => b.Index == index);
-        if (encounterSource is null)
+        var encounterLightSource = encounter.LightSources.FirstOrDefault(b => b.Index == index);
+        if (encounterLightSource is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        await encounterStorage.DeleteSourceAsync(id, index, ct);
+        await encounterStorage.DeleteLightSourceAsync(id, index, ct);
         return Result.Success();
+    }
+    /// <inheritdoc />
+    public async Task<Result<EncounterSoundSource>> AddSoundSourceAsync(Guid userId, Guid id, EncounterSoundSourceAddData data, CancellationToken ct = default) {
+        var encounter = await encounterStorage.GetByIdAsync(id, ct);
+        if (encounter is null)
+            return Result.Failure("NotFound");
+        if (encounter.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var result = data.Validate();
+        if (result.HasErrors)
+            return result;
+
+        var index = encounter.SoundSources.Count != 0 ? encounter.SoundSources.Max(ss => ss.Index) + 1 : 0;
+        var encounterSoundSource = new EncounterSoundSource {
+            Index = index,
+            Name = data.Name ?? $"SoundSource {index + 1}",
+            Position = data.Position,
+            Range = data.Range,
+            IsPlaying = data.IsPlaying,
+            Resource = data.ResourceId.HasValue ? new Resource { Id = data.ResourceId.Value } : null,
+        };
+
+        await encounterStorage.AddSoundSourceAsync(id, encounterSoundSource, ct);
+        return encounterSoundSource;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, uint index, EncounterSoundSourceUpdateData data, CancellationToken ct = default) {
+        var encounter = await encounterStorage.GetByIdAsync(id, ct);
+        if (encounter is null)
+            return Result.Failure("NotFound");
+        var encounterSoundSource = encounter.SoundSources.FirstOrDefault(b => b.Index == index);
+        if (encounterSoundSource is null)
+            return Result.Failure("NotFound");
+        if (encounter.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var result = data.Validate();
+        if (result.HasErrors)
+            return result;
+
+        encounterSoundSource = encounterSoundSource with {
+            Index = index,
+            Name = data.Name.IsSet ? data.Name.Value : encounterSoundSource.Name,
+            Position = data.Position.IsSet ? data.Position.Value : encounterSoundSource.Position,
+            Range = data.Range.IsSet ? data.Range.Value : encounterSoundSource.Range,
+            IsPlaying = data.IsPlaying.IsSet ? data.IsPlaying.Value : encounterSoundSource.IsPlaying,
+            Resource = data.ResourceId.IsSet ? (data.ResourceId.Value.HasValue ? new Resource { Id = data.ResourceId.Value.Value } : null) : encounterSoundSource.Resource,
+        };
+
+        await encounterStorage.UpdateSoundSourceAsync(id, encounterSoundSource, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> RemoveSoundSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default) {
+        var encounter = await encounterStorage.GetByIdAsync(id, ct);
+        if (encounter is null)
+            return Result.Failure("NotFound");
+        var encounterSoundSource = encounter.SoundSources.FirstOrDefault(b => b.Index == index);
+        if (encounterSoundSource is null)
+            return Result.Failure("NotFound");
+        if (encounter.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        await encounterStorage.DeleteSoundSourceAsync(id, index, ct);
+        return Result.Success();
+    }
+
+    [GeneratedRegex(@" #(?<number>\d+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    private static partial Regex AssetNumber();
+
+    private static uint ExtractAssetNumberOrDefault(string? input, string prefix) {
+        if (string.IsNullOrEmpty(input)) return 0;
+        if (!input.StartsWith(prefix)) return 0;
+        var match = AssetNumber().Match(input);
+        if (!match.Success) return 0;
+        var value = match.Groups["number"].Value;
+        uint.TryParse(value, CultureInfo.InvariantCulture, out var number);
+        return number;
+    }
+
+    [return: NotNullIfNotNull(nameof(input))]
+    private static string? ExtractAssetNameOrDefault(string? input) {
+        if (string.IsNullOrWhiteSpace(input)) return null;
+        var match = AssetNumber().Match(input);
+        return !match.Success
+            ? input
+            : input[..match.Index].TrimEnd();
     }
 }
