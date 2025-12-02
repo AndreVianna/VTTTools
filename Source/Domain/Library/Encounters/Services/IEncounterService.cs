@@ -1,18 +1,14 @@
 ﻿using AddAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetAddData;
-using AddOpeningData = VttTools.Library.Encounters.ServiceContracts.EncounterOpeningAddData;
 using AddRegionData = VttTools.Library.Encounters.ServiceContracts.EncounterRegionAddData;
 using AddSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSourceAddData;
 using AddWallData = VttTools.Library.Encounters.ServiceContracts.EncounterWallAddData;
 using BulkUpdateAssetsData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
 using UpdateAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
-using UpdateOpeningData = VttTools.Library.Encounters.ServiceContracts.EncounterOpeningUpdateData;
 using UpdateRegionData = VttTools.Library.Encounters.ServiceContracts.EncounterRegionUpdateData;
 using UpdateSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSourceUpdateData;
 using UpdateWallData = VttTools.Library.Encounters.ServiceContracts.EncounterWallUpdateData;
 
 namespace VttTools.Library.Encounters.Services;
-
-public record AssetToAdd(Guid AssetId, AddAssetData Data);
 
 public interface IEncounterService {
     Task<Encounter[]> GetEncountersAsync(CancellationToken ct = default);
@@ -34,10 +30,6 @@ public interface IEncounterService {
     Task<Result<EncounterWall>> AddWallAsync(Guid userId, Guid id, AddWallData data, CancellationToken ct = default);
     Task<Result> UpdateWallAsync(Guid userId, Guid id, uint index, UpdateWallData data, CancellationToken ct = default);
     Task<Result> RemoveWallAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
-
-    Task<Result<EncounterOpening>> PlaceOpeningAsync(Guid userId, Guid id, AddOpeningData data, CancellationToken ct = default);
-    Task<Result> UpdateOpeningAsync(Guid userId, Guid id, uint index, UpdateOpeningData data, CancellationToken ct = default);
-    Task<Result> RemoveOpeningAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 
     Task<Result<EncounterRegion>> AddRegionAsync(Guid userId, Guid id, AddRegionData data, CancellationToken ct = default);
     Task<Result> UpdateRegionAsync(Guid userId, Guid id, uint index, UpdateRegionData data, CancellationToken ct = default);

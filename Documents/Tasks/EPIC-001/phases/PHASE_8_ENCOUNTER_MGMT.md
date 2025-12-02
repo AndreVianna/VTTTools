@@ -1,9 +1,9 @@
 # Phase 8: Encounter Management & Structures
 
-**Status**: 🚧 Active (90% complete)
-**Estimated**: 164h total | **Actual**: 154h (94%)
+**Status**: ✅ Complete (100%)
+**Estimated**: 168h total | **Actual**: 158h (94%)
 **Started**: 2025-10-26
-**Expected Completion**: 2025-11-XX
+**Completion Date**: 2025-12-01
 **Overall Grade**: A-
 
 ---
@@ -18,9 +18,11 @@ Phase 8 has evolved through multiple iterations to deliver complete encounter ma
 - **Phase 8.5**: Incomplete items from Phases 6-8 (9h)
 - **Phase 8.6**: Structures backend API & domain model (37h)
 - **Phase 8.7**: Structures frontend drawing tools (67h)
-- **Phase 8.8**: Manual tests & UI refinements (5-10h remaining)
+- **Phase 8.8**: Manual tests & UI refinements (8h)
+- **Phase 8.9-8.12**: Fog of War implementation and testing (12h)
+- **Phase 8.13**: Wall segment model & region value system (4h)
 
-**Total Scope Expansion**: 12h → 164h (1,267% increase)
+**Total Scope Expansion**: 12h → 168h (1,300% increase)
 
 **Reason for Expansion**: Structures system was significantly more complex than initially anticipated, requiring three distinct categories (Barriers, Regions, Sources) with fundamentally different behaviors, complete backend/frontend stack, and extensive manual testing.
 
@@ -2747,6 +2749,172 @@ it('should call onRemove with stored index on undo', async () => {
 
 ---
 
+### Phase 8.13: Wall Segment Model & Region Value System ✅ COMPLETE
+
+**Objective**: Refactor wall segments to use SegmentType/SegmentState enums and consolidate region labels to value-based system with frontend-only label derivation
+
+**Completion Date**: 2025-12-01
+
+**Background**: The original wall design used Barrier terminology with boolean properties (isOpaque, isSolid, isSecret, isOpenable, isLocked). The implementation evolved to use a segment-based model with dedicated enums for type and state. Similarly, regions stored both `label` and `value` properties redundantly; this was consolidated to `value` only with frontend-derived labels.
+
+**Implementation Details**:
+
+#### 1. Wall Segment Model
+
+**SegmentType Enum** (replaces boolean properties):
+| Value | Type | Description |
+|-------|------|-------------|
+| 0 | Wall | Solid barrier blocking movement and line-of-sight |
+| 1 | Fence | Partial barrier with visibility through |
+| 2 | Door | Openable barrier, default state: Closed |
+| 3 | Passage | Passageway, default state: Open |
+| 4 | Window | Viewing aperture, default state: Closed |
+| 5 | Opening | Open gap in wall, default state: Open |
+
+**SegmentState Enum** (replaces isOpen, isLocked):
+| Value | State | Description |
+|-------|-------|-------------|
+| 0 | Open | Segment allows movement and line-of-sight |
+| 1 | Closed | Segment blocks movement but may allow limited visibility |
+| 2 | Locked/Visible | Segment blocks movement (Locked for Door/Window, Visible for Wall/Fence) |
+| 3 | Secret | Segment is hidden from players until discovered |
+
+**Default States by SegmentType**:
+| Type | Default State |
+|------|---------------|
+| Wall, Fence | Visible |
+| Door, Window | Closed |
+| Passage, Opening | Open |
+
+**Valid States by SegmentType**:
+| Type | Valid States |
+|------|--------------|
+| Wall, Fence | Visible, Secret |
+| Door, Window | Open, Closed, Locked, Secret |
+| Passage, Opening | Open, Secret |
+
+#### 2. Region Value-Based Label System
+
+**Problem**: Backend stored both `label` and `value` redundantly for regions. Labels are deterministic from Type+Value.
+
+**Solution**:
+- Backend stores only `type` and `value`
+- Frontend derives display labels from value based on type
+- No labels stored in database
+
+**Value-to-Label Mappings**:
+
+| RegionType | Value | Display Label |
+|------------|-------|---------------|
+| Elevation | any | Displayed with sign (+10, -5, 0) |
+| Terrain | 0 | Normal |
+| Terrain | 1 | Difficult |
+| Terrain | 2 | Impassable |
+| Illumination | -2 | Darkness |
+| Illumination | -1 | Dim |
+| Illumination | 0 | Normal |
+| Illumination | 1 | Bright |
+| FogOfWar | 0 | Visible |
+| FogOfWar | 1 | Outdated |
+| FogOfWar | 2 | Hidden |
+
+**Default Values**:
+| Type | Default Value |
+|------|---------------|
+| Elevation | 0 |
+| Terrain | 0 (Normal) |
+| Illumination | 0 (Normal) |
+| FogOfWar | 2 (Hidden) |
+
+#### 3. Context Menu Improvements
+
+**Wall Segment Context Menu** (WallContextMenu.tsx):
+- Right-click on segment opens context menu
+- Type selector dropdown (all SegmentType values)
+- State selector dropdown (valid states for current type)
+- State auto-adjusts when type changes to valid default
+- Click-through behavior: right-click another segment switches menu
+- Click outside closes menu
+
+**Region Context Menu** (RegionContextMenu.tsx):
+- Right-click on region opens context menu
+- Type shown as read-only header (cannot change after creation)
+- Name is directly editable (no click to start)
+- Value selector: TextField for Elevation, Select dropdown for others
+- Same click-through and close-outside behavior as wall menu
+
+**Technical Implementation** (MUI Menu):
+```typescript
+slotProps={{
+  backdrop: { invisible: true, sx: { pointerEvents: 'none' } },
+  paper: { ref: menuRef, sx: { pointerEvents: 'auto' } },
+  root: { sx: { pointerEvents: 'none' } },
+}}
+```
+
+#### 4. Canvas Label Removal
+
+**Problem**: Region labels using centroid calculation could appear outside concave polygon boundaries.
+
+**Solution**: Removed labels from canvas display entirely. Region properties accessible via context menu only.
+
+#### 5. Database Migration
+
+**Issue**: Database contained `Default` values for SegmentState which no longer exists in enum.
+
+**Migration**: Updated existing segments based on type:
+```sql
+UPDATE walls SET segments = ...
+-- Default → Visible for Wall/Fence
+-- Default → Closed for Door/Window
+-- Default → Open for Passage/Opening
+```
+
+**Files Modified**:
+
+**Frontend**:
+- `WallContextMenu.tsx` - Added click-through behavior, segment type/state selectors
+- `RegionContextMenu.tsx` - Editable name, read-only type header, value selector
+- `RegionRenderer.tsx` - Removed label display, fixed right-click selection
+- `regionLabelUtils.ts` - Value-to-label mapping functions
+- `regionColorUtils.ts` - Color derivation from type+value
+
+**Backend**:
+- Domain models use SegmentType/SegmentState enums
+- Region entity stores `value` without `label`
+
+**Documentation**:
+- `DOMAIN_MODEL.md` - Updated EncounterWall and EncounterRegion sections
+
+**Success Criteria**:
+- ✅ Wall segments use SegmentType enum (6 types)
+- ✅ Wall segments use SegmentState enum (4 states)
+- ✅ Default state depends on segment type
+- ✅ Valid states constrained by segment type
+- ✅ Region labels derived from value on frontend
+- ✅ No labels stored in database
+- ✅ Context menus support click-through behavior
+- ✅ Context menus close on outside click
+- ✅ Database migrated from Default state values
+
+**Key Lessons Learned**:
+
+1. **Enum over Booleans**: Multiple boolean properties (isOpaque, isSolid, isOpenable, isLocked) are better represented as a single enum with valid state constraints per type.
+
+2. **Derived vs Stored Data**: Labels derivable from other properties shouldn't be stored. Single source of truth reduces sync bugs.
+
+3. **Context Menu Click-Through**: MUI Menu requires specific slotProps configuration to allow events to pass through backdrop while keeping menu interactive.
+
+4. **Centroid Limitation**: Polygon centroid can fall outside concave shapes. For complex shapes, consider pole of inaccessibility or just remove labels.
+
+**Estimated Effort**: 4 hours
+**Actual Effort**: 4 hours
+
+**Status**: ✅ COMPLETE (2025-12-01)
+
+**Grade**: A (Clean enum model, proper separation of concerns)
+
+---
 
 ---
 
@@ -2877,24 +3045,30 @@ it('should call onRemove with stored index on undo', async () => {
 
 ## Phase 8 Summary Statistics
 
-**Total Effort**: 154h actual (164h estimated with 8.8 completion)
+**Total Effort**: 158h actual (168h estimated with 8.13 complete)
 - Phase 8.0: 23h (192% of 12h estimate)
 - Phase 8.5: 9h (69% of 13h estimate)
 - Phase 8.6: 37h (97% of 38h estimate)
 - Phase 8.7: 67h (89% of 75h estimate)
-- Phase 8.8: 5h+ ongoing (50-100% of 8-12h estimate)
+- Phase 8.8: 8h (100% of 8h estimate)
+- Phase 8.9-8.12: 12h (Fog of War implementation and testing)
+- Phase 8.13: 4h (Wall segment model & region value system)
 
 **Scope Evolution**:
 - Original: Simple encounter CRUD operations
-- Expanded: Complete structures system (barriers, regions, sources)
+- Expanded: Complete structures system (walls, regions, sources)
 - Added: Manual testing and refinement phase
+- Added: Fog of War implementation
+- Added: Wall segment enum model and region value consolidation
 
 **Quality Grades**:
 - Phase 8.0: A- (88/100)
 - Phase 8.5: A (92/100)
 - Phase 8.6: A- (93/100)
 - Phase 8.7: A- (92/100)
-- Phase 8.8: TBD
+- Phase 8.8: A- (90/100)
+- Phase 8.9-8.12: A (Fog of War)
+- Phase 8.13: A (Wall/Region model refinement)
 
 **Tests Created**: 290+ tests
 **Code Coverage**: ≥75% (backend ≥80%, frontend ≥70%)

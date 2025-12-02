@@ -1,7 +1,8 @@
-import type { EncounterWall, Point } from '@/types/domain';
+import type { EncounterWall, Point, Pole } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { calculateDistance, detectEdgeOnEdgeIntersection, detectPoleOnEdgeCollision } from './wallCollisionUtils';
+import { getPolesFromWall, polesToSegments } from './wallUtils';
 
 export interface SplitPoint {
   wallIndex: number;
@@ -30,6 +31,7 @@ export function detectSplitPoints(params: {
     cellSize: { width: 50, height: 50 },
     offset: { left: 0, top: 0 },
     snap: false,
+    scale: 1,
   };
 
   const edgeIntersections = detectEdgeOnEdgeIntersection(newWallPoles, existingWalls, gridConfig);
@@ -38,7 +40,8 @@ export function detectSplitPoints(params: {
     const existingWall = existingWalls[intersection.existingWallIndex];
     if (!existingWall) return;
 
-    const isNearExistingPole = existingWall.poles.some((pole) => {
+    const poles = getPolesFromWall(existingWall);
+    const isNearExistingPole = poles.some((pole) => {
       const dist = calculateDistance(intersection.intersectionPoint, pole);
       return dist <= tolerance;
     });
@@ -60,7 +63,8 @@ export function detectSplitPoints(params: {
     const existingWall = existingWalls[collision.existingWallIndex];
     if (!existingWall) return;
 
-    const isNearExistingPole = existingWall.poles.some((pole) => {
+    const poles = getPolesFromWall(existingWall);
+    const isNearExistingPole = poles.some((pole) => {
       const dist = calculateDistance(collision.projectionPoint, pole);
       return dist <= tolerance;
     });
@@ -99,7 +103,9 @@ export function splitWallAtPoints(params: {
 }): EncounterWall[] {
   const { wall, splitPoints, wallIndex } = params;
 
-  if (wall.poles.length < 2) {
+  const poles = getPolesFromWall(wall);
+
+  if (poles.length < 2) {
     return [];
   }
 
@@ -116,20 +122,24 @@ export function splitWallAtPoints(params: {
   const sortedSplits = sortSplitPoints(wallSplits, wall);
 
   const segments: EncounterWall[] = [];
-  let currentSegmentPoles: typeof wall.poles = [];
+  let currentSegmentPoles: Pole[] = [];
   let poleIndex = 0;
   let splitIndex = 0;
 
-  while (poleIndex < wall.poles.length) {
-    const currentPole = wall.poles[poleIndex];
+  const isClosed = wall.segments.length > 0 &&
+    wall.segments[0]?.startPole.x === wall.segments[wall.segments.length - 1]?.endPole.x &&
+    wall.segments[0]?.startPole.y === wall.segments[wall.segments.length - 1]?.endPole.y;
+
+  while (poleIndex < poles.length) {
+    const currentPole = poles[poleIndex];
     if (!currentPole) break;
 
     currentSegmentPoles.push({ ...currentPole });
 
-    const nextPoleIndex = (poleIndex + 1) % wall.poles.length;
-    const isLastEdge = poleIndex === wall.poles.length - 1;
+    const nextPoleIndex = (poleIndex + 1) % poles.length;
+    const isLastEdge = poleIndex === poles.length - 1;
 
-    if (isLastEdge && !wall.isClosed) {
+    if (isLastEdge && !isClosed) {
       poleIndex++;
       continue;
     }
@@ -138,7 +148,7 @@ export function splitWallAtPoints(params: {
       const split = sortedSplits[splitIndex];
       if (!split) break;
 
-      const nextPole = wall.poles[nextPoleIndex];
+      const nextPole = poles[nextPoleIndex];
       if (!nextPole) break;
 
       const edgeLength = calculateDistance(currentPole, nextPole);
@@ -180,15 +190,14 @@ export function splitWallAtPoints(params: {
 
 function createSegment(
   originalWall: EncounterWall,
-  poles: typeof originalWall.poles,
+  poles: Pole[],
   segmentNumber: number,
 ): EncounterWall {
   const baseName = originalWall.name.replace(/\s*\(\d+\)$/, '');
   return {
     ...originalWall,
     name: `${baseName} (${segmentNumber})`,
-    poles: poles.map((p) => ({ ...p })),
-    isClosed: false,
+    segments: polesToSegments(poles, false),
   };
 }
 
@@ -207,13 +216,14 @@ export function calculateDistanceAlongEdge(point: Point, edgeStart: Point, edgeE
 }
 
 export function sortSplitPoints(splitPoints: SplitPoint[], wall: EncounterWall): SplitPoint[] {
+  const poles = getPolesFromWall(wall);
   return [...splitPoints].sort((a, b) => {
     if (a.edgeIndex !== b.edgeIndex) {
       return a.edgeIndex - b.edgeIndex;
     }
 
-    const edgeStart = wall.poles[a.edgeIndex];
-    const edgeEnd = wall.poles[(a.edgeIndex + 1) % wall.poles.length];
+    const edgeStart = poles[a.edgeIndex];
+    const edgeEnd = poles[(a.edgeIndex + 1) % poles.length];
     if (!edgeStart || !edgeEnd) return 0;
 
     const distA = calculateDistanceAlongEdge(a.splitPosition, edgeStart, edgeEnd);

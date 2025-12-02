@@ -1,15 +1,15 @@
-import { LabelPosition, LabelVisibility, type PlacedAsset } from '../types/domain';
+import { AssetKind, LabelPosition, LabelVisibility, type PlacedAsset } from '../types/domain';
 
 export const getEffectiveLabelVisibility = (asset: PlacedAsset): LabelVisibility => {
   if (asset.labelVisibility !== LabelVisibility.Default) {
     return asset.labelVisibility;
   }
 
-  if (asset.asset.kind === 'Monster') {
+  if (asset.asset.classification.kind === AssetKind.Creature) {
     return LabelVisibility.Always;
   }
 
-  if (asset.asset.kind === 'Character') {
+  if (asset.asset.classification.kind === AssetKind.Character) {
     return LabelVisibility.Always;
   }
 

@@ -7,10 +7,8 @@ import {
 import {
   Box,
   Button,
-  Checkbox,
   Collapse,
   Divider,
-  FormControlLabel,
   IconButton,
   List,
   ListItem,
@@ -24,7 +22,8 @@ import {
 import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import { useUpdateEncounterWallMutation } from '@/services/encounterApi';
-import { type PlacedWall, type Pole, WallVisibility } from '@/types/domain';
+import { type PlacedWall, type Pole, SegmentState, SegmentType } from '@/types/domain';
+import { SegmentRow } from './SegmentRow';
 import { WALL_PRESETS, type WallPreset } from './wallsPanelTypes';
 
 export interface WallsPanelProps {
@@ -35,10 +34,8 @@ export interface WallsPanelProps {
   originalWallPoles?: Pole[] | null;
   onPresetSelect?: (preset: WallPreset) => void;
   onPlaceWall?: (properties: {
-    visibility: WallVisibility;
-    isClosed: boolean;
+    segmentType: SegmentType;
     defaultHeight: number;
-    color?: string;
   }) => void;
   onWallSelect?: (wallIndex: number) => void;
   onWallDelete?: (wallIndex: number) => void;
@@ -62,15 +59,12 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
   }) => {
     const theme = useTheme();
 
-    const [visibility, setVisibility] = useState<WallVisibility>(WallVisibility.Normal);
-    const [isClosed, setIsClosed] = useState(false);
+    const [segmentType, setSegmentType] = useState<SegmentType>(SegmentType.Wall);
     const [defaultHeight, setDefaultHeight] = useState<number>(10.0);
-    const [defaultColor, setDefaultColor] = useState<string>('#808080');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [wallToDelete, setWallToDelete] = useState<number | null>(null);
     const [expandedWalls, setExpandedWalls] = useState<Set<number>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
-    const [editedColors, setEditedColors] = useState<Map<number, string>>(new Map());
 
     const [editConflictOpen, setEditConflictOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<'delete' | 'place' | null>(null);
@@ -82,7 +76,13 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         return true;
       }
 
-      const currentPoles = currentWall.poles;
+      const currentPoles: Pole[] = [];
+      for (const segment of currentWall.segments) {
+        if (currentPoles.length === 0 || currentPoles[currentPoles.length - 1]?.x !== segment.startPole.x || currentPoles[currentPoles.length - 1]?.y !== segment.startPole.y) {
+          currentPoles.push(segment.startPole);
+        }
+        currentPoles.push(segment.endPole);
+      }
 
       if (currentPoles.length !== originalPoles.length) {
         return true;
@@ -148,8 +148,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
     };
 
     const handlePresetClick = (preset: WallPreset) => {
-      setVisibility(preset.visibility);
-      setIsClosed(preset.isClosed);
+      setSegmentType(preset.segmentType);
       onPresetSelect?.(preset);
     };
 
@@ -168,10 +167,8 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       }
 
       onPlaceWall?.({
-        visibility,
-        isClosed,
+        segmentType,
         defaultHeight,
-        color: defaultColor,
       });
     };
 
@@ -209,10 +206,8 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         setDeleteConfirmOpen(true);
       } else if (pendingAction === 'place') {
         onPlaceWall?.({
-          visibility,
-          isClosed,
+          segmentType,
           defaultHeight,
-          color: defaultColor,
         });
       }
 
@@ -235,11 +230,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
             newMap.delete(wallIndex);
             return newMap;
           });
-          setEditedColors((prevColors) => {
-            const newMap = new Map(prevColors);
-            newMap.delete(wallIndex);
-            return newMap;
-          });
         } else {
           newSet.add(wallIndex);
         }
@@ -251,8 +241,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       wallIndex: number,
       updates: {
         name?: string;
-        color?: string;
-        poles?: Pole[];
+        segments?: typeof encounterWalls[0]['segments'];
       },
     ) => {
       if (!encounterId) return;
@@ -285,7 +274,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
           <Box sx={{ display: 'flex', gap: 1 }}>
             {WALL_PRESETS.map((preset) => {
               const Icon = preset.icon;
-              const isSelected = visibility === preset.visibility;
+              const isSelected = segmentType === preset.segmentType;
               return (
                 <Tooltip key={preset.name} title={preset.name} arrow placement='top'>
                   <IconButton
@@ -309,12 +298,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
               );
             })}
           </Box>
-
-          <FormControlLabel
-            control={<Checkbox size='small' checked={isClosed} onChange={(e) => setIsClosed(e.target.checked)} />}
-            label={<Typography sx={compactStyles.toggleLabel}>Closed (Room/Enclosure)</Typography>}
-            sx={{ margin: 0, height: 32 }}
-          />
         </Box>
 
         <Divider sx={{ my: 0.5 }} />
@@ -324,20 +307,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <input
-            type='color'
-            value={defaultColor}
-            onChange={(e) => setDefaultColor(e.target.value)}
-            style={{
-              width: '32px',
-              height: '32px',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: '4px',
-              cursor: 'pointer',
-              padding: 0,
-            }}
-          />
-
           <TextField
             label='Height'
             type='number'
@@ -472,7 +441,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                         <ListItemText
                           primary={encounterWall.name}
                           primaryTypographyProps={{ fontSize: '10px' }}
-                          secondary={`${encounterWall.poles.length} poles`}
+                          secondary={`${encounterWall.segments.length} segments`}
                           secondaryTypographyProps={{ fontSize: '8px' }}
                         />
                       )}
@@ -490,58 +459,45 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                         gap: 1,
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <input
-                          type='color'
-                          value={editedColors.get(encounterWall.index) ?? encounterWall.color ?? '#808080'}
-                          onChange={(e) => {
-                            setEditedColors((prev) => {
-                              const newMap = new Map(prev);
-                              newMap.set(encounterWall.index, e.target.value);
-                              return newMap;
-                            });
-                            handleWallPropertyUpdate(encounterWall.index, {
-                              color: e.target.value,
-                            });
-                          }}
-                          onKeyDown={(e) => {
-                            e.stopPropagation();
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            border: `1px solid ${theme.palette.divider}`,
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            padding: 0,
-                          }}
-                        />
-
-                        <TextField
-                          label='Height'
-                          type='number'
-                          value={encounterWall.poles.length > 0 ? (encounterWall.poles[0]?.h ?? 10) : 10}
-                          onChange={(e) => {
-                            const newHeight = parseFloat(e.target.value);
-                            const updatedPoles = encounterWall.poles.map((pole) => ({
-                              ...pole,
-                              h: newHeight,
-                            }));
-                            handleWallPropertyUpdate(encounterWall.index, {
-                              poles: updatedPoles,
-                            });
-                          }}
-                          onKeyDown={(e) => {
-                            e.stopPropagation();
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          size='small'
-                          InputProps={{
-                            inputProps: { min: 0.5, max: 20.0, step: 0.5 },
-                          }}
-                          sx={{ ...compactStyles.textField, width: 80 }}
-                        />
+                      <Typography
+                        sx={{
+                          fontSize: '9px',
+                          fontWeight: 600,
+                          color: theme.palette.text.secondary,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Segments
+                      </Typography>
+                      <Box
+                        sx={{
+                          border: `1px solid ${theme.palette.divider}`,
+                          borderRadius: 0.5,
+                          backgroundColor: theme.palette.background.paper,
+                        }}
+                      >
+                        {encounterWall.segments.map((segment) => (
+                          <SegmentRow
+                            key={segment.index}
+                            segment={segment}
+                            onTypeChange={(segmentIndex, newType, newState) => {
+                              const updatedSegments = encounterWall.segments.map((s) =>
+                                s.index === segmentIndex ? { ...s, type: newType, state: newState } : s,
+                              );
+                              handleWallPropertyUpdate(encounterWall.index, {
+                                segments: updatedSegments,
+                              });
+                            }}
+                            onStateChange={(segmentIndex, newState) => {
+                              const updatedSegments = encounterWall.segments.map((s) =>
+                                s.index === segmentIndex ? { ...s, state: newState as SegmentState } : s,
+                              );
+                              handleWallPropertyUpdate(encounterWall.index, {
+                                segments: updatedSegments,
+                              });
+                            }}
+                          />
+                        ))}
                       </Box>
                     </Box>
                   </Collapse>

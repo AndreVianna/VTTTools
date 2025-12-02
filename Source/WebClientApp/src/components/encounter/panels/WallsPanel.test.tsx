@@ -1,22 +1,23 @@
 import { createTheme, ThemeProvider } from '@mui/material';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { type EncounterWall, WallVisibility } from '@/types/domain';
+import { type EncounterWall, SegmentState, SegmentType } from '@/types/domain';
 import { WallsPanel } from './WallsPanel';
 
 const theme = createTheme();
 
 const mockEncounterWall: EncounterWall = {
-  encounterId: 'encounter-1',
   index: 0,
   name: 'Stone Wall',
-  poles: [
-    { x: 0, y: 0, h: 2.0 },
-    { x: 100, y: 0, h: 2.0 },
+  segments: [
+    {
+      index: 0,
+      startPole: { x: 0, y: 0, h: 2.0 },
+      endPole: { x: 100, y: 0, h: 2.0 },
+      type: SegmentType.Wall,
+      state: SegmentState.Open,
+    },
   ],
-  visibility: WallVisibility.Normal,
-  isClosed: false,
-  color: '#808080',
 };
 
 const renderComponent = (props = {}) => {
@@ -63,8 +64,7 @@ describe('WallsPanel', () => {
 
     expect(onPresetSelect).toHaveBeenCalledWith(
       expect.objectContaining({
-        visibility: expect.any(String),
-        isClosed: expect.any(Boolean),
+        segmentType: expect.any(Number),
       }),
     );
   });
@@ -78,8 +78,7 @@ describe('WallsPanel', () => {
 
     expect(onPlaceWall).toHaveBeenCalledWith(
       expect.objectContaining({
-        visibility: WallVisibility.Normal,
-        isClosed: false,
+        segmentType: SegmentType.Wall,
         defaultHeight: 10.0,
       }),
     );
@@ -213,8 +212,7 @@ describe('WallsPanel', () => {
 
     expect(onPlaceWall).toHaveBeenCalledWith(
       expect.objectContaining({
-        visibility: WallVisibility.Normal,
-        isClosed: false,
+        segmentType: SegmentType.Wall,
         defaultHeight: 10.0,
       }),
     );
@@ -229,7 +227,7 @@ describe('WallsPanel', () => {
       encounterWalls: [mockWall],
       selectedWallIndex: 5,
       isEditingVertices: true,
-      originalWallPoles: mockWall.poles,
+      originalWallPoles: mockWall.segments,
       onWallDelete,
       onCancelEditing,
     });
@@ -254,7 +252,7 @@ describe('WallsPanel', () => {
       encounterWalls: [mockWall1, mockWall2],
       selectedWallIndex: 1,
       isEditingVertices: true,
-      originalWallPoles: mockWall1.poles,
+      originalWallPoles: mockWall1.segments,
       onWallDelete,
       onCancelEditing,
     });
@@ -274,15 +272,25 @@ describe('WallsPanel', () => {
     const onCancelEditing = vi.fn();
     const mockWall1 = { ...mockEncounterWall, index: 1, name: 'Wall 1' };
     const mockWall2 = { ...mockEncounterWall, index: 2, name: 'Wall 2' };
-    const originalPoles = [
-      { x: 0, y: 0, h: 2.0 },
-      { x: 50, y: 0, h: 2.0 },
+    const originalSegments = [
+      {
+        index: 0,
+        startPole: { x: 0, y: 0, h: 2.0 },
+        endPole: { x: 50, y: 0, h: 2.0 },
+        type: SegmentType.Wall,
+        state: SegmentState.Open,
+      },
     ];
     const changedWall1 = {
       ...mockWall1,
-      poles: [
-        { x: 0, y: 0, h: 2.0 },
-        { x: 100, y: 0, h: 2.0 },
+      segments: [
+        {
+          index: 0,
+          startPole: { x: 0, y: 0, h: 2.0 },
+          endPole: { x: 100, y: 0, h: 2.0 },
+          type: SegmentType.Wall,
+          state: SegmentState.Open,
+        },
       ],
     };
 
@@ -290,7 +298,7 @@ describe('WallsPanel', () => {
       encounterWalls: [changedWall1, mockWall2],
       selectedWallIndex: 1,
       isEditingVertices: true,
-      originalWallPoles: originalPoles,
+      originalWallPoles: originalSegments,
       onWallDelete,
       onCancelEditing,
     });
@@ -314,7 +322,7 @@ describe('WallsPanel', () => {
       encounterWalls: [mockWall],
       selectedWallIndex: 1,
       isEditingVertices: true,
-      originalWallPoles: mockWall.poles,
+      originalWallPoles: mockWall.segments,
       onPlaceWall,
       onCancelEditing,
     });
@@ -330,15 +338,25 @@ describe('WallsPanel', () => {
   it('shows edit confirmation when placing wall with changes', async () => {
     const onPlaceWall = vi.fn();
     const onCancelEditing = vi.fn();
-    const originalPoles = [
-      { x: 0, y: 0, h: 2.0 },
-      { x: 50, y: 0, h: 2.0 },
+    const originalSegments = [
+      {
+        index: 0,
+        startPole: { x: 0, y: 0, h: 2.0 },
+        endPole: { x: 50, y: 0, h: 2.0 },
+        type: SegmentType.Wall,
+        state: SegmentState.Open,
+      },
     ];
     const changedWall = {
       ...mockEncounterWall,
-      poles: [
-        { x: 0, y: 0, h: 2.0 },
-        { x: 100, y: 0, h: 2.0 },
+      segments: [
+        {
+          index: 0,
+          startPole: { x: 0, y: 0, h: 2.0 },
+          endPole: { x: 100, y: 0, h: 2.0 },
+          type: SegmentType.Wall,
+          state: SegmentState.Open,
+        },
       ],
     };
 
@@ -346,7 +364,7 @@ describe('WallsPanel', () => {
       encounterWalls: [changedWall],
       selectedWallIndex: 0,
       isEditingVertices: true,
-      originalWallPoles: originalPoles,
+      originalWallPoles: originalSegments,
       onPlaceWall,
       onCancelEditing,
     });

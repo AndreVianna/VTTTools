@@ -1,9 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { useAddEncounterWallMutation, useUpdateEncounterWallMutation } from '@/services/encounterApi';
-import type { EncounterWall, Pole } from '@/types/domain';
-import { WallVisibility } from '@/types/domain';
+import type { EncounterWall, EncounterWallSegment } from '@/types/domain';
 import type { LocalAction } from '@/types/wallUndoActions';
-import { cleanWallPoles } from '@/utils/wallUtils';
 
 export type TransactionType = 'placement' | 'editing' | null;
 
@@ -11,10 +9,7 @@ export interface WallSegment {
   tempId: number;
   wallIndex: number | null;
   name: string;
-  poles: Pole[];
-  isClosed: boolean;
-  visibility: WallVisibility;
-  color?: string | undefined;
+  segments: EncounterWallSegment[];
 }
 
 export interface WallTransaction {
@@ -81,12 +76,8 @@ export const useWallTransaction = () => {
       wall?: EncounterWall,
       placementProperties?: {
         name?: string;
-        visibility?: WallVisibility;
-        isClosed?: boolean;
-        color?: string | undefined;
       },
     ) => {
-      // Clear ref when starting new transaction
       segmentsRef.current = [];
 
       if (wall) {
@@ -95,13 +86,10 @@ export const useWallTransaction = () => {
           originalWall: wall,
           segments: [
             {
-              tempId: 0,
+              tempId: -1,
               wallIndex: wall.index,
               name: wall.name,
-              poles: [...wall.poles],
-              isClosed: wall.isClosed,
-              visibility: wall.visibility,
-              color: wall.color || undefined,
+              segments: [...wall.segments],
             },
           ],
           isActive: true,
@@ -117,10 +105,7 @@ export const useWallTransaction = () => {
               tempId: -1,
               wallIndex: null,
               name: placementProperties?.name || '',
-              poles: [],
-              visibility: placementProperties?.visibility ?? WallVisibility.Normal,
-              isClosed: placementProperties?.isClosed ?? false,
-              color: placementProperties?.color || '#808080',
+              segments: [],
             },
           ],
           isActive: true,
@@ -210,7 +195,6 @@ export const useWallTransaction = () => {
       const { addEncounterWall, updateEncounterWall } = apiHooks;
       const results: CommitResult['segmentResults'] = [];
 
-      // Use provided segments, ref, or state (in that order)
       let currentTransaction: WallTransaction;
       if (segmentsOverride) {
         currentTransaction = {
@@ -226,14 +210,7 @@ export const useWallTransaction = () => {
         currentTransaction = transaction;
       }
       try {
-        const segmentsToProcess = currentTransaction.segments.map((segment) => {
-          const cleaned = cleanWallPoles(segment.poles, segment.isClosed);
-          return {
-            ...segment,
-            poles: cleaned.poles,
-            isClosed: cleaned.isClosed,
-          };
-        });
+        const segmentsToProcess = currentTransaction.segments;
         let names: string[];
         if (segmentsToProcess.length > 1) {
           if (currentTransaction.type === 'editing' && currentTransaction.originalWall !== null) {
@@ -264,10 +241,7 @@ export const useWallTransaction = () => {
                 encounterId,
                 wallIndex: segment?.wallIndex || 1,
                 name: assignedName,
-                poles: segment?.poles,
-                visibility: segment?.visibility,
-                isClosed: segment?.isClosed || false,
-                color: segment?.color || undefined,
+                segments: segment?.segments,
               };
 
               await updateEncounterWall(updatePayload).unwrap();
@@ -280,10 +254,7 @@ export const useWallTransaction = () => {
               const addPayload = {
                 encounterId,
                 name: assignedName || '',
-                poles: segment?.poles || [],
-                visibility: segment?.visibility || WallVisibility.Normal,
-                isClosed: segment?.isClosed || false,
-                color: segment?.color || undefined,
+                segments: segment?.segments || [],
               };
 
               const result = await addEncounterWall(addPayload).unwrap();
@@ -304,7 +275,7 @@ export const useWallTransaction = () => {
         const hasErrors = results.some((r) => r.error !== undefined);
         if (!hasErrors) {
           setTransaction(INITIAL_TRANSACTION);
-          segmentsRef.current = []; // Clear ref after successful commit
+          segmentsRef.current = [];
         }
 
         return {
@@ -324,7 +295,7 @@ export const useWallTransaction = () => {
       }
     },
     [transaction],
-  ); // Need transaction for fallback path
+  );
 
   const rollbackTransaction = useCallback(() => {
     setTransaction(INITIAL_TRANSACTION);

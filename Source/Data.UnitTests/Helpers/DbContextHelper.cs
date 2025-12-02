@@ -144,7 +144,6 @@ internal static class DbContextHelper {
                 Type = GridType.Square,
                 CellSize = new(1, 1),
                 Offset = new(0, 0),
-                Snap = false,
             },
         };
 
@@ -247,7 +246,6 @@ internal static class DbContextHelper {
                 Type = GridType.Square,
                 CellSize = new(1, 1),
                 Offset = new(0, 0),
-                Snap = false,
             },
         };
 

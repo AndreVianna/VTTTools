@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { ObjectAsset, PlacedAsset } from '../types/domain';
+import type { PlacedAsset } from '../types/domain';
 import { AssetKind, LabelPosition, LabelVisibility } from '../types/domain';
 import { ClipboardProvider } from './ClipboardContext';
 import { useClipboard } from './useClipboard';
@@ -11,18 +11,16 @@ const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => 
   asset: {
     id: `asset-${id}`,
     ownerId: 'owner-1',
-    kind: AssetKind.Object,
+    classification: { kind: AssetKind.Object, category: '', type: '', subtype: null },
     name,
     description: 'Test asset description',
     isPublished: true,
     isPublic: false,
     tokens: [],
-    portrait: undefined,
-    size: { width: 1, height: 1, isSquare: true },
-    isMovable: true,
-    isOpaque: false,
-    triggerEffectId: undefined,
-  } as ObjectAsset,
+    portrait: null,
+    tokenSize: { width: 1, height: 1 },
+    statBlocks: {},
+  },
   position: { x: 100, y: 100 },
   size: { width: 50, height: 50 },
   rotation: 0,

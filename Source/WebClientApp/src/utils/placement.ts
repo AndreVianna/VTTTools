@@ -61,12 +61,12 @@ export const getPlacementBehavior = (
       snapToGrid: true,
       requiresGridAlignment: false,
       allowOverlap: !objectData.isOpaque,
-      lockAspectRatio: objectData.size.isSquare,
+      lockAspectRatio: objectData.size.width === objectData.size.height,
       zIndexRange: [10, 40],
     };
   }
 
-  if ((assetKind === AssetKind.Monster || assetKind === AssetKind.Character) && monsterOrCharacterData !== undefined) {
+  if ((assetKind === AssetKind.Creature || assetKind === AssetKind.Character) && monsterOrCharacterData !== undefined) {
     return {
       ...defaultBehavior,
       canMove: true,

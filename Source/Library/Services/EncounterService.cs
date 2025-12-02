@@ -1,7 +1,5 @@
 using EncounterAssetBulkUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
 using EncounterAssetUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
-using EncounterOpeningAddData = VttTools.Library.Encounters.ServiceContracts.EncounterOpeningAddData;
-using EncounterOpeningUpdateData = VttTools.Library.Encounters.ServiceContracts.EncounterOpeningUpdateData;
 
 namespace VttTools.Library.Services;
 
@@ -83,7 +81,7 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
                 Type = data.Grid.Value.Type.IsSet ? data.Grid.Value.Type.Value : encounter.Grid.Type,
                 CellSize = data.Grid.Value.CellSize.IsSet ? data.Grid.Value.CellSize.Value : encounter.Grid.CellSize,
                 Offset = data.Grid.Value.Offset.IsSet ? data.Grid.Value.Offset.Value : encounter.Grid.Offset,
-                Snap = data.Grid.Value.Snap.IsSet ? data.Grid.Value.Snap.Value : encounter.Grid.Snap,
+                Scale = data.Grid.Value.Scale.IsSet ? data.Grid.Value.Scale.Value : encounter.Grid.Scale,
             },
         };
 
@@ -441,14 +439,11 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        var index = encounter.Walls.Count != 0 ? encounter.Walls.Max(sw => sw.Index) + 1 : 1;
+        var index = encounter.Walls.Count != 0 ? encounter.Walls.Max(sw => sw.Index) + 1 : 0;
         var encounterWall = new EncounterWall {
             Index = index,
-            Name = data.Name ?? $"Wall {index}",
-            IsClosed = data.IsClosed,
-            Visibility = data.Visibility,
-            Poles = data.Poles,
-            Color = data.Color,
+            Name = data.Name ?? $"Wall {index + 1}",
+            Segments = data.Segments,
         };
 
         await encounterStorage.AddWallAsync(id, encounterWall, ct);
@@ -460,22 +455,19 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterWall = encounter.Walls.FirstOrDefault(b => b.Index == index);
-        if (encounterWall is null)
+        var wall = encounter.Walls.FirstOrDefault(b => b.Index == index);
+        if (wall is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        encounterWall = encounterWall with {
+        wall = wall with {
             Index = index,
-            Name = data.Name.IsSet ? data.Name.Value : encounterWall.Name,
-            Poles = data.Poles.IsSet ? data.Poles.Value : encounterWall.Poles,
-            IsClosed = data.IsClosed.IsSet ? data.IsClosed.Value : encounterWall.IsClosed,
-            Visibility = data.Visibility.IsSet ? data.Visibility.Value : encounterWall.Visibility,
-            Color = data.Color.IsSet ? data.Color.Value : encounterWall.Color,
+            Name = data.Name.IsSet ? data.Name.Value : wall.Name,
+            Segments = data.Segments.IsSet ? data.Segments.Value : wall.Segments,
         };
 
-        await encounterStorage.UpdateWallAsync(id, encounterWall, ct);
+        await encounterStorage.UpdateWallAsync(id, wall, ct);
         return Result.Success();
     }
 
@@ -495,172 +487,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
     }
 
     /// <inheritdoc />
-    public async Task<Result<EncounterOpening>> PlaceOpeningAsync(Guid userId, Guid id, EncounterOpeningAddData data, CancellationToken ct = default) {
-        var encounter = await encounterStorage.GetByIdAsync(id, ct);
-        if (encounter is null)
-            return Result.Failure("NotFound");
-        if (encounter.Adventure.OwnerId != userId)
-            return Result.Failure("NotAllowed");
-
-        var validationResult = data.Validate();
-        if (validationResult.HasErrors)
-            return validationResult;
-
-        var wall = encounter.Walls.FirstOrDefault(w => w.Index == data.WallIndex);
-        if (wall is null)
-            return Result.Failure($"Wall with index {data.WallIndex} not found");
-        if (wall.Poles.Count < 2)
-            return Result.Failure($"Wall with index {data.WallIndex} must have at least 2 poles");
-
-        var (startPoleIndex, endPoleIndex, updatedPoles) = InsertOpeningPoles(wall.Poles, data.StartPole, data.EndPole);
-
-        var dx = data.EndPole.X - data.StartPole.X;
-        var dy = data.EndPole.Y - data.StartPole.Y;
-        var widthPixels = Math.Sqrt((dx * dx) + (dy * dy));
-        var widthFeet = widthPixels / encounter.Grid.CellSize.Width;
-        var heightFeet = data.StartPole.H;
-
-        var openingIndex = encounter.Openings.Count > 0 ? encounter.Openings.Max(o => o.Index) + 1 : 1;
-        var opening = new EncounterOpening {
-            Index = openingIndex,
-            Name = data.Name ?? $"{data.Type} {openingIndex}",
-            Description = data.Description,
-            Type = data.Type,
-            WallIndex = data.WallIndex,
-            StartPoleIndex = startPoleIndex,
-            EndPoleIndex = endPoleIndex,
-            Size = new Dimension(widthFeet, heightFeet),
-            Visibility = data.Visibility,
-            State = data.State,
-            Opacity = data.Opacity,
-            Material = data.Material,
-            Color = data.Color,
-        };
-
-        if (updatedPoles.Count != wall.Poles.Count) {
-            var updatedWall = wall with { Poles = updatedPoles };
-            await encounterStorage.UpdateWallAsync(id, updatedWall, ct);
-        }
-
-        await encounterStorage.AddOpeningAsync(id, opening, ct);
-        return opening;
-    }
-
-    private static (uint startPoleIndex, uint endPoleIndex, List<Pole> updatedPoles) InsertOpeningPoles(
-        IReadOnlyList<Pole> existingPoles,
-        Pole startPole,
-        Pole endPole) {
-        const double poleTolerance = 5.0;
-        var poles = existingPoles.ToList();
-
-        var startPoleIndex = FindOrInsertPoleAtPosition(poles, startPole, poleTolerance);
-        var endPoleIndex = FindOrInsertPoleAtPosition(poles, endPole, poleTolerance);
-
-        if (startPoleIndex > endPoleIndex)
-            (startPoleIndex, endPoleIndex) = (endPoleIndex, startPoleIndex);
-
-        return (startPoleIndex, endPoleIndex, poles);
-    }
-
-    private static uint FindOrInsertPoleAtPosition(List<Pole> poles, Pole targetPole, double tolerance) {
-        if (poles.Count == 0)
-            throw new InvalidOperationException("Cannot insert pole on wall with no existing poles");
-
-        for (var i = 0; i < poles.Count; i++) {
-            var dx = poles[i].X - targetPole.X;
-            var dy = poles[i].Y - targetPole.Y;
-            var distance = Math.Sqrt((dx * dx) + (dy * dy));
-            if (distance < tolerance)
-                return (uint)i;
-        }
-
-        var insertIndex = FindInsertionIndex(poles, targetPole);
-        poles.Insert(insertIndex, targetPole);
-        return (uint)insertIndex;
-    }
-
-    private static int FindInsertionIndex(List<Pole> poles, Pole targetPole) {
-        for (var i = 0; i < poles.Count - 1; i++) {
-            if (IsPointOnSegment(targetPole, poles[i], poles[i + 1]))
-                return i + 1;
-        }
-        return poles.Count;
-    }
-
-    private static bool IsPointOnSegment(Pole point, Pole segmentStart, Pole segmentEnd) {
-        var segmentDx = segmentEnd.X - segmentStart.X;
-        var segmentDy = segmentEnd.Y - segmentStart.Y;
-        var segmentLength = Math.Sqrt((segmentDx * segmentDx) + (segmentDy * segmentDy));
-
-        if (segmentLength < 0.001)
-            return false;
-
-        var pointDx = point.X - segmentStart.X;
-        var pointDy = point.Y - segmentStart.Y;
-
-        var t = ((pointDx * segmentDx) + (pointDy * segmentDy)) / (segmentLength * segmentLength);
-        if (t is < 0 or > 1)
-            return false;
-
-        var projectedX = segmentStart.X + (t * segmentDx);
-        var projectedY = segmentStart.Y + (t * segmentDy);
-
-        var distanceToSegment = Math.Sqrt(((point.X - projectedX) * (point.X - projectedX)) +
-                                          ((point.Y - projectedY) * (point.Y - projectedY)));
-
-        return distanceToSegment < 5.0;
-    }
-
-    /// <inheritdoc />
-    public async Task<Result> UpdateOpeningAsync(Guid userId, Guid id, uint index, EncounterOpeningUpdateData data, CancellationToken ct = default) {
-        var encounter = await encounterStorage.GetByIdAsync(id, ct);
-        if (encounter is null)
-            return Result.Failure("NotFound");
-        var opening = encounter.Openings.FirstOrDefault(o => o.Index == index);
-        if (opening is null)
-            return Result.Failure("NotFound");
-        if (encounter.Adventure.OwnerId != userId)
-            return Result.Failure("NotAllowed");
-
-        var validationResult = data.Validate();
-        if (validationResult.HasErrors)
-            return validationResult;
-
-        opening = opening with {
-            Name = data.Name.IsSet ? data.Name.Value : opening.Name,
-            Description = data.Description.IsSet ? data.Description.Value : opening.Description,
-            Type = data.Type.IsSet ? data.Type.Value : opening.Type,
-            Size = new Dimension(
-                data.Width.IsSet ? data.Width.Value : opening.Size.Width,
-                data.Height.IsSet ? data.Height.Value : opening.Size.Height
-            ),
-            Visibility = data.Visibility.IsSet ? data.Visibility.Value : opening.Visibility,
-            State = data.State.IsSet ? data.State.Value : opening.State,
-            Opacity = data.Opacity.IsSet ? data.Opacity.Value : opening.Opacity,
-            Material = data.Material.IsSet ? data.Material.Value : opening.Material,
-            Color = data.Color.IsSet ? data.Color.Value : opening.Color,
-        };
-
-        await encounterStorage.UpdateOpeningAsync(id, opening, ct);
-        return Result.Success();
-    }
-
-    /// <inheritdoc />
-    public async Task<Result> RemoveOpeningAsync(Guid userId, Guid id, uint index, CancellationToken ct = default) {
-        var encounter = await encounterStorage.GetByIdAsync(id, ct);
-        if (encounter is null)
-            return Result.Failure("NotFound");
-        var opening = encounter.Openings.FirstOrDefault(o => o.Index == index);
-        if (opening is null)
-            return Result.Failure("NotFound");
-        if (encounter.Adventure.OwnerId != userId)
-            return Result.Failure("NotAllowed");
-
-        await encounterStorage.DeleteOpeningAsync(id, index, ct);
-        return Result.Success();
-    }
-
-    /// <inheritdoc />
     public async Task<Result<EncounterRegion>> AddRegionAsync(Guid userId, Guid id, EncounterRegionAddData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
@@ -668,15 +494,13 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        var index = encounter.Regions.Count != 0 ? encounter.Regions.Max(sr => sr.Index) + 1 : 1;
+        var index = encounter.Regions.Count != 0 ? encounter.Regions.Max(sr => sr.Index) + 1 : 0;
         var encounterRegion = new EncounterRegion {
             Index = index,
-            Name = data.Name ?? $"Region {index}",
+            Name = data.Name ?? $"Region {index + 1}",
             Vertices = data.Vertices,
             Type = data.Type,
             Value = data.Value,
-            Label = data.Label,
-            Color = data.Color,
         };
 
         await encounterStorage.AddRegionAsync(id, encounterRegion, ct);
@@ -700,8 +524,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             Vertices = data.Vertices.IsSet ? data.Vertices.Value : encounterRegion.Vertices,
             Value = data.Value.IsSet ? data.Value.Value : encounterRegion.Value,
             Type = data.Type.IsSet ? data.Type.Value : encounterRegion.Type,
-            Label = data.Label.IsSet ? data.Label.Value : encounterRegion.Label,
-            Color = data.Color.IsSet ? data.Color.Value : encounterRegion.Color,
         };
 
         await encounterStorage.UpdateRegionAsync(id, encounterRegion, ct);
@@ -735,10 +557,10 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
         if (result.HasErrors)
             return result;
 
-        var index = encounter.Sources.Count != 0 ? encounter.Sources.Max(ss => ss.Index) + 1 : 1;
+        var index = encounter.Sources.Count != 0 ? encounter.Sources.Max(ss => ss.Index) + 1 : 0;
         var encounterSource = new EncounterSource {
             Index = index,
-            Name = data.Name ?? $"Source {index}",
+            Name = data.Name ?? $"Source {index + 1}",
             Type = data.Type,
             Position = data.Position,
             IsDirectional = data.IsDirectional,
@@ -746,7 +568,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             Range = data.Range,
             Spread = data.Spread,
             Intensity = data.Intensity,
-            Color = data.Color,
             HasGradient = data.HasGradient,
         };
 
@@ -780,7 +601,6 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             Spread = data.Spread.IsSet ? data.Spread.Value : encounterSource.Spread,
             HasGradient = data.HasGradient.IsSet ? data.HasGradient.Value : encounterSource.HasGradient,
             Intensity = data.Intensity.IsSet ? data.Intensity.Value : encounterSource.Intensity,
-            Color = data.Color.IsSet ? data.Color.Value : encounterSource.Color,
         };
 
         await encounterStorage.UpdateSourceAsync(id, encounterSource, ct);

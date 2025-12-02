@@ -23,7 +23,6 @@ public class Encounter {
     public Resource? Sound { get; set; }
     public ICollection<EncounterAsset> EncounterAssets { get; set; } = [];
     public ICollection<EncounterWall> Walls { get; set; } = [];
-    public ICollection<EncounterOpening> Openings { get; set; } = [];
     public ICollection<EncounterRegion> Regions { get; set; } = [];
     public ICollection<EncounterSource> Sources { get; set; } = [];
 }

@@ -4,24 +4,24 @@ const ELEVATION_GREEN = '#00FF00';
 const ELEVATION_RED = '#FF0000';
 const ELEVATION_NAVY = '#000080';
 
-const TERRAIN_COLORS: Record<string, string> = {
-  Normal: '#4CAF50',
-  Difficult: '#FFC107',
-  Impassable: '#F44336',
+const TERRAIN_VALUE_COLORS: Record<number, string> = {
+  0: '#4CAF50',
+  1: '#FFC107',
+  2: '#F44336',
 };
 
-const ILLUMINATION_COLORS: Record<string, string> = {
-  Bright: '#FFEB3B',
-  Normal: 'transparent',
-  Dim: '#000000',
-  Dark: '#000000',
+const ILLUMINATION_VALUE_COLORS: Record<number, string> = {
+  [-2]: '#000000',
+  [-1]: '#000000',
+  0: 'transparent',
+  1: '#FFEB3B',
 };
 
-const ILLUMINATION_OPACITIES: Record<string, number> = {
-  Bright: 0.25,
-  Normal: 0,
-  Dim: 0.5,
-  Dark: 0.75,
+const ILLUMINATION_VALUE_OPACITIES: Record<number, number> = {
+  [-2]: 0.75,
+  [-1]: 0.5,
+  0: 0,
+  1: 0.25,
 };
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -73,24 +73,21 @@ export function getElevationColor(
   }
 }
 
-export function getTerrainColor(label: string | undefined): string {
-  if (!label) return TERRAIN_COLORS.Normal!;
-  return TERRAIN_COLORS[label] ?? TERRAIN_COLORS.Normal!;
+export function getTerrainColor(value: number): string {
+  return TERRAIN_VALUE_COLORS[value] ?? TERRAIN_VALUE_COLORS[0]!;
 }
 
-export function getIlluminationColor(label: string | undefined): string {
-  if (!label) return ILLUMINATION_COLORS.Normal!;
-  return ILLUMINATION_COLORS[label] ?? ILLUMINATION_COLORS.Normal!;
+export function getIlluminationColor(value: number): string {
+  return ILLUMINATION_VALUE_COLORS[value] ?? ILLUMINATION_VALUE_COLORS[0]!;
 }
 
-export function getIlluminationOpacity(label: string | undefined): number {
-  if (!label) return ILLUMINATION_OPACITIES.Normal!;
-  return ILLUMINATION_OPACITIES[label] ?? ILLUMINATION_OPACITIES.Normal!;
+export function getIlluminationOpacity(value: number): number {
+  return ILLUMINATION_VALUE_OPACITIES[value] ?? ILLUMINATION_VALUE_OPACITIES[0]!;
 }
 
 export function getRegionFillOpacity(region: PlacedRegion): number {
   if (region.type === 'Illumination') {
-    return getIlluminationOpacity(region.label);
+    return getIlluminationOpacity(region.value ?? 0);
   }
   return 0.3;
 }
@@ -109,9 +106,9 @@ export function getRegionColor(region: PlacedRegion, allRegions: PlacedRegion[])
       return getElevationColor(region.value ?? 0, sortedPositive, sortedNegative);
     }
     case 'Terrain':
-      return getTerrainColor(region.label);
+      return getTerrainColor(region.value ?? 0);
     case 'Illumination':
-      return getIlluminationColor(region.label);
+      return getIlluminationColor(region.value ?? 0);
     default:
       return '#9E9E9E';
   }
@@ -123,12 +120,10 @@ export function sortRegions(regions: PlacedRegion[]): PlacedRegion[] {
       return (b.value ?? 0) - (a.value ?? 0);
     }
     if (a.type === 'Terrain' && b.type === 'Terrain') {
-      const order: Record<string, number> = { Impassable: 0, Difficult: 1, Normal: 2 };
-      return (order[a.label ?? ''] ?? 99) - (order[b.label ?? ''] ?? 99);
+      return (b.value ?? 0) - (a.value ?? 0);
     }
     if (a.type === 'Illumination' && b.type === 'Illumination') {
-      const order: Record<string, number> = { Bright: 0, Normal: 1, Dim: 2, Dark: 3 };
-      return (order[a.label ?? ''] ?? 99) - (order[b.label ?? ''] ?? 99);
+      return (b.value ?? 0) - (a.value ?? 0);
     }
     return 0;
   });
@@ -140,17 +135,15 @@ export function sortRegionsForRendering(regions: PlacedRegion[]): PlacedRegion[]
       return (a.value ?? 0) - (b.value ?? 0);
     }
     if (a.type === 'Terrain' && b.type === 'Terrain') {
-      const order: Record<string, number> = { Normal: 0, Difficult: 1, Impassable: 2 };
-      return (order[a.label ?? ''] ?? 99) - (order[b.label ?? ''] ?? 99);
+      return (a.value ?? 0) - (b.value ?? 0);
     }
     if (a.type === 'Illumination' && b.type === 'Illumination') {
-      const order: Record<string, number> = { Dark: 0, Dim: 1, Normal: 2, Bright: 3 };
-      return (order[a.label ?? ''] ?? 99) - (order[b.label ?? ''] ?? 99);
+      return (a.value ?? 0) - (b.value ?? 0);
     }
     return 0;
   });
 }
 
 export function isTransparentRegion(region: PlacedRegion): boolean {
-  return region.type === 'Illumination' && region.label === 'Normal';
+  return region.type === 'Illumination' && (region.value ?? 0) === 0;
 }

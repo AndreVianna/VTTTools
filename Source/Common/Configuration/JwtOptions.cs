@@ -24,7 +24,7 @@ public sealed class JwtOptions {
             SecretKey.Contains("change-this", StringComparison.OrdinalIgnoreCase) ||
             SecretKey.Contains("change-in-production", StringComparison.OrdinalIgnoreCase)) {
             throw new InvalidOperationException(
-                "CRITICAL SECURITY ERROR: Default development JWT SecretKey detected in production environment. " +
+                "CRITICAL SECURITY ERROR: Open development JWT SecretKey detected in production environment. " +
                 "Update the JWT:SecretKey configuration with a cryptographically secure random key.");
         }
     }

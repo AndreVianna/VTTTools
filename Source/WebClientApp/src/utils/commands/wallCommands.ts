@@ -29,10 +29,7 @@ export class CreateWallCommand implements Command {
     const { encounterId, wall, onCreate, onRefetch } = this.params;
     await onCreate(encounterId, {
       name: wall.name,
-      poles: wall.poles,
-      visibility: wall.visibility,
-      isClosed: wall.isClosed,
-      color: wall.color,
+      segments: wall.segments,
     });
     await onRefetch();
   }
@@ -62,10 +59,7 @@ export class EditWallCommand implements Command {
     const { oldWall, encounterId, wallIndex, onUpdate, onRefetch } = this.params;
     const updates: Partial<EncounterWall> = {
       name: oldWall.name,
-      poles: oldWall.poles,
-      visibility: oldWall.visibility,
-      isClosed: oldWall.isClosed,
-      color: oldWall.color,
+      segments: oldWall.segments,
     };
     await onUpdate(encounterId, wallIndex, updates);
     await onRefetch();
@@ -75,10 +69,7 @@ export class EditWallCommand implements Command {
     const { newWall, encounterId, wallIndex, onUpdate, onRefetch } = this.params;
     const updates: Partial<EncounterWall> = {
       name: newWall.name,
-      poles: newWall.poles,
-      visibility: newWall.visibility,
-      isClosed: newWall.isClosed,
-      color: newWall.color,
+      segments: newWall.segments,
     };
     await onUpdate(encounterId, wallIndex, updates);
     await onRefetch();
@@ -112,10 +103,7 @@ export class DeleteWallCommand implements Command {
     const { encounterId, wall, onAdd, onRefetch } = this.params;
     const restoredWall = await onAdd(encounterId, {
       name: wall.name,
-      poles: wall.poles,
-      visibility: wall.visibility,
-      isClosed: wall.isClosed,
-      color: wall.color,
+      segments: wall.segments,
     });
     this.restoredIndex = restoredWall.index;
     await onRefetch();
@@ -162,10 +150,7 @@ export class BreakWallCommand implements Command {
 
     const updates: Partial<EncounterWall> = {
       name: originalWall.name,
-      poles: originalWall.poles,
-      visibility: originalWall.visibility,
-      isClosed: originalWall.isClosed,
-      color: originalWall.color,
+      segments: originalWall.segments,
     };
     await onUpdate(encounterId, originalWallIndex, updates);
 
@@ -181,10 +166,7 @@ export class BreakWallCommand implements Command {
     for (const wall of newWalls) {
       const addedWall = await onAdd(encounterId, {
         name: wall.name,
-        poles: wall.poles,
-        visibility: wall.visibility,
-        isClosed: wall.isClosed,
-        color: wall.color,
+        segments: wall.segments,
       });
       this.segmentIndices.push(addedWall.index);
     }
@@ -210,8 +192,7 @@ export class MergeWallsCommand implements Command {
   private restoredIndices: Map<number, number> = new Map();
 
   constructor(private params: MergeWallsCommandParams) {
-    const scenario = params.mergedWall.isClosed ? 'Scenario 5 (closed)' : 'Scenario 3 (merge)';
-    this.description = `Merge ${params.originalWalls.length} walls (${scenario})`;
+    this.description = `Merge ${params.originalWalls.length} walls`;
   }
 
   async execute(): Promise<void> {
@@ -227,19 +208,13 @@ export class MergeWallsCommand implements Command {
       if (originalWall.index === targetWallIndex) {
         const updates: Partial<EncounterWall> = {
           name: originalWall.name,
-          poles: originalWall.poles,
-          visibility: originalWall.visibility,
-          isClosed: originalWall.isClosed,
-          color: originalWall.color,
+          segments: originalWall.segments,
         };
         await onUpdate(encounterId, targetWallIndex, updates);
       } else {
         const restoredWall = await onAdd(encounterId, {
           name: originalWall.name,
-          poles: originalWall.poles,
-          visibility: originalWall.visibility,
-          isClosed: originalWall.isClosed,
-          color: originalWall.color,
+          segments: originalWall.segments,
         });
         this.restoredIndices.set(originalWall.index, restoredWall.index);
       }
@@ -253,10 +228,7 @@ export class MergeWallsCommand implements Command {
 
     const updates: Partial<EncounterWall> = {
       name: mergedWall.name,
-      poles: mergedWall.poles,
-      visibility: mergedWall.visibility,
-      isClosed: mergedWall.isClosed,
-      color: mergedWall.color,
+      segments: mergedWall.segments,
     };
     await onUpdate(encounterId, targetWallIndex, updates);
 
@@ -316,10 +288,7 @@ export class SplitWallsCommand implements Command {
 
         await onUpdate(encounterId, wallIndex, {
           name: originalWall.name,
-          poles: originalWall.poles,
-          isClosed: originalWall.isClosed,
-          visibility: originalWall.visibility,
-          color: originalWall.color,
+          segments: originalWall.segments,
         });
       }
 
@@ -339,10 +308,7 @@ export class SplitWallsCommand implements Command {
 
       const restoredNewWall = await onAdd(encounterId, {
         name: newWall.name,
-        poles: newWall.poles,
-        isClosed: newWall.isClosed,
-        visibility: newWall.visibility,
-        color: newWall.color,
+        segments: newWall.segments,
       });
       this.restoredNewWallIndex = restoredNewWall.index;
 
@@ -353,10 +319,7 @@ export class SplitWallsCommand implements Command {
         if (firstSegment) {
           await onUpdate(encounterId, wallIndex, {
             name: firstSegment.name,
-            poles: firstSegment.poles,
-            isClosed: firstSegment.isClosed,
-            visibility: firstSegment.visibility,
-            color: firstSegment.color,
+            segments: firstSegment.segments,
           });
           indices.push(wallIndex);
         }
@@ -366,10 +329,7 @@ export class SplitWallsCommand implements Command {
           if (segment) {
             const addedWall = await onAdd(encounterId, {
               name: segment.name,
-              poles: segment.poles,
-              isClosed: segment.isClosed,
-              visibility: segment.visibility,
-              color: segment.color,
+              segments: segment.segments,
             });
             indices.push(addedWall.index);
           }

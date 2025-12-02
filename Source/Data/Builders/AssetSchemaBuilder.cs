@@ -18,8 +18,8 @@ internal static class AssetSchemaBuilder {
                 classificationBuilder.Property(c => c.Subtype).IsRequired(false).HasColumnName("Subtype");
             });
             entity.OwnsOne(ea => ea.TokenSize, sizeBuilder => {
-                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("TokenWidth");
-                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("TokenHeight");
+                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("Width");
+                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("Height");
             });
             entity.HasMany(e => e.StatBlock)
                 .WithOne(e => e.Asset)

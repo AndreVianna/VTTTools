@@ -17,7 +17,7 @@
  * undo/redo logic for different wall operations (add, move, delete, etc.).
  */
 
-import type { Pole, WallVisibility } from '@/types/domain';
+import type { EncounterWallSegment, Pole } from '@/types/domain';
 
 /**
  * Base interface for local undo/redo actions
@@ -159,35 +159,20 @@ export interface BreakWallAction extends LocalAction {
   type: 'BREAK_WALL';
   segmentTempId: number;
   breakPoleIndex: number;
-  originalPoles: Pole[];
-  originalIsClosed: boolean;
+  originalSegments: EncounterWallSegment[];
   currentSegment1TempId: number;
   currentSegment2TempId: number;
   originalSegment1TempId: number;
   originalSegment2TempId: number;
-  segment1Poles: Pole[];
-  segment2Poles: Pole[];
+  segment1: EncounterWallSegment[];
+  segment2: EncounterWallSegment[];
 }
 
-/**
- * Factory function to create a PlacePoleAction
- *
- * Creates a local action for placing a new pole in placement mode.
- * Uses closures to capture callbacks without storing them in the interface.
- *
- * @param poleIndex - Index where the pole was placed
- * @param pole - The pole that was placed
- * @param onPolesChange - Callback to update poles
- * @param getCurrentPoles - Function to get current poles state
- * @param getCurrentIsClosed - Function to get current isClosed state
- * @returns PlacePoleAction with undo/redo implementations
- */
 export function createPlacePoleAction(
   poleIndex: number,
   pole: Pole,
-  onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
+  onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
-  getCurrentIsClosed: () => boolean,
 ): PlacePoleAction {
   return {
     type: 'PLACE_POLE',
@@ -198,38 +183,23 @@ export function createPlacePoleAction(
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 1);
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 0, pole);
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
   };
 }
 
-/**
- * Factory function to create a MovePoleAction
- *
- * Creates a local action for moving a pole in edit mode.
- * Uses closures to capture callbacks without storing them in the interface.
- *
- * @param poleIndex - Index of the pole being moved
- * @param oldPosition - Original position before move
- * @param newPosition - New position after move
- * @param onPolesChange - Callback to update poles
- * @param getCurrentPoles - Function to get current poles state
- * @param getCurrentIsClosed - Function to get current isClosed state
- * @returns MovePoleAction with undo/redo implementations
- */
 export function createMovePoleAction(
   poleIndex: number,
   oldPosition: { x: number; y: number },
   newPosition: { x: number; y: number },
-  onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
+  onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
-  getCurrentIsClosed: () => boolean,
 ): MovePoleAction {
   return {
     type: 'MOVE_POLE',
@@ -244,7 +214,7 @@ export function createMovePoleAction(
         ...oldPosition,
         h: updatedPoles[poleIndex]?.h ?? 0,
       };
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -253,30 +223,16 @@ export function createMovePoleAction(
         ...newPosition,
         h: updatedPoles[poleIndex]?.h ?? 0,
       };
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
   };
 }
 
-/**
- * Factory function to create an InsertPoleAction
- *
- * Creates a local action for inserting a pole on a line segment in edit mode.
- * Uses closures to capture callbacks without storing them in the interface.
- *
- * @param poleIndex - Index where the pole was inserted
- * @param pole - The pole that was inserted
- * @param onPolesChange - Callback to update poles
- * @param getCurrentPoles - Function to get current poles state
- * @param getCurrentIsClosed - Function to get current isClosed state
- * @returns InsertPoleAction with undo/redo implementations
- */
 export function createInsertPoleAction(
   poleIndex: number,
   pole: Pole,
-  onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
+  onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
-  getCurrentIsClosed: () => boolean,
 ): InsertPoleAction {
   return {
     type: 'INSERT_POLE',
@@ -287,37 +243,22 @@ export function createInsertPoleAction(
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 1);
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 0, pole);
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
   };
 }
 
-/**
- * Factory function to create a DeletePoleAction
- *
- * Creates a local action for deleting one or more poles in edit mode.
- * Uses closures to capture callbacks without storing them in the interface.
- * Handles restoring multiple poles at their original indices during undo.
- *
- * @param poleIndices - Indices of poles that were deleted
- * @param poles - The poles that were deleted
- * @param onPolesChange - Callback to update poles
- * @param getCurrentPoles - Function to get current poles state
- * @param getCurrentIsClosed - Function to get current isClosed state
- * @returns DeletePoleAction with undo/redo implementations
- */
 export function createDeletePoleAction(
   poleIndices: number[],
   poles: Pole[],
-  onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
+  onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
-  getCurrentIsClosed: () => boolean,
 ): DeletePoleAction {
   return {
     type: 'DELETE_POLE',
@@ -334,7 +275,7 @@ export function createDeletePoleAction(
       for (const entry of sortedEntries) {
         updatedPoles.splice(entry.index, 0, entry.pole);
       }
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -344,36 +285,19 @@ export function createDeletePoleAction(
       for (const index of sortedIndices) {
         updatedPoles.splice(index, 1);
       }
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
   };
 }
 
-/**
- * Factory function to create a MultiMovePoleAction
- *
- * Creates a composite local action for moving multiple selected poles together in edit mode.
- * This is used when the user drags multiple selected poles (Ctrl+Click selection + drag).
- * All pole movements are tracked as a single composite action - one undo reverts ALL poles,
- * one redo reapplies ALL movements.
- *
- * Uses closures to capture callbacks without storing them in the interface.
- *
- * @param moves - Array of pole movements with indices and old/new positions
- * @param onPolesChange - Callback to update poles
- * @param getCurrentPoles - Function to get current poles state
- * @param getCurrentIsClosed - Function to get current isClosed state
- * @returns MultiMovePoleAction with undo/redo implementations
- */
 export function createMultiMovePoleAction(
   moves: Array<{
     poleIndex: number;
     oldPosition: { x: number; y: number };
     newPosition: { x: number; y: number };
   }>,
-  onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
+  onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
-  getCurrentIsClosed: () => boolean,
 ): MultiMovePoleAction {
   if (moves.length === 0) {
     throw new Error('MultiMovePoleAction: moves array cannot be empty');
@@ -392,7 +316,7 @@ export function createMultiMovePoleAction(
           h: updatedPoles[move.poleIndex]?.h ?? 0,
         };
       }
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -403,31 +327,11 @@ export function createMultiMovePoleAction(
           h: updatedPoles[move.poleIndex]?.h ?? 0,
         };
       }
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
   };
 }
 
-/**
- * Factory function to create a MoveLineAction
- *
- * Creates a local action for moving an entire line segment in edit mode.
- * This is used when the user drags a selected line segment - both pole endpoints
- * move together maintaining the line geometry and relative distance.
- *
- * Uses closures to capture callbacks without storing them in the interface.
- *
- * @param pole1Index - Index of the first pole endpoint
- * @param pole2Index - Index of the second pole endpoint
- * @param oldPole1 - Original position of first pole before move
- * @param oldPole2 - Original position of second pole before move
- * @param newPole1 - New position of first pole after move
- * @param newPole2 - New position of second pole after move
- * @param onPolesChange - Callback to update poles
- * @param getCurrentPoles - Function to get current poles state
- * @param getCurrentIsClosed - Function to get current isClosed state
- * @returns MoveLineAction with undo/redo implementations
- */
 export function createMoveLineAction(
   pole1Index: number,
   pole2Index: number,
@@ -435,9 +339,8 @@ export function createMoveLineAction(
   oldPole2: { x: number; y: number; h: number },
   newPole1: { x: number; y: number; h: number },
   newPole2: { x: number; y: number; h: number },
-  onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
+  onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
-  getCurrentIsClosed: () => boolean,
 ): MoveLineAction {
   if (pole1Index === pole2Index) {
     throw new Error('MoveLineAction: pole1Index and pole2Index must be different');
@@ -457,80 +360,34 @@ export function createMoveLineAction(
       const updatedPoles = [...currentPoles];
       updatedPoles[pole1Index] = { ...updatedPoles[pole1Index], ...oldPole1 };
       updatedPoles[pole2Index] = { ...updatedPoles[pole2Index], ...oldPole2 };
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles[pole1Index] = { ...updatedPoles[pole1Index], ...newPole1 };
       updatedPoles[pole2Index] = { ...updatedPoles[pole2Index], ...newPole2 };
-      onPolesChange(updatedPoles, getCurrentIsClosed());
+      onPolesChange(updatedPoles);
     },
   };
 }
 
-/**
- * Factory function to create a BreakWallAction
- *
- * Creates the MOST COMPLEX local action for breaking a wall segment into two separate segments.
- * This is used when the user presses Alt+Delete to split a wall at a specific pole.
- *
- * Breaking a wall:
- * - Takes one wall segment with N poles
- * - Splits it at breakPoleIndex into two new segments
- * - First segment: poles[0...breakPoleIndex]
- * - Second segment: poles[breakPoleIndex...N-1]
- * - Both new segments are open (isClosed = false)
- *
- * Undo operation:
- * - Removes both new segments (currentSegment1TempId, currentSegment2TempId)
- * - Re-adds the original segment with originalPoles and originalIsClosed
- * - Updates segmentTempId with the new tempId returned from onAddSegment
- * - Effectively merges the two segments back into one
- *
- * Redo operation:
- * - Removes the merged segment (segmentTempId)
- * - Re-creates both segments with segment1Poles and segment2Poles
- * - Updates currentSegment1TempId and currentSegment2TempId with new tempIds from onAddSegment
- * - Re-applies the wall break
- *
- * Uses closures to capture transaction callbacks without storing them in the interface.
- * TempIds are mutable and updated during undo/redo cycles to track dynamic segment IDs.
- *
- * @param segmentTempId - Temporary ID of the original segment that was broken
- * @param breakPoleIndex - Index of the pole where the wall was broken
- * @param originalPoles - Complete pole array BEFORE the break
- * @param originalIsClosed - Wall closure state BEFORE the break
- * @param newSegment1TempId - Temporary ID for the first resulting segment
- * @param newSegment2TempId - Temporary ID for the second resulting segment
- * @param segment1Poles - Pole array for the first resulting segment
- * @param segment2Poles - Pole array for the second resulting segment
- * @param onRemoveSegment - Callback to remove a segment from transaction
- * @param onAddSegment - Callback to add a segment to transaction (returns tempId)
- * @returns BreakWallAction with undo/redo implementations
- */
 export function createBreakWallAction(
   segmentTempId: number,
   breakPoleIndex: number,
-  originalPoles: Pole[],
-  originalIsClosed: boolean,
+  originalSegments: EncounterWallSegment[],
   originalWallIndex: number,
   newSegment1TempId: number,
   newSegment2TempId: number,
-  segment1Poles: Pole[],
-  segment2Poles: Pole[],
+  segment1: EncounterWallSegment[],
+  segment2: EncounterWallSegment[],
   wallName: string,
-  wallVisibility: WallVisibility,
-  wallColor: string | undefined,
   onRemoveSegment: (tempId: number) => void,
-  onUpdateSegment: (tempId: number, changes: { wallIndex: number; poles: Pole[]; isClosed: boolean }) => void,
+  onUpdateSegment: (tempId: number, changes: { wallIndex: number; segments: EncounterWallSegment[] }) => void,
   onAddSegment: (segment: {
     wallIndex: number | null;
     name: string;
-    poles: Pole[];
-    isClosed: boolean;
-    visibility: WallVisibility;
-    color: string | undefined;
+    segments: EncounterWallSegment[];
   }) => number,
 ): BreakWallAction {
   const action: BreakWallAction = {
@@ -538,37 +395,31 @@ export function createBreakWallAction(
     description: `Break wall into 2 segments at pole ${breakPoleIndex}`,
     segmentTempId,
     breakPoleIndex,
-    originalPoles: [...originalPoles],
-    originalIsClosed,
+    originalSegments: [...originalSegments],
     currentSegment1TempId: newSegment1TempId,
     currentSegment2TempId: newSegment2TempId,
     originalSegment1TempId: newSegment1TempId,
     originalSegment2TempId: newSegment2TempId,
-    segment1Poles: [...segment1Poles],
-    segment2Poles: [...segment2Poles],
+    segment1: [...segment1],
+    segment2: [...segment2],
     undo: () => {
       onRemoveSegment(action.currentSegment2TempId);
       onUpdateSegment(action.currentSegment1TempId, {
         wallIndex: originalWallIndex,
-        poles: [...originalPoles],
-        isClosed: originalIsClosed,
+        segments: [...originalSegments],
       });
       action.segmentTempId = action.currentSegment1TempId;
     },
     redo: () => {
       onUpdateSegment(action.segmentTempId, {
         wallIndex: originalWallIndex,
-        poles: [...segment1Poles],
-        isClosed: false,
+        segments: [...segment1],
       });
       action.currentSegment1TempId = action.segmentTempId;
       action.currentSegment2TempId = onAddSegment({
         wallIndex: null,
         name: wallName,
-        poles: [...segment2Poles],
-        isClosed: false,
-        visibility: wallVisibility,
-        color: wallColor,
+        segments: [...segment2],
       });
     },
   };

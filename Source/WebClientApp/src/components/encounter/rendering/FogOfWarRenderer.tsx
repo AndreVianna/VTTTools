@@ -5,7 +5,8 @@ import { Group, Line } from 'react-konva';
 import type { PlacedRegion, Point } from '@/types/domain';
 
 const FOG_OF_WAR_TYPE = 'FogOfWar';
-const HIDDEN_LABEL = 'Hidden';
+const FOG_VALUE_VISIBLE = 0;
+const FOG_VALUE_HIDDEN = 2;
 
 const flattenVertices = (vertices: Point[]): number[] => {
     return vertices.flatMap((v) => [v.x, v.y]);
@@ -32,17 +33,18 @@ const FogOfWarRendererComponent: React.FC<FogOfWarRendererProps> = ({
 
     const sortedFogRegions = useMemo(() => {
         return regions
-            .filter((region) => region.type === FOG_OF_WAR_TYPE && region.label === HIDDEN_LABEL)
+            .filter((region) => region.type === FOG_OF_WAR_TYPE && (region.value === FOG_VALUE_HIDDEN || region.value === FOG_VALUE_VISIBLE))
             .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
     }, [regions]);
 
-    const handleLineRef = useCallback((node: Konva.Line | null, value: number) => {
-        if (node && value === -1) {
+    const handleLineRef = useCallback((node: Konva.Line | null, isSubtract: boolean) => {
+        if (node && isSubtract) {
             node.globalCompositeOperation('destination-out');
         }
     }, []);
 
-    if (!visible || sortedFogRegions.length === 0) {
+    const hasHiddenRegions = sortedFogRegions.some((r) => r.value === FOG_VALUE_HIDDEN);
+    if (!visible || !hasHiddenRegions) {
         return null;
     }
 
@@ -51,6 +53,7 @@ const FogOfWarRendererComponent: React.FC<FogOfWarRendererProps> = ({
             {sortedFogRegions.map((region) => {
                 const points = flattenVertices(region.vertices);
                 const regionId = `fog-${encounterId}-${region.index}`;
+                const isSubtract = region.value === FOG_VALUE_VISIBLE;
 
                 return (
                     <Line
@@ -60,7 +63,7 @@ const FogOfWarRendererComponent: React.FC<FogOfWarRendererProps> = ({
                         fill={fogColor}
                         closed={true}
                         listening={false}
-                        ref={(node) => handleLineRef(node, region.value === -1 ? -1 : 1)}
+                        ref={(node) => handleLineRef(node, isSubtract)}
                     />
                 );
             })}

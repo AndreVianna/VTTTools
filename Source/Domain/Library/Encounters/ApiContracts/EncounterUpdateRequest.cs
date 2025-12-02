@@ -19,6 +19,6 @@ public record EncounterUpdateRequest
         public Optional<GridType> Type { get; init; }
         public Optional<CellSize> CellSize { get; init; }
         public Optional<Offset> Offset { get; init; }
-        public Optional<bool> Snap { get; init; }
+        public Optional<double> Scale { get; init; }
     }
 }

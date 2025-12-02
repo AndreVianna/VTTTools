@@ -76,6 +76,7 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
       cellSize: gridConfig.cellSize ?? { width: 50, height: 50 },
       offset: gridConfig.offset ?? { left: 0, top: 0 },
       snap: gridConfig.snap ?? true,
+      scale: gridConfig.scale ?? 1,
     });
   };
 
@@ -88,6 +89,7 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
       cellSize: { ...gridConfig.cellSize, width: value },
       offset: gridConfig.offset,
       snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
@@ -100,6 +102,7 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
       cellSize: { ...gridConfig.cellSize, height: value },
       offset: gridConfig.offset,
       snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
@@ -112,6 +115,7 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
       cellSize: gridConfig.cellSize,
       offset: { ...gridConfig.offset, left: value },
       snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
@@ -124,6 +128,7 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
       cellSize: gridConfig.cellSize,
       offset: { ...gridConfig.offset, top: value },
       snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
@@ -134,6 +139,7 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
       cellSize: gridConfig.cellSize,
       offset: gridConfig.offset,
       snap: e.target.checked,
+      scale: gridConfig.scale,
     });
   };
 

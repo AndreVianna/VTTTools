@@ -27,7 +27,7 @@ interface UseRegionHandlersProps {
   selectedRegionIndex: number | null;
   editingRegionIndex: number | null;
   originalRegionVertices: Point[] | null;
-  drawingMode: 'region' | 'wall' | null;
+  drawingMode: 'region' | 'wall' | 'bucketFill' | null;
   drawingRegionIndex: number | null;
 
   addEncounterRegion: ReturnType<typeof useAddEncounterRegionMutation>[0];
@@ -875,6 +875,30 @@ export const useRegionHandlers = ({
     ],
   );
 
+  const handleRegionPropertyUpdate = useCallback(
+    async (regionIndex: number, updates: Partial<EncounterRegion>) => {
+      if (!encounterId || !encounter) return;
+
+      const region = encounter.regions?.find((r) => r.index === regionIndex);
+      if (!region) return;
+
+      try {
+        const updatedEncounter = updateRegionOptimistic(encounter, regionIndex, updates);
+        setEncounter(updatedEncounter);
+
+        await updateEncounterRegion({
+          encounterId,
+          regionIndex,
+          ...updates,
+        }).unwrap();
+      } catch (error) {
+        console.error('[useRegionHandlers] Failed to update region:', error);
+        await refetch();
+      }
+    },
+    [encounterId, encounter, setEncounter, updateEncounterRegion, refetch],
+  );
+
   return {
     handleRegionDelete,
     handleCancelEditingRegion,
@@ -885,5 +909,6 @@ export const useRegionHandlers = ({
     handleBucketFillFinish,
     handleRegionSelect,
     handleEditRegionVertices,
+    handleRegionPropertyUpdate,
   };
 };

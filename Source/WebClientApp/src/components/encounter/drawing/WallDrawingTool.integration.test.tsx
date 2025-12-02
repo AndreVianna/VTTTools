@@ -62,12 +62,15 @@ vi.mock('./WallPreview', () => ({
   WallPreview: () => <div data-testid='wall-preview' />,
 }));
 
-vi.mock('@/utils/structureSnapping', () => ({
-  snapToNearest: (pos: { x: number; y: number }) => pos,
-}));
-
-vi.mock('@/utils/snapUtils', () => ({
+vi.mock('@/utils/snapping', () => ({
+  snap: (pos: { x: number; y: number }) => pos,
+  screenToWorld: (pointer: { x: number; y: number }) => pointer,
   getSnapModeFromEvent: () => 'grid',
+  SnapMode: {
+    Free: 'free',
+    Half: 'half',
+    Quarter: 'quarter',
+  },
 }));
 
 describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
@@ -80,6 +83,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     cellSize: { width: 50, height: 50 },
     offset: { left: 0, top: 0 },
     snap: true,
+    scale: 1,
   };
 
   const createMockEncounter = (walls: EncounterWall[] = []): Partial<Encounter> => ({
@@ -94,10 +98,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     {
       index: 0,
       name: 'Wall 0',
-      poles: [],
-      isClosed: false,
-      visibility: 0,
-      encounterId: 'encounter-1',
+      segments: [],
     },
   ]);
 

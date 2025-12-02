@@ -4,10 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import { useAddEncounterSourceMutation } from '@/services/encounterApi';
 import type { EncounterSource, EncounterWall, Point } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
-import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { snapToNearest } from '@/utils/structureSnapping';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
+import type { GridConfig } from '@/utils/gridCalculator';
+import { getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
 import { SourcePreview } from './SourcePreview';
 import { VertexMarker } from './VertexMarker';
 
@@ -80,9 +79,9 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           direction: currentDirection,
           spread: currentSpread,
           range: rangeToUse,
-          intensity: source.intensity ?? 1.0,
+          intensity: source.intensity,
           hasGradient: source.hasGradient,
-          ...(source.color && { color: source.color }),
+          color: source.color,
         }).unwrap();
 
         if (stageContainerRef.current) {
@@ -151,11 +150,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     const pointer = stage.getPointerPosition();
     if (!pointer) return null;
 
-    const scale = stage.scaleX();
-    return {
-      x: (pointer.x - stage.x()) / scale,
-      y: (pointer.y - stage.y()) / scale,
-    };
+    return screenToWorld(pointer, stage);
   }, []);
 
   const calculateRange = useCallback(
@@ -198,7 +193,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       if (!stagePos) return;
 
       const snapMode = getSnapModeFromEvent(e.evt);
-      const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+      const snappedPos = snap(stagePos, gridConfig, snapMode);
       setPreviewPoint(snappedPos);
 
       if (placementPhase === 1 && centerPos) {
@@ -236,7 +231,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       e.cancelBubble = true;
 
       const snapMode = getSnapModeFromEvent(e.evt);
-      const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+      const snappedPos = snap(stagePos, gridConfig, snapMode);
 
       if (placementPhase === 0) {
         setCenterPos(snappedPos);

@@ -1,5 +1,6 @@
 import type { EncounterWall, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import { getPolesFromWall, isWallClosed } from './wallUtils';
 
 export interface CollisionConfig {
   tolerance?: number;
@@ -126,7 +127,8 @@ function createSpatialHash(walls: EncounterWall[], cellSize: number): SpatialHas
   };
 
   walls.forEach((wall, wallIndex) => {
-    wall.poles.forEach((pole, poleIndex) => {
+    const poles = getPolesFromWall(wall);
+    poles.forEach((pole, poleIndex) => {
       const cellX = Math.floor(pole.x / cellSize);
       const cellY = Math.floor(pole.y / cellSize);
       const key = `${cellX},${cellY}`;
@@ -196,7 +198,8 @@ export function detectPoleOnPoleCollision(
   } else {
     newWallPoles.forEach((newPole, newPoleIndex) => {
       existingWalls.forEach((wall, wallIndex) => {
-        wall.poles.forEach((existingPole, poleIndex) => {
+        const poles = getPolesFromWall(wall);
+        poles.forEach((existingPole, poleIndex) => {
           const distance = calculateDistance(newPole, existingPole);
           if (distance <= tolerance) {
             collisions.push({
@@ -236,16 +239,17 @@ export function detectEdgeOnEdgeIntersection(
     const newEdgeBox = createBoundingBox(newEdgeStart, newEdgeEnd);
 
     existingWalls.forEach((wall, wallIndex) => {
-      if (wall.poles.length < 2) {
+      const poles = getPolesFromWall(wall);
+      if (poles.length < 2) {
         return;
       }
 
-      for (let j = 0; j < wall.poles.length; j++) {
-        const existingEdgeStart = wall.poles[j];
-        const existingEdgeEnd = wall.poles[(j + 1) % wall.poles.length];
+      for (let j = 0; j < poles.length; j++) {
+        const existingEdgeStart = poles[j];
+        const existingEdgeEnd = poles[(j + 1) % poles.length];
         if (!existingEdgeStart || !existingEdgeEnd) continue;
 
-        if (j === wall.poles.length - 1 && !wall.isClosed) {
+        if (j === poles.length - 1 && !isWallClosed(wall)) {
           break;
         }
 
@@ -289,16 +293,17 @@ export function detectPoleOnEdgeCollision(
 
   poles.forEach((pole, poleIndex) => {
     existingWalls.forEach((wall, wallIndex) => {
-      if (wall.poles.length < 2) {
+      const wallPoles = getPolesFromWall(wall);
+      if (wallPoles.length < 2) {
         return;
       }
 
-      for (let j = 0; j < wall.poles.length; j++) {
-        const edgeStart = wall.poles[j];
-        const edgeEnd = wall.poles[(j + 1) % wall.poles.length];
+      for (let j = 0; j < wallPoles.length; j++) {
+        const edgeStart = wallPoles[j];
+        const edgeEnd = wallPoles[(j + 1) % wallPoles.length];
         if (!edgeStart || !edgeEnd) continue;
 
-        if (j === wall.poles.length - 1 && !wall.isClosed) {
+        if (j === wallPoles.length - 1 && !isWallClosed(wall)) {
           break;
         }
 

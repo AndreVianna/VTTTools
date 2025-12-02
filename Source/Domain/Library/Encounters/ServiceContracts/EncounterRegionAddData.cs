@@ -6,9 +6,7 @@ public record EncounterRegionAddData
     public string Name { get; init; } = string.Empty;
     public required string Type { get; init; }
     public required List<Point> Vertices { get; init; }
-    public int? Value { get; init; }
-    public string? Label { get; init; }
-    public string? Color { get; init; }
+    public int Value { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { EncounterWall, Point, Pole } from '@/types/domain';
-import { WallVisibility } from '@/types/domain';
+import type { EncounterWall, EncounterWallSegment, Point, Pole } from '@/types/domain';
+import { SegmentType, SegmentState } from '@/types/domain';
 import {
   calculateDistanceAlongEdge,
   detectSplitPoints,
@@ -23,14 +23,36 @@ function createWall(
   isClosed: boolean = false,
   name: string = `Wall ${index}`,
 ): EncounterWall {
+  const segments: EncounterWallSegment[] = [];
+  const numSegments = isClosed ? poles.length : poles.length - 1;
+
+  for (let i = 0; i < numSegments; i++) {
+    const startPole = poles[i] as Pole;
+    const endPole = poles[(i + 1) % poles.length] as Pole;
+    segments.push({
+      index: i,
+      startPole,
+      endPole,
+      type: SegmentType.Wall,
+      state: SegmentState.Closed,
+    });
+  }
+
   return {
     index,
-    poles,
-    isClosed,
-    encounterId: 'test-encounter',
     name,
-    visibility: WallVisibility.Normal,
+    segments,
   };
+}
+
+function extractPoles(wall: EncounterWall): Pole[] {
+  if (wall.segments.length === 0) return [];
+  const poles = wall.segments.map(s => s.startPole);
+  const lastSegment = wall.segments[wall.segments.length - 1];
+  if (lastSegment) {
+    poles.push(lastSegment.endPole);
+  }
+  return poles;
 }
 
 describe('calculateDistanceAlongEdge', () => {
@@ -499,12 +521,14 @@ describe('splitWallAtPoints', () => {
       });
 
       expect(result).toHaveLength(2);
-      expect(result[0]?.poles).toHaveLength(2);
-      expect(result[1]?.poles).toHaveLength(2);
-      expect(result[0]?.poles[0]).toEqual(createPole(0, 0));
-      expect(result[0]?.poles[1]?.x).toBeCloseTo(50, 1);
-      expect(result[1]?.poles[0]?.x).toBeCloseTo(50, 1);
-      expect(result[1]?.poles[1]).toEqual(createPole(100, 0));
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      const poles1 = extractPoles(result[1] as EncounterWall);
+      expect(poles0).toHaveLength(2);
+      expect(poles1).toHaveLength(2);
+      expect(poles0[0]).toEqual(createPole(0, 0));
+      expect(poles0[1]?.x).toBeCloseTo(50, 1);
+      expect(poles1[0]?.x).toBeCloseTo(50, 1);
+      expect(poles1[1]).toEqual(createPole(100, 0));
     });
 
     it('should split open wall with multiple splits on different edges', () => {
@@ -531,8 +555,10 @@ describe('splitWallAtPoints', () => {
       });
 
       expect(result).toHaveLength(3);
-      expect(result[0]?.poles[0]).toEqual(createPole(0, 0));
-      expect(result[2]?.poles[1]).toEqual(createPole(100, 100));
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      const poles2 = extractPoles(result[2] as EncounterWall);
+      expect(poles0[0]).toEqual(createPole(0, 0));
+      expect(poles2[1]).toEqual(createPole(100, 100));
     });
 
     it('should split open wall with multiple splits on same edge in correct order', () => {
@@ -559,10 +585,13 @@ describe('splitWallAtPoints', () => {
       });
 
       expect(result).toHaveLength(3);
-      expect(result[0]?.poles[1]?.x).toBeCloseTo(25, 1);
-      expect(result[1]?.poles[0]?.x).toBeCloseTo(25, 1);
-      expect(result[1]?.poles[1]?.x).toBeCloseTo(75, 1);
-      expect(result[2]?.poles[0]?.x).toBeCloseTo(75, 1);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      const poles1 = extractPoles(result[1] as EncounterWall);
+      const poles2 = extractPoles(result[2] as EncounterWall);
+      expect(poles0[1]?.x).toBeCloseTo(25, 1);
+      expect(poles1[0]?.x).toBeCloseTo(25, 1);
+      expect(poles1[1]?.x).toBeCloseTo(75, 1);
+      expect(poles2[0]?.x).toBeCloseTo(75, 1);
     });
 
     it('should split closed wall', () => {
@@ -587,8 +616,6 @@ describe('splitWallAtPoints', () => {
       });
 
       expect(result).toHaveLength(2);
-      expect(result[0]?.isClosed).toBe(false);
-      expect(result[1]?.isClosed).toBe(false);
     });
 
     it('should return original wall when no split points provided', () => {
@@ -619,8 +646,10 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.poles[1]?.h).toBe(0);
-      expect(result[1]?.poles[0]?.h).toBe(0);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      const poles1 = extractPoles(result[1] as EncounterWall);
+      expect(poles0[1]?.h).toBe(0);
+      expect(poles1[0]?.h).toBe(0);
     });
 
     it('should interpolate height correctly for split at midpoint of sloped edge', () => {
@@ -640,8 +669,10 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.poles[1]?.h).toBe(5);
-      expect(result[1]?.poles[0]?.h).toBe(5);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      const poles1 = extractPoles(result[1] as EncounterWall);
+      expect(poles0[1]?.h).toBe(5);
+      expect(poles1[0]?.h).toBe(5);
     });
 
     it('should interpolate height correctly for split at quarter point of sloped edge', () => {
@@ -661,7 +692,8 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.poles[1]?.h).toBeCloseTo(7.5, 1);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      expect(poles0[1]?.h).toBeCloseTo(7.5, 1);
     });
 
     it('should maintain same height for split on uniform height edge', () => {
@@ -681,7 +713,8 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.poles[1]?.h).toBe(5);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      expect(poles0[1]?.h).toBe(5);
     });
 
     it('should interpolate height correctly on vertical edge', () => {
@@ -701,7 +734,8 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.poles[1]?.h).toBeCloseTo(10, 1);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      expect(poles0[1]?.h).toBeCloseTo(10, 1);
     });
 
     it('should interpolate height correctly on diagonal edge', () => {
@@ -721,7 +755,8 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.poles[1]?.h).toBeCloseTo(5, 1);
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      expect(poles0[1]?.h).toBeCloseTo(5, 1);
     });
   });
 
@@ -776,51 +811,7 @@ describe('splitWallAtPoints', () => {
       expect(result[1]?.name).toBe('Wall (2)');
     });
 
-    it('should inherit color from original wall', () => {
-      const wall = createWall([createPole(0, 0), createPole(100, 0)], 0);
-      wall.color = '#FF0000';
-      const splits: SplitPoint[] = [
-        {
-          wallIndex: 0,
-          edgeIndex: 0,
-          splitPosition: { x: 50, y: 0 },
-          splitType: 'intersection',
-        },
-      ];
-
-      const result = splitWallAtPoints({
-        wall,
-        wallIndex: 0,
-        splitPoints: splits,
-      });
-
-      expect(result[0]?.color).toBe('#FF0000');
-      expect(result[1]?.color).toBe('#FF0000');
-    });
-
-    it('should inherit visibility from original wall', () => {
-      const wall = createWall([createPole(0, 0), createPole(100, 0)], 0);
-      wall.visibility = WallVisibility.Invisible;
-      const splits: SplitPoint[] = [
-        {
-          wallIndex: 0,
-          edgeIndex: 0,
-          splitPosition: { x: 50, y: 0 },
-          splitType: 'intersection',
-        },
-      ];
-
-      const result = splitWallAtPoints({
-        wall,
-        wallIndex: 0,
-        splitPoints: splits,
-      });
-
-      expect(result[0]?.visibility).toBe(WallVisibility.Invisible);
-      expect(result[1]?.visibility).toBe(WallVisibility.Invisible);
-    });
-
-    it('should set all segments to isClosed false', () => {
+    it('should set all segments to have Wall type', () => {
       const wall = createWall(
         [createPole(0, 0), createPole(100, 0), createPole(100, 100), createPole(0, 100)],
         0,
@@ -841,7 +832,12 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result.every((segment) => segment.isClosed === false)).toBe(true);
+      expect(result).toHaveLength(2);
+      result.forEach((w) => {
+        w.segments.forEach((seg) => {
+          expect(seg.type).toBe(SegmentType.Wall);
+        });
+      });
     });
   });
 
@@ -946,15 +942,15 @@ describe('splitWallAtPoints', () => {
       });
 
       expect(result).toHaveLength(1);
-      expect(result[0]?.poles).toHaveLength(3);
-      expect(result[0]?.poles[0]).toEqual(createPole(0, 0));
-      expect(result[0]?.poles[1]).toEqual(createPole(100, 0));
-      expect(result[0]?.poles[2]).toEqual(createPole(100, 100));
+      const poles0 = extractPoles(result[0] as EncounterWall);
+      expect(poles0).toHaveLength(3);
+      expect(poles0[0]).toEqual(createPole(0, 0));
+      expect(poles0[1]).toEqual(createPole(100, 0));
+      expect(poles0[2]).toEqual(createPole(100, 100));
     });
 
-    it('should preserve encounterId and index for all segments', () => {
+    it('should preserve index for all segments', () => {
       const wall = createWall([createPole(0, 0), createPole(100, 0)], 0);
-      wall.encounterId = 'custom-encounter-id';
       const splits: SplitPoint[] = [
         {
           wallIndex: 0,
@@ -970,8 +966,6 @@ describe('splitWallAtPoints', () => {
         splitPoints: splits,
       });
 
-      expect(result[0]?.encounterId).toBe('custom-encounter-id');
-      expect(result[1]?.encounterId).toBe('custom-encounter-id');
       expect(result[0]?.index).toBe(0);
       expect(result[1]?.index).toBe(0);
     });
@@ -996,8 +990,10 @@ describe('complex integration', () => {
     });
 
     expect(segments).toHaveLength(2);
-    expect(segments[0]?.poles[0]).toEqual(createPole(0, 50));
-    expect(segments[1]?.poles[segments[1].poles.length - 1]).toEqual(createPole(100, 50));
+    const poles0 = extractPoles(segments[0] as EncounterWall);
+    const poles1 = extractPoles(segments[1] as EncounterWall);
+    expect(poles0[0]).toEqual(createPole(0, 50));
+    expect(poles1[poles1.length - 1]).toEqual(createPole(100, 50));
   });
 
   it('should handle complete scenario 7 (pole-on-edge split existing wall)', () => {
@@ -1070,8 +1066,7 @@ describe('complex integration', () => {
     });
 
     expect(result.length).toBeGreaterThan(0);
-    expect(result.every((segment) => segment.isClosed === false)).toBe(true);
-    const totalPoles = result.reduce((sum, segment) => sum + segment.poles.length, 0);
+    const totalPoles = result.reduce((sum, segment) => sum + extractPoles(segment).length, 0);
     expect(totalPoles).toBeGreaterThanOrEqual(5);
   });
 
@@ -1166,7 +1161,8 @@ describe('complex integration', () => {
     });
 
     expect(result).toHaveLength(5);
-    expect(result[0]?.poles[1]?.x).toBeCloseTo(25, 1);
+    const poles0 = extractPoles(result[0] as EncounterWall);
+    expect(poles0[1]?.x).toBeCloseTo(25, 1);
   });
 
   it('should maintain height consistency across all segments', () => {
@@ -1198,13 +1194,17 @@ describe('complex integration', () => {
       splitPoints: splits,
     });
 
-    expect(result[0]?.poles[0]?.h).toBe(0);
-    expect(result[0]?.poles[1]?.h).toBeCloseTo(5, 1);
-    expect(result[1]?.poles[0]?.h).toBeCloseTo(5, 1);
-    expect(result[1]?.poles[1]?.h).toBeCloseTo(10, 1);
-    expect(result[2]?.poles[0]?.h).toBeCloseTo(10, 1);
-    expect(result[2]?.poles[1]?.h).toBeCloseTo(15, 1);
-    expect(result[3]?.poles[0]?.h).toBeCloseTo(15, 1);
-    expect(result[3]?.poles[1]?.h).toBe(20);
+    const poles0 = extractPoles(result[0] as EncounterWall);
+    const poles1 = extractPoles(result[1] as EncounterWall);
+    const poles2 = extractPoles(result[2] as EncounterWall);
+    const poles3 = extractPoles(result[3] as EncounterWall);
+    expect(poles0[0]?.h).toBe(0);
+    expect(poles0[1]?.h).toBeCloseTo(5, 1);
+    expect(poles1[0]?.h).toBeCloseTo(5, 1);
+    expect(poles1[1]?.h).toBeCloseTo(10, 1);
+    expect(poles2[0]?.h).toBeCloseTo(10, 1);
+    expect(poles2[1]?.h).toBeCloseTo(15, 1);
+    expect(poles3[0]?.h).toBeCloseTo(15, 1);
+    expect(poles3[1]?.h).toBe(20);
   });
 });

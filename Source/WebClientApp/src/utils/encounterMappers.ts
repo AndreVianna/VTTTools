@@ -2,13 +2,10 @@ import { GroupName } from '@/services/layerManager';
 import type {
   Asset,
   EncounterAsset,
-  EncounterOpening,
   EncounterRegion,
   EncounterSource,
   EncounterWall,
-  ObjectAsset,
   PlacedAsset,
-  PlacedOpening,
   PlacedRegion,
   PlacedSource,
   PlacedWall,
@@ -17,17 +14,12 @@ import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityE
 import { generateUniqueId, getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
 
 function getAssetLayer(asset: Asset): GroupName {
-  if (asset.kind === 'Monster') {
+  if (asset.classification.kind === 'Creature') {
     return GroupName.Monsters;
   }
 
-  if (asset.kind === 'Character') {
+  if (asset.classification.kind === 'Character') {
     return GroupName.Characters;
-  }
-
-  const objectAsset = asset as ObjectAsset;
-  if (objectAsset.isOpaque) {
-    return GroupName.Structure;
   }
 
   return GroupName.Objects;
@@ -63,8 +55,8 @@ export async function hydratePlacedAssets(
         setEntityMapping(encounterId, 'assets', domId, backendIndex);
       }
 
-      const isMonster = asset.kind === 'Monster';
-      const isCharacter = asset.kind === 'Character';
+      const isMonster = asset.classification.kind === 'Creature';
+      const isCharacter = asset.classification.kind === 'Character';
 
       let visibilityKey: string;
       let positionKey: string;
@@ -210,24 +202,4 @@ export function hydratePlacedSources(encounterSources: EncounterSource[], encoun
 
 export function dehydratePlacedSources(placedSources: PlacedSource[]): EncounterSource[] {
   return placedSources.map(({ id, ...source }) => source);
-}
-
-export function hydratePlacedOpenings(encounterOpenings: EncounterOpening[], encounterId: string): PlacedOpening[] {
-  return encounterOpenings.map((opening) => {
-    let domId = getDomIdByIndex(encounterId, 'openings', opening.index);
-
-    if (!domId) {
-      domId = generateUniqueId('opening', 'openings');
-      setEntityMapping(encounterId, 'openings', domId, opening.index);
-    }
-
-    return {
-      ...opening,
-      id: domId,
-    };
-  });
-}
-
-export function dehydratePlacedOpenings(placedOpenings: PlacedOpening[]): EncounterOpening[] {
-  return placedOpenings.map(({ id, ...opening }) => opening);
 }

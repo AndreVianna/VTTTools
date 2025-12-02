@@ -7,7 +7,5 @@ public record EncounterRegionUpdateRequest {
     [MaxLength(32)]
     public Optional<string> Type { get; init; } = string.Empty;
     public Optional<List<Point>> Vertices { get; init; }
-    public Optional<int?> Value { get; init; }
-    public Optional<string?> Label { get; init; }
-    public Optional<string?> Color { get; init; }
+    public Optional<int> Value { get; init; }
 }

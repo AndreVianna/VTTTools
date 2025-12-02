@@ -1,5 +1,6 @@
 import type { EncounterRegion, EncounterSource, EncounterWall, Point } from '@/types/domain';
 import type { Command } from '@/utils/commands';
+import { getPolesFromWall } from '@/utils/wallUtils';
 
 export interface PlaceWallCommandParams {
   encounterId: string;
@@ -31,7 +32,7 @@ export class PlaceWallCommand implements Command {
 
   async undo(): Promise<void> {
     await this.executePromise;
-    if (this.id) {
+    if (this.id !== undefined) {
       await this.params.removeWallFn(this.params.encounterId, this.id);
     }
   }
@@ -58,10 +59,11 @@ export class RemoveWallCommand implements Command {
 
   async undo(): Promise<void> {
     await this.executePromise;
+    const poles = getPolesFromWall(this.params.encounterWall);
     await this.params.placeWallFn(
       this.params.encounterId,
       this.params.encounterWall.index,
-      this.params.encounterWall.poles,
+      poles,
     );
   }
 }

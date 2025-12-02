@@ -9,12 +9,12 @@ vi.mock('polygon-clipping', () => ({
   },
 }));
 
-vi.mock('@/utils/structureSnapping', () => ({
-  snapToNearest: vi.fn((point) => point),
+vi.mock('@/utils/snapping', () => ({
+  snap: vi.fn((point) => point),
   SnapMode: {
-    Free: 0,
-    HalfSnap: 1,
-    QuarterSnap: 2,
+    Free: 'free',
+    Half: 'half',
+    Quarter: 'quarter',
   },
 }));
 

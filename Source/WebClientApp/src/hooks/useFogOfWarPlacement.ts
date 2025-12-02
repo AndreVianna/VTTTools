@@ -105,7 +105,7 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
 
             if (mode === 'add') {
                 const newPoly = toGeoJSONPolygon(vertices);
-                const existingHiddenRegions = fowRegions.filter((r) => r.label === 'Hidden' && r.value === 1);
+                const existingHiddenRegions = fowRegions.filter((r) => r.value === 2);
 
                 let resultPolygons: MultiPolygon;
 
@@ -144,8 +144,7 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
                         index: nextIndex + idx,
                         type: 'FogOfWar',
                         name: regionName,
-                        label: 'Hidden',
-                        value: 1,
+                        value: 2,
                         vertices: resultVertices,
                     };
 
@@ -161,8 +160,7 @@ export function useFogOfWarPlacement(params: UseFogOfWarPlacementParams) {
                     index: nextIndex,
                     type: 'FogOfWar',
                     name: hierarchicalName,
-                    label: 'Hidden',
-                    value: -1,
+                    value: 0,
                     vertices,
                 };
 

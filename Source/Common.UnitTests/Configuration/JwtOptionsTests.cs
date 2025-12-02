@@ -113,7 +113,7 @@ public class JwtOptionsTests {
         var exception = Assert.Throws<InvalidOperationException>(options.ValidateForProduction);
 
         Assert.Contains("CRITICAL SECURITY ERROR", exception.Message);
-        Assert.Contains("Default development JWT SecretKey detected", exception.Message);
+        Assert.Contains("Open development JWT SecretKey detected", exception.Message);
     }
 
     [Fact]

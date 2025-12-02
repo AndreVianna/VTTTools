@@ -8,7 +8,7 @@ public class PlayerTests {
 
         // Assert
         player.UserId.Should().BeEmpty();
-        player.Type.Should().Be(PlayerType.Guest); // Default is Guest (0)
+        player.Type.Should().Be(PlayerType.Guest); // Open is Guest (0)
     }
 
     [Fact]

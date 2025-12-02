@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MonsterAsset, ObjectAsset } from '@/types/domain';
 import { AssetKind, ResourceType } from '@/types/domain';
 import { mockApi } from './mockApi';
 
@@ -9,44 +8,58 @@ describe('MockApiService', () => {
   });
 
   describe('mockGetAssets', () => {
-    it('should return assets with new 4-image structure', async () => {
+    it('should return assets with new structure', async () => {
       const assets = await mockApi.mockGetAssets();
 
       expect(assets).toBeDefined();
       expect(assets.length).toBeGreaterThan(0);
 
       const firstAsset = assets[0];
-      expect(firstAsset).toHaveProperty('id');
-      expect(firstAsset).toHaveProperty('topDown');
-      expect(firstAsset).toHaveProperty('portrait');
-      expect(firstAsset).toHaveProperty('miniature');
-      expect(firstAsset).toHaveProperty('photo');
-      expect(firstAsset).toHaveProperty('size');
+      expect(firstAsset).toBeDefined();
+      if (!firstAsset) return;
 
-      expect(firstAsset).not.toHaveProperty('tokens');
-      expect(firstAsset).not.toHaveProperty('resources');
-      expect(firstAsset).not.toHaveProperty('objectProps');
-      expect(firstAsset).not.toHaveProperty('monsterProps');
+      expect(firstAsset).toHaveProperty('id');
+      expect(firstAsset).toHaveProperty('classification');
+      expect(firstAsset).toHaveProperty('name');
+      expect(firstAsset).toHaveProperty('description');
+      expect(firstAsset).toHaveProperty('portrait');
+      expect(firstAsset).toHaveProperty('tokenSize');
+      expect(firstAsset).toHaveProperty('tokens');
+      expect(firstAsset).toHaveProperty('statBlocks');
+      expect(firstAsset).toHaveProperty('ownerId');
+      expect(firstAsset).toHaveProperty('isPublished');
+      expect(firstAsset).toHaveProperty('isPublic');
+
+      expect(firstAsset.classification).toHaveProperty('kind');
+      expect(firstAsset.classification).toHaveProperty('category');
+      expect(firstAsset.classification).toHaveProperty('type');
+      expect(firstAsset.classification).toHaveProperty('subtype');
     });
 
-    it('should include assets with topDown images', async () => {
+    it('should include assets with token images', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithTopDown = assets.filter((a) => a.topDown !== undefined);
+      const assetsWithTokens = assets.filter((a) => a.tokens.length > 0);
 
-      expect(assetsWithTopDown.length).toBeGreaterThan(0);
+      expect(assetsWithTokens.length).toBeGreaterThan(0);
 
-      assetsWithTopDown.forEach((asset) => {
-        expect(asset.topDown).toHaveProperty('id');
-        expect(asset.topDown).toHaveProperty('type');
-        expect(asset.topDown).toHaveProperty('path');
-        expect(asset.topDown).toHaveProperty('metadata');
-        expect(asset.topDown?.type).toBe(ResourceType.Image);
+      assetsWithTokens.forEach((asset) => {
+        expect(Array.isArray(asset.tokens)).toBe(true);
+        asset.tokens.forEach((token) => {
+          expect(token).toHaveProperty('id');
+          expect(token).toHaveProperty('type');
+          expect(token).toHaveProperty('path');
+          expect(token).toHaveProperty('contentType');
+          expect(token).toHaveProperty('fileName');
+          expect(token).toHaveProperty('fileLength');
+          expect(token).toHaveProperty('size');
+          expect(token.type).toBe(ResourceType.Image);
+        });
       });
     });
 
     it('should include assets with portraits', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithPortrait = assets.filter((a) => a.portrait !== undefined);
+      const assetsWithPortrait = assets.filter((a) => a.portrait !== null);
 
       expect(assetsWithPortrait.length).toBeGreaterThan(0);
 
@@ -54,91 +67,59 @@ describe('MockApiService', () => {
         expect(asset.portrait).toHaveProperty('id');
         expect(asset.portrait).toHaveProperty('type');
         expect(asset.portrait).toHaveProperty('path');
-        expect(asset.portrait).toHaveProperty('metadata');
+        expect(asset.portrait).toHaveProperty('contentType');
+        expect(asset.portrait).toHaveProperty('fileName');
         expect(asset.portrait?.type).toBe(ResourceType.Image);
       });
     });
 
     it('should include assets without portraits', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithoutPortrait = assets.filter((a) => a.portrait === undefined);
+      const assetsWithoutPortrait = assets.filter((a) => a.portrait === null);
 
       expect(assetsWithoutPortrait.length).toBeGreaterThan(0);
     });
 
-    it('should include assets with miniature images', async () => {
-      const assets = await mockApi.mockGetAssets();
-      const assetsWithMiniature = assets.filter((a) => a.miniature !== undefined);
-
-      expect(assetsWithMiniature.length).toBeGreaterThan(0);
-
-      assetsWithMiniature.forEach((asset) => {
-        expect(asset.miniature).toHaveProperty('id');
-        expect(asset.miniature).toHaveProperty('type');
-        expect(asset.miniature).toHaveProperty('path');
-        expect(asset.miniature?.type).toBe(ResourceType.Image);
-      });
-    });
-
-    it('should include assets with photo images', async () => {
-      const assets = await mockApi.mockGetAssets();
-      const assetsWithPhoto = assets.filter((a) => a.photo !== undefined);
-
-      expect(assetsWithPhoto.length).toBeGreaterThan(0);
-
-      assetsWithPhoto.forEach((asset) => {
-        expect(asset.photo).toHaveProperty('id');
-        expect(asset.photo).toHaveProperty('type');
-        expect(asset.photo).toHaveProperty('path');
-        expect(asset.photo?.type).toBe(ResourceType.Image);
-      });
-    });
-
-    it('should have size at root level', async () => {
+    it('should have tokenSize property', async () => {
       const assets = await mockApi.mockGetAssets();
 
       assets.forEach((asset) => {
-        expect(asset.size).toBeDefined();
-        expect(asset.size).toHaveProperty('width');
-        expect(asset.size).toHaveProperty('height');
-        expect(asset.size).toHaveProperty('isSquare');
-        expect(typeof asset.size.width).toBe('number');
-        expect(typeof asset.size.height).toBe('number');
-        expect(typeof asset.size.isSquare).toBe('boolean');
+        expect(asset.tokenSize).toBeDefined();
+        expect(asset.tokenSize).toHaveProperty('width');
+        expect(asset.tokenSize).toHaveProperty('height');
+        expect(typeof asset.tokenSize.width).toBe('number');
+        expect(typeof asset.tokenSize.height).toBe('number');
       });
     });
 
-    it('should include monster assets with MonsterData', async () => {
+    it('should include creature assets', async () => {
       const assets = await mockApi.mockGetAssets();
-      const monsters = assets.filter((a) => a.kind === AssetKind.Monster) as MonsterAsset[];
+      const creatures = assets.filter((a) => a.classification.kind === AssetKind.Creature);
 
-      expect(monsters.length).toBeGreaterThan(0);
+      expect(creatures.length).toBeGreaterThan(0);
 
-      monsters.forEach((monster) => {
-        expect(monster.kind).toBe(AssetKind.Monster);
-        expect(monster.size).toBeDefined();
+      creatures.forEach((creature) => {
+        expect(creature.classification.kind).toBe(AssetKind.Creature);
+        expect(creature.tokenSize).toBeDefined();
       });
     });
 
-    it('should include object assets with ObjectData', async () => {
+    it('should include object assets', async () => {
       const assets = await mockApi.mockGetAssets();
-      const objects = assets.filter((a) => a.kind === AssetKind.Object) as ObjectAsset[];
+      const objects = assets.filter((a) => a.classification.kind === AssetKind.Object);
 
       expect(objects.length).toBeGreaterThan(0);
 
       objects.forEach((obj) => {
-        expect(obj).toHaveProperty('isMovable');
-        expect(obj).toHaveProperty('isOpaque');
-        expect(typeof obj.isMovable).toBe('boolean');
-        expect(typeof obj.isOpaque).toBe('boolean');
-        expect(obj.size).toBeDefined();
+        expect(obj.classification.kind).toBe(AssetKind.Object);
+        expect(obj.tokenSize).toBeDefined();
       });
     });
 
     it('should include diverse asset sizes', async () => {
       const assets = await mockApi.mockGetAssets();
 
-      const sizes = assets.map((a) => `${a.size.width}x${a.size.height}`);
+      const sizes = assets.map((a) => `${a.tokenSize.width}x${a.tokenSize.height}`);
       const uniqueSizes = new Set(sizes);
 
       expect(uniqueSizes.size).toBeGreaterThan(2);
@@ -149,57 +130,43 @@ describe('MockApiService', () => {
     it('should include edge case: asset with no images', async () => {
       const assets = await mockApi.mockGetAssets();
       const noImages = assets.filter(
-        (a) => !a.topDown && !a.portrait && !a.miniature && !a.photo
+        (a) => a.tokens.length === 0 && a.portrait === null
       );
 
       expect(noImages.length).toBeGreaterThan(0);
 
       noImages.forEach((asset) => {
-        expect(asset.topDown).toBeUndefined();
-        expect(asset.portrait).toBeUndefined();
-        expect(asset.miniature).toBeUndefined();
-        expect(asset.photo).toBeUndefined();
+        expect(asset.tokens.length).toBe(0);
+        expect(asset.portrait).toBeNull();
       });
     });
 
-    it('should include edge case: asset with all 4 image types', async () => {
+    it('should include edge case: asset with multiple token images', async () => {
       const assets = await mockApi.mockGetAssets();
-      const allImages = assets.filter(
-        (a) => a.topDown && a.portrait && a.miniature && a.photo
-      );
+      const multipleTokens = assets.filter((a) => a.tokens.length > 1);
 
-      expect(allImages.length).toBeGreaterThan(0);
+      expect(multipleTokens.length).toBeGreaterThan(0);
 
-      allImages.forEach((asset) => {
-        expect(asset.topDown).toBeDefined();
-        expect(asset.portrait).toBeDefined();
-        expect(asset.miniature).toBeDefined();
-        expect(asset.photo).toBeDefined();
+      multipleTokens.forEach((asset) => {
+        expect(asset.tokens.length).toBeGreaterThan(1);
       });
     });
 
-    it('should include square and non-square assets', async () => {
+    it('should have realistic media resource data', async () => {
       const assets = await mockApi.mockGetAssets();
-      const square = assets.filter((a) => a.size.isSquare);
-      const nonSquare = assets.filter((a) => !a.size.isSquare);
+      const assetsWithTokens = assets.filter((a) => a.tokens.length > 0);
 
-      expect(square.length).toBeGreaterThan(0);
-      expect(nonSquare.length).toBeGreaterThan(0);
-    });
+      assetsWithTokens.forEach((asset) => {
+        const token = asset.tokens[0];
+        expect(token).toBeDefined();
+        if (!token) return;
 
-    it('should have realistic media resource metadata', async () => {
-      const assets = await mockApi.mockGetAssets();
-      const assetsWithTopDown = assets.filter((a) => a.topDown !== undefined);
-
-      assetsWithTopDown.forEach((asset) => {
-        const topDown = asset.topDown;
-        expect(topDown).toBeDefined();
-        expect(topDown?.metadata.contentType).toBe('image/png');
-        expect(topDown?.metadata.fileName).toMatch(/\.png$/);
-        expect(topDown?.metadata.fileLength).toBeGreaterThan(0);
-        expect(topDown?.metadata.imageSize).toBeDefined();
-        expect(topDown?.metadata.imageSize?.width).toBe(256);
-        expect(topDown?.metadata.imageSize?.height).toBe(256);
+        expect(token.contentType).toBe('image/png');
+        expect(token.fileName).toMatch(/\.png$/);
+        expect(token.fileLength).toBeGreaterThan(0);
+        expect(token.size).toBeDefined();
+        expect(token.size?.width).toBe(256);
+        expect(token.size?.height).toBe(256);
       });
     });
 

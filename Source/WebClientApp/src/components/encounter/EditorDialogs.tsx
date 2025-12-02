@@ -1,8 +1,15 @@
 import { ConfirmDialog } from '@components/common';
-import { AssetContextMenu, WallContextMenu } from '@components/encounter';
+import { AssetContextMenu, RegionContextMenu, WallContextMenu } from '@components/encounter';
 import { Alert, Snackbar } from '@mui/material';
 import type React from 'react';
-import type { EncounterWall, LabelPosition, LabelVisibility, PlacedAsset } from '@/types/domain';
+import type {
+  EncounterRegion,
+  EncounterWall,
+  EncounterWallSegment,
+  LabelPosition,
+  LabelVisibility,
+  PlacedAsset,
+} from '@/types/domain';
 
 interface EditorDialogsProps {
   deleteConfirmOpen: boolean;
@@ -20,9 +27,13 @@ interface EditorDialogsProps {
   ) => Promise<void>;
   wallContextMenuPosition: { left: number; top: number } | null;
   wallContextMenuWall: EncounterWall | null;
+  wallContextMenuSegmentIndex: number | null;
   onWallContextMenuClose: () => void;
-  onWallEditVertices: (wallIndex: number) => void;
-  onWallDelete: (wallIndex: number) => void;
+  onWallSegmentUpdate: (wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void;
+  regionContextMenuPosition: { left: number; top: number } | null;
+  regionContextMenuRegion: EncounterRegion | null;
+  onRegionContextMenuClose: () => void;
+  onRegionUpdate: (regionIndex: number, updates: Partial<EncounterRegion>) => void;
   errorMessage: string | null;
   onErrorMessageClose: () => void;
 }
@@ -39,9 +50,13 @@ export const EditorDialogs: React.FC<EditorDialogsProps> = ({
   onAssetDisplayUpdate,
   wallContextMenuPosition,
   wallContextMenuWall,
+  wallContextMenuSegmentIndex,
   onWallContextMenuClose,
-  onWallEditVertices,
-  onWallDelete,
+  onWallSegmentUpdate,
+  regionContextMenuPosition,
+  regionContextMenuRegion,
+  onRegionContextMenuClose,
+  onRegionUpdate,
   errorMessage,
   onErrorMessageClose,
 }) => {
@@ -73,8 +88,16 @@ export const EditorDialogs: React.FC<EditorDialogsProps> = ({
         open={wallContextMenuPosition !== null}
         onClose={onWallContextMenuClose}
         encounterWall={wallContextMenuWall}
-        onEditVertices={onWallEditVertices}
-        onDelete={onWallDelete}
+        segmentIndex={wallContextMenuSegmentIndex}
+        onSegmentUpdate={onWallSegmentUpdate}
+      />
+
+      <RegionContextMenu
+        anchorPosition={regionContextMenuPosition}
+        open={regionContextMenuPosition !== null}
+        onClose={onRegionContextMenuClose}
+        encounterRegion={regionContextMenuRegion}
+        onRegionUpdate={onRegionUpdate}
       />
 
       <Snackbar

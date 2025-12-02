@@ -9,102 +9,112 @@
  *   const object = mockObjectAsset({ size: { width: 2, height: 2, isSquare: true } });
  */
 
-import type { Asset, CharacterAsset, MonsterAsset, MediaResource, ObjectAsset } from '@/types/domain';
+import type { Asset, MediaResource } from '@/types/domain';
 import { AssetKind, ResourceType } from '@/types/domain';
 
 export const mockMediaResource = (overrides?: Partial<MediaResource>): MediaResource => ({
   id: 'resource-123',
+  description: null,
+  features: {},
   type: ResourceType.Image,
   path: '/media/test-image.png',
-  metadata: {
-    contentType: 'image/png',
-    fileName: 'test-image.png',
-    fileLength: 12345,
-    imageSize: { width: 256, height: 256 },
-  },
-  tags: [],
+  contentType: 'image/png',
+  fileName: 'test-image.png',
+  fileLength: 12345,
+  size: { width: 256, height: 256 },
+  duration: '',
+  ownerId: 'test-owner',
+  isPublished: true,
+  isPublic: true,
   ...overrides,
 });
 
-export const mockObjectAsset = (overrides?: Partial<ObjectAsset>): ObjectAsset => ({
+export const mockObjectAsset = (overrides?: Partial<Asset>): Asset => ({
   id: 'asset-123',
-  ownerId: 'user-123',
-  kind: AssetKind.Object,
+  classification: {
+    kind: AssetKind.Object,
+    category: 'Container',
+    type: 'Crate',
+    subtype: null,
+  },
   name: 'Test Object',
   description: 'Test object description',
+  portrait: null,
+  tokenSize: { width: 1, height: 1 },
+  tokens: [mockMediaResource({ id: 'topdown-123' })],
+  statBlocks: {},
+  ownerId: 'user-123',
   isPublished: false,
   isPublic: false,
-  topDown: mockMediaResource({ id: 'topdown-123' }),
-  portrait: undefined,
-  miniature: undefined,
-  photo: undefined,
-  size: { width: 1, height: 1, isSquare: true },
-  isMovable: true,
-  isOpaque: false,
-  triggerEffectId: undefined,
   ...overrides,
 });
 
-export const mockMonsterAsset = (overrides?: Partial<MonsterAsset>): MonsterAsset => ({
+export const mockCreatureAsset = (overrides?: Partial<Asset>): Asset => ({
   id: 'asset-456',
+  classification: {
+    kind: AssetKind.Creature,
+    category: 'Humanoid',
+    type: 'Goblinoid',
+    subtype: null,
+  },
+  name: 'Test Creature',
+  description: 'Test creature description',
+  portrait: null,
+  tokenSize: { width: 1, height: 1 },
+  tokens: [mockMediaResource({ id: 'topdown-456' })],
+  statBlocks: {},
   ownerId: 'user-123',
-  kind: AssetKind.Monster,
-  name: 'Test Monster',
-  description: 'Test monster description',
   isPublished: false,
   isPublic: false,
-  topDown: mockMediaResource({ id: 'topdown-456' }),
-  portrait: undefined,
-  miniature: undefined,
-  photo: undefined,
-  size: { width: 1, height: 1, isSquare: true },
-  statBlockId: undefined,
-  tokenStyle: undefined,
   ...overrides,
 });
 
-export const mockCharacterAsset = (overrides?: Partial<CharacterAsset>): CharacterAsset => ({
+export const mockMonsterAsset = mockCreatureAsset;
+
+export const mockCharacterAsset = (overrides?: Partial<Asset>): Asset => ({
   id: 'asset-789',
-  ownerId: 'user-123',
-  kind: AssetKind.Character,
+  classification: {
+    kind: AssetKind.Character,
+    category: 'PC',
+    type: 'Hero',
+    subtype: null,
+  },
   name: 'Test Character',
   description: 'Test character description',
+  portrait: mockMediaResource({ id: 'portrait-789' }),
+  tokenSize: { width: 1, height: 1 },
+  tokens: [mockMediaResource({ id: 'topdown-789' })],
+  statBlocks: {},
+  ownerId: 'user-123',
   isPublished: false,
   isPublic: false,
-  topDown: mockMediaResource({ id: 'topdown-789' }),
-  portrait: mockMediaResource({ id: 'portrait-789' }),
-  miniature: undefined,
-  photo: undefined,
-  size: { width: 1, height: 1, isSquare: true },
-  statBlockId: undefined,
-  tokenStyle: undefined,
   ...overrides,
 });
 
 export const mockAssetWithPortrait = (overrides?: Partial<Asset>): Asset => {
-  const asset = mockMonsterAsset(overrides as Partial<MonsterAsset>);
+  const asset = mockCreatureAsset(overrides);
   return {
     ...asset,
     portrait: mockMediaResource({
       id: 'portrait-123',
       path: '/media/test-portrait.png',
-      metadata: {
-        contentType: 'image/png',
-        fileName: 'test-portrait.png',
-        fileLength: 15000,
-        imageSize: { width: 512, height: 512 },
-      },
+      contentType: 'image/png',
+      fileName: 'test-portrait.png',
+      fileLength: 15000,
+      size: { width: 512, height: 512 },
     }),
   };
 };
 
 export const mockAssetWithAllImages = (overrides?: Partial<Asset>): Asset => {
-  const asset = mockMonsterAsset(overrides as Partial<MonsterAsset>);
+  const asset = mockCreatureAsset(overrides);
   return {
     ...asset,
     portrait: mockMediaResource({ id: 'portrait-1', path: '/media/portrait.png' }),
-    topDown: mockMediaResource({ id: 'topdown-1', path: '/media/topdown.png' }),
-    miniature: mockMediaResource({ id: 'miniature-1', path: '/media/miniature.png' }),
-    photo: mockMediaResource({ id: 'photo-1', path: '/media/photo.png' }),
+    tokens: [
+      mockMediaResource({ id: 'topdown-1', path: '/media/topdown.png' }),
+      mockMediaResource({ id: 'miniature-1', path: '/media/miniature.png' }),
+      mockMediaResource({ id: 'photo-1', path: '/media/photo.png' }),
+    ],
   };
 };

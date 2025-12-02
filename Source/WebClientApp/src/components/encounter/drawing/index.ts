@@ -1,5 +1,3 @@
-export type { OpeningDrawingToolProps } from './OpeningDrawingTool';
-export { OpeningDrawingTool } from './OpeningDrawingTool';
 export type { RegionPreviewProps } from '../RegionPreview';
 export { RegionPreview } from '../RegionPreview';
 export type { RegionDrawingToolProps } from './RegionDrawingTool';

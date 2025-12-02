@@ -11,13 +11,9 @@ const mockMonsterAssetData: Asset = mockMonsterAsset({
   description: 'A small goblin',
   isPublished: true,
   isPublic: false,
-  topDown: mockMediaResource({ id: 'asset-1-topdown' }),
-  portrait: undefined,
-  miniature: undefined,
-  photo: undefined,
-  size: { width: 1, height: 1, isSquare: true },
-  statBlockId: undefined,
-  tokenStyle: undefined,
+  tokens: [mockMediaResource({ id: 'asset-1-topdown' })],
+  portrait: null,
+  tokenSize: { width: 1, height: 1 },
 });
 
 const mockObjectAssetData: Asset = mockObjectAsset({
@@ -27,14 +23,9 @@ const mockObjectAssetData: Asset = mockObjectAsset({
   description: 'A wooden chest',
   isPublished: true,
   isPublic: false,
-  topDown: mockMediaResource({ id: 'asset-2-topdown' }),
-  portrait: undefined,
-  miniature: undefined,
-  photo: undefined,
-  size: { width: 1, height: 1, isSquare: true },
-  isMovable: true,
-  isOpaque: false,
-  triggerEffectId: undefined,
+  tokens: [mockMediaResource({ id: 'asset-2-topdown' })],
+  portrait: null,
+  tokenSize: { width: 1, height: 1 },
 });
 
 const createMockEncounterAsset = (overrides: Partial<EncounterAsset>): EncounterAsset => ({

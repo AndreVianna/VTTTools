@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { WallVisibility } from '@/types/domain';
+import { SegmentState, SegmentType } from '@/types/domain';
 import type { LocalAction } from '@/types/wallUndoActions';
 import { useWallTransaction } from './useWallTransaction';
 
@@ -559,13 +559,17 @@ describe('useWallTransaction - Local Undo/Redo', () => {
     it('should remove segment by tempId correctly', () => {
       const { result } = renderHook(() => useWallTransaction());
       const mockWall = {
-        encounterId: 'encounter-1',
         index: 1,
         name: 'Wall 1',
-        poles: [{ x: 0, y: 0, h: 10 }],
-        isClosed: false,
-        visibility: WallVisibility.Normal,
-        color: '#808080',
+        segments: [
+          {
+            index: 0,
+            startPole: { x: 0, y: 0, h: 10 },
+            endPole: { x: 10, y: 0, h: 10 },
+            type: SegmentType.Wall,
+            state: SegmentState.Open,
+          },
+        ],
       };
 
       act(() => {
@@ -579,9 +583,15 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         tempId1 = result.current.addSegment({
           wallIndex: null,
           name: 'Segment 1',
-          poles: [{ x: 10, y: 10, h: 10 }],
-          isClosed: false,
-          visibility: WallVisibility.Normal,
+          segments: [
+            {
+              index: 0,
+              startPole: { x: 10, y: 10, h: 10 },
+              endPole: { x: 20, y: 10, h: 10 },
+              type: SegmentType.Wall,
+              state: SegmentState.Open,
+            },
+          ],
         });
       });
 
@@ -590,9 +600,15 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         tempId2 = result.current.addSegment({
           wallIndex: null,
           name: 'Segment 2',
-          poles: [{ x: 20, y: 20, h: 10 }],
-          isClosed: false,
-          visibility: WallVisibility.Normal,
+          segments: [
+            {
+              index: 0,
+              startPole: { x: 20, y: 20, h: 10 },
+              endPole: { x: 30, y: 20, h: 10 },
+              type: SegmentType.Wall,
+              state: SegmentState.Open,
+            },
+          ],
         });
       });
 
@@ -611,13 +627,17 @@ describe('useWallTransaction - Local Undo/Redo', () => {
     it('should not affect other segments', () => {
       const { result } = renderHook(() => useWallTransaction());
       const mockWall = {
-        encounterId: 'encounter-1',
         index: 1,
         name: 'Wall 1',
-        poles: [{ x: 0, y: 0, h: 10 }],
-        isClosed: false,
-        visibility: WallVisibility.Normal,
-        color: '#808080',
+        segments: [
+          {
+            index: 0,
+            startPole: { x: 0, y: 0, h: 10 },
+            endPole: { x: 10, y: 0, h: 10 },
+            type: SegmentType.Wall,
+            state: SegmentState.Open,
+          },
+        ],
       };
 
       act(() => {
@@ -629,9 +649,15 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         tempId1 = result.current.addSegment({
           wallIndex: null,
           name: 'Segment 1',
-          poles: [{ x: 10, y: 10, h: 10 }],
-          isClosed: false,
-          visibility: WallVisibility.Normal,
+          segments: [
+            {
+              index: 0,
+              startPole: { x: 10, y: 10, h: 10 },
+              endPole: { x: 20, y: 10, h: 10 },
+              type: SegmentType.Wall,
+              state: SegmentState.Open,
+            },
+          ],
         });
       });
 
@@ -640,9 +666,15 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         tempId2 = result.current.addSegment({
           wallIndex: null,
           name: 'Segment 2',
-          poles: [{ x: 20, y: 20, h: 10 }],
-          isClosed: false,
-          visibility: WallVisibility.Normal,
+          segments: [
+            {
+              index: 0,
+              startPole: { x: 20, y: 20, h: 10 },
+              endPole: { x: 30, y: 20, h: 10 },
+              type: SegmentType.Wall,
+              state: SegmentState.Open,
+            },
+          ],
         });
       });
 
@@ -660,13 +692,17 @@ describe('useWallTransaction - Local Undo/Redo', () => {
     it('should return new segments array', () => {
       const { result } = renderHook(() => useWallTransaction());
       const mockWall = {
-        encounterId: 'encounter-1',
         index: 1,
         name: 'Wall 1',
-        poles: [{ x: 0, y: 0, h: 10 }],
-        isClosed: false,
-        visibility: WallVisibility.Normal,
-        color: '#808080',
+        segments: [
+          {
+            index: 0,
+            startPole: { x: 0, y: 0, h: 10 },
+            endPole: { x: 10, y: 0, h: 10 },
+            type: SegmentType.Wall,
+            state: SegmentState.Open,
+          },
+        ],
       };
 
       act(() => {
@@ -678,9 +714,15 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         tempId = result.current.addSegment({
           wallIndex: null,
           name: 'Segment 1',
-          poles: [{ x: 10, y: 10, h: 10 }],
-          isClosed: false,
-          visibility: WallVisibility.Normal,
+          segments: [
+            {
+              index: 0,
+              startPole: { x: 10, y: 10, h: 10 },
+              endPole: { x: 20, y: 10, h: 10 },
+              type: SegmentType.Wall,
+              state: SegmentState.Open,
+            },
+          ],
         });
       });
 

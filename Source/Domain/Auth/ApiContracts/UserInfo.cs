@@ -1,3 +1,5 @@
+using VttTools.Identity.Model;
+
 namespace VttTools.Auth.ApiContracts;
 
 public record UserInfo {
@@ -8,4 +10,5 @@ public record UserInfo {
     public string DisplayName { get; init; } = string.Empty;
     public bool IsAdministrator { get; init; }
     public bool TwoFactorEnabled { get; init; }
+    public UnitSystem PreferredUnitSystem { get; init; } = UnitSystem.Imperial;
 }

@@ -3,7 +3,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
-import type { PlacedOpening, PlacedWall, Point } from '@/types/domain';
+import type { PlacedWall, Point } from '@/types/domain';
 import { getBucketPlusCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { traceBoundary } from '@/utils/regionBoundaryUtils';
@@ -21,7 +21,6 @@ export interface RegionBucketFillToolProps {
   regionColor?: string;
   regionTransaction: ReturnType<typeof useRegionTransaction>;
   walls: PlacedWall[];
-  openings: PlacedOpening[];
   stageSize: { width: number; height: number };
   cursor?: string;
 }
@@ -31,12 +30,11 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
   onFinish,
   regionColor,
   walls,
-  openings,
   stageSize,
   cursor,
 }) => {
   const [previewVertices, setPreviewVertices] = useState<Point[] | null>(null);
-  const [isFullStage, setIsFullStage] = useState(false);
+  const [_isFullStage, setIsFullStage] = useState(false);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -81,7 +79,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         y: (pointer.y - stage.y()) / scale,
       };
 
-      const result = traceBoundary(stagePos, walls, openings, stageSize);
+      const result = traceBoundary(stagePos, walls, stageSize);
 
       if (result.isFullStage) {
         setIsFullStage(true);
@@ -99,7 +97,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         setPreviewVertices(null);
       }
     },
-    [walls, openings, stageSize],
+    [walls, stageSize],
   );
 
   const handleClick = useCallback(
@@ -118,7 +116,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         y: (pointer.y - stage.y()) / scale,
       };
 
-      const result = traceBoundary(stagePos, walls, openings, stageSize);
+      const result = traceBoundary(stagePos, walls, stageSize);
 
       let finalVertices: Point[];
 
@@ -140,7 +138,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
       }
       onFinish(finalVertices);
     },
-    [walls, openings, stageSize, onFinish],
+    [walls, stageSize, onFinish],
   );
 
   const handleMouseEnter = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -183,7 +181,6 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
         <RegionPreview
           vertices={previewVertices}
           {...(regionColor && { color: regionColor })}
-          opacity={isFullStage ? 0.05 : 0.15}
         />
       )}
     </Group>

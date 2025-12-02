@@ -8,9 +8,5 @@ public record EncounterRegion {
     [MaxLength(32)]
     public string Type { get; init; } = string.Empty;
     public IReadOnlyList<Point> Vertices { get; init; } = [];
-    public int? Value { get; init; }
-    [MaxLength(32)]
-    public string? Label { get; init; }
-    [MaxLength(16)]
-    public string? Color { get; init; }
+    public int Value { get; init; }
 }

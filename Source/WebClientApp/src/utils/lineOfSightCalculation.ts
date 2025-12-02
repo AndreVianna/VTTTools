@@ -1,4 +1,4 @@
-import { type EncounterSource, type EncounterWall, type Point, WallVisibility } from '@/types/domain';
+import { type EncounterSource, type EncounterWall, type Point, SegmentState, SegmentType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface Ray {
@@ -66,24 +66,34 @@ export function castRay(ray: Ray, opaqueSegments: LineSegment[]): Point {
   return closestIntersection ?? rayEnd;
 }
 
+function isSegmentOpaque(type: SegmentType, state: SegmentState): boolean {
+  switch (type) {
+    case SegmentType.Wall:
+      return true;
+    case SegmentType.Fence:
+      return false;
+    case SegmentType.Door:
+    case SegmentType.Window:
+      return state !== SegmentState.Open;
+    case SegmentType.Passage:
+    case SegmentType.Opening:
+      return false;
+    default:
+      return true;
+  }
+}
+
 export function extractOpaqueSegments(encounterWalls: EncounterWall[]): LineSegment[] {
   const segments: LineSegment[] = [];
 
   for (const encounterWall of encounterWalls) {
-    if (encounterWall.visibility !== WallVisibility.Normal) {
-      continue;
-    }
-
-    const segmentCount = encounterWall.isClosed ? encounterWall.poles.length : encounterWall.poles.length - 1;
-
-    for (let i = 0; i < segmentCount; i++) {
-      const start = encounterWall.poles[i];
-      const end = encounterWall.poles[(i + 1) % encounterWall.poles.length];
-      if (!start || !end) continue;
-      segments.push({
-        start: { x: start.x, y: start.y },
-        end: { x: end.x, y: end.y },
-      });
+    for (const wallSegment of encounterWall.segments) {
+      if (isSegmentOpaque(wallSegment.type, wallSegment.state)) {
+        segments.push({
+          start: { x: wallSegment.startPole.x, y: wallSegment.startPole.y },
+          end: { x: wallSegment.endPole.x, y: wallSegment.endPole.y },
+        });
+      }
     }
   }
 

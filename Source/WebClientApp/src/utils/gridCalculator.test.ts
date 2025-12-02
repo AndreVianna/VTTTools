@@ -28,6 +28,7 @@ describe('gridCalculator', () => {
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       };
 
       // Act
@@ -44,6 +45,7 @@ describe('gridCalculator', () => {
         cellSize: { width: 0, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       };
 
       // Act
@@ -60,6 +62,7 @@ describe('gridCalculator', () => {
         cellSize: { width: 50, height: -10 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       };
 
       // Act
@@ -76,6 +79,7 @@ describe('gridCalculator', () => {
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       };
 
       // Act
@@ -107,6 +111,7 @@ describe('gridCalculator', () => {
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       };
       const point = { x: 37, y: 82 };
 
@@ -122,6 +127,7 @@ describe('gridCalculator', () => {
       const grid: GridConfig = {
         ...getDefaultGrid(),
         snap: false,
+      scale: 1,
       };
       const point = { x: 37, y: 82 };
 
@@ -154,6 +160,7 @@ describe('gridCalculator', () => {
         cellSize: { width: 50, height: 50 },
         offset: { left: 10, top: 20 },
         snap: true,
+      scale: 1,
       };
       const point = { x: 47, y: 92 }; // Adjusted: 37, 72 → snaps to 50, 50 → adds offset → 60, 70
 

@@ -20,6 +20,7 @@ export interface SourcePreset {
   defaultSpread: number;
   defaultHasGradient: boolean;
   defaultColor: string;
+  color: string;
 }
 
 export const SOURCE_PRESETS: SourcePreset[] = [
@@ -31,7 +32,8 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 0,
     defaultHasGradient: true,
-    defaultColor: '#FF6B35',
+    defaultColor: '#FFA500',
+    color: '#FFA500',
   },
   {
     name: 'Lantern',
@@ -41,7 +43,8 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 0,
     defaultHasGradient: true,
-    defaultColor: '#FFD93D',
+    defaultColor: '#FFD700',
+    color: '#FFD700',
   },
   {
     name: 'Candle',
@@ -51,7 +54,8 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 0,
     defaultHasGradient: true,
-    defaultColor: '#FFF8DC',
+    defaultColor: '#FFE4B5',
+    color: '#FFE4B5',
   },
   {
     name: 'Spotlight',
@@ -62,6 +66,7 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultSpread: 45,
     defaultHasGradient: true,
     defaultColor: '#FFFFFF',
+    color: '#FFFFFF',
   },
   {
     name: 'Ambient Sound',
@@ -71,7 +76,8 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 0,
     defaultHasGradient: true,
-    defaultColor: '#4A90E2',
+    defaultColor: '#4169E1',
+    color: '#4169E1',
   },
   {
     name: 'Directional Sound',
@@ -81,7 +87,8 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 60,
     defaultHasGradient: true,
-    defaultColor: '#357ABD',
+    defaultColor: '#6495ED',
+    color: '#6495ED',
   },
   {
     name: 'Aura',
@@ -91,7 +98,8 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 0,
     defaultHasGradient: false,
-    defaultColor: '#9B59B6',
+    defaultColor: '#9370DB',
+    color: '#9370DB',
   },
   {
     name: 'Cone Effect',
@@ -101,6 +109,7 @@ export const SOURCE_PRESETS: SourcePreset[] = [
     defaultDirection: 0,
     defaultSpread: 90,
     defaultHasGradient: false,
-    defaultColor: '#E74C3C',
+    defaultColor: '#FF6347',
+    color: '#FF6347',
   },
 ];

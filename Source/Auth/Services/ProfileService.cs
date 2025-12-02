@@ -65,6 +65,10 @@ public class ProfileService(
                 user.PhoneNumber = request.PhoneNumber;
             }
 
+            if (request.PreferredUnitSystem is not null) {
+                user.UnitSystem = request.PreferredUnitSystem.Value;
+            }
+
             var result = await userManager.UpdateAsync(user);
             if (!result.Succeeded) {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
@@ -169,6 +173,7 @@ public class ProfileService(
             AvatarUrl = user.AvatarId.HasValue
                 ? $"/api/resources/{user.AvatarId.Value}"
                 : null,
+            PreferredUnitSystem = user.UnitSystem,
             Success = true,
             Message = null
         };

@@ -1,10 +1,9 @@
 namespace VttTools.Library.Encounters.Model;
 
-public enum OpeningState {
+public enum SegmentState {
     Open = 0,
     Closed = 1,
     Locked = 2,
-    Barred = 3,
-    Destroyed = 4,
-    Jammed = 5
+    Visible = Locked, // valid only for barriers
+    Secret = 3,
 }

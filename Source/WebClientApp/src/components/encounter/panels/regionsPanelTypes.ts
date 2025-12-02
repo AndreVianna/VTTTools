@@ -3,16 +3,9 @@ export type RegionType = 'Elevation' | 'Terrain' | 'Illumination';
 export interface RegionPreset {
   name: string;
   type: RegionType;
-  defaultValue?: number;
-  defaultLabel?: string;
+  defaultValue: number;
   description: string;
 }
-
-export const TERRAIN_VALUES = ['Normal', 'Difficult', 'Impassable'] as const;
-export type TerrainValue = (typeof TERRAIN_VALUES)[number];
-
-export const ILLUMINATION_VALUES = ['Normal', 'Dim', 'Dark', 'Bright'] as const;
-export type IlluminationValue = (typeof ILLUMINATION_VALUES)[number];
 
 export const REGION_PRESETS: RegionPreset[] = [
   {
@@ -24,13 +17,13 @@ export const REGION_PRESETS: RegionPreset[] = [
   {
     name: 'Terrain',
     type: 'Terrain',
-    defaultLabel: 'Normal',
+    defaultValue: 0,
     description: 'Movement difficulty area',
   },
   {
     name: 'Illumination',
     type: 'Illumination',
-    defaultLabel: 'Normal',
+    defaultValue: 0,
     description: 'Light level area',
   },
 ];

@@ -74,12 +74,12 @@ export const getPlacementBehavior = (
       snapToGrid: true,
       requiresGridAlignment: false,
       allowOverlap: false,
-      lockAspectRatio: objectData.size.isSquare,
+      lockAspectRatio: objectData.size.width === objectData.size.height,
       zIndexRange: [10, 40],
     };
   }
 
-  if ((assetKind === 'Monster' || assetKind === 'Character') && monsterOrCharacterData) {
+  if ((assetKind === 'Creature' || assetKind === 'Character') && monsterOrCharacterData) {
     return {
       ...defaultBehavior,
       canMove: true,
@@ -108,8 +108,7 @@ export const calculateAssetSize = (
   namedSize: NamedSize | undefined,
   gridConfig: GridConfig,
 ): { width: number; height: number } => {
-  // Default to 1x1 grid cell if size is not defined
-  const defaultSize = { width: 1, height: 1, isSquare: true };
+  const defaultSize = { width: 1, height: 1 };
   const size = namedSize || defaultSize;
 
   const { width, height } = size;

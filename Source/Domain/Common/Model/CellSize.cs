@@ -29,7 +29,7 @@ public record CellSize {
     }
 
     /// <summary>
-    /// Default grid cell size (50x50 pixels)
+    /// Open grid cell size (50x50 pixels)
     /// </summary>
     public static CellSize Default => new(50, 50);
 

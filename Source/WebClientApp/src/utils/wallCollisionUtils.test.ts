@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EncounterWall, Point, Pole } from '@/types/domain';
-import { WallVisibility } from '@/types/domain';
+import { SegmentState, SegmentType } from '@/types/domain';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import {
   type BoundingBox,
@@ -19,15 +19,19 @@ const createDefaultGridConfig = (): GridConfig => ({
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,
+  scale: 1,
 });
 
-const createWall = (poles: Pole[], index: number = 0, isClosed: boolean = false): EncounterWall => ({
-  encounterId: 'encounter1',
+const createWall = (poles: Pole[], index: number = 0): EncounterWall => ({
   index,
   name: `Wall ${index}`,
-  poles,
-  visibility: WallVisibility.Normal,
-  isClosed,
+  segments: poles.slice(0, -1).map((pole, i) => ({
+    index: i,
+    startPole: pole,
+    endPole: poles[i + 1]!,
+    type: SegmentType.Wall,
+    state: SegmentState.Closed,
+  })),
 });
 
 const createPole = (x: number, y: number, h: number = 10): Pole => ({
@@ -399,7 +403,7 @@ describe('detectEdgeOnEdgeIntersection', () => {
   it('should handle closed walls', () => {
     const newPoles = [createPoint(5, -5), createPoint(5, 15)];
     const existingWalls = [
-      createWall([createPole(0, 0), createPole(10, 0), createPole(10, 10), createPole(0, 10)], 0, true),
+      createWall([createPole(0, 0), createPole(10, 0), createPole(10, 10), createPole(0, 10)], 0),
     ];
 
     const result = detectEdgeOnEdgeIntersection(newPoles, existingWalls, gridConfig);
@@ -409,7 +413,7 @@ describe('detectEdgeOnEdgeIntersection', () => {
 
   it('should not check last edge of open walls', () => {
     const newPoles = [createPoint(5, 5), createPoint(15, 5)];
-    const existingWalls = [createWall([createPole(10, 0), createPole(10, 10), createPole(0, 10)], 0, false)];
+    const existingWalls = [createWall([createPole(10, 0), createPole(10, 10), createPole(0, 10)], 0)];
 
     const result = detectEdgeOnEdgeIntersection(newPoles, existingWalls, gridConfig);
     expect(result.hasCollision).toBe(true);
@@ -536,7 +540,7 @@ describe('detectPoleOnEdgeCollision', () => {
   it('should handle closed walls', () => {
     const poles = [createPoint(5, 3)];
     const existingWalls = [
-      createWall([createPole(0, 0), createPole(10, 0), createPole(10, 10), createPole(0, 10)], 0, true),
+      createWall([createPole(0, 0), createPole(10, 0), createPole(10, 10), createPole(0, 10)], 0),
     ];
 
     const result = detectPoleOnEdgeCollision(poles, existingWalls, gridConfig);
@@ -545,7 +549,7 @@ describe('detectPoleOnEdgeCollision', () => {
 
   it('should not check last edge of open walls', () => {
     const poles = [createPoint(5, 13)];
-    const existingWalls = [createWall([createPole(0, 0), createPole(10, 0), createPole(10, 10)], 0, false)];
+    const existingWalls = [createWall([createPole(0, 0), createPole(10, 0), createPole(10, 10)], 0)];
 
     const result = detectPoleOnEdgeCollision(poles, existingWalls, gridConfig);
     expect(result.hasCollision).toBe(false);

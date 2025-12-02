@@ -16,6 +16,9 @@ internal static class Mapper {
             Size = entity.Size,
             Duration = entity.Duration,
             Features = new(entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())),
+            OwnerId = entity.OwnerId,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
         };
 
     internal static Resource? ToModel(this ResourceEntity? entity)
@@ -29,6 +32,9 @@ internal static class Mapper {
             Size = entity.Size,
             Duration = entity.Duration,
             Features = [..entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
+            OwnerId = entity.OwnerId,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
         };
 
     internal static ResourceEntity ToEntity(this Resource model)
@@ -47,6 +53,9 @@ internal static class Mapper {
                 Index = i,
                 Value = v,
             }))],
+            OwnerId = model.OwnerId,
+            IsPublished = model.IsPublished,
+            IsPublic = model.IsPublic,
         };
 
     internal static void UpdateFrom(this ResourceEntity entity, Resource model) {

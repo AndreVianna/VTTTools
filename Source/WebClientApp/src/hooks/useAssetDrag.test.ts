@@ -10,27 +10,23 @@
 
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { Asset, MonsterAsset } from '@/types/domain';
+import type { Asset } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
 import { useAssetDrag } from './useAssetDrag';
 
-const createMockAsset = (id: string): Asset =>
-  ({
-    id,
-    ownerId: 'owner-123',
-    kind: AssetKind.Monster,
-    name: `Test Asset ${id}`,
-    description: 'Test description',
-    isPublished: true,
-    isPublic: false,
-    tokens: [],
-    portrait: undefined,
-    size: { width: 1, height: 1, isSquare: true },
-    statBlockId: undefined,
-    tokenStyle: undefined,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
-  }) as MonsterAsset;
+const createMockAsset = (id: string): Asset => ({
+  id,
+  ownerId: 'owner-123',
+  classification: { kind: AssetKind.Creature, category: '', type: '', subtype: null },
+  name: `Test Asset ${id}`,
+  description: 'Test description',
+  isPublished: true,
+  isPublic: false,
+  tokens: [],
+  portrait: null,
+  tokenSize: { width: 1, height: 1 },
+  statBlocks: {},
+});
 
 describe('useAssetDrag', () => {
   it('initializes with null draggedAsset', () => {

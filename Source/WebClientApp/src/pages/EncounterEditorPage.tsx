@@ -10,8 +10,6 @@ import {
   GridRenderer,
   type LayerVisibilityType,
   LeftToolBar,
-  OpeningDrawingTool,
-  OpeningRenderer,
   RegionBucketFillTool,
   RegionDrawingTool,
   RegionRenderer,
@@ -25,16 +23,15 @@ import {
   WallRenderer,
   WallTransformer,
 } from '@components/encounter';
-import type { OpeningPlacementProperties, SourcePlacementProperties } from '@components/encounter/panels';
+import type { SourcePlacementProperties } from '@components/encounter/panels';
 import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
-import { GroupName, LayerName, LayerZIndex, layerManager } from '@services/layerManager';
+import { GroupName, LayerName, layerManager } from '@services/layerManager';
 import { type GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import { sortRegionsForRendering } from '@utils/regionColorUtils';
 import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { Group, Layer } from 'react-konva';
 import { useParams } from 'react-router-dom';
 import type { SaveStatus } from '@/components/common';
@@ -50,7 +47,6 @@ import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { assetsApi } from '@/services/assetsApi';
 import {
   useAddEncounterAssetMutation,
-  useAddEncounterOpeningMutation,
   useAddEncounterRegionMutation,
   useAddEncounterWallMutation,
   useBulkAddEncounterAssetsMutation,
@@ -59,12 +55,10 @@ import {
   useGetEncounterQuery,
   usePatchEncounterMutation,
   useRemoveEncounterAssetMutation,
-  useRemoveEncounterOpeningMutation,
   useRemoveEncounterRegionMutation,
   useRemoveEncounterSourceMutation,
   useRemoveEncounterWallMutation,
   useUpdateEncounterAssetMutation,
-  useUpdateEncounterOpeningMutation,
   useUpdateEncounterRegionMutation,
   useUpdateEncounterWallMutation,
 } from '@/services/encounterApi';
@@ -75,13 +69,12 @@ import {
   type Encounter,
   type EncounterWall,
   type PlacedAsset,
-  type PlacedOpening,
   type PlacedRegion,
   type PlacedSource,
   type PlacedWall,
   type Point,
   type Pole,
-  type WallVisibility,
+  type UpdateEncounterRequest,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
@@ -93,7 +86,6 @@ import {
 } from '@/utils/customCursors';
 import {
   hydratePlacedAssets,
-  hydratePlacedOpenings,
   hydratePlacedRegions,
   hydratePlacedSources,
   hydratePlacedWalls,
@@ -105,6 +97,8 @@ import {
   updateRegionOptimistic,
   updateWallOptimistic,
 } from '@/utils/encounterStateUtils';
+import { polesToSegments, isWallClosed } from '@/utils/wallUtils';
+import { segmentsToPoles } from '@/utils/wallSegmentUtils';
 import {
   useAssetManagement,
   useCanvasReadyState,
@@ -117,8 +111,8 @@ import {
   useWallHandlers,
 } from './EncounterEditor/hooks';
 
-const STAGE_WIDTH = 2800;
-const STAGE_HEIGHT = 2100;
+const DEFAULT_STAGE_WIDTH = 2800;
+const DEFAULT_STAGE_HEIGHT = 2100;
 const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 const EncounterEditorPageInternal: React.FC = () => {
@@ -170,10 +164,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [removeEncounterRegion] = useRemoveEncounterRegionMutation();
   const [removeEncounterSource] = useRemoveEncounterSourceMutation();
 
-  const [addEncounterOpening] = useAddEncounterOpeningMutation();
-  const [updateEncounterOpening] = useUpdateEncounterOpeningMutation();
-  const [removeEncounterOpening] = useRemoveEncounterOpeningMutation();
-
   useEffect(() => {
     if (encounterId) {
       refetch();
@@ -186,20 +176,29 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [placedWalls, setPlacedWalls] = useState<PlacedWall[]>([]);
   const [placedRegions, setPlacedRegions] = useState<PlacedRegion[]>([]);
   const [placedSources, setPlacedSources] = useState<PlacedSource[]>([]);
-  const [placedOpenings, setPlacedOpenings] = useState<PlacedOpening[]>([]);
 
   useEffect(() => {
     encounterRef.current = encounter;
   }, [encounter]);
 
+  const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
+  const [stageSize, setStageSize] = useState({ width: DEFAULT_STAGE_WIDTH, height: DEFAULT_STAGE_HEIGHT });
+
+  const backgroundSize = encounter?.stage?.background?.size;
+
+  useEffect(() => {
+    if (backgroundSize && backgroundSize.width > 0 && backgroundSize.height > 0) {
+      setStageSize({ width: backgroundSize.width, height: backgroundSize.height });
+    } else {
+      setStageSize({ width: DEFAULT_STAGE_WIDTH, height: DEFAULT_STAGE_HEIGHT });
+    }
+  }, [backgroundSize]);
+
   const initialViewport = {
-    x: (window.innerWidth - STAGE_WIDTH) / 2,
-    y: (window.innerHeight - STAGE_HEIGHT) / 2,
+    x: (window.innerWidth - DEFAULT_STAGE_WIDTH) / 2,
+    y: (window.innerHeight - DEFAULT_STAGE_HEIGHT) / 2,
     scale: 1,
   };
-
-  const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
-  const [backgroundImageUrl] = useState<string>(ENCOUNTER_DEFAULT_BACKGROUND);
   const [isHydrating, setIsHydrating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -208,6 +207,8 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
   const [isEditingVertices, setIsEditingVertices] = useState(false);
   const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
+  const previewWallPolesRef = useRef<Pole[] | null>(null);
+  const [, forcePreviewUpdate] = useState(0);
 
   const [selectedRegionIndex, setSelectedRegionIndex] = useState<number | null>(null);
   const [drawingRegionIndex, setDrawingRegionIndex] = useState<number | null>(null);
@@ -220,9 +221,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
-  const [selectedOpeningIndex, setSelectedOpeningIndex] = useState<number | null>(null);
-  const [openingPlacementProperties, setOpeningPlacementProperties] = useState<OpeningPlacementProperties | null>(null);
-
   const [fogMode, setFogMode] = useState<'add' | 'subtract'>('add');
   const [fogDrawingTool, setFogDrawingTool] = useState<'polygon' | 'bucketFill' | null>(null);
   const [fogDrawingVertices, setFogDrawingVertices] = useState<Point[]>([]);
@@ -232,7 +230,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
     regions: true,
     walls: true,
-    openings: true,
     objects: true,
     monsters: true,
     characters: true,
@@ -257,6 +254,11 @@ const EncounterEditorPageInternal: React.FC = () => {
             ? 'source'
             : null;
 
+  const setPreviewWallPoles = useCallback((poles: Pole[] | null) => {
+    previewWallPolesRef.current = poles;
+    forcePreviewUpdate((c) => c + 1);
+  }, []);
+
   const handleLayerVisibilityToggle = useCallback((layer: LayerVisibilityType) => {
     setScopeVisibility((prev) => ({
       ...prev,
@@ -268,7 +270,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     setScopeVisibility({
       regions: true,
       walls: true,
-      openings: true,
       objects: true,
       monsters: true,
       characters: true,
@@ -285,7 +286,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     setScopeVisibility({
       regions: false,
       walls: false,
-      openings: false,
       objects: false,
       monsters: false,
       characters: false,
@@ -350,17 +350,32 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       setSaveStatus('saving');
 
-      const requestPayload = {
-        name: currentData.name,
-        description: currentData.description,
-        isPublished: currentData.isPublished,
-        grid: currentData.grid,
-      };
+      const requestPayload: Record<string, unknown> = {};
+
+      if (currentData.name !== encounter.name) {
+        requestPayload.name = currentData.name;
+      }
+      if (currentData.description !== encounter.description) {
+        requestPayload.description = currentData.description;
+      }
+      if (currentData.isPublished !== encounter.isPublished) {
+        requestPayload.isPublished = currentData.isPublished;
+      }
+      if (overrides?.grid || JSON.stringify(currentData.grid) !== JSON.stringify({
+        type: typeof encounter.grid.type === 'string'
+          ? GridType[encounter.grid.type as keyof typeof GridType]
+          : encounter.grid.type,
+        cellSize: encounter.grid.cellSize,
+        offset: encounter.grid.offset,
+        snap: encounter.grid.snap,
+      })) {
+        requestPayload.grid = currentData.grid;
+      }
 
       try {
         const result = await patchEncounter({
           id: encounterId,
-          request: requestPayload,
+          request: requestPayload as UpdateEncounterRequest,
         }).unwrap();
 
         if (result) {
@@ -403,9 +418,11 @@ const EncounterEditorPageInternal: React.FC = () => {
     setEncounter,
     setPlacedWalls,
     setSelectedWallIndex,
+    setSelectedOpeningIndex: () => {},
     setDrawingWallIndex,
     setIsEditingVertices,
     setOriginalWallPoles,
+    setPreviewWallPoles,
     setActivePanel,
     setErrorMessage,
     execute,
@@ -476,6 +493,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const viewportControls = useViewportControls({
     initialViewport,
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+    stageSize,
   });
 
   const contextMenus = useContextMenus({
@@ -510,79 +528,78 @@ const EncounterEditorPageInternal: React.FC = () => {
   });
 
   useEffect(() => {
-    if (encounterData && !isInitialized) {
-      let isMounted = true;
+    if (!encounterData || isInitialized) return;
 
-      const initializeEncounter = async () => {
+    let isMounted = true;
+
+    const initializeEncounter = async () => {
+      if (!isMounted) return;
+      setIsHydrating(true);
+
+      try {
+        const hydratedAssets = await hydratePlacedAssets(
+          encounterData.assets,
+          encounterId || '',
+          async (assetId: string) => {
+            const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
+            return result;
+          },
+        );
+
         if (!isMounted) return;
-        setIsHydrating(true);
 
-        try {
-          const hydratedAssets = await hydratePlacedAssets(
-            encounterData.assets,
-            encounterId || '',
-            async (assetId: string) => {
-              const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-              return result;
-            },
-          );
+        const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
+        const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
+        const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
 
-          if (!isMounted) return;
+        setEncounter(encounterData);
+        setGridConfig({
+          type:
+            typeof encounterData.grid.type === 'string'
+              ? GridType[encounterData.grid.type as keyof typeof GridType]
+              : encounterData.grid.type,
+          cellSize: encounterData.grid.cellSize,
+          offset: encounterData.grid.offset,
+          snap: encounterData.grid.snap,
+          scale: encounterData.grid.scale ?? 1,
+        });
+        assetManagement.setPlacedAssets(hydratedAssets);
+        setPlacedWalls(hydratedWalls);
+        setPlacedRegions(hydratedRegions);
+        setPlacedSources(hydratedSources);
+        setIsInitialized(true);
+      } catch (error) {
+        if (!isMounted) return;
 
-          const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
-          const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
-          const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
-          const hydratedOpenings = hydratePlacedOpenings(encounterData.openings || [], encounterId || '');
-
-          setEncounter(encounterData);
-          setGridConfig({
-            type:
-              typeof encounterData.grid.type === 'string'
-                ? GridType[encounterData.grid.type as keyof typeof GridType]
-                : encounterData.grid.type,
-            cellSize: encounterData.grid.cellSize,
-            offset: encounterData.grid.offset,
-            snap: encounterData.grid.snap,
-          });
-          assetManagement.setPlacedAssets(hydratedAssets);
-          setPlacedWalls(hydratedWalls);
-          setPlacedRegions(hydratedRegions);
-          setPlacedSources(hydratedSources);
-          setPlacedOpenings(hydratedOpenings);
-          setIsInitialized(true);
-        } catch (error) {
-          if (!isMounted) return;
-
-          console.error('Failed to hydrate encounter:', error);
-          setEncounter(encounterData);
-          setGridConfig({
-            type:
-              typeof encounterData.grid.type === 'string'
-                ? GridType[encounterData.grid.type as keyof typeof GridType]
-                : encounterData.grid.type,
-            cellSize: encounterData.grid.cellSize,
-            offset: encounterData.grid.offset,
-            snap: encounterData.grid.snap,
-          });
-          assetManagement.setPlacedAssets([]);
-          setPlacedWalls([]);
-          setPlacedRegions([]);
-          setPlacedSources([]);
-          setPlacedOpenings([]);
-          setIsInitialized(true);
-        } finally {
-          if (isMounted) {
-            setIsHydrating(false);
-          }
+        console.error('Failed to hydrate encounter:', error);
+        setEncounter(encounterData);
+        setGridConfig({
+          type:
+            typeof encounterData.grid.type === 'string'
+              ? GridType[encounterData.grid.type as keyof typeof GridType]
+              : encounterData.grid.type,
+          cellSize: encounterData.grid.cellSize,
+          offset: encounterData.grid.offset,
+          snap: encounterData.grid.snap,
+          scale: encounterData.grid.scale ?? 1,
+        });
+        assetManagement.setPlacedAssets([]);
+        setPlacedWalls([]);
+        setPlacedRegions([]);
+        setPlacedSources([]);
+        setIsInitialized(true);
+      } finally {
+        if (isMounted) {
+          setIsHydrating(false);
         }
-      };
+      }
+    };
 
-      initializeEncounter();
+    initializeEncounter();
 
-      return () => {
-        isMounted = false;
-      };
-    }
+    return () => {
+      isMounted = false;
+    };
   }, [encounterData, isInitialized, dispatch, encounterId, assetManagement]);
 
   useEffect(() => {
@@ -591,11 +608,9 @@ const EncounterEditorPageInternal: React.FC = () => {
       const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
       const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
       const hydratedSources = hydratePlacedSources(encounterData.sources || [], encounterId || '');
-      const hydratedOpenings = hydratePlacedOpenings(encounterData.openings || [], encounterId || '');
       setPlacedWalls(hydratedWalls);
       setPlacedRegions(hydratedRegions);
       setPlacedSources(hydratedSources);
-      setPlacedOpenings(hydratedOpenings);
     }
   }, [encounterData, isInitialized, encounterId]);
 
@@ -616,7 +631,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           setAssetPickerOpen({ open: true, kind: AssetKind.Object });
           break;
         case 'monsters':
-          setAssetPickerOpen({ open: true, kind: AssetKind.Monster });
+          setAssetPickerOpen({ open: true, kind: AssetKind.Creature });
           break;
         case 'characters':
           setAssetPickerOpen({ open: true, kind: AssetKind.Character });
@@ -645,8 +660,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       setSelectedWallIndex(null);
       setSelectedRegionIndex(null);
       setSelectedSourceIndex(null);
-      setSelectedOpeningIndex(null);
       setIsEditingVertices(false);
+      setPreviewWallPoles(null);
       if (wallTransaction.transaction.isActive) {
         wallTransaction.rollbackTransaction();
       }
@@ -684,14 +699,18 @@ const EncounterEditorPageInternal: React.FC = () => {
         await patchEncounter({
           id: encounterId,
           request: {
-            backgroundId: result.id,
+            stage: {
+              backgroundId: result.id,
+            },
           },
         }).unwrap();
+
+        await refetch();
       } catch (error) {
         console.error('Failed to upload background:', error);
       }
     },
-    [encounterId, uploadFile, patchEncounter],
+    [encounterId, uploadFile, patchEncounter, refetch],
   );
 
   useEffect(() => {
@@ -725,15 +744,13 @@ const EncounterEditorPageInternal: React.FC = () => {
 
               if (segments.length === 1 && segments[0]) {
                 syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  poles: segments[0].poles,
-                  isClosed: segments[0].isClosed,
+                  segments: segments[0].segments,
                 });
               } else {
                 const mainSegment = segments.find((s) => s.wallIndex === selectedWallIndex || s.tempId === 0);
                 if (mainSegment) {
                   syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                    poles: mainSegment.poles,
-                    isClosed: mainSegment.isClosed,
+                    segments: mainSegment.segments,
                   });
                 }
               }
@@ -774,27 +791,21 @@ const EncounterEditorPageInternal: React.FC = () => {
 
               if (segments.length === 1 && segments[0]) {
                 syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  poles: segments[0].poles,
-                  isClosed: segments[0].isClosed,
+                  segments: segments[0].segments,
                 });
               } else {
                 segments.forEach((segment) => {
                   if (segment.wallIndex === selectedWallIndex || segment.tempId === 0) {
                     syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                      poles: segment.poles,
-                      isClosed: segment.isClosed,
+                      segments: segment.segments,
                     });
                   } else if (segment.wallIndex === null) {
                     const existingWall = syncedEncounter.walls?.find((w) => w.index === segment.tempId);
                     if (encounterId && !existingWall && selectedWall) {
                       const tempWall: EncounterWall = {
-                        encounterId,
                         index: segment.tempId,
                         name: selectedWall.name,
-                        poles: segment.poles,
-                        isClosed: segment.isClosed,
-                        visibility: selectedWall.visibility,
-                        color: selectedWall.color,
+                        segments: segment.segments,
                       };
                       syncedEncounter = addWallOptimistic(syncedEncounter, tempWall);
                     }
@@ -820,6 +831,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         }
         return;
       }
+
     };
 
     window.addEventListener('keydown', handleKeyDown, { capture: true });
@@ -831,8 +843,6 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const handleVerticesChange = useCallback(
     async (wallIndex: number, newPoles: Pole[], newIsClosed?: boolean) => {
-      if (!encounter) return;
-
       if (!wallTransaction.transaction.isActive) {
         console.warn('[handleVerticesChange] No active transaction');
         return;
@@ -843,11 +853,6 @@ const EncounterEditorPageInternal: React.FC = () => {
         return;
       }
 
-      const wall = encounter.walls?.find((w) => w.index === wallIndex);
-      if (!wall) return;
-
-      const effectiveIsClosed = newIsClosed !== undefined ? newIsClosed : wall.isClosed;
-
       const segments = wallTransaction.getActiveSegments();
       const segment = segments.find((s) => s.wallIndex === wallIndex || s.tempId === wallIndex);
 
@@ -856,18 +861,38 @@ const EncounterEditorPageInternal: React.FC = () => {
         return;
       }
 
+      const wall = encounter?.walls?.find((w) => w.index === wallIndex);
+      const effectiveIsClosed = newIsClosed !== undefined ? newIsClosed : (wall ? isWallClosed(wall) : false);
+      const newSegments = polesToSegments(newPoles, effectiveIsClosed);
+
       wallTransaction.updateSegment(segment.tempId, {
-        poles: newPoles,
-        isClosed: effectiveIsClosed,
+        segments: newSegments,
       });
 
-      const updatedEncounter = updateWallOptimistic(encounter, wallIndex, {
-        poles: newPoles,
-        isClosed: effectiveIsClosed,
+      setEncounter((prev) => {
+        if (!prev) return prev;
+
+        const wall = prev.walls?.find((w) => w.index === wallIndex);
+        if (!wall) return prev;
+
+        return updateWallOptimistic(prev, wallIndex, {
+          segments: newSegments,
+        });
       });
-      setEncounter(updatedEncounter);
     },
-    [encounter, wallTransaction],
+    [wallTransaction, encounter],
+  );
+
+  const handlePoleInserted = useCallback(
+    (_wallIndex: number, _insertedAtIndex: number) => {
+    },
+    [],
+  );
+
+  const handlePoleDeleted = useCallback(
+    (_wallIndex: number, _deletedIndices: number[]) => {
+    },
+    [],
   );
 
   const handleRegionVerticesChange = useCallback(
@@ -969,10 +994,8 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const handlePlaceWall = useCallback(
     async (properties: {
-      visibility: WallVisibility;
-      isClosed: boolean;
+      segmentType: number;
       defaultHeight: number;
-      color?: string;
     }) => {
       if (!encounterId || !encounter) return;
 
@@ -990,19 +1013,12 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       wallTransaction.startTransaction('placement', undefined, {
         name: wallName,
-        visibility: properties.visibility,
-        isClosed: properties.isClosed,
-        color: properties.color || '#808080',
       });
 
       const tempWall: EncounterWall = {
-        encounterId,
         index: -1,
         name: wallName,
-        poles: [],
-        visibility: properties.visibility,
-        isClosed: properties.isClosed,
-        color: properties.color || '#808080',
+        segments: [],
       };
 
       const updatedEncounter = addWallOptimistic(encounter, tempWall);
@@ -1065,115 +1081,6 @@ const EncounterEditorPageInternal: React.FC = () => {
       setActiveTool(null);
     }
   }, []);
-
-  const handleOpeningSelect = useCallback((index: number) => {
-    setSelectedOpeningIndex(index);
-  }, []);
-
-  const handleOpeningDelete = useCallback(
-    async (index: number) => {
-      if (!encounterId || !encounter) return;
-
-      const opening = placedOpenings.find((o) => o.index === index);
-      if (!opening) return;
-
-      const openingId = opening.id;
-
-      try {
-        await removeEncounterOpening({
-          encounterId,
-          openingIndex: index,
-        }).unwrap();
-
-        const { removeEntityMapping } = await import('@/utils/encounterEntityMapping');
-        removeEntityMapping(encounterId, 'openings', openingId);
-
-        const { data: updatedEncounter } = await refetch();
-        if (updatedEncounter) {
-          setEncounter(updatedEncounter);
-          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
-          setPlacedOpenings(hydratedOpenings);
-        }
-
-        if (selectedOpeningIndex === index) {
-          setSelectedOpeningIndex(null);
-        }
-      } catch (error) {
-        console.error('Failed to delete opening:', error);
-        setErrorMessage('Failed to delete opening. Please try again.');
-      }
-    },
-    [encounterId, encounter, placedOpenings, removeEncounterOpening, selectedOpeningIndex, refetch],
-  );
-
-  const handlePlaceOpening = useCallback((properties: OpeningPlacementProperties) => {
-    setOpeningPlacementProperties(properties);
-    setActiveTool('openingDrawing');
-  }, []);
-
-  const handleOpeningPlacementComplete = useCallback(
-    async (
-      wallIndex: number,
-      startPole: { x: number; y: number; h: number },
-      endPole: { x: number; y: number; h: number },
-    ) => {
-      if (!encounterId || !encounter || !openingPlacementProperties) return;
-
-      try {
-        await addEncounterOpening({
-          encounterId,
-          type: openingPlacementProperties.type,
-          visibility: openingPlacementProperties.visibility,
-          state: openingPlacementProperties.state,
-          opacity: openingPlacementProperties.opacity,
-          ...(openingPlacementProperties.color && { color: openingPlacementProperties.color }),
-          name: `${openingPlacementProperties.type} ${(encounter.openings?.length || 0) + 1}`,
-          startPole,
-          endPole,
-          wallIndex,
-        }).unwrap();
-
-        const { data: updatedEncounter } = await refetch();
-        if (updatedEncounter) {
-          setEncounter(updatedEncounter);
-          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
-          setPlacedOpenings(hydratedOpenings);
-        }
-
-        setOpeningPlacementProperties(null);
-        setActiveTool(null);
-      } catch (error) {
-        console.error('Failed to place opening:', error);
-        setErrorMessage('Failed to place opening. Please try again.');
-      }
-    },
-    [encounterId, encounter, openingPlacementProperties, addEncounterOpening, refetch],
-  );
-
-  const handleEditOpening = useCallback(
-    async (index: number, updates: Partial<PlacedOpening>) => {
-      if (!encounterId) return;
-
-      try {
-        await updateEncounterOpening({
-          encounterId,
-          openingIndex: index,
-          ...updates,
-        }).unwrap();
-
-        const { data: updatedEncounter } = await refetch();
-        if (updatedEncounter) {
-          setEncounter(updatedEncounter);
-          const hydratedOpenings = hydratePlacedOpenings(updatedEncounter.openings || [], encounterId);
-          setPlacedOpenings(hydratedOpenings);
-        }
-      } catch (error) {
-        console.error('Failed to edit opening:', error);
-        setErrorMessage('Failed to edit opening. Please try again.');
-      }
-    },
-    [encounterId, updateEncounterOpening, refetch],
-  );
 
   const fowRegions = useMemo(() => {
     return placedRegions?.filter((r) => r.type === 'FogOfWar') || [];
@@ -1264,9 +1171,9 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       const fullStageVertices: Point[] = [
         { x: 0, y: 0 },
-        { x: STAGE_WIDTH, y: 0 },
-        { x: STAGE_WIDTH, y: STAGE_HEIGHT },
-        { x: 0, y: STAGE_HEIGHT },
+        { x: stageSize.width, y: 0 },
+        { x: stageSize.width, y: stageSize.height },
+        { x: 0, y: stageSize.height },
       ];
 
       await handlePolygonComplete(fullStageVertices);
@@ -1333,13 +1240,13 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const visibleAssets = useMemo(() => {
     return assetManagement.placedAssets.filter((asset) => {
-      if (asset.asset.kind === AssetKind.Object && !scopeVisibility.objects) {
+      if (asset.asset.classification.kind === AssetKind.Object && !scopeVisibility.objects) {
         return false;
       }
-      if (asset.asset.kind === AssetKind.Monster && !scopeVisibility.monsters) {
+      if (asset.asset.classification.kind === AssetKind.Creature && !scopeVisibility.monsters) {
         return false;
       }
-      if (asset.asset.kind === AssetKind.Character && !scopeVisibility.characters) {
+      if (asset.asset.classification.kind === AssetKind.Character && !scopeVisibility.characters) {
         return false;
       }
       return true;
@@ -1497,12 +1404,6 @@ const EncounterEditorPageInternal: React.FC = () => {
             onSourceSelect={handleSourceSelect}
             onSourceDelete={handleSourceDelete}
             onPlaceSource={handlePlaceSource}
-            encounterOpenings={placedOpenings}
-            selectedOpeningIndex={selectedOpeningIndex}
-            onOpeningSelect={handleOpeningSelect}
-            onOpeningDelete={handleOpeningDelete}
-            onPlaceOpening={handlePlaceOpening}
-            onEditOpening={handleEditOpening}
             onFogHideAll={handleFogHideAll}
             onFogRevealAll={handleFogRevealAll}
             onFogModeChange={handleFogModeChange}
@@ -1524,9 +1425,9 @@ const EncounterEditorPageInternal: React.FC = () => {
               *
               * LAYER STACK (bottom to top):
               * 0. Static Layer - Background image, grid lines
-              * 1. GameWorld Layer - Regions, Sources, Walls, Openings, Transformers
+              * 1. GameWorld Layer - Regions, Sources, Walls, Transformers
               * 2. Assets Layer - Tokens, Objects, Monsters, Characters
-              * 3. DrawingTools Layer - Wall/Region/Source/Opening drawing tools
+              * 3. DrawingTools Layer - Wall/Region/Source drawing tools
               * 4. SelectionHandles Layer - Token selection boxes, rotation handles, marquee
               *
               * CRITICAL: Drawing tool cursors/markers MUST render above walls
@@ -1546,16 +1447,16 @@ const EncounterEditorPageInternal: React.FC = () => {
             {/* Layer 1: Static (background + grid) */}
             <Layer name={LayerName.Static} listening={false}>
               <BackgroundLayer
-                imageUrl={backgroundImageUrl}
+                imageUrl={backgroundUrl || ENCOUNTER_DEFAULT_BACKGROUND}
                 backgroundColor={theme.palette.background.default}
-                stageWidth={STAGE_WIDTH}
-                stageHeight={STAGE_HEIGHT}
+                stageWidth={stageSize.width}
+                stageHeight={stageSize.height}
               />
 
               <GridRenderer
                 grid={gridConfig}
-                stageWidth={STAGE_WIDTH}
-                stageHeight={STAGE_HEIGHT}
+                stageWidth={stageSize.width}
+                stageHeight={stageSize.height}
                 visible={gridConfig.type !== GridType.NoGrid}
               />
             </Layer>
@@ -1582,6 +1483,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                         allRegions={placedRegions}
                         activeScope={activeScope}
                         onSelect={regionHandlers.handleEditRegionVertices}
+                        onContextMenu={contextMenus.regionContextMenu.handleOpen}
                         isSelected={selectedRegionIndex === encounterRegion.index}
                       />
                     );
@@ -1621,7 +1523,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                         {shouldRender && (
                           <WallRenderer
                             encounterWall={encounterWall}
-                            openings={placedOpenings.filter((o) => o.wallIndex === encounterWall.index)}
                             onClick={wallHandlers.handleEditVertices}
                             onContextMenu={contextMenus.wallContextMenu.handleOpen}
                             activeScope={activeScope}
@@ -1635,49 +1536,41 @@ const EncounterEditorPageInternal: React.FC = () => {
                     wallTransaction.transaction.isActive &&
                     wallTransaction
                       .getActiveSegments()
-                      .map((segment) => (
-                        <WallTransformer
-                          key={`transformer-${segment.tempId}`}
-                          poles={segment.poles}
-                          isClosed={segment.isClosed}
-                          onPolesChange={(newPoles, newIsClosed) =>
-                            handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
-                          }
-                          gridConfig={gridConfig}
-                          snapEnabled={gridConfig.snap}
-                          onClearSelections={wallHandlers.handleFinishEditing}
-                          isAltPressed={keyboardState.isAltPressed}
-                          encounterId={encounterId}
-                          wallIndex={segment.wallIndex || segment.tempId}
-                          wall={undefined}
-                          onWallBreak={wallHandlers.handleWallBreak}
-                          enableBackgroundRect={false}
-                          wallTransaction={wallTransaction}
-                        />
-                      ))}
+                      .map((segment) => {
+                        const poles = segmentsToPoles({ index: segment.wallIndex || segment.tempId, name: segment.name, segments: segment.segments });
+                        const wall = encounter?.walls?.find(w => w.index === (segment.wallIndex || segment.tempId));
+                        const isClosed = wall ? isWallClosed(wall) : false;
+                        return (
+                          <WallTransformer
+                            key={`transformer-${segment.tempId}`}
+                            poles={poles}
+                            isClosed={isClosed}
+                            onPolesChange={(newPoles, newIsClosed) =>
+                              handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
+                            }
+                            onPolesPreview={setPreviewWallPoles}
+                            gridConfig={gridConfig}
+                            snapEnabled={gridConfig.snap}
+                            onClearSelections={wallHandlers.handleFinishEditing}
+                            isAltPressed={keyboardState.isAltPressed}
+                            encounterId={encounterId}
+                            wallIndex={segment.wallIndex || segment.tempId}
+                            wall={undefined}
+                            onWallBreak={wallHandlers.handleWallBreak}
+                            enableBackgroundRect={false}
+                            wallTransaction={wallTransaction}
+                            onPoleInserted={(insertedAtIndex) =>
+                              handlePoleInserted(segment.wallIndex ?? -1, insertedAtIndex)
+                            }
+                            onPoleDeleted={(deletedIndices) =>
+                              handlePoleDeleted(segment.wallIndex ?? -1, deletedIndices)
+                            }
+                          />
+                        );
+                      })}
                 </Group>
               )}
 
-              {/* Openings - render fourth (on walls) */}
-              {scopeVisibility.openings && encounter && placedOpenings && placedOpenings.length > 0 && (
-                <Group name={GroupName.Structure}>
-                  {placedOpenings.map((encounterOpening) => {
-                    const wall = encounter.walls?.find((w) => w.index === encounterOpening.wallIndex);
-                    if (!wall) return null;
-
-                    return (
-                      <OpeningRenderer
-                        key={encounterOpening.id}
-                        encounterOpening={encounterOpening}
-                        wall={wall}
-                        isSelected={selectedOpeningIndex === encounterOpening.index}
-                        onSelect={() => handleOpeningSelect(encounterOpening.index)}
-                        activeScope={activeScope}
-                      />
-                    );
-                  })}
-                </Group>
-              )}
 
               {/* Region Transformer */}
               {scopeVisibility.regions &&
@@ -1704,6 +1597,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                     />
                   </Group>
                 )}
+
             </Layer>
 
             {/* Layer 3: Assets (tokens/objects/monsters) - creates Layer internally */}
@@ -1717,7 +1611,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                 draggedAsset={assetManagement.draggedAsset}
                 onDragComplete={assetManagement.handleDragComplete}
                 onImagesLoaded={canvasReadyState.handleImagesLoaded}
-                snapMode={keyboardState.snapMode}
+                snapMode={keyboardState.assetSnapMode}
                 onContextMenu={(assetId: string, position: { x: number; y: number }) => {
                   const asset = assetManagement.placedAssets.find((a) => a.id === assetId);
                   if (asset) {
@@ -1752,10 +1646,11 @@ const EncounterEditorPageInternal: React.FC = () => {
                     onCancel={handleStructurePlacementCancel}
                     onFinish={handleStructurePlacementFinish}
                     onPolesChange={(newPoles) => {
-                      wallTransaction.updateSegment(-1, { poles: newPoles });
+                      const newSegments = polesToSegments(newPoles, false);
+                      wallTransaction.updateSegment(-1, { segments: newSegments });
 
                       if (encounter) {
-                        const updatedEncounter = updateWallOptimistic(encounter, -1, { poles: newPoles });
+                        const updatedEncounter = updateWallOptimistic(encounter, -1, { segments: newSegments });
                         setEncounter(updatedEncounter);
                       }
                     }}
@@ -1794,19 +1689,19 @@ const EncounterEditorPageInternal: React.FC = () => {
                       regionColor: regionTransaction.transaction.segment.color,
                     })}
                     regionTransaction={regionTransaction}
-                    walls={encounter.walls || []}
-                    openings={encounter.openings || []}
-                    stageSize={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
+                    walls={placedWalls}
+                    stageSize={stageSize}
                   />
                 )}
                 {activeTool === 'sourceDrawing' && sourcePlacementProperties && encounter && (
                   <SourceDrawingTool
                     encounterId={encounterId || ''}
                     source={{
-                      encounterId: encounterId || '',
                       index: -1,
                       name: `${sourcePlacementProperties.type} Source ${(encounter.sources?.length || 0) + 1}`,
                       position: { x: 0, y: 0 },
+                      range: 0,
+                      intensity: 1,
                       ...sourcePlacementProperties,
                     }}
                     walls={encounter.walls || []}
@@ -1814,19 +1709,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                     onComplete={handleSourcePlacementFinish}
                     onCancel={() => {
                       setSourcePlacementProperties(null);
-                      setActiveTool(null);
-                    }}
-                  />
-                )}
-                {activeTool === 'openingDrawing' && openingPlacementProperties && encounter && (
-                  <OpeningDrawingTool
-                    encounterId={encounterId || ''}
-                    properties={openingPlacementProperties}
-                    walls={encounter.walls || []}
-                    gridConfig={gridConfig}
-                    onComplete={handleOpeningPlacementComplete}
-                    onCancel={() => {
-                      setOpeningPlacementProperties(null);
                       setActiveTool(null);
                     }}
                   />
@@ -1858,9 +1740,9 @@ const EncounterEditorPageInternal: React.FC = () => {
                     onCancel={() => setFogDrawingTool(null)}
                     onFinish={handleBucketFillComplete}
                     regionType='FogOfWar'
-                    walls={encounter.walls || []}
-                    openings={encounter.openings || []}
-                    stageSize={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
+                    regionTransaction={regionTransaction}
+                    walls={placedWalls}
+                    stageSize={stageSize}
                   />
                 )}
               </Layer>
@@ -1879,7 +1761,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               isPlacementMode={!!assetManagement.draggedAsset}
               enableDragMove={true}
               onReady={canvasReadyState.handleHandlersReady}
-              snapMode={keyboardState.snapMode}
+              snapMode={keyboardState.assetSnapMode}
               isShiftPressed={keyboardState.isShiftPressed}
               isCtrlPressed={keyboardState.isCtrlPressed}
               scale={viewportControls.viewport.scale}
@@ -1915,9 +1797,13 @@ const EncounterEditorPageInternal: React.FC = () => {
         onAssetDisplayUpdate={assetManagement.handleAssetDisplayUpdate}
         wallContextMenuPosition={contextMenus.wallContextMenu.position}
         wallContextMenuWall={contextMenus.wallContextMenu.wall}
+        wallContextMenuSegmentIndex={contextMenus.wallContextMenu.segmentIndex}
         onWallContextMenuClose={contextMenus.wallContextMenu.handleClose}
-        onWallEditVertices={wallHandlers.handleEditVertices}
-        onWallDelete={wallHandlers.handleWallDelete}
+        onWallSegmentUpdate={wallHandlers.handleSegmentUpdate}
+        regionContextMenuPosition={contextMenus.regionContextMenu.position}
+        regionContextMenuRegion={contextMenus.regionContextMenu.region}
+        onRegionContextMenuClose={contextMenus.regionContextMenu.handleClose}
+        onRegionUpdate={regionHandlers.handleRegionPropertyUpdate}
         errorMessage={errorMessage}
         onErrorMessageClose={() => setErrorMessage(null)}
       />

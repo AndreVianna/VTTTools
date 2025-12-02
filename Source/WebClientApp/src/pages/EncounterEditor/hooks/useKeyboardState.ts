@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { GridConfig } from '@/utils/gridCalculator';
+import {
+  AssetSnapConfig,
+  type KeyModifiers,
+  type SnapConfig,
+  SnapMode,
+  WallSnapConfig,
+  resolveSnapMode,
+} from '@/utils/snapping';
 
 interface UseKeyboardStateProps {
   gridConfig: GridConfig;
@@ -12,16 +20,17 @@ export const useKeyboardState = ({ gridConfig, onEscapeKey, onEnterKey }: UseKey
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
 
-  const snapMode: 'free' | 'grid' | 'half-step' =
-    isAltPressed && isCtrlPressed
-      ? 'half-step'
-      : isAltPressed
-        ? 'free'
-        : isCtrlPressed
-          ? 'grid'
-          : gridConfig.snap
-            ? 'grid'
-            : 'free';
+  const modifiers: KeyModifiers = { altKey: isAltPressed, ctrlKey: isCtrlPressed };
+
+  const getSnapMode = (config: SnapConfig): SnapMode => {
+    if (!gridConfig.snap) {
+      return SnapMode.Free;
+    }
+    return resolveSnapMode(modifiers, config);
+  };
+
+  const assetSnapMode = getSnapMode(AssetSnapConfig);
+  const wallSnapMode = getSnapMode(WallSnapConfig);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,6 +102,8 @@ export const useKeyboardState = ({ gridConfig, onEscapeKey, onEnterKey }: UseKey
     isAltPressed,
     isCtrlPressed,
     isShiftPressed,
-    snapMode,
+    modifiers,
+    assetSnapMode,
+    wallSnapMode,
   };
 };

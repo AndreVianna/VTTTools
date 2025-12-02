@@ -50,29 +50,29 @@ public interface IEncounterStorage {
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves a encounter Wall by its ID.
+    /// Retrieves a encounter WallIndex by its ID.
     /// </summary>
-    Task<EncounterWall?> GetWallByIdAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<EncounterWall?> GetWallByKeyAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds a encounter Wall to a encounter.
+    /// Adds a encounter WallIndex to a encounter.
     /// </summary>
     Task<bool> AddWallAsync(Guid id, EncounterWall encounterWall, CancellationToken ct = default);
 
     /// <summary>
-    /// Updates a encounter Wall.
+    /// Updates a encounter WallIndex.
     /// </summary>
     Task<bool> UpdateWallAsync(Guid id, EncounterWall encounterWall, CancellationToken ct = default);
 
     /// <summary>
-    /// Deletes a encounter Wall.
+    /// Deletes a encounter WallIndex.
     /// </summary>
     Task<bool> DeleteWallAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves a encounter region by its ID.
     /// </summary>
-    Task<EncounterRegion?> GetRegionByIdAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<EncounterRegion?> GetRegionByKeyAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a encounter region to a encounter.
@@ -92,7 +92,7 @@ public interface IEncounterStorage {
     /// <summary>
     /// Retrieves a encounter source by its ID.
     /// </summary>
-    Task<EncounterSource?> GetSourceByIdAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<EncounterSource?> GetSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a encounter source to a encounter.
@@ -108,24 +108,4 @@ public interface IEncounterStorage {
     /// Deletes a encounter source.
     /// </summary>
     Task<bool> DeleteSourceAsync(Guid id, uint index, CancellationToken ct = default);
-
-    /// <summary>
-    /// Retrieves a encounter opening by its ID.
-    /// </summary>
-    Task<EncounterOpening?> GetOpeningByIdAsync(Guid id, uint index, CancellationToken ct = default);
-
-    /// <summary>
-    /// Adds a encounter opening to a encounter.
-    /// </summary>
-    Task<bool> AddOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default);
-
-    /// <summary>
-    /// Updates a encounter opening.
-    /// </summary>
-    Task<bool> UpdateOpeningAsync(Guid id, EncounterOpening encounterOpening, CancellationToken ct = default);
-
-    /// <summary>
-    /// Deletes a encounter opening.
-    /// </summary>
-    Task<bool> DeleteOpeningAsync(Guid id, uint index, CancellationToken ct = default);
 }

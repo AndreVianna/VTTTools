@@ -5,25 +5,32 @@ import { getDefaultAssetImage, getResourceUrl } from './assetHelpers';
 
 const createMockResource = (id: string): MediaResource => ({
   id,
+  description: null,
+  features: {},
   type: ResourceType.Image,
   path: `/media/${id}`,
-  metadata: {
-    contentType: 'image/png',
-    fileName: `${id}.png`,
-    fileLength: 1024,
-  },
-  tags: [],
+  contentType: 'image/png',
+  fileName: `${id}.png`,
+  fileLength: 1024,
+  size: { width: 100, height: 100 },
+  duration: '',
+  ownerId: 'owner-1',
+  isPublished: false,
+  isPublic: false,
 });
 
 const createMockAsset = (overrides?: Partial<Asset>): Asset => ({
   id: 'asset-1',
   ownerId: 'owner-1',
-  kind: AssetKind.Character,
+  classification: { kind: AssetKind.Character, category: '', type: '', subtype: null },
   name: 'Test Asset',
   description: 'Test description',
   isPublished: false,
   isPublic: false,
-  size: { width: 1, height: 1, isSquare: true },
+  tokenSize: { width: 1, height: 1 },
+  tokens: [],
+  portrait: null,
+  statBlocks: {},
   ...overrides,
 });
 
@@ -31,9 +38,8 @@ describe('assetHelpers', () => {
   describe('getDefaultAssetImage', () => {
     it('should return topDown when available', () => {
       const asset = createMockAsset({
-        topDown: createMockResource('topdown-1'),
-        miniature: createMockResource('miniature-1'),
-        photo: createMockResource('photo-1'),
+        tokens: [createMockResource('topdown-1')],
+        portrait: createMockResource('portrait-1'),
       });
 
       const result = getDefaultAssetImage(asset);
@@ -41,31 +47,20 @@ describe('assetHelpers', () => {
       expect(result?.id).toBe('topdown-1');
     });
 
-    it('should fallback to miniature when topDown is missing', () => {
+    it('should fallback to portrait when tokens are missing', () => {
       const asset = createMockAsset({
-        miniature: createMockResource('miniature-1'),
-        photo: createMockResource('photo-1'),
+        tokens: [],
         portrait: createMockResource('portrait-1'),
       });
 
       const result = getDefaultAssetImage(asset);
 
-      expect(result?.id).toBe('miniature-1');
+      expect(result?.id).toBe('portrait-1');
     });
 
-    it('should fallback to photo when topDown and miniature are missing', () => {
+    it('should return portrait when available', () => {
       const asset = createMockAsset({
-        photo: createMockResource('photo-1'),
-        portrait: createMockResource('portrait-1'),
-      });
-
-      const result = getDefaultAssetImage(asset);
-
-      expect(result?.id).toBe('photo-1');
-    });
-
-    it('should fallback to portrait as last resort', () => {
-      const asset = createMockAsset({
+        tokens: [],
         portrait: createMockResource('portrait-1'),
       });
 
@@ -75,7 +70,7 @@ describe('assetHelpers', () => {
     });
 
     it('should return null when no images are available', () => {
-      const asset = createMockAsset({});
+      const asset = createMockAsset({ tokens: [], portrait: null });
 
       const result = getDefaultAssetImage(asset);
 
@@ -84,20 +79,20 @@ describe('assetHelpers', () => {
 
     it('should work with any asset kind', () => {
       const objectAsset = createMockAsset({
-        kind: AssetKind.Object,
-        topDown: createMockResource('topdown-obj'),
+        classification: { kind: AssetKind.Object, category: '', type: '', subtype: null },
+        tokens: [createMockResource('topdown-obj')],
       });
       expect(getDefaultAssetImage(objectAsset)?.id).toBe('topdown-obj');
 
-      const monsterAsset = createMockAsset({
-        kind: AssetKind.Monster,
-        topDown: createMockResource('topdown-mon'),
+      const creatureAsset = createMockAsset({
+        classification: { kind: AssetKind.Creature, category: '', type: '', subtype: null },
+        tokens: [createMockResource('topdown-mon')],
       });
-      expect(getDefaultAssetImage(monsterAsset)?.id).toBe('topdown-mon');
+      expect(getDefaultAssetImage(creatureAsset)?.id).toBe('topdown-mon');
 
       const characterAsset = createMockAsset({
-        kind: AssetKind.Character,
-        topDown: createMockResource('topdown-char'),
+        classification: { kind: AssetKind.Character, category: '', type: '', subtype: null },
+        tokens: [createMockResource('topdown-char')],
       });
       expect(getDefaultAssetImage(characterAsset)?.id).toBe('topdown-char');
     });

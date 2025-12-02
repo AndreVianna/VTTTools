@@ -173,6 +173,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
       cellSize: encounter.grid.cellSize ?? { width: 50, height: 50 },
       offset: encounter.grid.offset ?? { left: 0, top: 0 },
       snap: encounter.grid.snap ?? true,
+      scale: encounter.grid.scale ?? 1,
     });
   };
 
@@ -185,6 +186,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
       cellSize: { ...encounter.grid.cellSize, width: value },
       offset: encounter.grid.offset,
       snap: encounter.grid.snap,
+      scale: encounter.grid.scale,
     });
   };
 
@@ -197,6 +199,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
       cellSize: { ...encounter.grid.cellSize, height: value },
       offset: encounter.grid.offset,
       snap: encounter.grid.snap,
+      scale: encounter.grid.scale,
     });
   };
 
@@ -209,6 +212,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
       cellSize: encounter.grid.cellSize,
       offset: { ...encounter.grid.offset, left: value },
       snap: encounter.grid.snap,
+      scale: encounter.grid.scale,
     });
   };
 
@@ -221,6 +225,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
       cellSize: encounter.grid.cellSize,
       offset: { ...encounter.grid.offset, top: value },
       snap: encounter.grid.snap,
+      scale: encounter.grid.scale,
     });
   };
 
@@ -231,6 +236,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
       cellSize: encounter.grid.cellSize,
       offset: encounter.grid.offset,
       snap: e.target.checked,
+      scale: encounter.grid.scale,
     });
   };
 

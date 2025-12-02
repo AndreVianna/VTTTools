@@ -17,6 +17,8 @@
 ---
 
 ## Change Log
+- *2025-12-01* — **1.2.0** — Updated EncounterWall to use Segments with SegmentType/SegmentState; updated EncounterRegion to use value-based labels; added context menu behavior documentation
+- *2025-11-28* — **1.1.0** — Added EncounterWall, EncounterOpening, EncounterRegion, EncounterSource value objects; documented two-click opening placement and deletion behavior with pole cleanup
 - *2025-10-02* — **1.0.0** — Initial domain model extracted from existing codebase
 
 ---
@@ -35,6 +37,14 @@
 - **Public**: Content visible to all users (vs private/owner-only)
 - **Ownership**: User (Game Master) who created and controls the content
 - **Hierarchy**: Nested relationship structure (World > Campaign > Adventure > Encounter)
+- **Wall**: Line segment(s) on encounter that block movement, line-of-sight, and/or lighting
+- **Pole**: A point along a wall path with X, Y coordinates and height (H) in feet
+- **Segment**: A section of wall between two poles with a specific type and state
+- **SegmentType**: Classification of wall segment behavior (Wall, Fence, Door, Passage, Window, Opening)
+- **SegmentState**: Current operational state of a segment (Open, Closed, Locked, Visible, Secret)
+- **Region**: A named area zone on encounter for terrain effects, illumination, elevation, or fog of war
+- **RegionType**: Classification of region purpose (Elevation, Terrain, Illumination, FogOfWar)
+- **Source**: A light or sound emitter on encounter for dynamic lighting and audio
 
 ---
 
@@ -409,6 +419,30 @@
   - **Nullable**: No (empty list if no assets placed)
   - **Purpose**: Placed asset instances on this encounter with position and dimensions
 
+- **Walls**: List<EncounterWall>
+  - **Constraints**: Collection of value objects defining wall segments
+  - **Default Value**: Empty list
+  - **Nullable**: No (empty list if no walls defined)
+  - **Purpose**: Wall segments for line-of-sight, movement blocking, and lighting boundaries
+
+- **Openings**: List<EncounterOpening>
+  - **Constraints**: Collection of value objects defining gaps in walls (doors, windows)
+  - **Default Value**: Empty list
+  - **Nullable**: No (empty list if no openings defined)
+  - **Purpose**: Controllable gaps in walls that can be opened/closed/locked
+
+- **Regions**: List<EncounterRegion>
+  - **Constraints**: Collection of value objects defining area zones
+  - **Default Value**: Empty list
+  - **Nullable**: No (empty list if no regions defined)
+  - **Purpose**: Named areas for triggers, terrain effects, and spatial organization
+
+- **Sources**: List<EncounterSource>
+  - **Constraints**: Collection of value objects defining light/sound sources
+  - **Default Value**: Empty list
+  - **Nullable**: No (empty list if no sources defined)
+  - **Purpose**: Light and sound emitters for dynamic lighting and audio zones
+
 #### Invariants
 - Same as World (INV-01, INV-02, INV-03, INV-05)
 - **INV-09**: Stage must have valid dimensions (Width > 0, Height > 0)
@@ -423,6 +457,18 @@
   - **Rationale**: Assets must be visible on encounter
   - **Enforced By**: Service validation when placing assets
 
+- **INV-12**: EncounterWall must have at least 2 poles
+  - **Rationale**: Wall requires start and end points
+  - **Enforced By**: Service validation when creating/updating walls
+
+- **INV-13**: EncounterOpening must reference valid wall and pole indices
+  - **Rationale**: Opening must be positioned on an existing wall segment
+  - **Enforced By**: Service validation when placing openings
+
+- **INV-14**: EncounterOpening StartPoleIndex must be less than EndPoleIndex
+  - **Rationale**: Consistent ordering for gap rendering
+  - **Enforced By**: Service validation, automatic index ordering
+
 #### Operations (Implemented in Application Services)
 - Create Encounter, Update Encounter, Delete Encounter
 - **Configure Stage**: Update Stage value object (background, viewport)
@@ -430,7 +476,13 @@
 - **Place Asset**: Add EncounterAsset to Assets collection
 - **Move Asset**: Update EncounterAsset position
 - **Remove Asset**: Remove EncounterAsset from collection
-- **Clone Encounter**: Duplicate encounter with all assets
+- **Add Wall**: Create EncounterWall with poles defining wall path
+- **Update Wall**: Modify wall poles, visibility, or properties
+- **Remove Wall**: Delete wall and all associated openings
+- **Place Opening**: Add EncounterOpening on a wall segment (two-click placement inserts poles)
+- **Update Opening**: Modify opening state (open/closed/locked), visibility, or properties
+- **Remove Opening**: Delete opening and optionally clean up unused wall poles
+- **Clone Encounter**: Duplicate encounter with all assets, walls, openings, regions, sources
 
 #### Relationships
 - **Owned By** ← Adventure: Encounter optionally owned by Adventure
@@ -522,6 +574,179 @@
 
 ---
 
+### EncounterWall
+
+**Purpose**: Represents a wall on an encounter composed of poles and segments, used for line-of-sight blocking, movement restriction, and lighting boundaries
+
+#### Properties
+- **Index**: uint (unique index within encounter)
+- **Name**: string (human-readable wall name, max 128 characters)
+- **Poles**: List<Pole> (ordered list of points defining wall path)
+- **Segments**: List<WallSegment> (segments between poles with type and state)
+- **IsClosed**: bool (whether wall forms a closed loop)
+
+#### Pole Value Object
+- **Index**: uint (unique index within wall)
+- **X**: double (horizontal position in pixels)
+- **Y**: double (vertical position in pixels)
+- **H**: double (height in feet, used for 3D calculations)
+
+#### WallSegment Value Object
+- **Index**: uint (unique index within wall)
+- **StartPole**: Pole (reference to start pole)
+- **EndPole**: Pole (reference to end pole)
+- **Type**: SegmentType (enum defining segment behavior)
+- **State**: SegmentState (enum defining current operational state)
+
+#### SegmentType Enum
+- **Wall** (0): Solid barrier blocking movement and line-of-sight
+- **Fence** (1): Partial barrier with visibility through
+- **Door** (2): Openable barrier, default state: Closed
+- **Passage** (3): Passageway, default state: Open
+- **Window** (4): Viewing aperture, default state: Closed
+- **Opening** (5): Open gap in wall, default state: Open
+
+#### SegmentState Enum
+- **Open** (0): Segment allows movement and line-of-sight
+- **Closed** (1): Segment blocks movement but may allow limited visibility
+- **Locked** (2): Segment blocks movement and requires key/action to open
+- **Visible** (2): Alias for Locked, used for barrier types (Wall, Fence)
+- **Secret** (3): Segment is hidden from players until discovered
+
+#### Default State by Type
+| Segment Type | Default State |
+|--------------|---------------|
+| Wall | Visible |
+| Fence | Visible |
+| Door | Closed |
+| Passage | Open |
+| Window | Closed |
+| Opening | Open |
+
+#### Valid States by Type
+| Segment Type | Valid States |
+|--------------|--------------|
+| Wall, Fence | Visible, Secret |
+| Door, Window | Open, Closed, Locked, Secret |
+| Passage, Opening | Open, Secret |
+
+#### Creation & Validation
+- **Factory Method**: `new EncounterWall { Index = 1, Name = "North Wall", Poles = [...], Segments = [...], IsClosed = false }`
+- **Validation Rules**:
+  - Poles must contain at least 2 points
+  - Name max length 128 characters
+  - Pole coordinates must be valid numbers
+  - Segment type must be valid SegmentType enum
+  - Segment state must be valid for segment type
+- **Immutability**: Yes (record type)
+
+#### UI Interaction
+- **Context Menu**: Right-click on segment opens context menu with type and state selectors
+- **State Icons**: Segments display state icons (lock icon for Locked, eye-slash for Secret)
+- **Click-through**: Right-click on another segment switches context menu to that segment
+- **Close Behavior**: Click outside context menu closes it
+
+---
+
+### EncounterRegion
+
+**Purpose**: Represents a named area zone on an encounter for terrain effects, illumination, elevation, and fog of war
+
+#### Properties
+- **Index**: uint (unique index within encounter)
+- **Name**: string (human-readable region name, max 128 characters)
+- **Type**: RegionType (enum defining region purpose)
+- **Value**: int (type-specific value determining region effect)
+- **Vertices**: List<Point> (ordered list of points defining region boundary)
+
+#### RegionType Enum
+- **Elevation**: Vertical height modifier (value in feet, positive or negative)
+- **Terrain**: Movement difficulty (0=Normal, 1=Difficult, 2=Impassable)
+- **Illumination**: Light level modifier (-2=Darkness, -1=Dim, 0=Normal, 1=Bright)
+- **FogOfWar**: Visibility state for players (0=Visible, 1=Outdated, 2=Hidden)
+
+#### Value-to-Label Mappings (Frontend-Only)
+
+Labels are derived from the `Value` property on the frontend based on `Type`. No labels are stored in the database.
+
+| Type | Value | Display Label |
+|------|-------|---------------|
+| Elevation | any | Displayed as-is with sign (+10, -5, 0) |
+| Terrain | 0 | Normal |
+| Terrain | 1 | Difficult |
+| Terrain | 2 | Impassable |
+| Illumination | -2 | Darkness |
+| Illumination | -1 | Dim |
+| Illumination | 0 | Normal |
+| Illumination | 1 | Bright |
+| FogOfWar | 0 | Visible |
+| FogOfWar | 1 | Outdated |
+| FogOfWar | 2 | Hidden |
+
+#### Default Values by Type
+| Type | Default Value |
+|------|---------------|
+| Elevation | 0 |
+| Terrain | 0 (Normal) |
+| Illumination | 0 (Normal) |
+| FogOfWar | 2 (Hidden) |
+
+#### Region Colors (Derived from Type and Value)
+Region colors are determined by the combination of Type and Value:
+- **Elevation**: Color varies by height (blues for negative, greens for zero, oranges for positive)
+- **Terrain**: Normal=transparent, Difficult=yellow, Impassable=red
+- **Illumination**: Darkness=dark gray, Dim=gray, Normal=transparent, Bright=yellow
+- **FogOfWar**: Visible=transparent, Outdated=semi-transparent gray, Hidden=opaque black
+
+#### Creation & Validation
+- **Factory Method**: `new EncounterRegion { Index = 1, Name = "Rough Ground", Type = "Terrain", Value = 1, Vertices = [...] }`
+- **Validation Rules**:
+  - Vertices must contain at least 3 points (triangle minimum)
+  - Name max length 128 characters
+  - Type must be valid RegionType
+  - Value must be valid for the specified Type (except Elevation which accepts any integer)
+- **Immutability**: Yes (record type)
+
+#### UI Interaction
+- **Context Menu**: Right-click on region opens context menu with name editor and value selector
+- **Name Editing**: Name is directly editable in the context menu (no click to start required)
+- **Type Display**: Type is shown as read-only header (cannot be changed after creation)
+- **Value Selection**: Elevation uses numeric input; other types use dropdown with label options
+- **Click-through**: Right-click on another region switches context menu to that region
+- **Close Behavior**: Click outside context menu closes it
+- **No Canvas Labels**: Labels are not displayed on the canvas (removed due to centroid placement issues with concave polygons)
+
+#### FogOfWar Special Handling
+FogOfWar regions are managed through a dedicated panel rather than the region context menu:
+- FogOfWarRenderer uses `listening={false}` (not interactive on canvas)
+- Visibility is toggled through the Fog of War panel
+- Does not respond to right-click context menu
+
+---
+
+### EncounterSource
+
+**Purpose**: Represents a light or sound emitter on an encounter for dynamic lighting and audio zones
+
+#### Properties
+- **Index**: uint (unique index within encounter)
+- **Name**: string (human-readable source name, max 128 characters)
+- **Type**: SourceType (enum: Light, Sound)
+- **Position**: Point (X, Y coordinates)
+- **Radius**: double (emission radius in feet)
+- **Intensity**: double (brightness/volume level)
+- **Color**: string? (optional hex color for light sources)
+
+#### Creation & Validation
+- **Factory Method**: `new EncounterSource { Index = 1, Name = "Torch", Type = SourceType.Light, Position = ..., Radius = 30 }`
+- **Validation Rules**:
+  - Radius must be positive
+  - Intensity must be between 0.0 and 1.0
+  - Name max length 128 characters
+- **Immutability**: Yes (record type)
+
+---
+
 ## Aggregates
 
 ### World Aggregate
@@ -572,14 +797,16 @@
 
 **Aggregate Root**: Encounter (when standalone) or Adventure (when Encounter.AdventureId is set)
 
-**Value Objects in Aggregate**: Stage, Grid, EncounterAsset (collection)
+**Value Objects in Aggregate**: Stage, Grid, EncounterAsset (collection), EncounterWall (collection), EncounterOpening (collection), EncounterRegion (collection), EncounterSource (collection)
 
-**Boundary**: Encounter is atomic unit. Stage, Grid, and EncounterAssets are part of Encounter aggregate.
+**Boundary**: Encounter is atomic unit. All value objects (Stage, Grid, Assets, Walls, Openings, Regions, Sources) are part of Encounter aggregate.
 
 **Aggregate Invariants**:
 - **AGG-07**: Encounter can move between Adventure or standalone
-- **AGG-08**: EncounterAssets are value objects (no independent existence), deleted with Encounter
+- **AGG-08**: All encounter value objects (assets, walls, openings, regions, sources) have no independent existence, deleted with Encounter
 - **AGG-09**: Encounter cannot be deleted if referenced by active GameSession
+- **AGG-10**: Deleting a wall cascades to delete all openings on that wall
+- **AGG-11**: Opening pole indices must remain valid after wall pole modifications
 
 ---
 
@@ -692,6 +919,12 @@
 - **BR-11** - Validation: EncounterAsset positions should be within Stage bounds
 - **BR-12** - Referential Integrity: EncounterAsset.AssetId must reference existing Asset
 - **BR-13** - Business Logic: Encounter cannot be deleted if in use by active GameSession
+- **BR-14** - Validation: EncounterWall must have at least 2 poles
+- **BR-15** - Referential Integrity: EncounterOpening.WallIndex must reference existing wall
+- **BR-16** - Validation: EncounterOpening StartPoleIndex < EndPoleIndex (enforced by service)
+- **BR-17** - Data Consistency: Deleting wall cascades to delete all openings on that wall
+- **BR-18** - Data Consistency: Deleting opening removes unused poles and adjusts other openings' indices
+- **BR-19** - Validation: Opening height must be > 0 and ≤ 30 feet
 
 ---
 
@@ -705,8 +938,10 @@
 
 ### Used By (Application Layer)
 - **Create Content Hierarchy**: Uses World/Campaign/Adventure/Encounter entities
-- **Design Encounter**: Uses Encounter, Stage, Grid, EncounterAsset
-- **Clone Content**: Duplicates Adventure or Encounter with all children
+- **Design Encounter**: Uses Encounter, Stage, Grid, EncounterAsset, EncounterWall, EncounterOpening, EncounterRegion, EncounterSource
+- **Wall Management**: Add/update/remove walls with pole-based geometry
+- **Opening Placement**: Two-click placement of doors/windows on wall segments with automatic pole insertion
+- **Clone Content**: Duplicates Adventure or Encounter with all children (including walls, openings, regions, sources)
 - **Publish Content**: Sets IsPublished and enforces IsPublic=true
 - **Game Session Creation**: Game context references Encounter.Id for active gameplay
 

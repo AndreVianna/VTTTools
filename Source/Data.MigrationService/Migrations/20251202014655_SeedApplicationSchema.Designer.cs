@@ -13,8 +13,8 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251127024511_CreateApplicationSchema")]
-    partial class CreateApplicationSchema
+    [Migration("20251202014655_SeedApplicationSchema")]
+    partial class SeedApplicationSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -449,16 +449,18 @@ namespace VttTools.Data.MigrationService.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<bool>("Snap")
+                            b1.Property<double>("Scale")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("bit")
-                                .HasDefaultValue(false);
+                                .HasColumnType("float")
+                                .HasDefaultValue(5.0)
+                                .HasColumnName("GridScale");
 
                             b1.Property<string>("Type")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("NoGrid");
+                                .HasDefaultValue("NoGrid")
+                                .HasColumnName("GridType");
 
                             b1.ComplexProperty(typeof(Dictionary<string, object>), "CellSize", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.CellSize#CellSize", b2 =>
                                 {
@@ -467,12 +469,14 @@ namespace VttTools.Data.MigrationService.Migrations
                                     b2.Property<double>("Height")
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("float")
-                                        .HasDefaultValue(64.0);
+                                        .HasDefaultValue(64.0)
+                                        .HasColumnName("GridCellHeight");
 
                                     b2.Property<double>("Width")
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("float")
-                                        .HasDefaultValue(64.0);
+                                        .HasDefaultValue(64.0)
+                                        .HasColumnName("GridCellWidth");
                                 });
 
                             b1.ComplexProperty(typeof(Dictionary<string, object>), "Offset", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.Offset#Offset", b2 =>
@@ -482,12 +486,14 @@ namespace VttTools.Data.MigrationService.Migrations
                                     b2.Property<double>("Left")
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("float")
-                                        .HasDefaultValue(0.0);
+                                        .HasDefaultValue(0.0)
+                                        .HasColumnName("GridOffsetLeft");
 
                                     b2.Property<double>("Top")
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("float")
-                                        .HasDefaultValue(0.0);
+                                        .HasDefaultValue(0.0)
+                                        .HasColumnName("GridOffsetTop");
                                 });
                         });
 
@@ -498,12 +504,14 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(0.0);
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("PanningX");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(0.0);
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("PanningY");
                         });
 
                     b.HasKey("Id");
@@ -574,24 +582,28 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("");
+                                .HasDefaultValue("")
+                                .HasColumnName("FrameBackground");
 
                             b1.Property<string>("BorderColor")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("white");
+                                .HasDefaultValue("white")
+                                .HasColumnName("FrameBorderColor");
 
                             b1.Property<int>("BorderThickness")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
-                                .HasDefaultValue(1);
+                                .HasDefaultValue(1)
+                                .HasColumnName("FrameBorderThickness");
 
                             b1.Property<string>("Shape")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Square");
+                                .HasDefaultValue("Square")
+                                .HasColumnName("FrameShape");
                         });
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterAsset.Position#Position", b1 =>
@@ -601,12 +613,14 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(0.0);
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(0.0);
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("Y");
                         });
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Size", "VttTools.Data.Library.Entities.EncounterAsset.Size#NamedSize", b1 =>
@@ -616,12 +630,14 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<double>("Height")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(1.0);
+                                .HasDefaultValue(1.0)
+                                .HasColumnName("Height");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(1.0);
+                                .HasDefaultValue(1.0)
+                                .HasColumnName("Width");
                         });
 
                     b.HasKey("EncounterId", "Index");
@@ -633,77 +649,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("EncounterAssets", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterOpening", b =>
-                {
-                    b.Property<Guid>("EncounterId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long>("Index")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Color")
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<long>("EndPoleIndex")
-                        .HasColumnType("bigint");
-
-                    b.Property<double>("Height")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.0);
-
-                    b.Property<string>("Material")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<int>("Opacity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<long>("StartPoleIndex")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("State")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<int>("Visibility")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<long>("WallIndex")
-                        .HasColumnType("bigint");
-
-                    b.Property<double>("Width")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.0);
-
-                    b.HasKey("EncounterId", "Index");
-
-                    b.HasIndex("EncounterId");
-
-                    b.ToTable("EncounterOpenings", (string)null);
-                });
-
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
                 {
                     b.Property<Guid>("EncounterId")
@@ -712,14 +657,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<long>("Index")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Color")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("Label")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -730,7 +667,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<int?>("Value")
+                    b.Property<int>("Value")
                         .HasColumnType("int");
 
                     b.HasKey("EncounterId", "Index");
@@ -747,10 +684,6 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<long>("Index")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("Color")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
 
                     b.Property<float>("Direction")
                         .ValueGeneratedOnAdd()
@@ -795,12 +728,14 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(0.0);
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
-                                .HasDefaultValue(0.0);
+                                .HasDefaultValue(0.0)
+                                .HasColumnName("Y");
                         });
 
                     b.HasKey("EncounterId", "Index");
@@ -818,30 +753,80 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<long>("Index")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Color")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<bool>("IsClosed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
-
-                    b.Property<int>("Visibility")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
 
                     b.HasKey("EncounterId", "Index");
 
                     b.HasIndex("EncounterId");
 
                     b.ToTable("EncounterWalls", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWallSegment", b =>
+                {
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("WallIndex")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Index")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Open");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Wall");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "EndPole", "VttTools.Data.Library.Entities.EncounterWallSegment.EndPole#Pole", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<double>("H")
+                                .HasColumnType("float")
+                                .HasColumnName("EndH");
+
+                            b1.Property<double>("X")
+                                .HasColumnType("float")
+                                .HasColumnName("EndX");
+
+                            b1.Property<double>("Y")
+                                .HasColumnType("float")
+                                .HasColumnName("EndY");
+                        });
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "StartPole", "VttTools.Data.Library.Entities.EncounterWallSegment.StartPole#Pole", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<double>("H")
+                                .HasColumnType("float")
+                                .HasColumnName("StartH");
+
+                            b1.Property<double>("X")
+                                .HasColumnType("float")
+                                .HasColumnName("StartX");
+
+                            b1.Property<double>("Y")
+                                .HasColumnType("float")
+                                .HasColumnName("StartY");
+                        });
+
+                    b.HasKey("EncounterId", "WallIndex", "Index");
+
+                    b.HasIndex("EncounterId");
+
+                    b.ToTable("EncounterWallSegments", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
@@ -1140,6 +1125,9 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<int>("UnitSystem")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -1173,6 +1161,7 @@ namespace VttTools.Data.MigrationService.Migrations
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "QAZB7SA3GUP4I2DQCDEDORPB5Q5ICUQG",
                             TwoFactorEnabled = false,
+                            UnitSystem = 0,
                             UserName = "master@host.com"
                         });
                 });
@@ -1311,13 +1300,13 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
                                 .HasDefaultValue(1.0)
-                                .HasColumnName("TokenHeight");
+                                .HasColumnName("Height");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("float")
                                 .HasDefaultValue(1.0)
-                                .HasColumnName("TokenWidth");
+                                .HasColumnName("Width");
 
                             b1.HasKey("AssetId");
 
@@ -1569,17 +1558,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterOpening", b =>
-                {
-                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
-                        .WithMany("Openings")
-                        .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Encounter");
-                });
-
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
@@ -1635,34 +1613,18 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsMany("VttTools.Common.Model.Pole", "Poles", b1 =>
-                        {
-                            b1.Property<Guid>("EncounterWallEncounterId");
-
-                            b1.Property<long>("EncounterWallIndex");
-
-                            b1.Property<int>("__synthesizedOrdinal")
-                                .ValueGeneratedOnAddOrUpdate();
-
-                            b1.Property<double>("H");
-
-                            b1.Property<double>("X");
-
-                            b1.Property<double>("Y");
-
-                            b1.HasKey("EncounterWallEncounterId", "EncounterWallIndex", "__synthesizedOrdinal");
-
-                            b1.ToTable("EncounterWalls");
-
-                            b1.ToJson("Poles");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EncounterWallEncounterId", "EncounterWallIndex");
-                        });
-
                     b.Navigation("Encounter");
+                });
 
-                    b.Navigation("Poles");
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWallSegment", b =>
+                {
+                    b.HasOne("VttTools.Data.Library.Entities.EncounterWall", "Wall")
+                        .WithMany("Segments")
+                        .HasForeignKey("EncounterId", "WallIndex")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Wall");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
@@ -1789,13 +1751,16 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Navigation("EncounterAssets");
 
-                    b.Navigation("Openings");
-
                     b.Navigation("Regions");
 
                     b.Navigation("Sources");
 
                     b.Navigation("Walls");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
+                {
+                    b.Navigation("Segments");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>

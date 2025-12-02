@@ -1,5 +1,6 @@
-import type { PlacedOpening, PlacedWall, Point, Pole } from '@/types/domain';
-import { OpeningState } from '@/types/domain';
+import type { PlacedWall, Point } from '@/types/domain';
+import { SegmentState, SegmentType } from '@/types/domain';
+import { getPolesFromWall, isWallClosed } from './wallUtils';
 
 interface LineSegment {
   start: Point;
@@ -54,52 +55,22 @@ function lineSegmentIntersectsRay(segment: LineSegment, rayOrigin: Point, rayDir
   return true;
 }
 
-function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegment[] {
+function getWallSegments(wall: PlacedWall): LineSegment[] {
   const segments: LineSegment[] = [];
-  const { poles, isClosed } = wall;
 
-  if (!isClosed) {
+  if (!isWallClosed(wall)) {
     return segments;
   }
 
-  const wallOpenings = openings.filter((o) => o.wallIndex === wall.index);
+  for (const wallSegment of wall.segments) {
+    const isPassable = wallSegment.type === SegmentType.Passage ||
+                      wallSegment.type === SegmentType.Opening ||
+                      (wallSegment.type === SegmentType.Door && wallSegment.state === SegmentState.Open);
 
-  for (let i = 0; i < poles.length - 1; i++) {
-    const start = poles[i];
-    const end = poles[i + 1];
-
-    const hasOpenOpening = wallOpenings.some((opening) => {
-      const isPassable = opening.state === OpeningState.Open ||
-                         opening.state === OpeningState.Destroyed;
-
-      return isPassable && opening.startPoleIndex === i && opening.endPoleIndex === i + 1;
-    });
-
-    if (!hasOpenOpening) {
+    if (!isPassable) {
       segments.push({
-        start: { x: start.x, y: start.y },
-        end: { x: end.x, y: end.y },
-      });
-    }
-  }
-
-  if (isClosed && poles.length > 2) {
-    const start = poles[poles.length - 1];
-    const end = poles[0];
-
-    const hasOpenOpening = wallOpenings.some((opening) => {
-      const isPassable = opening.state === OpeningState.Open ||
-                         opening.state === OpeningState.Destroyed;
-
-      return isPassable &&
-             ((opening.startPoleIndex === poles.length - 1 && opening.endPoleIndex === 0) ||
-              (opening.startPoleIndex === 0 && opening.endPoleIndex === poles.length - 1));
-    });
-
-    if (!hasOpenOpening) {
-      segments.push({
-        start: { x: start.x, y: start.y },
-        end: { x: end.x, y: end.y },
+        start: { x: wallSegment.startPole.x, y: wallSegment.startPole.y },
+        end: { x: wallSegment.endPole.x, y: wallSegment.endPole.y },
       });
     }
   }
@@ -107,12 +78,12 @@ function getWallSegments(wall: PlacedWall, openings: PlacedOpening[]): LineSegme
   return segments;
 }
 
-function isPointEnclosed(point: Point, walls: PlacedWall[], openings: PlacedOpening[]): boolean {
+function isPointEnclosed(point: Point, walls: PlacedWall[]): boolean {
   const rayDirection = { x: 1, y: 0 };
   let intersectionCount = 0;
 
   for (const wall of walls) {
-    const segments = getWallSegments(wall, openings);
+    const segments = getWallSegments(wall);
 
     for (const segment of segments) {
       if (lineSegmentIntersectsRay(segment, point, rayDirection)) {
@@ -133,6 +104,7 @@ function isPointInPolygon(point: Point, polygon: Point[]): boolean {
   for (let i = 0; i < polygon.length; i++) {
     const start = polygon[i];
     const end = polygon[(i + 1) % polygon.length];
+    if (!start || !end) continue;
     const segment: LineSegment = { start, end };
 
     if (lineSegmentIntersectsRay(segment, point, rayDirection)) {
@@ -145,13 +117,12 @@ function isPointInPolygon(point: Point, polygon: Point[]): boolean {
 
 function findBoundaryStartPoint(
   point: Point,
-  walls: PlacedWall[],
-  openings: PlacedOpening[]
+  walls: PlacedWall[]
 ): Point | null {
   const allSegments: LineSegment[] = [];
 
   for (const wall of walls) {
-    const segments = getWallSegments(wall, openings);
+    const segments = getWallSegments(wall);
     allSegments.push(...segments);
   }
 
@@ -185,15 +156,14 @@ function findBoundaryStartPoint(
 
 function traceBoundaryPolygon(
   startPoint: Point,
-  walls: PlacedWall[],
-  openings: PlacedOpening[]
+  walls: PlacedWall[]
 ): Point[] {
   const visited = new Set<string>();
   const boundary: Point[] = [];
   const allSegments: LineSegment[] = [];
 
   for (const wall of walls) {
-    const segments = getWallSegments(wall, openings);
+    const segments = getWallSegments(wall);
     allSegments.push(...segments);
   }
 
@@ -201,7 +171,7 @@ function traceBoundaryPolygon(
     return [];
   }
 
-  let currentPoint = startPoint;
+  let currentPoint: Point = startPoint;
   const pointKey = (p: Point) => `${Math.round(p.x / TOLERANCE)},${Math.round(p.y / TOLERANCE)}`;
 
   const maxIterations = allSegments.length * 3;
@@ -284,7 +254,9 @@ function traceBoundaryPolygon(
     return [];
   }
 
-  if (arePointsEqual(boundary[0], boundary[boundary.length - 1])) {
+  const firstPoint = boundary[0];
+  const lastPoint = boundary[boundary.length - 1];
+  if (firstPoint && lastPoint && arePointsEqual(firstPoint, lastPoint)) {
     return boundary.slice(0, -1);
   }
 
@@ -294,8 +266,7 @@ function traceBoundaryPolygon(
 export function traceBoundary(
   clickPoint: Point,
   walls: PlacedWall[],
-  openings: PlacedOpening[],
-  stageSize: { width: number; height: number }
+  _stageSize: { width: number; height: number }
 ): BoundaryResult {
   if (walls.length === 0) {
     return {
@@ -305,7 +276,7 @@ export function traceBoundary(
     };
   }
 
-  const enclosed = isPointEnclosed(clickPoint, walls, openings);
+  const enclosed = isPointEnclosed(clickPoint, walls);
 
   if (!enclosed) {
     return {
@@ -315,7 +286,7 @@ export function traceBoundary(
     };
   }
 
-  const nearestPoint = findBoundaryStartPoint(clickPoint, walls, openings);
+  const nearestPoint = findBoundaryStartPoint(clickPoint, walls);
 
   if (!nearestPoint) {
     return {
@@ -325,7 +296,7 @@ export function traceBoundary(
     };
   }
 
-  const boundaryVertices = traceBoundaryPolygon(nearestPoint, walls, openings);
+  const boundaryVertices = traceBoundaryPolygon(nearestPoint, walls);
 
   if (boundaryVertices.length < 3) {
     return {
@@ -343,8 +314,9 @@ export function traceBoundary(
     };
   }
 
-  const relevantWalls = walls.filter((wall) =>
-    wall.poles.some((pole) =>
+  const poles = walls.flatMap(_wall => getPolesFromWall(_wall));
+  const relevantWalls = walls.filter((_wall) =>
+    poles.some((pole) =>
       boundaryVertices.some((v) => arePointsEqual({ x: pole.x, y: pole.y }, v))
     )
   );

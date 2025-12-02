@@ -4,14 +4,15 @@ import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva';
 import { getApiEndpoints } from '@/config/development';
-import { GroupName, LayerName, LayerZIndex } from '@/services/layerManager';
-import type { Asset, MonsterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
-import { LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
+import { GroupName, LayerName } from '@/services/layerManager';
+import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
+import { AssetKind, LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { getEffectiveLabelPosition, getEffectiveLabelVisibility } from '@/utils/displayHelpers';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { type InteractionScope, isAssetInScope } from '@/utils/scopeFiltering';
+import { SnapMode } from '@/utils/snapping';
 import { formatMonsterLabel } from './tokenPlacementUtils';
 
 const LABEL_PADDING = 4;
@@ -46,7 +47,7 @@ export interface TokenPlacementProps {
   /** Callback when all images are loaded */
   onImagesLoaded?: () => void;
   /** Snap mode from keyboard modifiers */
-  snapMode: 'free' | 'grid' | 'half-step';
+  snapMode: SnapMode;
   /** Callback when context menu is requested */
   onContextMenu?: (assetId: string, position: { x: number; y: number }) => void;
   /** Current encounter for display settings */
@@ -58,16 +59,8 @@ export interface TokenPlacementProps {
 const getTokenImageUrl = (asset: Asset): string | null => {
   const mediaBaseUrl = getApiEndpoints().media;
 
-  if (asset.topDown) {
-    return `${mediaBaseUrl}/${asset.topDown.id}`;
-  }
-
-  if (asset.miniature) {
-    return `${mediaBaseUrl}/${asset.miniature.id}`;
-  }
-
-  if (asset.photo) {
-    return `${mediaBaseUrl}/${asset.photo.id}`;
+  if (asset.tokens.length > 0 && asset.tokens[0]) {
+    return `${mediaBaseUrl}/${asset.tokens[0].id}`;
   }
 
   if (asset.portrait) {
@@ -78,27 +71,24 @@ const getTokenImageUrl = (asset: Asset): string | null => {
 };
 
 const getAssetGroup = (asset: Asset): GroupName => {
-  if (asset.kind === 'Monster') {
+  if (asset.classification.kind === AssetKind.Creature) {
     return GroupName.Monsters;
   }
 
-  if (asset.kind === 'Character') {
+  if (asset.classification.kind === AssetKind.Character) {
     return GroupName.Characters;
   }
 
-  if (asset.kind === 'Object') {
-    const objectAsset = asset as ObjectAsset;
-    if (objectAsset.isOpaque) {
-      return GroupName.Structure;
-    }
+  if (asset.classification.kind === AssetKind.Object) {
+    return GroupName.Objects;
   }
 
   return GroupName.Objects;
 };
 
 const getAssetSize = (asset: Asset): { width: number; height: number } => {
-  if (asset.size?.width && asset.size?.height) {
-    return { width: asset.size.width, height: asset.size.height };
+  if (asset.tokenSize?.width && asset.tokenSize?.height) {
+    return { width: asset.tokenSize.width, height: asset.tokenSize.height };
   }
 
   return { width: 1, height: 1 };
@@ -206,9 +196,9 @@ const snapToGridCenter = (
   position: { x: number; y: number },
   assetSize: { width: number; height: number },
   gridConfig: GridConfig,
-  snapMode: 'free' | 'grid' | 'half-step',
+  snapMode: SnapMode,
 ): { x: number; y: number } => {
-  if (snapMode === 'free' || gridConfig.type === GridType.NoGrid) {
+  if (snapMode === SnapMode.Free || gridConfig.type === GridType.NoGrid) {
     return position;
   }
 
@@ -222,8 +212,8 @@ const snapToGridCenter = (
   const baseSnapWidthCells = getBaseSnapIntervalCells(assetSize.width);
   const baseSnapHeightCells = getBaseSnapIntervalCells(assetSize.height);
 
-  // Apply mode multiplier
-  const multiplier = snapMode === 'half-step' ? 0.5 : 1.0;
+  // Apply mode multiplier: Half mode halves the snap interval
+  const multiplier = snapMode === SnapMode.Half ? 0.5 : 1.0;
   const snapWidthCells = baseSnapWidthCells * multiplier;
   const snapHeightCells = baseSnapHeightCells * multiplier;
 
@@ -310,7 +300,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       const pixelHeight = size.height * gridConfig.cellSize.height;
 
       let formattedLabel = null;
-      if (asset.asset.kind === 'Monster' || asset.asset.kind === 'Character') {
+      if (asset.asset.classification.kind === AssetKind.Creature || asset.asset.classification.kind === AssetKind.Character) {
         formattedLabel = formatMonsterLabel(asset.name, MAX_LABEL_WIDTH_COLLAPSED);
       }
 
@@ -347,17 +337,17 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       })
       .map((a) => {
         const objectData =
-          a.asset.kind === 'Object'
+          a.asset.classification.kind === AssetKind.Object
             ? {
-                size: (a.asset as ObjectAsset).size,
-                isMovable: (a.asset as ObjectAsset).isMovable,
-                isOpaque: (a.asset as ObjectAsset).isOpaque,
+                size: a.asset.tokenSize,
+                isMovable: true,
+                isOpaque: false,
               }
             : undefined;
         const monsterData =
-          a.asset.kind === 'Monster'
+          a.asset.classification.kind === AssetKind.Creature
             ? {
-                size: (a.asset as MonsterAsset).size,
+                size: a.asset.tokenSize,
               }
             : undefined;
 
@@ -366,7 +356,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
           y: a.position.y,
           width: a.size.width,
           height: a.size.height,
-          allowOverlap: getPlacementBehavior(a.asset.kind, objectData, monsterData).allowOverlap,
+          allowOverlap: getPlacementBehavior(a.asset.classification.kind, objectData, monsterData).allowOverlap,
         };
       });
   }, [placedAssets]);
@@ -413,7 +403,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     const loadImages = async () => {
       setImageCache((prevCache) => {
         const newCache = new Map(prevCache);
-        let allLoaded = true;
         const assetsToLoad: Array<{ id: string; url: string }> = [];
 
         for (const placedAsset of placedAssets) {
@@ -501,23 +490,22 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
       const position = snapToGridCenter(rawPosition, assetCellSize, gridConfig, snapModeRef.current);
       setCursorPosition(position);
 
-      // Validate placement for visual feedback
       const objectProperties =
-        draggedAsset.kind === 'Object'
+        draggedAsset.classification.kind === AssetKind.Object
           ? {
-              size: (draggedAsset as ObjectAsset).size,
-              isMovable: (draggedAsset as ObjectAsset).isMovable,
-              isOpaque: (draggedAsset as ObjectAsset).isOpaque,
+              size: draggedAsset.tokenSize,
+              isMovable: true,
+              isOpaque: false,
             }
           : undefined;
       const monsterProperties =
-        draggedAsset.kind === 'Monster'
+        draggedAsset.classification.kind === AssetKind.Creature
           ? {
-              size: (draggedAsset as MonsterAsset).size,
+              size: draggedAsset.tokenSize,
             }
           : undefined;
 
-      const behavior = getPlacementBehavior(draggedAsset.kind, objectProperties, monsterProperties);
+      const behavior = getPlacementBehavior(draggedAsset.classification.kind, objectProperties, monsterProperties);
 
       const size = {
         width: assetCellSize.width * gridConfig.cellSize.width,
@@ -615,7 +603,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const { pixelWidth, pixelHeight, formattedLabel } = renderData;
 
         const isInteractive = isAssetInScope(placedAsset, activeScope);
-        const isMonster = placedAsset.asset.kind === 'Monster';
+        const isMonster = placedAsset.asset.classification.kind === AssetKind.Creature;
 
         if (isMonster) {
           const isHovered = hoveredAssetId === placedAsset.id;

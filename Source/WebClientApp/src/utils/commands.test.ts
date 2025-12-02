@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ObjectAsset, PlacedAsset } from '@/types/domain';
+import type { PlacedAsset } from '@/types/domain';
 import { AssetKind, LabelPosition, LabelVisibility } from '@/types/domain';
 import {
   createBatchCommand,
@@ -19,20 +19,16 @@ const createMockPlacedAsset = (id: string): PlacedAsset => ({
   asset: {
     id: `asset-${id}`,
     ownerId: 'owner-1',
-    kind: AssetKind.Object,
+    classification: { kind: AssetKind.Object, category: '', type: '', subtype: null },
     name: `Asset ${id}`,
     description: 'Test asset',
     isPublished: true,
     isPublic: false,
     tokens: [],
-    portrait: undefined,
-    size: { width: 1, height: 1, isSquare: true },
-    isMovable: true,
-    isOpaque: false,
-    triggerEffectId: undefined,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
-  } as ObjectAsset,
+    portrait: null,
+    tokenSize: { width: 1, height: 1 },
+    statBlocks: {},
+  },
   position: { x: 100, y: 100 },
   size: { width: 50, height: 50 },
   rotation: 0,

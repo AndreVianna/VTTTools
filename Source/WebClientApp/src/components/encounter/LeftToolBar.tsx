@@ -5,7 +5,6 @@ import {
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   ViewInAr as ObjectsIcon,
-  MeetingRoom as OpeningsIcon,
   Person as CharactersIcon,
   Layers as RegionsIcon,
   LightMode as SourcesIcon,
@@ -13,19 +12,18 @@ import {
 } from '@mui/icons-material';
 import { Box, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
-import type { Asset, PlacedAsset, PlacedOpening, PlacedRegion, PlacedSource, PlacedWall, WallVisibility } from '@/types/domain';
-import { AssetKind } from '@/types/domain';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Asset, PlacedAsset, PlacedRegion, PlacedSource, PlacedWall } from '@/types/domain';
+import { AssetKind, type SegmentType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
-import type { OpeningPlacementProperties, SourcePlacementProperties } from './panels';
-import { CharactersPanel, FogOfWarPanel, MonstersPanel, ObjectsPanel, OpeningsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
+import type { SourcePlacementProperties } from './panels';
+import { CharactersPanel, FogOfWarPanel, MonstersPanel, ObjectsPanel, RegionsPanel, SourcesPanel, WallsPanel } from './panels';
 import { QuickSummonDialog, type PlacementSettings } from './quicksummon';
 
 export type PanelType =
   | 'regions'
   | 'walls'
-  | 'openings'
   | 'objects'
   | 'monsters'
   | 'characters'
@@ -46,10 +44,8 @@ export interface LeftToolBarProps {
   onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
-    visibility: WallVisibility;
-    isClosed: boolean;
+    segmentType: SegmentType;
     defaultHeight: number;
-    color?: string;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
   onCancelEditing?: () => void;
@@ -75,12 +71,6 @@ export interface LeftToolBarProps {
   onSourceDelete?: (index: number) => void;
   onPlaceSource?: (properties: SourcePlacementProperties) => void;
   onEditSource?: (index: number, updates: Partial<PlacedSource>) => void;
-  encounterOpenings?: PlacedOpening[] | undefined;
-  selectedOpeningIndex?: number | null | undefined;
-  onOpeningSelect?: (index: number) => void;
-  onOpeningDelete?: (index: number) => void;
-  onPlaceOpening?: (properties: OpeningPlacementProperties) => void;
-  onEditOpening?: (index: number, updates: Partial<PlacedOpening>) => void;
   onFogHideAll?: () => void;
   onFogRevealAll?: () => void;
   onFogModeChange?: (mode: 'add' | 'subtract') => void;
@@ -127,12 +117,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onSourceDelete,
   onPlaceSource,
   onEditSource,
-  encounterOpenings,
-  selectedOpeningIndex,
-  onOpeningSelect,
-  onOpeningDelete,
-  onPlaceOpening,
-  onEditOpening,
   onFogHideAll,
   onFogRevealAll,
   onFogModeChange,
@@ -150,10 +134,29 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   }>({ open: false });
   const toolbarRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activePanel =
     externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
   const expanded = isPanelVisible && activePanel !== null;
+
+  const cancelHideTimeout = useCallback(() => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleHide = useCallback(() => {
+    cancelHideTimeout();
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsPanelVisible(false);
+    }, 150);
+  }, [cancelHideTimeout]);
+
+  useEffect(() => {
+    return () => cancelHideTimeout();
+  }, [cancelHideTimeout]);
 
   const handlePanelClick = (panel: PanelType) => {
     const isSameScope = activeScope === panel;
@@ -217,8 +220,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     icon: typeof GridIcon;
     label: string;
   }> = [
-    { key: 'walls', icon: WallsIcon, label: 'Walls' },
-    { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
+    { key: 'walls', icon: WallsIcon, label: 'Walls & Openings' },
     { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
     { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },
@@ -232,6 +234,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       <Box
         ref={toolbarRef}
         onMouseEnter={() => {
+          cancelHideTimeout();
           if (activeScope && !isPanelVisible) {
             setIsPanelVisible(true);
           }
@@ -340,9 +343,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         <Box
           ref={drawerRef}
           sx={{ p: 2 }}
+          onMouseEnter={cancelHideTimeout}
           onMouseLeave={() => {
             if (!isPanelLocked) {
-              setIsPanelVisible(false);
+              scheduleHide();
             }
           }}
         >
@@ -378,17 +382,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               {...(onPlaceWall ? { onPlaceWall } : {})}
               {...(onEditVertices ? { onEditVertices } : {})}
               {...(onCancelEditing ? { onCancelEditing } : {})}
-            />
-          )}
-          {activePanel === 'openings' && encounterId && encounterOpenings && (
-            <OpeningsPanel
-              encounterId={encounterId}
-              encounterOpenings={encounterOpenings}
-              selectedOpeningIndex={selectedOpeningIndex ?? null}
-              {...(onOpeningSelect ? { onOpeningSelect } : {})}
-              {...(onOpeningDelete ? { onOpeningDelete } : {})}
-              {...(onPlaceOpening ? { onPlaceOpening } : {})}
-              {...(onEditOpening ? { onEditOpening } : {})}
             />
           )}
           {activePanel === 'objects' && (

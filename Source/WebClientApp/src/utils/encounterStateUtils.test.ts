@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Encounter, EncounterRegion, EncounterWall } from '@/types/domain';
-import { Light, WallVisibility, Weather } from '@/types/domain';
+import { Light, Weather } from '@/types/domain';
 import {
   addRegionOptimistic,
   addWallOptimistic,
@@ -28,6 +28,7 @@ const createMockEncounter = (overrides?: Partial<Encounter>): Encounter => ({
     cellSize: { width: 50, height: 50 },
     offset: { left: 0, top: 0 },
     snap: true,
+  scale: 1,
   },
   stage: {
     background: null,
@@ -36,19 +37,15 @@ const createMockEncounter = (overrides?: Partial<Encounter>): Encounter => ({
   },
   assets: [],
   walls: [],
-          openings: [],
   regions: [],
   sources: [],
   ...overrides,
 });
 
 const createMockWall = (overrides?: Partial<EncounterWall>): EncounterWall => ({
-  encounterId: 'encounter-1',
   index: 0,
   name: 'Wall',
-  poles: [],
-  visibility: WallVisibility.Normal,
-  isClosed: false,
+  segments: [],
   ...overrides,
 });
 
@@ -152,14 +149,12 @@ describe('encounterStateUtils', () => {
       const wall = createMockWall({
         index: 1,
         name: 'Original',
-        isClosed: false,
       });
       const encounter = createMockEncounter({ walls: [wall] });
 
-      const result = updateWallOptimistic(encounter, 1, { isClosed: true });
+      const result = updateWallOptimistic(encounter, 1, { name: 'Updated' });
 
-      expect(result.walls[0]?.name).toBe('Original');
-      expect(result.walls[0]?.isClosed).toBe(true);
+      expect(result.walls[0]?.name).toBe('Updated');
     });
   });
 
@@ -661,6 +656,7 @@ describe('encounterStateUtils', () => {
           cellSize: { width: 60, height: 60 },
           offset: { left: 10, top: 10 },
           snap: false,
+        scale: 1,
         },
         regions: [createMockRegion({ index: 1 })],
       });

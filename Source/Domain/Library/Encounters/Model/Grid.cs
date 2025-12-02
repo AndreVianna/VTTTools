@@ -2,7 +2,7 @@
 
 public record Grid {
     public GridType Type { get; init; }
-    public CellSize CellSize { get; init; } = CellSize.Default;  // Using domain primitive
-    public Offset Offset { get; init; } = Offset.Zero;  // Using domain primitive
-    public bool Snap { get; init; }
+    public CellSize CellSize { get; init; } = CellSize.Default;
+    public Offset Offset { get; init; } = Offset.Zero;
+    public double Scale { get; init; } = 5.0;
 }

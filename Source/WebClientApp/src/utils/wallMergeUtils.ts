@@ -1,6 +1,7 @@
 import type { EncounterWall, Point } from '@/types/domain';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import { calculateDistance, detectPoleOnPoleCollision } from './wallCollisionUtils';
+import { getPolesFromWall } from './wallUtils';
 
 export interface MergePoint {
   wallIndex: number;
@@ -31,7 +32,8 @@ export interface MergeWallsParams {
 }
 
 export function isEndpoint(poleIndex: number, wall: EncounterWall): boolean {
-  return poleIndex === 0 || poleIndex === wall.poles.length - 1;
+  const poles = getPolesFromWall(wall);
+  return poleIndex === 0 || poleIndex === poles.length - 1;
 }
 
 export function getOppositeEndpoint(poleIndex: number, wallLength: number): number {
@@ -72,6 +74,7 @@ export function canMergeWalls(params: CanMergeWallsParams): MergeResult {
     cellSize: { width: 50, height: 50 },
     offset: { left: 0, top: 0 },
     snap: false,
+  scale: 1,
   };
 
   const collisionResult = detectPoleOnPoleCollision(newWallPoles, existingWalls, gridConfig, tolerance);
@@ -210,7 +213,7 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
   newWallEnd.edges.set(newWallStart.id, [...newWallPoles].reverse());
 
   for (const wall of involvedWalls) {
-    const wallPoles = wall.poles.map((p) => ({ x: p.x, y: p.y }));
+    const wallPoles = getPolesFromWall(wall).map((p) => ({ x: p.x, y: p.y }));
     const firstWallPole = wallPoles[0];
     const lastWallPole = wallPoles[wallPoles.length - 1];
     if (!firstWallPole || !lastWallPole) continue;
@@ -226,7 +229,7 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
     const wall = existingWalls.find((w) => w.index === mp.wallIndex);
     if (!wall) continue;
 
-    const wallPoles = wall.poles.map((p) => ({ x: p.x, y: p.y }));
+    const wallPoles = getPolesFromWall(wall).map((p) => ({ x: p.x, y: p.y }));
     const targetPole = mp.poleIndex === 0 ? wallPoles[0] : wallPoles[wallPoles.length - 1];
     if (!targetPole) continue;
 

@@ -43,6 +43,7 @@ export interface GridConfig {
   cellSize: CellSize;
   offset: Offset;
   snap: boolean;
+  scale: number;
 }
 
 /**
@@ -319,4 +320,5 @@ export const getDefaultGrid = (): GridConfig => ({
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,
+  scale: 5.0,
 });

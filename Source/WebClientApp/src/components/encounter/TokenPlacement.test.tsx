@@ -11,11 +11,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupName } from '@/services/layerManager';
-import { mockMediaResource, mockMonsterAsset, mockObjectAsset } from '@/test-utils/assetMocks';
-import type { Asset, CharacterAsset, Encounter, ObjectAsset, PlacedAsset } from '@/types/domain';
+import { mockMediaResource } from '@/test-utils/assetMocks';
+import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
 import { AssetKind, LabelPosition, LabelVisibility, Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
+import { SnapMode } from '@/utils/snapping';
 import { TokenPlacement } from './TokenPlacement';
 import { formatMonsterLabel } from './tokenPlacementUtils';
 
@@ -24,45 +25,31 @@ const mockGridConfig: GridConfig = {
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,
+  scale: 1,
 };
 
-const createMockAsset = (id: string, kind: AssetKind = AssetKind.Monster): Asset => {
-  const baseAsset = kind === AssetKind.Monster ? mockMonsterAsset({ id }) : mockObjectAsset({ id });
+const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asset => ({
+  id,
+  ownerId: 'user-123',
+  classification: {
+    kind,
+    category: 'test-category',
+    type: 'test-type',
+    subtype: null,
+  },
+  name: `Test Asset ${id}`,
+  description: 'Test description',
+  isPublished: true,
+  isPublic: false,
+  tokens: [mockMediaResource({ id: `${id}-token` })],
+  portrait: null,
+  tokenSize: { width: 1, height: 1 },
+  statBlocks: {},
+});
 
-  return {
-    ...baseAsset,
-    name: `Test Asset ${id}`,
-    description: 'Test description',
-    isPublished: true,
-    isPublic: false,
-    topDown: mockMediaResource({ id: `${id}-topdown` }),
-    portrait: undefined,
-    miniature: undefined,
-    photo: undefined,
-    size: { width: 1, height: 1, isSquare: true },
-  };
-};
+const createMockCharacterAsset = (id: string): Asset => createMockAsset(id, AssetKind.Character);
 
-const createMockCharacterAsset = (id: string): CharacterAsset => {
-  const asset = createMockAsset(id, AssetKind.Character) as CharacterAsset;
-  return {
-    ...asset,
-    kind: AssetKind.Character,
-    statBlockId: undefined,
-    tokenStyle: undefined,
-  };
-};
-
-const createMockObjectAsset = (id: string): ObjectAsset => {
-  const asset = createMockAsset(id, AssetKind.Object) as ObjectAsset;
-  return {
-    ...asset,
-    kind: AssetKind.Object,
-    isMovable: true,
-    isOpaque: false,
-    triggerEffectId: undefined,
-  };
-};
+const createMockObjectAsset = (id: string): Asset => createMockAsset(id, AssetKind.Object);
 
 const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
   id,
@@ -97,6 +84,7 @@ describe('TokenPlacement', () => {
       cellSize: { width: 50, height: 50 },
       offset: { left: 0, top: 0 },
       snap: true,
+    scale: 1,
     },
     stage: {
       background: null,
@@ -108,7 +96,6 @@ describe('TokenPlacement', () => {
     elevation: 0,
     assets: [],
     walls: [],
-          openings: [],
     regions: [],
     sources: [],
   };
@@ -163,7 +150,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -183,7 +170,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -230,7 +217,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -278,7 +265,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={draggedAsset}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -332,7 +319,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -354,7 +341,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -365,10 +352,8 @@ describe('TokenPlacement', () => {
   it('handles assets without any images', () => {
     const assetNoImage: Asset = {
       ...createMockAsset('asset-no-image'),
-      topDown: undefined,
-      portrait: undefined,
-      miniature: undefined,
-      photo: undefined,
+      tokens: [],
+      portrait: null,
     };
 
     const placedAsset = createMockPlacedAsset('placed-1', 'asset-no-image');
@@ -383,7 +368,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -391,12 +376,10 @@ describe('TokenPlacement', () => {
     expect(mockOnAssetPlaced).not.toHaveBeenCalled();
   });
 
-  it('uses topDown image as primary for rendering', () => {
+  it('uses tokens array as primary for rendering', () => {
     const assetWithMultipleImages: Asset = {
       ...createMockAsset('asset-multi'),
-      topDown: mockMediaResource({ id: 'topdown-1' }),
-      miniature: mockMediaResource({ id: 'miniature-1' }),
-      photo: mockMediaResource({ id: 'photo-1' }),
+      tokens: [mockMediaResource({ id: 'token-1' }), mockMediaResource({ id: 'token-2' })],
       portrait: mockMediaResource({ id: 'portrait-1' }),
     };
 
@@ -412,7 +395,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -436,7 +419,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -463,7 +446,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -498,7 +481,7 @@ describe('TokenPlacement', () => {
         gridConfig={mockGridConfig}
         draggedAsset={null}
         onDragComplete={mockOnDragComplete}
-        snapMode='grid'
+        snapMode={SnapMode.Full}
         encounter={mockEncounter}
       />,
     );
@@ -529,7 +512,7 @@ describe('TokenPlacement', () => {
           gridConfig={mockGridConfig}
           draggedAsset={null}
           onDragComplete={mockOnDragComplete}
-          snapMode='grid'
+          snapMode={SnapMode.Full}
           encounter={mockEncounter}
         />,
       );
@@ -557,7 +540,7 @@ describe('TokenPlacement', () => {
           gridConfig={mockGridConfig}
           draggedAsset={null}
           onDragComplete={mockOnDragComplete}
-          snapMode='grid'
+          snapMode={SnapMode.Full}
           encounter={mockEncounter}
         />,
       );

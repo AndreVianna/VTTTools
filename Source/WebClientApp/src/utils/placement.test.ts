@@ -15,6 +15,7 @@ const defaultGrid: GridConfig = {
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,
+  scale: 1,
 };
 
 describe('getPlacementBehavior', () => {
@@ -31,7 +32,6 @@ describe('getPlacementBehavior', () => {
     const namedSize: NamedSize = {
       width: 2,
       height: 2,
-      isSquare: true,
     };
 
     const behavior = getPlacementBehavior(AssetKind.Object, {
@@ -47,14 +47,13 @@ describe('getPlacementBehavior', () => {
     expect(behavior.zIndexRange).toEqual([10, 40]);
   });
 
-  it('configures Monster asset behavior based on properties', () => {
+  it('configures Creature asset behavior based on properties', () => {
     const namedSize: NamedSize = {
       width: 1,
       height: 1,
-      isSquare: true,
     };
 
-    const behavior = getPlacementBehavior(AssetKind.Monster, undefined, {
+    const behavior = getPlacementBehavior(AssetKind.Creature, undefined, {
       size: namedSize,
     });
 
@@ -70,8 +69,7 @@ describe('getPlacementBehavior', () => {
   it('returns behavior with movable object properties', () => {
     const namedSize: NamedSize = {
       width: 1,
-      height: 1,
-      isSquare: false,
+      height: 2,
     };
 
     const behavior = getPlacementBehavior(AssetKind.Object, {
@@ -92,7 +90,6 @@ describe('calculateAssetSize', () => {
     const namedSize: NamedSize = {
       width: 2,
       height: 3,
-      isSquare: false,
     };
 
     const size = calculateAssetSize(namedSize, defaultGrid);
@@ -125,7 +122,6 @@ describe('calculateAssetSize', () => {
     const namedSize: NamedSize = {
       width: 1,
       height: 1,
-      isSquare: true,
     };
 
     const customGrid: GridConfig = {
@@ -141,11 +137,10 @@ describe('calculateAssetSize', () => {
     });
   });
 
-  it('handles fractional sizes for tiny monsters', () => {
+  it('handles fractional sizes for tiny creatures', () => {
     const namedSize: NamedSize = {
       width: 0.5,
       height: 0.5,
-      isSquare: true,
     };
 
     const size = calculateAssetSize(namedSize, defaultGrid);

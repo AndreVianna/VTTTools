@@ -354,7 +354,12 @@ export interface CreateEncounterRequest {
 export interface UpdateEncounterRequest {
   name?: string;
   description?: string;
-  backgroundId?: string;
+  isPublished?: boolean;
+  stage?: {
+    backgroundId?: string | null;
+    zoomLevel?: number;
+    panning?: { x: number; y: number };
+  };
   grid?: {
     type: number;
     cellSize: { width: number; height: number };
@@ -377,6 +382,7 @@ export interface Encounter {
     cellSize: { width: number; height: number };
     offset: { left: number; top: number };
     snap: boolean;
+    scale: number;
   };
   stage: {
     background: MediaResource | null;
@@ -385,7 +391,6 @@ export interface Encounter {
   };
   assets: EncounterAsset[];
   walls: EncounterWall[];
-  openings: EncounterOpening[];
   regions: EncounterRegion[];
   sources: EncounterSource[];
 }
@@ -614,21 +619,36 @@ export interface Pole {
   h: number; // Height in feet
 }
 
-export enum WallVisibility {
-  Normal = 0,
+
+export enum SegmentType {
+  Wall = 0,
   Fence = 1,
-  Invisible = 2,
-  Veil = 3,
+  Door = 2,
+  Passage = 3,
+  Window = 4,
+  Opening = 5,
+}
+
+export enum SegmentState {
+  Open = 0,
+  Closed = 1,
+  Locked = 2,
+  Visible = 2, // alias for Locked, valid only for barriers
+  Secret = 3,
+}
+
+export interface EncounterWallSegment {
+  index: number;
+  startPole: Pole;
+  endPole: Pole;
+  type: SegmentType;
+  state: SegmentState;
 }
 
 export interface EncounterWall {
-  encounterId: string;
   index: number;
   name: string;
-  poles: Pole[];
-  visibility: WallVisibility;
-  isClosed: boolean;
-  color?: string | undefined;
+  segments: EncounterWallSegment[];
 }
 
 export interface PlacedWall extends EncounterWall {
@@ -651,7 +671,6 @@ export interface PlacedRegion extends EncounterRegion {
 }
 
 export interface EncounterSource {
-  encounterId: string;
   index: number;
   name: string;
   type: string;
@@ -659,56 +678,12 @@ export interface EncounterSource {
   isDirectional: boolean;
   direction: number;
   spread: number;
-  range?: number;
-  intensity?: number;
-  color?: string;
+  range: number;
+  intensity: number;
   hasGradient: boolean;
+  color: string;
 }
 
 export interface PlacedSource extends EncounterSource {
-  id: string;
-}
-
-export enum OpeningVisibility {
-  Visible = 0,
-  Secret = 1,
-  Concealed = 2,
-}
-
-export enum OpeningState {
-  Open = 0,
-  Closed = 1,
-  Locked = 2,
-  Barred = 3,
-  Destroyed = 4,
-  Jammed = 5,
-}
-
-export enum OpeningOpacity {
-  Opaque = 0,
-  Translucent = 1,
-  Transparent = 2,
-  Ethereal = 3,
-}
-
-export interface EncounterOpening {
-  encounterId: string;
-  index: number;
-  name: string;
-  description?: string;
-  type: string;
-  wallIndex: number;
-  startPoleIndex: number;
-  endPoleIndex: number;
-  width: number;
-  height: number;
-  visibility: OpeningVisibility;
-  state: OpeningState;
-  opacity: OpeningOpacity;
-  material?: string;
-  color?: string;
-}
-
-export interface PlacedOpening extends EncounterOpening {
   id: string;
 }

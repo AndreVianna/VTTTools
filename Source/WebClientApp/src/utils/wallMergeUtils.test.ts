@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { EncounterWall, Point, Pole, WallVisibility } from '@/types/domain';
+import type { EncounterWall, Point, Pole } from '@/types/domain';
+import { SegmentState, SegmentType } from '@/types/domain';
 import * as wallCollisionUtils from './wallCollisionUtils';
 import {
   type CanMergeWallsParams,
@@ -23,16 +24,18 @@ function createPole(x: number, y: number, h: number = 10): Pole {
 function createWall(
   poles: Pole[],
   index: number,
-  isClosed: boolean = false,
   name: string = `Wall ${index}`,
 ): EncounterWall {
   return {
     index,
-    poles,
-    isClosed,
-    encounterId: 'test-encounter',
     name,
-    visibility: 0 as WallVisibility,
+    segments: poles.slice(0, -1).map((pole, i) => ({
+      index: i,
+      startPole: pole,
+      endPole: poles[i + 1]!,
+      type: SegmentType.Wall,
+      state: SegmentState.Closed,
+    })),
   };
 }
 

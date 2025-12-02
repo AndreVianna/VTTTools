@@ -3,7 +3,6 @@ import type { PlacedAsset } from '@/types/domain';
 export type InteractionScope =
   | 'regions'
   | 'walls'
-  | 'openings'
   | 'objects'
   | 'monsters'
   | 'characters'
@@ -31,7 +30,6 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
       return assetKind === 'Character';
     case 'regions':
     case 'walls':
-    case 'openings':
     case 'sources':
     case 'fogOfWar':
       return false;
@@ -45,7 +43,7 @@ export function isWallInScope(scope: InteractionScope | undefined): boolean {
 }
 
 export function isOpeningInScope(scope: InteractionScope | undefined): boolean {
-  return scope === 'openings';
+  return scope === 'walls';
 }
 
 export function isRegionInScope(scope: InteractionScope | undefined): boolean {

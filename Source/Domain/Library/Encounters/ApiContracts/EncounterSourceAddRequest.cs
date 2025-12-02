@@ -12,5 +12,4 @@ public record EncounterSourceAddRequest {
     public float Spread { get; init; }
     public bool HasGradient { get; init; }
     public float Intensity { get; init; }
-    public string? Color { get; init; }
 }

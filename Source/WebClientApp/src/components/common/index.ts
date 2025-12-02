@@ -7,5 +7,7 @@ export { EditableEncounterName } from './EditableEncounterName';
 export type { EditingBlockerProps } from './EditingBlocker';
 export { EditingBlocker } from './EditingBlocker';
 export { LoadingOverlay } from './LoadingOverlay';
+export type { PrecisionNumberInputProps } from './PrecisionNumberInput';
+export { PrecisionNumberInput } from './PrecisionNumberInput';
 export type { SaveStatus } from './SaveStatusIndicator';
 export { SaveStatusIndicator } from './SaveStatusIndicator';

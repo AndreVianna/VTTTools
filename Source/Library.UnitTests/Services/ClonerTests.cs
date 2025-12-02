@@ -55,7 +55,6 @@ public class ClonerTests {
                         Type = GridType.Square,
                         CellSize = new CellSize(50, 50),
                         Offset = new(0, 0),
-                        Snap = true,
                     },
                 },
             ],
@@ -112,7 +111,6 @@ public class ClonerTests {
                         Type = GridType.Square,
                         CellSize = new CellSize(50, 50),
                         Offset = new(0, 0),
-                        Snap = true,
                     },
                 },
             ],
@@ -152,7 +150,6 @@ public class ClonerTests {
                 Type = GridType.Square,
                 CellSize = new CellSize(50, 50),
                 Offset = new(0, 0),
-                Snap = true,
             },
             Assets = [
                 new() {

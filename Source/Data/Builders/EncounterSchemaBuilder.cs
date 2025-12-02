@@ -1,6 +1,6 @@
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using EncounterAsset = VttTools.Data.Library.Entities.EncounterAsset;
-using EncounterOpening = VttTools.Data.Library.Entities.EncounterOpening;
+using EncounterWallSegment = VttTools.Data.Library.Entities.EncounterWallSegment;
 using EncounterRegion = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSource = VttTools.Data.Library.Entities.EncounterSource;
 using EncounterWall = VttTools.Data.Library.Entities.EncounterWall;
@@ -19,8 +19,8 @@ internal static class EncounterSchemaBuilder {
             entity.Property(s => s.ZoomLevel).IsRequired().HasDefaultValue(1);
             entity.ComplexProperty(s => s.Panning, panningBuilder => {
                 panningBuilder.IsRequired();
-                panningBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0.0);
-                panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0.0);
+                panningBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0.0).HasColumnName("PanningX");
+                panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0.0).HasColumnName("PanningY");
             });
             entity.Property(e => e.Light).IsRequired().HasConversion<string>().HasDefaultValue(Light.Ambient);
             entity.Property(e => e.Weather).IsRequired().HasConversion<string>().HasDefaultValue(Weather.Clear);
@@ -33,17 +33,17 @@ internal static class EncounterSchemaBuilder {
                 .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
-                gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);
-                gridBuilder.Property(g => g.Snap).IsRequired().HasDefaultValue(false);
+                gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid).HasColumnName("GridType");
+                gridBuilder.Property(g => g.Scale).IsRequired().HasDefaultValue(5.0).HasColumnName("GridScale");
                 gridBuilder.ComplexProperty(s => s.Offset, offsetBuilder => {
                     offsetBuilder.IsRequired();
-                    offsetBuilder.Property(s => s.Left).IsRequired().HasDefaultValue(0.0);
-                    offsetBuilder.Property(s => s.Top).IsRequired().HasDefaultValue(0.0);
+                    offsetBuilder.Property(s => s.Left).IsRequired().HasDefaultValue(0.0).HasColumnName("GridOffsetLeft");
+                    offsetBuilder.Property(s => s.Top).IsRequired().HasDefaultValue(0.0).HasColumnName("GridOffsetTop");
                 });
                 gridBuilder.ComplexProperty(s => s.CellSize, cellSizeBuilder => {
                     cellSizeBuilder.IsRequired();
-                    cellSizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(64.0);
-                    cellSizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(64.0);
+                    cellSizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(64.0).HasColumnName("GridCellWidth");
+                    cellSizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(64.0).HasColumnName("GridCellHeight");
                 });
             });
         });
@@ -66,20 +66,20 @@ internal static class EncounterSchemaBuilder {
                   .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(ea => ea.Frame, frameBuilder => {
                 frameBuilder.IsRequired();
-                frameBuilder.Property(s => s.Shape).IsRequired().HasConversion<string>().HasDefaultValue(FrameShape.Square);
-                frameBuilder.Property(s => s.BorderThickness).IsRequired().HasDefaultValue(1);
-                frameBuilder.Property(s => s.BorderColor).IsRequired().HasDefaultValue("white");
-                frameBuilder.Property(s => s.Background).IsRequired().HasDefaultValue(string.Empty);
+                frameBuilder.Property(s => s.Shape).IsRequired().HasConversion<string>().HasDefaultValue(FrameShape.Square).HasColumnName("FrameShape");
+                frameBuilder.Property(s => s.BorderThickness).IsRequired().HasDefaultValue(1).HasColumnName("FrameBorderThickness");
+                frameBuilder.Property(s => s.BorderColor).IsRequired().HasDefaultValue("white").HasColumnName("FrameBorderColor");
+                frameBuilder.Property(s => s.Background).IsRequired().HasDefaultValue(string.Empty).HasColumnName("FrameBackground");
             });
             entity.ComplexProperty(ea => ea.Size, sizeBuilder => {
                 sizeBuilder.IsRequired();
-                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0);
-                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0);
+                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("Width");
+                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("Height");
             });
             entity.ComplexProperty(ea => ea.Position, positionBuilder => {
                 positionBuilder.IsRequired();
-                positionBuilder.Property(p => p.X).IsRequired().HasDefaultValue(0.0);
-                positionBuilder.Property(p => p.Y).IsRequired().HasDefaultValue(0.0);
+                positionBuilder.Property(p => p.X).IsRequired().HasDefaultValue(0.0).HasColumnName("X");
+                positionBuilder.Property(p => p.Y).IsRequired().HasDefaultValue(0.0).HasColumnName("Y");
             });
             entity.Property(ea => ea.Rotation).IsRequired().HasDefaultValue(0);
             entity.Property(ea => ea.Elevation).IsRequired().HasDefaultValue(0);
@@ -99,16 +99,6 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.Index).IsRequired();
 
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(WallVisibility.Normal);
-            entity.Property(e => e.IsClosed).IsRequired().HasDefaultValue(false);
-            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
-
-            entity.OwnsMany(e => e.Poles, poles => {
-                poles.ToJson();
-                poles.Property(p => p.X).IsRequired();
-                poles.Property(p => p.Y).IsRequired();
-                poles.Property(p => p.H).IsRequired();
-            });
 
             entity.HasOne(e => e.Encounter)
                 .WithMany(s => s.Walls)
@@ -118,33 +108,34 @@ internal static class EncounterSchemaBuilder {
             entity.HasIndex(e => e.EncounterId);
         });
 
-        builder.Entity<EncounterOpening>(entity => {
-            entity.ToTable("EncounterOpenings");
-            entity.HasKey(e => new { e.EncounterId, e.Index });
+        builder.Entity<EncounterWallSegment>(entity => {
+            entity.ToTable("EncounterWallSegments");
+            entity.HasKey(e => new { e.EncounterId, e.WallIndex, e.Index });
             entity.Property(e => e.EncounterId).IsRequired();
+            entity.Property(e => e.WallIndex).IsRequired();
             entity.Property(e => e.Index).IsRequired();
 
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Description).IsRequired(false).HasMaxLength(512);
-            entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
+            entity.ComplexProperty(e => e.StartPole, pole => {
+                pole.IsRequired();
+                pole.Property(p => p.X).IsRequired().HasColumnName("StartX");
+                pole.Property(p => p.Y).IsRequired().HasColumnName("StartY");
+                pole.Property(p => p.H).IsRequired().HasColumnName("StartH");
+            });
 
-            entity.Property(e => e.WallIndex).IsRequired();
-            entity.Property(e => e.StartPoleIndex).IsRequired();
-            entity.Property(e => e.EndPoleIndex).IsRequired();
+            entity.ComplexProperty(e => e.EndPole, pole => {
+                pole.IsRequired();
+                pole.Property(p => p.X).IsRequired().HasColumnName("EndX");
+                pole.Property(p => p.Y).IsRequired().HasColumnName("EndY");
+                pole.Property(p => p.H).IsRequired().HasColumnName("EndH");
+            });
 
-            entity.Property(e => e.Width).IsRequired().HasDefaultValue(0.0);
-            entity.Property(e => e.Height).IsRequired().HasDefaultValue(0.0);
+            entity.Property(e => e.Type).IsRequired().HasConversion<string>().HasDefaultValue(SegmentType.Wall);
+            entity.Property(e => e.State).IsRequired().HasConversion<string>().HasDefaultValue(SegmentState.Open);
 
-            entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(OpeningVisibility.Visible);
-            entity.Property(e => e.State).IsRequired().HasDefaultValue(OpeningState.Closed);
-            entity.Property(e => e.Opacity).IsRequired().HasDefaultValue(OpeningOpacity.Opaque);
-
-            entity.Property(e => e.Material).IsRequired(false).HasMaxLength(32);
-            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(16);
-
-            entity.HasOne(e => e.Encounter)
-                .WithMany(s => s.Openings)
-                .HasForeignKey(e => e.EncounterId)
+            entity.HasOne(e => e.Wall)
+                .WithMany(s => s.Segments)
+                .HasForeignKey(e => new { e.EncounterId, e.WallIndex })
+                .HasPrincipalKey(e => new { e.EncounterId, e.Index })
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => e.EncounterId);
@@ -158,9 +149,7 @@ internal static class EncounterSchemaBuilder {
 
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
-            entity.Property(e => e.Value).IsRequired(false);
-            entity.Property(e => e.Label).IsRequired(false).HasMaxLength(32);
-            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
+            entity.Property(e => e.Value).IsRequired();
 
             entity.OwnsMany(e => e.Vertices, vertices => {
                 vertices.ToJson();
@@ -189,12 +178,11 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.Spread).IsRequired().HasDefaultValue(0.0);
             entity.Property(e => e.Intensity).IsRequired().HasDefaultValue(100.0);
             entity.Property(e => e.HasGradient).IsRequired();
-            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
 
             entity.ComplexProperty(e => e.Position, position => {
                 position.IsRequired();
-                position.Property(p => p.X).IsRequired().HasDefaultValue(0.0);
-                position.Property(p => p.Y).IsRequired().HasDefaultValue(0.0);
+                position.Property(p => p.X).IsRequired().HasDefaultValue(0.0).HasColumnName("X");
+                position.Property(p => p.Y).IsRequired().HasDefaultValue(0.0).HasColumnName("Y");
             });
 
             entity.HasOne(e => e.Encounter)

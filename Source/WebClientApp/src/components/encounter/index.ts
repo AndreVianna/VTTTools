@@ -4,7 +4,6 @@ export { AssetContextMenu } from './AssetContextMenu';
 export type { BackgroundLayerProps } from './BackgroundLayer';
 export { BackgroundLayer } from './BackgroundLayer';
 export type {
-  OpeningDrawingToolProps,
   RegionBucketFillToolProps,
   RegionDrawingToolProps,
   RegionPreviewProps,
@@ -16,7 +15,6 @@ export type {
 } from './drawing';
 // Drawing components
 export {
-  OpeningDrawingTool,
   RegionBucketFillTool,
   RegionDrawingTool,
   RegionPreview,
@@ -76,7 +74,6 @@ export type { RotationHandleProps } from './RotationHandle';
 export { RotationHandle } from './RotationHandle';
 export type {
   FogOfWarRendererProps,
-  OpeningRendererProps,
   RegionLabelDisplayProps,
   RegionRendererProps,
   SourceRangeDisplayProps,
@@ -86,7 +83,6 @@ export type {
 // Rendering components
 export {
   FogOfWarRenderer,
-  OpeningRenderer,
   RegionLabelDisplay,
   RegionRenderer,
   SourceRangeDisplay,
@@ -106,4 +102,5 @@ export { TokenPlacement } from './TokenPlacement';
 export type { LayerVisibilityType, TopToolBarProps } from './TopToolBar';
 export { TopToolBar } from './TopToolBar';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
+export { RegionContextMenu } from './RegionContextMenu';
 export { WallContextMenu } from './WallContextMenu';

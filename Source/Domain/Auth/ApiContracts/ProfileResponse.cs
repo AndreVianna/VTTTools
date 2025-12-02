@@ -1,3 +1,5 @@
+using VttTools.Identity.Model;
+
 namespace VttTools.Auth.ApiContracts;
 
 public record ProfileResponse : Response {
@@ -9,6 +11,7 @@ public record ProfileResponse : Response {
     public string? PhoneNumber { get; init; }
     public Guid? AvatarId { get; init; }
     public string? AvatarUrl { get; init; }
+    public UnitSystem PreferredUnitSystem { get; init; } = UnitSystem.Imperial;
     public bool Success { get; init; }
     public string? Message { get; init; }
 }

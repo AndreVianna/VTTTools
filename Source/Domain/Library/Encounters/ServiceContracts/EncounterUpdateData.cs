@@ -25,7 +25,7 @@ public record EncounterUpdateData
         public Optional<GridType> Type { get; init; }
         public Optional<CellSize> CellSize { get; init; }
         public Optional<Offset> Offset { get; init; }
-        public Optional<bool> Snap { get; init; }
+        public Optional<double> Scale { get; init; }
     }
 
     public override Result Validate(IMap? context = null) {

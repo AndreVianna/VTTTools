@@ -8,13 +8,14 @@ const mockBaseAsset: Asset = {
   id: 'base-asset-1',
   ownerId: 'user-1',
   name: 'Test Asset',
-  kind: AssetKind.Object,
+  classification: { kind: AssetKind.Object, category: '', type: '', subtype: null },
   description: 'Test asset description',
   isPublished: false,
   isPublic: false,
   tokens: [],
-  portrait: undefined,
-  size: { width: 2, height: 2, isSquare: true },
+  portrait: null,
+  tokenSize: { width: 2, height: 2 },
+  statBlocks: {},
 };
 
 const mockAsset: PlacedAsset = {

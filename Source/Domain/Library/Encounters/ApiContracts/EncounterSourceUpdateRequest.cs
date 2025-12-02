@@ -12,6 +12,5 @@ public record EncounterSourceUpdateRequest {
     public Optional<float> Range { get; init; }
     public Optional<float> Spread { get; init; }
     public Optional<float> Intensity { get; init; }
-    public Optional<string?> Color { get; init; }
     public Optional<bool> HasGradient { get; init; }
 }

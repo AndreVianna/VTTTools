@@ -78,6 +78,7 @@ export const getDefaultGrid = (): GridConfig => ({
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,
+  scale: 1,
 });
 
 export const getDefaultStage = (): StageConfig => ({

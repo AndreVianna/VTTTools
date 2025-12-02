@@ -221,11 +221,11 @@ public class ConfigurationServiceTests {
         jwtEntry.Should().NotBeNull();
         jwtEntry!.Category.Should().Be("Security");
 
-        var connectionEntry = result.Entries.FirstOrDefault(e => e.Key == "ConnectionStrings:Default");
+        var connectionEntry = result.Entries.FirstOrDefault(e => e.Key == "ConnectionStrings:Open");
         connectionEntry.Should().NotBeNull();
         connectionEntry!.Category.Should().Be("Storage");
 
-        var logEntry = result.Entries.FirstOrDefault(e => e.Key == "Logging:LogLevel:Default");
+        var logEntry = result.Entries.FirstOrDefault(e => e.Key == "Logging:LogLevel:Open");
         logEntry.Should().NotBeNull();
         logEntry!.Category.Should().Be("Logging");
 
@@ -243,8 +243,8 @@ public class ConfigurationServiceTests {
             { "TestKey", "TestValue" },
             { "TestPassword", "SecretValue123" },
             { "JwtSecret", "MySuperSecretJwtKey" },
-            { "ConnectionStrings:Default", "Server=localhost;Database=test" },
-            { "Logging:LogLevel:Default", "Information" },
+            { "ConnectionStrings:Open", "Server=localhost;Database=test" },
+            { "Logging:LogLevel:Open", "Information" },
             { "ApiKey", "12345" },
             { "Azure:BlobStorage:ConnectionString", "DefaultEndpointsProtocol=https" }
         };

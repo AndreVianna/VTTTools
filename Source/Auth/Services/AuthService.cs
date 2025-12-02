@@ -373,5 +373,6 @@ public class AuthService(
             DisplayName = user.DisplayName,
             IsAdministrator = user.IsAdministrator,
             TwoFactorEnabled = user.TwoFactorEnabled,
+            PreferredUnitSystem = user.UnitSystem,
         };
 }

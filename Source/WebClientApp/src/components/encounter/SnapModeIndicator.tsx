@@ -2,7 +2,7 @@ import { Box, useTheme } from '@mui/material';
 import type React from 'react';
 import { useMemo } from 'react';
 import { Z_INDEX } from '@/theme/zIndex';
-import { SnapMode } from '@/utils/structureSnapping';
+import { SnapMode } from '@/utils/snapping';
 
 /**
  * SnapModeIndicator component
@@ -44,7 +44,7 @@ export const SnapModeIndicator: React.FC<SnapModeIndicatorProps> = ({ snapMode, 
     theme.palette.warning.contrastText,
   ]);
 
-  if (!visible || snapMode === SnapMode.HalfSnap) {
+  if (!visible || snapMode === SnapMode.Half) {
     return null;
   }
 

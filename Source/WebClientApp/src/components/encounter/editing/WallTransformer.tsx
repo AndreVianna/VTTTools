@@ -13,14 +13,13 @@ import {
 } from '@/types/wallUndoActions';
 import { getCrosshairPlusCursor, getGrabbingCursor, getMoveCursor, getPointerCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
-import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { SnapMode, snapToNearest } from '@/utils/structureSnapping';
+import { SnapMode, createDragBoundFunc, getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
 
 type SelectionMode = 'pole' | 'line' | 'marquee';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
-const LINE_HIT_AREA_WIDTH = 100;
+const LINE_HIT_AREA_WIDTH = 16;
 
 /**
  * Projects a point onto a line segment (not infinite line)
@@ -91,6 +90,7 @@ export interface WallTransformerProps {
   poles: Pole[];
   isClosed?: boolean;
   onPolesChange?: (poles: Pole[], isClosed?: boolean) => void;
+  onPolesPreview?: (poles: Pole[]) => void;
   gridConfig?: GridConfig | undefined;
   snapEnabled?: boolean | undefined;
   snapMode?: SnapMode | undefined;
@@ -102,12 +102,15 @@ export interface WallTransformerProps {
   onWallBreak?: (breakData: WallBreakData) => void | Promise<void>;
   enableBackgroundRect?: boolean | undefined;
   wallTransaction?: ReturnType<typeof useWallTransaction> | undefined;
+  onPoleInserted?: (insertedAtIndex: number) => void;
+  onPoleDeleted?: (deletedIndices: number[]) => void;
 }
 
 export const WallTransformer: React.FC<WallTransformerProps> = ({
   poles,
   isClosed = false,
   onPolesChange,
+  onPolesPreview,
   gridConfig,
   snapEnabled = true,
   snapMode: externalSnapMode,
@@ -118,6 +121,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   onWallBreak,
   enableBackgroundRect = true,
   wallTransaction,
+  onPoleInserted,
+  onPoleDeleted,
 }) => {
   const theme = useTheme();
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
@@ -139,7 +144,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     pole2: { x: number; y: number; h: number };
   } | null>(null);
   const circleRefs = useRef<Map<number, Konva.Group>>(new Map());
-  const currentSnapModeRef = useRef<SnapMode>(externalSnapMode ?? SnapMode.HalfSnap);
+  const currentSnapModeRef = useRef<SnapMode>(externalSnapMode ?? SnapMode.Half);
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   const [insertPreviewPos, setInsertPreviewPos] = useState<{
     x: number;
@@ -219,8 +224,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   }, [selectedPoles, selectedLines, poles, isClosed, onPolesChange, onWallBreak]);
 
   useEffect(() => {
-    setPreviewPoles(poles);
-  }, [poles]);
+    // Don't reset preview poles during drag - the drag handlers manage previewPoles
+    if (draggingIndex === null && draggingLine === null) {
+      setPreviewPoles(poles);
+    }
+  }, [poles, draggingIndex, draggingLine]);
 
   useEffect(() => {
     const currentIndices = new Set(poles.map((_, index) => index));
@@ -242,11 +250,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const updateSnapMode = (e: KeyboardEvent | MouseEvent) => {
       if ('altKey' in e) {
         if (e.altKey && e.ctrlKey) {
-          currentSnapModeRef.current = SnapMode.QuarterSnap;
+          currentSnapModeRef.current = SnapMode.Quarter;
         } else if (e.altKey) {
           currentSnapModeRef.current = SnapMode.Free;
         } else {
-          currentSnapModeRef.current = externalSnapMode ?? SnapMode.HalfSnap;
+          currentSnapModeRef.current = externalSnapMode ?? SnapMode.Half;
         }
       }
     };
@@ -295,11 +303,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     });
                     return currentPoles;
                   },
-                  () => isClosed,
                 );
                 wallTransaction.pushLocalAction(action);
               }
 
+              onPoleDeleted?.(indicesToDelete);
               onPolesChange?.(newPoles, isClosed);
               setSelectedPoles(new Set());
               setSelectedLines(new Set());
@@ -326,11 +334,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     });
                     return currentPoles;
                   },
-                  () => isClosed,
                 );
                 wallTransaction.pushLocalAction(action);
               }
 
+              onPoleDeleted?.(indicesToDeleteArray);
               onPolesChange?.(newPoles, isClosed);
               setSelectedPoles(new Set());
               setSelectedLines(new Set());
@@ -415,6 +423,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     }
 
     setPreviewPoles(newPoles);
+    onPolesPreview?.(newPoles);
   };
 
   const handleDragEnd = (index: number, e: Konva.KonvaEventObject<DragEvent>) => {
@@ -468,7 +477,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             });
             return currentPoles;
           },
-          () => isClosed,
         );
         wallTransaction.pushLocalAction(action);
       }
@@ -492,7 +500,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             });
             return currentPoles;
           },
-          () => isClosed,
         );
         wallTransaction.pushLocalAction(action);
       }
@@ -585,20 +592,16 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
           // Handle line dragging - must be at Group level to track mouse everywhere
           if (draggingLine !== null && lineDragStartRef.current) {
-            const scale = stage.scaleX();
-            const worldPos = {
-              x: (pointerPos.x - stage.x()) / scale,
-              y: (pointerPos.y - stage.y()) / scale,
-            };
+            const worldPos = screenToWorld(pointerPos, stage);
 
             const currentSnapMode = e.evt
               ? getSnapModeFromEvent(e.evt, externalSnapMode)
-              : (externalSnapMode ?? SnapMode.HalfSnap);
+              : (externalSnapMode ?? SnapMode.Half);
 
             // Snap the current mouse position
             let snappedWorldPos = worldPos;
             if (snapEnabled && gridConfig) {
-              snappedWorldPos = snapToNearest(worldPos, gridConfig, currentSnapMode, 50);
+              snappedWorldPos = snap(worldPos, gridConfig, currentSnapMode);
             }
 
             // Calculate delta from start position using snapped mouse position
@@ -626,6 +629,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 h: pole2.h,
               };
               setPreviewPoles(newPoles);
+              onPolesPreview?.(newPoles);
             }
           }
         }}
@@ -636,18 +640,14 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             if (stage) {
               const pointerPos = stage.getPointerPosition();
               if (pointerPos) {
-                const scale = stage.scaleX();
-                const worldPos = {
-                  x: (pointerPos.x - stage.x()) / scale,
-                  y: (pointerPos.y - stage.y()) / scale,
-                };
+                const worldPos = screenToWorld(pointerPos, stage);
 
                 const deltaX = worldPos.x - lineDragStartRef.current.mouseX;
                 const deltaY = worldPos.y - lineDragStartRef.current.mouseY;
 
                 const currentSnapMode = e.evt
                   ? getSnapModeFromEvent(e.evt, externalSnapMode)
-                  : (externalSnapMode ?? SnapMode.HalfSnap);
+                  : (externalSnapMode ?? SnapMode.Half);
 
                 let newPole1X = lineDragStartRef.current.pole1.x + deltaX;
                 let newPole1Y = lineDragStartRef.current.pole1.y + deltaY;
@@ -656,7 +656,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
                 // Apply snapping to first pole and calculate actual delta
                 if (snapEnabled && gridConfig) {
-                  const snapped1 = snapToNearest({ x: newPole1X, y: newPole1Y }, gridConfig, currentSnapMode, 50);
+                  const snapped1 = snap({ x: newPole1X, y: newPole1Y }, gridConfig, currentSnapMode);
                   const actualDeltaX = snapped1.x - lineDragStartRef.current.pole1.x;
                   const actualDeltaY = snapped1.y - lineDragStartRef.current.pole1.y;
 
@@ -715,7 +715,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                       });
                       return currentPoles;
                     },
-                    () => isClosed,
                   );
                   wallTransaction.pushLocalAction(action);
                 }
@@ -793,19 +792,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     if (stage) {
                       const pointerPos = stage.getPointerPosition();
                       if (pointerPos) {
-                        const scale = stage.scaleX();
-                        let worldPos = {
-                          x: (pointerPos.x - stage.x()) / scale,
-                          y: (pointerPos.y - stage.y()) / scale,
-                        };
+                        let worldPos = screenToWorld(pointerPos, stage);
 
                         const currentSnapMode = e.evt
                           ? getSnapModeFromEvent(e.evt, externalSnapMode)
-                          : (externalSnapMode ?? SnapMode.HalfSnap);
+                          : (externalSnapMode ?? SnapMode.Half);
 
                         // Snap the starting mouse position
                         if (snapEnabled && gridConfig) {
-                          worldPos = snapToNearest(worldPos, gridConfig, currentSnapMode, 50);
+                          worldPos = snap(worldPos, gridConfig, currentSnapMode);
                         }
 
                         setDraggingLine(index);
@@ -838,18 +833,14 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     const pointerPos = stage.getPointerPosition();
                     if (!pointerPos) return;
 
-                    const scale = stage.scaleX();
-                    const worldPos = {
-                      x: (pointerPos.x - stage.x()) / scale,
-                      y: (pointerPos.y - stage.y()) / scale,
-                    };
+                    const worldPos = screenToWorld(pointerPos, stage);
 
                     const projected = nextPole ? projectPointToLineSegment(worldPos, pole, nextPole) : worldPos;
 
                     let insertPos = projected;
                     if (snapEnabled && gridConfig) {
                       const snapMode = getSnapModeFromEvent(e.evt);
-                      insertPos = snapToNearest(projected, gridConfig, snapMode);
+                      insertPos = snap(projected, gridConfig, snapMode);
                     }
 
                     const insertedPole = {
@@ -874,11 +865,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                           });
                           return currentPoles;
                         },
-                        () => isClosed,
                       );
                       wallTransaction.pushLocalAction(action);
                     }
 
+                    onPoleInserted?.(index + 1);
                     onPolesChange?.(newPoles, isClosed);
 
                     setSelectedPoles(new Set([index + 1]));
@@ -921,11 +912,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     const pointerPos = stage.getPointerPosition();
                     if (!pointerPos) return;
 
-                    const scale = stage.scaleX();
-                    const worldPos = {
-                      x: (pointerPos.x - stage.x()) / scale,
-                      y: (pointerPos.y - stage.y()) / scale,
-                    };
+                    const worldPos = screenToWorld(pointerPos, stage);
 
                     // Project onto line segment
                     const projected = nextPole ? projectPointToLineSegment(worldPos, pole, nextPole) : worldPos;
@@ -934,7 +921,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     let finalPos = projected;
                     if (snapEnabled && gridConfig) {
                       const currentSnapMode = getSnapModeFromEvent(e.evt, externalSnapMode);
-                      finalPos = snapToNearest(projected, gridConfig, currentSnapMode, 50);
+                      finalPos = snap(projected, gridConfig, currentSnapMode);
                     }
 
                     setInsertPreviewPos(finalPos);
@@ -974,13 +961,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 circleRefs.current.delete(index);
               }
             },
-            dragBoundFunc: (pos: { x: number; y: number }) => {
-              // Apply snapping during drag using the tracked snap mode
-              if (snapEnabled && gridConfig && currentSnapModeRef.current !== SnapMode.Free) {
-                return snapToNearest(pos, gridConfig, currentSnapModeRef.current, 50);
-              }
-              return pos;
-            },
+            dragBoundFunc: createDragBoundFunc(
+              gridConfig!,
+              () => currentSnapModeRef.current,
+              () => snapEnabled && gridConfig !== undefined,
+            ),
             onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
               handleDragStart(index);
               const container = e.target.getStage()?.container();
@@ -1050,14 +1035,16 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             },
           };
 
-          // Use pole position from poles array - Konva controls position during drag via dragBoundFunc
-          groupProps.x = pole.x;
-          groupProps.y = pole.y;
+          // Only set position when not dragging this pole - Konva manages position during drag
+          if (draggingIndex !== index) {
+            groupProps.x = pole.x;
+            groupProps.y = pole.y;
+          }
 
           return (
             <Group key={`pole-group-${index}`} {...groupProps}>
               {/* Large invisible circle - captures all events */}
-              <Circle x={0} y={0} radius={25} fill='transparent' />
+              <Circle x={0} y={0} radius={8} fill='transparent' />
               {/* Small visible circle - visual representation only */}
               <Circle
                 x={0}
@@ -1097,13 +1084,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
             return (
               <React.Fragment key='closing-segment'>
-                {/* Visible closing line - shows selection state, dashed to indicate first/last */}
                 <Line
                   points={[lastPole.x, lastPole.y, firstPole.x, firstPole.y]}
                   stroke={isLineSelected ? theme.palette.error.main : theme.palette.primary.main}
                   strokeWidth={3}
-                  dash={[8, 4]}
-                  dashEnabled={true}
                   perfectDrawEnabled={false}
                   listening={false}
                 />

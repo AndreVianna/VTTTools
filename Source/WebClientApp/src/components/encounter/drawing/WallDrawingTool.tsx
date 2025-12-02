@@ -4,13 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useWallTransaction } from '@/hooks/useWallTransaction';
 import { useGetEncounterQuery } from '@/services/encounterApi';
-import type { Point, Pole } from '@/types/domain';
+import type { EncounterWallSegment, Point, Pole } from '@/types/domain';
 import { createPlacePoleAction } from '@/types/wallUndoActions';
 import type { GridConfig } from '@/utils/gridCalculator';
-import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { snapToNearest } from '@/utils/structureSnapping';
-import { decomposeSelfIntersectingPath } from '@/utils/wallPlanarUtils';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
+import { getSnapModeFromEvent, snap, screenToWorld } from '@/utils/snapping';
+import { decomposeSelfIntersectingPath } from '@/utils/wallPlanarUtils';
 
 import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
@@ -46,11 +45,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
   const { data: encounter } = useGetEncounterQuery(encounterId);
   const wall = encounter?.walls?.find((w) => w.index === wallIndex);
 
-  // Get isClosed and visibility from the transaction (user's selection) since the wall might not exist yet
-  const activeSegments = wallTransaction.getActiveSegments();
-  const transactionIsClosed = activeSegments[0]?.isClosed ?? wall?.isClosed ?? false;
-  const transactionVisibility = activeSegments[0]?.visibility ?? wall?.visibility;
-
   useEffect(() => {
     return () => {
       if (stageContainerRef.current) {
@@ -67,38 +61,55 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     const currentSegment = activeSegments[0];
 
     const segmentName = wall?.name || currentSegment?.name || '';
-    const segmentColor = wall?.color || currentSegment?.color;
-    const segmentVisibility = wall?.visibility ?? currentSegment?.visibility ?? 0;
-    const userSelectedIsClosed = currentSegment?.isClosed ?? wall?.isClosed ?? false;
 
     const TOLERANCE = 5;
     const polePoints = poles.map((p) => ({ x: p.x, y: p.y }));
     const { closedWalls, openSegments } = decomposeSelfIntersectingPath(polePoints, TOLERANCE);
 
-    // If decomposition found self-intersecting segments, use those
+    const createSegmentsFromPoles = (poleList: Point[], defaultSegmentType: number = 0): EncounterWallSegment[] => {
+      const segments: EncounterWallSegment[] = [];
+      for (let i = 0; i < poleList.length - 1; i++) {
+        const startPole = poleList[i];
+        const endPole = poleList[i + 1];
+        if (!startPole || !endPole) continue;
+        segments.push({
+          index: i,
+          startPole: { x: startPole.x, y: startPole.y, h: defaultHeight },
+          endPole: { x: endPole.x, y: endPole.y, h: defaultHeight },
+          type: defaultSegmentType,
+          state: 1,
+        });
+      }
+      return segments;
+    };
+
     if (closedWalls.length > 0 || openSegments.length > 1) {
       const allSegments = [
-        ...closedWalls.map((wallPoles) => ({
-          tempId: -1,
-          wallIndex: null as number | null,
-          name: segmentName,
-          poles: wallPoles.map((p) => ({ x: p.x, y: p.y, h: defaultHeight })),
-          isClosed: true,
-          visibility: segmentVisibility,
-          color: segmentColor,
-        })),
+        ...closedWalls.map((wallPoles) => {
+          const segments = createSegmentsFromPoles(wallPoles);
+          const lastPole = wallPoles[wallPoles.length - 1];
+          const firstPole = wallPoles[0];
+          if (lastPole && firstPole) {
+            segments.push({
+              index: segments.length,
+              startPole: { x: lastPole.x, y: lastPole.y, h: defaultHeight },
+              endPole: { x: firstPole.x, y: firstPole.y, h: defaultHeight },
+              type: 0,
+              state: 1,
+            });
+          }
+          return {
+            tempId: -1,
+            wallIndex: null as number | null,
+            name: segmentName,
+            segments,
+          };
+        }),
         ...openSegments.map((segmentPoles) => ({
           tempId: -1,
           wallIndex: null as number | null,
           name: segmentName,
-          poles: segmentPoles.map((p) => ({
-            x: p.x,
-            y: p.y,
-            h: defaultHeight,
-          })),
-          isClosed: false,
-          visibility: segmentVisibility,
-          color: segmentColor,
+          segments: createSegmentsFromPoles(segmentPoles),
         })),
       ];
 
@@ -107,15 +118,30 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       return;
     }
 
-    // No self-intersection - use user's isClosed selection
+    const segments = createSegmentsFromPoles(polePoints);
+
+    const firstPole = polePoints[0];
+    const lastPole = polePoints[polePoints.length - 1];
+    if (firstPole && lastPole) {
+      const distanceToClose = Math.sqrt(
+        Math.pow(lastPole.x - firstPole.x, 2) + Math.pow(lastPole.y - firstPole.y, 2)
+      );
+      if (distanceToClose < TOLERANCE) {
+        segments.push({
+          index: segments.length,
+          startPole: { x: lastPole.x, y: lastPole.y, h: defaultHeight },
+          endPole: { x: firstPole.x, y: firstPole.y, h: defaultHeight },
+          type: 0,
+          state: 1,
+        });
+      }
+    }
+
     const finalSegment = {
       tempId: -1,
       wallIndex: null as number | null,
       name: segmentName,
-      poles: poles.map((p) => ({ x: p.x, y: p.y, h: defaultHeight })),
-      isClosed: userSelectedIsClosed,
-      visibility: segmentVisibility,
-      color: segmentColor,
+      segments,
     };
 
     wallTransaction.setAllSegments([finalSegment]);
@@ -156,14 +182,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      const scale = stage.scaleX();
-      const stagePos = {
-        x: (pointer.x - stage.x()) / scale,
-        y: (pointer.y - stage.y()) / scale,
-      };
-
+      const worldPos = screenToWorld(pointer, stage);
       const snapMode = getSnapModeFromEvent(e.evt);
-      const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+      const snappedPos = snap(worldPos, gridConfig, snapMode);
       setPreviewPoint(snappedPos);
     },
     [gridConfig],
@@ -179,14 +200,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      const scale = stage.scaleX();
-      const stagePos = {
-        x: (pointer.x - stage.x()) / scale,
-        y: (pointer.y - stage.y()) / scale,
-      };
-
+      const worldPos = screenToWorld(pointer, stage);
       const snapMode = getSnapModeFromEvent(e.evt);
-      const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+      const snappedPos = snap(worldPos, gridConfig, snapMode);
       const newPole: Pole = {
         x: snappedPos.x,
         y: snappedPos.y,
@@ -213,7 +229,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
           });
           return currentPoles;
         },
-        () => false,
       );
       wallTransaction.pushLocalAction(action);
     },
@@ -270,9 +285,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       <WallPreview
         poles={poles}
         previewPoint={previewPoint}
-        wall={wall}
-        isClosed={transactionIsClosed}
-        visibility={transactionVisibility}
       />
 
       {previewPoint && <VertexMarker position={previewPoint} preview />}

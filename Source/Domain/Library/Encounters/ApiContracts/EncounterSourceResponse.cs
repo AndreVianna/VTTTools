@@ -11,6 +11,5 @@ public record EncounterSourceResponse {
     public float Spread { get; init; }
     public float Range { get; init; }
     public float Intensity { get; init; }
-    public string? Color { get; init; }
     public bool HasGradient { get; init; }
 }

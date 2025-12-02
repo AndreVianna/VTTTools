@@ -31,7 +31,12 @@ import { ConfirmDialog } from '@/components/common';
 import { useUpdateEncounterRegionMutation } from '@/services/encounterApi';
 import type { PlacedRegion } from '@/types/domain';
 import { getRegionColor, getRegionFillOpacity, sortRegions } from '@/utils/regionColorUtils';
-import { ILLUMINATION_VALUES, REGION_PRESETS, type RegionPreset, TERRAIN_VALUES } from './regionsPanelTypes';
+import {
+  getRegionDisplayLabel,
+  getValidValuesForType,
+  getDefaultValueForType,
+} from '@/utils/regionLabelUtils';
+import { REGION_PRESETS, type RegionPreset } from './regionsPanelTypes';
 
 export interface RegionsPanelProps {
   encounterId?: string;
@@ -39,8 +44,8 @@ export interface RegionsPanelProps {
   selectedRegionIndex?: number | null;
   placementMode?: 'polygon' | 'bucketFill' | null;
   onPresetSelect?: (preset: RegionPreset) => void;
-  onPlaceRegion?: (properties: { name: string; type: string; value?: number; label?: string }) => void;
-  onBucketFillRegion?: (properties: { name: string; type: string; value?: number; label?: string }) => void;
+  onPlaceRegion?: (properties: { name: string; type: string; value: number }) => void;
+  onBucketFillRegion?: (properties: { name: string; type: string; value: number }) => void;
   onRegionSelect?: (regionIndex: number) => void;
   onRegionDelete?: (regionIndex: number) => void;
   onEditVertices?: (regionIndex: number) => void;
@@ -75,7 +80,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     const [name, setName] = useState(() => getSuggestedRegionName(encounterRegions));
     const [regionType, setRegionType] = useState<string>('Elevation');
     const [value, setValue] = useState<number>(0);
-    const [label, setLabel] = useState<string>('Normal');
     const [selectedRegionType, setSelectedRegionType] = useState<string>('Elevation');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [regionToDelete, setRegionToDelete] = useState<number | null>(null);
@@ -83,7 +87,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
     const [editedTypes, setEditedTypes] = useState<Map<number, string>>(new Map());
     const [editedValues, setEditedValues] = useState<Map<number, number>>(new Map());
-    const [editedLabels, setEditedLabels] = useState<Map<number, string>>(new Map());
 
     const [updateEncounterRegion] = useUpdateEncounterRegionMutation();
 
@@ -140,55 +143,26 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     const handlePresetClick = (preset: RegionPreset) => {
       setRegionType(preset.type);
       setSelectedRegionType(preset.type);
-      if (preset.defaultValue !== undefined) {
-        setValue(preset.defaultValue);
-      }
-      if (preset.defaultLabel) {
-        setLabel(preset.defaultLabel);
-      }
+      setValue(preset.defaultValue);
       onPresetSelect?.(preset);
     };
 
     const handlePlaceRegion = () => {
-      const properties: {
-        name: string;
-        type: string;
-        value?: number;
-        label?: string;
-      } = {
+      onPlaceRegion?.({
         name,
         type: regionType,
-      };
-
-      if (regionType === 'Elevation') {
-        properties.value = value;
-      } else {
-        properties.label = label;
-      }
-
-      onPlaceRegion?.(properties);
+        value,
+      });
 
       setName(getSuggestedRegionName([...encounterRegions, { name } as PlacedRegion]));
     };
 
     const handleBucketFillRegion = () => {
-      const properties: {
-        name: string;
-        type: string;
-        value?: number;
-        label?: string;
-      } = {
+      onBucketFillRegion?.({
         name,
         type: regionType,
-      };
-
-      if (regionType === 'Elevation') {
-        properties.value = value;
-      } else {
-        properties.label = label;
-      }
-
-      onBucketFillRegion?.(properties);
+        value,
+      });
 
       setName(getSuggestedRegionName([...encounterRegions, { name } as PlacedRegion]));
     };
@@ -218,11 +192,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
             newMap.delete(regionIndex);
             return newMap;
           });
-          setEditedLabels((prevLabels) => {
-            const newMap = new Map(prevLabels);
-            newMap.delete(regionIndex);
-            return newMap;
-          });
         } else {
           newSet.add(regionIndex);
         }
@@ -236,7 +205,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         name?: string;
         type?: string;
         value?: number;
-        label?: string;
       },
     ) => {
       if (!encounterId) return;
@@ -318,29 +286,22 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
           />
         ) : (
           <FormControl size='small' fullWidth>
-            <InputLabel id='label-region-label' sx={compactStyles.inputLabel}>
-              Label
+            <InputLabel id='label-region-value' sx={compactStyles.inputLabel}>
+              Value
             </InputLabel>
             <Select
-              id='select-region-label'
-              labelId='label-region-label'
-              value={label}
-              label='Label'
-              onChange={(e) => setLabel(e.target.value)}
+              id='select-region-value'
+              labelId='label-region-value'
+              value={value}
+              label='Value'
+              onChange={(e) => setValue(Number(e.target.value))}
               sx={compactStyles.select}
             >
-              {regionType === 'Terrain' &&
-                TERRAIN_VALUES.map((val) => (
-                  <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                    {val}
-                  </MenuItem>
-                ))}
-              {regionType === 'Illumination' &&
-                ILLUMINATION_VALUES.map((val) => (
-                  <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                    {val}
-                  </MenuItem>
-                ))}
+              {getValidValuesForType(regionType).map(({ value: val, label: lbl }) => (
+                <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                  {lbl}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         )}
@@ -537,7 +498,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
                         <ListItemText
                           primary={encounterRegion.name}
                           primaryTypographyProps={{ fontSize: '10px' }}
-                          secondary={`${encounterRegion.type} - ${encounterRegion.label || encounterRegion.value || 'N/A'}`}
+                          secondary={`${encounterRegion.type} - ${getRegionDisplayLabel(encounterRegion)}`}
                           secondaryTypographyProps={{ fontSize: '8px' }}
                         />
                       )}
@@ -567,19 +528,13 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
                             const newType = e.target.value;
                             setEditedTypes((prev) => new Map(prev).set(encounterRegion.index, newType));
 
-                            const updates: {
-                              type: string;
-                              value?: number;
-                              label?: string;
-                            } = { type: newType };
+                            const newValue = getDefaultValueForType(newType);
+                            setEditedValues((prev) => new Map(prev).set(encounterRegion.index, newValue));
 
-                            if (newType === 'Elevation') {
-                              updates.value = 0;
-                            } else {
-                              updates.label = 'Normal';
-                            }
-
-                            handleRegionPropertyUpdate(encounterRegion.index, updates);
+                            handleRegionPropertyUpdate(encounterRegion.index, {
+                              type: newType,
+                              value: newValue,
+                            });
                           }}
                           onKeyDown={(e) => {
                             e.stopPropagation();
@@ -632,22 +587,18 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
                         />
                       ) : (
                         <FormControl size='small' fullWidth onClick={(e) => e.stopPropagation()}>
-                          <InputLabel id={`label-region-label-${encounterRegion.index}`} sx={compactStyles.inputLabel}>
-                            Label
+                          <InputLabel id={`label-region-value-${encounterRegion.index}`} sx={compactStyles.inputLabel}>
+                            Value
                           </InputLabel>
                           <Select
-                            labelId={`label-region-label-${encounterRegion.index}`}
-                            value={editedLabels.get(encounterRegion.index) ?? encounterRegion.label ?? 'Normal'}
-                            label='Label'
+                            labelId={`label-region-value-${encounterRegion.index}`}
+                            value={editedValues.get(encounterRegion.index) ?? encounterRegion.value ?? 0}
+                            label='Value'
                             onChange={(e) => {
-                              const newLabel = e.target.value;
-                              setEditedLabels((prev) => {
-                                const newMap = new Map(prev);
-                                newMap.set(encounterRegion.index, newLabel);
-                                return newMap;
-                              });
+                              const newValue = Number(e.target.value);
+                              setEditedValues((prev) => new Map(prev).set(encounterRegion.index, newValue));
                               handleRegionPropertyUpdate(encounterRegion.index, {
-                                label: newLabel,
+                                value: newValue,
                               });
                             }}
                             onKeyDown={(e) => {
@@ -658,18 +609,13 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
                             }}
                             sx={compactStyles.select}
                           >
-                            {(editedTypes.get(encounterRegion.index) ?? encounterRegion.type) === 'Terrain' &&
-                              TERRAIN_VALUES.map((val) => (
-                                <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                                  {val}
-                                </MenuItem>
-                              ))}
-                            {(editedTypes.get(encounterRegion.index) ?? encounterRegion.type) === 'Illumination' &&
-                              ILLUMINATION_VALUES.map((val) => (
-                                <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                                  {val}
-                                </MenuItem>
-                              ))}
+                            {getValidValuesForType(
+                              editedTypes.get(encounterRegion.index) ?? encounterRegion.type,
+                            ).map(({ value: val, label: lbl }) => (
+                              <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                                {lbl}
+                              </MenuItem>
+                            ))}
                           </Select>
                         </FormControl>
                       )}

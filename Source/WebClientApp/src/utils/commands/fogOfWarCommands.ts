@@ -23,8 +23,7 @@ export class CreateFogOfWarRegionCommand implements Command {
       name: region.name,
       type: region.type,
       vertices: region.vertices,
-      ...(region.value !== undefined && { value: region.value }),
-      ...(region.label !== undefined && { label: region.label }),
+      value: region.value ?? 2,
     };
     const created = await onAdd(encounterId, regionData);
     this.createdIndex = created.index;
@@ -44,8 +43,7 @@ export class CreateFogOfWarRegionCommand implements Command {
       name: region.name,
       type: region.type,
       vertices: region.vertices,
-      ...(region.value !== undefined && { value: region.value }),
-      ...(region.label !== undefined && { label: region.label }),
+      value: region.value ?? 2,
     };
     const created = await onAdd(encounterId, regionData);
     this.createdIndex = created.index;
@@ -82,8 +80,7 @@ export class DeleteFogOfWarRegionCommand implements Command {
       name: region.name,
       type: region.type,
       vertices: region.vertices,
-      ...(region.value !== undefined && { value: region.value }),
-      ...(region.label !== undefined && { label: region.label }),
+      value: region.value ?? 2,
     };
     const restoredRegion = await onAdd(encounterId, regionData);
     this.restoredIndex = restoredRegion.index;
@@ -129,8 +126,7 @@ export class RevealAllFogOfWarCommand implements Command {
         name: region.name,
         type: region.type,
         vertices: region.vertices,
-        ...(region.value !== undefined && { value: region.value }),
-        ...(region.label !== undefined && { label: region.label }),
+        value: region.value ?? 2,
       };
       const restoredRegion = await onAdd(encounterId, regionData);
       this.restoredIndices.push(restoredRegion.index);

@@ -3,7 +3,7 @@ import type { Context } from 'konva/lib/Context';
 import type React from 'react';
 import { useMemo } from 'react';
 import { Circle, Shape, Text } from 'react-konva';
-import { type EncounterSource, type EncounterWall, type Point, WallVisibility } from '@/types/domain';
+import { type EncounterSource, type EncounterWall, type Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { VertexMarker } from './VertexMarker';
@@ -32,12 +32,11 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({ centerPos, range, 
   const color = getSourceColor(source.type, theme);
 
   const opaqueWalls = useMemo(() => {
-    return walls.filter((w) => w.visibility !== WallVisibility.Invisible);
+    return walls;
   }, [walls]);
 
   const losPolygon = useMemo(() => {
     const tempSource: EncounterSource = {
-      encounterId: 'preview',
       index: -1,
       name: source.name,
       type: source.type,
@@ -48,7 +47,7 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({ centerPos, range, 
       range,
       intensity: source.intensity ?? 1.0,
       hasGradient: source.hasGradient,
-      ...(source.color && { color: source.color }),
+      color: source.color ?? '#ffff00',
     };
     return calculateLineOfSight(tempSource, range, opaqueWalls, gridConfig);
   }, [centerPos, range, opaqueWalls, gridConfig, source]);

@@ -156,7 +156,7 @@ export function useAssetBrowser() {
       }
 
       if (state.tagFilters.length > 0) {
-        filtered = filtered.filter((a) => {
+        filtered = filtered.filter((_a) => {
           return true;
         });
       }

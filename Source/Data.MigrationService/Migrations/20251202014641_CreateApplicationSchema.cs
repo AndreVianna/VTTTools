@@ -12,6 +12,13 @@ public partial class CreateApplicationSchema : Migration {
             type: "uniqueidentifier",
             nullable: true);
 
+        migrationBuilder.AddColumn<int>(
+            name: "UnitSystem",
+            table: "Users",
+            type: "int",
+            nullable: false,
+            defaultValue: 0);
+
         migrationBuilder.CreateTable(
             name: "AuditLogs",
             columns: table => new {
@@ -173,8 +180,8 @@ public partial class CreateApplicationSchema : Migration {
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 PortraitId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                TokenWidth = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
-                TokenHeight = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
+                Width = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
+                Height = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
                 OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
@@ -367,14 +374,14 @@ public partial class CreateApplicationSchema : Migration {
                 Weather = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Clear"),
                 Elevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
                 SoundId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                Grid_Snap = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                Grid_Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NoGrid"),
-                Grid_CellSize_Height = table.Column<double>(type: "float", nullable: false, defaultValue: 64.0),
-                Grid_CellSize_Width = table.Column<double>(type: "float", nullable: false, defaultValue: 64.0),
-                Grid_Offset_Left = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Grid_Offset_Top = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Panning_X = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Panning_Y = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0)
+                GridScale = table.Column<double>(type: "float", nullable: false, defaultValue: 5.0),
+                GridType = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NoGrid"),
+                GridCellHeight = table.Column<double>(type: "float", nullable: false, defaultValue: 64.0),
+                GridCellWidth = table.Column<double>(type: "float", nullable: false, defaultValue: 64.0),
+                GridOffsetLeft = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                GridOffsetTop = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                PanningX = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                PanningY = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0)
             },
             constraints: table => {
                 table.PrimaryKey("PK_Encounters", x => x.Id);
@@ -413,14 +420,14 @@ public partial class CreateApplicationSchema : Migration {
                 Elevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
                 ControlledBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 Notes = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
-                Frame_Background = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: ""),
-                Frame_BorderColor = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "white"),
-                Frame_BorderThickness = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                Frame_Shape = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Square"),
-                Position_X = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Position_Y = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Size_Height = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
-                Size_Width = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0)
+                FrameBackground = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: ""),
+                FrameBorderColor = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "white"),
+                FrameBorderThickness = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                FrameShape = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Square"),
+                X = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Height = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
+                Width = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0)
             },
             constraints: table => {
                 table.PrimaryKey("PK_EncounterAssets", x => new { x.EncounterId, x.Index });
@@ -445,44 +452,13 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
-            name: "EncounterOpenings",
-            columns: table => new {
-                EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false),
-                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
-                Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                WallIndex = table.Column<long>(type: "bigint", nullable: false),
-                StartPoleIndex = table.Column<long>(type: "bigint", nullable: false),
-                EndPoleIndex = table.Column<long>(type: "bigint", nullable: false),
-                Width = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Height = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Visibility = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                State = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                Opacity = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                Material = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
-                Color = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: true)
-            },
-            constraints: table => {
-                table.PrimaryKey("PK_EncounterOpenings", x => new { x.EncounterId, x.Index });
-                table.ForeignKey(
-                    name: "FK_EncounterOpenings_Encounters_EncounterId",
-                    column: x => x.EncounterId,
-                    principalTable: "Encounters",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-
-        migrationBuilder.CreateTable(
             name: "EncounterRegions",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Index = table.Column<long>(type: "bigint", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                Value = table.Column<int>(type: "int", nullable: true),
-                Label = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
-                Color = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
+                Value = table.Column<int>(type: "int", nullable: false),
                 Vertices = table.Column<string>(type: "nvarchar(max)", nullable: true)
             },
             constraints: table => {
@@ -508,9 +484,8 @@ public partial class CreateApplicationSchema : Migration {
                 Spread = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
                 HasGradient = table.Column<bool>(type: "bit", nullable: false),
                 Intensity = table.Column<float>(type: "real", nullable: false, defaultValue: 100f),
-                Color = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
-                Position_X = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Position_Y = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0)
+                X = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0)
             },
             constraints: table => {
                 table.PrimaryKey("PK_EncounterSources", x => new { x.EncounterId, x.Index });
@@ -527,11 +502,7 @@ public partial class CreateApplicationSchema : Migration {
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Index = table.Column<long>(type: "bigint", nullable: false),
-                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                Visibility = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                IsClosed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                Color = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
-                Poles = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
             },
             constraints: table => {
                 table.PrimaryKey("PK_EncounterWalls", x => new { x.EncounterId, x.Index });
@@ -543,12 +514,37 @@ public partial class CreateApplicationSchema : Migration {
                     onDelete: ReferentialAction.Cascade);
             });
 
+        migrationBuilder.CreateTable(
+            name: "EncounterWallSegments",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                WallIndex = table.Column<long>(type: "bigint", nullable: false),
+                Index = table.Column<long>(type: "bigint", nullable: false),
+                Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Wall"),
+                State = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Open"),
+                EndH = table.Column<double>(type: "float", nullable: false),
+                EndX = table.Column<double>(type: "float", nullable: false),
+                EndY = table.Column<double>(type: "float", nullable: false),
+                StartH = table.Column<double>(type: "float", nullable: false),
+                StartX = table.Column<double>(type: "float", nullable: false),
+                StartY = table.Column<double>(type: "float", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterWallSegments", x => new { x.EncounterId, x.WallIndex, x.Index });
+                table.ForeignKey(
+                    name: "FK_EncounterWallSegments_EncounterWalls_EncounterId_WallIndex",
+                    columns: x => new { x.EncounterId, x.WallIndex },
+                    principalTable: "EncounterWalls",
+                    principalColumns: ["EncounterId", "Index"],
+                    onDelete: ReferentialAction.Cascade);
+            });
+
         migrationBuilder.UpdateData(
             table: "Users",
             keyColumn: "Id",
             keyValue: new Guid("019639ea-c7de-7a01-8548-41edfccde206"),
-            column: "AvatarId",
-            value: null);
+            columns: ["AvatarId", "UnitSystem"],
+            values: [null, 0]);
 
         migrationBuilder.CreateIndex(
             name: "IX_Adventures_BackgroundId",
@@ -634,11 +630,6 @@ public partial class CreateApplicationSchema : Migration {
             column: "ImageId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_EncounterOpenings_EncounterId",
-            table: "EncounterOpenings",
-            column: "EncounterId");
-
-        migrationBuilder.CreateIndex(
             name: "IX_EncounterRegions_EncounterId",
             table: "EncounterRegions",
             column: "EncounterId");
@@ -666,6 +657,11 @@ public partial class CreateApplicationSchema : Migration {
         migrationBuilder.CreateIndex(
             name: "IX_EncounterWalls_EncounterId",
             table: "EncounterWalls",
+            column: "EncounterId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterWallSegments_EncounterId",
+            table: "EncounterWallSegments",
             column: "EncounterId");
 
         migrationBuilder.CreateIndex(
@@ -714,16 +710,13 @@ public partial class CreateApplicationSchema : Migration {
             name: "EncounterAssets");
 
         migrationBuilder.DropTable(
-            name: "EncounterOpenings");
-
-        migrationBuilder.DropTable(
             name: "EncounterRegions");
 
         migrationBuilder.DropTable(
             name: "EncounterSources");
 
         migrationBuilder.DropTable(
-            name: "EncounterWalls");
+            name: "EncounterWallSegments");
 
         migrationBuilder.DropTable(
             name: "Events");
@@ -750,13 +743,16 @@ public partial class CreateApplicationSchema : Migration {
             name: "Assets");
 
         migrationBuilder.DropTable(
-            name: "Encounters");
+            name: "EncounterWalls");
 
         migrationBuilder.DropTable(
             name: "Schedule");
 
         migrationBuilder.DropTable(
             name: "GameSessions");
+
+        migrationBuilder.DropTable(
+            name: "Encounters");
 
         migrationBuilder.DropTable(
             name: "Adventures");
@@ -772,6 +768,10 @@ public partial class CreateApplicationSchema : Migration {
 
         migrationBuilder.DropColumn(
             name: "AvatarId",
+            table: "Users");
+
+        migrationBuilder.DropColumn(
+            name: "UnitSystem",
             table: "Users");
     }
 }

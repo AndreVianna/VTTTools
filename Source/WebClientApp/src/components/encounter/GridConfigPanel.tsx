@@ -23,6 +23,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useUnitSystem } from '@/hooks/useUnitSystem';
+import { UNIT_CONFIGS } from '@/types/units';
 import { type GridConfig, GridType, validateGrid } from '@utils/gridCalculator';
 import type React from 'react';
 import { useState } from 'react';
@@ -42,6 +44,7 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({ initialGrid, o
   const [grid, setGrid] = useState<GridConfig>(initialGrid);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [unitSystem] = useUnitSystem();
 
   // Real-time validation
   const validationErrors = validateGrid(grid);
@@ -186,6 +189,24 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({ initialGrid, o
             fullWidth
           />
         </Box>
+
+        {/* Scale - Units per cell */}
+        <TextField
+          label={`Scale (${UNIT_CONFIGS[unitSystem].abbreviation} per cell)`}
+          type='number'
+          value={grid.scale}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value);
+            if (!Number.isNaN(value)) {
+              setGrid((prev) => ({ ...prev, scale: value }));
+            }
+          }}
+          error={grid.scale <= 0}
+          helperText={grid.scale <= 0 ? 'Must be positive' : `1 cell = ${grid.scale} ${UNIT_CONFIGS[unitSystem].abbreviation}`}
+          disabled={grid.type === GridType.NoGrid}
+          fullWidth
+          inputProps={{ min: 0.1, step: 0.5 }}
+        />
 
         {/* Snap to Grid */}
         <FormControlLabel

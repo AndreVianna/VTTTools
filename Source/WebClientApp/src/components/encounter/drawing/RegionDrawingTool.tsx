@@ -7,8 +7,7 @@ import type { Point } from '@/types/domain';
 import { createPlaceVertexAction } from '@/types/regionUndoActions';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
-import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { snapToNearest } from '@/utils/structureSnapping';
+import { getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
 import { RegionPreview } from '../RegionPreview';
 import { VertexMarker } from './VertexMarker';
 
@@ -92,14 +91,9 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      const scale = stage.scaleX();
-      const stagePos = {
-        x: (pointer.x - stage.x()) / scale,
-        y: (pointer.y - stage.y()) / scale,
-      };
-
+      const worldPos = screenToWorld(pointer, stage);
       const snapMode = getSnapModeFromEvent(e.evt);
-      const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+      const snappedPos = snap(worldPos, gridConfig, snapMode);
       setPreviewPoint(snappedPos);
     },
     [gridConfig],
@@ -115,14 +109,9 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      const scale = stage.scaleX();
-      const stagePos = {
-        x: (pointer.x - stage.x()) / scale,
-        y: (pointer.y - stage.y()) / scale,
-      };
-
+      const worldPos = screenToWorld(pointer, stage);
       const snapMode = getSnapModeFromEvent(e.evt);
-      const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+      const snappedPos = snap(worldPos, gridConfig, snapMode);
 
       const newVertices = [...vertices, snappedPos];
       setVertices(newVertices);

@@ -1,73 +1,189 @@
 import type Konva from 'konva';
 import type React from 'react';
-import { useMemo } from 'react';
-import { Circle, Group, Line } from 'react-konva';
-import { type EncounterOpening, type EncounterWall, WallVisibility } from '@/types/domain';
+import { useMemo, useState } from 'react';
+import { Circle, Group, Line, Path, Text } from 'react-konva';
+import { type EncounterWall, type EncounterWallSegment, SegmentState, SegmentType } from '@/types/domain';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import { isWallInScope } from '@/utils/scopeFiltering';
 
 export interface WallRendererProps {
   encounterWall: EncounterWall;
-  openings?: EncounterOpening[];
   onClick?: (index: number) => void;
-  onContextMenu?: (index: number, position: { x: number; y: number }) => void;
+  onContextMenu?: (wallIndex: number, segmentIndex: number, position: { x: number; y: number }) => void;
   activeScope: InteractionScope;
 }
 
-export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, openings, onClick, onContextMenu, activeScope }) => {
-  const style = useMemo(() => {
-    const wallColor = encounterWall.color || '#808080';
-    const strokeColor = wallColor;
+const WALL_COLOR = '#808080';
+const BROWN_COLOR = '#8B4513';
+const CYAN_COLOR = '#00CED1';
 
-    switch (encounterWall.visibility) {
-      case WallVisibility.Fence:
-        return {
-          stroke: strokeColor,
-          strokeWidth: 3,
-          dash: [4, 4],
-          opacity: 0.9,
-        };
-      case WallVisibility.Invisible:
-        return {
-          stroke: strokeColor,
-          strokeWidth: 3,
-          dash: [8, 4],
-          opacity: 0.3,
-        };
-      case WallVisibility.Veil:
-        return {
-          stroke: strokeColor,
-          strokeWidth: 3,
-          dash: [8, 4, 2, 4],
-          opacity: 0.9,
-        };
-      default:
-        return {
-          stroke: strokeColor,
-          strokeWidth: 3,
-          opacity: 1,
-          dash: undefined,
-        };
-    }
-  }, [encounterWall.visibility, encounterWall.color]);
+const STATE_ICON_SIZE = 6;
+const STATE_ICON_BG_RADIUS = 5;
+const STATE_COLORS = {
+  open: '#4ade80',
+  closed: '#f87171',
+  locked: '#fbbf24',
+  secret: '#c084fc',
+};
 
+function getSegmentStyle(segment: EncounterWallSegment): {
+  stroke: string;
+  strokeWidth: number;
+  dash?: number[];
+  opacity: number;
+} {
+  const baseStyle = {
+    strokeWidth: 3,
+    opacity: 1,
+  };
+
+  switch (segment.type) {
+    case SegmentType.Wall:
+      return { ...baseStyle, stroke: WALL_COLOR };
+    case SegmentType.Fence:
+      return { ...baseStyle, stroke: WALL_COLOR, dash: [3, 3] };
+    case SegmentType.Door:
+      return { ...baseStyle, stroke: BROWN_COLOR };
+    case SegmentType.Passage:
+      return { ...baseStyle, stroke: BROWN_COLOR, dash: [6, 4] };
+    case SegmentType.Window:
+      return { ...baseStyle, stroke: CYAN_COLOR };
+    case SegmentType.Opening:
+      return { ...baseStyle, stroke: CYAN_COLOR, dash: [6, 4] };
+    default:
+      return { ...baseStyle, stroke: WALL_COLOR };
+  }
+}
+
+function getSegmentMidpoint(segment: EncounterWallSegment): { x: number; y: number } {
+  return {
+    x: (segment.startPole.x + segment.endPole.x) / 2,
+    y: (segment.startPole.y + segment.endPole.y) / 2,
+  };
+}
+
+interface StateIconProps {
+  x: number;
+  y: number;
+  state: SegmentState;
+  type: SegmentType;
+}
+
+const StateIcon: React.FC<StateIconProps> = ({ x, y, state, type }) => {
+  const isBarrier = type === SegmentType.Wall || type === SegmentType.Fence;
+
+  if (isBarrier && state !== SegmentState.Secret) {
+    return null;
+  }
+
+  const halfSize = STATE_ICON_SIZE / 2;
+
+  const renderBackground = () => (
+    <Circle
+      x={x}
+      y={y}
+      radius={STATE_ICON_BG_RADIUS}
+      fill="rgba(0, 0, 0, 0.7)"
+      listening={false}
+    />
+  );
+
+  switch (state) {
+    case SegmentState.Open:
+      return (
+        <Group listening={false}>
+          {renderBackground()}
+          <Path
+            x={x - halfSize}
+            y={y - halfSize}
+            data={`M1 ${halfSize} L${halfSize} ${STATE_ICON_SIZE - 1} L${STATE_ICON_SIZE - 1} 1`}
+            stroke={STATE_COLORS.open}
+            strokeWidth={2}
+          />
+        </Group>
+      );
+    case SegmentState.Closed:
+      return (
+        <Group listening={false}>
+          {renderBackground()}
+          <Group x={x} y={y}>
+            <Line
+              points={[-halfSize + 1, -halfSize + 1, halfSize - 1, halfSize - 1]}
+              stroke={STATE_COLORS.closed}
+              strokeWidth={2}
+            />
+            <Line
+              points={[halfSize - 1, -halfSize + 1, -halfSize + 1, halfSize - 1]}
+              stroke={STATE_COLORS.closed}
+              strokeWidth={2}
+            />
+          </Group>
+        </Group>
+      );
+    case SegmentState.Locked:
+      return (
+        <Group listening={false}>
+          {renderBackground()}
+          <Group x={x} y={y}>
+            <Circle
+              x={0}
+              y={-1}
+              radius={2}
+              stroke={STATE_COLORS.locked}
+              strokeWidth={1.5}
+              fill="transparent"
+            />
+            <Path
+              x={-2}
+              y={0}
+              data="M0 0 L0 3 L4 3 L4 0 Z"
+              fill={STATE_COLORS.locked}
+            />
+          </Group>
+        </Group>
+      );
+    case SegmentState.Secret:
+      return (
+        <Group listening={false}>
+          {renderBackground()}
+          <Text
+            x={x - halfSize}
+            y={y - halfSize - 1}
+            text="S"
+            fontSize={STATE_ICON_SIZE + 2}
+            fontStyle="bold"
+            fill={STATE_COLORS.secret}
+          />
+        </Group>
+      );
+    default:
+      return null;
+  }
+};
+
+const HIGHLIGHT_COLOR = '#ffff00';
+
+export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onClick, onContextMenu, activeScope }) => {
   const isWallScopeActive = activeScope === 'walls';
+  const [hoveredSegmentIndex, setHoveredSegmentIndex] = useState<number | null>(null);
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (e.evt.button !== 0) return; // Left-click only
     if (onClick && isWallScopeActive) {
       e.cancelBubble = true;
       onClick(encounterWall.index);
     }
   };
 
-  const handleContextMenu = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleContextMenu = (segmentIndex: number) => (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
+    e.cancelBubble = true;
 
-    if (onContextMenu) {
+    if (onContextMenu && isWallScopeActive) {
       const stage = e.target.getStage();
       const pointerPosition = stage?.getPointerPosition();
       if (pointerPosition) {
-        onContextMenu(encounterWall.index, {
+        onContextMenu(encounterWall.index, segmentIndex, {
           x: pointerPosition.x,
           y: pointerPosition.y,
         });
@@ -75,99 +191,89 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, openi
     }
   };
 
-  const wallSegments = useMemo(() => {
-    const segments: number[][] = [];
-    let currentSegment: number[] = [];
-
-    const openingStartIndices = new Set(openings?.map((o) => o.startPoleIndex) ?? []);
-    const openingEndIndices = new Set(openings?.map((o) => o.endPoleIndex) ?? []);
-
-    for (let i = 0; i < encounterWall.poles.length; i++) {
-      const pole = encounterWall.poles[i];
-      if (!pole) continue;
-
-      if (openingStartIndices.has(i)) {
-        currentSegment.push(pole.x, pole.y);
-        if (currentSegment.length >= 4) {
-          segments.push(currentSegment);
-        }
-        currentSegment = [];
-        continue;
+  const poles = useMemo(() => {
+    const poleSet = new Map<string, { x: number; y: number }>();
+    for (const segment of encounterWall.segments) {
+      const startKey = `${segment.startPole.x},${segment.startPole.y}`;
+      const endKey = `${segment.endPole.x},${segment.endPole.y}`;
+      if (!poleSet.has(startKey)) {
+        poleSet.set(startKey, { x: segment.startPole.x, y: segment.startPole.y });
       }
-
-      if (openingEndIndices.has(i)) {
-        currentSegment = [pole.x, pole.y];
-        continue;
-      }
-
-      currentSegment.push(pole.x, pole.y);
-    }
-
-    if (encounterWall.isClosed && encounterWall.poles.length > 0) {
-      const firstPole = encounterWall.poles[0];
-      if (firstPole && !openingEndIndices.has(0)) {
-        currentSegment.push(firstPole.x, firstPole.y);
+      if (!poleSet.has(endKey)) {
+        poleSet.set(endKey, { x: segment.endPole.x, y: segment.endPole.y });
       }
     }
-
-    if (currentSegment.length >= 4) {
-      segments.push(currentSegment);
-    }
-
-    return segments;
-  }, [encounterWall.poles, encounterWall.isClosed, openings]);
+    return Array.from(poleSet.values());
+  }, [encounterWall.segments]);
 
   const poleRadius = 1.5;
-  const poleColor = encounterWall.color || '#808080';
+  const poleColor = WALL_COLOR;
 
   const isInteractive = isWallInScope(activeScope);
 
-  const wallId = encounterWall.encounterId
-    ? `wall-${encounterWall.encounterId}-${encounterWall.index}`
-    : `wall-temp-${encounterWall.index}`;
+  const wallId = `wall-${encounterWall.index}`;
 
   return (
     <Group>
-      {wallSegments.map((segmentPoints, segmentIdx) => (
-        <Group key={`segment-${segmentIdx}`}>
-          <Line
-            points={segmentPoints}
-            stroke="#000000"
-            strokeWidth={style.strokeWidth + 2}
-            {...(style.dash && { dash: style.dash })}
-            opacity={style.opacity * 0.5}
-            listening={false}
-          />
-          <Line
-            id={segmentIdx === 0 ? wallId : `${wallId}-seg-${segmentIdx}`}
-            points={segmentPoints}
-            stroke={style.stroke}
-            strokeWidth={style.strokeWidth}
-            {...(style.dash && { dash: style.dash })}
-            opacity={style.opacity}
-            listening={isInteractive}
-            onClick={handleClick}
-            onContextMenu={handleContextMenu}
-            hitStrokeWidth={8}
-            onMouseEnter={(e) => {
-              if (!isInteractive) return;
-              const container = e.target.getStage()?.container();
-              if (container) {
-                container.style.cursor = isWallScopeActive ? 'pointer' : 'default';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isInteractive) return;
-              const container = e.target.getStage()?.container();
-              if (container) {
-                container.style.cursor = 'default';
-              }
-            }}
-          />
-        </Group>
-      ))}
+      {encounterWall.segments.map((segment, segmentIdx) => {
+        const style = getSegmentStyle(segment);
+        const points = [segment.startPole.x, segment.startPole.y, segment.endPole.x, segment.endPole.y];
+        const isHovered = hoveredSegmentIndex === segment.index;
+        const midpoint = getSegmentMidpoint(segment);
 
-      {encounterWall.poles.map((pole, index) => (
+        return (
+          <Group key={`segment-${segment.index}`}>
+            <Line
+              points={points}
+              stroke='#000000'
+              strokeWidth={style.strokeWidth + 2}
+              {...(style.dash && { dash: style.dash })}
+              opacity={style.opacity * 0.5}
+              listening={false}
+            />
+            {isHovered && isWallScopeActive && (
+              <Line
+                points={points}
+                stroke={HIGHLIGHT_COLOR}
+                strokeWidth={style.strokeWidth + 4}
+                opacity={0.5}
+                listening={false}
+              />
+            )}
+            <Line
+              id={segmentIdx === 0 ? wallId : `${wallId}-seg-${segmentIdx}`}
+              points={points}
+              stroke={style.stroke}
+              strokeWidth={style.strokeWidth}
+              {...(style.dash && { dash: style.dash })}
+              opacity={style.opacity}
+              listening={isInteractive}
+              onClick={handleClick}
+              onContextMenu={handleContextMenu(segment.index)}
+              hitStrokeWidth={8}
+              onMouseEnter={(e) => {
+                if (!isInteractive) return;
+                setHoveredSegmentIndex(segment.index);
+                const container = e.target.getStage()?.container();
+                if (container) {
+                  container.style.cursor = isWallScopeActive ? 'pointer' : 'default';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isInteractive) return;
+                setHoveredSegmentIndex(null);
+                const container = e.target.getStage()?.container();
+                if (container) {
+                  container.style.cursor = 'default';
+                }
+              }}
+            />
+            <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} />
+          </Group>
+        );
+      })}
+
+      {poles.map((pole, index) => (
         <Circle
           key={`pole-${pole.x}-${pole.y}-${index}`}
           id={`${wallId}-pole-${index}`}

@@ -1,26 +1,27 @@
 import type { WallBreakData } from '@components/encounter/editing/WallTransformer';
 import { useCallback } from 'react';
-import type { useWallTransaction, WallSegment } from '@/hooks/useWallTransaction';
+import type { useWallTransaction } from '@/hooks/useWallTransaction';
 import type {
   useAddEncounterWallMutation,
   useRemoveEncounterWallMutation,
   useUpdateEncounterWallMutation,
 } from '@/services/encounterApi';
-import type { Encounter, EncounterWall, PlacedWall, Pole } from '@/types/domain';
+import type { Encounter, EncounterWall, EncounterWallSegment, PlacedWall, Pole } from '@/types/domain';
 import { createBreakWallAction } from '@/types/wallUndoActions';
 import type { Command } from '@/utils/commands';
 import { BreakWallCommand, EditWallCommand } from '@/utils/commands/wallCommands';
 import { getDomIdByIndex, removeEntityMapping } from '@/utils/encounterEntityMapping';
 import { hydratePlacedWalls } from '@/utils/encounterMappers';
 import { removeWallOptimistic, syncWallIndices, updateWallOptimistic } from '@/utils/encounterStateUtils';
-import { decomposeSelfIntersectingPath } from '@/utils/wallPlanarUtils';
+import { polesToSegments } from '@/utils/wallUtils';
+import { segmentsToPoles } from '@/utils/wallSegmentUtils';
 
 interface UseWallHandlersProps {
   encounterId: string | undefined;
   encounter: Encounter | null;
   wallTransaction: ReturnType<typeof useWallTransaction>;
   selectedWallIndex: number | null;
-  drawingMode: 'wall' | 'region' | null;
+  drawingMode: 'wall' | 'region' | 'bucketFill' | null;
   drawingWallIndex: number | null;
 
   addEncounterWall: ReturnType<typeof useAddEncounterWallMutation>[0];
@@ -30,9 +31,11 @@ interface UseWallHandlersProps {
   setEncounter: (encounter: Encounter) => void;
   setPlacedWalls: (walls: PlacedWall[]) => void;
   setSelectedWallIndex: (index: number | null) => void;
+  setSelectedOpeningIndex: (index: number | null) => void;
   setDrawingWallIndex: (index: number | null) => void;
   setIsEditingVertices: (editing: boolean) => void;
   setOriginalWallPoles: (poles: Pole[] | null) => void;
+  setPreviewWallPoles: (poles: Pole[] | null) => void;
   setActivePanel: (panel: string | null) => void;
   setErrorMessage: (message: string | null) => void;
 
@@ -53,9 +56,11 @@ export const useWallHandlers = ({
   setEncounter,
   setPlacedWalls,
   setSelectedWallIndex,
+  setSelectedOpeningIndex,
   setDrawingWallIndex,
   setIsEditingVertices,
   setOriginalWallPoles,
+  setPreviewWallPoles,
   setActivePanel,
   setErrorMessage,
   execute,
@@ -85,6 +90,7 @@ export const useWallHandlers = ({
           setSelectedWallIndex(null);
           setIsEditingVertices(false);
           setOriginalWallPoles(null);
+          setPreviewWallPoles(null);
           wallTransaction.rollbackTransaction();
         } else {
           setSelectedWallIndex(null);
@@ -114,15 +120,17 @@ export const useWallHandlers = ({
       const wall = encounter?.walls?.find((w) => w.index === wallIndex);
       if (!wall) return;
 
-      setOriginalWallPoles([...wall.poles]);
+      const poles = segmentsToPoles(wall);
+      setOriginalWallPoles([...poles]);
 
       wallTransaction.startTransaction('editing', wall);
 
       setSelectedWallIndex(wallIndex);
+      setSelectedOpeningIndex(null);
       setIsEditingVertices(true);
       setActivePanel(null);
     },
-    [encounter, wallTransaction, setOriginalWallPoles, setSelectedWallIndex, setIsEditingVertices, setActivePanel],
+    [encounter, wallTransaction, setOriginalWallPoles, setSelectedWallIndex, setSelectedOpeningIndex, setIsEditingVertices, setActivePanel],
   );
 
   const handleCancelEditing = useCallback(async () => {
@@ -143,8 +151,7 @@ export const useWallHandlers = ({
 
     if (originalWall) {
       cleanedEncounter = updateWallOptimistic(cleanedEncounter, selectedWallIndex, {
-        poles: originalWall.poles,
-        isClosed: originalWall.isClosed,
+        segments: originalWall.segments,
         name: originalWall.name,
       });
     }
@@ -153,6 +160,7 @@ export const useWallHandlers = ({
     setSelectedWallIndex(null);
     setIsEditingVertices(false);
     setOriginalWallPoles(null);
+    setPreviewWallPoles(null);
   }, [
     encounter,
     selectedWallIndex,
@@ -161,6 +169,7 @@ export const useWallHandlers = ({
     setSelectedWallIndex,
     setIsEditingVertices,
     setOriginalWallPoles,
+    setPreviewWallPoles,
   ]);
 
   const handleFinishEditing = useCallback(async () => {
@@ -170,58 +179,9 @@ export const useWallHandlers = ({
 
     const editedSegment = activeSegments[0];
 
-    if (editedSegment && editedSegment.poles.length >= 2) {
-      const TOLERANCE = 5;
-      const polePoints = editedSegment.poles.map((p) => ({ x: p.x, y: p.y }));
-      const { closedWalls, openSegments } = decomposeSelfIntersectingPath(polePoints, TOLERANCE);
-
-      if (closedWalls.length > 0 || openSegments.length > 0) {
-        const allSegments = [
-          ...closedWalls.map((wallPoles, index) => ({
-            tempId: index === 0 ? editedSegment.tempId : -(index + 1),
-            wallIndex: index === 0 ? editedSegment.wallIndex : null,
-            name: editedSegment.name,
-            poles: wallPoles.map((p, i) => ({
-              x: p.x,
-              y: p.y,
-              h: editedSegment.poles[i]?.h ?? 0,
-            })),
-            isClosed: true,
-            visibility: editedSegment.visibility,
-            color: editedSegment.color,
-          })),
-          ...openSegments.map((segmentPoles, index) => ({
-            tempId: closedWalls.length === 0 && index === 0 ? editedSegment.tempId : -(closedWalls.length + index + 1),
-            wallIndex: closedWalls.length === 0 && index === 0 ? editedSegment.wallIndex : null,
-            name: editedSegment.name,
-            poles: segmentPoles.map((p, i) => ({
-              x: p.x,
-              y: p.y,
-              h: editedSegment.poles[i]?.h ?? 0,
-            })),
-            isClosed: false,
-            visibility: editedSegment.visibility,
-            color: editedSegment.color,
-          })),
-        ];
-
-        if (
-          allSegments.length > 1 ||
-          (allSegments.length === 1 && allSegments[0]?.isClosed !== editedSegment.isClosed)
-        ) {
-          wallTransaction.setAllSegments(allSegments);
-        }
-      }
-    }
-
-    const updatedActiveSegments = wallTransaction.getActiveSegments();
-
-    const finalEditedSegment = updatedActiveSegments[0];
-
-    if (finalEditedSegment && finalEditedSegment.wallIndex === selectedWallIndex) {
+    if (editedSegment && editedSegment.segments.length >= 1) {
       const updatedEncounter = updateWallOptimistic(encounter, selectedWallIndex, {
-        poles: finalEditedSegment.poles,
-        isClosed: finalEditedSegment.isClosed,
+        segments: editedSegment.segments,
       });
       setEncounter(updatedEncounter);
       const hydratedWalls = hydratePlacedWalls(updatedEncounter.walls || [], encounterId);
@@ -240,6 +200,7 @@ export const useWallHandlers = ({
           setSelectedWallIndex(null);
           setIsEditingVertices(false);
           setOriginalWallPoles(null);
+          setPreviewWallPoles(null);
         }, 0);
         return;
       }
@@ -337,6 +298,7 @@ export const useWallHandlers = ({
         setSelectedWallIndex(null);
         setIsEditingVertices(false);
         setOriginalWallPoles(null);
+        setPreviewWallPoles(null);
       }, 0);
     } else {
       setErrorMessage('Failed to save wall changes. Please try again.');
@@ -355,6 +317,7 @@ export const useWallHandlers = ({
     setSelectedWallIndex,
     setIsEditingVertices,
     setOriginalWallPoles,
+    setPreviewWallPoles,
     setErrorMessage,
     execute,
   ]);
@@ -364,7 +327,7 @@ export const useWallHandlers = ({
       if (!encounter) return;
 
       const activeSegments = wallTransaction.getActiveSegments();
-      const breakingSegment = activeSegments.find((s) => s.poles.length > 0);
+      const breakingSegment = activeSegments.find((s) => s.segments.length > 0);
       if (!breakingSegment) return;
 
       const { breakPoleIndex, newWallPoles, originalWallPoles } = breakData;
@@ -372,22 +335,43 @@ export const useWallHandlers = ({
       const segment1Poles = newWallPoles.slice(0, breakPoleIndex + 1);
       const segment2Poles = newWallPoles.slice(breakPoleIndex);
 
+      const isOriginalClosed = originalWallPoles.length > 1 &&
+        originalWallPoles[0]?.x === originalWallPoles[originalWallPoles.length - 1]?.x &&
+        originalWallPoles[0]?.y === originalWallPoles[originalWallPoles.length - 1]?.y;
+
+      const originalSegments = polesToSegments(originalWallPoles, isOriginalClosed);
+      const segment1Segments = polesToSegments(segment1Poles, false);
+      const segment2Segments = polesToSegments(segment2Poles, false);
+
+      const newSegment1TempId = wallTransaction.addSegment({
+        wallIndex: null,
+        name: breakingSegment.name,
+        segments: segment1Segments,
+      });
+
+      const newSegment2TempId = wallTransaction.addSegment({
+        wallIndex: null,
+        name: breakingSegment.name,
+        segments: segment2Segments,
+      });
+
+      wallTransaction.removeSegment(breakingSegment.tempId);
+
       const breakAction = createBreakWallAction(
         breakingSegment.tempId,
         breakPoleIndex,
-        originalWallPoles,
-        breakingSegment.isClosed,
+        originalSegments,
         breakingSegment.wallIndex ?? -1,
-        breakingSegment.tempId,
-        -1,
-        segment1Poles,
-        segment2Poles,
+        newSegment1TempId,
+        newSegment2TempId,
+        segment1Segments,
+        segment2Segments,
         breakingSegment.name,
-        breakingSegment.visibility,
-        breakingSegment.color,
         (tempId: number) => wallTransaction.removeSegment(tempId),
-        (tempId: number, changes: Partial<WallSegment>) => wallTransaction.updateSegment(tempId, changes),
-        (segment: Omit<WallSegment, 'tempId'>) => wallTransaction.addSegment(segment),
+        (tempId: number, changes: { wallIndex: number; segments: EncounterWallSegment[] }) =>
+          wallTransaction.updateSegment(tempId, changes),
+        (segment: { wallIndex: number | null; name: string; segments: EncounterWallSegment[] }) =>
+          wallTransaction.addSegment(segment),
       );
 
       wallTransaction.pushLocalAction(breakAction);
@@ -398,8 +382,9 @@ export const useWallHandlers = ({
   const handleWallSelect = useCallback(
     (wallIndex: number | null) => {
       setSelectedWallIndex(wallIndex);
+      setSelectedOpeningIndex(null);
     },
-    [setSelectedWallIndex],
+    [setSelectedWallIndex, setSelectedOpeningIndex],
   );
 
   const handleWallPlacementFinish = useCallback(async () => {
@@ -447,6 +432,56 @@ export const useWallHandlers = ({
     setErrorMessage,
   ]);
 
+  const handleSegmentUpdate = useCallback(
+    async (wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => {
+      if (!encounterId || !encounter) return;
+
+      const wall = encounter.walls?.find((w) => w.index === wallIndex);
+      if (!wall) {
+        console.warn(`[useWallHandlers] Wall ${wallIndex} not found`);
+        return;
+      }
+
+      if (!wall.segments || wall.segments.length === 0) {
+        console.warn(`[useWallHandlers] Wall ${wallIndex} has no segments`);
+        return;
+      }
+
+      const segmentExists = wall.segments.some((s) => s.index === segmentIndex);
+      if (!segmentExists) {
+        console.warn(`[useWallHandlers] Segment ${segmentIndex} not found in wall ${wallIndex}`);
+        return;
+      }
+
+      const updatedSegments = wall.segments.map((s) =>
+        s.index === segmentIndex ? { ...s, ...updates } : s,
+      );
+
+      const updatedWall = updateWallOptimistic(encounter, wallIndex, { segments: updatedSegments });
+      setEncounter(updatedWall);
+      const hydratedWalls = hydratePlacedWalls(updatedWall.walls || [], encounterId);
+      setPlacedWalls(hydratedWalls);
+
+      try {
+        await updateEncounterWall({
+          encounterId,
+          wallIndex,
+          segments: updatedSegments,
+        }).unwrap();
+      } catch (error) {
+        console.error('Failed to update segment:', error);
+        setErrorMessage('Failed to update segment. Please try again.');
+        const { data: refreshedEncounter } = await refetch();
+        if (refreshedEncounter) {
+          setEncounter(refreshedEncounter);
+          const hydratedWalls = hydratePlacedWalls(refreshedEncounter.walls || [], encounterId);
+          setPlacedWalls(hydratedWalls);
+        }
+      }
+    },
+    [encounterId, encounter, updateEncounterWall, setEncounter, setPlacedWalls, setErrorMessage, refetch],
+  );
+
   return {
     handleWallDelete,
     handleEditVertices,
@@ -455,5 +490,6 @@ export const useWallHandlers = ({
     handleWallBreak,
     handleWallSelect,
     handleWallPlacementFinish,
+    handleSegmentUpdate,
   };
 };

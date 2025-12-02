@@ -83,12 +83,12 @@ describe('useMergeRegions', () => {
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       },
       stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
       assets: [],
       regions: [targetRegion, regionToDelete],
       walls: [],
-          openings: [],
       sources: [],
     };
 

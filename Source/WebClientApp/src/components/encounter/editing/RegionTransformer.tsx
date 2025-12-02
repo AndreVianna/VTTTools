@@ -15,8 +15,7 @@ import {
 import { getCrosshairPlusCursor, getGrabbingCursor, getMoveCursor, getPointerCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getRegionColor, getRegionFillOpacity, isTransparentRegion } from '@/utils/regionColorUtils';
-import { getSnapModeFromEvent } from '@/utils/snapUtils';
-import { SnapMode, snapToNearest } from '@/utils/structureSnapping';
+import { SnapMode, createDragBoundFunc, getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
@@ -502,17 +501,13 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             }
 
             if (draggingLine !== null && lineDragStartRef.current) {
-              const scale = stage.scaleX();
-              const worldPos = {
-                x: (pointerPos.x - stage.x()) / scale,
-                y: (pointerPos.y - stage.y()) / scale,
-              };
+              const worldPos = screenToWorld(pointerPos, stage);
 
-              const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.HalfSnap;
+              const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Half;
 
               let snappedWorldPos = worldPos;
               if (gridConfig.snap) {
-                snappedWorldPos = snapToNearest(worldPos, gridConfig, currentSnapMode, 50);
+                snappedWorldPos = snap(worldPos, gridConfig, currentSnapMode);
               }
 
               const deltaX = snappedWorldPos.x - lineDragStartRef.current.mouseX;
@@ -537,16 +532,12 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
               if (stage) {
                 const pointerPos = stage.getPointerPosition();
                 if (pointerPos) {
-                  const scale = stage.scaleX();
-                  const worldPos = {
-                    x: (pointerPos.x - stage.x()) / scale,
-                    y: (pointerPos.y - stage.y()) / scale,
-                  };
+                  const worldPos = screenToWorld(pointerPos, stage);
 
                   const deltaX = worldPos.x - lineDragStartRef.current.mouseX;
                   const deltaY = worldPos.y - lineDragStartRef.current.mouseY;
 
-                  const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.HalfSnap;
+                  const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Half;
 
                   let newVertex1X = lineDragStartRef.current.vertex1.x + deltaX;
                   let newVertex1Y = lineDragStartRef.current.vertex1.y + deltaY;
@@ -554,7 +545,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                   let newVertex2Y = lineDragStartRef.current.vertex2.y + deltaY;
 
                   if (gridConfig.snap) {
-                    const snapped1 = snapToNearest({ x: newVertex1X, y: newVertex1Y }, gridConfig, currentSnapMode, 50);
+                    const snapped1 = snap({ x: newVertex1X, y: newVertex1Y }, gridConfig, currentSnapMode);
                     const actualDeltaX = snapped1.x - lineDragStartRef.current.vertex1.x;
                     const actualDeltaY = snapped1.y - lineDragStartRef.current.vertex1.y;
 
@@ -673,16 +664,12 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                       if (stage) {
                         const pointerPos = stage.getPointerPosition();
                         if (pointerPos) {
-                          const scale = stage.scaleX();
-                          let worldPos = {
-                            x: (pointerPos.x - stage.x()) / scale,
-                            y: (pointerPos.y - stage.y()) / scale,
-                          };
+                          let worldPos = screenToWorld(pointerPos, stage);
 
-                          const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.HalfSnap;
+                          const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Half;
 
                           if (gridConfig.snap) {
-                            worldPos = snapToNearest(worldPos, gridConfig, currentSnapMode, 50);
+                            worldPos = snap(worldPos, gridConfig, currentSnapMode);
                           }
 
                           setDraggingLine(index);
@@ -711,18 +698,14 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                       const pointerPos = stage.getPointerPosition();
                       if (!pointerPos) return;
 
-                      const scale = stage.scaleX();
-                      const worldPos = {
-                        x: (pointerPos.x - stage.x()) / scale,
-                        y: (pointerPos.y - stage.y()) / scale,
-                      };
+                      const worldPos = screenToWorld(pointerPos, stage);
 
                       const projected = projectPointToLineSegment(worldPos, vertex, nextVertex);
 
                       let insertPos = projected;
                       if (gridConfig.snap) {
                         const snapMode = getSnapModeFromEvent(e.evt);
-                        insertPos = snapToNearest(projected, gridConfig, snapMode);
+                        insertPos = snap(projected, gridConfig, snapMode);
                       }
 
                       const newVertices = [...segment.vertices];
@@ -781,18 +764,14 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                       const pointerPos = stage.getPointerPosition();
                       if (!pointerPos) return;
 
-                      const scale = stage.scaleX();
-                      const worldPos = {
-                        x: (pointerPos.x - stage.x()) / scale,
-                        y: (pointerPos.y - stage.y()) / scale,
-                      };
+                      const worldPos = screenToWorld(pointerPos, stage);
 
                       const projected = projectPointToLineSegment(worldPos, vertex, nextVertex);
 
                       let finalPos = projected;
                       if (gridConfig.snap) {
                         const currentSnapMode = getSnapModeFromEvent(e.evt);
-                        finalPos = snapToNearest(projected, gridConfig, currentSnapMode, 50);
+                        finalPos = snap(projected, gridConfig, currentSnapMode);
                       }
 
                       setInsertPreviewPos(finalPos);
@@ -833,12 +812,11 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                   vertexRefs.current.delete(index);
                 }
               },
-              dragBoundFunc: (pos: { x: number; y: number }) => {
-                if (gridConfig.snap && currentSnapModeRef.current !== null) {
-                  return snapToNearest(pos, gridConfig, currentSnapModeRef.current, 50);
-                }
-                return pos;
-              },
+              dragBoundFunc: createDragBoundFunc(
+                gridConfig,
+                () => currentSnapModeRef.current ?? SnapMode.Half,
+                () => gridConfig.snap,
+              ),
               onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
                 handleVertexDragStart(index);
                 const container = e.target.getStage()?.container();

@@ -1,3 +1,5 @@
+using VttTools.Identity.Model;
+
 namespace VttTools.Auth.ApiContracts;
 
 public record UpdateProfileRequest : Request {
@@ -13,4 +15,6 @@ public record UpdateProfileRequest : Request {
 
     [Phone(ErrorMessage = "Invalid phone number format")]
     public string? PhoneNumber { get; init; }
+
+    public UnitSystem? PreferredUnitSystem { get; init; }
 }

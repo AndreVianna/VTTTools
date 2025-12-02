@@ -10,6 +10,7 @@ import { GridType } from '@/utils/gridCalculator';
 import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import { isAssetInScope } from '@/utils/scopeFiltering';
+import { SnapMode } from '@/utils/snapping';
 
 /**
  * Render invalid placement indicator (red X)
@@ -33,9 +34,9 @@ const snapToGridCenter = (
   position: { x: number; y: number },
   assetSizePixels: { width: number; height: number },
   gridConfig: GridConfig,
-  snapMode: 'free' | 'grid' | 'half-step',
+  snapMode: SnapMode,
 ): { x: number; y: number } => {
-  if (snapMode === 'free' || gridConfig.type === GridType.NoGrid) {
+  if (snapMode === SnapMode.Free || gridConfig.type === GridType.NoGrid) {
     return position;
   }
 
@@ -54,8 +55,8 @@ const snapToGridCenter = (
   const baseSnapWidthCells = getBaseSnapIntervalCells(assetWidthCells);
   const baseSnapHeightCells = getBaseSnapIntervalCells(assetHeightCells);
 
-  // Apply mode multiplier
-  const multiplier = snapMode === 'half-step' ? 0.5 : 1.0;
+  // Apply mode multiplier: Half mode halves the snap interval
+  const multiplier = snapMode === SnapMode.Half ? 0.5 : 1.0;
   const snapWidthCells = baseSnapWidthCells * multiplier;
   const snapHeightCells = baseSnapHeightCells * multiplier;
 
@@ -106,7 +107,7 @@ export interface TokenDragHandleProps {
   /** Callback when handlers are attached and component is ready */
   onReady?: () => void;
   /** Snap mode from keyboard modifiers */
-  snapMode: 'free' | 'grid' | 'half-step';
+  snapMode: SnapMode;
   /** Whether Shift key is pressed */
   isShiftPressed: boolean;
   /** Whether Ctrl key is pressed */

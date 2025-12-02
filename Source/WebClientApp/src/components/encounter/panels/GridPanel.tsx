@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
+import { useUnitSystem } from '@/hooks/useUnitSystem';
+import { UNIT_CONFIGS } from '@/types/units';
 
 export interface GridPanelProps {
   gridConfig: GridConfig;
@@ -21,6 +23,7 @@ export interface GridPanelProps {
 
 export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }) => {
   const theme = useTheme();
+  const [unitSystem] = useUnitSystem();
 
   const compactStyles = {
     sectionHeader: {
@@ -78,10 +81,8 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
     const newType = Number(e.target.value) as GridType;
 
     onGridChange({
+      ...gridConfig,
       type: newType,
-      cellSize: gridConfig.cellSize ?? { width: 50, height: 50 },
-      offset: gridConfig.offset ?? { left: 0, top: 0 },
-      snap: gridConfig.snap ?? true,
     });
   };
 
@@ -90,10 +91,8 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value) || value < 10) return;
     onGridChange({
-      type: gridConfig.type as GridType,
+      ...gridConfig,
       cellSize: { ...gridConfig.cellSize, width: value },
-      offset: gridConfig.offset,
-      snap: gridConfig.snap,
     });
   };
 
@@ -102,10 +101,8 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value) || value < 10) return;
     onGridChange({
-      type: gridConfig.type as GridType,
+      ...gridConfig,
       cellSize: { ...gridConfig.cellSize, height: value },
-      offset: gridConfig.offset,
-      snap: gridConfig.snap,
     });
   };
 
@@ -114,10 +111,8 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value)) return;
     onGridChange({
-      type: gridConfig.type as GridType,
-      cellSize: gridConfig.cellSize,
+      ...gridConfig,
       offset: { ...gridConfig.offset, left: value },
-      snap: gridConfig.snap,
     });
   };
 
@@ -126,20 +121,26 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value)) return;
     onGridChange({
-      type: gridConfig.type as GridType,
-      cellSize: gridConfig.cellSize,
+      ...gridConfig,
       offset: { ...gridConfig.offset, top: value },
-      snap: gridConfig.snap,
     });
   };
 
   const handleSnapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!onGridChange) return;
     onGridChange({
-      type: gridConfig.type as GridType,
-      cellSize: gridConfig.cellSize,
-      offset: gridConfig.offset,
+      ...gridConfig,
       snap: e.target.checked,
+    });
+  };
+
+  const handleScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onGridChange) return;
+    const value = parseFloat(e.target.value);
+    if (Number.isNaN(value)) return;
+    onGridChange({
+      ...gridConfig,
+      scale: value,
     });
   };
 
@@ -228,6 +229,18 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
           sx={compactStyles.textField}
         />
       </Box>
+
+      <TextField
+        id='input-scale'
+        label={`Scale (${UNIT_CONFIGS[unitSystem].abbreviation})`}
+        type='number'
+        value={gridConfig.scale ?? 5.0}
+        onChange={handleScaleChange}
+        size='small'
+        fullWidth
+        InputProps={{ inputProps: { min: 0.1, step: 0.5 } }}
+        sx={compactStyles.textField}
+      />
 
       <FormControlLabel
         control={

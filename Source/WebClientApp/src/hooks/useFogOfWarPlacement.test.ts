@@ -5,7 +5,7 @@ import { useFogOfWarPlacement } from './useFogOfWarPlacement';
 
 vi.mock('polygon-clipping', () => ({
   default: {
-    union: vi.fn((polys1: any, polys2: any) => {
+    union: vi.fn((_polys1: any, _polys2: any) => {
       return [[[[0, 0], [100, 0], [100, 100], [0, 100], [0, 0]]]];
     }),
   },
@@ -52,10 +52,10 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalledTimes(1);
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('1');
-      expect(createdRegion.value).toBe(1);
-      expect(createdRegion.label).toBe('Hidden');
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('1');
+      expect(createdRegion?.value).toBe(1);
+      expect(createdRegion?.label).toBe('Hidden');
     });
 
     it('should create name "2" for second add mode region', () => {
@@ -87,8 +87,8 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('2');
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('2');
     });
 
     it('should create child name "1.1" for first subtract mode region', () => {
@@ -120,9 +120,9 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('1.1');
-      expect(createdRegion.value).toBe(-1);
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('1.1');
+      expect(createdRegion?.value).toBe(-1);
     });
 
     it('should create child name "1.2" for second subtract under parent "1"', () => {
@@ -159,8 +159,8 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('1.2');
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('1.2');
     });
   });
 
@@ -183,10 +183,10 @@ describe('useFogOfWarPlacement', () => {
         ]);
       });
 
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.value).toBe(1);
-      expect(createdRegion.type).toBe('FogOfWar');
-      expect(createdRegion.label).toBe('Hidden');
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.value).toBe(1);
+      expect(createdRegion?.type).toBe('FogOfWar');
+      expect(createdRegion?.label).toBe('Hidden');
     });
 
     it('should create region with value=-1 in subtract mode', () => {
@@ -215,8 +215,8 @@ describe('useFogOfWarPlacement', () => {
         ]);
       });
 
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.value).toBe(-1);
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.value).toBe(-1);
     });
   });
 
@@ -276,9 +276,9 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('1');
-      expect(createdRegion.value).toBe(1);
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('1');
+      expect(createdRegion?.value).toBe(1);
     });
 
     it('should handle bucket fill completion in subtract mode', () => {
@@ -310,9 +310,9 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('1.1');
-      expect(createdRegion.value).toBe(-1);
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('1.1');
+      expect(createdRegion?.value).toBe(-1);
     });
   });
 
@@ -370,8 +370,8 @@ describe('useFogOfWarPlacement', () => {
       });
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
-      const createdRegion = mockOnRegionCreated.mock.calls[0][0];
-      expect(createdRegion.name).toBe('1');
+      const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
+      expect(createdRegion?.name).toBe('1');
     });
   });
 });

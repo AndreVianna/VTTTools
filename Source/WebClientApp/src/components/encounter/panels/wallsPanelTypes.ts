@@ -1,41 +1,48 @@
 import {
   BorderAll as WallIcon,
+  DoorFront as DoorIcon,
   Fence as FenceIcon,
-  VerticalShadesClosed as VeilIcon,
-  VisibilityOff as VisibilityOffIcon,
+  Window as WindowIcon,
+  Doorbell as PassagewayIcon,
+  Adjust as OpeningIcon,
 } from '@mui/icons-material';
-import { WallVisibility } from '@/types/domain';
+import { SegmentType } from '@/types/domain';
 
 export interface WallPreset {
   name: string;
   icon: typeof WallIcon;
-  visibility: WallVisibility;
-  isClosed: boolean;
+  segmentType: SegmentType;
 }
 
 export const WALL_PRESETS: WallPreset[] = [
   {
-    name: 'Normal Wall',
+    name: 'Wall',
     icon: WallIcon,
-    visibility: WallVisibility.Normal,
-    isClosed: false,
+    segmentType: SegmentType.Wall,
   },
   {
     name: 'Fence',
     icon: FenceIcon,
-    visibility: WallVisibility.Fence,
-    isClosed: false,
+    segmentType: SegmentType.Fence,
   },
   {
-    name: 'Invisible Wall',
-    icon: VisibilityOffIcon,
-    visibility: WallVisibility.Invisible,
-    isClosed: false,
+    name: 'Door',
+    icon: DoorIcon,
+    segmentType: SegmentType.Door,
   },
   {
-    name: 'Veil',
-    icon: VeilIcon,
-    visibility: WallVisibility.Veil,
-    isClosed: false,
+    name: 'Window',
+    icon: WindowIcon,
+    segmentType: SegmentType.Window,
+  },
+  {
+    name: 'Passage',
+    icon: PassagewayIcon,
+    segmentType: SegmentType.Passage,
+  },
+  {
+    name: 'Opening',
+    icon: OpeningIcon,
+    segmentType: SegmentType.Opening,
   },
 ];

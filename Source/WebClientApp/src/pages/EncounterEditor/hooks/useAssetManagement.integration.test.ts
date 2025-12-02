@@ -61,34 +61,39 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
     mockAsset = {
       id: 'asset-lib-001',
       ownerId: 'owner-123',
-      kind: AssetKind.Object,
+      classification: {
+        kind: AssetKind.Object,
+        category: 'Test',
+        type: 'Object',
+        subtype: null,
+      },
       name: 'Test Asset',
       description: 'Test asset description',
       isPublished: true,
       isPublic: true,
       tokens: [
         {
-          token: {
-            id: 'token-123',
-            type: ResourceType.Image,
-            path: '/test-image.png',
-            metadata: {
-              contentType: 'image/png',
-              fileName: 'test-image.png',
-              fileLength: 1024,
-              imageSize: { width: 100, height: 100 },
-            },
-            tags: [],
-          },
-          isDefault: true,
+          id: 'token-123',
+          description: null,
+          features: {},
+          type: ResourceType.Image,
+          path: '/test-image.png',
+          contentType: 'image/png',
+          fileName: 'test-image.png',
+          fileLength: 1024,
+          size: { width: 100, height: 100 },
+          duration: '',
+          ownerId: 'owner-123',
+          isPublished: true,
+          isPublic: true,
         },
       ],
-      portrait: undefined,
-      size: {
+      portrait: null,
+      tokenSize: {
         width: 100,
         height: 100,
-        isSquare: true,
       },
+      statBlocks: {},
     };
 
     mockPlacedAsset = {
@@ -122,6 +127,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       },
       stage: {
         background: null,
@@ -130,7 +136,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       },
       assets: [],
       walls: [],
-          openings: [],
       regions: [],
       sources: [],
     };

@@ -25,6 +25,8 @@ public class User
 
     public Guid? AvatarId { get; set; }
 
+    public UnitSystem UnitSystem { get; set; } = UnitSystem.Imperial;
+
     [NotMapped]
     public bool IsAdministrator { get; set; }
     [NotMapped]

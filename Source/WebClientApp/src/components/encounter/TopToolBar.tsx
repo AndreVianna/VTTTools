@@ -4,7 +4,6 @@ import {
   Cloud as FogOfWarIcon,
   GridOn as GridIcon,
   ViewInAr as ObjectsIcon,
-  MeetingRoom as OpeningsIcon,
   Person as CharactersIcon,
   Redo as RedoIcon,
   Layers as RegionsIcon,
@@ -24,7 +23,6 @@ import { useState } from 'react';
 export type LayerVisibilityType =
   | 'regions'
   | 'walls'
-  | 'openings'
   | 'objects'
   | 'monsters'
   | 'characters'
@@ -72,8 +70,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
     icon: typeof RegionsIcon;
     label: string;
   }> = [
-    { key: 'walls', icon: WallsIcon, label: 'Walls' },
-    { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
+    { key: 'walls', icon: WallsIcon, label: 'Walls & Openings' },
     { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
     { key: 'monsters', icon: MonstersIcon, label: 'Monsters' },

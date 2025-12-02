@@ -44,6 +44,7 @@ describe('Region Workflows - Integration Tests', () => {
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,
+      scale: 1,
       },
       stage: {
         background: null,
@@ -52,7 +53,6 @@ describe('Region Workflows - Integration Tests', () => {
       },
       assets: [],
       walls: [],
-          openings: [],
       regions: [],
       sources: [],
     };
@@ -62,6 +62,7 @@ describe('Region Workflows - Integration Tests', () => {
       cellSize: { width: 50, height: 50 },
       offset: { left: 0, top: 0 },
       snap: true,
+    scale: 1,
     };
 
     mockSetEncounter = vi.fn();
@@ -118,7 +119,6 @@ describe('Region Workflows - Integration Tests', () => {
             updateEncounterRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
-          gridConfig,
         );
       });
 
@@ -482,7 +482,6 @@ describe('Region Workflows - Integration Tests', () => {
             updateEncounterRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
-          gridConfig,
         );
 
         expect(result.action).toBe('merge');
@@ -533,7 +532,6 @@ describe('Region Workflows - Integration Tests', () => {
             updateEncounterRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
-          gridConfig,
         );
 
         expect(result.action).toBe('create');
@@ -582,7 +580,6 @@ describe('Region Workflows - Integration Tests', () => {
             updateEncounterRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
-          gridConfig,
         );
 
         expect(result.action).toBe('create');
@@ -644,7 +641,6 @@ describe('Region Workflows - Integration Tests', () => {
             updateEncounterRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
-          gridConfig,
         );
 
         expect(result.action).toBe('merge');
@@ -794,6 +790,7 @@ describe('Region Workflows - Integration Tests', () => {
           setIsEditingRegionVertices: mockSetIsEditingRegionVertices,
           setOriginalRegionVertices: mockSetOriginalRegionVertices,
           setDrawingRegionIndex: mockSetDrawingRegionIndex,
+          setRegionPlacementMode: vi.fn(),
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
           refetch: mockRefetch,
@@ -1062,7 +1059,6 @@ describe('Region Workflows - Integration Tests', () => {
             updateEncounterRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
-          gridConfig,
         );
       });
 

@@ -9,8 +9,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MonsterAsset, ObjectAsset, PlacedAsset } from '@/types/domain';
-import { AssetKind, LabelPosition, LabelVisibility, TokenShape } from '@/types/domain';
+import type { PlacedAsset } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility } from '@/types/domain';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { GridType, snapToGrid } from '@/utils/gridCalculator';
 
@@ -20,6 +20,7 @@ describe('TokenDragHandle Logic Tests', () => {
     cellSize: { width: 50, height: 50 },
     offset: { left: 0, top: 0 },
     snap: true,
+    scale: 1,
   };
 
   const mockMonsterAsset: PlacedAsset = {
@@ -28,21 +29,21 @@ describe('TokenDragHandle Logic Tests', () => {
     asset: {
       id: 'asset-1',
       ownerId: 'user-1',
-      kind: AssetKind.Monster,
+      classification: {
+        kind: AssetKind.Creature,
+        category: '',
+        type: '',
+        subtype: null,
+      },
       name: 'Test Token',
       description: 'Test monster token',
       isPublished: true,
       isPublic: false,
       tokens: [],
-      portrait: undefined,
-      size: { width: 1, height: 1, isSquare: true },
-      statBlockId: undefined,
-      tokenStyle: {
-        shape: TokenShape.Circle,
-        borderColor: '#000',
-        backgroundColor: '#fff',
-      },
-    } as MonsterAsset,
+      portrait: null,
+      tokenSize: { width: 1, height: 1 },
+      statBlocks: {},
+    },
     position: { x: 100, y: 100 },
     size: { width: 50, height: 50 },
     rotation: 0,
@@ -58,67 +59,61 @@ describe('TokenDragHandle Logic Tests', () => {
 
   describe('Placement Behavior', () => {
     it('should allow monsters to move', () => {
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       expect(behavior.canMove).toBe(true);
     });
 
     it('should not allow monsters to rotate in Phase 6', () => {
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       expect(behavior.canRotate).toBe(false);
     });
 
     it('should not allow monsters to resize', () => {
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       expect(behavior.canResize).toBe(false);
     });
 
     it('should allow monsters to be deleted', () => {
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       expect(behavior.canDelete).toBe(true);
     });
 
     it('should require grid alignment for monsters', () => {
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       expect(behavior.requiresGridAlignment).toBe(true);
     });
 
     it('should not allow monsters to overlap', () => {
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       expect(behavior.allowOverlap).toBe(false);
     });
@@ -155,12 +150,11 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should validate non-overlapping placement', () => {
       const position = { x: 200, y: 200 };
       const size = { width: 50, height: 50 };
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       const validation = validatePlacement(
         position,
@@ -185,12 +179,11 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should reject overlapping placement when overlap not allowed', () => {
       const position = { x: 100, y: 100 };
       const size = { width: 50, height: 50 };
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       const validation = validatePlacement(
         position,
@@ -215,12 +208,11 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should validate size constraints', () => {
       const position = { x: 100, y: 100 };
       const size = { width: 1, height: 1 };
-      const monsterAsset = mockMonsterAsset.asset as MonsterAsset;
       const monsterProperties =
-        mockMonsterAsset.asset.kind === 'Monster'
-          ? { size: monsterAsset.size }
+        mockMonsterAsset.asset.classification.kind === 'Creature'
+          ? { size: mockMonsterAsset.asset.tokenSize }
           : undefined;
-      const behavior = getPlacementBehavior(mockMonsterAsset.asset.kind, undefined, monsterProperties);
+      const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
       const validation = validatePlacement(position, size, behavior, [], mockGridConfig);
 
@@ -308,18 +300,21 @@ describe('TokenDragHandle Logic Tests', () => {
       asset: {
         id: 'asset-obj-1',
         ownerId: 'user-1',
-        kind: AssetKind.Object,
+        classification: {
+          kind: AssetKind.Object,
+          category: '',
+          type: '',
+          subtype: null,
+        },
         name: 'Immovable Wall',
         description: 'Test object',
         isPublished: true,
         isPublic: false,
         tokens: [],
-        portrait: undefined,
-        size: { width: 2, height: 1, isSquare: false },
-        isMovable: false,
-        isOpaque: true,
-        triggerEffectId: undefined,
-      } as ObjectAsset,
+        portrait: null,
+        tokenSize: { width: 2, height: 1 },
+        statBlocks: {},
+      },
       position: { x: 100, y: 100 },
       size: { width: 100, height: 50 },
       rotation: 0,
@@ -335,14 +330,14 @@ describe('TokenDragHandle Logic Tests', () => {
 
     it('should not allow immovable objects to move', () => {
       const objectProperties =
-        immovableObjectAsset.asset.kind === 'Object'
+        immovableObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: immovableObjectAsset.asset.size,
-              isMovable: (immovableObjectAsset.asset as ObjectAsset).isMovable,
-              isOpaque: (immovableObjectAsset.asset as ObjectAsset).isOpaque,
+              size: immovableObjectAsset.asset.tokenSize,
+              isMovable: false,
+              isOpaque: true,
             }
           : undefined;
-      const behavior = getPlacementBehavior(immovableObjectAsset.asset.kind, objectProperties, undefined);
+      const behavior = getPlacementBehavior(immovableObjectAsset.asset.classification.kind, objectProperties, undefined);
 
       expect(behavior.canMove).toBe(false);
     });
@@ -352,34 +347,32 @@ describe('TokenDragHandle Logic Tests', () => {
         ...immovableObjectAsset,
         asset: {
           ...immovableObjectAsset.asset,
-          isMovable: true,
-          isOpaque: false,
         },
       };
 
       const objectProperties =
-        movableObjectAsset.asset.kind === 'Object'
+        movableObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: movableObjectAsset.asset.size,
-              isMovable: (movableObjectAsset.asset as ObjectAsset).isMovable,
-              isOpaque: (movableObjectAsset.asset as ObjectAsset).isOpaque,
+              size: movableObjectAsset.asset.tokenSize,
+              isMovable: true,
+              isOpaque: false,
             }
           : undefined;
-      const behavior = getPlacementBehavior(movableObjectAsset.asset.kind, objectProperties, undefined);
+      const behavior = getPlacementBehavior(movableObjectAsset.asset.classification.kind, objectProperties, undefined);
 
       expect(behavior.canMove).toBe(true);
     });
 
     it('should not allow overlap for opaque objects', () => {
       const objectProperties =
-        immovableObjectAsset.asset.kind === 'Object'
+        immovableObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: immovableObjectAsset.asset.size,
-              isMovable: (immovableObjectAsset.asset as ObjectAsset).isMovable,
-              isOpaque: (immovableObjectAsset.asset as ObjectAsset).isOpaque,
+              size: immovableObjectAsset.asset.tokenSize,
+              isMovable: false,
+              isOpaque: true,
             }
           : undefined;
-      const behavior = getPlacementBehavior(immovableObjectAsset.asset.kind, objectProperties, undefined);
+      const behavior = getPlacementBehavior(immovableObjectAsset.asset.classification.kind, objectProperties, undefined);
 
       expect(behavior.allowOverlap).toBe(false);
     });
@@ -389,20 +382,18 @@ describe('TokenDragHandle Logic Tests', () => {
         ...immovableObjectAsset,
         asset: {
           ...immovableObjectAsset.asset,
-          isMovable: true,
-          isOpaque: false,
         },
       };
 
       const objectProperties =
-        transparentObjectAsset.asset.kind === 'Object'
+        transparentObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: transparentObjectAsset.asset.size,
-              isMovable: (transparentObjectAsset.asset as ObjectAsset).isMovable,
-              isOpaque: (transparentObjectAsset.asset as ObjectAsset).isOpaque,
+              size: transparentObjectAsset.asset.tokenSize,
+              isMovable: true,
+              isOpaque: false,
             }
           : undefined;
-      const behavior = getPlacementBehavior(transparentObjectAsset.asset.kind, objectProperties, undefined);
+      const behavior = getPlacementBehavior(transparentObjectAsset.asset.classification.kind, objectProperties, undefined);
 
       expect(behavior.allowOverlap).toBe(true);
     });
