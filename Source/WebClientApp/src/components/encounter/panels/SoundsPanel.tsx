@@ -1,12 +1,16 @@
 import {
+  CloudUpload as UploadIcon,
   Delete as DeleteIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
-  VolumeUp as VolumeUpIcon,
+  FolderOpen as BrowseIcon,
+  Clear as ClearIcon,
 } from '@mui/icons-material';
 import {
   Box,
+  Button,
   Checkbox,
+  CircularProgress,
   Collapse,
   Divider,
   FormControlLabel,
@@ -22,10 +26,12 @@ import {
 } from '@mui/material';
 import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
+import { AudioPreviewPlayer, SoundPickerDialog } from '@/components/sounds';
 import {
   useUpdateEncounterSoundSourceMutation,
   useRemoveEncounterSoundSourceMutation,
 } from '@/services/encounterApi';
+import { useGetMediaResourceQuery, useUploadFileMutation } from '@/services/mediaApi';
 import { type EncounterSoundSource } from '@/types/domain';
 
 export interface SoundsPanelProps {
@@ -42,6 +48,34 @@ export interface SoundPlacementProperties {
   isPlaying?: boolean;
 }
 
+const formatDuration = (duration: string): string => {
+  if (!duration) return '0:00';
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
+  if (!match) return duration;
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  const seconds = Math.floor(parseFloat(match[3] || '0'));
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const SoundResourceInfo: React.FC<{ resourceId: string }> = ({ resourceId }) => {
+  const theme = useTheme();
+  const { data: resource } = useGetMediaResourceQuery(resourceId);
+
+  if (!resource) {
+    return <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>Loading...</Typography>;
+  }
+
+  return (
+    <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
+      {resource.fileName} ({formatDuration(resource.duration)})
+    </Typography>
+  );
+};
+
 export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
   ({
     encounterId,
@@ -56,9 +90,15 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
     const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
+    const [soundPickerOpen, setSoundPickerOpen] = useState(false);
+    const [soundPickerSourceIndex, setSoundPickerSourceIndex] = useState<number | null>(null);
+    const [uploadingForSource, setUploadingForSource] = useState<number | null>(null);
+    const [newSoundPickerOpen, setNewSoundPickerOpen] = useState(false);
+    const [isUploadingNew, setIsUploadingNew] = useState(false);
 
     const [updateEncounterSoundSource] = useUpdateEncounterSoundSourceMutation();
     const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
+    const [uploadFile] = useUploadFileMutation();
 
     const compactStyles = {
       sectionHeader: {
@@ -97,10 +137,35 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
       },
     };
 
-    const handlePlaceSound = () => {
+    const handleBrowseSoundsForNew = () => {
+      setNewSoundPickerOpen(true);
+    };
+
+    const handleNewSoundSelected = (resourceId: string) => {
+      setNewSoundPickerOpen(false);
       onPlaceSound({
+        resourceId,
         isPlaying: false,
       });
+    };
+
+    const handleUploadNewSound = async (file: File) => {
+      setIsUploadingNew(true);
+      try {
+        const result = await uploadFile({
+          file,
+          type: 'encounter',
+          resource: 'audio',
+        }).unwrap();
+        onPlaceSound({
+          resourceId: result.id,
+          isPlaying: false,
+        });
+      } catch (_error) {
+        console.error('[SoundsPanel] Failed to upload sound');
+      } finally {
+        setIsUploadingNew(false);
+      }
     };
 
     const handleDeleteClick = (sourceIndex: number) => {
@@ -158,31 +223,112 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
       }
     };
 
+    const handleBrowseSound = (sourceIndex: number) => {
+      setSoundPickerSourceIndex(sourceIndex);
+      setSoundPickerOpen(true);
+    };
+
+    const handleSoundSelected = async (resourceId: string) => {
+      if (soundPickerSourceIndex !== null && encounterId) {
+        try {
+          await updateEncounterSoundSource({
+            encounterId,
+            sourceIndex: soundPickerSourceIndex,
+            resourceId,
+          }).unwrap();
+        } catch (_error) {
+          console.error('[SoundsPanel] Failed to set sound resource');
+        }
+      }
+      setSoundPickerOpen(false);
+      setSoundPickerSourceIndex(null);
+    };
+
+    const handleUploadSound = async (sourceIndex: number, file: File) => {
+      if (!encounterId) return;
+
+      setUploadingForSource(sourceIndex);
+      try {
+        const result = await uploadFile({
+          file,
+          type: 'encounter',
+          resource: 'audio',
+        }).unwrap();
+
+        await updateEncounterSoundSource({
+          encounterId,
+          sourceIndex,
+          resourceId: result.id,
+        }).unwrap();
+      } catch (_error) {
+        console.error('[SoundsPanel] Failed to upload sound');
+      } finally {
+        setUploadingForSource(null);
+      }
+    };
+
+    const handleClearSound = async (sourceIndex: number) => {
+      if (!encounterId) return;
+      try {
+        await updateEncounterSoundSource({
+          encounterId,
+          sourceIndex,
+          resourceId: null,
+        }).unwrap();
+      } catch (_error) {
+        console.error('[SoundsPanel] Failed to clear sound resource');
+      }
+    };
+
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <Typography variant='overline' sx={compactStyles.sectionHeader}>
-          New Sound Source
+          Add Sound Source
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title='Place a Sound Source' arrow>
-            <IconButton
-              id='btn-place-sound'
-              onClick={handlePlaceSound}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title='Select from Library' arrow>
+            <Button
+              variant='contained'
+              onClick={handleBrowseSoundsForNew}
+              startIcon={<BrowseIcon />}
               sx={{
-                width: 28,
-                height: 28,
-                borderRadius: 0,
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                },
+                height: '28px',
+                fontSize: '11px',
+                textTransform: 'none',
+                fontWeight: 500,
+                flex: 1,
               }}
             >
-              <VolumeUpIcon sx={{ fontSize: 16 }} />
-            </IconButton>
+              Browse
+            </Button>
           </Tooltip>
+          <Button
+            variant='outlined'
+            component='label'
+            startIcon={isUploadingNew ? <CircularProgress size={16} /> : <UploadIcon />}
+            disabled={isUploadingNew}
+            sx={{
+              height: '28px',
+              fontSize: '11px',
+              textTransform: 'none',
+              fontWeight: 500,
+            }}
+          >
+            Upload
+            <input
+              type='file'
+              hidden
+              accept='.mp3,audio/mpeg'
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleUploadNewSound(file);
+                }
+                e.target.value = '';
+              }}
+            />
+          </Button>
         </Box>
 
         <Divider sx={{ my: 0.5 }} />
@@ -290,9 +436,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                             e.stopPropagation();
                             const trimmedValue = e.target.value.trim();
                             if (trimmedValue.length <= 64 && trimmedValue !== (source.name ?? '')) {
-                              handleSourcePropertyUpdate(source.index, {
-                                name: trimmedValue || undefined,
-                              });
+                              handleSourcePropertyUpdate(
+                                source.index,
+                                trimmedValue ? { name: trimmedValue } : {},
+                              );
                             }
                             setEditedNames((prev) => {
                               const newMap = new Map(prev);
@@ -336,14 +483,97 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                         gap: 0.5,
                       }}
                     >
-                      <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                        Range: {source.range} feet
+                      <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary, fontWeight: 600 }}>
+                        Range
                       </Typography>
-                      {source.resourceId && (
-                        <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                          Resource ID: {source.resourceId}
+                      <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary, mb: 1 }}>
+                        {source.range} feet
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary, fontWeight: 600 }}>
+                          Sound Resource
                         </Typography>
-                      )}
+
+                        {source.resourceId ? (
+                          <>
+                            <SoundResourceInfo resourceId={source.resourceId} />
+
+                            <AudioPreviewPlayer resourceId={source.resourceId} compact />
+
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                startIcon={<BrowseIcon sx={{ fontSize: 12 }} />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBrowseSound(source.index);
+                                }}
+                                sx={{ fontSize: '9px', py: 0.25, flex: 1 }}
+                              >
+                                Change
+                              </Button>
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                color='error'
+                                startIcon={<ClearIcon sx={{ fontSize: 12 }} />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleClearSound(source.index);
+                                }}
+                                sx={{ fontSize: '9px', py: 0.25 }}
+                              >
+                                Clear
+                              </Button>
+                            </Box>
+                          </>
+                        ) : (
+                          <>
+                            <Typography sx={{ fontSize: '9px', color: theme.palette.text.disabled }}>
+                              No sound assigned
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                startIcon={<BrowseIcon sx={{ fontSize: 12 }} />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBrowseSound(source.index);
+                                }}
+                                sx={{ fontSize: '9px', py: 0.25, flex: 1 }}
+                              >
+                                Browse
+                              </Button>
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                component='label'
+                                startIcon={uploadingForSource === source.index ? <CircularProgress size={12} /> : <UploadIcon sx={{ fontSize: 12 }} />}
+                                disabled={uploadingForSource === source.index}
+                                sx={{ fontSize: '9px', py: 0.25 }}
+                              >
+                                Upload
+                                <input
+                                  type='file'
+                                  hidden
+                                  accept='.mp3,audio/mpeg'
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      handleUploadSound(source.index, file);
+                                    }
+                                    e.target.value = '';
+                                  }}
+                                />
+                              </Button>
+                            </Box>
+                          </>
+                        )}
+                      </Box>
+
                       <FormControlLabel
                         control={
                           <Checkbox
@@ -365,6 +595,26 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
             })
           )}
         </List>
+
+        <SoundPickerDialog
+          open={soundPickerOpen}
+          onClose={() => {
+            setSoundPickerOpen(false);
+            setSoundPickerSourceIndex(null);
+          }}
+          onSelect={handleSoundSelected}
+          {...(soundPickerSourceIndex !== null &&
+            soundSources.find((s) => s.index === soundPickerSourceIndex)?.resourceId && {
+              currentResourceId: soundSources.find((s) => s.index === soundPickerSourceIndex)!
+                .resourceId!,
+            })}
+        />
+
+        <SoundPickerDialog
+          open={newSoundPickerOpen}
+          onClose={() => setNewSoundPickerOpen(false)}
+          onSelect={handleNewSoundSelected}
+        />
 
         <ConfirmDialog
           open={deleteConfirmOpen}

@@ -112,6 +112,6 @@ export { UndoRedoToolbar } from './UndoRedoToolbar';
 export type { LightContextMenuProps } from './LightContextMenu';
 export { LightContextMenu } from './LightContextMenu';
 export { RegionContextMenu } from './RegionContextMenu';
-export type { SoundContextMenuProps } from './SoundContextMenu';
+export type { SoundContextMenuProps, SoundSourceUpdatePayload } from './SoundContextMenu';
 export { SoundContextMenu } from './SoundContextMenu';
 export { WallContextMenu } from './WallContextMenu';

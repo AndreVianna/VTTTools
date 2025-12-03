@@ -24,7 +24,12 @@ import {
   WallTransformer,
 } from '@components/encounter';
 import type { LightPlacementProperties, SoundPlacementProperties } from '@components/encounter/panels';
-import { LightContextMenu, SoundContextMenu, SoundSourceRenderer } from '@components/encounter';
+import {
+  LightContextMenu,
+  SoundContextMenu,
+  SoundSourceRenderer,
+  type SoundSourceUpdatePayload,
+} from '@components/encounter';
 import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
 import { GroupName, LayerName, layerManager } from '@services/layerManager';
@@ -78,7 +83,6 @@ import {
   type Point,
   type Pole,
   type EncounterLightSource,
-  type EncounterSoundSource,
   type PlacedLightSource,
   type PlacedSoundSource,
   LightSourceType,
@@ -858,7 +862,6 @@ const EncounterEditorPageInternal: React.FC = () => {
         }
         return;
       }
-
     };
 
     window.addEventListener('keydown', handleKeyDown, { capture: true });
@@ -1103,6 +1106,29 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, placedSoundSources, removeEncounterSoundSource, selectedSoundSourceIndex, refetch],
   );
 
+  useEffect(() => {
+    const handleDeleteKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key === 'Delete') {
+        if (selectedLightSourceIndex !== null) {
+          e.preventDefault();
+          handleLightSourceDelete(selectedLightSourceIndex);
+          return;
+        }
+        if (selectedSoundSourceIndex !== null) {
+          e.preventDefault();
+          handleSoundSourceDelete(selectedSoundSourceIndex);
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleDeleteKey);
+    return () => window.removeEventListener('keydown', handleDeleteKey);
+  }, [selectedLightSourceIndex, selectedSoundSourceIndex, handleLightSourceDelete, handleSoundSourceDelete]);
+
   const handlePlaceLight = useCallback((properties: LightPlacementProperties) => {
     setSourcePlacementProperties({ ...properties, sourceType: 'light' });
     setActiveTool('sourceDrawing');
@@ -1146,8 +1172,15 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, updateEncounterLightSource, refetch],
   );
 
+  const handleLightSourcePositionChange = useCallback(
+    (sourceIndex: number, position: { x: number; y: number }) => {
+      handleLightSourceUpdate(sourceIndex, { position });
+    },
+    [handleLightSourceUpdate],
+  );
+
   const handleSoundSourceUpdate = useCallback(
-    async (sourceIndex: number, updates: Partial<EncounterSoundSource>) => {
+    async (sourceIndex: number, updates: SoundSourceUpdatePayload) => {
       if (!encounterId) return;
       try {
         await updateEncounterSoundSource({ encounterId, sourceIndex, ...updates }).unwrap();
@@ -1589,6 +1622,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       activeScope={activeScope}
                       onSelect={handleLightSourceSelect}
                       onContextMenu={handleLightSourceContextMenu}
+                      onPositionChange={handleLightSourcePositionChange}
                       isSelected={selectedLightSourceIndex === lightSource.index}
                     />
                   ))}

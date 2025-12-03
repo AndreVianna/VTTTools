@@ -434,6 +434,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               selectedSourceIndex={selectedLightSourceIndex ?? null}
               onSourceSelect={onLightSourceSelect || (() => {})}
               onPlaceLight={onPlaceLight || (() => {})}
+              gridScale={gridConfig?.scale ?? 5}
             />
           )}
           {activePanel === 'sounds' && (

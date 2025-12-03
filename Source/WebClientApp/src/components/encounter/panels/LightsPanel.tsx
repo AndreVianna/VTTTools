@@ -38,6 +38,7 @@ export interface LightsPanelProps {
   selectedSourceIndex: number | null;
   onSourceSelect: (index: number) => void;
   onPlaceLight: (properties: LightPlacementProperties) => void;
+  gridScale?: number;
 }
 
 export interface LightPlacementProperties {
@@ -74,6 +75,7 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
     selectedSourceIndex,
     onSourceSelect,
     onPlaceLight,
+    gridScale = 5,
   }) => {
     const theme = useTheme();
 
@@ -84,6 +86,7 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
     const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
     const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
+    const [editedRanges, setEditedRanges] = useState<Map<number, string>>(new Map());
 
     const [updateEncounterLightSource] = useUpdateEncounterLightSourceMutation();
     const [removeEncounterLightSource] = useRemoveEncounterLightSourceMutation();
@@ -144,7 +147,7 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
       onPlaceLight({
         type,
         isDirectional,
-        color: customColor || undefined,
+        ...(customColor && { color: customColor }),
         isOn: true,
       });
     };
@@ -164,6 +167,11 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
             newMap.delete(sourceIndex);
             return newMap;
           });
+          setEditedRanges((prevRanges) => {
+            const newMap = new Map(prevRanges);
+            newMap.delete(sourceIndex);
+            return newMap;
+          });
         } else {
           newSet.add(sourceIndex);
         }
@@ -176,6 +184,7 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
       updates: {
         name?: string;
         isOn?: boolean;
+        range?: number;
       },
     ) => {
       if (!encounterId) return;
@@ -392,9 +401,10 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
                             e.stopPropagation();
                             const trimmedValue = e.target.value.trim();
                             if (trimmedValue.length <= 64 && trimmedValue !== (source.name ?? '')) {
-                              handleSourcePropertyUpdate(source.index, {
-                                name: trimmedValue || undefined,
-                              });
+                              handleSourcePropertyUpdate(
+                                source.index,
+                                trimmedValue ? { name: trimmedValue } : {},
+                              );
                             }
                             setEditedNames((prev) => {
                               const newMap = new Map(prev);
@@ -446,9 +456,70 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
                       <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
                         Mode: {source.direction !== undefined ? 'Beam' : 'Spot'}
                       </Typography>
-                      <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                        Range: {source.range} feet
-                      </Typography>
+                      {(() => {
+                        const rangeDisplayValue = editedRanges.get(source.index) ?? String(source.range * gridScale);
+                        const parsedValue = parseFloat(rangeDisplayValue);
+                        const isValidRange = !isNaN(parsedValue) && parsedValue >= 0;
+                        return (
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary, minWidth: 40 }}>
+                                Range:
+                              </Typography>
+                              <TextField
+                                type='number'
+                                value={rangeDisplayValue}
+                                onChange={(e) => {
+                                  setEditedRanges((prev) => {
+                                    const newMap = new Map(prev);
+                                    newMap.set(source.index, e.target.value);
+                                    return newMap;
+                                  });
+                                }}
+                                onBlur={() => {
+                                  if (isValidRange) {
+                                    const newRange = parsedValue / gridScale;
+                                    if (newRange !== source.range) {
+                                      handleSourcePropertyUpdate(source.index, { range: newRange });
+                                    }
+                                  }
+                                  setEditedRanges((prev) => {
+                                    const newMap = new Map(prev);
+                                    newMap.delete(source.index);
+                                    return newMap;
+                                  });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => {
+                                  e.stopPropagation();
+                                  if (e.key === 'Enter') {
+                                    (e.target as HTMLInputElement).blur();
+                                  } else if (e.key === 'Escape') {
+                                    setEditedRanges((prev) => {
+                                      const newMap = new Map(prev);
+                                      newMap.delete(source.index);
+                                      return newMap;
+                                    });
+                                    (e.target as HTMLInputElement).blur();
+                                  }
+                                }}
+                                error={!isValidRange}
+                                size='small'
+                                inputProps={{ min: 0, step: gridScale }}
+                                sx={{ ...compactStyles.textField, width: 70 }}
+                              />
+                              <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
+                                ft
+                              </Typography>
+                            </Box>
+                            {!isValidRange && (
+                              <Typography variant='caption' sx={{ fontSize: '8px', color: theme.palette.error.main, mt: 0.25, display: 'block' }}>
+                                Invalid range (cannot be negative)
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })()}
                       {source.color && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>

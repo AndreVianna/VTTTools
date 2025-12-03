@@ -2,6 +2,7 @@ import {
     Box,
     Button,
     Checkbox,
+    CircularProgress,
     FormControlLabel,
     Menu,
     Slider,
@@ -9,16 +10,27 @@ import {
     Typography,
     useTheme,
 } from '@mui/material';
+import { CloudUpload as UploadIcon, FolderOpen as BrowseIcon, Clear as ClearIcon } from '@mui/icons-material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EncounterSoundSource } from '@/types/domain';
+import { AudioPreviewPlayer, SoundPickerDialog } from '@/components/sounds';
+import { useGetMediaResourceQuery, useUploadFileMutation } from '@/services/mediaApi';
+
+export type SoundSourceUpdatePayload = {
+    name?: string;
+    position?: { x: number; y: number };
+    range?: number;
+    resourceId?: string | null;
+    isPlaying?: boolean;
+};
 
 export interface SoundContextMenuProps {
     anchorPosition: { left: number; top: number } | null;
     open: boolean;
     onClose: () => void;
-    soundSource: EncounterSoundSource | null;
-    onSoundSourceUpdate?: (sourceIndex: number, updates: Partial<EncounterSoundSource>) => void;
+    encounterSoundSource: EncounterSoundSource | null;
+    onSoundSourceUpdate?: (sourceIndex: number, updates: SoundSourceUpdatePayload) => void;
     onSoundSourceDelete?: (sourceIndex: number) => void;
 }
 
@@ -26,7 +38,7 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
     anchorPosition,
     open,
     onClose,
-    soundSource,
+    encounterSoundSource: soundSource,
     onSoundSourceUpdate,
     onSoundSourceDelete,
 }) => {
@@ -35,9 +47,15 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
 
     const [nameValue, setNameValue] = useState('');
     const [rangeValue, setRangeValue] = useState(6);
-    const [resourceIdValue, setResourceIdValue] = useState('');
     const [isPlayingValue, setIsPlayingValue] = useState(true);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [soundPickerOpen, setSoundPickerOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const { data: currentResource } = useGetMediaResourceQuery(soundSource?.resourceId ?? '', {
+        skip: !soundSource?.resourceId,
+    });
+    const [uploadFile] = useUploadFileMutation();
 
     const handleClickOutside = useCallback(
         (event: MouseEvent) => {
@@ -62,7 +80,6 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
         if (soundSource) {
             setNameValue(soundSource.name || '');
             setRangeValue(soundSource.range);
-            setResourceIdValue(soundSource.resourceId || '');
             setIsPlayingValue(soundSource.isPlaying);
             setShowDeleteConfirm(false);
         }
@@ -70,13 +87,27 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
 
     if (!soundSource) return null;
 
+    const formatDuration = (duration: string): string => {
+        if (!duration) return '0:00';
+        const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
+        if (!match) return duration;
+        const hours = parseInt(match[1] || '0', 10);
+        const minutes = parseInt(match[2] || '0', 10);
+        const seconds = Math.floor(parseFloat(match[3] || '0'));
+        if (hours > 0) {
+            return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNameValue(event.target.value);
     };
 
     const handleNameBlur = () => {
         if (onSoundSourceUpdate && nameValue !== (soundSource.name || '')) {
-            onSoundSourceUpdate(soundSource.index, { name: nameValue.trim() || undefined });
+            const trimmedName = nameValue.trim();
+            onSoundSourceUpdate(soundSource.index, trimmedName ? { name: trimmedName } : {});
         } else {
             setNameValue(soundSource.name || '');
         }
@@ -101,24 +132,39 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
         }
     };
 
-    const handleResourceIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setResourceIdValue(event.target.value);
+    const handleBrowseSound = () => {
+        setSoundPickerOpen(true);
     };
 
-    const handleResourceIdBlur = () => {
-        if (onSoundSourceUpdate && resourceIdValue !== (soundSource.resourceId || '')) {
-            onSoundSourceUpdate(soundSource.index, { resourceId: resourceIdValue.trim() || undefined });
-        } else {
-            setResourceIdValue(soundSource.resourceId || '');
+    const handleSoundSelected = (resourceId: string) => {
+        if (onSoundSourceUpdate && soundSource) {
+            onSoundSourceUpdate(soundSource.index, { resourceId });
+        }
+        setSoundPickerOpen(false);
+    };
+
+    const handleUploadSound = async (file: File) => {
+        if (!soundSource || !onSoundSourceUpdate) return;
+
+        setIsUploading(true);
+        try {
+            const result = await uploadFile({
+                file,
+                type: 'encounter',
+                resource: 'audio',
+            }).unwrap();
+
+            onSoundSourceUpdate(soundSource.index, { resourceId: result.id });
+        } catch (_error) {
+            console.error('[SoundContextMenu] Failed to upload sound');
+        } finally {
+            setIsUploading(false);
         }
     };
 
-    const handleResourceIdKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
-            (event.target as HTMLInputElement).blur();
-        } else if (event.key === 'Escape') {
-            setResourceIdValue(soundSource.resourceId || '');
-            (event.target as HTMLInputElement).blur();
+    const handleClearSound = () => {
+        if (onSoundSourceUpdate && soundSource) {
+            onSoundSourceUpdate(soundSource.index, { resourceId: null });
         }
     };
 
@@ -235,18 +281,82 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
                         />
                     </Box>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography sx={{ fontSize: '10px', minWidth: 60 }}>Resource:</Typography>
-                        <TextField
-                            value={resourceIdValue}
-                            onChange={handleResourceIdChange}
-                            onBlur={handleResourceIdBlur}
-                            onKeyDown={handleResourceIdKeyDown}
-                            size="small"
-                            placeholder="Audio ID"
-                            inputProps={{ maxLength: 64 }}
-                            sx={{ ...compactTextFieldStyle, flex: 1 }}
-                        />
+                    <Box>
+                        <Typography sx={{ fontSize: '10px', color: theme.palette.text.secondary, fontWeight: 600, mb: 0.5 }}>
+                            Sound Resource
+                        </Typography>
+
+                        {soundSource.resourceId ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <Typography sx={{ fontSize: '10px' }}>
+                                    {currentResource?.fileName || 'Loading...'}
+                                    {currentResource?.duration && ` (${formatDuration(currentResource.duration)})`}
+                                </Typography>
+
+                                <AudioPreviewPlayer resourceId={soundSource.resourceId} compact />
+
+                                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                    <Button
+                                        size='small'
+                                        variant='outlined'
+                                        startIcon={<BrowseIcon sx={{ fontSize: 14 }} />}
+                                        onClick={handleBrowseSound}
+                                        sx={{ fontSize: '10px', py: 0.25, flex: 1, textTransform: 'none' }}
+                                    >
+                                        Change
+                                    </Button>
+                                    <Button
+                                        size='small'
+                                        variant='outlined'
+                                        color='error'
+                                        startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
+                                        onClick={handleClearSound}
+                                        sx={{ fontSize: '10px', py: 0.25, textTransform: 'none' }}
+                                    >
+                                        Clear
+                                    </Button>
+                                </Box>
+                            </Box>
+                        ) : (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <Typography sx={{ fontSize: '10px', color: theme.palette.text.disabled }}>
+                                    No sound assigned
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                    <Button
+                                        size='small'
+                                        variant='outlined'
+                                        startIcon={<BrowseIcon sx={{ fontSize: 14 }} />}
+                                        onClick={handleBrowseSound}
+                                        sx={{ fontSize: '10px', py: 0.25, flex: 1, textTransform: 'none' }}
+                                    >
+                                        Browse
+                                    </Button>
+                                    <Button
+                                        size='small'
+                                        variant='outlined'
+                                        component='label'
+                                        startIcon={isUploading ? <CircularProgress size={14} /> : <UploadIcon sx={{ fontSize: 14 }} />}
+                                        disabled={isUploading}
+                                        sx={{ fontSize: '10px', py: 0.25, textTransform: 'none' }}
+                                    >
+                                        Upload
+                                        <input
+                                            type='file'
+                                            hidden
+                                            accept='.mp3,audio/mpeg'
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    handleUploadSound(file);
+                                                }
+                                                e.target.value = '';
+                                            }}
+                                        />
+                                    </Button>
+                                </Box>
+                            </Box>
+                        )}
                     </Box>
 
                     <FormControlLabel
@@ -303,6 +413,15 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
                     )}
                 </Box>
             </Box>
+
+            {soundSource && (
+                <SoundPickerDialog
+                    open={soundPickerOpen}
+                    onClose={() => setSoundPickerOpen(false)}
+                    onSelect={handleSoundSelected}
+                    {...(soundSource.resourceId && { currentResourceId: soundSource.resourceId })}
+                />
+            )}
         </Menu>
     );
 };

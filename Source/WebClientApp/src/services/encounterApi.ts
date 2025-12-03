@@ -571,7 +571,7 @@ export const encounterApi = createApi({
         name?: string;
         position?: Point;
         range?: number;
-        resourceId?: string;
+        resourceId?: string | null;
         isPlaying?: boolean;
       }
     >({
