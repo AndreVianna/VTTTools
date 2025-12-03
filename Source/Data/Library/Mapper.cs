@@ -320,8 +320,7 @@ internal static class Mapper {
 
         // Update EncounterAssets
         var assetIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
-        var assetsToRemove = entity.EncounterAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList();
-        foreach (var assetToRemove in assetsToRemove) {
+        foreach (var assetToRemove in entity.EncounterAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList()) {
             entity.EncounterAssets.Remove(assetToRemove);
         }
         foreach (var modelAsset in model.Assets) {
@@ -336,8 +335,7 @@ internal static class Mapper {
 
         // Update Walls
         var wallIndices = model.Walls.Select(sw => sw.Index).ToHashSet();
-        var wallsToRemove = entity.Walls.Where(ew => !wallIndices.Contains(ew.Index)).ToList();
-        foreach (var wallToRemove in wallsToRemove) {
+        foreach (var wallToRemove in entity.Walls.Where(ew => !wallIndices.Contains(ew.Index)).ToList()) {
             entity.Walls.Remove(wallToRemove);
         }
         foreach (var modelWall in model.Walls) {
@@ -352,8 +350,7 @@ internal static class Mapper {
 
         // Update Regions
         var regionIndices = model.Regions.Select(sr => sr.Index).ToHashSet();
-        var regionsToRemove = entity.Regions.Where(er => !regionIndices.Contains(er.Index)).ToList();
-        foreach (var regionToRemove in regionsToRemove) {
+        foreach (var regionToRemove in entity.Regions.Where(er => !regionIndices.Contains(er.Index)).ToList()) {
             entity.Regions.Remove(regionToRemove);
         }
         foreach (var modelRegion in model.Regions) {

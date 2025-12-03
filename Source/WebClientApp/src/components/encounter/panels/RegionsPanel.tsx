@@ -67,7 +67,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     encounterId,
     encounterRegions = [],
     selectedRegionIndex,
-    placementMode,
     onPresetSelect,
     onPlaceRegion,
     onBucketFillRegion,
@@ -77,7 +76,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
   }) => {
     const theme = useTheme();
 
-    const [name, setName] = useState(() => getSuggestedRegionName(encounterRegions));
     const [regionType, setRegionType] = useState<string>('Elevation');
     const [value, setValue] = useState<number>(0);
     const [selectedRegionType, setSelectedRegionType] = useState<string>('Elevation');
@@ -148,23 +146,21 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     };
 
     const handlePlaceRegion = () => {
+      const name = getSuggestedRegionName(encounterRegions);
       onPlaceRegion?.({
         name,
         type: regionType,
         value,
       });
-
-      setName(getSuggestedRegionName([...encounterRegions, { name } as PlacedRegion]));
     };
 
     const handleBucketFillRegion = () => {
+      const name = getSuggestedRegionName(encounterRegions);
       onBucketFillRegion?.({
         name,
         type: regionType,
         value,
       });
-
-      setName(getSuggestedRegionName([...encounterRegions, { name } as PlacedRegion]));
     };
 
     const handleDeleteClick = (regionIndex: number) => {
@@ -258,94 +254,78 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         <Divider sx={{ my: 0.5 }} />
 
         <Typography variant='overline' sx={compactStyles.sectionHeader}>
-          Default Values
+          New Region
         </Typography>
 
-        <TextField
-          id='input-region-name'
-          label='Name'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          size='small'
-          fullWidth
-          inputProps={{ maxLength: 64 }}
-          sx={compactStyles.textField}
-        />
-
-        {regionType === 'Elevation' ? (
-          <TextField
-            id='input-region-value'
-            label='Value (feet)'
-            type='number'
-            value={value}
-            onChange={(e) => setValue(Number(e.target.value))}
-            size='small'
-            fullWidth
-            sx={compactStyles.textField}
-            InputProps={{ inputProps: { min: -100, max: 100, step: 5 } }}
-          />
-        ) : (
-          <FormControl size='small' fullWidth>
-            <InputLabel id='label-region-value' sx={compactStyles.inputLabel}>
-              Value
-            </InputLabel>
-            <Select
-              id='select-region-value'
-              labelId='label-region-value'
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+          {regionType === 'Elevation' ? (
+            <TextField
+              id='input-region-value'
+              label='Value (feet)'
+              type='number'
               value={value}
-              label='Value'
               onChange={(e) => setValue(Number(e.target.value))}
-              sx={compactStyles.select}
+              size='small'
+              sx={{ ...compactStyles.textField, flex: 1 }}
+              InputProps={{ inputProps: { min: -100, max: 100, step: 5 } }}
+            />
+          ) : (
+            <FormControl size='small' sx={{ flex: 1 }}>
+              <InputLabel id='label-region-value' sx={compactStyles.inputLabel}>
+                Value
+              </InputLabel>
+              <Select
+                id='select-region-value'
+                labelId='label-region-value'
+                value={value}
+                label='Value'
+                onChange={(e) => setValue(Number(e.target.value))}
+                sx={compactStyles.select}
+              >
+                {getValidValuesForType(regionType).map(({ value: val, label: lbl }) => (
+                  <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                    {lbl}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+          <Tooltip title='Place a Polygon Region' arrow>
+            <IconButton
+              id='btn-place-region-polygon'
+              onClick={handlePlaceRegion}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: 0,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              }}
             >
-              {getValidValuesForType(regionType).map(({ value: val, label: lbl }) => (
-                <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                  {lbl}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant='caption' sx={{ fontSize: '11px', fontWeight: 500 }}>
-            Place a Region:
-          </Typography>
-          <ButtonGroup variant='contained' sx={{ height: '28px' }}>
-            <Tooltip title='Place a Polygon' arrow>
-              <Button
-                id='btn-place-region-polygon'
-                onClick={handlePlaceRegion}
-                disabled={!name.trim()}
-                sx={{
-                  ...compactStyles.button,
-                  minWidth: '40px',
-                  backgroundColor: placementMode === 'polygon' ? theme.palette.primary.dark : undefined,
-                  '&:hover': {
-                    backgroundColor: placementMode === 'polygon' ? theme.palette.primary.dark : undefined,
-                  },
-                }}
-              >
-                <PolygonIcon sx={{ fontSize: '14px' }} />
-              </Button>
-            </Tooltip>
-            <Tooltip title='Fill an Area' arrow>
-              <Button
-                id='btn-place-region-bucket'
-                onClick={handleBucketFillRegion}
-                disabled={!name.trim()}
-                sx={{
-                  ...compactStyles.button,
-                  minWidth: '40px',
-                  backgroundColor: placementMode === 'bucketFill' ? theme.palette.primary.dark : undefined,
-                  '&:hover': {
-                    backgroundColor: placementMode === 'bucketFill' ? theme.palette.primary.dark : undefined,
-                  },
-                }}
-              >
-                <BucketFillIcon sx={{ fontSize: '14px' }} />
-              </Button>
-            </Tooltip>
-          </ButtonGroup>
+              <PolygonIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='Fill an Area' arrow>
+            <IconButton
+              id='btn-place-region-bucket'
+              onClick={handleBucketFillRegion}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: 0,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              }}
+            >
+              <BucketFillIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <Divider sx={{ my: 0.5 }} />

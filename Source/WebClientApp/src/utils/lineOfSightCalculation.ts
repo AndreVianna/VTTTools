@@ -67,11 +67,8 @@ export function castRay(ray: Ray, opaqueSegments: LineSegment[]): Point {
 }
 
 function isSegmentOpaque(segment: { type: SegmentType; state: SegmentState; isOpaque: boolean }): boolean {
-  if (segment.type === SegmentType.Door) {
+  if (segment.type === SegmentType.Door || segment.type === SegmentType.Window) {
     return segment.isOpaque && segment.state === SegmentState.Closed;
-  }
-  if (segment.type === SegmentType.Window) {
-    return false;
   }
   return segment.isOpaque;
 }
@@ -102,7 +99,7 @@ export function calculateLineOfSight(
   const rangeInPixels = range * gridConfig.cellSize.width;
   const segments = extractOpaqueSegments(encounterWalls);
 
-  const isDirectional = source.direction !== undefined && source.arc !== undefined;
+  const isDirectional = source.direction != null && source.arc != null;
 
   if (isDirectional) {
     const directionRadians = (source.direction! * Math.PI) / 180;

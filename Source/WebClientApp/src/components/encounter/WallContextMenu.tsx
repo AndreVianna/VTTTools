@@ -12,14 +12,36 @@ export interface WallContextMenuProps {
   onSegmentUpdate?: (wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void;
 }
 
-const SEGMENT_TYPE_LABELS: Record<SegmentType, string> = {
-  [SegmentType.Wall]: 'Wall',
-  [SegmentType.Fence]: 'Fence',
-  [SegmentType.Door]: 'Door',
-  [SegmentType.Passage]: 'Passage',
-  [SegmentType.Window]: 'Window',
-  [SegmentType.Opening]: 'Opening',
+type VisualSegmentType = 'Wall' | 'Fence' | 'Door' | 'Passage' | 'Window' | 'Opening';
+
+interface SegmentTypeConfig {
+  type: SegmentType;
+  isOpaque: boolean;
+}
+
+const VISUAL_TYPE_CONFIG: Record<VisualSegmentType, SegmentTypeConfig> = {
+  Wall: { type: SegmentType.Wall, isOpaque: true },
+  Fence: { type: SegmentType.Wall, isOpaque: false },
+  Door: { type: SegmentType.Door, isOpaque: true },
+  Passage: { type: SegmentType.Door, isOpaque: false },
+  Window: { type: SegmentType.Window, isOpaque: true },
+  Opening: { type: SegmentType.Window, isOpaque: false },
 };
+
+const VISUAL_TYPE_ORDER: VisualSegmentType[] = ['Wall', 'Fence', 'Door', 'Passage', 'Window', 'Opening'];
+
+function getVisualType(segment: EncounterWallSegment): VisualSegmentType {
+  switch (segment.type) {
+    case SegmentType.Wall:
+      return segment.isOpaque ? 'Wall' : 'Fence';
+    case SegmentType.Door:
+      return segment.isOpaque ? 'Door' : 'Passage';
+    case SegmentType.Window:
+      return segment.isOpaque ? 'Window' : 'Opening';
+    default:
+      return 'Wall';
+  }
+}
 
 const SEGMENT_STATE_LABELS: Record<SegmentState, string> = {
   [SegmentState.Open]: 'Open',
@@ -28,51 +50,34 @@ const SEGMENT_STATE_LABELS: Record<SegmentState, string> = {
   [SegmentState.Secret]: 'Secret',
 };
 
-const BARRIER_STATE_LABELS: Partial<Record<SegmentState, string>> = {
-  [SegmentState.Visible]: 'Visible',
-  [SegmentState.Secret]: 'Hidden',
-};
-
-const BARRIER_TYPES = [SegmentType.Wall, SegmentType.Fence];
-const OPEN_ONLY_TYPES = [SegmentType.Passage, SegmentType.Opening];
-
-function isBarrier(type: SegmentType): boolean {
-  return BARRIER_TYPES.includes(type);
-}
-
-function isOpenOnly(type: SegmentType): boolean {
-  return OPEN_ONLY_TYPES.includes(type);
-}
-
-function getValidStatesForType(type: SegmentType): SegmentState[] {
-  if (isBarrier(type)) {
-    return [SegmentState.Visible, SegmentState.Secret];
-  }
-  if (isOpenOnly(type)) {
-    return [SegmentState.Open, SegmentState.Secret];
+function getValidStatesForVisualType(visualType: VisualSegmentType): SegmentState[] {
+  if (visualType === 'Wall' || visualType === 'Fence') {
+    return [SegmentState.Closed, SegmentState.Secret];
   }
   return [SegmentState.Open, SegmentState.Closed, SegmentState.Locked, SegmentState.Secret];
 }
 
-function getDefaultStateForType(type: SegmentType): SegmentState {
-  if (isBarrier(type)) {
-    return SegmentState.Visible;
-  }
-  if (type === SegmentType.Door || type === SegmentType.Window) {
+function getDefaultStateForVisualType(visualType: VisualSegmentType): SegmentState {
+  if (visualType === 'Wall' || visualType === 'Fence') {
     return SegmentState.Closed;
   }
-  return SegmentState.Open;
+  return SegmentState.Closed;
 }
 
-function normalizeStateForType(state: SegmentState, type: SegmentType): SegmentState {
-  const validStates = getValidStatesForType(type);
+function normalizeStateForVisualType(state: SegmentState, visualType: VisualSegmentType): SegmentState {
+  const validStates = getValidStatesForVisualType(visualType);
   if (validStates.includes(state)) {
     return state;
   }
-  if (state === SegmentState.Secret) {
-    return SegmentState.Secret;
+  return getDefaultStateForVisualType(visualType);
+}
+
+function getSegmentTitle(segment: EncounterWallSegment): string {
+  if (segment.name) {
+    return segment.name;
   }
-  return getDefaultStateForType(type);
+  const visualType = getVisualType(segment);
+  return `${visualType} ${segment.index + 1}`;
 }
 
 export const WallContextMenu: React.FC<WallContextMenuProps> = ({
@@ -107,15 +112,20 @@ export const WallContextMenu: React.FC<WallContextMenuProps> = ({
   if (!encounterWall) return null;
 
   const segment = segmentIndex !== null ? encounterWall.segments.find((s) => s.index === segmentIndex) : null;
-  const isBarrierType = segment ? isBarrier(segment.type) : false;
-  const validStates = segment ? getValidStatesForType(segment.type) : [];
-  const normalizedState = segment ? normalizeStateForType(segment.state, segment.type) : SegmentState.Open;
+  const visualType = segment ? getVisualType(segment) : 'Wall';
+  const validStates = getValidStatesForVisualType(visualType);
+  const normalizedState = segment ? normalizeStateForVisualType(segment.state, visualType) : SegmentState.Closed;
 
-  const handleTypeChange = (event: SelectChangeEvent<number>) => {
+  const handleVisualTypeChange = (event: SelectChangeEvent<string>) => {
     if (segmentIndex === null || !onSegmentUpdate || !segment) return;
-    const newType = event.target.value as SegmentType;
-    const newState = normalizeStateForType(segment.state, newType);
-    onSegmentUpdate(encounterWall.index, segmentIndex, { type: newType, state: newState });
+    const newVisualType = event.target.value as VisualSegmentType;
+    const config = VISUAL_TYPE_CONFIG[newVisualType];
+    const newState = normalizeStateForVisualType(segment.state, newVisualType);
+    onSegmentUpdate(encounterWall.index, segmentIndex, {
+      type: config.type,
+      isOpaque: config.isOpaque,
+      state: newState,
+    });
   };
 
   const handleStateChange = (event: SelectChangeEvent<number>) => {
@@ -158,17 +168,17 @@ export const WallContextMenu: React.FC<WallContextMenuProps> = ({
       {segment && (
         <Box sx={{ px: 2, py: 1 }}>
           <Typography variant='subtitle2' sx={{ fontSize: '11px', fontWeight: 600, mb: 1 }}>
-            Segment {segment.index + 1}
+            {getSegmentTitle(segment)}
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography sx={{ fontSize: '10px', minWidth: 40 }}>Type:</Typography>
               <FormControl size='small'>
-                <Select value={segment.type} onChange={handleTypeChange} sx={compactSelectStyle}>
-                  {Object.entries(SEGMENT_TYPE_LABELS).map(([value, label]) => (
-                    <MenuItem key={value} value={Number(value)} sx={{ fontSize: '11px' }}>
-                      {label}
+                <Select value={visualType} onChange={handleVisualTypeChange} sx={compactSelectStyle}>
+                  {VISUAL_TYPE_ORDER.map((vType) => (
+                    <MenuItem key={vType} value={vType} sx={{ fontSize: '11px' }}>
+                      {vType}
                     </MenuItem>
                   ))}
                 </Select>
@@ -181,7 +191,7 @@ export const WallContextMenu: React.FC<WallContextMenuProps> = ({
                 <Select value={normalizedState} onChange={handleStateChange} sx={compactSelectStyle}>
                   {validStates.map((state) => (
                     <MenuItem key={state} value={state} sx={{ fontSize: '11px' }}>
-                      {isBarrierType ? BARRIER_STATE_LABELS[state] : SEGMENT_STATE_LABELS[state]}
+                      {SEGMENT_STATE_LABELS[state]}
                     </MenuItem>
                   ))}
                 </Select>

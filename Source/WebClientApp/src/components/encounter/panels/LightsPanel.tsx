@@ -2,11 +2,10 @@ import {
   Delete as DeleteIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
-  LightMode as LightModeIcon,
+  AddCircle as AddCircleIcon,
 } from '@mui/icons-material';
 import {
   Box,
-  Button,
   Checkbox,
   Collapse,
   Divider,
@@ -20,15 +19,14 @@ import {
   ListItemText,
   MenuItem,
   Select,
-  Slider,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import {
-  useAddEncounterLightSourceMutation,
   useUpdateEncounterLightSourceMutation,
   useRemoveEncounterLightSourceMutation,
 } from '@/services/encounterApi';
@@ -64,16 +62,10 @@ const LIGHT_SOURCE_TYPE_LABELS: Record<LightSourceType, string> = {
   [LightSourceType.Supernatural]: 'Supernatural',
 };
 
-const getSuggestedLightName = (sources: EncounterLightSource[]): string => {
-  if (sources.length === 0) return 'Light 1';
-  const maxIndex = Math.max(
-    ...sources.map((s) => {
-      const match = s.name?.match(/Light (\d+)$/);
-      return match?.[1] ? Number.parseInt(match[1], 10) : 0;
-    }),
-  );
-  return `Light ${maxIndex + 1}`;
-};
+const DIRECTIONAL_OPTIONS = [
+  { value: false, label: 'Spot' },
+  { value: true, label: 'Beam' },
+];
 
 export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
   ({
@@ -85,13 +77,9 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
   }) => {
     const theme = useTheme();
 
-    const [name, setName] = useState(() => getSuggestedLightName(lightSources));
-    const [type, setType] = useState<LightSourceType>(LightSourceType.Artificial);
+    const [type, setType] = useState<LightSourceType>(LightSourceType.Natural);
     const [isDirectional, setIsDirectional] = useState(false);
-    const [direction, setDirection] = useState(0);
-    const [arc, setArc] = useState(90);
     const [customColor, setCustomColor] = useState<string>('');
-    const [isOn, setIsOn] = useState(true);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
     const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
@@ -127,11 +115,20 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
           },
         },
       },
-      button: {
+      select: {
         height: '28px',
-        fontSize: '10px',
-        borderRadius: 0,
-        textTransform: 'none' as const,
+        fontSize: '11px',
+        '& .MuiSelect-select': {
+          padding: '4px 8px',
+          fontSize: '11px',
+        },
+      },
+      inputLabel: {
+        fontSize: '9px',
+        transform: 'translate(8px, 6px) scale(1)',
+        '&.MuiInputLabel-shrink': {
+          transform: 'translate(8px, -8px) scale(0.85)',
+        },
       },
       checkbox: {
         '& .MuiFormControlLabel-label': {
@@ -141,31 +138,15 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
           padding: '4px',
         },
       },
-      slider: {
-        '& .MuiSlider-markLabel': {
-          fontSize: '8px',
-        },
-      },
     };
 
     const handlePlaceLight = () => {
       onPlaceLight({
-        name: name.trim() || undefined,
         type,
         isDirectional,
-        direction: isDirectional ? direction : undefined,
-        arc: isDirectional ? arc : undefined,
         color: customColor || undefined,
-        isOn,
+        isOn: true,
       });
-
-      setName(getSuggestedLightName([...lightSources, { name, type } as EncounterLightSource]));
-      setType(LightSourceType.Artificial);
-      setIsDirectional(false);
-      setDirection(0);
-      setArc(90);
-      setCustomColor('');
-      setIsOn(true);
     };
 
     const handleDeleteClick = (sourceIndex: number) => {
@@ -228,150 +209,82 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <Typography variant='overline' sx={compactStyles.sectionHeader}>
-          New Light
+          New Light Source
         </Typography>
 
-        <TextField
-          id='input-light-name'
-          label='Name (Optional)'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          size='small'
-          fullWidth
-          inputProps={{ maxLength: 64 }}
-          sx={compactStyles.textField}
-        />
-
-        <FormControl size='small' fullWidth>
-          <InputLabel id='light-type-label' sx={{ fontSize: '9px' }}>
-            Type
-          </InputLabel>
-          <Select
-            labelId='light-type-label'
-            id='select-light-type'
-            value={type}
-            label='Type'
-            onChange={(e) => setType(e.target.value as LightSourceType)}
-            sx={{
-              height: '28px',
-              fontSize: '11px',
-              backgroundColor: theme.palette.background.default,
-            }}
-          >
-            {Object.entries(LIGHT_SOURCE_TYPE_LABELS).map(([value, label]) => (
-              <MenuItem key={value} value={Number(value)} sx={{ fontSize: '11px' }}>
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <TextField
-            id='input-custom-color'
-            label='Color (Optional)'
+          <FormControl size='small' sx={{ flex: 1 }}>
+            <InputLabel id='label-light-type' sx={compactStyles.inputLabel}>
+              Type
+            </InputLabel>
+            <Select
+              labelId='label-light-type'
+              value={type}
+              label='Type'
+              onChange={(e) => setType(e.target.value as LightSourceType)}
+              sx={compactStyles.select}
+            >
+              {Object.entries(LIGHT_SOURCE_TYPE_LABELS).map(([value, label]) => (
+                <MenuItem key={value} value={Number(value)} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                  {label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size='small' sx={{ minWidth: 70, maxWidth: 70 }}>
+            <InputLabel id='label-light-directional' sx={compactStyles.inputLabel}>
+              Mode
+            </InputLabel>
+            <Select
+              labelId='label-light-directional'
+              value={isDirectional ? 'true' : 'false'}
+              label='Mode'
+              onChange={(e) => setIsDirectional(e.target.value === 'true')}
+              sx={compactStyles.select}
+            >
+              {DIRECTIONAL_OPTIONS.map((option) => (
+                <MenuItem key={String(option.value)} value={String(option.value)} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <input
             type='color'
             value={currentColor}
             onChange={(e) => setCustomColor(e.target.value)}
-            size='small'
-            sx={{
-              ...compactStyles.textField,
-              flex: 1,
-            }}
-          />
-          <Box
-            sx={{
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              backgroundColor: currentColor,
+            style={{
+              width: 28,
+              height: 28,
+              padding: 0,
               border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 4,
+              cursor: 'pointer',
               flexShrink: 0,
             }}
           />
+          <Tooltip title='Place a Light Source' arrow>
+            <IconButton
+              id='btn-place-light'
+              onClick={handlePlaceLight}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: 0,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                flexShrink: 0,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              }}
+            >
+              <AddCircleIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
         </Box>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              id='checkbox-is-on'
-              checked={isOn}
-              onChange={(e) => setIsOn(e.target.checked)}
-              size='small'
-            />
-          }
-          label='Light On'
-          sx={compactStyles.checkbox}
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              id='checkbox-directional'
-              checked={isDirectional}
-              onChange={(e) => setIsDirectional(e.target.checked)}
-              size='small'
-            />
-          }
-          label='Directional'
-          sx={compactStyles.checkbox}
-        />
-
-        {isDirectional && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pl: 1 }}>
-            <Box>
-              <Typography variant='caption' sx={{ fontSize: '10px', color: theme.palette.text.secondary }}>
-                Direction: {direction}°
-              </Typography>
-              <Slider
-                id='slider-direction'
-                value={direction}
-                onChange={(_, value) => setDirection(value as number)}
-                min={0}
-                max={359}
-                step={1}
-                size='small'
-                sx={compactStyles.slider}
-                marks={[
-                  { value: 0, label: '0°' },
-                  { value: 90, label: '90°' },
-                  { value: 180, label: '180°' },
-                  { value: 270, label: '270°' },
-                ]}
-              />
-            </Box>
-
-            <Box>
-              <Typography variant='caption' sx={{ fontSize: '10px', color: theme.palette.text.secondary }}>
-                Arc: {arc}°
-              </Typography>
-              <Slider
-                id='slider-arc'
-                value={arc}
-                onChange={(_, value) => setArc(value as number)}
-                min={15}
-                max={180}
-                step={15}
-                size='small'
-                sx={compactStyles.slider}
-                marks={[
-                  { value: 15, label: '15°' },
-                  { value: 90, label: '90°' },
-                  { value: 180, label: '180°' },
-                ]}
-              />
-            </Box>
-          </Box>
-        )}
-
-        <Button
-          id='btn-place-light'
-          variant='contained'
-          onClick={handlePlaceLight}
-          sx={compactStyles.button}
-        >
-          Place Light
-        </Button>
 
         <Divider sx={{ my: 0.5 }} />
 
@@ -507,8 +420,8 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
                           primaryTypographyProps={{ fontSize: '10px' }}
                           secondary={
                             source.direction !== undefined && source.arc !== undefined
-                              ? `${LIGHT_SOURCE_TYPE_LABELS[source.type]} | Range: ${source.range}ft | ${source.isOn ? 'On' : 'Off'} | Dir: ${source.direction}° | Arc: ${source.arc}°`
-                              : `${LIGHT_SOURCE_TYPE_LABELS[source.type]} | Range: ${source.range}ft | ${source.isOn ? 'On' : 'Off'}`
+                              ? `${LIGHT_SOURCE_TYPE_LABELS[source.type]} | Beam | ${source.isOn ? 'On' : 'Off'}`
+                              : `${LIGHT_SOURCE_TYPE_LABELS[source.type]} | Spot | ${source.isOn ? 'On' : 'Off'}`
                           }
                           secondaryTypographyProps={{ fontSize: '8px' }}
                         />
@@ -529,6 +442,9 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
                     >
                       <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
                         Type: {LIGHT_SOURCE_TYPE_LABELS[source.type]}
+                      </Typography>
+                      <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
+                        Mode: {source.direction !== undefined ? 'Beam' : 'Spot'}
                       </Typography>
                       <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
                         Range: {source.range} feet

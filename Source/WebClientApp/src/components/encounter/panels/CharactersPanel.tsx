@@ -9,28 +9,21 @@ import {
   Button,
   Collapse,
   Divider,
-  FormControl,
   FormControlLabel,
   IconButton,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  MenuItem,
-  Select,
   Switch,
   TextField,
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { AssetKind, LabelPosition, LabelVisibility, type PlacedAsset } from '@/types/domain';
+import React, { useState } from 'react';
+import { AssetKind, type PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { positionToGrid } from '@/utils/gridCalculator';
-
-const STORAGE_KEY_VISIBILITY = 'vtt-characters-label-visibility';
-const STORAGE_KEY_POSITION = 'vtt-characters-label-position';
 
 export interface CharactersPanelProps {
   placedAssets: PlacedAsset[];
@@ -56,30 +49,6 @@ export const CharactersPanel: React.FC<CharactersPanelProps> = ({
   const theme = useTheme();
   const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
   const [editedNames, setEditedNames] = useState<Map<string, string>>(new Map());
-
-  const [labelVisibility, setLabelVisibility] = useState<LabelVisibility>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
-
-    if (stored === LabelVisibility.Default || !stored) {
-      return LabelVisibility.Always;
-    }
-    return stored as LabelVisibility;
-  });
-  const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY_POSITION);
-    if (stored === LabelPosition.Default || !stored) {
-      return LabelPosition.Bottom;
-    }
-    return stored as LabelPosition;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_VISIBILITY, labelVisibility);
-  }, [labelVisibility]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_POSITION, labelPosition);
-  }, [labelPosition]);
 
   const characters = placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Character);
 
@@ -145,54 +114,6 @@ export const CharactersPanel: React.FC<CharactersPanelProps> = ({
       >
         Browse Characters
       </Button>
-
-      <Divider sx={{ my: 0.5 }} />
-
-      <Typography variant='overline' sx={compactStyles.sectionHeader}>
-        Label Display
-      </Typography>
-
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <FormControl size='small' sx={{ ...compactStyles.textField, flex: 1 }}>
-          <InputLabel sx={{ fontSize: '11px' }}>Visibility</InputLabel>
-          <Select
-            value={labelVisibility}
-            onChange={(e) => setLabelVisibility(e.target.value as LabelVisibility)}
-            label='Visibility'
-            sx={{ fontSize: '11px' }}
-          >
-            <MenuItem value={LabelVisibility.Always} sx={{ fontSize: '11px' }}>
-              Always
-            </MenuItem>
-            <MenuItem value={LabelVisibility.OnHover} sx={{ fontSize: '11px' }}>
-              On Hover
-            </MenuItem>
-            <MenuItem value={LabelVisibility.Never} sx={{ fontSize: '11px' }}>
-              Never
-            </MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl size='small' sx={{ ...compactStyles.textField, flex: 1 }}>
-          <InputLabel sx={{ fontSize: '11px' }}>Position</InputLabel>
-          <Select
-            value={labelPosition}
-            onChange={(e) => setLabelPosition(e.target.value as LabelPosition)}
-            label='Position'
-            sx={{ fontSize: '11px' }}
-          >
-            <MenuItem value={LabelPosition.Top} sx={{ fontSize: '11px' }}>
-              Top
-            </MenuItem>
-            <MenuItem value={LabelPosition.Middle} sx={{ fontSize: '11px' }}>
-              Middle
-            </MenuItem>
-            <MenuItem value={LabelPosition.Bottom} sx={{ fontSize: '11px' }}>
-              Bottom
-            </MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
 
       <Divider sx={{ my: 0.5 }} />
 

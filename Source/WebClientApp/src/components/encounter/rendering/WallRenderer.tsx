@@ -37,19 +37,24 @@ function getSegmentStyle(segment: EncounterWallSegment): {
     opacity: 1,
   };
 
+  const isOpaque = segment.isOpaque;
+
   switch (segment.type) {
     case SegmentType.Wall:
-      return { ...baseStyle, stroke: WALL_COLOR };
-    case SegmentType.Fence:
-      return { ...baseStyle, stroke: WALL_COLOR, dash: [3, 3] };
+      // Wall (opaque) or Fence (non-opaque)
+      return isOpaque
+        ? { ...baseStyle, stroke: WALL_COLOR }
+        : { ...baseStyle, stroke: WALL_COLOR, dash: [3, 3] };
     case SegmentType.Door:
-      return { ...baseStyle, stroke: BROWN_COLOR };
-    case SegmentType.Passage:
-      return { ...baseStyle, stroke: BROWN_COLOR, dash: [6, 4] };
+      // Door (opaque) or Passage (non-opaque)
+      return isOpaque
+        ? { ...baseStyle, stroke: BROWN_COLOR }
+        : { ...baseStyle, stroke: BROWN_COLOR, dash: [6, 4] };
     case SegmentType.Window:
-      return { ...baseStyle, stroke: CYAN_COLOR };
-    case SegmentType.Opening:
-      return { ...baseStyle, stroke: CYAN_COLOR, dash: [6, 4] };
+      // Window (opaque) or Opening (non-opaque)
+      return isOpaque
+        ? { ...baseStyle, stroke: CYAN_COLOR }
+        : { ...baseStyle, stroke: CYAN_COLOR, dash: [6, 4] };
     default:
       return { ...baseStyle, stroke: WALL_COLOR };
   }
@@ -67,12 +72,12 @@ interface StateIconProps {
   y: number;
   state: SegmentState;
   type: SegmentType;
+  isOpaque: boolean;
 }
 
-const StateIcon: React.FC<StateIconProps> = ({ x, y, state, type }) => {
-  const isBarrier = type === SegmentType.Wall || type === SegmentType.Fence;
-
-  if (isBarrier && state !== SegmentState.Secret) {
+const StateIcon: React.FC<StateIconProps> = ({ x, y, state, type, isOpaque }) => {
+  const isWallOrFence = type === SegmentType.Wall;
+  if (isWallOrFence && state !== SegmentState.Secret) {
     return null;
   }
 
@@ -268,7 +273,30 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCli
                 }
               }}
             />
-            <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} />
+            <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} isOpaque={segment.isOpaque} />
+            {isHovered && segment.name && segment.type !== SegmentType.Wall && (() => {
+              const textWidth = segment.name.length * 3.3;
+              const textHeight = 6;
+              const padding = 2;
+              return (
+                <Group x={midpoint.x - textWidth / 2 - padding} y={midpoint.y - 12} listening={false}>
+                  <Line
+                    points={[0, 0, textWidth + padding * 2, 0, textWidth + padding * 2, textHeight + padding * 2, 0, textHeight + padding * 2]}
+                    closed
+                    fill="rgba(0, 0, 0, 0.6)"
+                  />
+                  <Text
+                    x={padding}
+                    y={padding}
+                    align="center"
+                    verticalAlign="middle"
+                    text={segment.name}
+                    fontSize={6}
+                    fill="#ffffff"
+                  />
+                </Group>
+              );
+            })()}
           </Group>
         );
       })}

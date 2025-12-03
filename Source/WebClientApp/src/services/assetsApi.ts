@@ -15,6 +15,7 @@ export const assetsApi = createApi({
     /**
      * Get all assets with optional filtering (non-paginated)
      * Query params: kind, search, published, owner
+     * Note: Backend always returns paginated response, so we extract data array
      */
     getAssets: builder.query<
       Asset[],
@@ -23,12 +24,18 @@ export const assetsApi = createApi({
         search?: string;
         published?: boolean;
         owner?: 'mine' | 'public' | 'all';
+        availability?: string;
+        category?: string;
+        type?: string;
+        subtype?: string;
       }
     >({
       query: (params = {}) => ({
         url: '',
         params,
       }),
+      transformResponse: (response: { data: Asset[]; page: number; pageSize: number; totalCount: number; totalPages: number }) =>
+        response.data,
       providesTags: (result) =>
         result
           ? [...result.map(({ id }) => ({ type: 'Asset' as const, id })), { type: 'Asset', id: 'LIST' }]

@@ -86,22 +86,28 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   const effectiveRange = encounterLightSource.range;
 
   const losPolygon = useMemo(() => {
+    if (effectiveRange <= 0 || !encounterLightSource.position) {
+      return [];
+    }
     return calculateLineOfSight(encounterLightSource, effectiveRange, walls, gridConfig);
   }, [
-    encounterLightSource.position,
+    encounterLightSource.position.x,
+    encounterLightSource.position.y,
     encounterLightSource.type,
     encounterLightSource.direction,
     encounterLightSource.arc,
     effectiveRange,
     walls,
-    gridConfig.cellSize,
+    gridConfig.cellSize.width,
+    gridConfig.cellSize.height,
   ]);
 
-  const isDirectional = encounterLightSource.direction !== undefined;
+  const isDirectional = encounterLightSource.direction != null && encounterLightSource.arc != null;
   const directionRadians = isDirectional ? (encounterLightSource.direction! * Math.PI) / 180 : 0;
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
   const color = encounterLightSource.color ?? getDefaultColorForType(encounterLightSource.type);
+  const centerColor = `${color}99`; // 60% opacity (0x99 = 153 = 60% of 255)
   const transparentColor = `${color}00`;
 
   const isLightOn = encounterLightSource.isOn;
@@ -114,7 +120,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     fillRadialGradientEndPoint: { x: 0, y: 0 },
     fillRadialGradientStartRadius: 0,
     fillRadialGradientEndRadius: rangeInPixels,
-    fillRadialGradientColorStops: [0, color, 1, transparentColor],
+    fillRadialGradientColorStops: [0, centerColor, 1, transparentColor],
   };
 
   const directionIndicatorLength = rangeInPixels * 0.4;
@@ -182,7 +188,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
             rangeInPixels,
           );
 
-          gradient.addColorStop(0, color);
+          gradient.addColorStop(0, centerColor);
           gradient.addColorStop(1, transparentColor);
 
           context.fillStyle = gradient;

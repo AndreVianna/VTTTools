@@ -2,10 +2,10 @@ import {
   Delete as DeleteIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
+  VolumeUp as VolumeUpIcon,
 } from '@mui/icons-material';
 import {
   Box,
-  Button,
   Checkbox,
   Collapse,
   Divider,
@@ -16,13 +16,13 @@ import {
   ListItemButton,
   ListItemText,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import {
-  useAddEncounterSoundSourceMutation,
   useUpdateEncounterSoundSourceMutation,
   useRemoveEncounterSoundSourceMutation,
 } from '@/services/encounterApi';
@@ -42,17 +42,6 @@ export interface SoundPlacementProperties {
   isPlaying?: boolean;
 }
 
-const getSuggestedSoundName = (sources: EncounterSoundSource[]): string => {
-  if (sources.length === 0) return 'Sound 1';
-  const maxIndex = Math.max(
-    ...sources.map((s) => {
-      const match = s.name?.match(/Sound (\d+)$/);
-      return match?.[1] ? Number.parseInt(match[1], 10) : 0;
-    }),
-  );
-  return `Sound ${maxIndex + 1}`;
-};
-
 export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
   ({
     encounterId,
@@ -63,9 +52,6 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
   }) => {
     const theme = useTheme();
 
-    const [name, setName] = useState(() => getSuggestedSoundName(soundSources));
-    const [resourceId, setResourceId] = useState('');
-    const [isPlaying, setIsPlaying] = useState(true);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
     const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
@@ -101,12 +87,6 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
           },
         },
       },
-      button: {
-        height: '28px',
-        fontSize: '10px',
-        borderRadius: 0,
-        textTransform: 'none' as const,
-      },
       checkbox: {
         '& .MuiFormControlLabel-label': {
           fontSize: '11px',
@@ -119,14 +99,8 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
 
     const handlePlaceSound = () => {
       onPlaceSound({
-        name: name.trim() || undefined,
-        resourceId: resourceId.trim() || undefined,
-        isPlaying,
+        isPlaying: false,
       });
-
-      setName(getSuggestedSoundName([...soundSources, { name } as EncounterSoundSource]));
-      setResourceId('');
-      setIsPlaying(true);
     };
 
     const handleDeleteClick = (sourceIndex: number) => {
@@ -187,52 +161,29 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <Typography variant='overline' sx={compactStyles.sectionHeader}>
-          New Sound
+          New Sound Source
         </Typography>
 
-        <TextField
-          id='input-sound-name'
-          label='Name (Optional)'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          size='small'
-          fullWidth
-          inputProps={{ maxLength: 64 }}
-          sx={compactStyles.textField}
-        />
-
-        <TextField
-          id='input-resource-id'
-          label='Resource ID (Optional)'
-          value={resourceId}
-          onChange={(e) => setResourceId(e.target.value)}
-          size='small'
-          fullWidth
-          inputProps={{ maxLength: 128 }}
-          sx={compactStyles.textField}
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              id='checkbox-is-playing'
-              checked={isPlaying}
-              onChange={(e) => setIsPlaying(e.target.checked)}
-              size='small'
-            />
-          }
-          label='Playing'
-          sx={compactStyles.checkbox}
-        />
-
-        <Button
-          id='btn-place-sound'
-          variant='contained'
-          onClick={handlePlaceSound}
-          sx={compactStyles.button}
-        >
-          Place Sound
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title='Place a Sound Source' arrow>
+            <IconButton
+              id='btn-place-sound'
+              onClick={handlePlaceSound}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: 0,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              }}
+            >
+              <VolumeUpIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
 
         <Divider sx={{ my: 0.5 }} />
 

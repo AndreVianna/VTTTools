@@ -3,6 +3,7 @@ import {
   Edit as EditIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
+  Polyline as PolylineIcon,
 } from '@mui/icons-material';
 import {
   Box,
@@ -303,7 +304,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         <Divider sx={{ my: 0.5 }} />
 
         <Typography variant='overline' sx={compactStyles.sectionHeader}>
-          Default Values
+          New Wall
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -314,13 +315,26 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
             onChange={(e) => setDefaultHeight(parseFloat(e.target.value))}
             size='small'
             InputProps={{ inputProps: { min: 0.5, max: 20.0, step: 0.5 } }}
-            sx={{ ...compactStyles.textField, width: 80 }}
+            sx={{ ...compactStyles.textField, flex: 1 }}
           />
+          <Tooltip title='Place a Wall' arrow>
+            <IconButton
+              onClick={handlePlaceWall}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: 0,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              }}
+            >
+              <PolylineIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
         </Box>
-
-        <Button variant='contained' onClick={handlePlaceWall} sx={compactStyles.button}>
-          Place Wall
-        </Button>
 
         <Divider sx={{ my: 0.5 }} />
 

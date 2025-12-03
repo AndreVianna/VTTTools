@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251202183253_SeedApplicationSchema")]
+    [Migration("20251202232648_SeedApplicationSchema")]
     partial class SeedApplicationSchema
     {
         /// <inheritdoc />
