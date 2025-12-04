@@ -154,8 +154,9 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     />
   ) : null;
 
-  const CENTER_HIT_RADIUS = 15;
+  const CENTER_HIT_RADIUS = 20;
   const CENTER_MARKER_RADIUS = 8;
+  const CENTER_DOT_RADIUS = 3;
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
@@ -177,6 +178,19 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     }
   };
 
+  // Small solid dot always visible at the center
+  const centerDot = (
+    <Circle
+      x={currentPosition.x}
+      y={currentPosition.y}
+      radius={CENTER_DOT_RADIUS}
+      fill={color}
+      opacity={1}
+      listening={false}
+    />
+  );
+
+  // Larger draggable marker when selected
   const centerMarker = isSelected ? (
     <Circle
       x={currentPosition.x}
@@ -217,7 +231,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
           listening={false}
         />
         {directionIndicator}
-        {centerMarker}
+        {centerDot}
         {isInteractive && !dragPosition && (
           <Circle
             x={currentPosition.x}
@@ -231,6 +245,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
             onMouseLeave={handleMouseLeave}
           />
         )}
+        {centerMarker}
       </Fragment>
     );
   }
@@ -277,7 +292,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
         listening={false}
       />
       {directionIndicator}
-      {centerMarker}
+      {centerDot}
       {isInteractive && !dragPosition && (
         <Circle
           x={currentPosition.x}
@@ -291,6 +306,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
           onMouseLeave={handleMouseLeave}
         />
       )}
+      {centerMarker}
     </Fragment>
   );
 };
