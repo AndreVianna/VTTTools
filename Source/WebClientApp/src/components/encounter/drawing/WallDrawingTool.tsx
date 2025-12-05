@@ -190,6 +190,26 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     [gridConfig],
   );
 
+  const buildSegmentsFromPoles = useCallback(
+    (poleList: Pole[]): EncounterWallSegment[] => {
+      const segments: EncounterWallSegment[] = [];
+      for (let i = 0; i < poleList.length - 1; i++) {
+        const startPole = poleList[i];
+        const endPole = poleList[i + 1];
+        if (!startPole || !endPole) continue;
+        segments.push({
+          index: i,
+          startPole: { x: startPole.x, y: startPole.y, h: startPole.h },
+          endPole: { x: endPole.x, y: endPole.y, h: endPole.h },
+          type: 0,
+          state: 1,
+        });
+      }
+      return segments;
+    },
+    [],
+  );
+
   const handleClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
       const stage = e.target.getStage();
@@ -229,10 +249,19 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
           });
           return currentPoles;
         },
+        (segments) => {
+          wallTransaction.setAllSegments([{
+            tempId: -1,
+            wallIndex: null,
+            name: wall?.name || '',
+            segments,
+          }]);
+        },
+        defaultHeight,
       );
       wallTransaction.pushLocalAction(action);
     },
-    [poles, gridConfig, defaultHeight, onPolesChange, wallTransaction],
+    [poles, gridConfig, defaultHeight, onPolesChange, wallTransaction, wall],
   );
 
   const handleDoubleClick = useCallback(() => {

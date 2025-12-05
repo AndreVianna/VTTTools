@@ -48,12 +48,15 @@ import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
+import { useSessionState } from '@/hooks/useSessionState';
 import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { assetsApi } from '@/services/assetsApi';
 import {
   useAddEncounterAssetMutation,
+  useAddEncounterLightSourceMutation,
   useAddEncounterRegionMutation,
+  useAddEncounterSoundSourceMutation,
   useAddEncounterWallMutation,
   useBulkAddEncounterAssetsMutation,
   useBulkDeleteEncounterAssetsMutation,
@@ -90,6 +93,12 @@ import {
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
+import {
+  DeleteLightSourceCommand,
+  DeleteSoundSourceCommand,
+  UpdateLightSourceCommand,
+  UpdateSoundSourceCommand,
+} from '@/utils/commands/sourceCommands';
 import {
   getBucketMinusCursor,
   getBucketPlusCursor,
@@ -175,9 +184,11 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [addEncounterRegion] = useAddEncounterRegionMutation();
   const [updateEncounterRegion] = useUpdateEncounterRegionMutation();
   const [removeEncounterRegion] = useRemoveEncounterRegionMutation();
+  const [addEncounterLightSource] = useAddEncounterLightSourceMutation();
   const [removeEncounterLightSource] = useRemoveEncounterLightSourceMutation();
-  const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
   const [updateEncounterLightSource] = useUpdateEncounterLightSourceMutation();
+  const [addEncounterSoundSource] = useAddEncounterSoundSourceMutation();
+  const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
   const [updateEncounterSoundSource] = useUpdateEncounterSoundSourceMutation();
 
   useEffect(() => {
@@ -219,7 +230,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [isHydrating, setIsHydrating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedWallIndex, setSelectedWallIndex] = useState<number | null>(null);
+  const [selectedWallIndex, setSelectedWallIndex] = useSessionState<number | null>({ key: 'selectedWallIndex', defaultValue: null, encounterId });
   const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
   const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
   const [isEditingVertices, setIsEditingVertices] = useState(false);
@@ -227,15 +238,15 @@ const EncounterEditorPageInternal: React.FC = () => {
   const previewWallPolesRef = useRef<Pole[] | null>(null);
   const [, forcePreviewUpdate] = useState(0);
 
-  const [selectedRegionIndex, setSelectedRegionIndex] = useState<number | null>(null);
+  const [selectedRegionIndex, setSelectedRegionIndex] = useSessionState<number | null>({ key: 'selectedRegionIndex', defaultValue: null, encounterId });
   const [drawingRegionIndex, setDrawingRegionIndex] = useState<number | null>(null);
   const [editingRegionIndex, setEditingRegionIndex] = useState<number | null>(null);
   const [isEditingRegionVertices, setIsEditingRegionVertices] = useState(false);
   const [originalRegionVertices, setOriginalRegionVertices] = useState<Point[] | null>(null);
   const [regionPlacementMode, setRegionPlacementMode] = useState<'polygon' | 'bucketFill' | null>(null);
 
-  const [selectedLightSourceIndex, setSelectedLightSourceIndex] = useState<number | null>(null);
-  const [selectedSoundSourceIndex, setSelectedSoundSourceIndex] = useState<number | null>(null);
+  const [selectedLightSourceIndex, setSelectedLightSourceIndex] = useSessionState<number | null>({ key: 'selectedLightSourceIndex', defaultValue: null, encounterId });
+  const [selectedSoundSourceIndex, setSelectedSoundSourceIndex] = useSessionState<number | null>({ key: 'selectedSoundSourceIndex', defaultValue: null, encounterId });
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<
     (LightPlacementProperties | SoundPlacementProperties) & { sourceType: 'light' | 'sound' } | null
   >(null);
@@ -247,7 +258,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [fogDrawingTool, setFogDrawingTool] = useState<'polygon' | 'bucketFill' | null>(null);
   const [fogDrawingVertices, setFogDrawingVertices] = useState<Point[]>([]);
 
-  const [activeScope, setActiveScope] = useState<InteractionScope>(null);
+  const [activeScope, setActiveScope] = useSessionState<InteractionScope>({ key: 'activeScope', defaultValue: null, encounterId });
 
   const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
     regions: true,
@@ -519,6 +530,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     initialViewport,
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
     stageSize,
+    encounterId,
   });
 
   const contextMenus = useContextMenus({
@@ -1075,17 +1087,29 @@ const EncounterEditorPageInternal: React.FC = () => {
       if (!encounterId) return;
       const source = placedLightSources.find((s) => s.index === index);
       if (!source) return;
-      try {
-        await removeEncounterLightSource({ encounterId, sourceIndex: index }).unwrap();
-        if (selectedLightSourceIndex === index) {
-          setSelectedLightSourceIndex(null);
-        }
-        refetch();
-      } catch (error) {
-        console.error('Failed to delete light source:', error);
+
+      const command = new DeleteLightSourceCommand({
+        encounterId,
+        sourceIndex: index,
+        source,
+        onAdd: async (eid, sourceData) => {
+          const result = await addEncounterLightSource({ encounterId: eid, ...sourceData }).unwrap();
+          return result;
+        },
+        onRemove: async (eid, sourceIndex) => {
+          await removeEncounterLightSource({ encounterId: eid, sourceIndex }).unwrap();
+        },
+        onRefetch: async () => {
+          refetch();
+        },
+      });
+
+      await execute(command);
+      if (selectedLightSourceIndex === index) {
+        setSelectedLightSourceIndex(null);
       }
     },
-    [encounterId, placedLightSources, removeEncounterLightSource, selectedLightSourceIndex, refetch],
+    [encounterId, placedLightSources, execute, addEncounterLightSource, removeEncounterLightSource, selectedLightSourceIndex, refetch],
   );
 
   const handleSoundSourceDelete = useCallback(
@@ -1093,17 +1117,29 @@ const EncounterEditorPageInternal: React.FC = () => {
       if (!encounterId) return;
       const source = placedSoundSources.find((s) => s.index === index);
       if (!source) return;
-      try {
-        await removeEncounterSoundSource({ encounterId, sourceIndex: index }).unwrap();
-        if (selectedSoundSourceIndex === index) {
-          setSelectedSoundSourceIndex(null);
-        }
-        refetch();
-      } catch (error) {
-        console.error('Failed to delete sound source:', error);
+
+      const command = new DeleteSoundSourceCommand({
+        encounterId,
+        sourceIndex: index,
+        source,
+        onAdd: async (eid, sourceData) => {
+          const result = await addEncounterSoundSource({ encounterId: eid, ...sourceData }).unwrap();
+          return result;
+        },
+        onRemove: async (eid, sourceIndex) => {
+          await removeEncounterSoundSource({ encounterId: eid, sourceIndex }).unwrap();
+        },
+        onRefetch: async () => {
+          refetch();
+        },
+      });
+
+      await execute(command);
+      if (selectedSoundSourceIndex === index) {
+        setSelectedSoundSourceIndex(null);
       }
     },
-    [encounterId, placedSoundSources, removeEncounterSoundSource, selectedSoundSourceIndex, refetch],
+    [encounterId, placedSoundSources, execute, addEncounterSoundSource, removeEncounterSoundSource, selectedSoundSourceIndex, refetch],
   );
 
   useEffect(() => {
@@ -1130,11 +1166,15 @@ const EncounterEditorPageInternal: React.FC = () => {
   }, [selectedLightSourceIndex, selectedSoundSourceIndex, handleLightSourceDelete, handleSoundSourceDelete]);
 
   const handlePlaceLight = useCallback((properties: LightPlacementProperties) => {
+    setSelectedLightSourceIndex(null);
+    setSelectedSoundSourceIndex(null);
     setSourcePlacementProperties({ ...properties, sourceType: 'light' });
     setActiveTool('sourceDrawing');
   }, []);
 
   const handlePlaceSound = useCallback((properties: SoundPlacementProperties) => {
+    setSelectedLightSourceIndex(null);
+    setSelectedSoundSourceIndex(null);
     setSourcePlacementProperties({ ...properties, sourceType: 'sound' });
     setActiveTool('sourceDrawing');
   }, []);
@@ -1162,14 +1202,27 @@ const EncounterEditorPageInternal: React.FC = () => {
   const handleLightSourceUpdate = useCallback(
     async (sourceIndex: number, updates: Partial<EncounterLightSource>) => {
       if (!encounterId) return;
-      try {
-        await updateEncounterLightSource({ encounterId, sourceIndex, ...updates }).unwrap();
-        refetch();
-      } catch (error) {
-        console.error('Failed to update light source:', error);
-      }
+      const oldSource = placedLightSources.find((s) => s.index === sourceIndex);
+      if (!oldSource) return;
+
+      const newSource = { ...oldSource, ...updates };
+
+      const command = new UpdateLightSourceCommand({
+        encounterId,
+        sourceIndex,
+        oldSource,
+        newSource,
+        onUpdate: async (eid, idx, upd) => {
+          await updateEncounterLightSource({ encounterId: eid, sourceIndex: idx, ...upd }).unwrap();
+        },
+        onRefetch: async () => {
+          refetch();
+        },
+      });
+
+      await execute(command);
     },
-    [encounterId, updateEncounterLightSource, refetch],
+    [encounterId, placedLightSources, execute, updateEncounterLightSource, refetch],
   );
 
   const handleLightSourcePositionChange = useCallback(
@@ -1179,17 +1232,37 @@ const EncounterEditorPageInternal: React.FC = () => {
     [handleLightSourceUpdate],
   );
 
+  const handleLightSourceDirectionChange = useCallback(
+    (sourceIndex: number, direction: number) => {
+      handleLightSourceUpdate(sourceIndex, { direction });
+    },
+    [handleLightSourceUpdate],
+  );
+
   const handleSoundSourceUpdate = useCallback(
     async (sourceIndex: number, updates: SoundSourceUpdatePayload) => {
       if (!encounterId) return;
-      try {
-        await updateEncounterSoundSource({ encounterId, sourceIndex, ...updates }).unwrap();
-        refetch();
-      } catch (error) {
-        console.error('Failed to update sound source:', error);
-      }
+      const oldSource = placedSoundSources.find((s) => s.index === sourceIndex);
+      if (!oldSource) return;
+
+      const newSource = { ...oldSource, ...updates };
+
+      const command = new UpdateSoundSourceCommand({
+        encounterId,
+        sourceIndex,
+        oldSource,
+        newSource,
+        onUpdate: async (eid, idx, upd) => {
+          await updateEncounterSoundSource({ encounterId: eid, sourceIndex: idx, ...upd }).unwrap();
+        },
+        onRefetch: async () => {
+          refetch();
+        },
+      });
+
+      await execute(command);
     },
-    [encounterId, updateEncounterSoundSource, refetch],
+    [encounterId, placedSoundSources, execute, updateEncounterSoundSource, refetch],
   );
 
   const handleSourcePlacementFinish = useCallback((success: boolean) => {
@@ -1536,7 +1609,8 @@ const EncounterEditorPageInternal: React.FC = () => {
             ref={canvasRef}
             width={window.innerWidth}
             height={window.innerHeight}
-            initialPosition={{ x: initialViewport.x, y: initialViewport.y }}
+            initialPosition={{ x: viewportControls.viewport.x, y: viewportControls.viewport.y }}
+            initialScale={viewportControls.viewport.scale}
             backgroundColor={theme.palette.background.default}
             onViewportChange={viewportControls.handleViewportChange}
             stageCallbackRef={stageCallbackRef}
@@ -1612,7 +1686,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               )}
 
               {encounter && scopeVisibility.lights && placedLightSources.length > 0 && (
-                <Group name={GroupName.Structure}>
+                <Group name={GroupName.Structure} globalCompositeOperation="lighten">
                   {placedLightSources.map((lightSource) => (
                     <LightSourceRenderer
                       key={lightSource.id}
@@ -1623,6 +1697,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       onSelect={handleLightSourceSelect}
                       onContextMenu={handleLightSourceContextMenu}
                       onPositionChange={handleLightSourcePositionChange}
+                      onDirectionChange={handleLightSourceDirectionChange}
                       isSelected={selectedLightSourceIndex === lightSource.index}
                     />
                   ))}
@@ -1703,6 +1778,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                             onPoleDeleted={(deletedIndices) =>
                               handlePoleDeleted(segment.wallIndex ?? -1, deletedIndices)
                             }
+                            defaultHeight={drawingWallDefaultHeight}
                           />
                         );
                       })}
@@ -1855,6 +1931,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                     }
                     walls={encounter.walls || []}
                     gridConfig={gridConfig}
+                    execute={execute}
+                    onRefetch={async () => {
+                      await refetch();
+                    }}
                     onComplete={handleSourcePlacementFinish}
                     onCancel={() => {
                       setSourcePlacementProperties(null);

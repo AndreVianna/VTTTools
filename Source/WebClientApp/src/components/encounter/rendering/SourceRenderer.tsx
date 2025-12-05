@@ -3,11 +3,12 @@ import type Konva from 'konva';
 import type { Context } from 'konva/lib/Context';
 import type React from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Circle, Line, Shape } from 'react-konva';
+import { Circle, Group, Line, Shape } from 'react-konva';
 import type { EncounterLightSource, EncounterWall } from '@/types/domain';
 import { LightSourceType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
+import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import { isSourceInScope } from '@/utils/scopeFiltering';
 
@@ -19,6 +20,7 @@ export interface LightSourceRendererProps {
   onSelect?: (index: number) => void;
   onContextMenu?: (sourceIndex: number, position: { x: number; y: number }) => void;
   onPositionChange?: (sourceIndex: number, position: { x: number; y: number }) => void;
+  onDirectionChange?: (sourceIndex: number, direction: number) => void;
   isSelected?: boolean;
 }
 
@@ -30,18 +32,27 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   onSelect,
   onContextMenu,
   onPositionChange,
+  onDirectionChange,
   isSelected = false,
 }) => {
   const theme = useTheme();
   const isInteractive = isSourceInScope(activeScope);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+  const [dragDirection, setDragDirection] = useState<number | null>(null);
+  const [isRotating, setIsRotating] = useState(false);
 
   // Clear drag position when the props position updates (API call completed)
   useEffect(() => {
     setDragPosition(null);
   }, [encounterLightSource.position.x, encounterLightSource.position.y]);
 
+  // Clear drag direction when the props direction updates (API call completed)
+  useEffect(() => {
+    setDragDirection(null);
+  }, [encounterLightSource.direction]);
+
   const currentPosition = dragPosition ?? encounterLightSource.position;
+  const currentDirection = dragDirection ?? encounterLightSource.direction;
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (onSelect && isInteractive) {
@@ -102,13 +113,14 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     const sourceWithCurrentPosition = {
       ...encounterLightSource,
       position: currentPosition,
+      direction: currentDirection,
     };
     return calculateLineOfSight(sourceWithCurrentPosition, effectiveRange, walls, gridConfig);
   }, [
     currentPosition.x,
     currentPosition.y,
     encounterLightSource.type,
-    encounterLightSource.direction,
+    currentDirection,
     encounterLightSource.arc,
     effectiveRange,
     walls,
@@ -117,7 +129,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   ]);
 
   const isDirectional = encounterLightSource.direction != null && encounterLightSource.arc != null;
-  const directionRadians = isDirectional ? (encounterLightSource.direction! * Math.PI) / 180 : 0;
+  const directionRadians = isDirectional ? (currentDirection! * Math.PI) / 180 : 0;
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
   const color = encounterLightSource.color ?? getDefaultColorForType(encounterLightSource.type);
@@ -125,7 +137,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   const transparentColor = `${color}00`;
 
   const isLightOn = encounterLightSource.isOn;
-  const effectiveOpacity = isLightOn ? 1.0 : 0.3;
+  const effectiveOpacity = isLightOn ? 1.0 : 0.0;
 
   const useSimpleCircle = losPolygon.length < 3;
 
@@ -137,25 +149,103 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     fillRadialGradientColorStops: [0, centerColor, 1, transparentColor],
   };
 
-  const directionIndicatorLength = rangeInPixels * 0.4;
-  const directionIndicator = isDirectional ? (
-    <Line
-      points={[
-        currentPosition.x,
-        currentPosition.y,
-        currentPosition.x + Math.cos(directionRadians) * directionIndicatorLength,
-        currentPosition.y + Math.sin(directionRadians) * directionIndicatorLength,
-      ]}
-      stroke={theme.palette.warning.main}
-      strokeWidth={2}
-      lineCap="round"
-      opacity={effectiveOpacity}
-      listening={false}
-    />
+  const ROTATION_HANDLE_LENGTH = 50;
+  const ROTATION_HANDLE_RADIUS = 6;
+
+  const handleRotationMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    e.cancelBubble = true;
+    setIsRotating(true);
+
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    let lastDirection = currentDirection ?? 0;
+
+    const handleMouseMove = () => {
+      const pointerPosition = stage.getPointerPosition();
+      if (!pointerPosition) return;
+
+      const stageScale = stage.scaleX();
+      const canvasPosition = {
+        x: (pointerPosition.x - stage.x()) / stageScale,
+        y: (pointerPosition.y - stage.y()) / stageScale,
+      };
+
+      const newAngle = calculateAngleFromCenter(currentPosition, canvasPosition);
+      const snappedAngle = snapAngle(newAngle);
+      const directionDegrees = (snappedAngle + 270) % 360;
+      lastDirection = directionDegrees;
+      setDragDirection(directionDegrees);
+    };
+
+    const handleMouseUp = () => {
+      setIsRotating(false);
+      stage.off('mousemove', handleMouseMove);
+      stage.off('mouseup', handleMouseUp);
+      window.removeEventListener('mouseup', handleMouseUp);
+      onDirectionChange?.(encounterLightSource.index, lastDirection);
+    };
+
+    stage.on('mousemove', handleMouseMove);
+    stage.on('mouseup', handleMouseUp);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const rotationHandle = isDirectional && isSelected ? (
+    <Group x={currentPosition.x} y={currentPosition.y}>
+      <Line
+        points={[
+          0,
+          0,
+          Math.cos(directionRadians) * ROTATION_HANDLE_LENGTH,
+          Math.sin(directionRadians) * ROTATION_HANDLE_LENGTH,
+        ]}
+        stroke="#000000"
+        strokeWidth={3}
+        dash={[6, 4]}
+        opacity={1}
+        listening={false}
+      />
+      <Line
+        points={[
+          0,
+          0,
+          Math.cos(directionRadians) * ROTATION_HANDLE_LENGTH,
+          Math.sin(directionRadians) * ROTATION_HANDLE_LENGTH,
+        ]}
+        stroke="#FFFFFF"
+        strokeWidth={1}
+        dash={[6, 4]}
+        opacity={1}
+        listening={false}
+      />
+      <Circle
+        x={Math.cos(directionRadians) * ROTATION_HANDLE_LENGTH}
+        y={Math.sin(directionRadians) * ROTATION_HANDLE_LENGTH}
+        radius={ROTATION_HANDLE_RADIUS}
+        fill={theme.palette.warning.main}
+        stroke="#000000"
+        strokeWidth={2}
+        hitStrokeWidth={20}
+        onMouseDown={handleRotationMouseDown}
+        onMouseEnter={(e) => {
+          const container = e.target.getStage()?.container();
+          if (container) {
+            container.style.cursor = isRotating ? 'grabbing' : 'grab';
+          }
+        }}
+        onMouseLeave={(e) => {
+          const container = e.target.getStage()?.container();
+          if (container) {
+            container.style.cursor = 'default';
+          }
+        }}
+      />
+    </Group>
   ) : null;
 
   const CENTER_HIT_RADIUS = 20;
-  const CENTER_MARKER_RADIUS = 8;
+  const CENTER_MARKER_RADIUS = 6;
   const CENTER_DOT_RADIUS = 3;
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -230,7 +320,6 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
           {...(isSelected && { stroke: theme.palette.primary.main, strokeWidth: 3 })}
           listening={false}
         />
-        {directionIndicator}
         {centerDot}
         {isInteractive && !dragPosition && (
           <Circle
@@ -246,6 +335,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
           />
         )}
         {centerMarker}
+        {rotationHandle}
       </Fragment>
     );
   }
@@ -278,11 +368,13 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
           gradient.addColorStop(0, centerColor);
           gradient.addColorStop(1, transparentColor);
 
+          context.globalCompositeOperation = 'lighten';
           context.fillStyle = gradient;
           context.globalAlpha = effectiveOpacity;
           context.fill();
 
           if (isSelected) {
+            context.globalCompositeOperation = 'source-over';
             context.strokeStyle = theme.palette.primary.main;
             context.lineWidth = 3;
             context.globalAlpha = 1.0;
@@ -291,7 +383,6 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
         }}
         listening={false}
       />
-      {directionIndicator}
       {centerDot}
       {isInteractive && !dragPosition && (
         <Circle
@@ -307,6 +398,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
         />
       )}
       {centerMarker}
+      {rotationHandle}
     </Fragment>
   );
 };

@@ -33,6 +33,33 @@ export interface LocalAction {
 }
 
 /**
+ * Helper function to convert poles array to segments array
+ *
+ * Converts a list of poles into EncounterWallSegment objects by creating
+ * segments between consecutive poles. Each segment connects pole[i] to pole[i+1].
+ *
+ * @param poles - Array of poles to convert
+ * @param defaultHeight - Default height value for all poles in segments
+ * @returns Array of EncounterWallSegment objects
+ */
+function polesToSegments(poles: Pole[], defaultHeight: number): EncounterWallSegment[] {
+  const segments: EncounterWallSegment[] = [];
+  for (let i = 0; i < poles.length - 1; i++) {
+    const startPole = poles[i];
+    const endPole = poles[i + 1];
+    if (!startPole || !endPole) continue;
+    segments.push({
+      index: i,
+      startPole: { x: startPole.x, y: startPole.y, h: startPole.h ?? defaultHeight },
+      endPole: { x: endPole.x, y: endPole.y, h: endPole.h ?? defaultHeight },
+      type: 0,
+      state: 1,
+    });
+  }
+  return segments;
+}
+
+/**
  * Action for placing a new pole in placement mode
  *
  * Created when the user clicks to add a new pole to the wall.
@@ -173,6 +200,8 @@ export function createPlacePoleAction(
   pole: Pole,
   onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
+  onSegmentsUpdate?: (segments: EncounterWallSegment[]) => void,
+  defaultHeight: number = 0,
 ): PlacePoleAction {
   return {
     type: 'PLACE_POLE',
@@ -184,12 +213,18 @@ export function createPlacePoleAction(
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 1);
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 0, pole);
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
   };
 }
@@ -200,6 +235,8 @@ export function createMovePoleAction(
   newPosition: { x: number; y: number },
   onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
+  onSegmentsUpdate?: (segments: EncounterWallSegment[]) => void,
+  defaultHeight: number = 0,
 ): MovePoleAction {
   return {
     type: 'MOVE_POLE',
@@ -215,6 +252,9 @@ export function createMovePoleAction(
         h: updatedPoles[poleIndex]?.h ?? 0,
       };
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -224,6 +264,9 @@ export function createMovePoleAction(
         h: updatedPoles[poleIndex]?.h ?? 0,
       };
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
   };
 }
@@ -233,6 +276,8 @@ export function createInsertPoleAction(
   pole: Pole,
   onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
+  onSegmentsUpdate?: (segments: EncounterWallSegment[]) => void,
+  defaultHeight: number = 0,
 ): InsertPoleAction {
   return {
     type: 'INSERT_POLE',
@@ -244,12 +289,18 @@ export function createInsertPoleAction(
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 1);
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
       const updatedPoles = [...currentPoles];
       updatedPoles.splice(poleIndex, 0, pole);
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
   };
 }
@@ -259,6 +310,8 @@ export function createDeletePoleAction(
   poles: Pole[],
   onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
+  onSegmentsUpdate?: (segments: EncounterWallSegment[]) => void,
+  defaultHeight: number = 0,
 ): DeletePoleAction {
   return {
     type: 'DELETE_POLE',
@@ -276,6 +329,9 @@ export function createDeletePoleAction(
         updatedPoles.splice(entry.index, 0, entry.pole);
       }
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -286,6 +342,9 @@ export function createDeletePoleAction(
         updatedPoles.splice(index, 1);
       }
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
   };
 }
@@ -298,6 +357,8 @@ export function createMultiMovePoleAction(
   }>,
   onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
+  onSegmentsUpdate?: (segments: EncounterWallSegment[]) => void,
+  defaultHeight: number = 0,
 ): MultiMovePoleAction {
   if (moves.length === 0) {
     throw new Error('MultiMovePoleAction: moves array cannot be empty');
@@ -317,6 +378,9 @@ export function createMultiMovePoleAction(
         };
       }
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -328,6 +392,9 @@ export function createMultiMovePoleAction(
         };
       }
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
   };
 }
@@ -341,6 +408,8 @@ export function createMoveLineAction(
   newPole2: { x: number; y: number; h: number },
   onPolesChange: (poles: Pole[]) => void,
   getCurrentPoles: () => Pole[],
+  onSegmentsUpdate?: (segments: EncounterWallSegment[]) => void,
+  defaultHeight: number = 0,
 ): MoveLineAction {
   if (pole1Index === pole2Index) {
     throw new Error('MoveLineAction: pole1Index and pole2Index must be different');
@@ -361,6 +430,9 @@ export function createMoveLineAction(
       updatedPoles[pole1Index] = { ...updatedPoles[pole1Index], ...oldPole1 };
       updatedPoles[pole2Index] = { ...updatedPoles[pole2Index], ...oldPole2 };
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
     redo: () => {
       const currentPoles = getCurrentPoles();
@@ -368,6 +440,9 @@ export function createMoveLineAction(
       updatedPoles[pole1Index] = { ...updatedPoles[pole1Index], ...newPole1 };
       updatedPoles[pole2Index] = { ...updatedPoles[pole2Index], ...newPole2 };
       onPolesChange(updatedPoles);
+      if (onSegmentsUpdate) {
+        onSegmentsUpdate(polesToSegments(updatedPoles, defaultHeight));
+      }
     },
   };
 }

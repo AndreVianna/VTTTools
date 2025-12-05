@@ -104,6 +104,7 @@ export interface WallTransformerProps {
   wallTransaction?: ReturnType<typeof useWallTransaction> | undefined;
   onPoleInserted?: (insertedAtIndex: number) => void;
   onPoleDeleted?: (deletedIndices: number[]) => void;
+  defaultHeight?: number;
 }
 
 export const WallTransformer: React.FC<WallTransformerProps> = ({
@@ -123,6 +124,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   wallTransaction,
   onPoleInserted,
   onPoleDeleted,
+  defaultHeight = 0,
 }) => {
   const theme = useTheme();
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
@@ -303,6 +305,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     });
                     return currentPoles;
                   },
+                  (segments) => {
+                    wallTransaction.setAllSegments([{
+                      tempId: -1,
+                      wallIndex: null,
+                      name: _wall?.name || '',
+                      segments,
+                    }]);
+                  },
+                  defaultHeight,
                 );
                 wallTransaction.pushLocalAction(action);
               }
@@ -334,6 +345,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     });
                     return currentPoles;
                   },
+                  (segments) => {
+                    wallTransaction.setAllSegments([{
+                      tempId: -1,
+                      wallIndex: null,
+                      name: _wall?.name || '',
+                      segments,
+                    }]);
+                  },
+                  defaultHeight,
                 );
                 wallTransaction.pushLocalAction(action);
               }
@@ -477,6 +497,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             });
             return currentPoles;
           },
+          (segments) => {
+            wallTransaction.setAllSegments([{
+              tempId: -1,
+              wallIndex: null,
+              name: _wall?.name || '',
+              segments,
+            }]);
+          },
+          defaultHeight,
         );
         wallTransaction.pushLocalAction(action);
       }
@@ -500,6 +529,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             });
             return currentPoles;
           },
+          (segments) => {
+            wallTransaction.setAllSegments([{
+              tempId: -1,
+              wallIndex: null,
+              name: _wall?.name || '',
+              segments,
+            }]);
+          },
+          defaultHeight,
         );
         wallTransaction.pushLocalAction(action);
       }
@@ -715,6 +753,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                       });
                       return currentPoles;
                     },
+                    (segments) => {
+                      wallTransaction.setAllSegments([{
+                        tempId: -1,
+                        wallIndex: null,
+                        name: _wall?.name || '',
+                        segments,
+                      }]);
+                    },
+                    defaultHeight,
                   );
                   wallTransaction.pushLocalAction(action);
                 }
@@ -865,6 +912,15 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                           });
                           return currentPoles;
                         },
+                        (segments) => {
+                          wallTransaction.setAllSegments([{
+                            tempId: -1,
+                            wallIndex: null,
+                            name: _wall?.name || '',
+                            segments,
+                          }]);
+                        },
+                        defaultHeight,
                       );
                       wallTransaction.pushLocalAction(action);
                     }

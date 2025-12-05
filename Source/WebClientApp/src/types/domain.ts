@@ -644,6 +644,7 @@ export enum RegionType {
   Elevation = 0,
   Terrain = 1,
   Illumination = 2,
+  FogOfWar = 3,
 }
 
 export interface EncounterWallSegment {

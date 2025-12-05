@@ -5,8 +5,12 @@ import { Group, Rect } from 'react-konva';
 import {
   useAddEncounterLightSourceMutation,
   useAddEncounterSoundSourceMutation,
+  useRemoveEncounterLightSourceMutation,
+  useRemoveEncounterSoundSourceMutation,
 } from '@/services/encounterApi';
-import type { EncounterLightSource, EncounterWall, Point, LightSourceType } from '@/types/domain';
+import type { EncounterLightSource, EncounterSoundSource, EncounterWall, Point, LightSourceType } from '@/types/domain';
+import type { Command } from '@/utils/commands';
+import { CreateLightSourceCommand, CreateSoundSourceCommand } from '@/utils/commands/sourceCommands';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
@@ -43,6 +47,8 @@ export interface SourceDrawingToolProps {
   source: SourceDrawingConfig;
   walls: EncounterWall[];
   gridConfig: GridConfig;
+  execute: (command: Command) => Promise<void>;
+  onRefetch: () => Promise<void>;
   onComplete: (success: boolean) => void;
   onCancel: () => void;
 }
@@ -52,6 +58,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   source,
   walls,
   gridConfig,
+  execute,
+  onRefetch,
   onComplete,
   onCancel,
 }) => {
@@ -63,6 +71,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   const [currentArc, setCurrentArc] = useState<number>(45);
   const [addLightSource] = useAddEncounterLightSourceMutation();
   const [addSoundSource] = useAddEncounterSoundSourceMutation();
+  const [removeLightSource] = useRemoveEncounterLightSourceMutation();
+  const [removeSoundSource] = useRemoveEncounterSoundSourceMutation();
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const isLight = source.sourceType === 'light';
@@ -97,8 +107,8 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       try {
         if (isLight) {
           const lightSource = source as LightSourceDrawingProps;
-          await addLightSource({
-            encounterId,
+          const sourceData: EncounterLightSource = {
+            index: 0,
             name: lightSource.name,
             type: lightSource.type,
             position: centerPos,
@@ -107,17 +117,47 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
             range: rangeToUse,
             color: lightSource.color,
             isOn: lightSource.isOn ?? true,
-          }).unwrap();
+          };
+
+          const command = new CreateLightSourceCommand({
+            encounterId,
+            source: sourceData,
+            onCreate: async (eid, data) => {
+              const result = await addLightSource({ encounterId: eid, ...data }).unwrap();
+              return result;
+            },
+            onRemove: async (eid, sourceIndex) => {
+              await removeLightSource({ encounterId: eid, sourceIndex }).unwrap();
+            },
+            onRefetch,
+          });
+
+          await execute(command);
         } else {
           const soundSource = source as SoundSourceDrawingProps;
-          await addSoundSource({
-            encounterId,
+          const sourceData: EncounterSoundSource = {
+            index: 0,
             name: soundSource.name,
             position: centerPos,
             range: rangeToUse,
             resourceId: soundSource.resourceId,
             isPlaying: soundSource.isPlaying ?? true,
-          }).unwrap();
+          };
+
+          const command = new CreateSoundSourceCommand({
+            encounterId,
+            source: sourceData,
+            onCreate: async (eid, data) => {
+              const result = await addSoundSource({ encounterId: eid, ...data }).unwrap();
+              return result;
+            },
+            onRemove: async (eid, sourceIndex) => {
+              await removeSoundSource({ encounterId: eid, sourceIndex }).unwrap();
+            },
+            onRefetch,
+          });
+
+          await execute(command);
         }
 
         if (stageContainerRef.current) {
@@ -141,8 +181,12 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       source,
       isLight,
       isDirectional,
+      execute,
       addLightSource,
       addSoundSource,
+      removeLightSource,
+      removeSoundSource,
+      onRefetch,
       onComplete,
     ],
   );
