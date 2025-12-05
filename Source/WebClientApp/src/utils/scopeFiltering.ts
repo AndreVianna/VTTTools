@@ -6,7 +6,6 @@ export type InteractionScope =
   | 'objects'
   | 'monsters'
   | 'characters'
-  | 'sources'
   | 'lights'
   | 'sounds'
   | 'fogOfWar'
@@ -32,7 +31,6 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
       return assetKind === 'Character';
     case 'regions':
     case 'walls':
-    case 'sources':
     case 'lights':
     case 'sounds':
     case 'fogOfWar':
@@ -55,5 +53,5 @@ export function isRegionInScope(scope: InteractionScope | undefined): boolean {
 }
 
 export function isSourceInScope(scope: InteractionScope | undefined): boolean {
-  return scope === 'sources' || scope === 'lights' || scope === 'sounds';
+  return scope === 'lights' || scope === 'sounds';
 }

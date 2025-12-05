@@ -1,5 +1,4 @@
 import {
-  CloudUpload as UploadIcon,
   Delete as DeleteIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
@@ -10,7 +9,6 @@ import {
   Box,
   Button,
   Checkbox,
-  CircularProgress,
   Collapse,
   Divider,
   FormControlLabel,
@@ -31,7 +29,7 @@ import {
   useUpdateEncounterSoundSourceMutation,
   useRemoveEncounterSoundSourceMutation,
 } from '@/services/encounterApi';
-import { useGetMediaResourceQuery, useUploadFileMutation } from '@/services/mediaApi';
+import { useGetMediaResourceQuery } from '@/services/mediaApi';
 import { type EncounterSoundSource } from '@/types/domain';
 
 export interface SoundsPanelProps {
@@ -92,13 +90,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
     const [soundPickerOpen, setSoundPickerOpen] = useState(false);
     const [soundPickerSourceIndex, setSoundPickerSourceIndex] = useState<number | null>(null);
-    const [uploadingForSource, setUploadingForSource] = useState<number | null>(null);
     const [newSoundPickerOpen, setNewSoundPickerOpen] = useState(false);
-    const [isUploadingNew, setIsUploadingNew] = useState(false);
 
     const [updateEncounterSoundSource] = useUpdateEncounterSoundSourceMutation();
     const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
-    const [uploadFile] = useUploadFileMutation();
 
     const compactStyles = {
       sectionHeader: {
@@ -147,25 +142,6 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
         resourceId,
         isPlaying: false,
       });
-    };
-
-    const handleUploadNewSound = async (file: File) => {
-      setIsUploadingNew(true);
-      try {
-        const result = await uploadFile({
-          file,
-          type: 'encounter',
-          resource: 'audio',
-        }).unwrap();
-        onPlaceSound({
-          resourceId: result.id,
-          isPlaying: false,
-        });
-      } catch (_error) {
-        console.error('[SoundsPanel] Failed to upload sound');
-      } finally {
-        setIsUploadingNew(false);
-      }
     };
 
     const handleDeleteClick = (sourceIndex: number) => {
@@ -244,29 +220,6 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
       setSoundPickerSourceIndex(null);
     };
 
-    const handleUploadSound = async (sourceIndex: number, file: File) => {
-      if (!encounterId) return;
-
-      setUploadingForSource(sourceIndex);
-      try {
-        const result = await uploadFile({
-          file,
-          type: 'encounter',
-          resource: 'audio',
-        }).unwrap();
-
-        await updateEncounterSoundSource({
-          encounterId,
-          sourceIndex,
-          resourceId: result.id,
-        }).unwrap();
-      } catch (_error) {
-        console.error('[SoundsPanel] Failed to upload sound');
-      } finally {
-        setUploadingForSource(null);
-      }
-    };
-
     const handleClearSound = async (sourceIndex: number) => {
       if (!encounterId) return;
       try {
@@ -286,28 +239,12 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
           Add Sound Source
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title='Select from Library' arrow>
-            <Button
-              variant='contained'
-              onClick={handleBrowseSoundsForNew}
-              startIcon={<BrowseIcon />}
-              sx={{
-                height: '28px',
-                fontSize: '11px',
-                textTransform: 'none',
-                fontWeight: 500,
-                flex: 1,
-              }}
-            >
-              Browse
-            </Button>
-          </Tooltip>
+        <Tooltip title='Select from Library (or upload new)' arrow>
           <Button
-            variant='outlined'
-            component='label'
-            startIcon={isUploadingNew ? <CircularProgress size={16} /> : <UploadIcon />}
-            disabled={isUploadingNew}
+            variant='contained'
+            onClick={handleBrowseSoundsForNew}
+            startIcon={<BrowseIcon />}
+            fullWidth
             sx={{
               height: '28px',
               fontSize: '11px',
@@ -315,21 +252,9 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
               fontWeight: 500,
             }}
           >
-            Upload
-            <input
-              type='file'
-              hidden
-              accept='.mp3,audio/mpeg'
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  handleUploadNewSound(file);
-                }
-                e.target.value = '';
-              }}
-            />
+            Browse Sounds
           </Button>
-        </Box>
+        </Tooltip>
 
         <Divider sx={{ my: 0.5 }} />
 
@@ -534,42 +459,19 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                             <Typography sx={{ fontSize: '9px', color: theme.palette.text.disabled }}>
                               No sound assigned
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 0.5 }}>
-                              <Button
-                                size='small'
-                                variant='outlined'
-                                startIcon={<BrowseIcon sx={{ fontSize: 12 }} />}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBrowseSound(source.index);
-                                }}
-                                sx={{ fontSize: '9px', py: 0.25, flex: 1 }}
-                              >
-                                Browse
-                              </Button>
-                              <Button
-                                size='small'
-                                variant='outlined'
-                                component='label'
-                                startIcon={uploadingForSource === source.index ? <CircularProgress size={12} /> : <UploadIcon sx={{ fontSize: 12 }} />}
-                                disabled={uploadingForSource === source.index}
-                                sx={{ fontSize: '9px', py: 0.25 }}
-                              >
-                                Upload
-                                <input
-                                  type='file'
-                                  hidden
-                                  accept='.mp3,audio/mpeg'
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      handleUploadSound(source.index, file);
-                                    }
-                                    e.target.value = '';
-                                  }}
-                                />
-                              </Button>
-                            </Box>
+                            <Button
+                              size='small'
+                              variant='outlined'
+                              fullWidth
+                              startIcon={<BrowseIcon sx={{ fontSize: 12 }} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleBrowseSound(source.index);
+                              }}
+                              sx={{ fontSize: '9px', py: 0.25 }}
+                            >
+                              Browse / Upload
+                            </Button>
                           </>
                         )}
                       </Box>

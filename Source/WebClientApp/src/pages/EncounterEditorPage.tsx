@@ -1,4 +1,5 @@
 import { AssetPicker, EditingBlocker } from '@components/common';
+import { SoundPickerDialog } from '@/components/sounds';
 import {
   BackgroundLayer,
   type DrawingMode,
@@ -271,11 +272,12 @@ const EncounterEditorPageInternal: React.FC = () => {
     fogOfWar: true,
   });
 
-  const [activePanel, setActivePanel] = useState<string | null>(null);
+  const [activePanel, setActivePanel] = useState<string | null>(() => activeScope);
   const [assetPickerOpen, setAssetPickerOpen] = useState<{
     open: boolean;
     kind?: AssetKind;
   }>({ open: false });
+  const [soundPickerOpen, setSoundPickerOpen] = useState(false);
 
   const drawingMode: DrawingMode =
     activeScope === 'walls'
@@ -284,9 +286,11 @@ const EncounterEditorPageInternal: React.FC = () => {
         ? 'region'
         : activeScope === 'regions' && regionPlacementMode === 'bucketFill'
           ? 'bucketFill'
-          : activeScope === 'sources'
-            ? 'source'
-            : null;
+          : activeScope === 'lights'
+            ? 'light'
+            : activeScope === 'sounds'
+              ? 'sound'
+              : null;
 
   const setPreviewWallPoles = useCallback((poles: Pole[] | null) => {
     previewWallPolesRef.current = poles;
@@ -446,7 +450,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     encounter,
     wallTransaction,
     selectedWallIndex,
-    drawingMode: drawingMode === 'source' ? null : drawingMode,
+    drawingMode: drawingMode === 'light' || drawingMode === 'sound' ? null : drawingMode,
     drawingWallIndex,
     addEncounterWall,
     updateEncounterWall,
@@ -476,7 +480,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     selectedRegionIndex,
     editingRegionIndex,
     originalRegionVertices,
-    drawingMode: drawingMode === 'source' ? null : drawingMode,
+    drawingMode: drawingMode === 'light' || drawingMode === 'sound' ? null : drawingMode,
     drawingRegionIndex,
     addEncounterRegion,
     updateEncounterRegion,
@@ -682,7 +686,10 @@ const EncounterEditorPageInternal: React.FC = () => {
           break;
         case 'regions':
           break;
-        case 'sources':
+        case 'lights':
+          break;
+        case 'sounds':
+          setSoundPickerOpen(true);
           break;
         default:
           break;
@@ -2074,6 +2081,15 @@ const EncounterEditorPageInternal: React.FC = () => {
           kind={assetPickerOpen.kind}
         />
       )}
+
+      <SoundPickerDialog
+        open={soundPickerOpen}
+        onClose={() => setSoundPickerOpen(false)}
+        onSelect={(resourceId) => {
+          setSoundPickerOpen(false);
+          handlePlaceSound({ resourceId, isPlaying: false });
+        }}
+      />
     </EditorLayout>
   );
 };

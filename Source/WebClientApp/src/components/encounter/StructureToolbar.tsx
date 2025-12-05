@@ -8,7 +8,7 @@ import { Box, Button, ButtonGroup, Tooltip, useTheme } from '@mui/material';
 import type React from 'react';
 import { useEffect } from 'react';
 
-export type DrawingMode = 'wall' | 'region' | 'source' | 'bucketFill' | null;
+export type DrawingMode = 'wall' | 'region' | 'light' | 'sound' | 'bucketFill' | null;
 
 export interface StructureToolbarProps {
   drawingMode: DrawingMode;
@@ -35,7 +35,7 @@ export const StructureToolbar: React.FC<StructureToolbarProps> = ({ drawingMode,
         onModeChange('region');
       } else if (e.key === 'l' || e.key === 'L') {
         e.preventDefault();
-        onModeChange('source');
+        onModeChange('light');
       } else if (e.key === 'Escape') {
         e.preventDefault();
         onModeChange(null);
@@ -81,8 +81,8 @@ export const StructureToolbar: React.FC<StructureToolbarProps> = ({ drawingMode,
         </Tooltip>
         <Tooltip title='Place Light Source (L)' placement='bottom'>
           <Button
-            onClick={() => onModeChange('source')}
-            color={drawingMode === 'source' ? 'primary' : 'inherit'}
+            onClick={() => onModeChange('light')}
+            color={drawingMode === 'light' ? 'primary' : 'inherit'}
             aria-label='Place Light Source'
           >
             <LightIcon />

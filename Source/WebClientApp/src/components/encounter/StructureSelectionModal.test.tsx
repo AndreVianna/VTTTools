@@ -47,14 +47,14 @@ describe('StructureSelectionModal', () => {
     expect(screen.getByText('Select Region')).toBeInTheDocument();
   });
 
-  it('should render source title when mode is source', () => {
+  it('should render light source title when mode is light', () => {
     const store = createMockStore();
     const onSelect = vi.fn();
     const onCancel = vi.fn();
 
     render(
       <Provider store={store}>
-        <StructureSelectionModal open={true} mode='source' onSelect={onSelect} onCancel={onCancel} />
+        <StructureSelectionModal open={true} mode='light' onSelect={onSelect} onCancel={onCancel} />
       </Provider>,
     );
 

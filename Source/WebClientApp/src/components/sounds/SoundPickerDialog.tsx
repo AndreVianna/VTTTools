@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     AudioFile as AudioFileIcon,
     Close as CloseIcon,
+    CloudUpload as UploadIcon,
     Search as SearchIcon,
 } from '@mui/icons-material';
 import {
@@ -19,7 +20,7 @@ import {
     Typography,
     useTheme,
 } from '@mui/material';
-import { useGetMediaResourcesQuery } from '@/services/mediaApi';
+import { useGetMediaResourcesQuery, useUploadFileMutation } from '@/services/mediaApi';
 import { AudioPreviewPlayer } from './AudioPreviewPlayer';
 
 export interface SoundPickerDialogProps {
@@ -40,12 +41,14 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'all'>('mine');
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const { data: resources = [], isLoading } = useGetMediaResourcesQuery({
+    const { data: resources = [], isLoading, refetch } = useGetMediaResourcesQuery({
         type: 'Audio',
         search: searchQuery,
         limit: 50,
     });
+    const [uploadFile] = useUploadFileMutation();
 
     const filteredResources = resources.filter(() => {
         if (ownershipFilter === 'mine') {
@@ -75,6 +78,23 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
 
     const handleCardClick = (resourceId: string) => {
         setSelectedResourceId(resourceId);
+    };
+
+    const handleUpload = async (file: File) => {
+        setIsUploading(true);
+        try {
+            const result = await uploadFile({
+                file,
+                type: 'encounter',
+                resource: 'audio',
+            }).unwrap();
+            await refetch();
+            setSelectedResourceId(result.id);
+        } catch (error) {
+            console.error('[SoundPickerDialog] Failed to upload sound:', error);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const selectedResource = filteredResources.find((r) => r.id === selectedResourceId);
@@ -203,6 +223,45 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                             <ToggleButton value="mine">Mine</ToggleButton>
                             <ToggleButton value="all">All</ToggleButton>
                         </ToggleButtonGroup>
+                    </Box>
+
+                    <Box>
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                color: theme.palette.text.secondary,
+                                fontWeight: 600,
+                                mb: 1,
+                                display: 'block',
+                            }}
+                        >
+                            UPLOAD
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            fullWidth
+                            startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
+                            disabled={isUploading}
+                            sx={{
+                                fontSize: '0.75rem',
+                                py: 0.75,
+                            }}
+                        >
+                            {isUploading ? 'Uploading...' : 'Upload Sound'}
+                            <input
+                                type="file"
+                                hidden
+                                accept=".mp3,audio/mpeg"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        handleUpload(file);
+                                    }
+                                    e.target.value = '';
+                                }}
+                            />
+                        </Button>
                     </Box>
                 </Box>
 
