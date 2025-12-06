@@ -1,7 +1,7 @@
-using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
-using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
 using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSoundSource;
+using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 
 namespace VttTools.Data.Library;
 
@@ -139,7 +139,8 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> AddWallAsync(Guid id, EncounterWall encounterWall, CancellationToken ct = default) {
         var encounter = await context.Encounters.FindAsync([id], ct);
-        if (encounter == null) return false;
+        if (encounter == null)
+            return false;
         var entity = encounterWall.ToEntity(id, encounter.Grid);
         await context.Set<EncounterWallEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
@@ -183,7 +184,8 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> AddRegionAsync(Guid id, EncounterRegion encounterRegion, CancellationToken ct = default) {
         var encounter = await context.Encounters.FindAsync([id], ct);
-        if (encounter == null) return false;
+        if (encounter == null)
+            return false;
         var entity = encounterRegion.ToEntity(id, encounter.Grid);
         await context.Set<EncounterRegionEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);
@@ -225,7 +227,8 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> AddLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default) {
         var encounter = await context.Encounters.FindAsync([id], ct);
-        if (encounter == null) return false;
+        if (encounter == null)
+            return false;
         var entity = lightSource.ToEntity(id, encounter.Grid);
         await context.Set<EncounterLightSourceEntity>().AddAsync(entity, ct);
         var result = await context.SaveChangesAsync(ct);

@@ -14,7 +14,7 @@ internal static class AssetSchemaBuilder {
             entity.OwnsOne(e => e.Classification, classificationBuilder => {
                 classificationBuilder.Property(c => c.Kind).IsRequired().HasConversion<string>().HasColumnName("Kind");
                 classificationBuilder.Property(c => c.Category).IsRequired().HasColumnName("Category");
-                classificationBuilder.Property(c => c.Type).IsRequired().HasColumnName("Type");
+                classificationBuilder.Property(c => c.Type).IsRequired().HasColumnName("ResourceType");
                 classificationBuilder.Property(c => c.Subtype).IsRequired(false).HasColumnName("Subtype");
             });
             entity.OwnsOne(ea => ea.TokenSize, sizeBuilder => {

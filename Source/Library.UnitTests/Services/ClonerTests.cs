@@ -19,7 +19,7 @@ public class ClonerTests {
             Name = "Original Adventure",
             Background = new() {
                 Path = "path/to/background.png",
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 ContentType = "image/png",
                 Size = new Size(1920, 1080),
             },
@@ -34,7 +34,7 @@ public class ClonerTests {
                     Name = "Original Encounter",
                     Stage = new() {
                         Background = new() {
-                            Type = ResourceType.Image,
+                            ResourceType = ResourceType.Background,
                             Path = "path/to/encounter/background.png",
                             ContentType = "image/png",
                             Size = new Size(800, 600),
@@ -45,7 +45,7 @@ public class ClonerTests {
                         Weather = Weather.Fog,
                         Elevation = 10.0f,
                         Sound = new() {
-                            Type = ResourceType.Audio,
+                            ResourceType = ResourceType.AmbientSound,
                             Path = "path/to/encounter/sound.mp3",
                             ContentType = "audio/mpeg",
                             Duration = TimeSpan.FromMinutes(3),
@@ -93,7 +93,7 @@ public class ClonerTests {
             Name = "Original Adventure",
             Background = new() {
                 Path = "path/to/background.png",
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 ContentType = "image/png",
                 Size = new Size(1920, 1080),
             },
@@ -159,7 +159,7 @@ public class ClonerTests {
                     IsVisible = true,
                     Image = new() {
                         Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
+                        ResourceType = ResourceType.Background,
                         Path = "assets/asset-1-image.png",
                         ContentType = "image/png",
                         Size = new Size(100, 100),
@@ -177,7 +177,7 @@ public class ClonerTests {
                     Name = "Asset 2",
                     Image = new() {
                         Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
+                        ResourceType = ResourceType.Background,
                         Path = "assets/asset-2-image.png",
                         ContentType = "image/png",
                         Size = new Size(100, 100),
@@ -219,7 +219,7 @@ public class ClonerTests {
                     Name = "Asset 1",
                     Image = new() {
                         Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
+                        ResourceType = ResourceType.Background,
                         Path = "assets/asset-1-image.png",
                         ContentType = "image/png",
                         Size = new Size(100, 100),
@@ -257,7 +257,7 @@ public class ClonerTests {
             Name = "Original Asset",
             Image = new() {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "assets/asset-1-image.png",
                 ContentType = "image/png",
                 Size = new Size(100, 100),

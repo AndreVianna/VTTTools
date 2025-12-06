@@ -1,8 +1,8 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using AdventureStyle = VttTools.Library.Adventures.Model.AdventureStyle;
+using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using ResourceType = VttTools.Media.Model.ResourceType;
-using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 
 namespace VttTools.Library.Services;
 
@@ -268,7 +268,7 @@ public class ContentQueryServiceTests : IDisposable {
         var owner = ownerId ?? _userId;
         var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = $"backgrounds/{name}.jpg",
             ContentType = "image/jpeg",
             FileName = $"{name}.jpg",
@@ -294,7 +294,7 @@ public class ContentQueryServiceTests : IDisposable {
     private async Task SeedAdventureWithEncounters(string name, int encounterCount) {
         var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = $"backgrounds/{name}.jpg",
             ContentType = "image/jpeg",
             FileName = $"{name}.jpg",

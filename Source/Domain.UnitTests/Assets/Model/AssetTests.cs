@@ -27,9 +27,9 @@ public class AssetTests {
         const string description = "A sturdy oak table";
         var size = new Size(100, 200);
         var portraitId = Guid.CreateVersion7();
-        var portrait = new Resource {
+        var portrait = new ResourceInfo {
             Id = portraitId,
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "assets/table-portrait.png",
             ContentType = "image/png",
             Size = size,
@@ -37,9 +37,9 @@ public class AssetTests {
         };
 
         var tokenId = Guid.CreateVersion7();
-        var token = new Resource {
+        var token = new ResourceInfo {
             Id = tokenId,
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "assets/table-token.png",
             ContentType = "image/png",
             Size = size,

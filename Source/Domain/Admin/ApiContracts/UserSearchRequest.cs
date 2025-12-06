@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.ApiContracts;
+
 public sealed record UserSearchRequest : Request {
     [Range(0, int.MaxValue, ErrorMessage = "Skip must be 0 or greater")]
     public int Skip { get; init; } = 0;

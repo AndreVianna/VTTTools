@@ -93,7 +93,8 @@ public sealed class EncounterAdminService(
                 .Include(e => e.Adventure)
                 .FirstOrDefaultAsync(e => e.Id == id, ct);
 
-            if (encounter is null) return null;
+            if (encounter is null)
+                return null;
 
             var ownerName = await GetOwnerNameAsync(encounter.Adventure.OwnerId);
             return MapToContentResponse(encounter, encounter.Adventure.OwnerId, ownerName);

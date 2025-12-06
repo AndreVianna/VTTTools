@@ -49,7 +49,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
             Style = data.Style,
             IsOneShot = data.IsOneShot,
             Background = data.BackgroundId.HasValue
-                ? new Resource { Id = data.BackgroundId.Value }
+                ? new ResourceInfo { Id = data.BackgroundId.Value }
                 : null,
         };
         await adventureStorage.AddAsync(adventure, ct);

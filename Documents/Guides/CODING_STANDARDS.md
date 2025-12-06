@@ -17,7 +17,7 @@ VTTTools follows a **DDD Contracts + Service Implementation** architecture patte
 
 ### Project Technology Stack
 
-**Backend (C# / .NET 9)**:
+**Backend (C# 14 / .NET 10)**:
 - ASP.NET Core with Minimal APIs
 - Entity Framework Core
 - xUnit with FluentAssertions
@@ -87,17 +87,26 @@ public interface IGameSessionStorage {
 }
 ```
 
-**API Layer** (minimal APIs):
+**API Layer** (Endpoints + Handlers):
+
+1. **Endpoints**: Define routes and Authentication.
 ```csharp
-// Static handlers in dedicated classes
-public static class GameSessionHandlers {
-    public static async Task<Results<Ok<GameSession>, NotFound>> GetById(
-        Guid id, IGameSessionService service) {
-        var session = await service.GetByIdAsync(id);
-        return session is null ? TypedResults.NotFound() : TypedResults.Ok(session);
-    }
+app.MapGet("/api/sessions/{id}", GameSessionHandlers.GetById)
+   .RequireAuthorization(); // Auth here
+```
+
+2. **Handlers**: Request/Response mapping only.
+```csharp
+public static async Task<Results<Ok<GameSession>, NotFound>> GetById(
+    Guid id, IGameSessionService service) {
+    // 1. Convert Request (if needed)
+    // 2. Call Service
+    var session = await service.GetByIdAsync(id);
+    // 3. Convert Result to HTTP
+    return session is null ? TypedResults.NotFound() : TypedResults.Ok(session);
 }
 ```
+
 
 ### Error Handling Pattern
 

@@ -1,11 +1,10 @@
 ﻿using GameSession = VttTools.Game.Sessions.Model.GameSession;
-using GameSessionEvent = VttTools.Game.Sessions.Model.GameSessionEvent;
-using GameSessionMessage = VttTools.Game.Sessions.Model.GameSessionMessage;
-using Participant = VttTools.Common.Model.Participant;
-
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
+using GameSessionEvent = VttTools.Game.Sessions.Model.GameSessionEvent;
 using GameSessionEventEntity = VttTools.Data.Game.Entities.GameSessionEvent;
+using GameSessionMessage = VttTools.Game.Sessions.Model.GameSessionMessage;
 using GameSessionMessageEntity = VttTools.Data.Game.Entities.GameSessionMessage;
+using Participant = VttTools.Common.Model.Participant;
 using ParticipantEntity = VttTools.Data.Game.Entities.Participant;
 
 namespace VttTools.Data.Game;

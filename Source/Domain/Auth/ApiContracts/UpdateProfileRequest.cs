@@ -1,5 +1,3 @@
-using VttTools.Identity.Model;
-
 namespace VttTools.Auth.ApiContracts;
 
 public record UpdateProfileRequest : Request {

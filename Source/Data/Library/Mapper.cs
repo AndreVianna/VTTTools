@@ -1,16 +1,14 @@
 
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
-using WorldEntity = VttTools.Data.Library.Entities.World;
-using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
+using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
+using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
+using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSoundSource;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterWallSegmentEntity = VttTools.Data.Library.Entities.EncounterWallSegment;
-using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
-using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLightSource;
-using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSoundSource;
-using Resource = VttTools.Media.Model.Resource;
-using ResourceEntity = VttTools.Data.Media.Entities.Resource;
+using WorldEntity = VttTools.Data.Library.Entities.World;
 
 namespace VttTools.Data.Library;
 

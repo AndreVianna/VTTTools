@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "VttTools.MediaGenerator": {
+      "commandName": "Project"
+    },
+    "doctor": {
+      "commandName": "Project",
+      "commandLineArgs": "doctor"
+    },
+    "prepare single": {
+      "commandName": "Project",
+      "commandLineArgs": "prepare -i Data/single.json"
+    },
+    "generate single": {
+      "commandName": "Project",
+      "commandLineArgs": "generate --import Data/single.json"
+    }
+  }
+}

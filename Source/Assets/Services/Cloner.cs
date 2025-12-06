@@ -19,13 +19,13 @@ public static class Cloner {
             IsPublished = original.IsPublished,
         };
 
-    internal static Resource Clone(this Resource original)
+    internal static ResourceInfo Clone(this ResourceInfo original)
         => new() {
             Id = original.Id,
             Description = original.Description,
 
             Path = original.Path,
-            Type = original.Type,
+            ResourceType = original.ResourceType,
             ContentType = original.ContentType,
             FileName = original.FileName,
             FileLength = original.FileLength,

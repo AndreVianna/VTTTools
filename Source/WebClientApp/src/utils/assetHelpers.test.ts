@@ -3,15 +3,17 @@ import { AssetKind, ResourceType } from '@/types/domain';
 import type { Asset, MediaResource } from '@/types/domain';
 import { getDefaultAssetImage, getResourceUrl } from './assetHelpers';
 
-const createMockResource = (id: string): MediaResource => ({
+const createMockResource = (id: string, resourceType: ResourceType = ResourceType.Token): MediaResource => ({
   id,
   description: null,
   features: {},
-  type: ResourceType.Image,
+  resourceType,
+  classification: null,
   path: `/media/${id}`,
   contentType: 'image/png',
   fileName: `${id}.png`,
   fileLength: 1024,
+  thumbnailPath: null,
   size: { width: 100, height: 100 },
   duration: '',
   ownerId: 'owner-1',
@@ -38,8 +40,8 @@ describe('assetHelpers', () => {
   describe('getDefaultAssetImage', () => {
     it('should return topDown when available', () => {
       const asset = createMockAsset({
-        tokens: [createMockResource('topdown-1')],
-        portrait: createMockResource('portrait-1'),
+        tokens: [createMockResource('topdown-1', ResourceType.Token)],
+        portrait: createMockResource('portrait-1', ResourceType.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);
@@ -50,7 +52,7 @@ describe('assetHelpers', () => {
     it('should fallback to portrait when tokens are missing', () => {
       const asset = createMockAsset({
         tokens: [],
-        portrait: createMockResource('portrait-1'),
+        portrait: createMockResource('portrait-1', ResourceType.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);
@@ -61,7 +63,7 @@ describe('assetHelpers', () => {
     it('should return portrait when available', () => {
       const asset = createMockAsset({
         tokens: [],
-        portrait: createMockResource('portrait-1'),
+        portrait: createMockResource('portrait-1', ResourceType.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);

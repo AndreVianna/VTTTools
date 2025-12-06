@@ -1,7 +1,7 @@
 using Asset = VttTools.Assets.Model.Asset;
-using Resource = VttTools.Media.Model.Resource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
+using ResourceInfo = VttTools.Media.Model.ResourceInfo;
 
 namespace VttTools.Data.Assets;
 
@@ -44,7 +44,7 @@ internal static class Mapper {
                         v.Type == AssetStatBlockValueType.Number ? decimal.Parse(v.Value!) : null,
                         v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
                Portrait = entity.Portrait?.ToModel(),
-               Tokens = [..entity.AssetTokens.Select(v => v.Token.ToModel()!)],
+               Tokens = [.. entity.AssetTokens.Select(v => v.Token.ToModel()!)],
            };
 
     public static AssetEntity ToEntity(this Asset model)
@@ -67,7 +67,7 @@ internal static class Mapper {
                 Value = g.Value.Value is null ? null : $"{g.Value.Value}",
             }))],
             PortraitId = model.Portrait?.Id,
-            AssetTokens = [..model.Tokens.Select((t, i) => t.ToEntity(model.Id, i))],
+            AssetTokens = [.. model.Tokens.Select((t, i) => t.ToEntity(model.Id, i))],
         };
 
     public static void UpdateFrom(this AssetEntity entity, Asset model) {
@@ -89,15 +89,15 @@ internal static class Mapper {
         entity.PortraitId = model.Portrait?.Id;
     }
 
-    public static Expression<Func<AssetTokenEntity, Resource>> AsToken = entity
-        => new Resource {
+    public static Expression<Func<AssetTokenEntity, ResourceInfo>> AsToken = entity
+        => new ResourceInfo {
             Id = entity.TokenId,
             OwnerId = entity.Token.OwnerId,
             Description = entity.Token.Description,
             IsPublished = entity.Token.IsPublished,
             IsPublic = entity.Token.IsPublic,
             Path = entity.Token.Path,
-            Type = entity.Token.Type,
+            ResourceType = entity.Token.ResourceType,
             Features = new(entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())),
             ContentType = entity.Token.ContentType,
             FileName = entity.Token.FileName,
@@ -107,18 +107,18 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    public static Resource? ToModel(this AssetTokenEntity? entity)
+    public static ResourceInfo? ToModel(this AssetTokenEntity? entity)
         => entity is null
            ? null
-           : new Resource {
+           : new ResourceInfo {
                Id = entity.TokenId,
                OwnerId = entity.Token.OwnerId,
                Description = entity.Token.Description,
                IsPublished = entity.Token.IsPublished,
                IsPublic = entity.Token.IsPublic,
                Path = entity.Token.Path,
-               Type = entity.Token.Type,
-               Features = [..entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
+               ResourceType = entity.Token.ResourceType,
+               Features = [.. entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
                ContentType = entity.Token.ContentType,
                FileName = entity.Token.FileName,
                FileLength = entity.Token.FileLength,
@@ -126,7 +126,7 @@ internal static class Mapper {
                Duration = entity.Token.Duration,
            };
 
-    public static AssetTokenEntity ToEntity(this Resource model, Guid assetId, int index)
+    public static AssetTokenEntity ToEntity(this ResourceInfo model, Guid assetId, int index)
         => new() {
             TokenId = model.Id,
             AssetId = assetId,

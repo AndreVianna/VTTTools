@@ -18,7 +18,7 @@ This document consolidates all technology stack information for VTTTools. All ag
 ## 🔧 Backend Stack
 
 ### Core Technologies
-- **Language**: C# / .NET 9
+- **Language**: C# 14 / .NET 10
 - **Framework**: ASP.NET Core with Minimal APIs
 - **Database**: Entity Framework Core (code-first migrations)
 - **Testing**: xUnit 2.9+ with FluentAssertions 6.12+ (≥80% coverage required)

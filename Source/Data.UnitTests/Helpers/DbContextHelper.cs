@@ -1,8 +1,8 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
+using AssetEntity = VttTools.Data.Assets.Entities.Asset;
+using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
-using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 
 namespace VttTools.Data.Helpers;
 
@@ -177,7 +177,7 @@ internal static class DbContextHelper {
     public static ResourceEntity CreateTestResourceEntity(string fileName)
         => new() {
             Id = Guid.CreateVersion7(),
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "test/path",
             FileName = fileName,
             ContentType = "image/png",
@@ -196,7 +196,7 @@ internal static class DbContextHelper {
         OwnerId = ownerId ?? Guid.CreateVersion7(),
         Background = new() {
             Id = Guid.CreateVersion7(),
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "test/adventure-background.jpg",
             FileName = $"{name}_background.jpg",
             ContentType = "image/jpeg",
@@ -218,7 +218,7 @@ internal static class DbContextHelper {
             Stage = new() {
                 Background = new() {
                     Id = Guid.CreateVersion7(),
-                    Type = ResourceType.Image,
+                    ResourceType = ResourceType.Background,
                     Path = "asset/1234",
                     FileName = "some_file.png",
                     Size = new(10, 20),
@@ -230,7 +230,7 @@ internal static class DbContextHelper {
                 Panning = new(0, 0),
                 Sound = new() {
                     Id = Guid.CreateVersion7(),
-                    Type = ResourceType.Audio,
+                    ResourceType = ResourceType.AmbientSound,
                     Path = "asset/5678",
                     FileName = "some_file.mp3",
                     Size = new(0, 0),
@@ -261,7 +261,7 @@ internal static class DbContextHelper {
             OwnerId = ownerId ?? Guid.CreateVersion7(),
             Portrait = new() {
                 Id = imageId,
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "test/path",
                 FileName = $"{name}_portrait.png",
                 ContentType = "image/png",
@@ -272,7 +272,7 @@ internal static class DbContextHelper {
             Tokens = [
                 new() {
                     Id = Guid.CreateVersion7(),
-                    Type = ResourceType.Image,
+                    ResourceType = ResourceType.Background,
                     Path = "test/path",
                     FileName = $"{name}_topdown.png",
                     ContentType = "image/png",

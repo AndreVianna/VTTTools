@@ -367,14 +367,14 @@ public class MaintenanceModeMiddlewareTests {
         string message = "System under maintenance",
         DateTime? scheduledStart = null,
         DateTime? scheduledEnd = null) => new() {
-        Id = Guid.CreateVersion7(),
-        IsEnabled = isEnabled,
-        Message = message,
-        ScheduledStartTime = scheduledStart,
-        ScheduledEndTime = scheduledEnd,
-        EnabledAt = isEnabled ? DateTime.UtcNow : null,
-        EnabledBy = isEnabled ? Guid.CreateVersion7() : null
-    };
+            Id = Guid.CreateVersion7(),
+            IsEnabled = isEnabled,
+            Message = message,
+            ScheduledStartTime = scheduledStart,
+            ScheduledEndTime = scheduledEnd,
+            EnabledAt = isEnabled ? DateTime.UtcNow : null,
+            EnabledBy = isEnabled ? Guid.CreateVersion7() : null
+        };
 
     private static DefaultHttpContext CreateHttpContext(string path, bool isAdmin = false) {
         var context = new DefaultHttpContext();

@@ -7,10 +7,15 @@ export enum AssetKind {
 }
 
 export enum ResourceType {
-  Image = 'Image',
-  Audio = 'Audio',
-  Video = 'Video',
-  Document = 'Document',
+  Undefined = 'Undefined',
+  Background = 'Background',
+  Token = 'Token',
+  Portrait = 'Portrait',
+  Overlay = 'Overlay',
+  Illustration = 'Illustration',
+  SoundEffect = 'SoundEffect',
+  AmbientSound = 'AmbientSound',
+  CutScene = 'CutScene',
 }
 
 export interface AssetToken {
@@ -163,7 +168,7 @@ export class AssetBuilder {
   withPortrait(resourceId: string): this {
     this.portrait = {
       id: resourceId,
-      type: ResourceType.Image,
+      type: ResourceType.Portrait,
       path: `/test-media/${resourceId}.png`,
       metadata: {
         contentType: 'image/png',

@@ -17,7 +17,6 @@ global using VttTools.Common.Model;
 global using VttTools.Data;
 global using VttTools.Data.Assets;
 global using VttTools.Extensions;
-global using VttTools.Library.Encounters.Model;
 global using VttTools.Media.Storage;
 global using VttTools.Utilities;
 

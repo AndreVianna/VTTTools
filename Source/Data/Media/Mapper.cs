@@ -1,14 +1,21 @@
-using Resource = VttTools.Media.Model.Resource;
+using ResourceInfo = VttTools.Media.Model.ResourceInfo;
+using ResourceClassification = VttTools.Media.Model.ResourceClassification;
+using ResourceClassificationEntity = VttTools.Data.Media.Entities.ResourceClassification;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using ResourceFeatureEntity = VttTools.Data.Media.Entities.ResourceFeature;
 
 namespace VttTools.Data.Media;
 
 internal static class Mapper {
-    internal static Expression<Func<ResourceEntity, Resource>> AsResource = entity
+    internal static Expression<Func<ResourceEntity, ResourceInfo>> AsResource = entity
         => new() {
             Id = entity.Id,
-            Type = entity.Type,
+            ResourceType = entity.ResourceType,
+            Classification = new ResourceClassification(
+                entity.Classification.Kind,
+                entity.Classification.Category,
+                entity.Classification.Type,
+                entity.Classification.Subtype),
             Path = entity.Path,
             ContentType = entity.ContentType,
             FileName = entity.FileName,
@@ -22,26 +29,37 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Resource? ToModel(this ResourceEntity? entity)
+    internal static ResourceInfo? ToModel(this ResourceEntity? entity)
         => entity == null ? null : new() {
             Id = entity.Id,
-            Type = entity.Type,
+            ResourceType = entity.ResourceType,
+            Classification = new ResourceClassification(
+                entity.Classification.Kind,
+                entity.Classification.Category,
+                entity.Classification.Type,
+                entity.Classification.Subtype),
             Path = entity.Path,
             ContentType = entity.ContentType,
             FileName = entity.FileName,
             FileLength = entity.FileLength,
             Size = entity.Size,
             Duration = entity.Duration,
-            Features = [..entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
+            Features = [.. entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
             OwnerId = entity.OwnerId,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
         };
 
-    internal static ResourceEntity ToEntity(this Resource model)
+    internal static ResourceEntity ToEntity(this ResourceInfo model)
         => new() {
             Id = model.Id,
-            Type = model.Type,
+            ResourceType = model.ResourceType,
+            Classification = new ResourceClassificationEntity {
+                Kind = model.Classification.ContentKind,
+                Category = model.Classification.Category,
+                Type = model.Classification.Type,
+                Subtype = model.Classification.Subtype,
+            },
             Path = model.Path,
             ContentType = model.ContentType,
             FileName = model.FileName,
@@ -59,9 +77,14 @@ internal static class Mapper {
             IsPublic = model.IsPublic,
         };
 
-    internal static void UpdateFrom(this ResourceEntity entity, Resource model) {
-        entity.Id = model.Id;
-        entity.Type = model.Type;
+    internal static void UpdateFrom(this ResourceEntity entity, ResourceInfo model) {
+        entity.ResourceType = model.ResourceType;
+        entity.Classification = new ResourceClassificationEntity {
+            Kind = model.Classification.ContentKind,
+            Category = model.Classification.Category,
+            Type = model.Classification.Type,
+            Subtype = model.Classification.Subtype,
+        };
         entity.Path = model.Path;
         entity.ContentType = model.ContentType;
         entity.FileName = model.FileName;

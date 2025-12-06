@@ -1,5 +1,4 @@
 using MaintenanceMode = VttTools.Maintenance.Model.MaintenanceMode;
-using MaintenanceModeEntity = VttTools.Data.Maintenance.Entities.MaintenanceMode;
 
 namespace VttTools.Data.Maintenance;
 

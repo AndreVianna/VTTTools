@@ -8,7 +8,7 @@ public class ResourcesEndpointsMapperTests {
 
     [Fact]
     public void MapApplicationEndpoints_RegistersGroup() {
-        // Note: The UploadFileHandler has conflicting parameter types (form file + JSON body)
+        // Note: The UploadResourceHandler has conflicting parameter types (form file + JSON body)
         // This would cause an InvalidOperationException in a real environment, but mocked
         // IEndpointRouteBuilder doesn't perform this validation
 

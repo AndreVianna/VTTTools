@@ -85,7 +85,8 @@ public sealed class AssetAdminService(
     public async Task<LibraryContentResponse?> GetAssetByIdAsync(Guid id, CancellationToken ct = default) {
         try {
             var asset = await DbContext.Assets.FindAsync([id], ct);
-            if (asset is null) return null;
+            if (asset is null)
+                return null;
 
             var ownerName = await GetOwnerNameAsync(asset.OwnerId);
             return MapToContentResponse(asset, ownerName);
@@ -245,14 +246,16 @@ public sealed class AssetAdminService(
                 kindCategoryMap[kindKey] = categoryMap;
             }
 
-            if (string.IsNullOrEmpty(c.Category)) continue;
+            if (string.IsNullOrEmpty(c.Category))
+                continue;
 
             if (!categoryMap.TryGetValue(c.Category, out var typeMap)) {
                 typeMap = [];
                 categoryMap[c.Category] = typeMap;
             }
 
-            if (string.IsNullOrEmpty(c.Type)) continue;
+            if (string.IsNullOrEmpty(c.Type))
+                continue;
 
             if (!typeMap.TryGetValue(c.Type, out var subtypeMap)) {
                 subtypeMap = [];

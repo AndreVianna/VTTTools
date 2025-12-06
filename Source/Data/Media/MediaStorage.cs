@@ -6,51 +6,79 @@ namespace VttTools.Data.Media;
 public class MediaStorage(ApplicationDbContext context)
     : IMediaStorage {
     /// <inheritdoc />
-    public async Task<Resource[]> GetAllAsync(CancellationToken ct = default) {
-        var query = context.Resources
-                  .AsNoTracking()
-                  .Select(Mapper.AsResource);
-        var result = await query.ToArrayAsync(ct);
-        return result;
-    }
-
-    /// <inheritdoc />
-    public async Task<Resource[]> SearchAsync(
-        string search,
+    public async Task<(ResourceInfo[] Items, int TotalCount)> FilterAsync(
+        ResourceFilterData filter,
         CancellationToken ct = default) {
         var query = context.Resources
-                  .AsNoTracking()
-                  .Select(Mapper.AsResource);
+            .Include(r => r.Features)
+            .AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(search)) {
-            query = query.Where(a =>
-                EF.Functions.Like(a.Description, search) ||
-                EF.Functions.Contains(a.Features, search));
+        if (filter.ResourceType.HasValue)
+            query = query.Where(r => r.ResourceType == filter.ResourceType.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.ContentKind))
+            query = query.Where(r => r.Classification != null && r.Classification.Kind == filter.ContentKind);
+
+        if (!string.IsNullOrWhiteSpace(filter.Category))
+            query = query.Where(r => r.Classification != null && r.Classification.Category == filter.Category);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchText)) {
+            var search = $"%{filter.SearchText}%";
+            query = query.Where(r =>
+                EF.Functions.Like(r.FileName, search) ||
+                (r.Description != null && EF.Functions.Like(r.Description, search)) ||
+                (r.Classification != null && EF.Functions.Like(r.Classification.Type, search)));
         }
 
-        var result = await query.ToArrayAsync(ct);
-        return result;
+        if (filter.OwnerId.HasValue)
+            query = query.Where(r => r.OwnerId == filter.OwnerId.Value);
+
+        if (filter.IsPublic.HasValue)
+            query = query.Where(r => r.IsPublic == filter.IsPublic.Value);
+
+        if (filter.IsPublished.HasValue)
+            query = query.Where(r => r.IsPublished == filter.IsPublished.Value);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(r => r.Id)
+            .Skip(filter.Skip)
+            .Take(filter.Take)
+            .Select(Mapper.AsResource)
+            .ToArrayAsync(ct);
+
+        return (items, totalCount);
     }
 
     /// <inheritdoc />
-    public async Task<Resource?> FindByIdAsync(Guid id, CancellationToken ct = default) {
+    public async Task<ResourceInfo?> FindByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Resources
-                  .AsNoTracking()
-                  .FirstOrDefaultAsync(e => e.Id == id, ct);
+            .Include(r => r.Features)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
         return entity.ToModel();
     }
 
     /// <inheritdoc />
-    public async Task AddAsync(Resource resource, CancellationToken ct = default) {
+    public async Task AddAsync(ResourceInfo resource, CancellationToken ct = default) {
         var entity = resource.ToEntity();
         await context.Resources.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
     }
 
     /// <inheritdoc />
-    public async Task<bool> UpdateAsync(Resource resource, CancellationToken ct = default) {
-        var entity = resource.ToEntity();
-        context.Resources.Update(entity);
+    public async Task<bool> UpdateAsync(ResourceInfo resource, CancellationToken ct = default) {
+        var entity = await context.Resources
+            .Include(r => r.Features)
+            .FirstOrDefaultAsync(e => e.Id == resource.Id, ct);
+
+        if (entity is null)
+            return false;
+
+        entity.Features.Clear();
+        entity.UpdateFrom(resource);
+
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }
@@ -60,7 +88,7 @@ public class MediaStorage(ApplicationDbContext context)
         var resource = await context.Resources.FindAsync([id], ct);
         if (resource == null)
             return false;
-        context.Resources.RemoveRange(context.Resources.Where(a => a.Id == id));
+        context.Resources.Remove(resource);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }

@@ -71,9 +71,9 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
             Style = a.Style,
             IsOneShot = a.IsOneShot,
             EncounterCount = a.Encounters.Count,
-            Background = a.Background != null ? new Resource {
+            Background = a.Background != null ? new ResourceInfo {
                 Id = a.Background.Id,
-                Type = a.Background.Type,
+                ResourceType = a.Background.ResourceType,
                 Description = a.Background.Description,
                 Features = [..a.Background.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
                 Path = a.Background.Path,

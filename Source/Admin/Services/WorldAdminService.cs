@@ -1,11 +1,3 @@
-using Microsoft.Extensions.Options;
-using VttTools.Configuration;
-using VttTools.Data;
-using VttTools.Data.Library.Entities;
-using VttTools.Domain.Admin.ApiContracts.Library;
-using VttTools.Domain.Admin.Services;
-using VttTools.Identity.Model;
-
 namespace VttTools.Admin.Services;
 
 public sealed class WorldAdminService(
@@ -43,7 +35,8 @@ public sealed class WorldAdminService(
                 .ToListAsync(ct);
 
             var hasMore = worlds.Count > take;
-            if (hasMore) worlds = [.. worlds.Take(take)];
+            if (hasMore)
+                worlds = [.. worlds.Take(take)];
 
             var owners = await GetOwnerDictionaryAsync(worlds.Select(w => w.OwnerId), ct);
 
@@ -72,7 +65,8 @@ public sealed class WorldAdminService(
     public async Task<LibraryContentResponse?> GetWorldByIdAsync(Guid id, CancellationToken ct = default) {
         try {
             var world = await DbContext.Worlds.FindAsync([id], ct);
-            if (world is null) return null;
+            if (world is null)
+                return null;
             var ownerName = await GetOwnerNameAsync(world.OwnerId);
             return MapToContentResponse(world, ownerName);
         }
@@ -119,10 +113,14 @@ public sealed class WorldAdminService(
         CancellationToken ct = default) {
         try {
             var world = await DbContext.Worlds.FindAsync([id], ct) ?? throw new InvalidOperationException($"World with ID {id} not found");
-            if (name is not null) world.Name = name;
-            if (description is not null) world.Description = description;
-            if (isPublished.HasValue) world.IsPublished = isPublished.Value;
-            if (isPublic.HasValue) world.IsPublic = isPublic.Value;
+            if (name is not null)
+                world.Name = name;
+            if (description is not null)
+                world.Description = description;
+            if (isPublished.HasValue)
+                world.IsPublished = isPublished.Value;
+            if (isPublic.HasValue)
+                world.IsPublic = isPublic.Value;
 
             await DbContext.SaveChangesAsync(ct);
 
@@ -304,7 +302,7 @@ public sealed class WorldAdminService(
             IsPublic = world.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
-    };
+        };
 
     private static LibraryContentResponse MapCampaignToContentResponse(Campaign campaign, string? ownerName)
         => new() {
@@ -317,5 +315,5 @@ public sealed class WorldAdminService(
             IsPublic = campaign.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
-    };
+        };
 }

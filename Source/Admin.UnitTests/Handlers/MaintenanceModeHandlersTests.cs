@@ -346,16 +346,16 @@ public class MaintenanceModeHandlersTests {
         DateTime? scheduledEnd = null,
         DateTime? disabledAt = null,
         Guid? disabledBy = null) => new() {
-        Id = Guid.CreateVersion7(),
-        IsEnabled = isEnabled,
-        Message = message,
-        ScheduledStartTime = scheduledStart,
-        ScheduledEndTime = scheduledEnd,
-        EnabledAt = isEnabled ? DateTime.UtcNow : null,
-        EnabledBy = isEnabled ? Guid.CreateVersion7() : null,
-        DisabledAt = disabledAt,
-        DisabledBy = disabledBy
-    };
+            Id = Guid.CreateVersion7(),
+            IsEnabled = isEnabled,
+            Message = message,
+            ScheduledStartTime = scheduledStart,
+            ScheduledEndTime = scheduledEnd,
+            EnabledAt = isEnabled ? DateTime.UtcNow : null,
+            EnabledBy = isEnabled ? Guid.CreateVersion7() : null,
+            DisabledAt = disabledAt,
+            DisabledBy = disabledBy
+        };
 
     private static DefaultHttpContext CreateHttpContextWithUser(Guid userId) {
         var context = new DefaultHttpContext();
@@ -373,17 +373,17 @@ public class MaintenanceModeHandlersTests {
         string message = "Test maintenance",
         DateTime? scheduledStart = null,
         DateTime? scheduledEnd = null) => new() {
-        Message = message,
-        ScheduledStartTime = scheduledStart,
-        ScheduledEndTime = scheduledEnd
-    };
+            Message = message,
+            ScheduledStartTime = scheduledStart,
+            ScheduledEndTime = scheduledEnd
+        };
 
     private static UpdateMaintenanceModeRequest CreateUpdateRequest(
         string message = "Test maintenance update",
         DateTime? scheduledStart = null,
         DateTime? scheduledEnd = null) => new() {
-        Message = message,
-        ScheduledStartTime = scheduledStart,
-        ScheduledEndTime = scheduledEnd
-    };
+            Message = message,
+            ScheduledStartTime = scheduledStart,
+            ScheduledEndTime = scheduledEnd
+        };
 }

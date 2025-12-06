@@ -8,10 +8,12 @@ public record AdvancedSearchFilter(string Key, FilterOperator Operator, object V
     private static bool TryParse(string filter, out AdvancedSearchFilter result) {
         result = null!;
         var parts = filter.Split(':', 3, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != 3) return false;
+        if (parts.Length != 3)
+            return false;
 
         var key = parts[0];
-        if (!Enum.TryParse<FilterOperator>(parts[1], true, out var op)) return false;
+        if (!Enum.TryParse<FilterOperator>(parts[1], true, out var op))
+            return false;
         var rawValue = parts[2];
         object value = decimal.TryParse(rawValue, out var num) ? num
                      : bool.TryParse(rawValue, out var b) ? b
@@ -22,10 +24,12 @@ public record AdvancedSearchFilter(string Key, FilterOperator Operator, object V
     }
 
     public static ICollection<AdvancedSearchFilter> Parse(params ICollection<string> filters) {
-        if (filters is null || filters.Count == 0) return [];
+        if (filters is null || filters.Count == 0)
+            return [];
         var result = new List<AdvancedSearchFilter>();
         foreach (var filter in filters) {
-            if (TryParse(filter, out var parsed)) result.Add(parsed);
+            if (TryParse(filter, out var parsed))
+                result.Add(parsed);
         }
         return result;
     }

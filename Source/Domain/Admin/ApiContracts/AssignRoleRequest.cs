@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.ApiContracts;
+
 public sealed record AssignRoleRequest : Request {
     [Required(ErrorMessage = "IsDefault name is required")]
     [MaxLength(50, ErrorMessage = "IsDefault name cannot exceed 50 characters")]

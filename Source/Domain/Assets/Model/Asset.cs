@@ -8,9 +8,9 @@ public record Asset {
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
 
-    public Resource? Portrait { get; init; }
+    public ResourceInfo? Portrait { get; init; }
     public NamedSize TokenSize { get; init; } = NamedSize.Default;
-    public List<Resource> Tokens { get; init; } = [];
+    public List<ResourceInfo> Tokens { get; init; } = [];
 
     public Dictionary<int, Map<StatBlockValue>> StatBlocks { get; init; } = [];
 

@@ -1,4 +1,5 @@
 namespace VttTools.Admin.ApiContracts;
+
 public sealed record AuditLogQueryRequest : Request {
     public DateTime? StartDate { get; init; }
     public DateTime? EndDate { get; init; }

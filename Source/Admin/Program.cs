@@ -47,7 +47,8 @@ internal static class Program {
             healthChecksBuilder.AddCheck("Redis", () => {
                 try {
                     return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Redis cache is accessible");
-                } catch {
+                }
+                catch {
                     return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("Redis cache is not accessible");
                 }
             }, ["redis", "cache"]);
@@ -60,7 +61,8 @@ internal static class Program {
             }
             try {
                 return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Blob storage is accessible");
-            } catch {
+            }
+            catch {
                 return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("Blob storage is not accessible");
             }
         }, ["blob", "storage"]);

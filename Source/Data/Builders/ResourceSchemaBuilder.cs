@@ -10,9 +10,15 @@ internal static class ResourceSchemaBuilder {
             entity.ToTable("Resources");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Description).IsRequired(false).HasMaxLength(1024);
-            entity.Property(e => e.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
-            entity.Property(e => e.Path).IsRequired().HasMaxLength(512);
+            entity.Property(e => e.ResourceType).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
+            entity.OwnsOne(e => e.Classification, classificationBuilder => {
+                classificationBuilder.Property(c => c.Kind).HasMaxLength(64).HasColumnName("Kind");
+                classificationBuilder.Property(c => c.Category).HasMaxLength(64).HasColumnName("Category");
+                classificationBuilder.Property(c => c.Type).HasMaxLength(64).HasColumnName("ResourceType");
+                classificationBuilder.Property(c => c.Subtype).HasMaxLength(64).HasColumnName("Subtype");
+            });
             entity.Property(e => e.ContentType).IsRequired().HasMaxLength(64);
+            entity.Property(e => e.Path).IsRequired().HasMaxLength(512);
             entity.Property(e => e.FileName).HasMaxLength(128);
             entity.Property(e => e.FileLength).HasDefaultValue(0);
             entity.OwnsOne(e => e.Size, scaleBuilder => {
@@ -26,6 +32,13 @@ internal static class ResourceSchemaBuilder {
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.IsPublished).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.IsPublic).IsRequired().HasDefaultValue(false);
+
+            entity.HasIndex(e => e.ResourceType);
+            entity.HasIndex(e => e.OwnerId);
+            entity.HasIndex(e => new { e.Path, e.FileName });
+            entity.HasIndex(e => new { e.OwnerId, e.ResourceType });
+            entity.HasIndex(e => new { e.IsPublic, e.IsPublished });
+            entity.HasIndex(e => new { e.Classification.Kind, e.Classification.Category, e.Classification.Type, e.Classification.Subtype });
         });
 
         builder.Entity<ResourceFeature>(entity => {

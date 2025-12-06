@@ -1,4 +1,4 @@
-﻿namespace VttTools.Library.Services;
+namespace VttTools.Library.Services;
 
 public class AdventureServiceTests {
     private readonly IAdventureStorage _adventureStorage;
@@ -149,9 +149,9 @@ public class AdventureServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new Resource {
+            Background = new ResourceInfo {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "test/background",
                 FileName = "background.png",
                 ContentType = "image/png",
@@ -204,7 +204,7 @@ public class AdventureServiceTests {
             Campaign = new Campaign { Id = Guid.CreateVersion7() },
             Background = new() {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "test/adventure-background.jpg",
                 ContentType = "image/jpeg",
                 Size = new Size(1920, 1080),
@@ -351,9 +351,9 @@ public class AdventureServiceTests {
             IsPublic = false,
             World = new World { Id = Guid.CreateVersion7() },
             Campaign = new Campaign { Id = Guid.CreateVersion7() },
-            Background = new Resource {
+            Background = new ResourceInfo {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "adventures/background.jpg",
                 ContentType = "image/jpeg",
                 Size = new Size(1920, 1080),
@@ -369,16 +369,16 @@ public class AdventureServiceTests {
                     Panning = new(10, 20),
                     Background = new() {
                         Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Image,
+                        ResourceType = ResourceType.Background,
                         Path = "path/to/image.png",
                         Size = new Size(100, 200),
                     },
                     Light = AmbientLight.Twilight,
                     Weather = Weather.Clear,
                     Elevation = 20.0f,
-                    Sound = new Resource {
+                    Sound = new ResourceInfo {
                         Id = Guid.CreateVersion7(),
-                        Type = ResourceType.Audio,
+                        ResourceType = ResourceType.AmbientSound,
                         Path = "path/to/sound.mp3",
                         ContentType = "audio/mpeg",
                         Duration = TimeSpan.FromMinutes(3),
@@ -427,8 +427,8 @@ public class AdventureServiceTests {
             IsOneShot = false,
             IsPublished = true,
             IsPublic = false,
-            World = new () { Id = Guid.CreateVersion7() },
-            Campaign = new () { Id = Guid.CreateVersion7() },
+            World = new() { Id = Guid.CreateVersion7() },
+            Campaign = new() { Id = Guid.CreateVersion7() },
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);

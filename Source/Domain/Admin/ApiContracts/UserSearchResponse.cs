@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.ApiContracts;
+
 public sealed record UserSearchResponse : Response {
     public required IReadOnlyList<UserListItem> Users { get; init; }
     public required int TotalCount { get; init; }

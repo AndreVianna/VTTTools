@@ -1,29 +1,70 @@
-import { PhotoCamera as PhotoCameraIcon } from '@mui/icons-material';
-import { Box, CircularProgress, IconButton, Typography, useTheme } from '@mui/material';
+import {
+  Pause as PauseIcon,
+  PhotoCamera as PhotoCameraIcon,
+  PlayArrow as PlayArrowIcon,
+  Videocam as VideocamIcon,
+  VolumeOff as VolumeOffIcon,
+  VolumeUp as VolumeUpIcon,
+} from '@mui/icons-material';
+import { Box, CircularProgress, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
+const ACCEPTED_MEDIA_TYPES = 'image/*,video/mp4,video/webm,video/ogg';
 
 export interface BackgroundPanelProps {
   backgroundUrl?: string;
+  backgroundContentType?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
 }
 
+const isVideoContentType = (contentType?: string): boolean => {
+  return contentType?.startsWith('video/') ?? false;
+};
+
 export const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
   backgroundUrl,
+  backgroundContentType,
   isUploadingBackground,
   onBackgroundUpload,
 }) => {
   const theme = useTheme();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
   const effectiveBackgroundUrl = backgroundUrl || ENCOUNTER_DEFAULT_BACKGROUND;
+  const isVideo = isVideoContentType(backgroundContentType);
 
   const handleBackgroundFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onBackgroundUpload) {
       onBackgroundUpload(file);
     }
+    e.target.value = '';
   };
+
+  const togglePlayPause = useCallback(() => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  }, [isPlaying]);
+
+  const toggleMute = useCallback(() => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  }, [isMuted]);
+
+  const handleVideoEnded = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -38,7 +79,7 @@ export const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
           mb: 0,
         }}
       >
-        Background Image
+        Background {isVideo ? 'Video' : 'Image'}
       </Typography>
 
       <Box
@@ -50,13 +91,31 @@ export const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
           overflow: 'hidden',
           position: 'relative',
           border: `1px solid ${theme.palette.divider}`,
-          backgroundImage: `url(${effectiveBackgroundUrl})`,
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
           bgcolor: theme.palette.background.default,
+          ...(!isVideo && {
+            backgroundImage: `url(${effectiveBackgroundUrl})`,
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+          }),
         }}
       >
+        {isVideo && backgroundUrl && (
+          <video
+            ref={videoRef}
+            src={backgroundUrl}
+            muted={isMuted}
+            loop
+            playsInline
+            onEnded={handleVideoEnded}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        )}
+
         {isUploadingBackground && (
           <Box
             sx={{
@@ -74,25 +133,70 @@ export const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
             <CircularProgress size={24} />
           </Box>
         )}
-        <IconButton
-          component='label'
-          disabled={isUploadingBackground ?? false}
+
+        <Box
           sx={{
             position: 'absolute',
             bottom: 6,
             right: 6,
-            bgcolor: 'rgba(0, 0, 0, 0.6)',
-            color: 'white',
-            width: 28,
-            height: 28,
-            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.8)' },
-            '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.3)' },
+            display: 'flex',
+            gap: 0.5,
           }}
-          aria-label='Change background image'
         >
-          <PhotoCameraIcon sx={{ fontSize: 16 }} />
-          <input type='file' hidden accept='image/*' onChange={handleBackgroundFileChange} />
-        </IconButton>
+          {isVideo && backgroundUrl && (
+            <>
+              <Tooltip title={isPlaying ? 'Pause' : 'Play'}>
+                <IconButton
+                  onClick={togglePlayPause}
+                  size='small'
+                  sx={{
+                    bgcolor: 'rgba(0, 0, 0, 0.6)',
+                    color: 'white',
+                    width: 28,
+                    height: 28,
+                    '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.8)' },
+                  }}
+                >
+                  {isPlaying ? <PauseIcon sx={{ fontSize: 16 }} /> : <PlayArrowIcon sx={{ fontSize: 16 }} />}
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={isMuted ? 'Unmute' : 'Mute'}>
+                <IconButton
+                  onClick={toggleMute}
+                  size='small'
+                  sx={{
+                    bgcolor: 'rgba(0, 0, 0, 0.6)',
+                    color: 'white',
+                    width: 28,
+                    height: 28,
+                    '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.8)' },
+                  }}
+                >
+                  {isMuted ? <VolumeOffIcon sx={{ fontSize: 16 }} /> : <VolumeUpIcon sx={{ fontSize: 16 }} />}
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+          <Tooltip title='Change background'>
+            <IconButton
+              component='label'
+              disabled={isUploadingBackground ?? false}
+              sx={{
+                bgcolor: 'rgba(0, 0, 0, 0.6)',
+                color: 'white',
+                width: 28,
+                height: 28,
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.8)' },
+                '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.3)' },
+              }}
+              aria-label='Change background'
+            >
+              {isVideo ? <VideocamIcon sx={{ fontSize: 16 }} /> : <PhotoCameraIcon sx={{ fontSize: 16 }} />}
+              <input type='file' hidden accept={ACCEPTED_MEDIA_TYPES} onChange={handleBackgroundFileChange} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
         {!backgroundUrl && (
           <Box
             sx={{
@@ -109,6 +213,29 @@ export const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
             }}
           >
             DEFAULT
+          </Box>
+        )}
+
+        {isVideo && backgroundUrl && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 6,
+              left: 6,
+              bgcolor: 'rgba(0, 0, 0, 0.6)',
+              color: 'white',
+              px: 0.75,
+              py: 0.25,
+              borderRadius: 0.5,
+              fontSize: '9px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            <VideocamIcon sx={{ fontSize: 10 }} />
+            VIDEO
           </Box>
         )}
       </Box>

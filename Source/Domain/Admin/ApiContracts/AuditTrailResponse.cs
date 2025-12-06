@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.ApiContracts;
+
 public sealed record AuditTrailResponse : Response {
     public required IReadOnlyList<AuditLogSummary> Logs { get; init; }
     public required int TotalCount { get; init; }

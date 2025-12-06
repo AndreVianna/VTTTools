@@ -110,15 +110,17 @@ export class MockApiService {
     devUtils.log('Mock get assets called');
     await delay(MOCK_DELAY);
 
-    const createMockMediaResource = (name: string, type: ResourceType = ResourceType.Image): MediaResource => ({
+    const createMockMediaResource = (name: string, resourceType: ResourceType = ResourceType.Token): MediaResource => ({
       id: crypto.randomUUID(),
       description: null,
       features: {},
-      type,
+      resourceType,
+      classification: null,
       path: `/mock/${name.toLowerCase().replace(/\s+/g, '-')}.png`,
       contentType: 'image/png',
       fileName: `${name.toLowerCase().replace(/\s+/g, '-')}.png`,
       fileLength: Math.floor(Math.random() * 50000) + 10000,
+      thumbnailPath: null,
       size: { width: 256, height: 256 },
       duration: '',
       ownerId: 'mock-owner',
@@ -137,7 +139,7 @@ export class MockApiService {
         },
         name: 'Hero Character',
         description: 'A playable hero character with portrait',
-        portrait: createMockMediaResource('hero-portrait'),
+        portrait: createMockMediaResource('hero-portrait', ResourceType.Portrait),
         tokenSize: { width: 1, height: 1 },
         tokens: [
           createMockMediaResource('hero-topdown'),
@@ -179,7 +181,7 @@ export class MockApiService {
         },
         name: 'Ogre',
         description: 'Large monster with multiple image types',
-        portrait: createMockMediaResource('ogre-portrait'),
+        portrait: createMockMediaResource('ogre-portrait', ResourceType.Portrait),
         tokenSize: { width: 2, height: 2 },
         tokens: [
           createMockMediaResource('ogre-topdown'),

@@ -97,9 +97,9 @@ public class CampaignServiceTests {
     public async Task CreateCampaignAsync_WithBackgroundId_CreatesCampaignWithBackground() {
         // Arrange
         var backgroundId = Guid.CreateVersion7();
-        var background = new Resource {
+        var background = new ResourceInfo {
             Id = backgroundId,
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "test/background.jpg",
             FileName = "background.jpg",
             ContentType = "image/jpeg",
@@ -185,9 +185,9 @@ public class CampaignServiceTests {
             Description = "Campaign description",
             IsPublished = false,
             IsPublic = false,
-            Background = new Resource {
+            Background = new ResourceInfo {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "campaigns/background.jpg",
                 ContentType = "image/jpeg",
                 Size = new Size(1920, 1080),
@@ -316,9 +316,9 @@ public class CampaignServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new Resource {
+            Background = new ResourceInfo {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "test/background",
                 FileName = "background.png",
                 ContentType = "image/png",
@@ -359,7 +359,7 @@ public class CampaignServiceTests {
             Description = "Old description",
             Background = new() {
                 Id = Guid.CreateVersion7(),
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "test/campaign-background.jpg",
                 ContentType = "image/jpeg",
                 Size = new Size(1920, 1080),
@@ -398,9 +398,9 @@ public class CampaignServiceTests {
             Description = "Campaign description",
             Background = null,
         };
-        var newBackground = new Resource {
+        var newBackground = new ResourceInfo {
             Id = newBackgroundId,
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "test/new-background.jpg",
             ContentType = "image/jpeg",
         };

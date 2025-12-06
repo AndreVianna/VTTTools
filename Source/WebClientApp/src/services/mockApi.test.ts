@@ -46,13 +46,13 @@ describe('MockApiService', () => {
         expect(Array.isArray(asset.tokens)).toBe(true);
         asset.tokens.forEach((token) => {
           expect(token).toHaveProperty('id');
-          expect(token).toHaveProperty('type');
+          expect(token).toHaveProperty('resourceType');
           expect(token).toHaveProperty('path');
           expect(token).toHaveProperty('contentType');
           expect(token).toHaveProperty('fileName');
           expect(token).toHaveProperty('fileLength');
           expect(token).toHaveProperty('size');
-          expect(token.type).toBe(ResourceType.Image);
+          expect(token.resourceType).toBe(ResourceType.Token);
         });
       });
     });
@@ -65,11 +65,11 @@ describe('MockApiService', () => {
 
       assetsWithPortrait.forEach((asset) => {
         expect(asset.portrait).toHaveProperty('id');
-        expect(asset.portrait).toHaveProperty('type');
+        expect(asset.portrait).toHaveProperty('resourceType');
         expect(asset.portrait).toHaveProperty('path');
         expect(asset.portrait).toHaveProperty('contentType');
         expect(asset.portrait).toHaveProperty('fileName');
-        expect(asset.portrait?.type).toBe(ResourceType.Image);
+        expect(asset.portrait?.resourceType).toBe(ResourceType.Portrait);
       });
     });
 

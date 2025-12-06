@@ -64,6 +64,7 @@ return result;
 | **Null Checks** | Pattern matching | `if (value is null)` |
 | **Records** | For domain models | `public record GameSession { ... }` |
 | **Primary Constructors** | Preferred for services | `class Service(IDep dep) { }` |
+| **Field Keyword** | Use in props (C# 14) | `public int Value { get; set => field = value; }` |
 
 ## File Organization
 
@@ -522,6 +523,31 @@ switch (status) {
         displayStatus = "Draft";
         break;
     // ... etc
+}
+```
+
+### The `field` Keyword (C# 14)
+
+Use the `field` keyword to access the backing field of auto-implemented properties, avoiding manual field declarations:
+
+```csharp
+// ✅ Preferred: C# 14 field keyword
+public string Title {
+    get;
+    set {
+        if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Title cannot be empty");
+        field = value.Trim();
+    }
+}
+
+// ❌ Avoid: Manual backing field
+private string _title;
+public string Title {
+    get => _title;
+    set {
+        // ...
+        _title = value.Trim();
+    }
 }
 ```
 

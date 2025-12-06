@@ -52,5 +52,5 @@ public record NamedSize() {
             SizeName.Huge => (3, 3),
             SizeName.Gargantuan => (4, 4),
             _ => (1, 1)
-    };
+        };
 }

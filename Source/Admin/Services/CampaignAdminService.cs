@@ -66,7 +66,8 @@ public sealed class CampaignAdminService(
     public async Task<LibraryContentResponse?> GetCampaignByIdAsync(Guid id, CancellationToken ct = default) {
         try {
             var campaign = await DbContext.Campaigns.FindAsync([id], ct);
-            if (campaign is null) return null;
+            if (campaign is null)
+                return null;
             var ownerName = await GetOwnerNameAsync(campaign.OwnerId);
             return MapToContentResponse(campaign, ownerName);
         }
@@ -114,10 +115,14 @@ public sealed class CampaignAdminService(
         try {
             var campaign = await DbContext.Campaigns.FindAsync([id], ct) ?? throw new InvalidOperationException($"Campaign with ID {id} not found");
 
-            if (name is not null) campaign.Name = name;
-            if (description is not null) campaign.Description = description;
-            if (isPublished.HasValue) campaign.IsPublished = isPublished.Value;
-            if (isPublic.HasValue) campaign.IsPublic = isPublic.Value;
+            if (name is not null)
+                campaign.Name = name;
+            if (description is not null)
+                campaign.Description = description;
+            if (isPublished.HasValue)
+                campaign.IsPublished = isPublished.Value;
+            if (isPublic.HasValue)
+                campaign.IsPublic = isPublic.Value;
 
             await DbContext.SaveChangesAsync(ct);
 
@@ -304,7 +309,7 @@ public sealed class CampaignAdminService(
             IsPublic = campaign.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
-    };
+        };
 
     private static LibraryContentResponse MapAdventureToContentResponse(Adventure adventure, string? ownerName)
         => new() {
@@ -317,5 +322,5 @@ public sealed class CampaignAdminService(
             IsPublic = adventure.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
-    };
+        };
 }

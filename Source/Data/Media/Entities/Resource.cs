@@ -6,7 +6,9 @@ public class Resource {
     [MaxLength(1024)]
     public string? Description { get; init; }
 
-    public ResourceType Type { get; set; }
+    public ResourceType ResourceType { get; set; }
+    public ResourceClassification Classification { get; set; } = new();
+
     [MaxLength(64)]
     public string ContentType { get; set; } = string.Empty;
     [MaxLength(512)]
@@ -14,6 +16,7 @@ public class Resource {
     [MaxLength(128)]
     public string FileName { get; set; } = string.Empty;
     public ulong FileLength { get; set; }
+
     public Size Size { get; set; } = Size.Zero;
     public TimeSpan Duration { get; set; } = TimeSpan.Zero;
 

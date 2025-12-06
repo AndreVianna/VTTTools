@@ -74,29 +74,13 @@ public static class ProfileHandlers {
         }
 
         try {
-            var resourceId = Guid.CreateVersion7();
+            var data = new UploadResourceData {
+                ContentType = file.ContentType,
+                FileName = file.FileName,
+                Stream = file.OpenReadStream(),
+            };
 
-            await using var stream = file.OpenReadStream();
-            var fileData = file.ToFileData();
-            var resourcePath = $"images/avatars/{resourceId:N}";
-            var addResourceData = await fileData.ToData(resourcePath, stream);
-
-            if (addResourceData.HasErrors) {
-                var errors = new Dictionary<string, string[]> {
-                    ["file"] = [addResourceData.Errors[0].Message]
-                };
-                return Results.ValidationProblem(errors);
-            }
-
-            stream.Position = 0;
-            var uploadResult = await resourceService.SaveResourceAsync(
-                addResourceData.Value,
-                stream,
-                userId,
-                "avatar",
-                userId,
-                isPublic: false,
-                ct);
+            var uploadResult = await resourceService.UploadResourceAsync(userId, data, ct);
 
             if (!uploadResult.IsSuccessful) {
                 var errors = new Dictionary<string, string[]> {
@@ -105,6 +89,7 @@ public static class ProfileHandlers {
                 return Results.ValidationProblem(errors);
             }
 
+            var resourceId = Guid.CreateVersion7();
             var response = await profileService.UpdateAvatarAsync(userId, resourceId, ct);
 
             if (response.Success)

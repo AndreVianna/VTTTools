@@ -8,7 +8,7 @@ public class StatBlockValueJsonConverter : JsonConverter<StatBlockValue> {
             JsonTokenType.True => (StatBlockValue)true,
             JsonTokenType.False => (StatBlockValue)false,
             _ => throw new JsonException($"Unsupported token type for StatBlockValue: {reader.TokenType}")
-    };
+        };
 
     public override void Write(Utf8JsonWriter writer, StatBlockValue value, JsonSerializerOptions options) {
         switch (value.Value) {

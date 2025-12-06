@@ -26,9 +26,9 @@ public class CampaignTests {
         const string description = "Some Description";
         var ownerId = Guid.CreateVersion7();
         var world = new World { Id = Guid.CreateVersion7() };
-        var display = new Resource {
+        var display = new ResourceInfo {
             Id = Guid.CreateVersion7(),
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "assets/campaign-background.png",
             ContentType = "image/png",
             Size = new Size(1920, 1080),

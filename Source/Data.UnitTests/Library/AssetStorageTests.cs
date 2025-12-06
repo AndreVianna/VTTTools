@@ -87,7 +87,7 @@ public class AssetStorageTests
             Description = "Updated description",
             Portrait = new() {
                 Id = portraitId,
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "assets/updated-portrait",
                 FileName = "updated_portrait.png",
                 ContentType = "image/png",
@@ -120,7 +120,7 @@ public class AssetStorageTests
         var portraitId = Guid.CreateVersion7();
         var resource1 = new Media.Entities.Resource {
             Id = portraitId,
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "assets/portrait",
             ContentType = "image/png",
             FileName = "portrait.png",
@@ -153,7 +153,7 @@ public class AssetStorageTests
             Description = entity.Description,
             Portrait = new() {
                 Id = newPortraitId,
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "assets/new-portrait",
                 FileName = "new_portrait.png",
                 ContentType = "image/png",

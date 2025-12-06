@@ -35,7 +35,8 @@ public sealed class AdventureAdminService(
                 .ToListAsync(ct);
 
             var hasMore = adventures.Count > take;
-            if (hasMore) adventures = [.. adventures.Take(take)];
+            if (hasMore)
+                adventures = [.. adventures.Take(take)];
 
             var owners = await GetOwnerDictionaryAsync(adventures.Select(a => a.OwnerId), ct);
 
@@ -64,7 +65,8 @@ public sealed class AdventureAdminService(
     public async Task<LibraryContentResponse?> GetAdventureByIdAsync(Guid id, CancellationToken ct = default) {
         try {
             var adventure = await DbContext.Adventures.FindAsync([id], ct);
-            if (adventure is null) return null;
+            if (adventure is null)
+                return null;
             var ownerName = await GetOwnerNameAsync(adventure.OwnerId);
             return MapToContentResponse(adventure, ownerName);
         }
@@ -113,10 +115,14 @@ public sealed class AdventureAdminService(
         try {
             var adventure = await DbContext.Adventures.FindAsync([id], ct) ?? throw new InvalidOperationException($"Adventure with ID {id} not found");
 
-            if (name is not null) adventure.Name = name;
-            if (description is not null) adventure.Description = description;
-            if (isPublished.HasValue) adventure.IsPublished = isPublished.Value;
-            if (isPublic.HasValue) adventure.IsPublic = isPublic.Value;
+            if (name is not null)
+                adventure.Name = name;
+            if (description is not null)
+                adventure.Description = description;
+            if (isPublished.HasValue)
+                adventure.IsPublished = isPublished.Value;
+            if (isPublic.HasValue)
+                adventure.IsPublic = isPublic.Value;
 
             await DbContext.SaveChangesAsync(ct);
 
@@ -288,7 +294,7 @@ public sealed class AdventureAdminService(
             IsPublic = adventure.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
-    };
+        };
 
     private static LibraryContentResponse MapEncounterToContentResponse(Encounter encounter)
         => new() {
@@ -301,5 +307,5 @@ public sealed class AdventureAdminService(
             IsPublic = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
-    };
+        };
 }

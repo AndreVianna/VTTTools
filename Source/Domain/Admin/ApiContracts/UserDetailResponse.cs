@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.ApiContracts;
+
 public sealed record UserDetailResponse : Response {
     public required Guid Id { get; init; }
     public required string Email { get; init; }

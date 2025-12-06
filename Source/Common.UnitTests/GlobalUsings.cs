@@ -8,7 +8,6 @@ global using AwesomeAssertions;
 global using Azure;
 global using Azure.Storage.Blobs.Models;
 
-global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
@@ -29,5 +28,4 @@ global using VttTools.Audit.Model;
 global using VttTools.Configuration;
 global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;
-global using VttTools.Middlewares;
 global using VttTools.Utilities;

@@ -24,9 +24,9 @@ public class WorldTests {
         const string name = "Some World";
         const string description = "Some Description";
         var ownerId = Guid.CreateVersion7();
-        var display = new Resource {
+        var display = new ResourceInfo {
             Id = Guid.CreateVersion7(),
-            Type = ResourceType.Image,
+            ResourceType = ResourceType.Background,
             Path = "assets/world-background.png",
             ContentType = "image/png",
             Size = new Size(1920, 1080),

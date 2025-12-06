@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace VttTools.Library.Encounters.Model;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

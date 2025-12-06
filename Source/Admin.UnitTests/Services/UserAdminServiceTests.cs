@@ -1,5 +1,3 @@
-using AuditLogEntity = VttTools.Data.Audit.Entities.AuditLog;
-
 namespace VttTools.Admin.UnitTests.Services;
 
 public class UserAdminServiceTests

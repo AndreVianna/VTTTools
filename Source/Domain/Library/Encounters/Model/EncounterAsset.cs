@@ -12,7 +12,7 @@ public record EncounterAsset {
     public float Elevation { get; init; }
 
     public NamedSize Size { get; init; } = NamedSize.Zero;
-    public Resource? Image { get; init; }
+    public ResourceInfo? Image { get; init; }
     public Frame Frame { get; init; } = new Frame();
 
     public string? Notes { get; init; }

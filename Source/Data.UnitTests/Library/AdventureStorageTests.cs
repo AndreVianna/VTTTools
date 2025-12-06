@@ -110,7 +110,7 @@ public class AdventureStorageTests
             Style = AdventureStyle.OpenWorld,
             Background = entity.BackgroundId.HasValue ? new() {
                 Id = entity.BackgroundId.Value,
-                Type = ResourceType.Image,
+                ResourceType = ResourceType.Background,
                 Path = "adventures/updated-background.jpg",
                 FileName = "updated-background.jpg",
                 ContentType = "image/jpeg",

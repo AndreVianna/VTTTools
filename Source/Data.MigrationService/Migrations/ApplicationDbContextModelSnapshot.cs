@@ -74,7 +74,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("ResourceType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -452,7 +452,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue(5.0)
                                 .HasColumnName("GridScale");
 
-                            b1.Property<string>("Type")
+                            b1.Property<string>("ResourceType")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("nvarchar(max)")
@@ -672,7 +672,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("real")
                         .HasDefaultValue(0f);
 
-                    b.Property<string>("Type")
+                    b.Property<string>("ResourceType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
@@ -714,7 +714,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("ResourceType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
@@ -818,7 +818,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Open");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("ResourceType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
@@ -949,7 +949,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("MaintenanceMode", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Media.Entities.Resource", b =>
+            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceInfo", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -997,15 +997,27 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("ResourceType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("nvarchar(450)")
                         .HasDefaultValue("Undefined");
+
+                    b.Property<string>("ThumbnailPath")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Resources", (string)null);
+                    b.HasIndex("ResourceType");
+
+                    b.HasIndex("ResourceType", "OwnerId");
+
+                    b.ToTable("Resources", null, t =>
+                        {
+                            t.Property("ResourceType")
+                                .HasColumnName("ResourceType1");
+                        });
                 });
 
             modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceFeature", b =>
@@ -1290,7 +1302,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Portrait")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Portrait")
                         .WithMany()
                         .HasForeignKey("PortraitId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1314,10 +1326,10 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasColumnName("Subtype");
 
-                            b1.Property<string>("Type")
+                            b1.Property<string>("ResourceType")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)")
-                                .HasColumnName("Type");
+                                .HasColumnName("ResourceType");
 
                             b1.HasKey("AssetId");
 
@@ -1380,7 +1392,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Token")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Token")
                         .WithMany()
                         .HasForeignKey("TokenId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1405,7 +1417,7 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<bool>("IsRequired")
                                 .HasColumnType("bit");
 
-                            b1.Property<int>("Type")
+                            b1.Property<int>("ResourceType")
                                 .HasColumnType("int");
 
                             b1.HasKey("GameSessionId", "UserId");
@@ -1445,7 +1457,7 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<DateTimeOffset>("SentAt")
                                 .HasColumnType("datetimeoffset");
 
-                            b1.Property<string>("Content")
+                            b1.Property<string>("ContentType")
                                 .IsRequired()
                                 .HasMaxLength(4096)
                                 .HasColumnType("nvarchar(max)");
@@ -1456,7 +1468,7 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.PrimitiveCollection<string>("SentTo")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<int>("Type")
+                            b1.Property<int>("ResourceType")
                                 .HasColumnType("int");
 
                             b1.HasKey("GameSessionId", "SentAt");
@@ -1488,7 +1500,7 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<bool>("IsRequired")
                                 .HasColumnType("bit");
 
-                            b1.Property<int>("Type")
+                            b1.Property<int>("ResourceType")
                                 .HasColumnType("int");
 
                             b1.HasKey("ScheduleId", "UserId");
@@ -1504,7 +1516,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1528,7 +1540,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1551,12 +1563,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "AmbientSound")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "AmbientSound")
                         .WithMany()
                         .HasForeignKey("AmbientSoundId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1582,7 +1594,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Image")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Image")
                         .WithMany()
                         .HasForeignKey("ImageId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1649,14 +1661,14 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "ResourceInfo")
                         .WithMany()
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Encounter");
 
-                    b.Navigation("Resource");
+                    b.Navigation("ResourceInfo");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
@@ -1683,7 +1695,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1691,7 +1703,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Background");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Media.Entities.Resource", b =>
+            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceInfo", b =>
                 {
                     b.OwnsOne("VttTools.Common.Model.Size", "Size", b1 =>
                         {
@@ -1718,19 +1730,57 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasForeignKey("ResourceId");
                         });
 
+                    b.OwnsOne("VttTools.Data.Media.Entities.ResourceClassification", "Classification", b1 =>
+                        {
+                            b1.Property<Guid>("ResourceId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Category")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)")
+                                .HasColumnName("Category");
+
+                            b1.Property<string>("Kind")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)")
+                                .HasColumnName("Kind");
+
+                            b1.Property<string>("Subtype")
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)")
+                                .HasColumnName("Subtype");
+
+                            b1.Property<string>("ResourceType")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)")
+                                .HasColumnName("ResourceType");
+
+                            b1.HasKey("ResourceId");
+
+                            b1.ToTable("Resources");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ResourceId");
+                        });
+
+                    b.Navigation("Classification");
+
                     b.Navigation("Size")
                         .IsRequired();
                 });
 
             modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceFeature", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "ResourceInfo")
                         .WithMany("Features")
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Resource");
+                    b.Navigation("ResourceInfo");
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.RoleClaim", b =>
@@ -1826,7 +1876,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Campaigns");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Media.Entities.Resource", b =>
+            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceInfo", b =>
                 {
                     b.Navigation("Features");
                 });

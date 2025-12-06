@@ -75,7 +75,8 @@ public class AssetStorage(ApplicationDbContext context)
     }
 
     private static IQueryable<AssetEntity> AddAdvancedSearchFilters(ICollection<AdvancedSearchFilter>? advancedSearch, IQueryable<AssetEntity> query) {
-        if (advancedSearch == null) return query;
+        if (advancedSearch == null)
+            return query;
         foreach (var filter in advancedSearch) {
             switch (filter.Operator) {
                 case FilterOperator.GreaterThan:

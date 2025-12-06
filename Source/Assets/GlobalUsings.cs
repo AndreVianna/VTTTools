@@ -1,10 +1,9 @@
 ﻿global using System.Diagnostics.CodeAnalysis;
 
+global using DotNetToolbox.Results;
+
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
-
-global using DotNetToolbox;
-global using DotNetToolbox.Results;
 
 global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.EndpointMappers;

@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.Services;
+
 public interface IDashboardService {
     /// <summary>
     /// Retrieves dashboard statistics including total users, active users in last 24 hours,

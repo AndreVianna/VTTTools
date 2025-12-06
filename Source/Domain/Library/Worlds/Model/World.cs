@@ -7,7 +7,7 @@ public record World {
     public string Name { get; init; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; init; } = string.Empty;
-    public Resource? Background { get; init; }
+    public ResourceInfo? Background { get; init; }
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
     public List<Campaign> Campaigns { get; init; } = [];

@@ -47,7 +47,7 @@ internal static class GameSessionHandlers {
         };
         var result = await service.UpdateGameSessionAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.NoContent()  // 204 No Content (no user-facing side effects)
+            ? Results.NoContent()  // 204 No ContentType (no user-facing side effects)
             : result.Errors[0].Message == "Session not found"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "Not authorized"

@@ -33,7 +33,7 @@ public sealed record LibrarySearchRequest : Request {
     [MaxLength(100, ErrorMessage = "Category cannot exceed 100 characters")]
     public string? Category { get; init; }
 
-    [MaxLength(100, ErrorMessage = "Type cannot exceed 100 characters")]
+    [MaxLength(100, ErrorMessage = "ResourceType cannot exceed 100 characters")]
     public string? Type { get; init; }
 
     [MaxLength(100, ErrorMessage = "Subtype cannot exceed 100 characters")]

@@ -460,52 +460,66 @@ export interface GameSession {
   adventure: Adventure;
 }
 
-// Media (from Domain.Media.ApiContracts)
-export interface UploadRequest {
-  fileName: string;
-  contentType: string;
-  fileSize: number;
-  tags?: string[];
-}
-
-export interface AddResourceRequest {
-  name: string;
-  description: string;
-  resourceType: ResourceType;
-  filePath: string;
-  fileSize: number;
-  mimeType: string;
-  tags?: string[];
-}
-
-export interface UpdateResourceRequest {
-  name?: string;
-  description?: string;
-  tags?: string[];
-}
+// Media (from Domain.Media.Model)
 
 export enum ResourceType {
-  Image = 'Image',
-  Audio = 'Audio',
-  Video = 'Video',
-  Document = 'Document',
+  Undefined = 'Undefined',
+  Background = 'Background',
+  Token = 'Token',
+  Portrait = 'Portrait',
+  Overlay = 'Overlay',
+  Illustration = 'Illustration',
+  SoundEffect = 'SoundEffect',
+  AmbientSound = 'AmbientSound',
+  CutScene = 'CutScene',
+}
+
+export interface ResourceClassification {
+  contentKind: string;
+  category: string;
+  type: string;
+  subtype: string | null;
+}
+
+export interface ResourceFilterData {
+  resourceType?: ResourceType;
+  contentKind?: string;
+  category?: string;
+  searchText?: string;
+  ownerId?: string;
+  isPublic?: boolean;
+  isPublished?: boolean;
+  skip?: number;
+  take?: number;
+}
+
+export interface ResourceFilterResponse {
+  items: MediaResource[];
+  totalCount: number;
+  skip: number;
+  take: number;
 }
 
 export interface MediaResource {
   id: string;
   description: string | null;
   features: Record<string, string[]>;
-  type: ResourceType;
+  resourceType: ResourceType;
+  classification: ResourceClassification | null;
   path: string;
   contentType: string;
   fileName: string;
   fileLength: number;
+  thumbnailPath: string | null;
   size: { width: number; height: number };
   duration: string;
   ownerId: string;
   isPublished: boolean;
   isPublic: boolean;
 }
+
+/** @deprecated Use resourceType instead */
+export type MediaResourceWithLegacyType = MediaResource & { type: ResourceType };
 
 // Authentication Types
 export interface LoginRequest {

@@ -38,12 +38,12 @@ internal static class AssetHandlers {
         var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, advancedFilter, pagination, cts.Token);
 
         return Results.Ok(new {
-                data = assets,
-                page = pagination?.Index ?? 0,
-                pageSize = pagination?.Size ?? assets.Length,
-                totalCount,
-                totalPages = pagination is null ? 1 : (int)Math.Ceiling((double)totalCount / pagination.Size),
-            });
+            data = assets,
+            page = pagination?.Index ?? 0,
+            pageSize = pagination?.Size ?? assets.Length,
+            totalCount,
+            totalPages = pagination is null ? 1 : (int)Math.Ceiling((double)totalCount / pagination.Size),
+        });
     }
 
     internal static async Task<IResult> GetAssetByIdHandler(
@@ -61,7 +61,7 @@ internal static class AssetHandlers {
         if (asset.OwnerId != userId && !(asset.IsPublic && asset.IsPublished))
             return Results.Forbid();
 
-        asset = asset with { Tokens = [..asset.Tokens.Where(v => v.OwnerId == userId || (v.IsPublic && v.IsPublished))] };
+        asset = asset with { Tokens = [.. asset.Tokens.Where(v => v.OwnerId == userId || (v.IsPublic && v.IsPublished))] };
 
         return Results.Ok(asset);
     }

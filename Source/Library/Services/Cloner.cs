@@ -67,10 +67,10 @@ public static class Cloner {
         return clone;
     }
 
-    internal static Resource Clone(this Resource original)
+    internal static ResourceInfo Clone(this ResourceInfo original)
         => new() {
             Id = original.Id,
-            Type = original.Type,
+            ResourceType = original.ResourceType,
             Path = original.Path,
             ContentType = original.ContentType,
             FileName = original.FileName,

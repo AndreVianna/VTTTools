@@ -1,0 +1,36 @@
+# Task: Configure Environment from Claude Code Setup
+
+- [x] Analyze existing Claude Code configuration <!-- id: 0 -->
+    - [x] Read `CLAUDE.md` <!-- id: 1 -->
+    - [x] Explore `.claude` directory <!-- id: 2 -->
+    - [x] Analyze `.claude/agents` directory <!-- id: 16 -->
+    - [x] Read `Documents/Guides/COMMON_COMMANDS.md` <!-- id: 5 -->
+    - [x] Read `Documents/Guides/VTTTOOLS_STACK.md` <!-- id: 6 -->
+    - [x] Read `.claude/guides/WORKFLOW_GUIDE.md` <!-- id: 7 -->
+- [x] Create Implementation Plan for migration <!-- id: 3 -->
+- [x] Set up environment based on plan <!-- id: 4 -->
+    - [x] Create `build.md` workflow <!-- id: 8 -->
+    - [x] Create `test-backend.md` workflow <!-- id: 9 -->
+    - [x] Create `test-webclient.md` workflow <!-- id: 10 -->
+    - [x] Create `run-webclient.md` workflow <!-- id: 11 -->
+    - [x] Create `run-solution.md` workflow <!-- id: 12 -->
+    - [x] Create `test-webadmin.md` workflow <!-- id: 13 -->
+    - [x] Create `run-webadmin.md` workflow <!-- id: 14 -->
+- [x] Perform Solution Engineer Analysis <!-- id: 15 -->
+    - [x] Analyze coding standards (`CODING_STANDARDS.md`, etc.) <!-- id: 17 -->
+    - [x] Verify architecture compliance (GameSession slice) <!-- id: 18 -->
+    - [x] Identify gaps (Pause/Resume, Frontend usage) <!-- id: 19 -->
+    - [x] Create `solution_analysis.md` <!-- id: 20 -->
+    - [x] Analyze Frontend Structure (WebClient vs WebAdmin) <!-- id: 34 -->
+    - [x] Analyze Documents/Tasks History (EPIC-001/002) <!-- id: 35 -->
+- [x] Update Backend Documentation to .NET 10 <!-- id: 21 -->
+    - [x] Update `VTTTOOLS_STACK.md` <!-- id: 22 -->
+    - [x] Update `CODING_STANDARDS.md` <!-- id: 23 -->
+    - [x] Update `CSHARP_STYLE_GUIDE.md` (add `field` keyword) <!-- id: 24 -->
+- [x] Create Comprehensive Antigravity Reference <!-- id: 25 -->
+    - [x] Read all agent definitions <!-- id: 26 -->
+    - [x] Synthesize `antigravity_reference.md` <!-- id: 27 -->
+    - [x] Refine architecture (4-layer flow) in reference & standards <!-- id: 28 -->
+- [x] Migrate Artifacts to Project Directory <!-- id: 31 -->
+    - [x] Create `.agent/planning` directory <!-- id: 32 -->
+    - [x] Copy artifacts to `.agent/` structure <!-- id: 33 -->

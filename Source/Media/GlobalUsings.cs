@@ -3,18 +3,13 @@
 global using Azure.Storage.Blobs;
 global using Azure.Storage.Blobs.Models;
 
-global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.Extensions.Options;
 
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Formats.Png;
-
-global using SkiaSharp;
-
-global using Svg.Skia;
+global using SixLabors.ImageSharp.Processing;
 
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
@@ -25,9 +20,6 @@ global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.HealthChecks;
-global using VttTools.Infrastructure;
-global using VttTools.Media.ApiContracts;
-global using VttTools.Media.Contracts;
 global using VttTools.Media.EndpointMappers;
 global using VttTools.Media.Handlers;
 global using VttTools.Media.Model;

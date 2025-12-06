@@ -1,213 +1,137 @@
+using VttTools.Media.ApiContracts;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Media.Handlers;
 
 internal static class ResourcesHandlers {
-    internal static async Task<IResult> UploadFileHandler(HttpContext context,
-                                                          [FromForm] string type,
-                                                          [FromForm] string resource,
-                                                          [FromForm] IFormFile file,
-                                                          [FromForm] string? entityId,
-                                                          [FromServices] IResourceService storage,
-                                                          [FromServices] IOptions<ResourceUploadOptions> uploadOptions) {
-        // Generate GUID v7 for consistent timestamp-based IDs
-        var guidId = Guid.CreateVersion7();
-
-        // Get user ID from context
+    internal static async Task<IResult> FilterResourcesHandler(
+        HttpContext context,
+        [AsParameters] ResourceFilterData filter,
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct) {
         var userId = context.User.GetUserId();
 
-        var request = new UploadRequest {
-            Id = guidId,
-            Type = type,
-            Resource = resource,
-            File = file.ToFileData()
+        var (items, totalCount) = await resourceService.FindResourcesAsync(userId, filter, ct);
+        return Results.Ok(new { items, totalCount, skip = Math.Max(0, filter.Skip), take = Math.Clamp(filter.Take, 1, 100) });
+    }
+
+    internal static async Task<IResult> UploadResourceHandler(
+        HttpContext context,
+        [FromForm] string contentType,
+        [FromForm] string fileName,
+        [FromForm] IFormFile? file,
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct = default) {
+
+        var userId = context.User.GetUserId();
+        var data = new UploadResourceData {
+            ContentType = contentType,
+            FileName = fileName,
+            Stream = file?.OpenReadStream(),
         };
-        try {
-            await using var originalStream = request.File.OpenReadStream();
-            Stream streamToUse;
-            MemoryStream? pngStream = null;
-            var fileName = request.File.FileName;
-            var contentType = request.File.ContentType;
 
-            // Validate that file is an image
-            var isImage = contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+        var result = await resourceService.UploadResourceAsync(userId, data, ct);
 
-            if (!isImage) {
-                return Results.Problem(
-                    detail: $"Invalid file format: '{contentType}'. Only image files are allowed.",
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: "Invalid file format.");
-            }
+        if (result.IsSuccessful)
+            return Results.Ok(result.Value);
 
-            if (contentType == "image/svg+xml") {
-                // SVG → PNG conversion using Svg.Skia
-                using var svg = new SKSvg();
-                var picture = svg.Load(originalStream);
+        var errorMessage = result.Errors[0].Message;
+        var statusCode = DetermineStatusCode(errorMessage);
 
-                if (picture == null) {
-                    return Results.Problem(
-                        detail: "Failed to load SVG file. The file may be corrupted or invalid.",
-                        statusCode: StatusCodes.Status400BadRequest,
-                        title: "Invalid SVG file.");
-                }
-
-                // Use SVG dimensions or default to 512x512
-                var width = (int)(picture.CullRect.Width > 0 ? picture.CullRect.Width : 512);
-                var height = (int)(picture.CullRect.Height > 0 ? picture.CullRect.Height : 512);
-
-                // Max dimensions 2048x2048 to prevent huge files
-                if (width > 2048 || height > 2048) {
-                    var scale = Math.Min(2048.0 / width, 2048.0 / height);
-                    width = (int)(width * scale);
-                    height = (int)(height * scale);
-                }
-
-                using var bitmap = new SKBitmap(width, height);
-                using var canvas = new SKCanvas(bitmap);
-                canvas.Clear(SKColors.Transparent);
-                canvas.DrawPicture(picture);
-
-                using var skImage = SKImage.FromBitmap(bitmap);
-                using var pngData = skImage.Encode(SKEncodedImageFormat.Png, 100);
-
-                pngStream = new MemoryStream();
-                pngData.SaveTo(pngStream);
-
-                var maxSize = uploadOptions.Value.GetMaxSize(resource);
-                if (pngStream.Length > maxSize) {
-                    await pngStream.DisposeAsync();
-                    return Results.Problem(
-                        detail: $"Converted PNG image exceeds {maxSize / 1024.0 / 1024.0:F0}MB limit. TokenSize: {pngStream.Length / 1024.0 / 1024.0:F2}MB",
-                        statusCode: StatusCodes.Status413RequestEntityTooLarge,
-                        title: "Image too large after conversion.");
-                }
-
-                pngStream.Position = 0;
-                streamToUse = pngStream;
-
-                // Update file metadata to reflect PNG format
-                fileName = Path.ChangeExtension(fileName, ".png");
-                contentType = "image/png";
-            }
-            else if (isImage && contentType != "image/png") {
-                // Existing ImageSharp raster conversion
-                using var image = await Image.LoadAsync(originalStream);
-                pngStream = new MemoryStream();
-                await image.SaveAsPngAsync(pngStream, new PngEncoder {
-                    CompressionLevel = PngCompressionLevel.BestCompression,
-                    TransparentColorMode = PngTransparentColorMode.Preserve
-                });
-
-                var maxSize = uploadOptions.Value.GetMaxSize(resource);
-                if (pngStream.Length > maxSize) {
-                    await pngStream.DisposeAsync();
-                    return Results.Problem(
-                        detail: $"Converted PNG image exceeds {maxSize / 1024.0 / 1024.0:F0}MB limit. TokenSize: {pngStream.Length / 1024.0 / 1024.0:F2}MB",
-                        statusCode: StatusCodes.Status413RequestEntityTooLarge,
-                        title: "Image too large after conversion.");
-                }
-
-                pngStream.Position = 0;
-                streamToUse = pngStream;
-
-                // Update file metadata to reflect PNG format
-                fileName = Path.ChangeExtension(fileName, ".png");
-                contentType = "image/png";
-            }
-            else {
-                // PNG or non-image - use original stream
-                streamToUse = originalStream;
-            }
-
-            try {
-                // Determine resource type category from content type
-                var resourceType = contentType.StartsWith("video/") ? "videos"
-                    : contentType.StartsWith("audio/") ? "audio"
-                    : "images";  // All images (PNG after conversion)
-
-                // Create file data wrapper with updated metadata
-                var fileData = new ConvertedFileData(fileName, contentType, streamToUse.Length, streamToUse);
-
-                // Path: {resourceType}/{guid-last4}/{guid:32} for load balancing
-                var guidString = guidId.ToString("N");
-                var guidSuffix = guidString[^4..];
-                var path = $"{resourceType}/{guidSuffix}/{guidString}";
-
-                var data = await fileData.ToData(path, streamToUse);
-                if (data.HasErrors) {
-                    return Results.Problem(detail: $"""
-                                              The resource file for the {request.Type} '{request.Id}' {request.Resource} is invalid.
-                                              File name: "{fileName}"
-                                              Reason: "{data.Errors[0].Message}"
-                                              """,
-                                            statusCode: StatusCodes.Status400BadRequest,
-                                            title: "Invalid file data.");
-                }
-                // Parse entityId if provided
-                Guid? parsedEntityId = null;
-                if (!string.IsNullOrEmpty(entityId) && Guid.TryParse(entityId, out var entityGuid)) {
-                    parsedEntityId = entityGuid;
-                }
-
-                var result = await storage.SaveResourceAsync(data.Value, streamToUse, userId, type, parsedEntityId, isPublic: false);
-                return result.IsSuccessful
-                    ? Results.Ok(result.Value)  // Return the complete Background object
-                    : Results.Problem(detail: $"""
-                                              There was a problem while uploading the resource file for the {request.Type} '{request.Id}' {request.Resource}.
-                                              File name: "{fileName}"
-                                              Reason: "{result.Errors[0].Message}"
-                                              """,
-                                      statusCode: StatusCodes.Status500InternalServerError,
-                                      title: "Failed to upload resource file.");
-            }
-            finally {
-                if (pngStream is not null)
-                    await pngStream.DisposeAsync();
-            }
-        }
-        catch (Exception ex) {
-            return Results.Problem(detail: $"""
-                                      There was a problem while uploading the resource file for the {request.Type} '{request.Id}' {request.Resource}.
-                                      File name: "{request.File.FileName}"
-                                      Exception: "{ex.GetType().Name}"
-                                      Message: "{ex.Message}"
-                                      """,
-                                   statusCode: StatusCodes.Status500InternalServerError,
-                                   title: "File upload error.");
-        }
+        return Results.Problem(
+            detail: errorMessage,
+            statusCode: statusCode,
+            title: GetErrorTitle(statusCode));
     }
 
-    internal static async Task<IResult> DeleteFileHandler([FromRoute] Guid id,
-                                                          [FromServices] IResourceService storage) {
-        var result = await storage.DeleteResourceAsync(id);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : Results.Problem(detail: $"Could not delete the resource {id}.",
-                              statusCode: StatusCodes.Status500InternalServerError,
-                              title: "Failed to delete resource.");
+    private static int DetermineStatusCode(string errorMessage)
+        => errorMessage.Contains("Invalid file format", StringComparison.OrdinalIgnoreCase) ? StatusCodes.Status400BadRequest
+         : errorMessage.Contains("File size", StringComparison.OrdinalIgnoreCase) && errorMessage.Contains("exceeds maximum", StringComparison.OrdinalIgnoreCase) ? StatusCodes.Status413RequestEntityTooLarge
+         : errorMessage.Contains("processing failed", StringComparison.OrdinalIgnoreCase) || errorMessage.Contains("Invalid file data", StringComparison.OrdinalIgnoreCase) ? StatusCodes.Status400BadRequest
+         : errorMessage.Contains("Failed to save", StringComparison.OrdinalIgnoreCase) ? StatusCodes.Status500InternalServerError
+         : StatusCodes.Status400BadRequest;
+
+    private static string GetErrorTitle(int statusCode)
+        => statusCode switch {
+            StatusCodes.Status400BadRequest => "Invalid request",
+            StatusCodes.Status413RequestEntityTooLarge => "File too large",
+            StatusCodes.Status500InternalServerError => "Upload failed",
+            _ => "Upload error"
+        };
+
+    internal static async Task<IResult> DeleteFileHandler(
+        HttpContext context,
+        [FromRoute] Guid id,
+        [FromServices] IResourceService resourceService) {
+        var userId = context.User.GetUserId();
+
+        var result = await resourceService.DeleteResourceAsync(userId, id);
+        return !result.IsSuccessful
+            ? result.Errors[0].Message switch {
+                "NotFound" => Results.NotFound(),
+                "NotAllowed" => Results.Forbid(),
+                _ => Results.Problem(detail: $"Could not delete the resource {id}.",
+                                     statusCode: StatusCodes.Status500InternalServerError,
+                                     title: "Failed to delete resource."),
+            }
+            : Results.NoContent();
     }
 
-    internal static async Task<IResult> DownloadFileHandler([FromRoute] Guid id,
-                                                            [FromServices] IResourceService storage) {
-        var download = await storage.ServeResourceAsync(id);
+    internal static async Task<IResult> ServeResourceHandler(
+        HttpContext context,
+        [FromRoute] Guid id,
+        [FromServices] IResourceService resourceService) {
+        var userId = context.User.GetUserId();
+
+        var download = await resourceService.ServeResourceAsync(userId, id);
         if (download == null)
             return Results.NotFound();
 
-        // Serve images inline for browser display, other files as attachment
         var isImage = download.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
         return isImage
-            ? Results.File(download.Stream, download.ContentType)  // Inline display
-            : Results.File(download.Stream, download.ContentType, download.FileName);  // Download attachment
+            ? Results.File(download.Stream, download.ContentType)
+            : Results.File(download.Stream, download.ContentType, download.FileName);
     }
-}
 
-/// <summary>
-/// Wrapper for converted file data with updated metadata.
-/// </summary>
-internal sealed class ConvertedFileData(string fileName, string contentType, long length, Stream stream) : IFileData {
-    public string FileName { get; } = fileName;
-    public string ContentType { get; } = contentType;
-    public long Length { get; } = length;
+    internal static async Task<IResult> GetResourceInfoHandler(
+        HttpContext context,
+        [FromRoute] Guid id,
+        [FromServices] IResourceService resourceService) {
+        var userId = context.User.GetUserId();
 
-    public Stream OpenReadStream() => stream;
+        var resource = await resourceService.GetResourceAsync(userId, id);
+        return resource is null
+            ? Results.NotFound()
+            : Results.Ok(resource);
+    }
+
+    internal static async Task<IResult> UpdateResourceHandler(
+        HttpContext context,
+        [FromRoute] Guid id,
+        [FromBody] UpdateResourceRequest request,
+        [FromServices] IResourceService resourceService) {
+        var userId = context.User.GetUserId();
+
+        var data = new UpdateResourceData {
+            Description = request.Description,
+            Features = request.Features,
+            IsPublic = request.IsPublic,
+        };
+
+        var validationResult = data.Validate();
+        if (!validationResult.IsSuccessful)
+            return Results.BadRequest(validationResult.Errors);
+
+        var result = await resourceService.UpdateResourceAsync(userId, id, data);
+        return !result.IsSuccessful
+            ? result.Errors[0].Message switch {
+                "NotFound" => Results.NotFound(),
+                "NotAllowed" => Results.Forbid(),
+                _ => Results.Problem(detail: $"Could not update the resource {id}.",
+                                     statusCode: StatusCodes.Status500InternalServerError,
+                                     title: "Failed to update resource."),
+            }
+            : Results.NoContent();
+    }
 }

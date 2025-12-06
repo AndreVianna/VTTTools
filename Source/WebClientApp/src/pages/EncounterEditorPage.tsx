@@ -1500,6 +1500,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const backgroundUrl = encounter?.stage?.background
     ? `${getApiEndpoints().media}/${encounter.stage.background.id}`
     : undefined;
+  const backgroundContentType = encounter?.stage?.background?.contentType;
 
   return (
     <EditorLayout
@@ -1512,6 +1513,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       gridConfig={gridConfig}
       onGridChange={gridHandlers.handleGridChange}
       {...(backgroundUrl && { backgroundUrl })}
+      {...(backgroundContentType && { backgroundContentType })}
       isUploadingBackground={isUploadingBackground}
       onBackgroundUpload={handleBackgroundUpload}
     >

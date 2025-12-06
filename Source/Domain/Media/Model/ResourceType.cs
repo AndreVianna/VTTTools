@@ -3,8 +3,13 @@
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ResourceType {
     Undefined,
-    Image,
-    Animation,
-    Video,
-    Audio,
+    Background,
+    Token,
+    Portrait,
+    Overlay,
+    Illustration,
+    SoundEffect,
+    AmbientSound,
+    CutScene,
+    UserAvatar,
 }

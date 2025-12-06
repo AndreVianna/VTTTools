@@ -25,6 +25,7 @@ interface EditorLayoutProps {
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
   backgroundUrl?: string;
+  backgroundContentType?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
 }
@@ -40,6 +41,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   gridConfig,
   onGridChange,
   backgroundUrl,
+  backgroundContentType,
   isUploadingBackground,
   onBackgroundUpload,
 }) => {
@@ -215,6 +217,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           {...(gridConfig && { gridConfig })}
           {...(onGridChange && { onGridChange })}
           {...(backgroundUrl && { backgroundUrl })}
+          {...(backgroundContentType && { backgroundContentType })}
           {...(isUploadingBackground !== undefined && {
             isUploadingBackground,
           })}

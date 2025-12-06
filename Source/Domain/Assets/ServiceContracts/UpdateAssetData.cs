@@ -27,7 +27,7 @@ public record UpdateAssetData
             result += new Error("The asset type cannot be null or empty.", nameof(Type));
         if (Type.IsSet && Type.Value.Length > 32)
             result += new Error("The asset type cannot have more than 32 characters.", nameof(Type));
-        if (Subtype.IsSet &&  Subtype.Value.Length > 32)
+        if (Subtype.IsSet && Subtype.Value.Length > 32)
             result += new Error("The asset subtype cannot have more than 32 characters.", nameof(Subtype));
         if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))
             result += new Error("When set, the asset name cannot be null or empty.", nameof(Name));

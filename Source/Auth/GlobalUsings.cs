@@ -1,5 +1,4 @@
 global using System.Diagnostics.CodeAnalysis;
-global using System.IdentityModel.Tokens.Jwt;
 global using System.Security.Claims;
 global using System.Text;
 global using System.Threading.RateLimiting;
@@ -26,7 +25,8 @@ global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Identity.Model;
-global using VttTools.Infrastructure;
+global using VttTools.Media.Model;
+global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;
 global using VttTools.Services;
 global using VttTools.Utilities;

@@ -1,4 +1,5 @@
 namespace VttTools.Domain.Admin.Services;
+
 public interface IUserAdminService {
     /// <summary>
     /// Searches for users based on the specified criteria including filtering by role,

@@ -45,7 +45,9 @@ internal static class Program {
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
-        builder.Services.AddScoped<IResourceService, AzureResourceService>();
+        builder.Services.AddScoped<IBlobStorage, AzureBlobStorage>();
+        builder.Services.AddScoped<IResourceService, ResourceService>();
+        builder.Services.AddScoped<IMediaProcessorService, MediaProcessorService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddSingleton(sp => {
