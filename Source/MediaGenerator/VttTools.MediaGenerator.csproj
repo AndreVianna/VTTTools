@@ -47,6 +47,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
+    <ProjectReference Include="..\AI\VttTools.AI.csproj" />
   </ItemGroup>
 
 </Project>

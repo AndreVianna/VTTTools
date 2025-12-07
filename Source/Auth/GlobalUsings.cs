@@ -25,8 +25,6 @@ global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Identity.Model;
-global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;
 global using VttTools.Services;
-global using VttTools.Utilities;

@@ -55,7 +55,7 @@ internal static class Mapper {
             Id = model.Id,
             ResourceType = model.ResourceType,
             Classification = new ResourceClassificationEntity {
-                Kind = model.Classification.ContentKind,
+                Kind = model.Classification.Kind,
                 Category = model.Classification.Category,
                 Type = model.Classification.Type,
                 Subtype = model.Classification.Subtype,
@@ -80,7 +80,7 @@ internal static class Mapper {
     internal static void UpdateFrom(this ResourceEntity entity, ResourceMetadata model) {
         entity.ResourceType = model.ResourceType;
         entity.Classification = new ResourceClassificationEntity {
-            Kind = model.Classification.ContentKind,
+            Kind = model.Classification.Kind,
             Category = model.Classification.Category,
             Type = model.Classification.Type,
             Subtype = model.Classification.Subtype,

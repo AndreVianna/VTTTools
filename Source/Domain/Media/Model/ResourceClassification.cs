@@ -1,7 +1,7 @@
 namespace VttTools.Media.Model;
 
 public sealed record ResourceClassification(
-    string ContentKind,
+    string Kind,
     string Category,
     string Type,
     string? Subtype) {

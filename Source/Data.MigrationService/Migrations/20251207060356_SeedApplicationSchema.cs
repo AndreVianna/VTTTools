@@ -9,14 +9,14 @@ public partial class SeedApplicationSchema : Migration {
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(
             table: "Resources",
-            columns: ["Id", "OwnerId", "ResourceType", "ContentType", "Path", "FileName", "FileLength", "Duration", "Height", "Width"],
+            columns: ["Id", "OwnerId", "ResourceType", "Kind", "Category", "Type", "Subtype", "ContentType", "Path", "FileName", "FileLength", "Duration", "Height", "Width"],
             values: new object[,]
             {
-                { new Guid("019A50F8-F3E5-702B-89D3-33D694391F66"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "image/png", "images/1f66/019a50f8f3e5702b89d333d694391f66", "wooden-crate.png", 1170, "00:00:00.0000000", 200, 200 },
-                { new Guid("019A50CE-4B04-7378-8E6E-372BDF798985"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "image/png", "images/8985/019a50ce4b0473788e6e372bdf798985", "goblin.png", 8193, "00:00:00.0000000", 200, 200 },
-                { new Guid("019A50F8-394B-79D2-9660-9B803391DD71"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "image/png", "images/dd71/019a50f8394b79d296609b803391dd71", "hero-character.png", 6821, "00:00:00.0000000", 200, 200 },
-                { new Guid("019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "image/png", "images/fa86/019a50f8af0e7edebbabc1aa0775fa86", "treasure-chest.png", 2286, "00:00:00.0000000", 200, 200 },
-                { new Guid("019ACE1D-5B91-72D1-8D9F-70640D3DBFE1"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Background", "image/png", "images/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", "The_Nesti.png",   1394149, "00:00:00.0000000", 1026, 972 },
+                { new Guid("019A50F8-F3E5-702B-89D3-33D694391F66"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "Object", "Container", "Storage", null, "image/png", "images/1f66/019a50f8f3e5702b89d333d694391f66", "wooden-crate.png", 1170, "00:00:00.0000000", 200, 200 },
+                { new Guid("019A50CE-4B04-7378-8E6E-372BDF798985"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "Creature", "Monster", "Fey", "Goblinoid", "image/png", "images/8985/019a50ce4b0473788e6e372bdf798985", "goblin.png", 8193, "00:00:00.0000000", 200, 200 },
+                { new Guid("019A50F8-394B-79D2-9660-9B803391DD71"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "Character", "Elf", "Paladin", null, "image/png", "images/dd71/019a50f8394b79d296609b803391dd71", "hero-character.png", 6821, "00:00:00.0000000", 200, 200 },
+                { new Guid("019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "Object", "Container", "Storage", null, "image/png", "images/fa86/019a50f8af0e7edebbabc1aa0775fa86", "treasure-chest.png", 2286, "00:00:00.0000000", 200, 200 },
+                { new Guid("019ACE1D-5B91-72D1-8D9F-70640D3DBFE1"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Background", "Map", "Encounter", "House", "Interior", "image/png", "images/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", "The_Nesti.png", 1394149, "00:00:00.0000000", 1026, 972 },
             });
 
         migrationBuilder.InsertData(
@@ -62,7 +62,7 @@ public partial class SeedApplicationSchema : Migration {
             ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
             ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
             ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),
-            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Character', 'Elf', 'Paladin (Squire)', 'Pelotas', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
+            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf', 'Paladin', 'Squire', 'Pelotas', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
             """
         );
 

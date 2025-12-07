@@ -108,9 +108,7 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
   );
 
   const apiEndpoints = getApiEndpoints();
-  const backgroundUrl = adventure.background
-    ? `${apiEndpoints.media}/${adventure.background.id}`
-    : ADVENTURE_DEFAULT_BACKGROUND;
+  const resourceUrl = adventure.background ? `${apiEndpoints.media}/${adventure.background.id}` : null;
 
   return (
     <ContentCard
@@ -119,7 +117,8 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
         type: ContentType.Adventure,
         name: adventure.name,
         isPublished: adventure.isPublished,
-        thumbnailUrl: backgroundUrl,
+        thumbnailUrl: ADVENTURE_DEFAULT_BACKGROUND,
+        resourceUrl,
       }}
       onClick={onOpen}
       badges={badges}

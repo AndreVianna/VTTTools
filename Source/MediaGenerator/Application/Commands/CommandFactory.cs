@@ -1,4 +1,7 @@
-﻿namespace VttTools.MediaGenerator.Application.Commands;
+﻿using VttTools.AI.ImageGeneration;
+using VttTools.AI.PromptEnhancement;
+
+namespace VttTools.MediaGenerator.Application.Commands;
 
 internal static class CommandFactory {
     public static Command CreatePrepareCommand(
@@ -29,10 +32,10 @@ internal static class CommandFactory {
             }
 
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
-            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+            var promptEnhancementService = serviceProvider.GetRequiredService<IPromptEnhancementService>();
 
             var imageStore = new HierarchicalFileStore(outputDir.FullName);
-            var cmd = new PrepareCommand(httpClientFactory, imageStore, config);
+            var cmd = new PrepareCommand(promptEnhancementService, imageStore, config);
             var options = new PrepareOptions(inputFile.FullName, showAll, limit);
 
             return await cmd.ExecuteAsync(options, CancellationToken.None);
@@ -73,11 +76,11 @@ internal static class CommandFactory {
             ConsoleOutput.WriteLine($"  output          : {outputDir.FullName}");
 
             using var serviceProvider = serviceCollection.BuildServiceProvider();
-            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+            var imageGenerationService = serviceProvider.GetRequiredService<IImageGenerationService>();
 
             var imageStore = new HierarchicalFileStore(outputDir.FullName);
 
-            var cmd = new GenerateCommand(httpClientFactory, imageStore, config);
+            var cmd = new GenerateCommand(imageGenerationService, imageStore, config);
 
             var options = new GenerateOptions(
                 InputPath: inputFile.FullName,

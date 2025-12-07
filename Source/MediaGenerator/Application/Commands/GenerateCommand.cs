@@ -1,6 +1,8 @@
+using VttTools.AI.ImageGeneration;
+
 namespace VttTools.MediaGenerator.Application.Commands;
 
-public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
+public sealed class GenerateCommand(VttTools.AI.ImageGeneration.IImageGenerationService imageGenerationService,
                                     IFileStore fileStore,
                                     IConfiguration config) {
 
@@ -152,29 +154,42 @@ public sealed class GenerateCommand(IHttpClientFactory httpClientFactory,
         if (finalPrompt is null)
             return (skipOrOverwriteState, 0.0);
 
-        var provider = config[$"Images:{imageType}:Provider"] ?? throw new InvalidOperationException($"{imageType} provider not configured.");
-        IImageGenerator imageGenerator = provider.ToUpperInvariant() switch {
-            "STABILITY" => new StabilityClient(httpClientFactory, config),
-            "OPENAI" => new OpenAiImageGenerator(httpClientFactory, config),
-            "GOOGLE" => new GoogleClient(httpClientFactory, config),
-            _ => throw new InvalidOperationException($"Unsupported image generation provider: {provider}.")
+        var providerName = config[$"Images:{imageType}:Provider"] ?? throw new InvalidOperationException($"{imageType} provider not configured.");
+        var model = config[$"Images:{imageType}:Model"] ?? throw new InvalidOperationException($"{imageType} model not configured.");
+        var aspectRatio = config[$"Images:{imageType}:AspectRatio"] ?? "1:1";
+
+        var provider = ParseProvider(providerName);
+        var request = new ImageGenerationRequest {
+            Prompt = finalPrompt,
+            Provider = provider,
+            Model = model,
+            AspectRatio = aspectRatio
         };
 
-        var model = config[$"Images:{imageType}:Model"] ?? throw new InvalidOperationException($"{imageType} model not configured.");
-
-        var result = await imageGenerator.GenerateImageFileAsync(model, imageType, finalPrompt, ct);
-        if (result.IsSuccess) {
-            await fileStore.SaveImageAsync(imageType, asset, tokenIndex, result.Data, ct);
+        var result = await imageGenerationService.GenerateAsync(request, ct);
+        if (result.IsSuccessful) {
+            var response = result.Value;
+            await fileStore.SaveImageAsync(imageType, asset, tokenIndex, response.ImageData, ct);
             Console.ForegroundColor = ConsoleColor.Green;
-            ConsoleOutput.WriteLine($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✓ Success");
+            ConsoleOutput.WriteLine($" Elapsed: {response.Duration:mm\\:ss\\.fff} ✓ Success");
+            Console.ResetColor();
+            return (skipOrOverwriteState, (double)response.Cost);
         }
-        else {
-            Console.ForegroundColor = ConsoleColor.Red;
-            ConsoleOutput.WriteLine($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✗ Failed to genrate {imageType} for {asset.Name} #{tokenIndex}: {result.ErrorMessage}");
-        }
+
+        var error = result.Errors[0].Message;
+        Console.ForegroundColor = ConsoleColor.Red;
+        ConsoleOutput.WriteLine($" ✗ Failed to generate {imageType} for {asset.Name} #{tokenIndex}: {error}");
         Console.ResetColor();
-        return (skipOrOverwriteState, result.TotalCost);
+        return (skipOrOverwriteState, 0.0);
     }
+
+    private static AiProviderType ParseProvider(string providerName)
+        => providerName.ToUpperInvariant() switch {
+            "OPENAI" => AiProviderType.OpenAi,
+            "STABILITY" => AiProviderType.Stability,
+            "GOOGLE" => AiProviderType.Google,
+            _ => throw new InvalidOperationException($"Unsupported image generation provider: {providerName}.")
+        };
 
     private async Task<string?> GetImagePromptAsync(string imageType, Asset entity, int tokenIndex, CancellationToken ct) {
         var promptFilePath = fileStore.FindPromptFile(imageType, entity, tokenIndex);

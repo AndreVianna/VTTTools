@@ -55,7 +55,7 @@ public class ResourceService(
                 ResourceType = ResourceType.Undefined,
                 Path = path,
                 ContentType = processed.ContentType,
-                FileLength = (ulong)processed.FileLength,
+                FileLength = processed.FileLength,
                 FileName = processed.FileName,
                 Duration = processed.Duration,
                 Size = processed.Size,

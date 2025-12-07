@@ -1,6 +1,7 @@
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using AssetStatBlockValue = VttTools.Data.Assets.Entities.AssetStatBlockValue;
 using AssetToken = VttTools.Data.Assets.Entities.AssetToken;
+using AssetClassification = VttTools.Data.Assets.Entities.AssetClassification;
 
 namespace VttTools.Data.Builders;
 
@@ -12,14 +13,14 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.OwnsOne(e => e.Classification, classificationBuilder => {
-                classificationBuilder.Property(c => c.Kind).IsRequired().HasConversion<string>().HasColumnName("Kind");
-                classificationBuilder.Property(c => c.Category).IsRequired().HasColumnName("Category");
-                classificationBuilder.Property(c => c.Type).IsRequired().HasColumnName("ResourceType");
-                classificationBuilder.Property(c => c.Subtype).IsRequired(false).HasColumnName("Subtype");
+                classificationBuilder.Property(c => c.Kind).IsRequired().HasConversion<string>().HasColumnName(nameof(AssetClassification.Kind));
+                classificationBuilder.Property(c => c.Category).IsRequired().HasMaxLength(64).HasColumnName(nameof(AssetClassification.Category));
+                classificationBuilder.Property(c => c.Type).IsRequired().HasMaxLength(64).HasColumnName(nameof(AssetClassification.Type));
+                classificationBuilder.Property(c => c.Subtype).IsRequired(false).HasMaxLength(64).HasColumnName(nameof(AssetClassification.Subtype));
             });
             entity.OwnsOne(ea => ea.TokenSize, sizeBuilder => {
-                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("Width");
-                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("Height");
+                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0).HasColumnName(nameof(Size.Width));
+                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0).HasColumnName(nameof(Size.Height));
             });
             entity.HasMany(e => e.StatBlock)
                 .WithOne(e => e.Asset)

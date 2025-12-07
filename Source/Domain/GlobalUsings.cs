@@ -12,6 +12,10 @@ global using DotNetToolbox.Validation;
 global using Microsoft.AspNetCore.Identity;
 
 global using VttTools.Admin.ApiContracts;
+global using VttTools.AI.AudioGeneration;
+global using VttTools.AI.ImageGeneration;
+global using VttTools.AI.PromptEnhancement;
+global using VttTools.AI.VideoGeneration;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.ServiceContracts;
 global using VttTools.Assets.Storage;

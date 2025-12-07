@@ -21,6 +21,8 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/common';
+import { AuthenticatedBackgroundBox } from '@/components/common/AuthenticatedBackgroundBox';
+import { useAuthenticatedImageUrl } from '@/hooks/useAuthenticatedImageUrl';
 import { getApiEndpoints } from '@/config/development';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import {
@@ -315,7 +317,9 @@ export function WorldDetailPage() {
   };
 
   const apiEndpoints = getApiEndpoints();
-  const backgroundUrl = world.background ? `${apiEndpoints.media}/${world.background.id}` : WORLD_DEFAULT_BACKGROUND;
+  const resourceUrl = world.background ? `${apiEndpoints.media}/${world.background.id}` : null;
+  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
+  const backgroundUrl = backgroundBlobUrl || WORLD_DEFAULT_BACKGROUND;
 
   return (
     <Box

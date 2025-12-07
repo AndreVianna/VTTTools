@@ -21,6 +21,7 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/common';
+import { useAuthenticatedImageUrl } from '@/hooks/useAuthenticatedImageUrl';
 import { getApiEndpoints } from '@/config/development';
 import {
   useCloneAdventureMutation,
@@ -317,9 +318,9 @@ export function CampaignDetailPage() {
   };
 
   const apiEndpoints = getApiEndpoints();
-  const backgroundUrl = campaign.background
-    ? `${apiEndpoints.media}/${campaign.background.id}`
-    : CAMPAIGN_DEFAULT_BACKGROUND;
+  const resourceUrl = campaign.background ? `${apiEndpoints.media}/${campaign.background.id}` : null;
+  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
+  const backgroundUrl = backgroundBlobUrl || CAMPAIGN_DEFAULT_BACKGROUND;
 
   return (
     <Box

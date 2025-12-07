@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 
 export type ViewMode = 'grid-large' | 'grid-small' | 'table';
-export type SortField = 'name' | 'category' | 'type' | 'createdAt';
+export type SortField = 'name' | 'category' | 'type';
 export type SortDirection = 'asc' | 'desc';
 
 export interface BrowserToolbarProps {
@@ -130,7 +130,6 @@ export const BrowserToolbar: React.FC<BrowserToolbarProps> = ({
           <MenuItem value="name">Name</MenuItem>
           <MenuItem value="category">Category</MenuItem>
           <MenuItem value="type">Type</MenuItem>
-          <MenuItem value="createdAt">Date</MenuItem>
         </Select>
         <Tooltip title={`Sort ${sortDirection === 'asc' ? 'Ascending' : 'Descending'}`}>
           <IconButton size="small" onClick={handleSortDirectionToggle}>

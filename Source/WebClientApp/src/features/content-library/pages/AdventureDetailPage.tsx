@@ -27,6 +27,7 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/common';
+import { useAuthenticatedImageUrl } from '@/hooks/useAuthenticatedImageUrl';
 import { getApiEndpoints } from '@/config/development';
 import {
   adventuresApi,
@@ -358,9 +359,9 @@ export function AdventureDetailPage() {
   };
 
   const apiEndpoints = getApiEndpoints();
-  const backgroundUrl = adventure.background
-    ? `${apiEndpoints.media}/${adventure.background.id}`
-    : ADVENTURE_DEFAULT_BACKGROUND;
+  const resourceUrl = adventure.background ? `${apiEndpoints.media}/${adventure.background.id}` : null;
+  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
+  const backgroundUrl = backgroundBlobUrl || ADVENTURE_DEFAULT_BACKGROUND;
 
   return (
     <Box

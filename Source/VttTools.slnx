@@ -20,6 +20,9 @@
   </Folder>
   <Folder Name="/Source/2 Services/">
     <Project Path="Admin/VttTools.Admin.csproj" />
+    <Project Path="AI/VttTools.AI.csproj">
+      <BuildType Solution="Debug|Any CPU" Project="Release" />
+    </Project>
     <Project Path="Assets/VttTools.Assets.csproj">
       <BuildType Solution="Debug|Any CPU" Project="Release" />
     </Project>
@@ -67,6 +70,9 @@
   </Folder>
   <Folder Name="/Tests/2 Services/">
     <Project Path="Admin.UnitTests/VttTools.Admin.UnitTests.csproj">
+      <BuildType Solution="Debug|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="AI.UnitTests/VttTools.AI.UnitTests.csproj">
       <BuildType Solution="Debug|Any CPU" Project="Release" />
     </Project>
     <Project Path="Assets.UnitTests/VttTools.Assets.UnitTests.csproj">

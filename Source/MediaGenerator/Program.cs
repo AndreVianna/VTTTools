@@ -1,4 +1,8 @@
-﻿using static VttTools.MediaGenerator.Application.Commands.CommandFactory;
+﻿using VttTools.AI.ImageGeneration;
+using VttTools.AI.PromptEnhancement;
+using VttTools.AI.Services;
+
+using static VttTools.MediaGenerator.Application.Commands.CommandFactory;
 
 var config = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -10,7 +14,14 @@ var config = new ConfigurationBuilder()
 var serviceCollection = new ServiceCollection();
 serviceCollection.AddSingleton<IConfiguration>(config);
 serviceCollection.AddHttpClient();
-serviceCollection.AddSingleton<IPromptEnhancer, OpenAiPromptEnhancer>();
+
+serviceCollection.AddScoped<IImageProvider, OpenAiImageProvider>();
+serviceCollection.AddScoped<IImageProvider, StabilityImageProvider>();
+serviceCollection.AddScoped<IImageProvider, GoogleImageProvider>();
+serviceCollection.AddScoped<IPromptProvider, OpenAiPromptProvider>();
+serviceCollection.AddScoped<IAiProviderFactory, AiProviderFactory>();
+serviceCollection.AddScoped<IImageGenerationService, ImageGenerationService>();
+serviceCollection.AddScoped<IPromptEnhancementService, PromptEnhancementService>();
 
 var outputDir = new DirectoryInfo(config["OutputFolder"] ?? "Output");
 Directory.CreateDirectory(outputDir.FullName);

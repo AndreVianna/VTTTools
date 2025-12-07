@@ -17,6 +17,7 @@ import {
 } from '@/features/content-library/pages';
 import { useAuth } from '@/hooks/useAuth';
 import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
+import { MediaLibraryPage } from '@/pages/MediaLibraryPage';
 import { AssetStudioPage } from '@/pages/AssetStudioPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
@@ -97,6 +98,17 @@ function AppRoutes() {
               <AppLayout>
                 <ProtectedRoute authLevel='authorized'>
                   <AssetLibraryPage />
+                </ProtectedRoute>
+              </AppLayout>
+            }
+          />
+
+          <Route
+            path='/media'
+            element={
+              <AppLayout>
+                <ProtectedRoute authLevel='authorized'>
+                  <MediaLibraryPage />
                 </ProtectedRoute>
               </AppLayout>
             }

@@ -2,7 +2,7 @@ namespace VttTools.MediaGenerator.UnitTests.Application.Commands;
 
 public sealed class GenerateCommandTests : IDisposable {
     private readonly string _tempDir;
-    private readonly MockHttpClientFactory _mockHttpClientFactory;
+    private readonly MockImageGenerationService _mockImageService;
     private readonly HierarchicalFileStore _realFileStore;
     private readonly IFileStore _mockFileStore;
     private readonly GenerateCommand _command;
@@ -12,16 +12,12 @@ public sealed class GenerateCommandTests : IDisposable {
         _tempDir = Path.Combine(Directory.GetCurrentDirectory(), $"TokenManagerTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
-        _mockHttpClientFactory = new MockHttpClientFactory();
+        _mockImageService = new MockImageGenerationService();
         _realFileStore = new HierarchicalFileStore(_tempDir);
         _mockFileStore = Substitute.For<IFileStore>();
         _mockConfiguration = Substitute.For<IConfiguration>();
 
         SetupFileStoreDelegation();
-
-        _mockConfiguration["Providers:Stability:BaseUrl"].Returns("https://api.stability.ai");
-        _mockConfiguration["Providers:Stability:ApiKey"].Returns("test-api-key");
-        _mockConfiguration["Providers:Stability:sb35:Path"].Returns("/v2beta/stable-image/generate/sd3");
 
         _mockConfiguration["Images:TopDown:Provider"].Returns("STABILITY");
         _mockConfiguration["Images:TopDown:Model"].Returns("sb35");
@@ -37,7 +33,7 @@ public sealed class GenerateCommandTests : IDisposable {
         _mockConfiguration["Images:Portrait:AspectRatio"].Returns("1:1");
 
         _command = new GenerateCommand(
-            _mockHttpClientFactory,
+            _mockImageService,
             _mockFileStore,
             _mockConfiguration);
     }
@@ -79,7 +75,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Empty(_mockHttpClientFactory.ReceivedRequests);
+        Assert.Empty(_mockImageService.ReceivedRequests);
     }
 
     [Fact]
@@ -92,7 +88,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Empty(_mockHttpClientFactory.ReceivedRequests);
+        Assert.Empty(_mockImageService.ReceivedRequests);
     }
 
     [Fact]
@@ -107,7 +103,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Empty(_mockHttpClientFactory.ReceivedRequests);
+        Assert.Empty(_mockImageService.ReceivedRequests);
     }
 
     [Fact]
@@ -121,7 +117,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
         await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
-        Assert.Empty(_mockHttpClientFactory.ReceivedRequests);
+        Assert.Empty(_mockImageService.ReceivedRequests);
     }
 
     [Fact]
@@ -131,7 +127,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         for (var i = 0; i < 5; i++) {
-            _mockHttpClientFactory.EnqueueFakeImage();
+            _mockImageService.EnqueueSuccess();
         }
         SetConsoleInput("\n");
 
@@ -144,7 +140,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockHttpClientFactory.ReceivedRequests.Should().HaveCount(5);
+        _mockImageService.ReceivedRequests.Should().HaveCount(5);
     }
 
     [Fact]
@@ -155,7 +151,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 1);
         await CreatePromptFilesAsync(entity, 2);
         for (var i = 0; i < 7; i++) {
-            _mockHttpClientFactory.EnqueueFakeImage();
+            _mockImageService.EnqueueSuccess();
         }
         SetConsoleInput("\n");
 
@@ -168,7 +164,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockHttpClientFactory.ReceivedRequests.Should().HaveCount(7);
+        _mockImageService.ReceivedRequests.Should().HaveCount(7);
     }
 
     [Fact]
@@ -203,7 +199,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(orc, 0);
         await CreatePromptFilesAsync(orc, 1);
         for (var i = 0; i < 5; i++) {
-            _mockHttpClientFactory.EnqueueFakeImage();
+            _mockImageService.EnqueueSuccess();
         }
         SetConsoleInput("\n");
 
@@ -216,7 +212,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockHttpClientFactory.ReceivedRequests.Should().HaveCount(5);
+        _mockImageService.ReceivedRequests.Should().HaveCount(5);
     }
 
     [Fact]
@@ -232,7 +228,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(kobold, 0);
         await CreatePromptFilesAsync(kobold, 1);
         for (var i = 0; i < 15; i++) {
-            _mockHttpClientFactory.EnqueueFakeImage();
+            _mockImageService.EnqueueSuccess();
         }
         SetConsoleInput("\n");
 
@@ -245,7 +241,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockHttpClientFactory.ReceivedRequests.Should().HaveCount(15);
+        _mockImageService.ReceivedRequests.Should().HaveCount(15);
     }
 
     [Fact]
@@ -255,7 +251,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         for (var i = 0; i < 5; i++) {
-            _mockHttpClientFactory.EnqueueFakeImage();
+            _mockImageService.EnqueueSuccess();
         }
         SetConsoleInput("\n");
 
@@ -280,7 +276,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         for (var i = 0; i < 5; i++) {
-            _mockHttpClientFactory.EnqueueFakeImage();
+            _mockImageService.EnqueueSuccess();
         }
         SetConsoleInput("\n");
 

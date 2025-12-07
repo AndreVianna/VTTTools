@@ -1,6 +1,8 @@
+using VttTools.AI.PromptEnhancement;
+
 namespace VttTools.MediaGenerator.Application.Commands;
 
-public sealed class PrepareCommand(IHttpClientFactory httpClientFactory,
+public sealed class PrepareCommand(VttTools.AI.PromptEnhancement.IPromptEnhancementService promptEnhancementService,
                                    IFileStore fileStore,
                                    IConfiguration config) {
 
@@ -53,7 +55,7 @@ public sealed class PrepareCommand(IHttpClientFactory httpClientFactory,
         foreach (var (assetIndex, asset, tokenIndex, token) in assets.SelectMany((e, i) =>
             e.Tokens.Count > 0
                 ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (ResourceMetadata?)v))
-                : [(assetIndex: i, entity: e, tokenIndex: 0, token: (ResourceMetadata?)null)])) {
+                : [(assetIndex: i, entity: e, tokenIndex: 0, token: null)])) {
             ct.ThrowIfCancellationRequested();
             if (replace is AllowOverwriteResult.Cancel) {
                 skipCount = totalFiles - (processedCount + skipCount);
@@ -113,22 +115,105 @@ public sealed class PrepareCommand(IHttpClientFactory httpClientFactory,
             }
         }
 
-        var provider = config["PromptEnhancer:Provider"] ?? throw new InvalidOperationException("Prompt enhancer provider not configured.");
-        IPromptEnhancer promptEnhancer = provider.ToUpperInvariant() switch {
-            "OPENAI" => new OpenAiPromptEnhancer(httpClientFactory, config),
-            _ => throw new InvalidOperationException($"Unsupported prompt enhancer provider: {provider}.")
+        var providerName = config["PromptEnhancer:Provider"] ?? throw new InvalidOperationException("Prompt enhancer provider not configured.");
+        var model = config["PromptEnhancer:Model"] ?? throw new InvalidOperationException("Prompt enhancer model not configured.");
+
+        var provider = ParseProvider(providerName);
+        var request = BuildPromptRequest(imageType, entity, tokenIndex, provider, model);
+
+        var result = await promptEnhancementService.EnhanceAsync(request, ct);
+        if (result.IsSuccessful) {
+            var response = result.Value;
+            await fileStore.SavePromptAsync(imageType, entity, tokenIndex, response.EnhancedPrompt, ct);
+            ConsoleOutput.WriteSuccess($" Elapsed: {response.Duration:mm\\:ss\\.fff} ✓ Success");
+            return (skipOrOverwriteState, (double)response.Cost);
+        }
+
+        var error = result.Errors[0].Message;
+        ConsoleOutput.WriteError($" ✗ Failed to enhance {imageType} prompt for {entity.Name} #{tokenIndex}: {error}");
+        return (skipOrOverwriteState, 0.0);
+    }
+
+    private static AiProviderType ParseProvider(string providerName)
+        => providerName.ToUpperInvariant() switch {
+            "OPENAI" => AiProviderType.OpenAi,
+            "GOOGLE" => AiProviderType.Google,
+            _ => throw new InvalidOperationException($"Unsupported prompt enhancer provider: {providerName}.")
         };
 
-        var result = await promptEnhancer.EnhancePromptAsync(imageType, entity, tokenIndex, ct);
-        if (result.IsSuccess) {
-            await fileStore.SavePromptAsync(imageType, entity, tokenIndex, result.Prompt, ct);
-            ConsoleOutput.WriteSuccess($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✓ Success");
-        }
-        else {
-            ConsoleOutput.WriteError($" Elapsed: {result.Duration:mm\\:ss\\.fff} ✗ Failed to enhance {imageType} prompt for {entity.Name} #{tokenIndex}: {result.ErrorMessage}");
-        }
-        return (skipOrOverwriteState, result.TotalCost);
+    private static PromptEnhancementRequest BuildPromptRequest(
+        string imageType,
+        Asset asset,
+        int tokenIndex,
+        AiProviderType provider,
+        string model) {
+        var userPrompt = BuildUserPrompt(imageType, asset, tokenIndex);
+        var systemPrompt = BuildSystemPrompt(imageType, asset);
+
+        return new PromptEnhancementRequest {
+            Prompt = userPrompt,
+            Context = systemPrompt,
+            Provider = provider,
+            Model = model
+        };
     }
+
+    private static string BuildSystemPrompt(string imageType, Asset asset)
+        => $""""
+        You are an expert at creating image generation prompts for a high quality {asset.Classification.Kind} illustration.
+        Your task in to create a detailed prompt that generates an image that captures all of the details described below."
+        You MUST ensure that the image that the prompt describes is {ImageDescriptionFor(imageType, asset)} in a Virtual Tabletop Web Application.
+        You MUST also ensure that the image does not contain any border, frame, text, watermark, signature, blurry, multiple subjects, duplicates, cropped edges, cropped parts, distorted shapes, and incorrect forms, body parts or perspective."
+        The image MUST be a realistic color-pencil illustration, with vivid colors, good contrast, with focus on the {asset.Classification.Kind} described below."
+        The output MUST be a simple text that will be immediatelly submitted to an image generator AI."
+        It MUST not have any preamble or explanation or the result, only the prompt text tailored for image generation."
+        Here is the {asset.Classification.Kind} description:
+        """";
+
+    private static string ImageDescriptionFor(string imageType, Asset asset)
+        => imageType switch {
+            "TopDown" => $"a bird's eye, top-down of the {asset.Classification.Kind}, with a transparent background to be seamless integrated into a virtual battlemap",
+            "CloseUp" => $"a close-up of the main features of the {asset.Classification.Kind}, with a solid neutral background, to be used as a token on a virtual battlemap",
+            _ => $"a portrait of the {asset.Classification.Kind}, displaying it in full view, with an image background that highlights the {BackgroundFor(asset)}, to be used as the {asset.Classification.Kind} display",
+        };
+
+    private static string BackgroundFor(Asset asset) => asset.Classification.Kind switch {
+        AssetKind.Creature => $"{asset.Classification.Kind} in its natural environment",
+        AssetKind.Character => $"{asset.Classification.Kind}'s background",
+        _ => $"{asset.Classification.Kind}",
+    };
+
+    private static string BuildUserPrompt(string imageType, Asset asset, int tokenIndex) {
+        var sb = new StringBuilder();
+        sb.AppendLine($"{asset.Name}; {BuildType(asset)}.");
+        AppendAssetDescription(sb, asset);
+        AppendImageDescription(sb, imageType, asset, tokenIndex);
+        return sb.ToString();
+    }
+
+    private static void AppendAssetDescription(StringBuilder sb, Asset asset) {
+        if (!string.IsNullOrWhiteSpace(asset.Description))
+            sb.AppendLine($"The subject is described as {asset.Description}. ");
+    }
+
+    private static void AppendImageDescription(
+        StringBuilder sb,
+        string imageType,
+        Asset asset,
+        int tokenIndex) {
+        if (imageType.Equals("Portrait", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(asset.Portrait?.Description)) {
+            sb.AppendLine(asset.Portrait.Description);
+            return;
+        }
+
+        if (tokenIndex >= 0 && tokenIndex < asset.Tokens.Count)
+            sb.AppendLine(asset.Tokens[tokenIndex].Description);
+    }
+
+    private static string BuildType(Asset entity)
+        => string.IsNullOrWhiteSpace(entity.Classification.Type) ? ""
+        : string.IsNullOrWhiteSpace(entity.Classification.Subtype) ? $" {entity.Classification.Type}"
+        : $" {entity.Classification.Type} ({entity.Classification.Subtype})";
 
     private static IReadOnlyList<string> ImageTypeFor(AssetKind kind, bool isToken = false)
         => kind switch {

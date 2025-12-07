@@ -1,6 +1,7 @@
 using Asset = VttTools.Assets.Model.Asset;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
+using AssetClassification = VttTools.Data.Assets.Entities.AssetClassification;
 using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
 
 namespace VttTools.Data.Assets;
@@ -10,7 +11,7 @@ internal static class Mapper {
         => new() {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
-            Classification = entity.Classification,
+            Classification = new(entity.Classification.Kind, entity.Classification.Category, entity.Classification.Type, entity.Classification.Subtype),
             Name = entity.Name,
             Description = entity.Description,
             TokenSize = entity.TokenSize,
@@ -32,7 +33,7 @@ internal static class Mapper {
            : new Asset {
                Id = entity.Id,
                OwnerId = entity.OwnerId,
-               Classification = entity.Classification,
+               Classification = new(entity.Classification.Kind, entity.Classification.Category, entity.Classification.Type, entity.Classification.Subtype),
                Name = entity.Name,
                Description = entity.Description,
                IsPublic = entity.IsPublic,
@@ -51,7 +52,12 @@ internal static class Mapper {
         => new() {
             Id = model.Id,
             OwnerId = model.OwnerId,
-            Classification = model.Classification,
+            Classification = new() {
+                Kind = model.Classification.Kind,
+                Category = model.Classification.Category,
+                Type = model.Classification.Type,
+                Subtype = model.Classification.Subtype
+            },
             Name = model.Name,
             Description = model.Description,
             IsPublic = model.IsPublic,
@@ -71,7 +77,12 @@ internal static class Mapper {
         };
 
     public static void UpdateFrom(this AssetEntity entity, Asset model) {
-        entity.Classification = model.Classification;
+        entity.Classification = new() {
+            Kind = model.Classification.Kind,
+            Category = model.Classification.Category,
+            Type = model.Classification.Type,
+            Subtype = model.Classification.Subtype
+        };
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.IsPublic = model.IsPublic;

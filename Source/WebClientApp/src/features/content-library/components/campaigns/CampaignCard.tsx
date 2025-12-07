@@ -53,9 +53,7 @@ export function CampaignCard({ campaign, onOpen, onDuplicate, onDelete }: Campai
   );
 
   const apiEndpoints = getApiEndpoints();
-  const backgroundUrl = campaign.background
-    ? `${apiEndpoints.media}/${campaign.background.id}`
-    : CAMPAIGN_DEFAULT_BACKGROUND;
+  const resourceUrl = campaign.background ? `${apiEndpoints.media}/${campaign.background.id}` : null;
 
   return (
     <ContentCard
@@ -64,7 +62,8 @@ export function CampaignCard({ campaign, onOpen, onDuplicate, onDelete }: Campai
         type: ContentType.Campaign,
         name: campaign.name,
         isPublished: campaign.isPublished,
-        thumbnailUrl: backgroundUrl,
+        thumbnailUrl: CAMPAIGN_DEFAULT_BACKGROUND,
+        resourceUrl,
       }}
       onClick={onOpen}
       badges={badges}

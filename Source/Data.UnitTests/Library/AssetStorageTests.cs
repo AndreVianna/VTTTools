@@ -132,7 +132,12 @@ public class AssetStorageTests
         var entity = new Assets.Entities.Asset {
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
-            Classification = new(AssetKind.Character, "test-category", "test-type", null),
+            Classification = new() {
+                Kind = AssetKind.Character,
+                Category = "test-category",
+                Type = "test-type",
+                Subtype = null,
+            },
             Name = "Asset With Images",
             Description = "Test description",
             IsPublished = false,

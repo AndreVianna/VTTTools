@@ -1,0 +1,71 @@
+namespace VttTools.AI.Providers.OpenAi;
+
+internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, IConfiguration config) {
+    private static readonly JsonSerializerOptions _jsonOptions = new() {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        PropertyNameCaseInsensitive = true
+    };
+
+    public HttpClient CreateAuthenticatedClient() {
+        var client = httpClientFactory.CreateClient();
+        var baseUrl = config["AI:Providers:OpenAI:BaseUrl"]
+            ?? throw new InvalidOperationException("OpenAI API base url not configured.");
+        client.BaseAddress = new Uri(baseUrl);
+
+        var apiKey = config["AI:Providers:OpenAI:ApiKey"]
+            ?? throw new InvalidOperationException("OpenAI API key is not configured.");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+        return client;
+    }
+
+    public string GetEndpoint(string model) {
+        var endpoint = model switch {
+            "gpt-image-1" => "/v1/images/generations",
+            "gpt-image-1-mini" => "/v1/images/generations",
+            "gpt-4o" => "/v1/chat/completions",
+            "gpt-4o-mini" => "/v1/chat/completions",
+            _ => config[$"AI:Providers:OpenAI:{model}"]
+                ?? throw new InvalidOperationException($"Unknown OpenAI model: {model}")
+        };
+        return endpoint;
+    }
+
+    public static async Task<T?> PostAndDeserializeAsync<T>(
+        HttpClient client,
+        string endpoint,
+        object request,
+        CancellationToken ct = default) {
+        using var response = await client.PostAsJsonAsync(endpoint, request, _jsonOptions, ct);
+
+        if (!response.IsSuccessStatusCode) {
+            var errorBody = await response.Content.ReadAsStringAsync(ct);
+            throw new InvalidOperationException(
+                $"OpenAI API error {(int)response.StatusCode}: {response.ReasonPhrase}\nDetails: {errorBody}");
+        }
+
+        var contentString = await response.Content.ReadAsStringAsync(ct);
+        return JsonSerializer.Deserialize<T>(contentString, _jsonOptions);
+    }
+
+    public static OpenAiPricingCalculator GetImagePricingCalculator(string model) {
+        var (inputCost, outputCost) = model switch {
+            "gpt-image-1" => (10.0, 40.0),
+            "gpt-image-1-mini" => (2.5, 8.0),
+            _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")
+        };
+
+        return new OpenAiPricingCalculator(inputCost, outputCost);
+    }
+
+    public static OpenAiPricingCalculator GetTextPricingCalculator(string model) {
+        var (inputCost, outputCost) = model switch {
+            "gpt-4o" => (2.5, 10.0),
+            "gpt-4o-mini" => (0.15, 0.60),
+            _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")
+        };
+
+        return new OpenAiPricingCalculator(inputCost, outputCost);
+    }
+}

@@ -9,9 +9,6 @@ global using System.Text.Json.Serialization;
 global using Azure;
 global using Azure.Storage.Blobs;
 
-global using DotNetToolbox;
-global using DotNetToolbox.Results;
-
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Builder;
@@ -31,8 +28,6 @@ global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
 
 global using SixLabors.ImageSharp;
-global using SixLabors.ImageSharp.Formats.Gif;
-global using SixLabors.ImageSharp.Formats.Webp;
 
 global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
@@ -45,6 +40,5 @@ global using VttTools.Identity.Model;
 global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;
 global using VttTools.Maintenance.Storage;
-global using VttTools.Media.ServiceContracts;
 global using VttTools.Middlewares;
 global using VttTools.Utilities;

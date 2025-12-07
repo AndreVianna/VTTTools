@@ -1,9 +1,10 @@
-import { Box, Card, CardActions, CardContent, CardMedia, Chip, Typography } from '@mui/material';
+import { Box, Card, CardActions, CardContent, CardMedia, Chip, CircularProgress, Typography } from '@mui/material';
 import type React from 'react';
+import { useAuthenticatedImageUrl } from '@/hooks/useAuthenticatedImageUrl';
 import type { ContentItemSummary } from '../../types';
 
 export interface ContentCardProps {
-  item: ContentItemSummary;
+  item: ContentItemSummary & { resourceUrl?: string | null };
   onClick: (id: string) => void;
   actions?: React.ReactNode;
   badges?: React.ReactNode;
@@ -11,6 +12,8 @@ export interface ContentCardProps {
 }
 
 export function ContentCard({ item, onClick, actions, badges, metadata }: ContentCardProps) {
+  const { blobUrl, isLoading } = useAuthenticatedImageUrl(item.resourceUrl);
+  const effectiveThumbnailUrl = blobUrl || item.thumbnailUrl;
   const handleClick = () => {
     onClick(item.id);
   };
@@ -47,17 +50,17 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
       role='button'
       aria-label={`Open ${item.name}`}
     >
-      {item.thumbnailUrl && (
+      {effectiveThumbnailUrl && (
         <CardMedia
           id={`thumbnail-${item.id}`}
           component='img'
           height='140'
-          image={item.thumbnailUrl}
+          image={effectiveThumbnailUrl}
           alt={`${item.name} thumbnail`}
           sx={{ objectFit: 'cover' }}
         />
       )}
-      {!item.thumbnailUrl && (
+      {!effectiveThumbnailUrl && (
         <Box
           id={`placeholder-${item.id}`}
           sx={{
@@ -68,9 +71,13 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
             justifyContent: 'center',
           }}
         >
-          <Typography variant='h3' color='text.disabled'>
-            🗺️
-          </Typography>
+          {isLoading ? (
+            <CircularProgress size={24} />
+          ) : (
+            <Typography variant='h3' color='text.disabled'>
+              🗺️
+            </Typography>
+          )}
         </Box>
       )}
       <CardContent id={`content-${item.id}`} sx={{ flexGrow: 1, pb: 1 }}>

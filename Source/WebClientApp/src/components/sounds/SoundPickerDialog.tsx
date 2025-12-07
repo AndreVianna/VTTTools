@@ -20,7 +20,8 @@ import {
     Typography,
     useTheme,
 } from '@mui/material';
-import { useGetMediaResourcesQuery, useUploadFileMutation } from '@/services/mediaApi';
+import { useFilterResourcesQuery, useUploadFileMutation } from '@/services/mediaApi';
+import { ResourceType } from '@/types/domain';
 import { AudioPreviewPlayer } from './AudioPreviewPlayer';
 
 export interface SoundPickerDialogProps {
@@ -43,11 +44,12 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    const { data: resources = [], isLoading, refetch } = useGetMediaResourcesQuery({
-        type: 'Audio',
-        search: searchQuery,
-        limit: 50,
-    });
+    const { data, isLoading, refetch } = useFilterResourcesQuery({
+        resourceType: ResourceType.SoundEffect,
+        searchText: searchQuery || undefined,
+        take: 50,
+    }, { skip: !open });
+    const resources = data?.items ?? [];
     const [uploadFile] = useUploadFileMutation();
 
     const filteredResources = resources.filter(() => {
@@ -85,8 +87,8 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
         try {
             const result = await uploadFile({
                 file,
-                type: 'encounter',
-                resource: 'audio',
+                mediaType: 'encounter',
+                resourceType: 'SoundEffect',
             }).unwrap();
             await refetch();
             setSelectedResourceId(result.id);

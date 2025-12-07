@@ -47,7 +47,7 @@ export function WorldCard({ world, onOpen, onDuplicate, onDelete }: WorldCardPro
   );
 
   const apiEndpoints = getApiEndpoints();
-  const backgroundUrl = world.background ? `${apiEndpoints.media}/${world.background.id}` : WORLD_DEFAULT_BACKGROUND;
+  const resourceUrl = world.background ? `${apiEndpoints.media}/${world.background.id}` : null;
 
   return (
     <ContentCard
@@ -56,7 +56,8 @@ export function WorldCard({ world, onOpen, onDuplicate, onDelete }: WorldCardPro
         type: ContentType.World,
         name: world.name,
         isPublished: world.isPublished,
-        thumbnailUrl: backgroundUrl,
+        thumbnailUrl: WORLD_DEFAULT_BACKGROUND,
+        resourceUrl,
       }}
       onClick={onOpen}
       badges={badges}

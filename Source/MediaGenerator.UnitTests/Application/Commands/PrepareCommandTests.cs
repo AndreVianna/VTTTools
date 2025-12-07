@@ -4,7 +4,7 @@ public sealed class PrepareCommandTests : IDisposable {
     private readonly string _tempDir;
     private readonly string _outputDir;
     private readonly PrepareCommand _command;
-    private readonly MockHttpClientFactory _mockHttpClientFactory;
+    private readonly MockPromptEnhancementService _mockPromptService;
     private readonly HierarchicalFileStore _realFileStore;
     private readonly IFileStore _mockFileStore;
     private readonly IConfiguration _mockConfiguration;
@@ -15,20 +15,17 @@ public sealed class PrepareCommandTests : IDisposable {
         Directory.CreateDirectory(_tempDir);
         Directory.CreateDirectory(_outputDir);
 
-        _mockHttpClientFactory = new MockHttpClientFactory();
+        _mockPromptService = new MockPromptEnhancementService();
 
         _mockConfiguration = Substitute.For<IConfiguration>();
         _mockConfiguration["PromptEnhancer:Provider"].Returns("OPENAI");
         _mockConfiguration["PromptEnhancer:Model"].Returns("gpt-5-mini");
-        _mockConfiguration["OpenAI:ApiKey"].Returns("test-key");
-        _mockConfiguration["OpenAI:Model"].Returns("gpt-5-mini");
-        _mockConfiguration["Providers:OpenAI:BaseUrl"].Returns("https://api.openai.com");
 
         _realFileStore = new HierarchicalFileStore(_outputDir);
         _mockFileStore = Substitute.For<IFileStore>();
         SetupFileStoreDelegation();
 
-        _command = new PrepareCommand(_mockHttpClientFactory, _mockFileStore, _mockConfiguration);
+        _command = new PrepareCommand(_mockPromptService, _mockFileStore, _mockConfiguration);
     }
 
     private void SetupFileStoreDelegation() {
@@ -113,8 +110,8 @@ public sealed class PrepareCommandTests : IDisposable {
         var jsonFile = await SetupMockedJsonFileAsync("single-entity.json", entity);
         var options = new PrepareOptions(jsonFile);
 
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down view");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up view");
+        _mockPromptService.EnqueueSuccess("Enhanced prompt for top-down view");
+        _mockPromptService.EnqueueSuccess("Enhanced prompt for close-up view");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -129,10 +126,10 @@ public sealed class PrepareCommandTests : IDisposable {
         var jsonFile = await SetupMockedJsonFileAsync("entity-with-variants.json", entity);
         var options = new PrepareOptions(jsonFile);
 
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 1");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 1");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for top-down token 2");
-        EnqueueOpenAiSuccessResponse("Enhanced prompt for close-up token 2");
+        _mockPromptService.EnqueueSuccess("Enhanced prompt for top-down token 1");
+        _mockPromptService.EnqueueSuccess("Enhanced prompt for close-up token 1");
+        _mockPromptService.EnqueueSuccess("Enhanced prompt for top-down token 2");
+        _mockPromptService.EnqueueSuccess("Enhanced prompt for close-up token 2");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -149,10 +146,10 @@ public sealed class PrepareCommandTests : IDisposable {
         var jsonFile = await SetupMockedJsonFileAsync("multiple-entities.json", goblin, orc);
         var options = new PrepareOptions(jsonFile);
 
-        EnqueueOpenAiSuccessResponse("Enhanced goblin top-down");
-        EnqueueOpenAiSuccessResponse("Enhanced goblin close-up");
-        EnqueueOpenAiSuccessResponse("Enhanced orc top-down");
-        EnqueueOpenAiSuccessResponse("Enhanced orc close-up");
+        _mockPromptService.EnqueueSuccess("Enhanced goblin top-down");
+        _mockPromptService.EnqueueSuccess("Enhanced goblin close-up");
+        _mockPromptService.EnqueueSuccess("Enhanced orc top-down");
+        _mockPromptService.EnqueueSuccess("Enhanced orc close-up");
 
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
@@ -169,10 +166,10 @@ public sealed class PrepareCommandTests : IDisposable {
         var options = new PrepareOptions(jsonFile);
 
         for (var i = 0; i < 55; i++) {
-            EnqueueOpenAiSuccessResponse($"Enhanced prompt for token {i} top-down");
-            EnqueueOpenAiSuccessResponse($"Enhanced prompt for token {i} close-up");
+            _mockPromptService.EnqueueSuccess($"Enhanced prompt for token {i} top-down");
+            _mockPromptService.EnqueueSuccess($"Enhanced prompt for token {i} close-up");
             if (i == 0) {
-                EnqueueOpenAiSuccessResponse($"Enhanced prompt for token {i} portrait");
+                _mockPromptService.EnqueueSuccess($"Enhanced prompt for token {i} portrait");
             }
         }
 
@@ -257,45 +254,6 @@ public sealed class PrepareCommandTests : IDisposable {
             StatBlocks = [],
             Tokens = tokens
         };
-    }
-
-    private void EnqueueOpenAiSuccessResponse(string promptText) {
-        var responseJson = $$"""
-        {
-            "id": "msg_{{Guid.NewGuid():N}}",
-            "object": "thread.message",
-            "created_at": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
-            "status": "completed",
-            "model": "gpt-5-mini",
-            "output": [
-                {
-                    "type": "message",
-                    "id": "msg_item_{{Guid.NewGuid():N}}",
-                    "status": "completed",
-                    "role": "system"
-                },
-                {
-                    "type": "message",
-                    "id": "msg_item_{{Guid.NewGuid():N}}",
-                    "status": "completed",
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "{{promptText}}"
-                        }
-                    ]
-                }
-            ],
-            "usage": {
-                "input_tokens": 100,
-                "output_tokens": 50,
-                "total_tokens": 150
-            }
-        }
-        """;
-
-        _mockHttpClientFactory.EnqueueJsonResponse(responseJson);
     }
 
     private void VerifyPromptFilesCreated(Asset entity, int tokenIndex, string[] imageTypes) {

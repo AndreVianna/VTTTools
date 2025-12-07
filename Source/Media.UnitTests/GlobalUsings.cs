@@ -1,9 +1,5 @@
 global using AwesomeAssertions;
 
-global using Azure;
-global using Azure.Storage.Blobs;
-global using Azure.Storage.Blobs.Models;
-
 global using DotNetToolbox;
 
 global using Microsoft.AspNetCore.Builder;

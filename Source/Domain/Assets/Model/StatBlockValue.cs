@@ -21,7 +21,11 @@ public readonly record struct StatBlockValue {
     public static implicit operator StatBlockValue(string v) => new(v, null, null);
     public static implicit operator StatBlockValue(bool v) => new(null, null, v);
 
-    public StatBlockValue(string? t, decimal? n, bool? f) { _text = t; _number = n; _flag = f; }
+    public StatBlockValue(string? t, decimal? n, bool? f) {
+        _text = t;
+        _number = n;
+        _flag = f;
+    }
 
     public object? Value => (object?)_text ?? (object?)_number ?? _flag;
 }

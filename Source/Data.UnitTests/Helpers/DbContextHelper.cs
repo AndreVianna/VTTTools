@@ -151,7 +151,12 @@ internal static class DbContextHelper {
         => new() {
             Id = id,
             Name = name,
-            Classification = new(AssetKind.Creature, "test-category", "test-type", null),
+            Classification = new() {
+                Kind = AssetKind.Creature,
+                Category = "test-category",
+                Type = "test-type",
+                Subtype = null,
+            },
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
