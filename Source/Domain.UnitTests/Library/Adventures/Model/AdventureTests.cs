@@ -29,7 +29,7 @@ public class AdventureTests {
         const string name = "Some Adventure";
         const string description = "Adventure description";
         const AdventureStyle style = AdventureStyle.DungeonCrawl;
-        var display = new ResourceInfo {
+        var display = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
             ResourceType = ResourceType.Background,
             Path = "assets/adventure-background.png",

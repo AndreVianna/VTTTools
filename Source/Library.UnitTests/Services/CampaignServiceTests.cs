@@ -97,7 +97,7 @@ public class CampaignServiceTests {
     public async Task CreateCampaignAsync_WithBackgroundId_CreatesCampaignWithBackground() {
         // Arrange
         var backgroundId = Guid.CreateVersion7();
-        var background = new ResourceInfo {
+        var background = new ResourceMetadata {
             Id = backgroundId,
             ResourceType = ResourceType.Background,
             Path = "test/background.jpg",
@@ -185,7 +185,7 @@ public class CampaignServiceTests {
             Description = "Campaign description",
             IsPublished = false,
             IsPublic = false,
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "campaigns/background.jpg",
@@ -316,7 +316,7 @@ public class CampaignServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "test/background",
@@ -398,7 +398,7 @@ public class CampaignServiceTests {
             Description = "Campaign description",
             Background = null,
         };
-        var newBackground = new ResourceInfo {
+        var newBackground = new ResourceMetadata {
             Id = newBackgroundId,
             ResourceType = ResourceType.Background,
             Path = "test/new-background.jpg",

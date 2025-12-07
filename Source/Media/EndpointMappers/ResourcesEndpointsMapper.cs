@@ -9,7 +9,7 @@ public static class ResourcesEndpointsMapper {
         resources.MapPost("/", ResourcesHandlers.UploadResourceHandler)
             .RequireAuthorization()
             .DisableAntiforgery();
-        resources.MapDelete("/{id:Guid}", ResourcesHandlers.DeleteFileHandler)
+        resources.MapDelete("/{id:Guid}", ResourcesHandlers.DeleteResourceHandler)
             .RequireAuthorization();
         resources.MapGet("/{id:Guid}", ResourcesHandlers.ServeResourceHandler)
             .RequireAuthorization();

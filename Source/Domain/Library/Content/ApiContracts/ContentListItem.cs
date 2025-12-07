@@ -12,5 +12,5 @@ public record ContentListItem {
     public AdventureStyle? Style { get; init; }
     public bool? IsOneShot { get; init; }
     public int? EncounterCount { get; init; }
-    public ResourceInfo? Background { get; init; }
+    public ResourceMetadata? Background { get; init; }
 }

@@ -21,7 +21,7 @@ public static class MediaConstraints {
         "video/ogg",
     ];
 
-    public static readonly Dictionary<ResourceType, TypeConstraints> Constraints = new() {
+    public static readonly Dictionary<ResourceType, TypeConstraints> For = new() {
         [ResourceType.Background] = new() {
             AllowedContentTypes = [.. _safeImageTypes, .. _safeVideoTypes],
             MaxWidth = 4096,
@@ -104,17 +104,8 @@ public static class MediaConstraints {
         },
     };
 
-    public static TypeConstraints GetConstraints(ResourceType type)
-        => Constraints.TryGetValue(type, out var constraints)
-            ? constraints
-            : throw new ArgumentException($"Unknown media type: {type}", nameof(type));
-
-    public static bool IsValidContentType(ResourceType type, string contentType) {
-        var constraints = GetConstraints(type);
-        return constraints.AllowedContentTypes.Contains(
-            contentType,
-            StringComparer.OrdinalIgnoreCase);
-    }
+    public static bool IsValidContentType(ResourceType type, string contentType)
+        => For[type].AllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
 
     public static string GetMediaCategory(string contentType) {
         var normalizedType = contentType.ToLowerInvariant();

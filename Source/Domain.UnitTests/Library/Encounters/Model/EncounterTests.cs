@@ -24,7 +24,7 @@ public class EncounterTests {
         var stage = new Stage {
             ZoomLevel = 1.5f,
             Panning = new Point(100, 200),
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "path/to/image.png",
@@ -34,7 +34,7 @@ public class EncounterTests {
             Light = AmbientLight.Twilight,
             Weather = Weather.Clear,
             Elevation = 20.0f,
-            Sound = new ResourceInfo {
+            Sound = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.AmbientSound,
                 Path = "path/to/sound.mp3",

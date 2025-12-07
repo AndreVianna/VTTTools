@@ -19,7 +19,7 @@ public static class Cloner {
             IsPublished = original.IsPublished,
         };
 
-    internal static ResourceInfo Clone(this ResourceInfo original)
+    internal static ResourceMetadata Clone(this ResourceMetadata original)
         => new() {
             Id = original.Id,
             Description = original.Description,

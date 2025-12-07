@@ -13,11 +13,11 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         string contentType,
         string fileName,
         CancellationToken ct = default) {
-        var constraints = MediaConstraints.GetConstraints(resourceType);
+        var constraints = MediaConstraints.For[resourceType];
 
         if (!MediaConstraints.IsValidContentType(resourceType, contentType)) {
             var allowedTypes = string.Join(", ", constraints.AllowedContentTypes);
-            return Result.Failure<ProcessedMedia>(null!, $"ContentType type '{contentType}' is not allowed for resourceType '{resourceType}'. Allowed types: {allowedTypes}");
+            return Result.Failure<ProcessedMedia>(null!, $"Content type '{contentType}' is not allowed for resource type '{resourceType}'. Allowed types: {allowedTypes}");
         }
 
         if (input.Length > constraints.MaxFileSize) {
@@ -28,9 +28,9 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
 
         var category = MediaConstraints.GetMediaCategory(contentType);
         return category switch {
-            "image" => await ProcessImageAsync(input, contentType, fileName, constraints, ct),
-            "audio" => await ProcessAudioAsync(input, contentType, fileName, constraints, ct),
-            "video" => await ProcessVideoAsync(input, contentType, fileName, constraints, ct),
+            "image" => await ProcessImageAsync(input, fileName, constraints, ct),
+            "audio" => await ProcessAudioAsync(input, fileName, constraints, ct),
+            "video" => await ProcessVideoAsync(input, fileName, constraints, ct),
             _ => Result.Failure<ProcessedMedia>(null!, $"Unsupported media category: {category}"),
         };
     }
@@ -51,7 +51,6 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
 
     private async Task<Result<ProcessedMedia>> ProcessImageAsync(
         Stream input,
-        string contentType,
         string fileName,
         TypeConstraints constraints,
         CancellationToken ct) {
@@ -88,7 +87,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                 Stream = outputStream,
                 ContentType = "image/png",
                 FileName = newFileName,
-                FileLength = outputStream.Length,
+                FileLength = (ulong)outputStream.Length,
                 Size = new Size(image.Width, image.Height),
                 Duration = TimeSpan.Zero,
                 Thumbnail = thumbnail,
@@ -102,7 +101,6 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
 
     private async Task<Result<ProcessedMedia>> ProcessAudioAsync(
         Stream input,
-        string contentType,
         string fileName,
         TypeConstraints constraints,
         CancellationToken ct) {
@@ -141,7 +139,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                     Stream = outputStream,
                     ContentType = "audio/ogg",
                     FileName = newFileName,
-                    FileLength = outputStream.Length,
+                    FileLength = (ulong)outputStream.Length,
                     Size = Size.Zero,
                     Duration = duration,
                     Thumbnail = null,
@@ -162,7 +160,6 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
 
     private async Task<Result<ProcessedMedia>> ProcessVideoAsync(
         Stream input,
-        string contentType,
         string fileName,
         TypeConstraints constraints,
         CancellationToken ct) {
@@ -229,7 +226,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                     Stream = outputStream,
                     ContentType = "video/mp4",
                     FileName = newFileName,
-                    FileLength = outputStream.Length,
+                    FileLength = (ulong)outputStream.Length,
                     Size = new Size(newWidth, newHeight),
                     Duration = duration,
                     Thumbnail = thumbnail,
@@ -260,7 +257,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                 image.Mutate(x => x.Resize(newWidth, newHeight));
             }
 
-            using var outputStream = new MemoryStream();
+            await using var outputStream = new MemoryStream();
             await image.SaveAsJpegAsync(outputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder {
                 Quality = 75
             }, ct);
@@ -297,10 +294,9 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                     .WithFrameOutputCount(1))
                 .ProcessAsynchronously();
 
-            if (File.Exists(tempThumbnailPath))
-                return await File.ReadAllBytesAsync(tempThumbnailPath, ct);
-
-            return null;
+            return File.Exists(tempThumbnailPath)
+                ? await File.ReadAllBytesAsync(tempThumbnailPath, ct)
+                : null;
         }
         catch (Exception ex) {
             logger.LogWarning(ex, "Failed to generate video thumbnail");

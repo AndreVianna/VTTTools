@@ -18,13 +18,13 @@ import {
   RegionTransformer,
   SourceDrawingTool,
   TokenDragHandle,
-  TokenPlacement,
   TopToolBar,
   WallDrawingTool,
   WallRenderer,
   WallTransformer,
 } from '@components/encounter';
 import type { LightPlacementProperties, SoundPlacementProperties } from '@components/encounter/panels';
+import { EntityPlacement } from '@/components/encounter/EntityPlacement';
 import {
   LightContextMenu,
   SoundContextMenu,
@@ -86,10 +86,9 @@ import {
   type PlacedWall,
   type Point,
   type Pole,
-  type EncounterLightSource,
   type PlacedLightSource,
   type PlacedSoundSource,
-  LightSourceType,
+  type EncounterLightSource,
   type UpdateEncounterRequest,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
@@ -374,15 +373,15 @@ const EncounterEditorPageInternal: React.FC = () => {
         currentData.description !== encounter.description ||
         currentData.isPublished !== encounter.isPublished ||
         JSON.stringify(currentData.grid) !==
-          JSON.stringify({
-            type:
-              typeof encounter.grid.type === 'string'
-                ? GridType[encounter.grid.type as keyof typeof GridType]
-                : encounter.grid.type,
-            cellSize: encounter.grid.cellSize,
-            offset: encounter.grid.offset,
-            snap: encounter.grid.snap,
-          });
+        JSON.stringify({
+          type:
+            typeof encounter.grid.type === 'string'
+              ? GridType[encounter.grid.type as keyof typeof GridType]
+              : encounter.grid.type,
+          cellSize: encounter.grid.cellSize,
+          offset: encounter.grid.offset,
+          snap: encounter.grid.snap,
+        });
 
       if (!hasChanges) {
         return;
@@ -458,7 +457,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     setEncounter,
     setPlacedWalls,
     setSelectedWallIndex,
-    setSelectedOpeningIndex: () => {},
+    setSelectedOpeningIndex: () => { },
     setDrawingWallIndex,
     setIsEditingVertices,
     setOriginalWallPoles,
@@ -741,7 +740,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       try {
         const result = await uploadFile({
           file,
-          type: 'encounter',
+          resourceType: 'encounter',
           resource: 'background',
           entityId: encounterId,
         }).unwrap();
@@ -779,49 +778,9 @@ const EncounterEditorPageInternal: React.FC = () => {
         e.stopImmediatePropagation();
 
         if (isWallTransactionActive && wallTransaction.canUndoLocal()) {
-          wallTransaction.undoLocal((segments) => {
-            const currentEncounter = encounterRef.current;
-            if (currentEncounter && selectedWallIndex !== null) {
-              let syncedEncounter = currentEncounter;
-
-              const tempWalls = currentEncounter.walls?.filter((w) => w.index < 0) || [];
-              tempWalls.forEach((tempWall) => {
-                const segmentExists = segments.some((s) => s.tempId === tempWall.index);
-                if (!segmentExists) {
-                  syncedEncounter = removeWallOptimistic(syncedEncounter, tempWall.index);
-                }
-              });
-
-              if (segments.length === 1 && segments[0]) {
-                syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  segments: segments[0].segments,
-                });
-              } else {
-                const mainSegment = segments.find((s) => s.wallIndex === selectedWallIndex || s.tempId === 0);
-                if (mainSegment) {
-                  syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                    segments: mainSegment.segments,
-                  });
-                }
-              }
-
-              setEncounter(syncedEncounter);
-            }
-          });
+          wallTransaction.undoLocal();
         } else if (isRegionTransactionActive && regionTransaction.canUndoLocal()) {
-          regionTransaction.undoLocal((segment) => {
-            const currentEncounter = encounterRef.current;
-            if (currentEncounter && drawingRegionIndex !== null) {
-              if (segment) {
-                const syncedEncounter = updateRegionOptimistic(currentEncounter, drawingRegionIndex, {
-                  vertices: segment.vertices,
-                });
-                setEncounter(syncedEncounter);
-              } else {
-                setEncounter(currentEncounter);
-              }
-            }
-          });
+          regionTransaction.undoLocal();
         } else {
           await undo();
         }
@@ -833,49 +792,9 @@ const EncounterEditorPageInternal: React.FC = () => {
         e.stopImmediatePropagation();
 
         if (isWallTransactionActive && wallTransaction.canRedoLocal()) {
-          wallTransaction.redoLocal((segments) => {
-            const currentEncounter = encounterRef.current;
-            if (currentEncounter && selectedWallIndex !== null) {
-              const selectedWall = currentEncounter.walls?.find((w) => w.index === selectedWallIndex);
-              let syncedEncounter = currentEncounter;
-
-              if (segments.length === 1 && segments[0]) {
-                syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                  segments: segments[0].segments,
-                });
-              } else {
-                segments.forEach((segment) => {
-                  if (segment.wallIndex === selectedWallIndex || segment.tempId === 0) {
-                    syncedEncounter = updateWallOptimistic(syncedEncounter, selectedWallIndex, {
-                      segments: segment.segments,
-                    });
-                  } else if (segment.wallIndex === null) {
-                    const existingWall = syncedEncounter.walls?.find((w) => w.index === segment.tempId);
-                    if (encounterId && !existingWall && selectedWall) {
-                      const tempWall: EncounterWall = {
-                        index: segment.tempId,
-                        name: selectedWall.name,
-                        segments: segment.segments,
-                      };
-                      syncedEncounter = addWallOptimistic(syncedEncounter, tempWall);
-                    }
-                  }
-                });
-              }
-
-              setEncounter(syncedEncounter);
-            }
-          });
+          wallTransaction.redoLocal();
         } else if (isRegionTransactionActive && regionTransaction.canRedoLocal()) {
-          regionTransaction.redoLocal((segment) => {
-            const currentEncounter = encounterRef.current;
-            if (currentEncounter && drawingRegionIndex !== null && segment) {
-              const syncedEncounter = updateRegionOptimistic(currentEncounter, drawingRegionIndex, {
-                vertices: segment.vertices,
-              });
-              setEncounter(syncedEncounter);
-            }
-          });
+          regionTransaction.redoLocal();
         } else {
           await redo();
         }
@@ -1260,7 +1179,13 @@ const EncounterEditorPageInternal: React.FC = () => {
         oldSource,
         newSource,
         onUpdate: async (eid, idx, upd) => {
-          await updateEncounterSoundSource({ encounterId: eid, sourceIndex: idx, ...upd }).unwrap();
+          const updatePayload = {
+            encounterId: eid,
+            sourceIndex: idx,
+            ...upd,
+            resourceId: upd.resourceId || oldSource.resourceId || ''
+          };
+          await updateEncounterSoundSource(updatePayload).unwrap();
         },
         onRefetch: async () => {
           refetch();
@@ -1283,7 +1208,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     return placedRegions?.filter((r) => r.type === 'FogOfWar') || [];
   }, [placedRegions]);
 
-  const { handlePolygonComplete, handleBucketFillComplete} = useFogOfWarPlacement({
+  const { handlePolygonComplete, handleBucketFillComplete } = useFogOfWarPlacement({
     encounterId: encounterId || '',
     existingRegions: placedRegions || [],
     mode: fogMode,
@@ -1825,7 +1750,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
             {/* Layer 3: Assets (tokens/objects/monsters) - creates Layer internally */}
             {encounter && (
-              <TokenPlacement
+              <EntityPlacement
                 placedAssets={visibleAssets}
                 onAssetPlaced={assetManagement.handleAssetPlaced}
                 onAssetMoved={assetManagement.handleAssetMoved}
@@ -1922,21 +1847,21 @@ const EncounterEditorPageInternal: React.FC = () => {
                     source={
                       sourcePlacementProperties.sourceType === 'light'
                         ? {
-                            sourceType: 'light' as const,
-                            name: sourcePlacementProperties.name,
-                            type: (sourcePlacementProperties as LightPlacementProperties).type,
-                            isDirectional: (sourcePlacementProperties as LightPlacementProperties).isDirectional,
-                            direction: (sourcePlacementProperties as LightPlacementProperties).direction,
-                            arc: (sourcePlacementProperties as LightPlacementProperties).arc,
-                            color: (sourcePlacementProperties as LightPlacementProperties).color,
-                            isOn: (sourcePlacementProperties as LightPlacementProperties).isOn,
-                          }
+                          sourceType: 'light' as const,
+                          name: sourcePlacementProperties.name || '',
+                          type: (sourcePlacementProperties as LightPlacementProperties).type,
+                          isDirectional: (sourcePlacementProperties as LightPlacementProperties).isDirectional,
+                          direction: (sourcePlacementProperties as LightPlacementProperties).direction || 0,
+                          arc: (sourcePlacementProperties as LightPlacementProperties).arc || 90,
+                          color: (sourcePlacementProperties as LightPlacementProperties).color || '',
+                          isOn: (sourcePlacementProperties as LightPlacementProperties).isOn || true,
+                        }
                         : {
-                            sourceType: 'sound' as const,
-                            name: sourcePlacementProperties.name,
-                            resourceId: (sourcePlacementProperties as SoundPlacementProperties).resourceId,
-                            isPlaying: (sourcePlacementProperties as SoundPlacementProperties).isPlaying,
-                          }
+                          sourceType: 'sound' as const,
+                          name: sourcePlacementProperties.name || '',
+                          resourceId: (sourcePlacementProperties as SoundPlacementProperties).resourceId || '',
+                          isPlaying: (sourcePlacementProperties as SoundPlacementProperties).isPlaying || false,
+                        }
                     }
                     walls={encounter.walls || []}
                     gridConfig={gridConfig}
@@ -2050,7 +1975,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         anchorPosition={lightContextMenuPosition}
         open={lightContextMenuPosition !== null}
         onClose={handleLightContextMenuClose}
-        encounterLightSource={
+        lightSource={
           selectedLightSourceIndex !== null
             ? placedLightSources.find((s) => s.index === selectedLightSourceIndex) || null
             : null

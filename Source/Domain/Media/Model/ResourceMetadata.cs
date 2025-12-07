@@ -1,6 +1,6 @@
 namespace VttTools.Media.Model;
 
-public record ResourceInfo
+public record ResourceMetadata
     : ResourceFile {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 

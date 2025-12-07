@@ -37,6 +37,11 @@ However, the "Game Session" feature appears to be in a **transitional state**: t
     -   **EPIC-002 (Admin App)**: **0% - Planned**.
         -   Status: Infrastructure & Foundation work pending.
 
+4.  **Git History Analysis (Last 3 Months)**
+    -   **Dec 2025**: Active refactoring of `EncounterEditor`. Focus on "Resource Handling", "Sources", and "Walls and Openings".
+    -   **Nov 2025**: Major domain rename ("Scene" -> "Encounter"). Implementation of "AssetImageManager". Work on "Walls and Regions".
+    -   **Observation**: The `EncounterEditor` is in a high-churn state, evolving beyond the initial "Phase 6" completion.
+
 ## Gap Analysis: Game Session Feature
 
 | Layer | Component | Status | Issue |

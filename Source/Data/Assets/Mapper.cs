@@ -1,7 +1,7 @@
 using Asset = VttTools.Assets.Model.Asset;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
-using ResourceInfo = VttTools.Media.Model.ResourceInfo;
+using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
 
 namespace VttTools.Data.Assets;
 
@@ -89,8 +89,8 @@ internal static class Mapper {
         entity.PortraitId = model.Portrait?.Id;
     }
 
-    public static Expression<Func<AssetTokenEntity, ResourceInfo>> AsToken = entity
-        => new ResourceInfo {
+    public static Expression<Func<AssetTokenEntity, ResourceMetadata>> AsToken = entity
+        => new ResourceMetadata {
             Id = entity.TokenId,
             OwnerId = entity.Token.OwnerId,
             Description = entity.Token.Description,
@@ -107,10 +107,10 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    public static ResourceInfo? ToModel(this AssetTokenEntity? entity)
+    public static ResourceMetadata? ToModel(this AssetTokenEntity? entity)
         => entity is null
            ? null
-           : new ResourceInfo {
+           : new ResourceMetadata {
                Id = entity.TokenId,
                OwnerId = entity.Token.OwnerId,
                Description = entity.Token.Description,
@@ -126,7 +126,7 @@ internal static class Mapper {
                Duration = entity.Token.Duration,
            };
 
-    public static AssetTokenEntity ToEntity(this ResourceInfo model, Guid assetId, int index)
+    public static AssetTokenEntity ToEntity(this ResourceMetadata model, Guid assetId, int index)
         => new() {
             TokenId = model.Id,
             AssetId = assetId,

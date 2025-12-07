@@ -90,7 +90,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         var media = await mediaStorage.FindByIdAsync(backgroundId.Value, ct);
         if (media is null)
             return encounter with { Stage = encounter.Stage with { Background = null } };
-        var background = new ResourceInfo { Id = media.Id };
+        var background = new ResourceMetadata { Id = media.Id };
         return encounter with { Stage = encounter.Stage with { Background = background } };
     }
 
@@ -100,7 +100,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         var media = await mediaStorage.FindByIdAsync(soundId.Value, ct);
         if (media is null)
             return encounter with { Stage = encounter.Stage with { Sound = null } };
-        var background = new ResourceInfo { Id = media.Id };
+        var background = new ResourceMetadata { Id = media.Id };
         return encounter with { Stage = encounter.Stage with { Sound = background } };
     }
 
@@ -146,7 +146,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             AssetId = assetId,
             Index = encounter.Assets.Count != 0 ? encounter.Assets.Max(sa => sa.Index) + 1 : 0,
             Name = GenerateAssetInstanceName(asset.Classification.Kind, name, number),
-            Image = imageId is null ? null : new ResourceInfo { Id = imageId.Value },
+            Image = imageId is null ? null : new ResourceMetadata { Id = imageId.Value },
             Position = data.Position,
             Size = data.Size,
             Frame = data.Frame,
@@ -209,7 +209,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
 
         encounterAsset = encounterAsset with {
             Name = data.Name.IsSet ? data.Name.Value : encounterAsset.Name,
-            Image = imageId == encounterAsset.Image?.Id ? encounterAsset.Image : (imageId is null ? null : new ResourceInfo { Id = imageId.Value }),
+            Image = imageId == encounterAsset.Image?.Id ? encounterAsset.Image : (imageId is null ? null : new ResourceMetadata { Id = imageId.Value }),
             Position = data.Position.IsSet ? data.Position.Value : encounterAsset.Position,
             Size = data.Size.IsSet ? data.Size.Value : encounterAsset.Size,
             Rotation = data.Rotation.IsSet ? data.Rotation.Value : encounterAsset.Rotation,
@@ -339,7 +339,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
                 Index = ++currentMaxIndex,
                 Name = GenerateAssetInstanceName(asset.Classification.Kind, name, number),
                 Notes = data.Notes,
-                Image = imageId is null ? null : new ResourceInfo { Id = imageId.Value },
+                Image = imageId is null ? null : new ResourceMetadata { Id = imageId.Value },
                 Position = data.Position,
                 Size = data.Size,
                 Frame = data.Frame,
@@ -573,7 +573,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             Position = data.Position,
             Range = data.Range,
             IsPlaying = data.IsPlaying,
-            Resource = data.ResourceId.HasValue ? new ResourceInfo { Id = data.ResourceId.Value } : null,
+            Resource = data.ResourceId.HasValue ? new ResourceMetadata { Id = data.ResourceId.Value } : null,
         };
 
         await encounterStorage.AddSoundSourceAsync(id, encounterSoundSource, ct);
@@ -601,7 +601,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             Position = data.Position.IsSet ? data.Position.Value : encounterSoundSource.Position,
             Range = data.Range.IsSet ? data.Range.Value : encounterSoundSource.Range,
             IsPlaying = data.IsPlaying.IsSet ? data.IsPlaying.Value : encounterSoundSource.IsPlaying,
-            Resource = data.ResourceId.IsSet ? (data.ResourceId.Value.HasValue ? new ResourceInfo { Id = data.ResourceId.Value.Value } : null) : encounterSoundSource.Resource,
+            Resource = data.ResourceId.IsSet ? (data.ResourceId.Value.HasValue ? new ResourceMetadata { Id = data.ResourceId.Value.Value } : null) : encounterSoundSource.Resource,
         };
 
         await encounterStorage.UpdateSoundSourceAsync(id, encounterSoundSource, ct);

@@ -7,8 +7,6 @@ internal static class Program {
         builder.Host.VerifyDependencies();
         builder.AddServiceDiscovery();
         builder.AddRequiredServices();
-        builder.Services.Configure<ResourceUploadOptions>(
-            builder.Configuration.GetSection(ResourceUploadOptions.SectionName));
         builder.AddStorage();
         builder.AddJwtAuthentication();
         builder.AddServices();

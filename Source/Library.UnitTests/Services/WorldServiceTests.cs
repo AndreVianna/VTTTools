@@ -95,7 +95,7 @@ public class WorldServiceTests {
     public async Task CreateWorldAsync_WithBackgroundId_CreatesWorldWithBackground() {
         // Arrange
         var backgroundId = Guid.CreateVersion7();
-        var background = new ResourceInfo {
+        var background = new ResourceMetadata {
             Id = backgroundId,
             ResourceType = ResourceType.Background,
             Path = "test/background.jpg",
@@ -182,7 +182,7 @@ public class WorldServiceTests {
             Description = "World description",
             IsPublished = false,
             IsPublic = false,
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "worlds/background.jpg",
@@ -310,7 +310,7 @@ public class WorldServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "test/background",
@@ -392,7 +392,7 @@ public class WorldServiceTests {
             Description = "World description",
             Background = null,
         };
-        var newBackground = new ResourceInfo {
+        var newBackground = new ResourceMetadata {
             Id = newBackgroundId,
             ResourceType = ResourceType.Background,
             Path = "test/new-background.jpg",

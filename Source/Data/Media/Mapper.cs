@@ -1,13 +1,13 @@
-using ResourceInfo = VttTools.Media.Model.ResourceInfo;
 using ResourceClassification = VttTools.Media.Model.ResourceClassification;
 using ResourceClassificationEntity = VttTools.Data.Media.Entities.ResourceClassification;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using ResourceFeatureEntity = VttTools.Data.Media.Entities.ResourceFeature;
+using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
 
 namespace VttTools.Data.Media;
 
 internal static class Mapper {
-    internal static Expression<Func<ResourceEntity, ResourceInfo>> AsResource = entity
+    internal static Expression<Func<ResourceEntity, ResourceMetadata>> AsResource = entity
         => new() {
             Id = entity.Id,
             ResourceType = entity.ResourceType,
@@ -29,7 +29,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static ResourceInfo? ToModel(this ResourceEntity? entity)
+    internal static ResourceMetadata? ToModel(this ResourceEntity? entity)
         => entity == null ? null : new() {
             Id = entity.Id,
             ResourceType = entity.ResourceType,
@@ -50,7 +50,7 @@ internal static class Mapper {
             IsPublic = entity.IsPublic,
         };
 
-    internal static ResourceEntity ToEntity(this ResourceInfo model)
+    internal static ResourceEntity ToEntity(this ResourceMetadata model)
         => new() {
             Id = model.Id,
             ResourceType = model.ResourceType,
@@ -77,7 +77,7 @@ internal static class Mapper {
             IsPublic = model.IsPublic,
         };
 
-    internal static void UpdateFrom(this ResourceEntity entity, ResourceInfo model) {
+    internal static void UpdateFrom(this ResourceEntity entity, ResourceMetadata model) {
         entity.ResourceType = model.ResourceType;
         entity.Classification = new ResourceClassificationEntity {
             Kind = model.Classification.ContentKind,

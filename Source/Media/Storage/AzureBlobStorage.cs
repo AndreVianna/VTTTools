@@ -2,11 +2,11 @@ namespace VttTools.Media.Storage;
 
 public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobStorage> logger)
     : IBlobStorage {
-    private const string ContainerName = "media";
+    private const string _containerName = "media";
 
-    public async Task<Result<string>> UploadAsync(string path, Stream content, BlobMetadata metadata, CancellationToken ct = default) {
+    public async Task<Result<string>> SaveAsync(string path, Stream content, ResourceMetadata metadata, CancellationToken ct = default) {
         try {
-            var containerClient = blobClient.GetBlobContainerClient(ContainerName);
+            var containerClient = blobClient.GetBlobContainerClient(_containerName);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: ct);
             var blob = containerClient.GetBlobClient(path);
 
@@ -15,8 +15,8 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
                     ["ContentType"] = metadata.ContentType,
                     ["FileName"] = metadata.FileName,
                     ["FileLength"] = metadata.FileLength.ToString(),
-                    ["Width"] = metadata.Width.ToString(),
-                    ["Height"] = metadata.Height.ToString(),
+                    ["Width"] = metadata.Size.Width.ToString(),
+                    ["Height"] = metadata.Size.Height.ToString(),
                     ["Duration"] = metadata.Duration.ToString(),
                     ["OwnerId"] = metadata.OwnerId.ToString(),
                 },
@@ -39,9 +39,9 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
         }
     }
 
-    public async Task<Result<string>> UploadThumbnailAsync(string path, byte[] thumbnail, CancellationToken ct = default) {
+    public async Task<Result<string>> SaveThumbnailAsync(string path, byte[] thumbnail, CancellationToken ct = default) {
         try {
-            var containerClient = blobClient.GetBlobContainerClient(ContainerName);
+            var containerClient = blobClient.GetBlobContainerClient(_containerName);
             var thumbnailPath = $"{path}_thumb";
             var thumbnailBlob = containerClient.GetBlobClient(thumbnailPath);
             await using var thumbnailStream = new MemoryStream(thumbnail);
@@ -57,20 +57,19 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
         }
     }
 
-    public async Task<BlobDownloadResult?> DownloadAsync(string path, CancellationToken ct = default) {
+    public async Task<ResourceDownloadResult?> GetAsync(string path, CancellationToken ct = default) {
         try {
-            var containerClient = blobClient.GetBlobContainerClient(ContainerName);
+            var containerClient = blobClient.GetBlobContainerClient(_containerName);
             var blob = containerClient.GetBlobClient(path);
             var response = await blob.DownloadAsync(ct);
 
-            if (response.GetRawResponse().IsError)
-                return null;
-
-            return new BlobDownloadResult {
-                Content = response.Value.Content,
-                ContentType = response.Value.ContentType,
-                Metadata = response.Value.Details?.Metadata,
-            };
+            return response.GetRawResponse().IsError
+                ? null
+                : new ResourceDownloadResult {
+                    Content = response.Value.Content,
+                    ContentType = response.Value.ContentType,
+                    Metadata = response.Value.Details?.Metadata.ToDictionary() ?? [],
+                };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to download blob {Path}", path);
@@ -78,9 +77,9 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
         }
     }
 
-    public async Task<Result> DeleteAsync(string path, CancellationToken ct = default) {
+    public async Task<Result> RemoveAsync(string path, CancellationToken ct = default) {
         try {
-            var containerClient = blobClient.GetBlobContainerClient(ContainerName);
+            var containerClient = blobClient.GetBlobContainerClient(_containerName);
             var blob = containerClient.GetBlobClient(path);
             var response = await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, ct);
 

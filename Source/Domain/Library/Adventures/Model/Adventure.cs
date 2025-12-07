@@ -10,7 +10,7 @@ public record Adventure {
     public AdventureStyle Style { get; init; }
     [MaxLength(4096)]
     public string Description { get; init; } = string.Empty;
-    public ResourceInfo? Background { get; init; }
+    public ResourceMetadata? Background { get; init; }
     public bool IsOneShot { get; init; }
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }

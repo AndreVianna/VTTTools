@@ -71,7 +71,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
             Style = a.Style,
             IsOneShot = a.IsOneShot,
             EncounterCount = a.Encounters.Count,
-            Background = a.Background != null ? new ResourceInfo {
+            Background = a.Background != null ? new ResourceMetadata {
                 Id = a.Background.Id,
                 ResourceType = a.Background.ResourceType,
                 Description = a.Background.Description,

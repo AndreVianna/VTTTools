@@ -6,6 +6,8 @@ import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
 import { useRegionTransaction } from './useRegionTransaction';
 
+import type { LocalAction } from '@/types/regionUndoActions';
+
 vi.mock('@/utils/polygonUtils');
 vi.mock('@/utils/regionMergeUtils');
 
@@ -94,8 +96,8 @@ describe('useRegionTransaction', () => {
           result.current.startTransaction('placement');
         });
 
-        expect(result.current.transaction.localUndoStack.length).toBe(0);
-        expect(result.current.transaction.localRedoStack.length).toBe(0);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
     });
 
@@ -268,8 +270,8 @@ describe('useRegionTransaction', () => {
         expect(result.current.transaction.type).toBeNull();
         expect(result.current.transaction.isActive).toBe(false);
         expect(result.current.transaction.segment).toBeNull();
-        expect(result.current.transaction.localUndoStack).toEqual([]);
-        expect(result.current.transaction.localRedoStack).toEqual([]);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
     });
 
@@ -338,13 +340,14 @@ describe('useRegionTransaction', () => {
             cellSize: { width: 50, height: 50 },
             offset: { left: 0, top: 0 },
             snap: true,
-          scale: 1,
+            scale: 1,
           },
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
           regions: [],
-          sources: [],
+          lightSources: [],
+          soundSources: [],
         };
 
         act(() => {
@@ -416,13 +419,14 @@ describe('useRegionTransaction', () => {
             cellSize: { width: 50, height: 50 },
             offset: { left: 0, top: 0 },
             snap: true,
-          scale: 1,
+            scale: 1,
           },
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
           regions: [existingRegion],
-          sources: [],
+          lightSources: [],
+          soundSources: [],
         };
 
         act(() => {
@@ -506,13 +510,14 @@ describe('useRegionTransaction', () => {
             cellSize: { width: 50, height: 50 },
             offset: { left: 0, top: 0 },
             snap: true,
-          scale: 1,
+            scale: 1,
           },
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
           regions: [region2, region1],
-          sources: [],
+          lightSources: [],
+          soundSources: [],
         };
 
         act(() => {
@@ -582,13 +587,14 @@ describe('useRegionTransaction', () => {
             cellSize: { width: 50, height: 50 },
             offset: { left: 0, top: 0 },
             snap: true,
-          scale: 1,
+            scale: 1,
           },
           stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
           assets: [],
           walls: [],
           regions: [existingRegion],
-          sources: [],
+          lightSources: [],
+          soundSources: [],
         };
 
         act(() => {
@@ -943,9 +949,213 @@ describe('useRegionTransaction', () => {
         expect(result.current.transaction.isActive).toBe(false);
         expect(result.current.transaction.segment).toBeNull();
         expect(result.current.transaction.originalRegion).toBeNull();
-        expect(result.current.transaction.localUndoStack).toEqual([]);
-        expect(result.current.transaction.localRedoStack).toEqual([]);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
+    });
+  });
+
+  describe('commitTransaction - Edge Cases', () => {
+    it('should fail when no segment exists', async () => {
+      const { result } = renderHook(() => useRegionTransaction());
+
+      const mockAddEncounterRegion = vi.fn();
+      const mockUpdateEncounterRegion = vi.fn();
+
+      await act(async () => {
+        const commitResult = await result.current.commitTransaction('encounter-1', {
+          addEncounterRegion: mockAddEncounterRegion,
+          updateEncounterRegion: mockUpdateEncounterRegion,
+        });
+
+        expect(commitResult.success).toBe(false);
+        expect(commitResult.error).toBe('No segment to commit');
+      });
+
+      expect(mockAddEncounterRegion).not.toHaveBeenCalled();
+      expect(mockUpdateEncounterRegion).not.toHaveBeenCalled();
+    });
+
+    it('should handle non-Error exceptions', async () => {
+      const { result } = renderHook(() => useRegionTransaction());
+      const vertices: Point[] = [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 50, y: 100 },
+      ];
+
+      mockCleanPolygonVertices.mockReturnValue(vertices);
+
+      act(() => {
+        result.current.startTransaction('placement');
+        result.current.updateVertices(vertices);
+      });
+
+      const mockUnwrap = vi.fn().mockRejectedValue('String error');
+      const mockAddEncounterRegion = vi.fn().mockReturnValue({
+        unwrap: mockUnwrap,
+      });
+      const mockUpdateEncounterRegion = vi.fn();
+
+      await act(async () => {
+        const commitResult = await result.current.commitTransaction('encounter-1', {
+          addEncounterRegion: mockAddEncounterRegion,
+          updateEncounterRegion: mockUpdateEncounterRegion,
+        });
+
+        expect(commitResult.success).toBe(false);
+        expect(commitResult.error).toBe('Transaction commit failed');
+      });
+    });
+
+    it('should not clear state on failed commit', async () => {
+      const { result } = renderHook(() => useRegionTransaction());
+      const vertices: Point[] = [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 50, y: 100 },
+      ];
+
+      mockCleanPolygonVertices.mockReturnValue(vertices);
+
+      act(() => {
+        result.current.startTransaction('placement', undefined, {
+          name: 'Test Region',
+        });
+        result.current.updateVertices(vertices);
+      });
+
+      const mockUnwrap = vi.fn().mockRejectedValue(new Error('Failed'));
+      const mockAddEncounterRegion = vi.fn().mockReturnValue({
+        unwrap: mockUnwrap,
+      });
+      const mockUpdateEncounterRegion = vi.fn();
+
+      await act(async () => {
+        await result.current.commitTransaction('encounter-1', {
+          addEncounterRegion: mockAddEncounterRegion,
+          updateEncounterRegion: mockUpdateEncounterRegion,
+        });
+      });
+
+      expect(result.current.transaction.isActive).toBe(true);
+      expect(result.current.transaction.segment?.name).toBe('Test Region');
+    });
+
+    it('should handle undo/redo cycle during placement', () => {
+      const { result } = renderHook(() => useRegionTransaction());
+      const callOrder: string[] = [];
+      const action1: LocalAction = {
+        type: 'test',
+        description: 'test',
+        undo: () => callOrder.push('undo1'),
+        redo: () => callOrder.push('redo1'),
+      };
+      const action2: LocalAction = {
+        type: 'test',
+        description: 'test',
+        undo: () => callOrder.push('undo2'),
+        redo: () => callOrder.push('redo2'),
+      };
+
+      act(() => {
+        result.current.startTransaction('placement');
+        result.current.pushLocalAction(action1);
+        result.current.pushLocalAction(action2);
+      });
+
+      expect(result.current.canUndoLocal()).toBe(true);
+      expect(result.current.canRedoLocal()).toBe(false);
+
+      act(() => {
+        result.current.undoLocal();
+      });
+
+      expect(callOrder).toEqual(['undo2']);
+      expect(result.current.canUndoLocal()).toBe(true);
+      expect(result.current.canRedoLocal()).toBe(true);
+
+      act(() => {
+        result.current.redoLocal();
+      });
+
+      expect(callOrder).toEqual(['undo2', 'redo2']);
+      expect(result.current.canUndoLocal()).toBe(true);
+      expect(result.current.canRedoLocal()).toBe(false);
+    });
+
+    it('should clear stacks when transaction is rolled back', () => {
+      const { result } = renderHook(() => useRegionTransaction());
+      const mockAction: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+
+      act(() => {
+        result.current.startTransaction('placement');
+        result.current.pushLocalAction(mockAction);
+        result.current.undoLocal();
+      });
+
+      expect(result.current.history.undoStackSize).toBe(0);
+      expect(result.current.history.redoStackSize).toBe(1);
+
+      act(() => {
+        result.current.rollbackTransaction();
+      });
+
+      expect(result.current.history.undoStackSize).toBe(0);
+      expect(result.current.history.redoStackSize).toBe(0);
+      expect(result.current.transaction.isActive).toBe(false);
+    });
+
+    it('should handle vertex state changes with undo/redo', () => {
+      const { result } = renderHook(() => useRegionTransaction());
+      const state = { vertices: [] as Point[] };
+
+      const addVertexAction = (vertex: Point): LocalAction => ({
+        type: 'test',
+        description: 'test',
+        undo: () => {
+          state.vertices.pop();
+        },
+        redo: () => {
+          state.vertices.push(vertex);
+        },
+      });
+
+      act(() => {
+        result.current.startTransaction('placement');
+      });
+
+      act(() => {
+        state.vertices.push({ x: 0, y: 0 });
+        result.current.pushLocalAction(addVertexAction({ x: 0, y: 0 }));
+      });
+      expect(state.vertices).toHaveLength(1);
+
+      act(() => {
+        state.vertices.push({ x: 100, y: 0 });
+        result.current.pushLocalAction(addVertexAction({ x: 100, y: 0 }));
+      });
+      expect(state.vertices).toHaveLength(2);
+
+      act(() => {
+        result.current.undoLocal();
+      });
+      expect(state.vertices).toHaveLength(1);
+
+      act(() => {
+        result.current.undoLocal();
+      });
+      expect(state.vertices).toHaveLength(0);
+
+      act(() => {
+        result.current.redoLocal();
+      });
+      expect(state.vertices).toHaveLength(1);
+
+      act(() => {
+        result.current.redoLocal();
+      });
+      expect(state.vertices).toHaveLength(2);
     });
   });
 
@@ -1041,7 +1251,9 @@ describe('useRegionTransaction', () => {
     describe('pushLocalAction', () => {
       it('should add action to undo stack', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: vi.fn(),
         };
@@ -1054,15 +1266,14 @@ describe('useRegionTransaction', () => {
           result.current.pushLocalAction(mockAction);
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(1);
-        expect(result.current.transaction.localUndoStack[0]).toBe(mockAction);
+        expect(result.current.history.undoStackSize).toBe(1);
       });
 
       it('should clear redo stack when new action is pushed', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const action1 = { undo: vi.fn(), redo: vi.fn() };
-        const action2 = { undo: vi.fn(), redo: vi.fn() };
-        const action3 = { undo: vi.fn(), redo: vi.fn() };
+        const action1: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+        const action2: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+        const action3: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
 
         act(() => {
           result.current.startTransaction('placement');
@@ -1074,14 +1285,14 @@ describe('useRegionTransaction', () => {
           result.current.undoLocal();
         });
 
-        expect(result.current.transaction.localRedoStack).toHaveLength(1);
+        expect(result.current.history.redoStackSize).toBe(1);
 
         act(() => {
           result.current.pushLocalAction(action3);
         });
 
-        expect(result.current.transaction.localRedoStack).toHaveLength(0);
-        expect(result.current.transaction.localUndoStack).toHaveLength(2);
+        expect(result.current.history.redoStackSize).toBe(0);
+        expect(result.current.history.undoStackSize).toBe(2);
       });
     });
 
@@ -1089,7 +1300,9 @@ describe('useRegionTransaction', () => {
       it('should call undo function on last action', () => {
         const { result } = renderHook(() => useRegionTransaction());
         const undoFn = vi.fn();
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: undoFn,
           redo: vi.fn(),
         };
@@ -1108,7 +1321,9 @@ describe('useRegionTransaction', () => {
 
       it('should move action from undo stack to redo stack', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: vi.fn(),
         };
@@ -1118,16 +1333,15 @@ describe('useRegionTransaction', () => {
           result.current.pushLocalAction(mockAction);
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(1);
-        expect(result.current.transaction.localRedoStack).toHaveLength(0);
+        expect(result.current.history.undoStackSize).toBe(1);
+        expect(result.current.history.redoStackSize).toBe(0);
 
         act(() => {
           result.current.undoLocal();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(0);
-        expect(result.current.transaction.localRedoStack).toHaveLength(1);
-        expect(result.current.transaction.localRedoStack[0]).toBe(mockAction);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(1);
       });
 
       it('should return silently when undo stack is empty', () => {
@@ -1141,43 +1355,28 @@ describe('useRegionTransaction', () => {
           result.current.undoLocal();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(0);
-        expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      });
-
-      it('should call onSyncEncounter callback with updated segment', () => {
-        const { result } = renderHook(() => useRegionTransaction());
-        const onSyncEncounter = vi.fn();
-        const mockAction = {
-          undo: vi.fn(),
-          redo: vi.fn(),
-        };
-
-        act(() => {
-          result.current.startTransaction('placement');
-          result.current.pushLocalAction(mockAction);
-        });
-
-        act(() => {
-          result.current.undoLocal(onSyncEncounter);
-        });
-
-        expect(onSyncEncounter).toHaveBeenCalledTimes(1);
-        expect(onSyncEncounter).toHaveBeenCalledWith(result.current.transaction.segment);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
 
       it('should undo actions in LIFO order', () => {
         const { result } = renderHook(() => useRegionTransaction());
         const callOrder: string[] = [];
-        const action1 = {
+        const action1: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: () => callOrder.push('undo1'),
           redo: vi.fn(),
         };
-        const action2 = {
+        const action2: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: () => callOrder.push('undo2'),
           redo: vi.fn(),
         };
-        const action3 = {
+        const action3: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: () => callOrder.push('undo3'),
           redo: vi.fn(),
         };
@@ -1203,7 +1402,9 @@ describe('useRegionTransaction', () => {
       it('should call redo function on last undone action', () => {
         const { result } = renderHook(() => useRegionTransaction());
         const redoFn = vi.fn();
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: redoFn,
         };
@@ -1223,7 +1424,9 @@ describe('useRegionTransaction', () => {
 
       it('should move action from redo stack to undo stack', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: vi.fn(),
         };
@@ -1234,16 +1437,15 @@ describe('useRegionTransaction', () => {
           result.current.undoLocal();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(0);
-        expect(result.current.transaction.localRedoStack).toHaveLength(1);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(1);
 
         act(() => {
           result.current.redoLocal();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(1);
-        expect(result.current.transaction.localRedoStack).toHaveLength(0);
-        expect(result.current.transaction.localUndoStack[0]).toBe(mockAction);
+        expect(result.current.history.undoStackSize).toBe(1);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
 
       it('should return silently when redo stack is empty', () => {
@@ -1257,44 +1459,28 @@ describe('useRegionTransaction', () => {
           result.current.redoLocal();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(0);
-        expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      });
-
-      it('should call onSyncEncounter callback with updated segment', () => {
-        const { result } = renderHook(() => useRegionTransaction());
-        const onSyncEncounter = vi.fn();
-        const mockAction = {
-          undo: vi.fn(),
-          redo: vi.fn(),
-        };
-
-        act(() => {
-          result.current.startTransaction('placement');
-          result.current.pushLocalAction(mockAction);
-          result.current.undoLocal();
-        });
-
-        act(() => {
-          result.current.redoLocal(onSyncEncounter);
-        });
-
-        expect(onSyncEncounter).toHaveBeenCalledTimes(1);
-        expect(onSyncEncounter).toHaveBeenCalledWith(result.current.transaction.segment);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
 
       it('should redo actions in LIFO order', () => {
         const { result } = renderHook(() => useRegionTransaction());
         const callOrder: string[] = [];
-        const action1 = {
+        const action1: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: () => callOrder.push('redo1'),
         };
-        const action2 = {
+        const action2: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: () => callOrder.push('redo2'),
         };
-        const action3 = {
+        const action3: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: () => callOrder.push('redo3'),
         };
@@ -1322,26 +1508,24 @@ describe('useRegionTransaction', () => {
     describe('canUndoLocal', () => {
       it('should return false when undo stack is empty', () => {
         const { result } = renderHook(() => useRegionTransaction());
-
         act(() => {
           result.current.startTransaction('placement');
         });
-
         expect(result.current.canUndoLocal()).toBe(false);
       });
 
       it('should return true when undo stack has actions', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: vi.fn(),
         };
-
         act(() => {
           result.current.startTransaction('placement');
           result.current.pushLocalAction(mockAction);
         });
-
         expect(result.current.canUndoLocal()).toBe(true);
       });
     });
@@ -1349,27 +1533,25 @@ describe('useRegionTransaction', () => {
     describe('canRedoLocal', () => {
       it('should return false when redo stack is empty', () => {
         const { result } = renderHook(() => useRegionTransaction());
-
         act(() => {
           result.current.startTransaction('placement');
         });
-
         expect(result.current.canRedoLocal()).toBe(false);
       });
 
       it('should return true when redo stack has actions', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const mockAction = {
+        const mockAction: LocalAction = {
+          type: 'test',
+          description: 'test',
           undo: vi.fn(),
           redo: vi.fn(),
         };
-
         act(() => {
           result.current.startTransaction('placement');
           result.current.pushLocalAction(mockAction);
           result.current.undoLocal();
         });
-
         expect(result.current.canRedoLocal()).toBe(true);
       });
     });
@@ -1377,8 +1559,8 @@ describe('useRegionTransaction', () => {
     describe('clearLocalStacks', () => {
       it('should clear both undo and redo stacks', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const action1 = { undo: vi.fn(), redo: vi.fn() };
-        const action2 = { undo: vi.fn(), redo: vi.fn() };
+        const action1: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+        const action2: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
 
         act(() => {
           result.current.startTransaction('placement');
@@ -1387,177 +1569,16 @@ describe('useRegionTransaction', () => {
           result.current.undoLocal();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(1);
-        expect(result.current.transaction.localRedoStack).toHaveLength(1);
+        expect(result.current.history.undoStackSize).toBe(1);
+        expect(result.current.history.redoStackSize).toBe(1);
 
         act(() => {
           result.current.clearLocalStacks();
         });
 
-        expect(result.current.transaction.localUndoStack).toHaveLength(0);
-        expect(result.current.transaction.localRedoStack).toHaveLength(0);
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
       });
-    });
-  });
-
-  describe('Integration Scenarios', () => {
-    it('should handle complete placement workflow', async () => {
-      const { result } = renderHook(() => useRegionTransaction());
-      const vertices: Point[] = [
-        { x: 0, y: 0 },
-        { x: 100, y: 0 },
-        { x: 100, y: 100 },
-        { x: 0, y: 100 },
-      ];
-
-      mockCleanPolygonVertices.mockReturnValue(vertices);
-
-      act(() => {
-        result.current.startTransaction('placement', undefined, {
-          name: 'Test Region',
-          type: 'Elevation',
-          value: 5,
-        });
-      });
-
-      expect(result.current.transaction.isActive).toBe(true);
-
-      act(() => {
-        for (const v of vertices) {
-          result.current.addVertex(v);
-        }
-      });
-
-      expect(result.current.transaction.segment?.vertices).toHaveLength(4);
-
-      const mockUnwrap = vi.fn().mockResolvedValue({ index: 10 });
-      const mockAddEncounterRegion = vi.fn().mockReturnValue({
-        unwrap: mockUnwrap,
-      });
-      const mockUpdateEncounterRegion = vi.fn();
-
-      await act(async () => {
-        const commitResult = await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-        });
-
-        expect(commitResult.success).toBe(true);
-        expect(commitResult.action).toBe('create');
-        expect(commitResult.regionIndex).toBe(10);
-      });
-
-      expect(result.current.transaction.isActive).toBe(false);
-    });
-
-    it('should handle undo/redo cycle during placement', () => {
-      const { result } = renderHook(() => useRegionTransaction());
-      const callOrder: string[] = [];
-      const action1 = {
-        undo: () => callOrder.push('undo1'),
-        redo: () => callOrder.push('redo1'),
-      };
-      const action2 = {
-        undo: () => callOrder.push('undo2'),
-        redo: () => callOrder.push('redo2'),
-      };
-
-      act(() => {
-        result.current.startTransaction('placement');
-        result.current.pushLocalAction(action1);
-        result.current.pushLocalAction(action2);
-      });
-
-      expect(result.current.canUndoLocal()).toBe(true);
-      expect(result.current.canRedoLocal()).toBe(false);
-
-      act(() => {
-        result.current.undoLocal();
-      });
-
-      expect(callOrder).toEqual(['undo2']);
-      expect(result.current.canUndoLocal()).toBe(true);
-      expect(result.current.canRedoLocal()).toBe(true);
-
-      act(() => {
-        result.current.redoLocal();
-      });
-
-      expect(callOrder).toEqual(['undo2', 'redo2']);
-      expect(result.current.canUndoLocal()).toBe(true);
-      expect(result.current.canRedoLocal()).toBe(false);
-    });
-
-    it('should clear stacks when transaction is rolled back', () => {
-      const { result } = renderHook(() => useRegionTransaction());
-      const mockAction = { undo: vi.fn(), redo: vi.fn() };
-
-      act(() => {
-        result.current.startTransaction('placement');
-        result.current.pushLocalAction(mockAction);
-        result.current.undoLocal();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(1);
-
-      act(() => {
-        result.current.rollbackTransaction();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      expect(result.current.transaction.isActive).toBe(false);
-    });
-
-    it('should handle vertex state changes with undo/redo', () => {
-      const { result } = renderHook(() => useRegionTransaction());
-      const state = { vertices: [] as Point[] };
-
-      const addVertexAction = (vertex: Point) => ({
-        undo: () => {
-          state.vertices.pop();
-        },
-        redo: () => {
-          state.vertices.push(vertex);
-        },
-      });
-
-      act(() => {
-        result.current.startTransaction('placement');
-      });
-
-      act(() => {
-        state.vertices.push({ x: 0, y: 0 });
-        result.current.pushLocalAction(addVertexAction({ x: 0, y: 0 }));
-      });
-      expect(state.vertices).toHaveLength(1);
-
-      act(() => {
-        state.vertices.push({ x: 100, y: 0 });
-        result.current.pushLocalAction(addVertexAction({ x: 100, y: 0 }));
-      });
-      expect(state.vertices).toHaveLength(2);
-
-      act(() => {
-        result.current.undoLocal();
-      });
-      expect(state.vertices).toHaveLength(1);
-
-      act(() => {
-        result.current.undoLocal();
-      });
-      expect(state.vertices).toHaveLength(0);
-
-      act(() => {
-        result.current.redoLocal();
-      });
-      expect(state.vertices).toHaveLength(1);
-
-      act(() => {
-        result.current.redoLocal();
-      });
-      expect(state.vertices).toHaveLength(2);
     });
   });
 });

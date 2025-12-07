@@ -223,7 +223,7 @@ public class EncounterServiceTests {
                 Name = "Adventure",
                 Description = "Adventure description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo {
+                Background = new ResourceMetadata {
                     Id = Guid.CreateVersion7(),
                     ResourceType = ResourceType.Background,
                 },
@@ -262,7 +262,7 @@ public class EncounterServiceTests {
             OwnerId = _userId,
             Name = "Test Asset",
             Classification = new AssetClassification(AssetKind.Character, "Player", "Hero", null),
-            Portrait = new ResourceInfo {
+            Portrait = new ResourceMetadata {
                 Id = portraitId,
                 ResourceType = ResourceType.Background,
                 Path = "test/asset-portrait.png",
@@ -373,7 +373,7 @@ public class EncounterServiceTests {
                 Name = "Adventure",
                 Description = "Adventure description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo {
+                Background = new ResourceMetadata {
                     Id = Guid.CreateVersion7(),
                     ResourceType = ResourceType.Background,
                 },
@@ -550,7 +550,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -563,7 +563,7 @@ public class EncounterServiceTests {
             Name = "Goblin",
             Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = resourceId,
                     ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
@@ -604,7 +604,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -617,7 +617,7 @@ public class EncounterServiceTests {
             Name = "Goblin",
             Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = resourceId,
                     ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
@@ -661,7 +661,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -674,7 +674,7 @@ public class EncounterServiceTests {
             Name = "Treasure Chest",
             Classification = new AssetClassification(AssetKind.Object, "Container", "Chest", null),
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = resourceId,
                     ResourceType = ResourceType.Background,
                     Path = "test/chest-topdown.png",
@@ -718,7 +718,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -731,7 +731,7 @@ public class EncounterServiceTests {
             Name = "Goblin",
             Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = resourceId,
                     ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
@@ -774,7 +774,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceInfo { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -787,7 +787,7 @@ public class EncounterServiceTests {
             Name = "Goblin",
             Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = resourceId1,
                     ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
@@ -801,7 +801,7 @@ public class EncounterServiceTests {
             Name = "Orc",
             Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Orc", null),
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = resourceId2,
                     ResourceType = ResourceType.Background,
                     Path = "test/orc-topdown.png",

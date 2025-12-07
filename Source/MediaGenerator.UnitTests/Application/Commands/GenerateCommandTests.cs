@@ -385,7 +385,7 @@ public sealed class GenerateCommandTests : IDisposable {
             TokenSize = NamedSize.Default,
             StatBlocks = [],
             Tokens = [
-                new ResourceInfo {
+                new ResourceMetadata {
                     Id = Guid.NewGuid(),
                     Description = "base",
                     ResourceType = ResourceType.Background,
@@ -400,9 +400,9 @@ public sealed class GenerateCommandTests : IDisposable {
         };
 
     private static Asset CreateAssetWithSimpleTokens(string name, AssetKind kind, string category, string type, string? subtype, int tokenCount) {
-        var tokens = new List<ResourceInfo>();
+        var tokens = new List<ResourceMetadata>();
         for (var i = 0; i < tokenCount; i++) {
-            tokens.Add(new ResourceInfo {
+            tokens.Add(new ResourceMetadata {
                 Id = Guid.NewGuid(),
                 Description = $"variant-{i}",
                 ResourceType = ResourceType.Background,

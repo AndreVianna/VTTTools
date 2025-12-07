@@ -149,7 +149,7 @@ public class AdventureServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "test/background",
@@ -351,7 +351,7 @@ public class AdventureServiceTests {
             IsPublic = false,
             World = new World { Id = Guid.CreateVersion7() },
             Campaign = new Campaign { Id = Guid.CreateVersion7() },
-            Background = new ResourceInfo {
+            Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
                 ResourceType = ResourceType.Background,
                 Path = "adventures/background.jpg",
@@ -376,7 +376,7 @@ public class AdventureServiceTests {
                     Light = AmbientLight.Twilight,
                     Weather = Weather.Clear,
                     Elevation = 20.0f,
-                    Sound = new ResourceInfo {
+                    Sound = new ResourceMetadata {
                         Id = Guid.CreateVersion7(),
                         ResourceType = ResourceType.AmbientSound,
                         Path = "path/to/sound.mp3",
@@ -589,7 +589,7 @@ public class AdventureServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        // NOTE: RemoveEncounterAsync calls encounterStorage.DeleteAsync, not adventureStorage.UpdateAsync
+        // NOTE: RemoveEncounterAsync calls encounterStorage.RemoveAsync, not adventureStorage.UpdateAsync
         await _encounterStorage.Received(1).DeleteAsync(encounterId, Arg.Any<CancellationToken>());
     }
 
@@ -653,7 +653,7 @@ public class AdventureServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        // NOTE: RemoveEncounterAsync calls encounterStorage.DeleteAsync, not adventureStorage.UpdateAsync
+        // NOTE: RemoveEncounterAsync calls encounterStorage.RemoveAsync, not adventureStorage.UpdateAsync
         await _encounterStorage.Received(1).DeleteAsync(encounterId, Arg.Any<CancellationToken>());
     }
 }

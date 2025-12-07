@@ -7,10 +7,26 @@ namespace VttTools.Media.Handlers;
 internal static class ResourcesHandlers {
     internal static async Task<IResult> FilterResourcesHandler(
         HttpContext context,
-        [AsParameters] ResourceFilterData filter,
+        [AsParameters] ResourceFilterRequest request,
         [FromServices] IResourceService resourceService,
-        CancellationToken ct) {
+        CancellationToken ct = default) {
         var userId = context.User.GetUserId();
+
+        var filter = new ResourceFilterData {
+            ResourceType = request.ResourceType,
+            ContentKind = request.ContentKind,
+            Category = request.Category,
+            SearchText = request.SearchText,
+            OwnerId = userId,
+            IsPublic = request.IsPublic,
+            IsPublished = request.IsPublished,
+            Skip = request.Skip,
+            Take = request.Take,
+        };
+
+        var validationResult = filter.Validate();
+        if (!validationResult.IsSuccessful)
+            return Results.BadRequest(validationResult.Errors);
 
         var (items, totalCount) = await resourceService.FindResourcesAsync(userId, filter, ct);
         return Results.Ok(new { items, totalCount, skip = Math.Max(0, filter.Skip), take = Math.Clamp(filter.Take, 1, 100) });
@@ -18,18 +34,20 @@ internal static class ResourcesHandlers {
 
     internal static async Task<IResult> UploadResourceHandler(
         HttpContext context,
-        [FromForm] string contentType,
-        [FromForm] string fileName,
-        [FromForm] IFormFile? file,
+        [FromForm] IFormFile file,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
-
         var userId = context.User.GetUserId();
+
         var data = new UploadResourceData {
-            ContentType = contentType,
-            FileName = fileName,
-            Stream = file?.OpenReadStream(),
+            ContentType = file.ContentType,
+            FileName = file.FileName,
+            Stream = file.OpenReadStream(),
         };
+
+        var validationResult = data.Validate();
+        if (!validationResult.IsSuccessful)
+            return Results.BadRequest(validationResult.Errors);
 
         var result = await resourceService.UploadResourceAsync(userId, data, ct);
 
@@ -60,13 +78,14 @@ internal static class ResourcesHandlers {
             _ => "Upload error"
         };
 
-    internal static async Task<IResult> DeleteFileHandler(
+    internal static async Task<IResult> DeleteResourceHandler(
         HttpContext context,
         [FromRoute] Guid id,
-        [FromServices] IResourceService resourceService) {
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct = default) {
         var userId = context.User.GetUserId();
 
-        var result = await resourceService.DeleteResourceAsync(userId, id);
+        var result = await resourceService.DeleteResourceAsync(userId, id, ct);
         return !result.IsSuccessful
             ? result.Errors[0].Message switch {
                 "NotFound" => Results.NotFound(),
@@ -81,10 +100,11 @@ internal static class ResourcesHandlers {
     internal static async Task<IResult> ServeResourceHandler(
         HttpContext context,
         [FromRoute] Guid id,
-        [FromServices] IResourceService resourceService) {
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct = default) {
         var userId = context.User.GetUserId();
 
-        var download = await resourceService.ServeResourceAsync(userId, id);
+        var download = await resourceService.ServeResourceAsync(userId, id, ct);
         if (download == null)
             return Results.NotFound();
 
@@ -97,10 +117,11 @@ internal static class ResourcesHandlers {
     internal static async Task<IResult> GetResourceInfoHandler(
         HttpContext context,
         [FromRoute] Guid id,
-        [FromServices] IResourceService resourceService) {
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct = default) {
         var userId = context.User.GetUserId();
 
-        var resource = await resourceService.GetResourceAsync(userId, id);
+        var resource = await resourceService.GetResourceAsync(userId, id, ct);
         return resource is null
             ? Results.NotFound()
             : Results.Ok(resource);
@@ -110,7 +131,8 @@ internal static class ResourcesHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromBody] UpdateResourceRequest request,
-        [FromServices] IResourceService resourceService) {
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct = default) {
         var userId = context.User.GetUserId();
 
         var data = new UpdateResourceData {
@@ -123,7 +145,7 @@ internal static class ResourcesHandlers {
         if (!validationResult.IsSuccessful)
             return Results.BadRequest(validationResult.Errors);
 
-        var result = await resourceService.UpdateResourceAsync(userId, id, data);
+        var result = await resourceService.UpdateResourceAsync(userId, id, data, ct);
         return !result.IsSuccessful
             ? result.Errors[0].Message switch {
                 "NotFound" => Results.NotFound(),

@@ -2,7 +2,7 @@ namespace VttTools.Media.Services;
 
 public interface IMediaProcessorService {
     Task<Result<ProcessedMedia>> ProcessAsync(
-        ResourceType type,
+        ResourceType resourceType,
         Stream input,
         string contentType,
         string fileName,

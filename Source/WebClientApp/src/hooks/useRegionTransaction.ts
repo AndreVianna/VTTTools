@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { useAddEncounterRegionMutation, useUpdateEncounterRegionMutation } from '@/services/encounterApi';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import type { LocalAction } from '@/types/regionUndoActions';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
 import {
   type ClipResult,
@@ -11,6 +12,7 @@ import {
   isNullRegion,
   mergePolygons,
 } from '@/utils/regionMergeUtils';
+import { useUndoHistory } from './useUndoHistory';
 
 export type TransactionType = 'placement' | 'editing' | 'modification' | null;
 
@@ -38,8 +40,6 @@ export interface RegionTransaction {
   originalRegion: EncounterRegion | null;
   segment: RegionSegment | null;
   isActive: boolean;
-  localUndoStack: LocalAction[];
-  localRedoStack: LocalAction[];
 }
 
 export interface CommitResult {
@@ -59,18 +59,11 @@ interface ApiHooks {
   updateEncounterRegion: ReturnType<typeof useUpdateEncounterRegionMutation>[0];
 }
 
-type LocalAction = {
-  undo: () => void;
-  redo: () => void;
-};
-
 const INITIAL_TRANSACTION: RegionTransaction = {
   type: null,
   originalRegion: null,
   segment: null,
   isActive: false,
-  localUndoStack: [],
-  localRedoStack: [],
 };
 
 /**
@@ -81,38 +74,11 @@ const INITIAL_TRANSACTION: RegionTransaction = {
  * local undo/redo operations for vertex manipulation during active transactions.
  *
  * @returns Transaction state and mutation functions for region operations
- *
- * @example
- * const {
- *     transaction,
- *     startTransaction,
- *     addVertex,
- *     commitTransaction,
- *     undoLocal,
- *     redoLocal
- * } = useRegionTransaction();
- *
- * // Start new region placement
- * startTransaction('placement', undefined, {
- *     name: 'Danger Zone',
- *     type: 'Elevation',
- *     color: '#FF0000'
- * });
- *
- * // Add vertices (minimum 3 required for commit)
- * addVertex({ x: 100, y: 100 });
- * addVertex({ x: 200, y: 100 });
- * addVertex({ x: 150, y: 200 });
- *
- * // Commit to backend
- * const result = await commitTransaction(encounterId, {
- *     addEncounterRegion,
- *     updateEncounterRegion
- * });
  */
 export const useRegionTransaction = () => {
   const [transaction, setTransaction] = useState<RegionTransaction>(INITIAL_TRANSACTION);
   const [_nextTempId, setNextTempId] = useState<number>(0);
+  const history = useUndoHistory<LocalAction>();
 
   const startTransaction = useCallback(
     (
@@ -126,6 +92,7 @@ export const useRegionTransaction = () => {
         color?: string;
       },
     ) => {
+      history.clear();
       if (region) {
         setTransaction({
           type,
@@ -141,8 +108,6 @@ export const useRegionTransaction = () => {
             ...(region.color !== undefined && { color: region.color }),
           },
           isActive: true,
-          localUndoStack: [],
-          localRedoStack: [],
         });
         setNextTempId(1);
       } else {
@@ -164,13 +129,11 @@ export const useRegionTransaction = () => {
             color: placementProperties?.color || '#808080',
           },
           isActive: true,
-          localUndoStack: [],
-          localRedoStack: [],
         });
         setNextTempId(0);
       }
     },
-    [],
+    [history],
   );
 
   const addVertex = useCallback((vertex: Point) => {
@@ -395,7 +358,8 @@ export const useRegionTransaction = () => {
   const clearTransactionState = useCallback(() => {
     setTransaction(INITIAL_TRANSACTION);
     setNextTempId(0);
-  }, []);
+    history.clear();
+  }, [history]);
 
   const commitTransaction = useCallback(
     async (
@@ -465,97 +429,50 @@ export const useRegionTransaction = () => {
   const rollbackTransaction = useCallback(() => {
     setTransaction(INITIAL_TRANSACTION);
     setNextTempId(0);
-  }, []);
+    history.clear();
+  }, [history]);
 
   const clearTransaction = useCallback(() => {
     setTransaction(INITIAL_TRANSACTION);
     setNextTempId(0);
-  }, []);
+    history.clear();
+  }, [history]);
 
   const getActiveSegment = useCallback((): RegionSegment | null => {
     return transaction.segment;
   }, [transaction.segment]);
 
   const pushLocalAction = useCallback((action: LocalAction) => {
-    setTransaction((prev) => ({
-      ...prev,
-      localUndoStack: [...prev.localUndoStack, action],
-      localRedoStack: [],
-    }));
-  }, []);
+    history.push(action);
+  }, [history]);
 
-  const undoLocal = useCallback((onSyncEncounter?: (segment: RegionSegment | null) => void) => {
-    setTransaction((prev) => {
-      if (prev.localUndoStack.length === 0) {
-        return prev;
-      }
+  // Wrapper for consistency with previous API, though onSyncEncounter is now ignored
+  // as state updates are handled by the history hook logic implicitly via re-renders.
+  const undoLocal = useCallback((_onSyncEncounter?: (segment: RegionSegment | null) => void) => {
+    history.undo();
+  }, [history]);
 
-      const action = prev.localUndoStack[prev.localUndoStack.length - 1];
-      if (!action) {
-        return prev;
-      }
-
-      action.undo();
-
-      const newState = {
-        ...prev,
-        localUndoStack: prev.localUndoStack.slice(0, -1),
-        localRedoStack: [...prev.localRedoStack, action],
-      };
-
-      if (onSyncEncounter) {
-        onSyncEncounter(newState.segment);
-      }
-
-      return newState;
-    });
-  }, []);
-
-  const redoLocal = useCallback((onSyncEncounter?: (segment: RegionSegment | null) => void) => {
-    setTransaction((prev) => {
-      if (prev.localRedoStack.length === 0) {
-        return prev;
-      }
-
-      const action = prev.localRedoStack[prev.localRedoStack.length - 1];
-      if (!action) {
-        return prev;
-      }
-
-      action.redo();
-
-      const newState = {
-        ...prev,
-        localRedoStack: prev.localRedoStack.slice(0, -1),
-        localUndoStack: [...prev.localUndoStack, action],
-      };
-
-      if (onSyncEncounter) {
-        onSyncEncounter(newState.segment);
-      }
-
-      return newState;
-    });
-  }, []);
+  const redoLocal = useCallback((_onSyncEncounter?: (segment: RegionSegment | null) => void) => {
+    history.redo();
+  }, [history]);
 
   const canUndoLocal = useCallback((): boolean => {
-    return transaction.localUndoStack.length > 0;
-  }, [transaction.localUndoStack]);
+    return history.canUndo;
+  }, [history.canUndo]);
 
   const canRedoLocal = useCallback((): boolean => {
-    return transaction.localRedoStack.length > 0;
-  }, [transaction.localRedoStack]);
+    return history.canRedo;
+  }, [history.canRedo]);
 
   const clearLocalStacks = useCallback(() => {
-    setTransaction((prev) => ({
-      ...prev,
-      localUndoStack: [],
-      localRedoStack: [],
-    }));
-  }, []);
+    history.clear();
+  }, [history]);
 
   return {
-    transaction,
+    transaction: {
+      ...transaction,
+      // Stack properties removed as they are now managed by history hook
+    },
     startTransaction,
     addVertex,
     updateVertices,
@@ -570,5 +487,6 @@ export const useRegionTransaction = () => {
     canUndoLocal,
     canRedoLocal,
     clearLocalStacks,
+    history,
   };
 };

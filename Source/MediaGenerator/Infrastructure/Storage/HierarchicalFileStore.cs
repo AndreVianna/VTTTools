@@ -230,7 +230,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
                 .Where(idx => idx > 0)
                 .Distinct()
                 .Order()
-                .Select(idx => new ResourceInfo { Description = $"Token {idx}" })
+                .Select(idx => new ResourceMetadata { Description = $"Token {idx}" })
                 .ToList()
             : [];
 

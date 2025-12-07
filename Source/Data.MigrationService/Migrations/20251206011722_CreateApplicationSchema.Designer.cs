@@ -952,7 +952,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("MaintenanceMode", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceInfo", b =>
+            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceMetadata", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1305,7 +1305,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Portrait")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Portrait")
                         .WithMany()
                         .HasForeignKey("PortraitId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1395,7 +1395,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Token")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Token")
                         .WithMany()
                         .HasForeignKey("TokenId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1519,7 +1519,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1543,7 +1543,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1566,12 +1566,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "AmbientSound")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "AmbientSound")
                         .WithMany()
                         .HasForeignKey("AmbientSoundId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1597,7 +1597,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Image")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Image")
                         .WithMany()
                         .HasForeignKey("ImageId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1664,14 +1664,14 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "ResourceInfo")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "ResourceMetadata")
                         .WithMany()
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Encounter");
 
-                    b.Navigation("ResourceInfo");
+                    b.Navigation("ResourceMetadata");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
@@ -1698,7 +1698,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "Background")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1706,7 +1706,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Background");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceInfo", b =>
+            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceMetadata", b =>
                 {
                     b.OwnsOne("VttTools.Common.Model.Size", "Size", b1 =>
                         {
@@ -1777,13 +1777,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceFeature", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.ResourceInfo", "ResourceInfo")
+                    b.HasOne("VttTools.Data.Media.Entities.ResourceMetadata", "ResourceMetadata")
                         .WithMany("Features")
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ResourceInfo");
+                    b.Navigation("ResourceMetadata");
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.RoleClaim", b =>
@@ -1879,7 +1879,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Campaigns");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceInfo", b =>
+            modelBuilder.Entity("VttTools.Data.Media.Entities.ResourceMetadata", b =>
                 {
                     b.Navigation("Features");
                 });

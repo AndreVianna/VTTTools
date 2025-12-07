@@ -52,8 +52,8 @@ public sealed class PrepareCommand(IHttpClientFactory httpClientFactory,
         var previousAssetIndex = -1;
         foreach (var (assetIndex, asset, tokenIndex, token) in assets.SelectMany((e, i) =>
             e.Tokens.Count > 0
-                ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (ResourceInfo?)v))
-                : [(assetIndex: i, entity: e, tokenIndex: 0, token: (ResourceInfo?)null)])) {
+                ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (ResourceMetadata?)v))
+                : [(assetIndex: i, entity: e, tokenIndex: 0, token: (ResourceMetadata?)null)])) {
             ct.ThrowIfCancellationRequested();
             if (replace is AllowOverwriteResult.Cancel) {
                 skipCount = totalFiles - (processedCount + skipCount);

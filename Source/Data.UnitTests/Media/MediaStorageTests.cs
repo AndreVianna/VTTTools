@@ -49,7 +49,7 @@ public class MediaStorageTests
 
     [Fact]
     public async Task AddAsync_WithValidResource_AddsToDatabase() {
-        var resource = new ResourceInfo {
+        var resource = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
             ResourceType = ResourceType.Portrait,
             Path = "test/new-resource",
@@ -78,7 +78,7 @@ public class MediaStorageTests
         await _context.Resources.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
-        var resource = new ResourceInfo {
+        var resource = new ResourceMetadata {
             Id = entity.Id,
             ResourceType = entity.ResourceType,
             Path = entity.Path,

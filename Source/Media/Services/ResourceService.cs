@@ -34,24 +34,23 @@ public class ResourceService(
             var guidId = Guid.CreateVersion7();
             var path = GeneratePath(guidId, contentType);
 
-            var metadata = new BlobMetadata {
+            var metadata = new ResourceMetadata {
                 ContentType = processed.ContentType,
                 FileName = processed.FileName,
                 FileLength = processed.FileLength,
-                Width = processed.Size.Width,
-                Height = processed.Size.Height,
+                Size = processed.Size,
                 Duration = processed.Duration,
                 OwnerId = userId,
             };
 
-            var uploadResult = await blobStorage.UploadAsync(path, processed.Stream, metadata, ct);
+            var uploadResult = await blobStorage.SaveAsync(path, processed.Stream, metadata, ct);
             if (!uploadResult.IsSuccessful)
                 return Result.Failure<ResourceFile>(null!, uploadResult.Errors[0].Message);
 
             if (processed.Thumbnail is { Length: > 0 })
-                await blobStorage.UploadThumbnailAsync(path, processed.Thumbnail, ct);
+                await blobStorage.SaveThumbnailAsync(path, processed.Thumbnail, ct);
 
-            var resource = new ResourceInfo {
+            var resource = new ResourceMetadata {
                 Id = guidId,
                 ResourceType = ResourceType.Undefined,
                 Path = path,
@@ -81,7 +80,7 @@ public class ResourceService(
         }
     }
 
-    public async Task<(ResourceInfo[] Items, int TotalCount)> FindResourcesAsync(Guid userId, ResourceFilterData data, CancellationToken ct = default) {
+    public async Task<(ResourceMetadata[] Items, int TotalCount)> FindResourcesAsync(Guid userId, ResourceFilterData data, CancellationToken ct = default) {
         var effectiveFilter = data with {
             Skip = Math.Max(0, data.Skip),
             Take = Math.Clamp(data.Take, 1, 100),
@@ -97,7 +96,7 @@ public class ResourceService(
         return await mediaStorage.FilterAsync(effectiveFilter, ct);
     }
 
-    public async Task<ResourceData?> ServeResourceAsync(Guid userId, Guid id, CancellationToken ct = default) {
+    public async Task<Resource?> ServeResourceAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var resource = await mediaStorage.FindByIdAsync(id, ct);
         if (resource is null)
             return null;
@@ -105,31 +104,20 @@ public class ResourceService(
         if (!CanAccess(resource, userId))
             return null;
 
-        var download = await blobStorage.DownloadAsync(resource.Path, ct);
-        if (download is null)
-            return null;
-
-        return new ResourceData {
-            Stream = download.Content,
-            ContentType = download.ContentType,
-            FileName = download.Metadata?.TryGetValue("FileName", out var fileName) == true ? fileName : resource.FileName,
-            FileLength = download.Metadata?.TryGetValue("FileLength", out var fileLengthStr) == true && ulong.TryParse(fileLengthStr, out var fileLength)
-                ? fileLength
-                : resource.FileLength,
-            Size = new Size(
-                download.Metadata?.TryGetValue("Width", out var widthStr) == true && int.TryParse(widthStr, out var width)
-                    ? width
-                    : resource.Size.Width,
-                download.Metadata?.TryGetValue("Height", out var heightStr) == true && int.TryParse(heightStr, out var height)
-                    ? height
-                    : resource.Size.Height),
-            Duration = download.Metadata?.TryGetValue("Duration", out var durationStr) == true && TimeSpan.TryParse(durationStr, out var duration)
-                ? duration
-                : resource.Duration,
-        };
+        var download = await blobStorage.GetAsync(resource.Path, ct);
+        return GetResourceStream(download);
     }
 
-    public async Task<ResourceInfo?> GetResourceAsync(Guid userId, Guid id, CancellationToken ct = default) {
+    private static Resource? GetResourceStream(ResourceDownloadResult? download)
+        => download is null ? null : new() {
+            Stream = download.Content,
+            ContentType = download.ContentType,
+            FileName = download.Metadata["FileName"],
+            FileLength = ulong.Parse(download.Metadata["FileLength"]),
+            Size = new Size(int.Parse(download.Metadata["Width"]), int.Parse(download.Metadata["Height"])),
+            Duration = TimeSpan.Parse(download.Metadata["Duration"]),
+        };
+    public async Task<ResourceMetadata?> GetResourceAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var resource = await mediaStorage.FindByIdAsync(id, ct);
         return CanAccess(resource, userId) ? resource : null;
     }
@@ -158,7 +146,7 @@ public class ResourceService(
         if (resource.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        var deleteResult = await blobStorage.DeleteAsync(resource.Path, ct);
+        var deleteResult = await blobStorage.RemoveAsync(resource.Path, ct);
         if (!deleteResult.IsSuccessful)
             return deleteResult;
 
@@ -166,22 +154,14 @@ public class ResourceService(
         return Result.Success();
     }
 
-    private static bool CanAccess(ResourceInfo? resource, Guid userId)
+    private static bool CanAccess(ResourceMetadata? resource, Guid userId)
         => resource is not null && (resource.OwnerId == userId || (resource.IsPublic && resource.IsPublished));
 
     private static string GeneratePath(Guid id, string contentType) {
         var guidString = id.ToString("N");
         var guidSuffix = guidString[^4..];
-        var category = GetMediaCategory(contentType);
+        var category = MediaConstraints.GetMediaCategory(contentType);
         return $"{category}/{guidSuffix}/{guidString}";
-    }
-
-    private static string GetMediaCategory(string contentType) {
-        var normalizedType = contentType.ToLowerInvariant();
-        return normalizedType.StartsWith("image/") ? "images"
-            : normalizedType.StartsWith("audio/") ? "audio"
-            : normalizedType.StartsWith("video/") ? "videos"
-            : "other";
     }
 
     private static string SanitizeFileName(string fileName) {

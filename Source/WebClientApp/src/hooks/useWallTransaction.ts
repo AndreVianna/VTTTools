@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { useUndoHistory } from './useUndoHistory';
 import type { useAddEncounterWallMutation, useUpdateEncounterWallMutation } from '@/services/encounterApi';
 import type { EncounterWall, EncounterWallSegment } from '@/types/domain';
 import type { LocalAction } from '@/types/wallUndoActions';
@@ -17,8 +18,6 @@ export interface WallTransaction {
   originalWall: EncounterWall | null;
   segments: WallSegment[];
   isActive: boolean;
-  localUndoStack: LocalAction[];
-  localRedoStack: LocalAction[];
 }
 
 export interface CommitResult {
@@ -40,8 +39,6 @@ const INITIAL_TRANSACTION: WallTransaction = {
   originalWall: null,
   segments: [],
   isActive: false,
-  localUndoStack: [],
-  localRedoStack: [],
 };
 
 function generateBrokenWallNames(originalName: string, segmentCount: number): string[] {
@@ -69,6 +66,7 @@ function generateBrokenWallNames(originalName: string, segmentCount: number): st
 export const useWallTransaction = () => {
   const [transaction, setTransaction] = useState<WallTransaction>(INITIAL_TRANSACTION);
   const segmentsRef = useRef<WallSegment[]>([]);
+  const history = useUndoHistory<LocalAction>();
 
   const startTransaction = useCallback(
     (
@@ -79,84 +77,80 @@ export const useWallTransaction = () => {
       },
     ) => {
       segmentsRef.current = [];
+      history.clear();
 
-      if (wall) {
-        setTransaction({
-          type,
-          originalWall: wall,
-          segments: [
-            {
-              tempId: -1,
-              wallIndex: wall.index,
-              name: wall.name,
-              segments: [...wall.segments],
-            },
-          ],
-          isActive: true,
-          localUndoStack: [],
-          localRedoStack: [],
-        });
-      } else {
-        setTransaction({
-          type,
-          originalWall: null,
-          segments: [
-            {
-              tempId: -1,
-              wallIndex: null,
-              name: placementProperties?.name || '',
-              segments: [],
-            },
-          ],
-          isActive: true,
-          localUndoStack: [],
-          localRedoStack: [],
-        });
-      }
+      const initialSegments = wall
+        ? [
+          {
+            tempId: -1,
+            wallIndex: wall.index,
+            name: wall.name,
+            segments: [...wall.segments],
+          },
+        ]
+        : [
+          {
+            tempId: -1,
+            wallIndex: null,
+            name: placementProperties?.name || '',
+            segments: [],
+          },
+        ];
+
+      segmentsRef.current = initialSegments;
+
+      setTransaction({
+        type,
+        originalWall: wall || null,
+        segments: initialSegments,
+        isActive: true,
+      });
     },
-    [],
+    [history],
   );
 
   const addSegment = useCallback((segment: Omit<WallSegment, 'tempId'>): number => {
-    let newTempId: number = -1;
+    // Calculate ID based on the ref to ensure uniqueness even in batched updates
+    const currentSegments = segmentsRef.current.length > 0 ? segmentsRef.current : transaction.segments;
+    const currentNextTempId = Math.max(...currentSegments.map((s) => Math.abs(s.tempId)), 0);
+    const newTempId = -(currentNextTempId + 1);
 
-    setTransaction((prev) => {
-      const currentNextTempId = Math.max(...prev.segments.map((s) => Math.abs(s.tempId)), 0);
-      newTempId = -(currentNextTempId + 1);
-      const newState = {
-        ...prev,
-        segments: [
-          ...prev.segments,
-          {
-            ...segment,
-            tempId: newTempId,
-          },
-        ],
-      };
-      return newState;
-    });
+    const newSegment = {
+      ...segment,
+      tempId: newTempId,
+    };
+
+    const newSegments = [...currentSegments, newSegment];
+    segmentsRef.current = newSegments;
+
+    setTransaction((prev) => ({
+      ...prev,
+      segments: newSegments,
+    }));
+
     return newTempId;
-  }, []);
+  }, [transaction.segments]);
 
   const addSegments = useCallback((segments: Array<Omit<WallSegment, 'tempId'>>): void => {
-    setTransaction((prev) => {
-      let currentNextTempId = Math.max(...prev.segments.map((s) => Math.abs(s.tempId)), 0);
-      const newSegments = segments.map((segment) => {
-        currentNextTempId += 1;
-        const newTempId = -currentNextTempId;
-        return {
-          ...segment,
-          tempId: newTempId,
-        };
-      });
+    const currentSegments = segmentsRef.current.length > 0 ? segmentsRef.current : transaction.segments;
+    let currentNextTempId = Math.max(...currentSegments.map((s) => Math.abs(s.tempId)), 0);
 
-      const newState = {
-        ...prev,
-        segments: [...prev.segments, ...newSegments],
+    const newSegmentsToAdd = segments.map((segment) => {
+      currentNextTempId += 1;
+      return {
+        ...segment,
+        tempId: -currentNextTempId,
       };
-      return newState;
     });
-  }, []);
+
+    const newAllSegments = [...currentSegments, ...newSegmentsToAdd];
+    segmentsRef.current = newAllSegments;
+
+    setTransaction((prev) => ({
+      ...prev,
+      segments: newAllSegments,
+    }));
+  }, [transaction.segments]);
 
   const setAllSegments = useCallback((segments: WallSegment[]): void => {
     const segmentsWithTempIds = segments.map((segment, index) => {
@@ -177,18 +171,26 @@ export const useWallTransaction = () => {
   }, []);
 
   const updateSegment = useCallback((tempId: number, changes: Partial<WallSegment>) => {
+    const currentSegments = segmentsRef.current.length > 0 ? segmentsRef.current : transaction.segments;
+    const newSegments = currentSegments.map((segment) => (segment.tempId === tempId ? { ...segment, ...changes } : segment));
+    segmentsRef.current = newSegments;
+
     setTransaction((prev) => ({
       ...prev,
-      segments: prev.segments.map((segment) => (segment.tempId === tempId ? { ...segment, ...changes } : segment)),
+      segments: newSegments,
     }));
-  }, []);
+  }, [transaction.segments]);
 
   const removeSegment = useCallback((tempId: number) => {
+    const currentSegments = segmentsRef.current.length > 0 ? segmentsRef.current : transaction.segments;
+    const newSegments = currentSegments.filter((segment) => segment.tempId !== tempId);
+    segmentsRef.current = newSegments;
+
     setTransaction((prev) => ({
       ...prev,
-      segments: prev.segments.filter((segment) => segment.tempId !== tempId),
+      segments: newSegments,
     }));
-  }, []);
+  }, [transaction.segments]);
 
   const commitTransaction = useCallback(
     async (encounterId: string, apiHooks: ApiHooks, segmentsOverride?: WallSegment[]): Promise<CommitResult> => {
@@ -276,6 +278,7 @@ export const useWallTransaction = () => {
         if (!hasErrors) {
           setTransaction(INITIAL_TRANSACTION);
           segmentsRef.current = [];
+          history.clear();
         }
 
         return {
@@ -294,90 +297,34 @@ export const useWallTransaction = () => {
         };
       }
     },
-    [transaction],
+    [transaction, history],
   );
 
   const rollbackTransaction = useCallback(() => {
     setTransaction(INITIAL_TRANSACTION);
     segmentsRef.current = [];
-  }, []);
+    history.clear();
+  }, [history]);
 
   const getActiveSegments = useCallback((): WallSegment[] => {
     return transaction.segments;
   }, [transaction.segments]);
 
-  const pushLocalAction = useCallback((action: LocalAction) => {
-    setTransaction((prev) => ({
-      ...prev,
-      localUndoStack: [...prev.localUndoStack, action],
-      localRedoStack: [],
-    }));
-  }, []);
-
-  const undoLocal = useCallback((onSyncEncounter?: (segments: WallSegment[]) => void) => {
-    setTransaction((prev) => {
-      if (prev.localUndoStack.length === 0) {
-        return prev;
-      }
-
-      const action = prev.localUndoStack[prev.localUndoStack.length - 1];
-      if (!action) {
-        return prev;
-      }
-
-      action.undo();
-
-      const newState = {
-        ...prev,
-        localUndoStack: prev.localUndoStack.slice(0, -1),
-        localRedoStack: [...prev.localRedoStack, action],
-      };
-
-      if (onSyncEncounter) {
-        onSyncEncounter(newState.segments);
-      }
-
-      return newState;
-    });
-  }, []);
-
-  const redoLocal = useCallback((onSyncEncounter?: (segments: WallSegment[]) => void) => {
-    setTransaction((prev) => {
-      if (prev.localRedoStack.length === 0) {
-        return prev;
-      }
-
-      const action = prev.localRedoStack[prev.localRedoStack.length - 1];
-      if (!action) {
-        return prev;
-      }
-
-      action.redo();
-
-      const newState = {
-        ...prev,
-        localRedoStack: prev.localRedoStack.slice(0, -1),
-        localUndoStack: [...prev.localUndoStack, action],
-      };
-
-      if (onSyncEncounter) {
-        onSyncEncounter(newState.segments);
-      }
-
-      return newState;
-    });
-  }, []);
-
-  const canUndoLocal = useCallback((): boolean => {
-    return transaction.localUndoStack.length > 0;
-  }, [transaction.localUndoStack]);
-
-  const canRedoLocal = useCallback((): boolean => {
-    return transaction.localRedoStack.length > 0;
-  }, [transaction.localRedoStack]);
+  // Use history hook for undo/redo
+  const pushLocalAction = history.push;
+  const undoLocal = history.undo;
+  const redoLocal = history.redo;
+  const canUndoLocal = () => history.canUndo;
+  const canRedoLocal = () => history.canRedo;
 
   return {
-    transaction,
+    transaction: {
+      ...transaction,
+      // localUndoStack and localRedoStack are now managed by the history hook
+      // and are not part of the transaction state directly.
+      // If consumers rely on these properties, they should be updated to use
+      // canUndoLocal/canRedoLocal or the history object directly.
+    },
     startTransaction,
     addSegment,
     addSegments,
@@ -392,5 +339,7 @@ export const useWallTransaction = () => {
     redoLocal,
     canUndoLocal,
     canRedoLocal,
+    // Expose history for tests or advanced usage if needed
+    history,
   };
 };

@@ -23,8 +23,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.pushLocalAction(mockAction);
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(1);
-      expect(result.current.transaction.localUndoStack[0]).toBe(mockAction);
+      expect(result.current.history.undoStackSize).toBe(1);
     });
 
     it('should clear redo stack when new action is pushed', () => {
@@ -61,14 +60,14 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.undoLocal();
       });
 
-      expect(result.current.transaction.localRedoStack).toHaveLength(1);
+      expect(result.current.history.redoStackSize).toBe(1);
 
       act(() => {
         result.current.pushLocalAction(action3);
       });
 
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      expect(result.current.transaction.localUndoStack).toHaveLength(2);
+      expect(result.current.history.redoStackSize).toBe(0);
+      expect(result.current.history.undoStackSize).toBe(2);
     });
 
     it('should increase undo stack length correctly with multiple actions', () => {
@@ -104,7 +103,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         }
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(3);
+      expect(result.current.history.undoStackSize).toBe(3);
     });
   });
 
@@ -120,8 +119,8 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.undoLocal();
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
+      expect(result.current.history.undoStackSize).toBe(0);
+      expect(result.current.history.redoStackSize).toBe(0);
     });
 
     it('should call action.undo() when action exists', () => {
@@ -166,16 +165,12 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.pushLocalAction(mockAction);
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(1);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-
       act(() => {
         result.current.undoLocal();
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(1);
-      expect(result.current.transaction.localRedoStack[0]).toBe(mockAction);
+      expect(result.current.history.undoStackSize).toBe(0);
+      expect(result.current.history.redoStackSize).toBe(1);
     });
 
     it('should make canUndoLocal return false after undo on single action', () => {
@@ -268,8 +263,8 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.redoLocal();
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
+      expect(result.current.history.undoStackSize).toBe(0);
+      expect(result.current.history.redoStackSize).toBe(0);
     });
 
     it('should call action.redo() when action exists', () => {
@@ -322,16 +317,12 @@ describe('useWallTransaction - Local Undo/Redo', () => {
         result.current.undoLocal();
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(1);
-
       act(() => {
         result.current.redoLocal();
       });
 
-      expect(result.current.transaction.localUndoStack).toHaveLength(1);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      expect(result.current.transaction.localUndoStack[0]).toBe(mockAction);
+      expect(result.current.history.undoStackSize).toBe(1);
+      expect(result.current.history.redoStackSize).toBe(0);
     });
 
     it('should make canRedoLocal return false after redo on single action', () => {
@@ -568,6 +559,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
             endPole: { x: 10, y: 0, h: 10 },
             type: SegmentType.Wall,
             state: SegmentState.Open,
+            isOpaque: true,
           },
         ],
       };
@@ -590,6 +582,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
               endPole: { x: 20, y: 10, h: 10 },
               type: SegmentType.Wall,
               state: SegmentState.Open,
+              isOpaque: true,
             },
           ],
         });
@@ -607,6 +600,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
               endPole: { x: 30, y: 20, h: 10 },
               type: SegmentType.Wall,
               state: SegmentState.Open,
+              isOpaque: true,
             },
           ],
         });
@@ -636,6 +630,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
             endPole: { x: 10, y: 0, h: 10 },
             type: SegmentType.Wall,
             state: SegmentState.Open,
+            isOpaque: true,
           },
         ],
       };
@@ -656,6 +651,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
               endPole: { x: 20, y: 10, h: 10 },
               type: SegmentType.Wall,
               state: SegmentState.Open,
+              isOpaque: true,
             },
           ],
         });
@@ -673,6 +669,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
               endPole: { x: 30, y: 20, h: 10 },
               type: SegmentType.Wall,
               state: SegmentState.Open,
+              isOpaque: true,
             },
           ],
         });
@@ -701,6 +698,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
             endPole: { x: 10, y: 0, h: 10 },
             type: SegmentType.Wall,
             state: SegmentState.Open,
+            isOpaque: true,
           },
         ],
       };
@@ -721,6 +719,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
               endPole: { x: 20, y: 10, h: 10 },
               type: SegmentType.Wall,
               state: SegmentState.Open,
+              isOpaque: true,
             },
           ],
         });
@@ -736,256 +735,253 @@ describe('useWallTransaction - Local Undo/Redo', () => {
 
       expect(segmentsAfter).not.toBe(segmentsBefore);
     });
-  });
 
-  describe('Integration scenarios', () => {
-    it('should handle push -> undo -> redo -> undo cycle', () => {
-      const { result } = renderHook(() => useWallTransaction());
-      const callOrder: string[] = [];
-      const mockAction: LocalAction = {
-        type: 'TEST_ACTION',
-        description: 'Test action',
-        undo: () => callOrder.push('undo'),
-        redo: () => callOrder.push('redo'),
-      };
+    describe('Integration scenarios', () => {
+      it('should handle push -> undo -> redo -> undo cycle', () => {
+        const { result } = renderHook(() => useWallTransaction());
+        const callOrder: string[] = [];
+        const mockAction: LocalAction = {
+          type: 'TEST_ACTION',
+          description: 'Test action',
+          undo: () => callOrder.push('undo'),
+          redo: () => callOrder.push('redo'),
+        };
 
-      act(() => {
-        result.current.startTransaction('placement');
+        act(() => {
+          result.current.startTransaction('placement');
+        });
+
+        act(() => {
+          result.current.pushLocalAction(mockAction);
+        });
+
+        expect(result.current.canUndoLocal()).toBe(true);
+        expect(result.current.canRedoLocal()).toBe(false);
+
+        act(() => {
+          result.current.undoLocal();
+        });
+
+        expect(result.current.canUndoLocal()).toBe(false);
+        expect(result.current.canRedoLocal()).toBe(true);
+        expect(callOrder).toEqual(['undo']);
+
+        act(() => {
+          result.current.redoLocal();
+        });
+
+        expect(result.current.canUndoLocal()).toBe(true);
+        expect(result.current.canRedoLocal()).toBe(false);
+        expect(callOrder).toEqual(['undo', 'redo']);
+
+        act(() => {
+          result.current.undoLocal();
+        });
+
+        expect(result.current.canUndoLocal()).toBe(false);
+        expect(result.current.canRedoLocal()).toBe(true);
+        expect(callOrder).toEqual(['undo', 'redo', 'undo']);
       });
 
-      act(() => {
-        result.current.pushLocalAction(mockAction);
+      it('should handle push multiple -> undo all -> redo all', () => {
+        const { result } = renderHook(() => useWallTransaction());
+        const callOrder: string[] = [];
+        const actions: LocalAction[] = [
+          {
+            type: 'ACTION_1',
+            description: 'Action 1',
+            undo: () => callOrder.push('undo1'),
+            redo: () => callOrder.push('redo1'),
+          },
+          {
+            type: 'ACTION_2',
+            description: 'Action 2',
+            undo: () => callOrder.push('undo2'),
+            redo: () => callOrder.push('redo2'),
+          },
+          {
+            type: 'ACTION_3',
+            description: 'Action 3',
+            undo: () => callOrder.push('undo3'),
+            redo: () => callOrder.push('redo3'),
+          },
+        ];
+
+        act(() => {
+          result.current.startTransaction('placement');
+        });
+
+        act(() => {
+          for (const action of actions) {
+            result.current.pushLocalAction(action);
+          }
+        });
+
+        expect(result.current.history.undoStackSize).toBe(3);
+
+        act(() => {
+          result.current.undoLocal();
+          result.current.undoLocal();
+          result.current.undoLocal();
+        });
+
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(3);
+        expect(callOrder).toEqual(['undo3', 'undo2', 'undo1']);
+
+        callOrder.length = 0;
+
+        act(() => {
+          result.current.redoLocal();
+          result.current.redoLocal();
+          result.current.redoLocal();
+        });
+
+        expect(result.current.history.undoStackSize).toBe(3);
+        expect(result.current.history.redoStackSize).toBe(0);
+        expect(callOrder).toEqual(['redo1', 'redo2', 'redo3']);
       });
 
-      expect(result.current.canUndoLocal()).toBe(true);
-      expect(result.current.canRedoLocal()).toBe(false);
+      it('should clear redo stack when push after undo', () => {
+        const { result } = renderHook(() => useWallTransaction());
+        const actions: LocalAction[] = [
+          {
+            type: 'ACTION_1',
+            description: 'Action 1',
+            undo: vi.fn(),
+            redo: vi.fn(),
+          },
+          {
+            type: 'ACTION_2',
+            description: 'Action 2',
+            undo: vi.fn(),
+            redo: vi.fn(),
+          },
+          {
+            type: 'ACTION_3',
+            description: 'Action 3',
+            undo: vi.fn(),
+            redo: vi.fn(),
+          },
+        ];
 
-      act(() => {
-        result.current.undoLocal();
+        act(() => {
+          result.current.startTransaction('placement');
+        });
+
+        const [action1, action2, action3] = actions;
+
+        act(() => {
+          if (action1) result.current.pushLocalAction(action1);
+          if (action2) result.current.pushLocalAction(action2);
+        });
+
+        act(() => {
+          result.current.undoLocal();
+        });
+
+        expect(result.current.history.undoStackSize).toBe(1);
+        expect(result.current.history.redoStackSize).toBe(1);
+
+        act(() => {
+          if (action3) result.current.pushLocalAction(action3);
+        });
+
+        expect(result.current.history.undoStackSize).toBe(2);
+        expect(result.current.history.redoStackSize).toBe(0);
+        expect(result.current.canRedoLocal()).toBe(false);
       });
 
-      expect(result.current.canUndoLocal()).toBe(false);
-      expect(result.current.canRedoLocal()).toBe(true);
-      expect(callOrder).toEqual(['undo']);
+      it('should maintain state consistency across multiple cycles', () => {
+        const { result } = renderHook(() => useWallTransaction());
+        const state = { value: 0 };
+        const action1: LocalAction = {
+          type: 'INCREMENT',
+          description: 'Increment',
+          undo: () => {
+            state.value--;
+          },
+          redo: () => {
+            state.value++;
+          },
+        };
+        const action2: LocalAction = {
+          type: 'INCREMENT',
+          description: 'Increment',
+          undo: () => {
+            state.value--;
+          },
+          redo: () => {
+            state.value++;
+          },
+        };
 
-      act(() => {
-        result.current.redoLocal();
-      });
+        act(() => {
+          result.current.startTransaction('placement');
+        });
 
-      expect(result.current.canUndoLocal()).toBe(true);
-      expect(result.current.canRedoLocal()).toBe(false);
-      expect(callOrder).toEqual(['undo', 'redo']);
-
-      act(() => {
-        result.current.undoLocal();
-      });
-
-      expect(result.current.canUndoLocal()).toBe(false);
-      expect(result.current.canRedoLocal()).toBe(true);
-      expect(callOrder).toEqual(['undo', 'redo', 'undo']);
-    });
-
-    it('should handle push multiple -> undo all -> redo all', () => {
-      const { result } = renderHook(() => useWallTransaction());
-      const callOrder: string[] = [];
-      const actions: LocalAction[] = [
-        {
-          type: 'ACTION_1',
-          description: 'Action 1',
-          undo: () => callOrder.push('undo1'),
-          redo: () => callOrder.push('redo1'),
-        },
-        {
-          type: 'ACTION_2',
-          description: 'Action 2',
-          undo: () => callOrder.push('undo2'),
-          redo: () => callOrder.push('redo2'),
-        },
-        {
-          type: 'ACTION_3',
-          description: 'Action 3',
-          undo: () => callOrder.push('undo3'),
-          redo: () => callOrder.push('redo3'),
-        },
-      ];
-
-      act(() => {
-        result.current.startTransaction('placement');
-      });
-
-      act(() => {
-        for (const action of actions) {
-          result.current.pushLocalAction(action);
-        }
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(3);
-
-      act(() => {
-        result.current.undoLocal();
-        result.current.undoLocal();
-        result.current.undoLocal();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(3);
-      expect(callOrder).toEqual(['undo3', 'undo2', 'undo1']);
-
-      callOrder.length = 0;
-
-      act(() => {
-        result.current.redoLocal();
-        result.current.redoLocal();
-        result.current.redoLocal();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(3);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      expect(callOrder).toEqual(['redo1', 'redo2', 'redo3']);
-    });
-
-    it('should clear redo stack when push after undo', () => {
-      const { result } = renderHook(() => useWallTransaction());
-      const actions: LocalAction[] = [
-        {
-          type: 'ACTION_1',
-          description: 'Action 1',
-          undo: vi.fn(),
-          redo: vi.fn(),
-        },
-        {
-          type: 'ACTION_2',
-          description: 'Action 2',
-          undo: vi.fn(),
-          redo: vi.fn(),
-        },
-        {
-          type: 'ACTION_3',
-          description: 'Action 3',
-          undo: vi.fn(),
-          redo: vi.fn(),
-        },
-      ];
-
-      act(() => {
-        result.current.startTransaction('placement');
-      });
-
-      const [action1, action2, action3] = actions;
-
-      act(() => {
-        if (action1) result.current.pushLocalAction(action1);
-        if (action2) result.current.pushLocalAction(action2);
-      });
-
-      act(() => {
-        result.current.undoLocal();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(1);
-      expect(result.current.transaction.localRedoStack).toHaveLength(1);
-
-      act(() => {
-        if (action3) result.current.pushLocalAction(action3);
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(2);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      expect(result.current.canRedoLocal()).toBe(false);
-    });
-
-    it('should maintain state consistency across multiple cycles', () => {
-      const { result } = renderHook(() => useWallTransaction());
-      const state = { value: 0 };
-      const action1: LocalAction = {
-        type: 'INCREMENT',
-        description: 'Increment',
-        undo: () => {
-          state.value--;
-        },
-        redo: () => {
+        act(() => {
           state.value++;
-        },
-      };
-      const action2: LocalAction = {
-        type: 'INCREMENT',
-        description: 'Increment',
-        undo: () => {
-          state.value--;
-        },
-        redo: () => {
+          result.current.pushLocalAction(action1);
+        });
+        expect(state.value).toBe(1);
+
+        act(() => {
           state.value++;
-        },
-      };
+          result.current.pushLocalAction(action2);
+        });
+        expect(state.value).toBe(2);
 
-      act(() => {
-        result.current.startTransaction('placement');
+        act(() => {
+          result.current.undoLocal();
+        });
+        expect(state.value).toBe(1);
+
+        act(() => {
+          result.current.undoLocal();
+        });
+        expect(state.value).toBe(0);
+
+        act(() => {
+          result.current.redoLocal();
+        });
+        expect(state.value).toBe(1);
+
+        act(() => {
+          result.current.redoLocal();
+        });
+        expect(state.value).toBe(2);
       });
 
-      act(() => {
-        state.value++;
-        result.current.pushLocalAction(action1);
+      it('should clear both stacks when transaction is rolled back', () => {
+        const { result } = renderHook(() => useWallTransaction());
+        const mockAction: LocalAction = {
+          type: 'TEST_ACTION',
+          description: 'Test action',
+          undo: vi.fn(),
+          redo: vi.fn(),
+        };
+
+        act(() => {
+          result.current.startTransaction('placement');
+        });
+
+        act(() => {
+          result.current.pushLocalAction(mockAction);
+        });
+
+        act(() => {
+          result.current.undoLocal();
+        });
+
+        act(() => {
+          result.current.rollbackTransaction();
+        });
+
+        expect(result.current.history.undoStackSize).toBe(0);
+        expect(result.current.history.redoStackSize).toBe(0);
+        expect(result.current.transaction.isActive).toBe(false);
       });
-      expect(state.value).toBe(1);
-
-      act(() => {
-        state.value++;
-        result.current.pushLocalAction(action2);
-      });
-      expect(state.value).toBe(2);
-
-      act(() => {
-        result.current.undoLocal();
-      });
-      expect(state.value).toBe(1);
-
-      act(() => {
-        result.current.undoLocal();
-      });
-      expect(state.value).toBe(0);
-
-      act(() => {
-        result.current.redoLocal();
-      });
-      expect(state.value).toBe(1);
-
-      act(() => {
-        result.current.redoLocal();
-      });
-      expect(state.value).toBe(2);
-    });
-
-    it('should clear both stacks when transaction is rolled back', () => {
-      const { result } = renderHook(() => useWallTransaction());
-      const mockAction: LocalAction = {
-        type: 'TEST_ACTION',
-        description: 'Test action',
-        undo: vi.fn(),
-        redo: vi.fn(),
-      };
-
-      act(() => {
-        result.current.startTransaction('placement');
-      });
-
-      act(() => {
-        result.current.pushLocalAction(mockAction);
-      });
-
-      act(() => {
-        result.current.undoLocal();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(1);
-
-      act(() => {
-        result.current.rollbackTransaction();
-      });
-
-      expect(result.current.transaction.localUndoStack).toHaveLength(0);
-      expect(result.current.transaction.localRedoStack).toHaveLength(0);
-      expect(result.current.transaction.isActive).toBe(false);
     });
   });
 });

@@ -1,5 +1,8 @@
-const LABEL_FONT_SIZE = 12;
-const LABEL_FONT_FAMILY = 'Arial';
+import { GroupName } from '@/services/layerManager';
+import { type Asset, AssetKind } from '@/types/domain';
+
+export const LABEL_FONT_SIZE = 12;
+export const LABEL_FONT_FAMILY = 'Arial';
 
 let measurementCanvas: HTMLCanvasElement | null = null;
 let measurementCtx: CanvasRenderingContext2D | null = null;
@@ -12,7 +15,7 @@ const getMeasurementContext = (): CanvasRenderingContext2D | null => {
   return measurementCtx;
 };
 
-const measureTextWidth = (
+export const measureTextWidth = (
   text: string,
   fontSize: number = LABEL_FONT_SIZE,
   fontFamily: string = LABEL_FONT_FAMILY,
@@ -23,6 +26,34 @@ const measureTextWidth = (
   }
   ctx.font = `${fontSize}px ${fontFamily}`;
   return ctx.measureText(text).width;
+};
+
+export const measureTextHeight = (fontSize: number = LABEL_FONT_SIZE): number => {
+  return fontSize * 1.2;
+};
+
+export const getAssetGroup = (asset: Asset): GroupName => {
+  if (asset.classification.kind === AssetKind.Creature) {
+    return GroupName.Monsters;
+  }
+
+  if (asset.classification.kind === AssetKind.Character) {
+    return GroupName.Characters;
+  }
+
+  if (asset.classification.kind === AssetKind.Object) {
+    return GroupName.Objects;
+  }
+
+  return GroupName.Objects;
+};
+
+export const getAssetSize = (asset: Asset): { width: number; height: number } => {
+  if (asset.tokenSize?.width && asset.tokenSize?.height) {
+    return { width: asset.tokenSize.width, height: asset.tokenSize.height };
+  }
+
+  return { width: 1, height: 1 };
 };
 
 export const formatMonsterLabel = (
@@ -36,10 +67,6 @@ export const formatMonsterLabel = (
   displayHeight: number;
   fullWidth: number;
 } => {
-  const measureTextHeight = (fontSize: number): number => {
-    return fontSize * 1.2;
-  };
-
   const fullWidth = measureTextWidth(name, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
 
   if (fullWidth <= maxWidth) {

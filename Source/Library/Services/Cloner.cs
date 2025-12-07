@@ -67,7 +67,7 @@ public static class Cloner {
         return clone;
     }
 
-    internal static ResourceInfo Clone(this ResourceInfo original)
+    internal static ResourceMetadata Clone(this ResourceMetadata original)
         => new() {
             Id = original.Id,
             ResourceType = original.ResourceType,

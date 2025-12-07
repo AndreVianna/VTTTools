@@ -1,12 +1,8 @@
 namespace VttTools.Data.Media;
 
-/// <summary>
-/// EF Core storage implementation for media entities.
-/// </summary>
 public class MediaStorage(ApplicationDbContext context)
     : IMediaStorage {
-    /// <inheritdoc />
-    public async Task<(ResourceInfo[] Items, int TotalCount)> FilterAsync(
+    public async Task<(ResourceMetadata[] Items, int TotalCount)> FilterAsync(
         ResourceFilterData filter,
         CancellationToken ct = default) {
         var query = context.Resources
@@ -51,8 +47,7 @@ public class MediaStorage(ApplicationDbContext context)
         return (items, totalCount);
     }
 
-    /// <inheritdoc />
-    public async Task<ResourceInfo?> FindByIdAsync(Guid id, CancellationToken ct = default) {
+    public async Task<ResourceMetadata?> FindByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Resources
             .Include(r => r.Features)
             .AsNoTracking()
@@ -60,15 +55,13 @@ public class MediaStorage(ApplicationDbContext context)
         return entity.ToModel();
     }
 
-    /// <inheritdoc />
-    public async Task AddAsync(ResourceInfo resource, CancellationToken ct = default) {
+    public async Task AddAsync(ResourceMetadata resource, CancellationToken ct = default) {
         var entity = resource.ToEntity();
         await context.Resources.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
     }
 
-    /// <inheritdoc />
-    public async Task<bool> UpdateAsync(ResourceInfo resource, CancellationToken ct = default) {
+    public async Task<bool> UpdateAsync(ResourceMetadata resource, CancellationToken ct = default) {
         var entity = await context.Resources
             .Include(r => r.Features)
             .FirstOrDefaultAsync(e => e.Id == resource.Id, ct);
@@ -83,7 +76,6 @@ public class MediaStorage(ApplicationDbContext context)
         return result > 0;
     }
 
-    /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
         var resource = await context.Resources.FindAsync([id], ct);
         if (resource == null)
