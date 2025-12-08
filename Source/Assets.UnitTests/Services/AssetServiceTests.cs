@@ -13,26 +13,12 @@ public class AssetServiceTests {
         _ct = TestContext.Current.CancellationToken;
     }
 
-    private AssetService CreateServiceForNonDeleteTests() {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .Options;
-        var mockContext = Substitute.For<ApplicationDbContext>(options);
-        return new AssetService(_assetStorage, _mediaStorage, mockContext);
-    }
-
-    private AssetService CreateServiceWithInMemoryDb(out ApplicationDbContext context) {
-        var dbName = $"TestDb_{Guid.CreateVersion7()}";
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(dbName)
-            .Options;
-        context = new ApplicationDbContext(options);
-        context.Database.EnsureCreated();
-        return new AssetService(_assetStorage, _mediaStorage, context);
-    }
+    private AssetService CreateServiceForTests()
+        => new(_assetStorage, _mediaStorage);
 
     [Fact]
     public async Task GetAssetsAsync_CallsStorage() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assets = new Asset[] {
             new() {
                 Id = Guid.CreateVersion7(),
@@ -55,7 +41,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task GetAssetAsync_CallsStorage() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var asset = new Asset {
             Id = assetId,
@@ -74,7 +60,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var portraitId = Guid.CreateVersion7();
         var data = new CreateAssetData {
             Name = "New Asset",
@@ -106,7 +92,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task UpdateAssetAsync_WithOwner_UpdatesAsset() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var asset = new Asset {
             Id = assetId,
@@ -140,7 +126,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task UpdateAssetAsync_WithNonOwner_ReturnsNotAllowed() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var nonOwnerId = Guid.CreateVersion7();
         var asset = new Asset {
@@ -165,7 +151,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task UpdateAssetAsync_WithPartialUpdate_OnlyUpdatesProvidedFields() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var asset = new Asset {
             Id = assetId,
@@ -193,7 +179,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task DeleteAssetAsync_WithOwner_DeletesAsset() {
-        var service = CreateServiceWithInMemoryDb(out var context);
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var asset = new Asset {
             Id = assetId,
@@ -208,16 +194,11 @@ public class AssetServiceTests {
 
         result.IsSuccessful.Should().BeTrue();
         await _assetStorage.Received(1).DeleteAsync(assetId, Arg.Any<CancellationToken>());
-
-        var encounterCount = await context.Encounters
-            .Where(e => e.EncounterAssets.Any(a => a.AssetId == assetId))
-            .CountAsync(_ct);
-        encounterCount.Should().Be(0);
     }
 
     [Fact]
     public async Task DeleteAssetAsync_WithNonOwner_ReturnsNotAllowed() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var nonOwnerId = Guid.CreateVersion7();
         var asset = new Asset {
@@ -238,7 +219,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task DeleteAssetAsync_WithNonExistentAsset_ReturnsNotFound() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
@@ -251,7 +232,7 @@ public class AssetServiceTests {
 
     [Fact]
     public async Task UpdateAssetAsync_WithNonExistentAsset_ReturnsNotFound() {
-        var service = CreateServiceForNonDeleteTests();
+        var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
         var data = new UpdateAssetData {
             Name = "Updated Name",

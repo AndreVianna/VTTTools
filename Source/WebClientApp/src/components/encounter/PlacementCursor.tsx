@@ -1,21 +1,9 @@
-// GENERATED: 2025-10-05 by Claude Code - Asset Placement System
-// LAYER: UI (Component)
-
-/**
- * PlacementCursor Component
- * Visual preview cursor showing the asset image at mouse position during placement
- * Features:
- * - Follows mouse cursor
- * - Snaps to grid when enabled
- * - Semi-transparent preview
- * - Sized to fit grid cell
- */
-
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Group, Image as KonvaImage } from 'react-konva';
 import { type Asset } from '@/types/domain';
-import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
+import { getDefaultAssetImage } from '@/utils/assetHelpers';
+import { useResourceImage } from '@/hooks/useResourceUrl';
 import { cellToPoint, type GridConfig, type Point, pointToCell } from '@/utils/gridCalculator';
 import type { EncounterCanvasHandle } from './EncounterCanvas';
 
@@ -37,28 +25,9 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({ asset, gridCon
     x: number;
     y: number;
   } | null>(null);
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
 
-  // Load asset image
-  useEffect(() => {
-    const imageResource = getDefaultAssetImage(asset);
-    if (!imageResource) return;
-
-    const img = new window.Image();
-    img.src = getResourceUrl(imageResource.id);
-    img.crossOrigin = 'use-credentials';
-
-    img.onload = () => {
-      imageRef.current = img;
-      setImage(img);
-    };
-
-    return () => {
-      imageRef.current = null;
-      setImage(null);
-    };
-  }, [asset]);
+  const imageResource = getDefaultAssetImage(asset);
+  const { image } = useResourceImage(imageResource?.id);
 
   // Track raw mouse pointer position
   useEffect(() => {

@@ -14,6 +14,8 @@ internal static class AssetHandlers {
         [FromQuery] string? subtype,
         [FromQuery] string? search,
         [FromQuery] string[]? filter,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDirection,
         [FromQuery] int? pageIndex,
         [FromQuery] int? pageSize,
         [FromServices] IAssetService assetService) {
@@ -29,13 +31,21 @@ internal static class AssetHandlers {
             ? parsedAvailability
             : (Availability?)null;
 
+        var sortByFilter = Enum.TryParse<AssetSortBy>(sortBy, ignoreCase: true, out var parsedSortBy)
+            ? parsedSortBy
+            : (AssetSortBy?)null;
+
+        var sortDirectionFilter = Enum.TryParse<SortDirection>(sortDirection, ignoreCase: true, out var parsedSortDirection)
+            ? parsedSortDirection
+            : (SortDirection?)null;
+
         var advancedFilter = filter is null ? [] : AdvancedSearchFilter.Parse(filter);
 
         var pagination = pageIndex.HasValue && pageSize.HasValue && pageIndex.Value >= 0 && pageSize.Value >= 1
             ? new Pagination(pageIndex.Value, pageSize.Value)
             : null;
 
-        var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, advancedFilter, pagination, cts.Token);
+        var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, advancedFilter, sortByFilter, sortDirectionFilter, pagination, cts.Token);
 
         return Results.Ok(new {
             data = assets,

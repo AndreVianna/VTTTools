@@ -3,7 +3,8 @@ import { Box, Chip, useTheme } from '@mui/material';
 import { DataGrid, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid';
 import { Category as CategoryIcon } from '@mui/icons-material';
 import type { Asset } from '@/types/domain';
-import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
+import { ResourceImage } from '@/components/common/ResourceImage';
+import { getDefaultAssetImage } from '@/utils/assetHelpers';
 
 export interface AssetTableViewProps {
   assets: Asset[];
@@ -48,16 +49,12 @@ export const AssetTableView: React.FC<AssetTableViewProps> = ({
                 backgroundColor: theme.palette.action.hover,
               }}
             >
-              {image ? (
-                <Box
-                  component="img"
-                  src={getResourceUrl(image.id)}
-                  alt={params.row.name}
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <CategoryIcon sx={{ fontSize: 18, color: theme.palette.text.disabled }} />
-              )}
+              <ResourceImage
+                resourceId={image?.id}
+                alt={params.row.name}
+                loadingSize={16}
+                fallback={<CategoryIcon sx={{ fontSize: 18, color: theme.palette.text.disabled }} />}
+              />
             </Box>
           );
         },

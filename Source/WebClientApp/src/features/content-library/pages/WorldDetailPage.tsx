@@ -74,6 +74,10 @@ export function WorldDetailPage() {
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
+  const apiEndpoints = getApiEndpoints();
+  const resourceUrl = world?.background ? `${apiEndpoints.media}/${world.background.id}` : null;
+  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
+
   const hasUnsavedChanges = useCallback(() => {
     if (!world || !isInitialized) return false;
     return name !== world.name || description !== world.description || isPublished !== world.isPublished;
@@ -316,9 +320,6 @@ export function WorldDetailPage() {
     }
   };
 
-  const apiEndpoints = getApiEndpoints();
-  const resourceUrl = world.background ? `${apiEndpoints.media}/${world.background.id}` : null;
-  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
   const backgroundUrl = backgroundBlobUrl || WORLD_DEFAULT_BACKGROUND;
 
   return (

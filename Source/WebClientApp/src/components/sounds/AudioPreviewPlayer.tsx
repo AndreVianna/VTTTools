@@ -5,6 +5,7 @@ import {
 } from '@mui/icons-material';
 import { Box, CircularProgress, IconButton, Slider, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
+import { useAuthenticatedResource } from '@/hooks/useAuthenticatedResource';
 
 export interface AudioPreviewPlayerProps {
     resourceId: string;
@@ -24,10 +25,23 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isAudioLoading, setIsAudioLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const audioUrl = `/api/resources/${resourceId}`;
+    const audioResourceUrl = `/api/resources/${resourceId}`;
+    const { url: audioBlobUrl, isLoading: isResourceLoading, error: resourceError } = useAuthenticatedResource(audioResourceUrl);
+
+    const isLoading = isResourceLoading || isAudioLoading;
+
+    useEffect(() => {
+        if (resourceError) {
+            const errorMessage = resourceError.message || 'Failed to load audio file';
+            setError(errorMessage);
+            if (onError) {
+                onError(errorMessage);
+            }
+        }
+    }, [resourceError, onError]);
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -35,7 +49,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
 
         const handleLoadedMetadata = () => {
             setDuration(audio.duration);
-            setIsLoading(false);
+            setIsAudioLoading(false);
         };
 
         const handleTimeUpdate = () => {
@@ -50,7 +64,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
         const handleError = () => {
             const errorMessage = 'Failed to load audio file';
             setError(errorMessage);
-            setIsLoading(false);
+            setIsAudioLoading(false);
             if (onError) {
                 onError(errorMessage);
             }
@@ -159,7 +173,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
                 gap: compact ? 0 : 1,
             }}
         >
-            <audio ref={audioRef} src={audioUrl} preload='metadata' />
+            {audioBlobUrl && <audio ref={audioRef} src={audioBlobUrl} preload='metadata' />}
 
             <Box
                 sx={{

@@ -2,15 +2,16 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogContent,
+  FormControl,
   IconButton,
   InputAdornment,
+  InputLabel,
   Link,
-  Menu,
   MenuItem,
+  Select,
   TextField,
   Typography,
   useTheme,
@@ -18,16 +19,15 @@ import {
 import {
   Close as CloseIcon,
   Search as SearchIcon,
-  Star as StarIcon,
 } from '@mui/icons-material';
 import type { Asset, AssetKind } from '@/types/domain';
 import type { PlacementSettings } from './types';
-import { useQuickSummon } from './useQuickSummon';
-import { QuickSummonResultsTable } from './QuickSummonResultsTable';
-import { QuickSummonStagingPanel } from './QuickSummonStagingPanel';
-import { CR_VALUES, parseCrToNumeric } from './types';
+import { useAssetSelection } from './useAssetSelection';
+import { AssetSelectionResultsTable } from './AssetSelectionResultsTable';
+import { AssetSelectionPreviewPanel } from './AssetSelectionPreviewPanel';
+import { ALPHABET_LETTERS } from './types';
 
-export interface QuickSummonDialogProps {
+export interface AssetSelectionDialogProps {
   open: boolean;
   onClose: () => void;
   onPlace: (asset: Asset, settings: PlacementSettings, tokenIndex: number) => void;
@@ -35,7 +35,7 @@ export interface QuickSummonDialogProps {
   title?: string;
 }
 
-export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
+export const AssetSelectionDialog: React.FC<AssetSelectionDialogProps> = ({
   open,
   onClose,
   onPlace,
@@ -46,33 +46,34 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const [typeMenuAnchor, setTypeMenuAnchor] = React.useState<null | HTMLElement>(null);
-  const [crMenuAnchor, setCrMenuAnchor] = React.useState<null | HTMLElement>(null);
-
   const {
-    scopeTab,
     searchQuery,
+    letterFilter,
+    categoryFilter,
     typeFilter,
-    crRangeFilter,
+    subtypeFilter,
     selectedAsset,
     selectedTokenIndex,
     placementSettings,
     highlightedIndex,
     filteredResults,
+    availableLetters,
+    availableCategories,
     availableTypes,
+    availableSubtypes,
     isLoading,
-    setScopeTab,
     setSearchQuery,
+    setLetterFilter,
+    setCategoryFilter,
     setTypeFilter,
-    setCrRangeFilter,
+    setSubtypeFilter,
     selectAsset,
     setSelectedTokenIndex,
     setHighlightedIndex,
-    updatePlacementSettings,
     navigateList,
     recordRecentAsset,
     reset,
-  } = useQuickSummon(kind ? { kind } : {});
+  } = useAssetSelection(kind ? { kind } : {});
 
   useEffect(() => {
     if (open) {
@@ -91,6 +92,12 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
       }
     }
   }, [highlightedIndex, filteredResults.length]);
+
+  useEffect(() => {
+    if (open && !selectedAsset && filteredResults.length > 0 && filteredResults[0]) {
+      selectAsset(filteredResults[0].asset);
+    }
+  }, [open, selectedAsset, filteredResults, selectAsset]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -138,48 +145,29 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
     handleClose();
   };
 
-  const handleCrFilterSelect = (value: string | null) => {
-    setCrMenuAnchor(null);
-    if (value === null) {
-      setCrRangeFilter(null);
-    } else {
-      const cr = parseCrToNumeric(value);
-      if (cr !== null) {
-        setCrRangeFilter([cr, cr]);
-      }
-    }
-  };
-
-  const handleTypeFilterSelect = (value: string | null) => {
-    setTypeMenuAnchor(null);
-    setTypeFilter(value);
-  };
-
-  const filterChipSx = {
-    height: 28,
-    borderRadius: '14px',
-    backgroundColor: theme.palette.action.hover,
-    border: `1px solid ${theme.palette.divider}`,
-    '&:hover': {
-      backgroundColor: theme.palette.action.selected,
-    },
-    '& .MuiChip-label': {
-      px: 1.5,
-      fontSize: '0.8rem',
-    },
-    '& .MuiChip-deleteIcon': {
-      fontSize: '1rem',
-    },
-  };
-
-  const activeFilterChipSx = {
-    ...filterChipSx,
-    backgroundColor: theme.palette.primary.dark,
-    borderColor: theme.palette.primary.main,
-    '&:hover': {
-      backgroundColor: theme.palette.primary.main,
-    },
-  };
+  const letterButtonSx = (letter: string, isActive: boolean, isEnabled: boolean) => ({
+    minWidth: 28,
+    height: 24,
+    px: 0.5,
+    fontSize: '0.7rem',
+    fontWeight: isActive ? 700 : 500,
+    borderRadius: 0.5,
+    backgroundColor: isActive
+      ? theme.palette.primary.main
+      : 'transparent',
+    color: isActive
+      ? theme.palette.primary.contrastText
+      : isEnabled
+        ? theme.palette.text.primary
+        : theme.palette.text.disabled,
+    cursor: isEnabled ? 'pointer' : 'default',
+    opacity: isEnabled ? 1 : 0.4,
+    '&:hover': isEnabled ? {
+      backgroundColor: isActive
+        ? theme.palette.primary.dark
+        : theme.palette.action.hover,
+    } : {},
+  });
 
   return (
     <Dialog
@@ -227,7 +215,7 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
         <TextField
           inputRef={searchInputRef}
           fullWidth
-          placeholder="Search (e.g., 'Goblin', 'CR:1', 'Undead')..."
+          placeholder="Search by name, type, or description..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
@@ -246,74 +234,95 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
           }}
         />
 
-        {/* Filter Chips Row */}
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Type Filter Chip */}
-          <Chip
-            label={typeFilter ? `Type: ${typeFilter}` : 'Type ▾'}
-            {...(typeFilter ? { onDelete: () => setTypeFilter(null) } : {})}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => setTypeMenuAnchor(e.currentTarget)}
-            sx={typeFilter ? activeFilterChipSx : filterChipSx}
-          />
-          <Menu
-            anchorEl={typeMenuAnchor}
-            open={Boolean(typeMenuAnchor)}
-            onClose={() => setTypeMenuAnchor(null)}
-          >
-            <MenuItem onClick={() => handleTypeFilterSelect(null)} sx={{ fontSize: '0.85rem' }}>
-              <em>All Types</em>
-            </MenuItem>
-            {availableTypes.map((type) => (
-              <MenuItem
-                key={type}
-                onClick={() => handleTypeFilterSelect(type)}
-                selected={typeFilter === type}
-                sx={{ fontSize: '0.85rem' }}
+        {/* Alphabet Filter Row */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 0.25,
+            flexWrap: 'wrap',
+            mb: 1.5,
+          }}
+        >
+          {ALPHABET_LETTERS.map((letter) => {
+            const isEnabled = availableLetters.has(letter);
+            const isActive = letterFilter === letter;
+            return (
+              <Box
+                key={letter}
+                component="button"
+                onClick={() => {
+                  if (isEnabled) {
+                    setLetterFilter(isActive ? null : letter);
+                  }
+                }}
+                sx={letterButtonSx(letter, isActive, isEnabled)}
               >
-                {type}
-              </MenuItem>
-            ))}
-          </Menu>
+                {letter}
+              </Box>
+            );
+          })}
+        </Box>
 
-          {/* CR Range Filter Chip */}
-          <Chip
-            label={crRangeFilter ? `CR: ${crRangeFilter[0]}` : 'CR Range ▾'}
-            {...(crRangeFilter ? { onDelete: () => setCrRangeFilter(null) } : {})}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => setCrMenuAnchor(e.currentTarget)}
-            sx={crRangeFilter ? activeFilterChipSx : filterChipSx}
-          />
-          <Menu
-            anchorEl={crMenuAnchor}
-            open={Boolean(crMenuAnchor)}
-            onClose={() => setCrMenuAnchor(null)}
-            slotProps={{
-              paper: {
-                sx: { maxHeight: 300 },
-              },
-            }}
-          >
-            <MenuItem onClick={() => handleCrFilterSelect(null)} sx={{ fontSize: '0.85rem' }}>
-              <em>Any CR</em>
-            </MenuItem>
-            {CR_VALUES.map((cr) => (
-              <MenuItem
-                key={cr}
-                onClick={() => handleCrFilterSelect(cr)}
-                selected={crRangeFilter !== null && crRangeFilter[0] === parseCrToNumeric(cr)}
-                sx={{ fontSize: '0.85rem' }}
-              >
-                CR {cr}
+        {/* Dropdowns Row */}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
+            <InputLabel sx={{ fontSize: '0.85rem' }}>Category</InputLabel>
+            <Select
+              value={categoryFilter || ''}
+              onChange={(e) => setCategoryFilter(e.target.value || null)}
+              label="Category"
+              sx={{ fontSize: '0.85rem' }}
+            >
+              <MenuItem value="">
+                <em>All Categories</em>
               </MenuItem>
-            ))}
-          </Menu>
+              {availableCategories.map((cat) => (
+                <MenuItem key={cat} value={cat} sx={{ fontSize: '0.85rem' }}>
+                  {cat}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-          {/* Favorites Toggle Chip */}
-          <Chip
-            icon={<StarIcon sx={{ fontSize: '1rem !important' }} />}
-            label="Favorites"
-            onClick={() => setScopeTab(scopeTab === 'favorites' ? 'all' : 'favorites')}
-            sx={scopeTab === 'favorites' ? activeFilterChipSx : filterChipSx}
-          />
+          <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
+            <InputLabel sx={{ fontSize: '0.85rem' }}>Type</InputLabel>
+            <Select
+              value={typeFilter || ''}
+              onChange={(e) => setTypeFilter(e.target.value || null)}
+              label="Type"
+              sx={{ fontSize: '0.85rem' }}
+              disabled={availableTypes.length === 0}
+            >
+              <MenuItem value="">
+                <em>All Types</em>
+              </MenuItem>
+              {availableTypes.map((type) => (
+                <MenuItem key={type} value={type} sx={{ fontSize: '0.85rem' }}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
+            <InputLabel sx={{ fontSize: '0.85rem' }}>Subtype</InputLabel>
+            <Select
+              value={subtypeFilter || ''}
+              onChange={(e) => setSubtypeFilter(e.target.value || null)}
+              label="Subtype"
+              sx={{ fontSize: '0.85rem' }}
+              disabled={availableSubtypes.length === 0}
+            >
+              <MenuItem value="">
+                <em>All Subtypes</em>
+              </MenuItem>
+              {availableSubtypes.map((subtype) => (
+                <MenuItem key={subtype} value={subtype} sx={{ fontSize: '0.85rem' }}>
+                  {subtype}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
       </Box>
 
@@ -353,7 +362,7 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
               <CircularProgress />
             </Box>
           ) : (
-            <QuickSummonResultsTable
+            <AssetSelectionResultsTable
               results={filteredResults}
               selectedAsset={selectedAsset}
               highlightedIndex={highlightedIndex}
@@ -365,7 +374,7 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
           )}
         </Box>
 
-        {/* Right Pane - Staging Area */}
+        {/* Right Pane - Preview Area */}
         <Box
           sx={{
             width: '40%',
@@ -377,12 +386,10 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
               : theme.palette.grey[50],
           }}
         >
-          <QuickSummonStagingPanel
+          <AssetSelectionPreviewPanel
             asset={selectedAsset}
             selectedTokenIndex={selectedTokenIndex}
             onTokenIndexChange={setSelectedTokenIndex}
-            placementSettings={placementSettings}
-            onSettingsChange={updatePlacementSettings}
           />
         </Box>
       </DialogContent>
@@ -402,7 +409,7 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
         }}
       >
         <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-          Drag row to map to place instantly
+          {filteredResults.length} assets found
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Link
@@ -437,4 +444,4 @@ export const QuickSummonDialog: React.FC<QuickSummonDialogProps> = ({
   );
 };
 
-export default QuickSummonDialog;
+export default AssetSelectionDialog;

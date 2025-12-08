@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Card, CardMedia, Checkbox, Chip, Typography, useTheme } from '@mui/material';
+import { Box, Card, Checkbox, Chip, Typography, useTheme } from '@mui/material';
 import { Category as CategoryIcon } from '@mui/icons-material';
 import type { Asset } from '@/types/domain';
-import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
+import { ResourceImage } from '@/components/common/ResourceImage';
+import { getDefaultAssetImage } from '@/utils/assetHelpers';
 
 export interface AssetCardCompactProps {
   asset: Asset;
@@ -65,8 +66,6 @@ export const AssetCardCompact: React.FC<AssetCardCompactProps> = ({
   );
 
   const displayImage = isHovering && hasMultipleTokens ? tokens[currentTokenIndex] : getDefaultAssetImage(asset);
-
-  const imageUrl = displayImage ? getResourceUrl(displayImage.id) : null;
 
   const statBadge = asset.statBlocks[0]?.['CR']?.value || asset.statBlocks[0]?.['HP']?.value;
 
@@ -138,25 +137,19 @@ export const AssetCardCompact: React.FC<AssetCardCompactProps> = ({
           overflow: 'hidden',
         }}
       >
-        {imageUrl ? (
-          <CardMedia
-            component="img"
-            image={imageUrl}
-            alt={asset.name}
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <CategoryIcon
-            sx={{
-              fontSize: cardSize * 0.4,
-              color: theme.palette.text.disabled,
-            }}
-          />
-        )}
+        <ResourceImage
+          resourceId={displayImage?.id}
+          alt={asset.name}
+          loadingSize={cardSize * 0.3}
+          fallback={
+            <CategoryIcon
+              sx={{
+                fontSize: cardSize * 0.4,
+                color: theme.palette.text.disabled,
+              }}
+            />
+          }
+        />
       </Box>
 
       <Box sx={{ p: 0.75 }}>

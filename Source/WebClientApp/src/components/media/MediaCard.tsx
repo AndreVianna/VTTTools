@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Box, Card, CardMedia, Checkbox, Chip, Typography, useTheme } from '@mui/material';
+import { Box, Card, CardMedia, Checkbox, Chip, CircularProgress, Typography, useTheme } from '@mui/material';
 import { PlayArrow, AudioFile } from '@mui/icons-material';
 import type { MediaResource } from '@/types/domain';
+import { useAuthenticatedImageUrl } from '@/hooks/useAuthenticatedImageUrl';
+import { useAuthenticatedResource } from '@/hooks/useAuthenticatedResource';
 
 export interface MediaCardProps {
     media: MediaResource;
@@ -37,11 +39,18 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     const isVideo = media.contentType.startsWith('video/');
     const isAudio = media.contentType.startsWith('audio/');
 
-    const thumbnailUrl = media.thumbnailPath
+    const thumbnailResourceUrl = media.thumbnailPath
         ? `/api/resources/${media.thumbnailPath}`
         : `/api/resources/${media.path}`;
 
-    const videoUrl = `/api/resources/${media.path}`;
+    const videoResourceUrl = `/api/resources/${media.path}`;
+
+    const { blobUrl: thumbnailBlobUrl, isLoading: isThumbnailLoading } = useAuthenticatedImageUrl(
+        !isAudio ? thumbnailResourceUrl : null
+    );
+    const { url: videoBlobUrl } = useAuthenticatedResource(
+        isVideo && isHovering ? videoResourceUrl : null
+    );
 
     useEffect(() => {
         if (isVideo && videoRef.current) {
@@ -82,6 +91,22 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     };
 
     const renderMediaContent = () => {
+        if (isThumbnailLoading && !isAudio) {
+            return (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
+                    <CircularProgress size={cardSize * 0.3} />
+                </Box>
+            );
+        }
+
         if (isVideo) {
             return (
                 <Box
@@ -93,16 +118,18 @@ export const MediaCard: React.FC<MediaCardProps> = ({
                 >
                     {!isHovering && (
                         <>
-                            <CardMedia
-                                component="img"
-                                image={thumbnailUrl}
-                                alt={media.fileName}
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                }}
-                            />
+                            {thumbnailBlobUrl && (
+                                <CardMedia
+                                    component="img"
+                                    image={thumbnailBlobUrl}
+                                    alt={media.fileName}
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                    }}
+                                />
+                            )}
                             <Box
                                 sx={{
                                     position: 'absolute',
@@ -128,10 +155,10 @@ export const MediaCard: React.FC<MediaCardProps> = ({
                             </Box>
                         </>
                     )}
-                    {isHovering && (
+                    {isHovering && videoBlobUrl && (
                         <video
                             ref={videoRef}
-                            src={videoUrl}
+                            src={videoBlobUrl}
                             autoPlay
                             muted
                             loop
@@ -150,10 +177,10 @@ export const MediaCard: React.FC<MediaCardProps> = ({
             return getMediaIcon();
         }
 
-        return (
+        return thumbnailBlobUrl ? (
             <CardMedia
                 component="img"
-                image={thumbnailUrl}
+                image={thumbnailBlobUrl}
                 alt={media.fileName}
                 sx={{
                     width: '100%',
@@ -161,7 +188,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
                     objectFit: 'cover',
                 }}
             />
-        );
+        ) : null;
     };
 
     return (

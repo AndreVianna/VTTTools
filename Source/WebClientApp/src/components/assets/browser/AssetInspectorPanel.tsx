@@ -15,7 +15,7 @@ import {
   Category as CategoryIcon,
 } from '@mui/icons-material';
 import type { Asset } from '@/types/domain';
-import { getResourceUrl } from '@/utils/assetHelpers';
+import { ResourceImage } from '@/components/common/ResourceImage';
 import { TokenCarousel } from './TokenCarousel';
 
 export interface AssetInspectorPanelProps {
@@ -30,8 +30,6 @@ export const AssetInspectorPanel: React.FC<AssetInspectorPanelProps> = ({
   onDelete,
 }) => {
   const theme = useTheme();
-
-  const portraitUrl = asset.portrait ? getResourceUrl(asset.portrait.id) : null;
 
   const statBlock = asset.statBlocks[0];
   const stats = statBlock
@@ -63,25 +61,20 @@ export const AssetInspectorPanel: React.FC<AssetInspectorPanelProps> = ({
           overflow: 'hidden',
         }}
       >
-        {portraitUrl ? (
-          <Box
-            component="img"
-            src={portraitUrl}
-            alt={asset.name}
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-            }}
-          />
-        ) : (
-          <CategoryIcon
-            sx={{
-              fontSize: 80,
-              color: theme.palette.text.disabled,
-            }}
-          />
-        )}
+        <ResourceImage
+          resourceId={asset.portrait?.id}
+          alt={asset.name}
+          objectFit="contain"
+          loadingSize={40}
+          fallback={
+            <CategoryIcon
+              sx={{
+                fontSize: 80,
+                color: theme.palette.text.disabled,
+              }}
+            />
+          }
+        />
       </Box>
 
       {/* Asset Info */}

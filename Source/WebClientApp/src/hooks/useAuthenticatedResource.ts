@@ -13,6 +13,19 @@ interface UseAuthenticatedResourceResult {
     refetch: () => void;
 }
 
+function normalizeToRelativeUrl(url: string): string {
+    if (url.startsWith('/')) {
+        return url;
+    }
+
+    try {
+        const parsed = new URL(url);
+        return parsed.pathname + parsed.search + parsed.hash;
+    } catch {
+        return url;
+    }
+}
+
 export function useAuthenticatedResource(
     resourcePath: string | null | undefined,
     options: UseAuthenticatedResourceOptions = {}
@@ -32,9 +45,10 @@ export function useAuthenticatedResource(
             return;
         }
 
-        const fullUrl = resourcePath.startsWith('/api/')
-            ? resourcePath
-            : `/api/resources/${resourcePath}`;
+        const normalizedPath = normalizeToRelativeUrl(resourcePath);
+        const fullUrl = normalizedPath.startsWith('/api/')
+            ? normalizedPath
+            : `/api/resources/${normalizedPath}`;
 
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -127,9 +141,10 @@ export function useAuthenticatedResourceCached(
             return;
         }
 
-        const fullUrl = resourcePath.startsWith('/api/')
-            ? resourcePath
-            : `/api/resources/${resourcePath}`;
+        const normalizedPath = normalizeToRelativeUrl(resourcePath);
+        const fullUrl = normalizedPath.startsWith('/api/')
+            ? normalizedPath
+            : `/api/resources/${normalizedPath}`;
 
         setIsLoading(true);
         setError(null);

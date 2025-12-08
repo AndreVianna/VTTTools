@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Box,
-  Chip,
   Table,
   TableBody,
   TableCell,
@@ -13,11 +12,12 @@ import {
 } from '@mui/material';
 import { Category as CategoryIcon } from '@mui/icons-material';
 import type { Asset } from '@/types/domain';
-import type { QuickSummonResult } from './types';
-import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
+import type { AssetSelectionResult } from './types';
+import { ResourceImage } from '@/components/common/ResourceImage';
+import { getDefaultAssetImage } from '@/utils/assetHelpers';
 
-export interface QuickSummonResultsTableProps {
-  results: QuickSummonResult[];
+export interface AssetSelectionResultsTableProps {
+  results: AssetSelectionResult[];
   selectedAsset: Asset | null;
   highlightedIndex: number;
   onSelect: (asset: Asset) => void;
@@ -26,7 +26,7 @@ export interface QuickSummonResultsTableProps {
   tableRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = ({
+export const AssetSelectionResultsTable: React.FC<AssetSelectionResultsTableProps> = ({
   results,
   selectedAsset,
   highlightedIndex,
@@ -37,7 +37,7 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
 }) => {
   const theme = useTheme();
 
-  const handleRowClick = (result: QuickSummonResult, index: number) => {
+  const handleRowClick = (result: AssetSelectionResult, index: number) => {
     onHighlight(index);
     onSelect(result.asset);
   };
@@ -106,12 +106,12 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
                 fontSize: '0.75rem',
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
-                width: '30%',
+                width: '25%',
                 backgroundColor: theme.palette.background.paper,
                 borderBottom: `2px solid ${theme.palette.divider}`,
               }}
             >
-              Type
+              Category
             </TableCell>
             <TableCell
               sx={{
@@ -119,12 +119,12 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
                 fontSize: '0.75rem',
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
-                width: 100,
+                width: '25%',
                 backgroundColor: theme.palette.background.paper,
                 borderBottom: `2px solid ${theme.palette.divider}`,
               }}
             >
-              Stats
+              Type
             </TableCell>
           </TableRow>
         </TableHead>
@@ -168,20 +168,12 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
                       backgroundColor: theme.palette.action.hover,
                     }}
                   >
-                    {image ? (
-                      <Box
-                        component="img"
-                        src={getResourceUrl(image.id)}
-                        alt={result.asset.name}
-                        sx={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
-                      <CategoryIcon sx={{ fontSize: 18, color: theme.palette.text.disabled }} />
-                    )}
+                    <ResourceImage
+                      resourceId={image?.id}
+                      alt={result.asset.name}
+                      loadingSize={16}
+                      fallback={<CategoryIcon sx={{ fontSize: 18, color: theme.palette.text.disabled }} />}
+                    />
                   </Box>
                 </TableCell>
                 <TableCell sx={{ py: 0.75, overflow: 'hidden' }}>
@@ -198,23 +190,8 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
                   >
                     {result.displayName}
                   </Typography>
-                  {result.asset.classification.subtype && (
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        fontSize: '0.7rem',
-                        display: 'block',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      ({result.asset.classification.subtype})
-                    </Typography>
-                  )}
                 </TableCell>
-                <TableCell sx={{ py: 0.75, width: '30%', overflow: 'hidden' }}>
+                <TableCell sx={{ py: 0.75, width: '25%', overflow: 'hidden' }}>
                   <Typography
                     variant="caption"
                     sx={{
@@ -226,36 +203,24 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
                       display: 'block',
                     }}
                   >
-                    {result.typeInfo}
+                    {result.asset.classification.category}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ py: 0.75, width: 100 }}>
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'nowrap' }}>
-                    {result.stats.cr && (
-                      <Chip
-                        label={`CR ${result.stats.cr}`}
-                        size="small"
-                        sx={{
-                          height: 20,
-                          fontSize: '0.65rem',
-                          fontWeight: 600,
-                          backgroundColor: theme.palette.warning.dark,
-                          color: theme.palette.warning.contrastText,
-                        }}
-                      />
-                    )}
-                    {result.stats.ac && (
-                      <Chip
-                        label={`AC ${result.stats.ac}`}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          height: 20,
-                          fontSize: '0.65rem',
-                        }}
-                      />
-                    )}
-                  </Box>
+                <TableCell sx={{ py: 0.75, width: '25%', overflow: 'hidden' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      fontSize: '0.75rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      display: 'block',
+                    }}
+                  >
+                    {result.asset.classification.type}
+                    {result.asset.classification.subtype && ` (${result.asset.classification.subtype})`}
+                  </Typography>
                 </TableCell>
               </TableRow>
             );
@@ -266,4 +231,4 @@ export const QuickSummonResultsTable: React.FC<QuickSummonResultsTableProps> = (
   );
 };
 
-export default QuickSummonResultsTable;
+export default AssetSelectionResultsTable;

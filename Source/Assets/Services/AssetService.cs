@@ -1,6 +1,6 @@
 namespace VttTools.Assets.Services;
 
-public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage, ApplicationDbContext context)
+public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage)
     : IAssetService {
     public Task<Asset[]> GetAssetsAsync(CancellationToken ct = default)
         => assetStorage.GetAllAsync(ct);
@@ -13,9 +13,11 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                                                                     string? subtype,
                                                                     string? basicSearch,
                                                                     ICollection<AdvancedSearchFilter>? advancedSearch,
+                                                                    AssetSortBy? sortBy,
+                                                                    SortDirection? sortDirection,
                                                                     Pagination? pagination,
                                                                     CancellationToken ct = default)
-        => assetStorage.SearchAsync(userId, availability, kind, category, type, subtype, basicSearch, advancedSearch, pagination, ct);
+        => assetStorage.SearchAsync(userId, availability, kind, category, type, subtype, basicSearch, advancedSearch, sortBy, sortDirection, pagination, ct);
 
     public Task<Asset?> GetAssetByIdAsync(Guid userId, Guid id, CancellationToken ct = default)
         => assetStorage.FindByIdAsync(userId, id, ct);
@@ -94,14 +96,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             return Result.Failure("NotFound");
         if (asset.OwnerId != userId)
             return Result.Failure("NotAllowed");
-
-        var usageCount = await context.Encounters
-            .Where(e => e.EncounterAssets.Any(a => a.AssetId == id))
-            .CountAsync(ct);
-
-        if (usageCount > 0)
-            return Result.Failure($"Cannot delete asset. It is currently used in {usageCount} encounter(s).");
-
         await assetStorage.DeleteAsync(id, ct);
         return Result.Success();
     }

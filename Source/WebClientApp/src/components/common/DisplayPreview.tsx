@@ -1,19 +1,16 @@
-// DisplayPreview Component
-// Renders asset display image with proportional scaling (no grid background)
-// Scales to fit within maxSize while maintaining aspect ratio
-
 import { Box, useTheme } from '@mui/material';
 import type React from 'react';
+import { ResourceImage } from '@/components/common/ResourceImage';
 
 export interface DisplayPreviewProps {
-  imageUrl: string;
-  maxSize?: number; // Maximum dimension on longest side (default: 320px)
+  resourceId: string | null | undefined;
+  maxSize?: number;
   alt?: string;
 }
 
-const MAX_SIZE = 320; // Maximum render size
+const MAX_SIZE = 320;
 
-export const DisplayPreview: React.FC<DisplayPreviewProps> = ({ imageUrl, maxSize = MAX_SIZE, alt = 'Display' }) => {
+export const DisplayPreview: React.FC<DisplayPreviewProps> = ({ resourceId, maxSize = MAX_SIZE, alt = 'Display' }) => {
   const theme = useTheme();
 
   return (
@@ -31,16 +28,11 @@ export const DisplayPreview: React.FC<DisplayPreviewProps> = ({ imageUrl, maxSiz
         overflow: 'hidden',
       }}
     >
-      <Box
-        component='img'
-        src={imageUrl}
+      <ResourceImage
+        resourceId={resourceId}
         alt={alt}
-        crossOrigin='use-credentials'
-        sx={{
-          maxWidth: '100%',
-          maxHeight: '100%',
-          objectFit: 'contain',
-        }}
+        objectFit='contain'
+        loadingSize={40}
       />
     </Box>
   );

@@ -35,10 +35,10 @@ Concise version history with links to detailed phase documentation.
 - Streamlined `AssetResourceManager` component
 
 **Quick Summon System**:
-- `QuickSummonDialog` - Modal for rapid asset searching and selection
-- `QuickSummonResultsTable` - Paginated results with sorting
-- `QuickSummonStagingPanel` - Stage multiple assets before placement
-- `useQuickSummon` hook - State management for summon workflow
+- `AssetSelectionDialog` - Modal for rapid asset searching and selection
+- `AssetSelectionResultsTable` - Paginated results with sorting
+- `AssetSelectionStagingPanel` - Stage multiple assets before placement
+- `useAssetSelection` hook - State management for summon workflow
 - Support for batch asset placement on encounter map
 
 **Domain Model Updates**:
@@ -50,7 +50,7 @@ Concise version history with links to detailed phase documentation.
 **Files Created**:
 - `components/assets/browser/` - 8 new components
 - `components/assets/studio/` - 7 new components
-- `components/encounter/quicksummon/` - 5 new files
+- `components/encounter/assetselection/` - 5 new files
 - `hooks/useAssetBrowser.ts` - Browser state management
 - `pages/AssetStudioPage.tsx` - New studio page
 

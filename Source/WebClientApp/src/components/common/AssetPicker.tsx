@@ -1,17 +1,3 @@
-// GENERATED: 2025-10-04 by Claude Code - Asset Picker Component
-// LAYER: UI (Component)
-
-/**
- * AssetPicker Component
- * Reusable asset selection dialog with filtering by category and type
- *
- * Usage:
- * - Can filter by single category (Static/Passive/Active)
- * - Can optionally filter by specific asset types
- * - Returns selected asset via onSelect callback
- * - Shows asset preview with image, name, and description
- */
-
 import { Close as CloseIcon, Search as SearchIcon } from '@mui/icons-material';
 import {
   Alert,
@@ -34,7 +20,8 @@ import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useGetAssetsQuery } from '@/services/assetsApi';
 import { type Asset, AssetKind } from '@/types/domain';
-import { getDefaultAssetImage, getResourceUrl } from '@/utils/assetHelpers';
+import { ResourceImage } from '@/components/common/ResourceImage';
+import { getDefaultAssetImage } from '@/utils/assetHelpers';
 
 export interface AssetPickerProps {
   open: boolean;
@@ -239,23 +226,29 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                     onClick={() => handleAssetClick(asset)}
                   >
                     {/* Asset Image */}
-                    <CardMedia
-                      component='img'
-                      height='120'
-                      image={(() => {
-                        const image = getDefaultAssetImage(asset);
-                        return image
-                          ? getResourceUrl(image.id)
-                          : 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image';
-                      })()}
-                      alt={asset.name}
-                      crossOrigin='use-credentials'
-                      sx={{
-                        objectFit: 'contain',
-                        backgroundColor: 'action.hover',
-                        p: 1,
-                      }}
-                    />
+                    <Box sx={{ height: 120, backgroundColor: 'action.hover', p: 1 }}>
+                      <ResourceImage
+                        resourceId={getDefaultAssetImage(asset)?.id}
+                        alt={asset.name}
+                        objectFit="contain"
+                        loadingSize={24}
+                        fallback={
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'text.secondary',
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            No Image
+                          </Box>
+                        }
+                      />
+                    </Box>
 
                     {/* Asset Info */}
                     <CardContent sx={{ p: 1.5 }}>

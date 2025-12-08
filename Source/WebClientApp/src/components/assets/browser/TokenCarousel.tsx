@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, IconButton, useTheme } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import type { MediaResource } from '@/types/domain';
-import { getResourceUrl } from '@/utils/assetHelpers';
+import { ResourceImage } from '@/components/common/ResourceImage';
 
 export interface TokenCarouselProps {
   tokens: MediaResource[];
@@ -110,17 +110,12 @@ export const TokenCarousel: React.FC<TokenCarouselProps> = ({
               backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
             }}
           >
-            <Box
-              component="img"
-              src={getResourceUrl(token.id)}
+            <ResourceImage
+              resourceId={token.id}
               alt={token.fileName}
-              sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                position: 'relative',
-                zIndex: 1,
-              }}
+              objectFit="contain"
+              loadingSize={tokenSize * 0.4}
+              sx={{ position: 'relative', zIndex: 1 }}
             />
           </Box>
         ))}

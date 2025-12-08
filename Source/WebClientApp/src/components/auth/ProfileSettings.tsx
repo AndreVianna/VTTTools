@@ -24,6 +24,7 @@ import {
 } from '@/api/profileApi';
 import { getApiEndpoints } from '@/config/development';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthenticatedImageUrl } from '@/hooks/useAuthenticatedImageUrl';
 import { useResendEmailConfirmationMutation } from '@/services/authApi';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
@@ -196,6 +197,9 @@ export const ProfileSettings: React.FC = () => {
     }
   };
 
+  const avatarResourceUrl = getAvatarUrl(profileData?.avatarId);
+  const { blobUrl: avatarBlobUrl } = useAuthenticatedImageUrl(avatarResourceUrl);
+
   const isLoading = isLoadingProfile || isUpdating || isUploadingAvatar || isDeletingAvatar;
   const error = authError || profileError || localError;
 
@@ -206,8 +210,6 @@ export const ProfileSettings: React.FC = () => {
       </Box>
     );
   }
-
-  const avatarUrl = getAvatarUrl(profileData?.avatarId);
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -239,7 +241,7 @@ export const ProfileSettings: React.FC = () => {
         <Box sx={{ flex: '0 0 auto', textAlign: 'center' }}>
           <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
             <Avatar
-              {...(avatarUrl ? { src: avatarUrl } : {})}
+              {...(avatarBlobUrl ? { src: avatarBlobUrl } : {})}
               alt={profileData?.displayName || user.displayName}
               sx={{ width: 120, height: 120, mx: 'auto' }}
             >
@@ -265,7 +267,7 @@ export const ProfileSettings: React.FC = () => {
               </IconButton>
             )}
           </Box>
-          {isEditing && avatarUrl && (
+          {isEditing && avatarResourceUrl && (
             <Button
               variant='outlined'
               color='error'

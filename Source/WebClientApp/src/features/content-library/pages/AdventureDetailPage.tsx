@@ -86,6 +86,10 @@ export function AdventureDetailPage() {
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
+  const apiEndpoints = getApiEndpoints();
+  const resourceUrl = adventure?.background ? `${apiEndpoints.media}/${adventure.background.id}` : null;
+  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
+
   if (adventure && adventure.id !== lastSyncedAdventureId) {
     setLastSyncedAdventureId(adventure.id);
     setEditedFields({});
@@ -358,9 +362,6 @@ export function AdventureDetailPage() {
     }
   };
 
-  const apiEndpoints = getApiEndpoints();
-  const resourceUrl = adventure.background ? `${apiEndpoints.media}/${adventure.background.id}` : null;
-  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
   const backgroundUrl = backgroundBlobUrl || ADVENTURE_DEFAULT_BACKGROUND;
 
   return (

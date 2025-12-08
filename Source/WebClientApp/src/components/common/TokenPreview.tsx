@@ -1,22 +1,20 @@
-// TokenPreview Component
-// Renders asset token image with reference grid background
-// Grid shows token size in cells (Size property × 64px per cell)
-
-import { Box, useTheme } from '@mui/material';
+import { Box, CircularProgress, useTheme } from '@mui/material';
 import type React from 'react';
 import type { NamedSize } from '@/types/domain';
+import { useResourceUrl } from '@/hooks/useResourceUrl';
 
 export interface TokenPreviewProps {
-  imageUrl: string;
-  size: NamedSize; // Asset size from properties
-  maxSize?: number; // Maximum dimension (default: 320px)
+  resourceId: string | null | undefined;
+  size: NamedSize;
+  maxSize?: number;
 }
 
 const CELL_SIZE = 64; // Base cell size in pixels
 const MAX_SIZE = 320; // Maximum render size
 
-export const TokenPreview: React.FC<TokenPreviewProps> = ({ imageUrl, size, maxSize = MAX_SIZE }) => {
+export const TokenPreview: React.FC<TokenPreviewProps> = ({ resourceId, size, maxSize = MAX_SIZE }) => {
   const theme = useTheme();
+  const { url, isLoading } = useResourceUrl(resourceId);
 
   // Calculate actual token dimensions (Size × 64px)
   const actualWidth = size.width * CELL_SIZE;
@@ -60,23 +58,37 @@ export const TokenPreview: React.FC<TokenPreviewProps> = ({ imageUrl, size, maxS
         justifyContent: 'center',
       }}
     >
-      {/* Token Image */}
-      <Box
-        component='img'
-        src={imageUrl}
-        alt='Token'
-        crossOrigin='use-credentials'
-        sx={{
-          width: displayWidth,
-          height: displayHeight,
-          objectFit: 'contain',
-          position: 'absolute',
-          top: padding,
-          left: padding,
-        }}
-      />
+      {isLoading ? (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: padding,
+            left: padding,
+            width: displayWidth,
+            height: displayHeight,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CircularProgress size={Math.min(displayWidth, displayHeight) * 0.3} />
+        </Box>
+      ) : url ? (
+        <Box
+          component='img'
+          src={url}
+          alt='Token'
+          sx={{
+            width: displayWidth,
+            height: displayHeight,
+            objectFit: 'contain',
+            position: 'absolute',
+            top: padding,
+            left: padding,
+          }}
+        />
+      ) : null}
 
-      {/* Size indicator (optional - shows actual cell dimensions) */}
       <Box
         sx={{
           position: 'absolute',

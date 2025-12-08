@@ -14,7 +14,7 @@ export const assetsApi = createApi({
   endpoints: (builder) => ({
     /**
      * Get all assets with optional filtering (non-paginated)
-     * Query params: kind, search, published, owner
+     * Query params: kind, search, published, owner, sortBy, sortDirection
      * Note: Backend always returns paginated response, so we extract data array
      */
     getAssets: builder.query<
@@ -28,6 +28,8 @@ export const assetsApi = createApi({
         category?: string;
         type?: string;
         subtype?: string;
+        sortBy?: 'Name' | 'Kind' | 'Category' | 'Type';
+        sortDirection?: 'Ascending' | 'Descending';
       }
     >({
       query: (params = {}) => ({

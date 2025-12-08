@@ -20,7 +20,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import type { LightPlacementProperties, SoundPlacementProperties } from './panels';
 import { CharactersPanel, FogOfWarPanel, LightsPanel, MonstersPanel, ObjectsPanel, RegionsPanel, SoundsPanel, WallsPanel } from './panels';
-import { QuickSummonDialog, type PlacementSettings } from './quicksummon';
+import { AssetSelectionDialog, type PlacementSettings } from './asset-selection';
 
 export type PanelType =
   | 'regions'
@@ -460,7 +460,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       </Drawer>
 
       {assetPickerOpen.kind && (
-        <QuickSummonDialog
+        <AssetSelectionDialog
           open={assetPickerOpen.open}
           onClose={() => setAssetPickerOpen({ open: false })}
           onPlace={(asset, settings, tokenIndex) => {

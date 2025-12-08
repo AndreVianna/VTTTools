@@ -10,6 +10,19 @@ interface UseAuthenticatedImageUrlResult {
 
 const imageCache = new Map<string, { blobUrl: string; refCount: number }>();
 
+function normalizeToRelativeUrl(url: string): string {
+    if (url.startsWith('/')) {
+        return url;
+    }
+
+    try {
+        const parsed = new URL(url);
+        return parsed.pathname + parsed.search + parsed.hash;
+    } catch {
+        return url;
+    }
+}
+
 export function useAuthenticatedImageUrl(
     resourceUrl: string | null | undefined
 ): UseAuthenticatedImageUrlResult {
@@ -53,8 +66,10 @@ export function useAuthenticatedImageUrl(
             setIsLoading(true);
             setError(null);
 
+            const fetchUrl = normalizeToRelativeUrl(resourceUrl);
+
             try {
-                const response = await fetch(resourceUrl, {
+                const response = await fetch(fetchUrl, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'X-Requested-With': 'XMLHttpRequest',

@@ -27,6 +27,8 @@ public class AssetStorage(ApplicationDbContext context)
         string? subtype = null,
         string? search = null,
         ICollection<AdvancedSearchFilter>? filters = null,
+        AssetSortBy? sortBy = null,
+        SortDirection? sortDirection = null,
         Pagination? pagination = null,
         CancellationToken ct = default) {
 
@@ -65,6 +67,8 @@ public class AssetStorage(ApplicationDbContext context)
 
         var totalCount = await query.CountAsync(ct);
 
+        query = ApplySorting(query, sortBy, sortDirection);
+
         if (pagination is not null)
             query = query.Skip(pagination.Index * pagination.Size).Take(pagination.Size);
 
@@ -72,6 +76,28 @@ public class AssetStorage(ApplicationDbContext context)
         var assets = entities.Select(e => e.ToModel()).OfType<Asset>().ToArray();
 
         return (assets, totalCount);
+    }
+
+    private static IQueryable<AssetEntity> ApplySorting(
+        IQueryable<AssetEntity> query,
+        AssetSortBy? sortBy,
+        SortDirection? sortDirection) {
+        var isDescending = sortDirection == SortDirection.Descending;
+        return sortBy switch {
+            AssetSortBy.Name => isDescending
+                ? query.OrderByDescending(a => a.Name)
+                : query.OrderBy(a => a.Name),
+            AssetSortBy.Kind => isDescending
+                ? query.OrderByDescending(a => a.Classification.Kind)
+                : query.OrderBy(a => a.Classification.Kind),
+            AssetSortBy.Category => isDescending
+                ? query.OrderByDescending(a => a.Classification.Category)
+                : query.OrderBy(a => a.Classification.Category),
+            AssetSortBy.Type => isDescending
+                ? query.OrderByDescending(a => a.Classification.Type)
+                : query.OrderBy(a => a.Classification.Type),
+            _ => query.OrderBy(a => a.Name),
+        };
     }
 
     private static IQueryable<AssetEntity> AddAdvancedSearchFilters(ICollection<AdvancedSearchFilter>? advancedSearch, IQueryable<AssetEntity> query) {

@@ -3,8 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardMedia,
   CircularProgress,
   Grid,
   IconButton,
@@ -14,10 +12,10 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { DisplayPreview } from '@/components/common/DisplayPreview';
+import { ResourceImage } from '@/components/common/ResourceImage';
 import { TokenPreview } from '@/components/common/TokenPreview';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import type { NamedSize } from '@/types/domain';
-import { getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetResourceManagerProps {
   portraitId?: string;
@@ -119,21 +117,24 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
       {imageId ? (
         <Box sx={{ position: 'relative', display: 'inline-block' }}>
           {useTokenPreview ? (
-            <TokenPreview imageUrl={getResourceUrl(imageId)} size={tokenSize} />
+            <TokenPreview resourceId={imageId} size={tokenSize} />
           ) : (
-            <Card sx={{ width: 180 }}>
-              <CardMedia
-                component='img'
-                height='180'
-                image={getResourceUrl(imageId)}
+            <Box
+              sx={{
+                width: 180,
+                height: 180,
+                borderRadius: 1,
+                overflow: 'hidden',
+                bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+              }}
+            >
+              <ResourceImage
+                resourceId={imageId}
                 alt={title}
-                crossOrigin='use-credentials'
-                sx={{
-                  objectFit: 'contain',
-                  bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
-                }}
+                objectFit='contain'
+                loadingSize={40}
               />
-            </Card>
+            </Box>
           )}
           {!readOnly && (
             <IconButton
@@ -181,7 +182,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
               <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
                 Portrait
               </Typography>
-              <DisplayPreview imageUrl={getResourceUrl(portraitId)} />
+              <DisplayPreview resourceId={portraitId} />
             </Grid>
           )}
           {tokenId && (
@@ -189,7 +190,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
               <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
                 Token
               </Typography>
-              <TokenPreview imageUrl={getResourceUrl(tokenId)} size={tokenSize} />
+              <TokenPreview resourceId={tokenId} size={tokenSize} />
             </Grid>
           )}
         </Grid>

@@ -6,7 +6,7 @@ import {
   Image as ImageIcon,
 } from '@mui/icons-material';
 import type { MediaResource } from '@/types/domain';
-import { getResourceUrl } from '@/utils/assetHelpers';
+import { ResourceImage } from '@/components/common/ResourceImage';
 
 export interface VisualIdentityPanelProps {
   portrait: MediaResource | null;
@@ -71,15 +71,11 @@ export const VisualIdentityPanel: React.FC<VisualIdentityPanelProps> = ({
       >
         {portrait ? (
           <>
-            <Box
-              component="img"
-              src={getResourceUrl(portrait.id)}
+            <ResourceImage
+              resourceId={portrait.id}
               alt="Portrait"
-              sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
+              objectFit="contain"
+              loadingSize={32}
             />
             <Box
               className="portrait-overlay"
@@ -157,14 +153,12 @@ export const VisualIdentityPanel: React.FC<VisualIdentityPanelProps> = ({
               },
             }}
           >
-            <Box
-              component="img"
-              src={getResourceUrl(token.id)}
+            <ResourceImage
+              resourceId={token.id}
               alt={`Token ${index + 1}`}
+              objectFit="contain"
+              loadingSize={20}
               sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
                 background: `repeating-conic-gradient(${theme.palette.action.hover} 0% 25%, transparent 0% 50%) 50% / 16px 16px`,
               }}
             />

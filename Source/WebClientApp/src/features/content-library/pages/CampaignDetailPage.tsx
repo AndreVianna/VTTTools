@@ -74,6 +74,10 @@ export function CampaignDetailPage() {
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
+  const apiEndpoints = getApiEndpoints();
+  const resourceUrl = campaign?.background ? `${apiEndpoints.media}/${campaign.background.id}` : null;
+  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
+
   const hasUnsavedChanges = useCallback(() => {
     if (!campaign || !isInitialized) return false;
     return name !== campaign.name || description !== campaign.description || isPublished !== campaign.isPublished;
@@ -317,9 +321,6 @@ export function CampaignDetailPage() {
     }
   };
 
-  const apiEndpoints = getApiEndpoints();
-  const resourceUrl = campaign.background ? `${apiEndpoints.media}/${campaign.background.id}` : null;
-  const { blobUrl: backgroundBlobUrl } = useAuthenticatedImageUrl(resourceUrl);
   const backgroundUrl = backgroundBlobUrl || CAMPAIGN_DEFAULT_BACKGROUND;
 
   return (
