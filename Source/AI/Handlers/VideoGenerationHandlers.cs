@@ -4,7 +4,6 @@ namespace VttTools.AI.Handlers;
 
 internal static class VideoGenerationHandlers {
     internal static async Task<IResult> GenerateVideoHandler(
-        HttpContext context,
         [FromBody] VideoGenerationRequest request,
         [FromServices] IVideoGenerationService service,
         CancellationToken ct = default) {

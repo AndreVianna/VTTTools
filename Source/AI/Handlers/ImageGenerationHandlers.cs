@@ -4,7 +4,6 @@ namespace VttTools.AI.Handlers;
 
 internal static class ImageGenerationHandlers {
     internal static async Task<IResult> GenerateImageHandler(
-        HttpContext context,
         [FromBody] ImageGenerationRequest request,
         [FromServices] IImageGenerationService service,
         CancellationToken ct = default) {

@@ -4,7 +4,6 @@ namespace VttTools.AI.Handlers;
 
 internal static class PromptEnhancementHandlers {
     internal static async Task<IResult> EnhancePromptHandler(
-        HttpContext context,
         [FromBody] PromptEnhancementRequest request,
         [FromServices] IPromptEnhancementService service,
         CancellationToken ct = default) {

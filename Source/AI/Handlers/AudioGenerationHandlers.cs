@@ -4,7 +4,6 @@ namespace VttTools.AI.Handlers;
 
 internal static class AudioGenerationHandlers {
     internal static async Task<IResult> GenerateAudioHandler(
-        HttpContext context,
         [FromBody] AudioGenerationRequest request,
         [FromServices] IAudioGenerationService service,
         CancellationToken ct = default) {
