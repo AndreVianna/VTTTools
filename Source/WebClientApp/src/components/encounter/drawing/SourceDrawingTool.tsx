@@ -8,7 +8,7 @@ import {
   useRemoveEncounterLightSourceMutation,
   useRemoveEncounterSoundSourceMutation,
 } from '@/services/encounterApi';
-import type { EncounterLightSource, EncounterSoundSource, EncounterWall, Point, LightSourceType } from '@/types/domain';
+import type { EncounterLightSource, EncounterWall, MediaResource, Point, LightSourceType } from '@/types/domain';
 import type { Command } from '@/utils/commands';
 import { CreateLightSourceCommand, CreateSoundSourceCommand } from '@/utils/commands/sourceCommands';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
@@ -38,6 +38,7 @@ export interface SoundSourceDrawingProps {
   name?: string;
   resourceId?: string;
   isPlaying?: boolean;
+  loop?: boolean;
 }
 
 export type SourceDrawingConfig = LightSourceDrawingProps | SoundSourceDrawingProps;
@@ -135,13 +136,14 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           await execute(command);
         } else {
           const soundSource = source as SoundSourceDrawingProps;
-          const sourceData: EncounterSoundSource = {
+          const sourceData = {
             index: 0,
             name: soundSource.name,
             position: centerPos,
             range: rangeToUse,
-            resourceId: soundSource.resourceId,
+            resource: soundSource.resourceId ? { id: soundSource.resourceId } as MediaResource : undefined,
             isPlaying: soundSource.isPlaying ?? true,
+            loop: soundSource.loop ?? false,
           };
 
           const command = new CreateSoundSourceCommand({

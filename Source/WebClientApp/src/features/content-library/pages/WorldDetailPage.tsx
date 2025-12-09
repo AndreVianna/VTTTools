@@ -162,8 +162,7 @@ export function WorldDetailPage() {
       setSaveStatus('saving');
       const result = await uploadFile({
         file,
-        type: 'world',
-        resource: 'background',
+        resourceType: 'Background',
         entityId: worldId,
       }).unwrap();
 

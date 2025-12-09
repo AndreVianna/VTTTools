@@ -7,7 +7,6 @@ import {
 } from '@mui/icons-material';
 import {
   Box,
-  Button,
   Collapse,
   Divider,
   IconButton,
@@ -35,7 +34,9 @@ export interface WallsPanelProps {
   originalWallPoles?: Pole[] | null;
   onPresetSelect?: (preset: WallPreset) => void;
   onPlaceWall?: (properties: {
-    segmentType: SegmentType;
+    type: SegmentType;
+    isOpaque: boolean;
+    state: SegmentState;
     defaultHeight: number;
   }) => void;
   onWallSelect?: (wallIndex: number) => void;
@@ -60,7 +61,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
   }) => {
     const theme = useTheme();
 
-    const [segmentType, setSegmentType] = useState<SegmentType>(SegmentType.Wall);
+    const [selectedPreset, setSelectedPreset] = useState<WallPreset>(WALL_PRESETS[0]!);
     const [defaultHeight, setDefaultHeight] = useState<number>(10.0);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [wallToDelete, setWallToDelete] = useState<number | null>(null);
@@ -149,7 +150,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
     };
 
     const handlePresetClick = (preset: WallPreset) => {
-      setSegmentType(preset.segmentType);
+      setSelectedPreset(preset);
       onPresetSelect?.(preset);
     };
 
@@ -168,7 +169,9 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       }
 
       onPlaceWall?.({
-        segmentType,
+        type: selectedPreset.type,
+        isOpaque: selectedPreset.isOpaque,
+        state: selectedPreset.state,
         defaultHeight,
       });
     };
@@ -207,7 +210,9 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         setDeleteConfirmOpen(true);
       } else if (pendingAction === 'place') {
         onPlaceWall?.({
-          segmentType,
+          type: selectedPreset.type,
+          isOpaque: selectedPreset.isOpaque,
+          state: selectedPreset.state,
           defaultHeight,
         });
       }
@@ -275,7 +280,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
           <Box sx={{ display: 'flex', gap: 1 }}>
             {WALL_PRESETS.map((preset) => {
               const Icon = preset.icon;
-              const isSelected = segmentType === preset.segmentType;
+              const isSelected = selectedPreset.name === preset.name;
               return (
                 <Tooltip key={preset.name} title={preset.name} arrow placement='top'>
                   <IconButton
@@ -494,9 +499,9 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
                           <SegmentRow
                             key={segment.index}
                             segment={segment}
-                            onTypeChange={(segmentIndex, newType, newState) => {
+                            onPresetChange={(segmentIndex, newType, newIsOpaque, newState) => {
                               const updatedSegments = encounterWall.segments.map((s) =>
-                                s.index === segmentIndex ? { ...s, type: newType, state: newState } : s,
+                                s.index === segmentIndex ? { ...s, type: newType, isOpaque: newIsOpaque, state: newState } : s,
                               );
                               handleWallPropertyUpdate(encounterWall.index, {
                                 segments: updatedSegments,

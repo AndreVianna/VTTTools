@@ -31,7 +31,13 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
     const audioResourceUrl = `/api/resources/${resourceId}`;
     const { url: audioBlobUrl, isLoading: isResourceLoading, error: resourceError } = useAuthenticatedResource(audioResourceUrl);
 
-    const isLoading = isResourceLoading || isAudioLoading;
+    useEffect(() => {
+        setIsAudioLoading(true);
+        setError(null);
+        setCurrentTime(0);
+        setDuration(0);
+        setIsPlaying(false);
+    }, [resourceId]);
 
     useEffect(() => {
         if (resourceError) {
@@ -81,7 +87,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
             audio.removeEventListener('ended', handleEnded);
             audio.removeEventListener('error', handleError);
         };
-    }, [onError]);
+    }, [audioBlobUrl, onError]);
 
     useEffect(() => {
         if (audioRef.current) {
@@ -150,21 +156,6 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
         );
     }
 
-    if (isLoading) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: compactStyles.height,
-                }}
-            >
-                <CircularProgress size={compact ? 16 : 24} />
-            </Box>
-        );
-    }
-
     return (
         <Box
             sx={{
@@ -175,108 +166,123 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
         >
             {audioBlobUrl && <audio ref={audioRef} src={audioBlobUrl} preload='metadata' />}
 
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    height: compactStyles.height,
-                }}
-            >
-                <IconButton
-                    onClick={handlePlayPause}
-                    size={compact ? 'small' : 'medium'}
-                    sx={{
-                        width: compact ? 24 : 40,
-                        height: compact ? 24 : 40,
-                        color: theme.palette.primary.main,
-                        '&:hover': {
-                            backgroundColor: theme.palette.action.hover,
-                        },
-                    }}
-                >
-                    {isPlaying ? (
-                        <PauseIcon sx={{ fontSize: compact ? 16 : 24 }} />
-                    ) : (
-                        <PlayArrowIcon sx={{ fontSize: compact ? 16 : 24 }} />
-                    )}
-                </IconButton>
-
-                <Slider
-                    value={currentTime}
-                    max={duration}
-                    onChange={handleSeek}
-                    sx={{
-                        flex: 1,
-                        color: theme.palette.primary.main,
-                        height: compact ? 3 : 4,
-                        '& .MuiSlider-thumb': {
-                            width: compact ? 8 : 12,
-                            height: compact ? 8 : 12,
-                        },
-                        '& .MuiSlider-track': {
-                            border: 'none',
-                        },
-                    }}
-                />
-
-                <Typography
-                    sx={{
-                        fontSize: compactStyles.fontSize,
-                        color: theme.palette.text.secondary,
-                        minWidth: compact ? 60 : 80,
-                        textAlign: 'right',
-                    }}
-                >
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                </Typography>
-            </Box>
-
-            {!compact && (
+            {(isResourceLoading || isAudioLoading) ? (
                 <Box
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1,
-                        pl: 1,
+                        justifyContent: 'center',
+                        height: compactStyles.height,
                     }}
                 >
-                    <VolumeUpIcon
+                    <CircularProgress size={compact ? 16 : 24} />
+                </Box>
+            ) : (
+                <>
+                    <Box
                         sx={{
-                            fontSize: 20,
-                            color: theme.palette.text.secondary,
-                        }}
-                    />
-                    <Slider
-                        value={volume}
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        onChange={handleVolumeChange}
-                        sx={{
-                            flex: 1,
-                            color: theme.palette.primary.main,
-                            height: 4,
-                            '& .MuiSlider-thumb': {
-                                width: 12,
-                                height: 12,
-                            },
-                            '& .MuiSlider-track': {
-                                border: 'none',
-                            },
-                        }}
-                    />
-                    <Typography
-                        sx={{
-                            fontSize: '11px',
-                            color: theme.palette.text.secondary,
-                            minWidth: 40,
-                            textAlign: 'right',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            height: compactStyles.height,
                         }}
                     >
-                        {Math.round(volume * 100)}%
-                    </Typography>
-                </Box>
+                        <IconButton
+                            onClick={handlePlayPause}
+                            size={compact ? 'small' : 'medium'}
+                            sx={{
+                                width: compact ? 24 : 40,
+                                height: compact ? 24 : 40,
+                                color: theme.palette.primary.main,
+                                '&:hover': {
+                                    backgroundColor: theme.palette.action.hover,
+                                },
+                            }}
+                        >
+                            {isPlaying ? (
+                                <PauseIcon sx={{ fontSize: compact ? 16 : 24 }} />
+                            ) : (
+                                <PlayArrowIcon sx={{ fontSize: compact ? 16 : 24 }} />
+                            )}
+                        </IconButton>
+
+                        <Slider
+                            value={currentTime}
+                            max={duration}
+                            onChange={handleSeek}
+                            sx={{
+                                flex: 1,
+                                color: theme.palette.primary.main,
+                                height: compact ? 3 : 4,
+                                '& .MuiSlider-thumb': {
+                                    width: compact ? 8 : 12,
+                                    height: compact ? 8 : 12,
+                                },
+                                '& .MuiSlider-track': {
+                                    border: 'none',
+                                },
+                            }}
+                        />
+
+                        <Typography
+                            sx={{
+                                fontSize: compactStyles.fontSize,
+                                color: theme.palette.text.secondary,
+                                minWidth: compact ? 60 : 80,
+                                textAlign: 'right',
+                            }}
+                        >
+                            {formatTime(currentTime)} / {formatTime(duration)}
+                        </Typography>
+                    </Box>
+
+                    {!compact && (
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                pl: 1,
+                            }}
+                        >
+                            <VolumeUpIcon
+                                sx={{
+                                    fontSize: 20,
+                                    color: theme.palette.text.secondary,
+                                }}
+                            />
+                            <Slider
+                                value={volume}
+                                min={0}
+                                max={1}
+                                step={0.01}
+                                onChange={handleVolumeChange}
+                                sx={{
+                                    flex: 1,
+                                    color: theme.palette.primary.main,
+                                    height: 4,
+                                    '& .MuiSlider-thumb': {
+                                        width: 12,
+                                        height: 12,
+                                    },
+                                    '& .MuiSlider-track': {
+                                        border: 'none',
+                                    },
+                                }}
+                            />
+                            <Typography
+                                sx={{
+                                    fontSize: '11px',
+                                    color: theme.palette.text.secondary,
+                                    minWidth: 40,
+                                    textAlign: 'right',
+                                }}
+                            >
+                                {Math.round(volume * 100)}%
+                            </Typography>
+                        </Box>
+                    )}
+                </>
             )}
         </Box>
     );

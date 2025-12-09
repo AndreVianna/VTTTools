@@ -90,6 +90,9 @@ import {
   type PlacedSoundSource,
   type EncounterLightSource,
   type UpdateEncounterRequest,
+  type MediaResource,
+  SegmentState,
+  SegmentType,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
@@ -146,13 +149,17 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const stageCallbackRef = useCallback((node: Konva.Stage | null) => {
     if (node) {
-      stageRefObject.current = node;
-      setStage(node);
-      layerManager.initialize(node);
-      layerManager.enforceZOrder();
+      if (stageRefObject.current !== node) {
+        stageRefObject.current = node;
+        setStage(node);
+        layerManager.initialize(node);
+        layerManager.enforceZOrder();
+      }
     } else {
-      stageRefObject.current = null;
-      setStage(null);
+      if (stageRefObject.current !== null) {
+        stageRefObject.current = null;
+        setStage(null);
+      }
     }
   }, []);
   const { execute, recordAction, undo, redo } = useUndoRedoContext();
@@ -222,17 +229,27 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
   }, [backgroundSize]);
 
+  const handleBackgroundImageLoaded = useCallback((dimensions: { width: number; height: number }) => {
+    // Update stage size from actual image dimensions if encounter doesn't have them stored
+    if (!backgroundSize || backgroundSize.width === 0 || backgroundSize.height === 0) {
+      setStageSize(dimensions);
+    }
+  }, [backgroundSize]);
+
   const initialViewport = {
     x: (window.innerWidth - DEFAULT_STAGE_WIDTH) / 2,
     y: (window.innerHeight - DEFAULT_STAGE_HEIGHT) / 2,
     scale: 1,
   };
-  const [isHydrating, setIsHydrating] = useState(false);
+  const [_isHydrating, setIsHydrating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedWallIndex, setSelectedWallIndex] = useSessionState<number | null>({ key: 'selectedWallIndex', defaultValue: null, encounterId });
   const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
   const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
+  const [drawingWallSegmentType, setDrawingWallSegmentType] = useState<SegmentType>(SegmentType.Wall);
+  const [drawingWallIsOpaque, setDrawingWallIsOpaque] = useState<boolean>(true);
+  const [drawingWallState, setDrawingWallState] = useState<SegmentState>(SegmentState.Visible);
   const [isEditingVertices, setIsEditingVertices] = useState(false);
   const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
   const previewWallPolesRef = useRef<Pole[] | null>(null);
@@ -363,7 +380,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           type: gridConfig.type,
           cellSize: gridConfig.cellSize,
           offset: gridConfig.offset,
-          snap: gridConfig.snap,
+          scale: gridConfig.scale,
         },
         ...overrides,
       };
@@ -380,7 +397,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               : encounter.grid.type,
           cellSize: encounter.grid.cellSize,
           offset: encounter.grid.offset,
-          snap: encounter.grid.snap,
+          scale: encounter.grid.scale,
         });
 
       if (!hasChanges) {
@@ -406,7 +423,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           : encounter.grid.type,
         cellSize: encounter.grid.cellSize,
         offset: encounter.grid.offset,
-        snap: encounter.grid.snap,
+        scale: encounter.grid.scale,
       })) {
         requestPayload.grid = currentData.grid;
       }
@@ -572,7 +589,29 @@ const EncounterEditorPageInternal: React.FC = () => {
 
     let isMounted = true;
 
-    const initializeEncounter = async () => {
+    const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
+    const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
+    const hydratedLightSources = hydratePlacedLightSources(encounterData.lightSources || [], encounterId || '');
+    const hydratedSoundSources = hydratePlacedSoundSources(encounterData.soundSources || [], encounterId || '');
+
+    setEncounter(encounterData);
+    setGridConfig({
+      type:
+        typeof encounterData.grid.type === 'string'
+          ? GridType[encounterData.grid.type as keyof typeof GridType]
+          : encounterData.grid.type,
+      cellSize: encounterData.grid.cellSize,
+      offset: encounterData.grid.offset,
+      snap: encounterData.grid.snap ?? true,
+      scale: encounterData.grid.scale ?? 1,
+    });
+    setPlacedWalls(hydratedWalls);
+    setPlacedRegions(hydratedRegions);
+    setPlacedLightSources(hydratedLightSources);
+    setPlacedSoundSources(hydratedSoundSources);
+    setIsInitialized(true);
+
+    const loadAssetsAsync = async () => {
       if (!isMounted) return;
       setIsHydrating(true);
 
@@ -587,50 +626,11 @@ const EncounterEditorPageInternal: React.FC = () => {
         );
 
         if (!isMounted) return;
-
-        const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
-        const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
-        const hydratedLightSources = hydratePlacedLightSources(encounterData.lightSources || [], encounterId || '');
-        const hydratedSoundSources = hydratePlacedSoundSources(encounterData.soundSources || [], encounterId || '');
-
-        setEncounter(encounterData);
-        setGridConfig({
-          type:
-            typeof encounterData.grid.type === 'string'
-              ? GridType[encounterData.grid.type as keyof typeof GridType]
-              : encounterData.grid.type,
-          cellSize: encounterData.grid.cellSize,
-          offset: encounterData.grid.offset,
-          snap: encounterData.grid.snap,
-          scale: encounterData.grid.scale ?? 1,
-        });
         assetManagement.setPlacedAssets(hydratedAssets);
-        setPlacedWalls(hydratedWalls);
-        setPlacedRegions(hydratedRegions);
-        setPlacedLightSources(hydratedLightSources);
-        setPlacedSoundSources(hydratedSoundSources);
-        setIsInitialized(true);
       } catch (error) {
         if (!isMounted) return;
-
-        console.error('Failed to hydrate encounter:', error);
-        setEncounter(encounterData);
-        setGridConfig({
-          type:
-            typeof encounterData.grid.type === 'string'
-              ? GridType[encounterData.grid.type as keyof typeof GridType]
-              : encounterData.grid.type,
-          cellSize: encounterData.grid.cellSize,
-          offset: encounterData.grid.offset,
-          snap: encounterData.grid.snap,
-          scale: encounterData.grid.scale ?? 1,
-        });
+        console.error('Failed to hydrate assets:', error);
         assetManagement.setPlacedAssets([]);
-        setPlacedWalls([]);
-        setPlacedRegions([]);
-        setPlacedLightSources([]);
-        setPlacedSoundSources([]);
-        setIsInitialized(true);
       } finally {
         if (isMounted) {
           setIsHydrating(false);
@@ -638,7 +638,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       }
     };
 
-    initializeEncounter();
+    loadAssetsAsync();
 
     return () => {
       isMounted = false;
@@ -714,9 +714,14 @@ const EncounterEditorPageInternal: React.FC = () => {
       if (wallTransaction.transaction.isActive) {
         wallTransaction.rollbackTransaction();
       }
+      if (regionTransaction.transaction.isActive) {
+        regionTransaction.rollbackTransaction();
+      }
+      setIsEditingRegionVertices(false);
+      setEditingRegionIndex(null);
     }
     prevActiveScopeRef.current = activeScope;
-  }, [activeScope, assetManagement.handleAssetSelected, wallTransaction]);
+  }, [activeScope, assetManagement.handleAssetSelected, wallTransaction, regionTransaction]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -740,8 +745,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       try {
         const result = await uploadFile({
           file,
-          resourceType: 'encounter',
-          resource: 'background',
+          resourceType: 'Background',
           entityId: encounterId,
         }).unwrap();
 
@@ -962,7 +966,9 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const handlePlaceWall = useCallback(
     async (properties: {
-      segmentType: number;
+      type: SegmentType;
+      isOpaque: boolean;
+      state: SegmentState;
       defaultHeight: number;
     }) => {
       if (!encounterId || !encounter) return;
@@ -971,6 +977,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       const wallNumbers = existingWalls
         .map((w) => {
+          if (!w.name) return null;
           const match = w.name.match(/^Wall (\d+)$/);
           return match?.[1] ? parseInt(match[1], 10) : null;
         })
@@ -994,6 +1001,9 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       setDrawingWallIndex(-1);
       setDrawingWallDefaultHeight(properties.defaultHeight);
+      setDrawingWallSegmentType(properties.type);
+      setDrawingWallIsOpaque(properties.isOpaque);
+      setDrawingWallState(properties.state);
     },
     [encounterId, encounter, wallTransaction],
   );
@@ -1125,6 +1135,24 @@ const EncounterEditorPageInternal: React.FC = () => {
     setSoundContextMenuPosition(null);
   }, []);
 
+  const handleCanvasClick = useCallback(() => {
+    assetManagement.handleAssetSelected([]);
+    setSelectedWallIndex(null);
+    setSelectedRegionIndex(null);
+    setSelectedLightSourceIndex(null);
+    setSelectedSoundSourceIndex(null);
+    if (wallTransaction.transaction.isActive) {
+      wallTransaction.rollbackTransaction();
+    }
+    setIsEditingVertices(false);
+    setPreviewWallPoles(null);
+    if (regionTransaction.transaction.isActive) {
+      regionTransaction.rollbackTransaction();
+    }
+    setIsEditingRegionVertices(false);
+    setEditingRegionIndex(null);
+  }, [assetManagement.handleAssetSelected, wallTransaction, regionTransaction]);
+
   const handleLightSourceUpdate = useCallback(
     async (sourceIndex: number, updates: Partial<EncounterLightSource>) => {
       if (!encounterId) return;
@@ -1171,7 +1199,12 @@ const EncounterEditorPageInternal: React.FC = () => {
       const oldSource = placedSoundSources.find((s) => s.index === sourceIndex);
       if (!oldSource) return;
 
-      const newSource = { ...oldSource, ...updates };
+      const { resourceId, ...restUpdates } = updates;
+      const resourceUpdate = resourceId !== undefined
+        ? { resource: resourceId === null ? null : { id: resourceId } as MediaResource }
+        : {};
+
+      const newSource = { ...oldSource, ...restUpdates, ...resourceUpdate };
 
       const command = new UpdateSoundSourceCommand({
         encounterId,
@@ -1179,12 +1212,29 @@ const EncounterEditorPageInternal: React.FC = () => {
         oldSource,
         newSource,
         onUpdate: async (eid, idx, upd) => {
-          const updatePayload = {
+          const updatePayload: {
+            encounterId: string;
+            sourceIndex: number;
+            name?: string;
+            position?: { x: number; y: number };
+            range?: number;
+            isPlaying?: boolean;
+            loop?: boolean;
+            resourceId?: string | null;
+          } = {
             encounterId: eid,
             sourceIndex: idx,
-            ...upd,
-            resourceId: upd.resourceId || oldSource.resourceId || ''
+            name: upd.name,
+            position: upd.position,
+            range: upd.range,
+            isPlaying: upd.isPlaying,
+            loop: upd.loop,
           };
+
+          if (upd.resource !== undefined) {
+            updatePayload.resourceId = upd.resource?.id ?? null;
+          }
+
           await updateEncounterSoundSource(updatePayload).unwrap();
         },
         onRefetch: async () => {
@@ -1195,6 +1245,13 @@ const EncounterEditorPageInternal: React.FC = () => {
       await execute(command);
     },
     [encounterId, placedSoundSources, execute, updateEncounterSoundSource, refetch],
+  );
+
+  const handleSoundSourcePositionChange = useCallback(
+    (sourceIndex: number, position: { x: number; y: number }) => {
+      handleSoundSourceUpdate(sourceIndex, { position });
+    },
+    [handleSoundSourceUpdate],
   );
 
   const handleSourcePlacementFinish = useCallback((success: boolean) => {
@@ -1375,7 +1432,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     });
   }, [assetManagement.placedAssets, scopeVisibility.objects, scopeVisibility.monsters, scopeVisibility.characters]);
 
-  if (isLoadingEncounter || isHydrating) {
+  if (isLoadingEncounter) {
     return (
       <EditorLayout>
         <Box
@@ -1395,7 +1452,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             }}
           >
             <CircularProgress size={60} thickness={4} />
-            <Typography variant='h6'>{isLoadingEncounter ? 'Loading Encounter...' : 'Preparing Assets...'}</Typography>
+            <Typography variant='h6'>Loading Encounter...</Typography>
           </Box>
         </Box>
       </EditorLayout>
@@ -1548,6 +1605,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             backgroundColor={theme.palette.background.default}
             onViewportChange={viewportControls.handleViewportChange}
             stageCallbackRef={stageCallbackRef}
+            onClick={handleCanvasClick}
           >
             {/* ===== KONVA LAYER HIERARCHY (Z-ORDER) =====
               *
@@ -1579,6 +1637,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                 backgroundColor={theme.palette.background.default}
                 stageWidth={stageSize.width}
                 stageHeight={stageSize.height}
+                onImageLoaded={handleBackgroundImageLoaded}
               />
 
               <GridRenderer
@@ -1648,6 +1707,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       activeScope={activeScope}
                       onSelect={handleSoundSourceSelect}
                       onContextMenu={handleSoundSourceContextMenu}
+                      onPositionChange={handleSoundSourcePositionChange}
                       isSelected={selectedSoundSourceIndex === soundSource.index}
                     />
                   ))}
@@ -1739,6 +1799,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                         handleRegionVerticesChange(editingRegionIndex, newVertices)
                       }
                       onClearSelections={regionHandlers.handleFinishEditingRegion}
+                      onSwitchToRegion={regionHandlers.handleSwitchToRegion}
                       onFinish={regionHandlers.handleFinishEditingRegion}
                       onCancel={regionHandlers.handleCancelEditingRegion}
                       onLocalAction={(action: LocalAction) => regionTransaction.pushLocalAction(action)}
@@ -1791,6 +1852,9 @@ const EncounterEditorPageInternal: React.FC = () => {
                     wallIndex={drawingWallIndex}
                     gridConfig={gridConfig}
                     defaultHeight={drawingWallDefaultHeight}
+                    segmentType={drawingWallSegmentType}
+                    isOpaque={drawingWallIsOpaque}
+                    segmentState={drawingWallState}
                     onCancel={handleStructurePlacementCancel}
                     onFinish={handleStructurePlacementFinish}
                     onPolesChange={(newPoles) => {

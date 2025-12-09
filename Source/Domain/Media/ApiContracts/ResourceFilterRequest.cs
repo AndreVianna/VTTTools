@@ -8,6 +8,6 @@ public sealed record ResourceFilterRequest
     public string? SearchText { get; init; }
     public bool? IsPublic { get; init; }
     public bool? IsPublished { get; init; }
-    public int Skip { get; init; }
-    public int Take { get; init; } = 50;
+    public int? Skip { get; init; }
+    public int? Take { get; init; }
 }

@@ -645,6 +645,7 @@ export enum SegmentState {
   Open = 0,
   Closed = 1,
   Locked = 2,
+  Visible = 2, // Alias for Locked, used for barriers (walls/fences)
   Secret = 3,
 }
 
@@ -713,8 +714,9 @@ export interface EncounterSoundSource {
   name?: string;
   position: Point;
   range: number;
-  resourceId?: string;
+  resource?: MediaResource | null;
   isPlaying: boolean;
+  loop?: boolean;
 }
 
 export interface PlacedLightSource extends EncounterLightSource {

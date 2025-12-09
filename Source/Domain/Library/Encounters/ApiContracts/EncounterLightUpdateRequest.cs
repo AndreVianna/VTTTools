@@ -1,7 +1,7 @@
 
 namespace VttTools.Library.Encounters.ApiContracts;
 
-public record EncounterLightSourceUpdateRequest {
+public record EncounterLightUpdateRequest {
     [MaxLength(128)]
     public Optional<string?> Name { get; init; }
     public Optional<LightSourceType> Type { get; init; }

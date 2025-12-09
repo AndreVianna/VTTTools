@@ -299,9 +299,9 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterLightSourceAddRequest request, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> AddLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterLightAddRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterLightSourceAddData {
+        var data = new EncounterLightAddData {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
@@ -313,7 +313,7 @@ internal static class EncounterHandlers {
         };
         var result = await encounterService.AddLightSourceAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.Ok(new EncounterLightSourceResponse {
+            ? Results.Ok(new EncounterLightResponse {
                 Index = result.Value.Index,
                 Name = result.Value.Name,
                 Type = result.Value.Type,
@@ -331,9 +331,9 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterLightSourceUpdateRequest request, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> UpdateLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterLightUpdateRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterLightSourceUpdateData {
+        var data = new EncounterLightUpdateData {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
@@ -365,24 +365,26 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterSoundSourceAddRequest request, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> AddSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterSoundAddRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterSoundSourceAddData {
+        var data = new EncounterSoundAddData {
             Name = request.Name,
             Position = request.Position,
             Range = request.Range,
             ResourceId = request.ResourceId,
             IsPlaying = request.IsPlaying,
+            Loop = request.Loop,
         };
         var result = await encounterService.AddSoundSourceAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.Ok(new EncounterSoundSourceResponse {
+            ? Results.Ok(new EncounterSoundResponse {
                 Index = result.Value.Index,
                 Name = result.Value.Name,
                 Position = result.Value.Position,
                 Range = result.Value.Range,
                 ResourceId = result.Value.Resource?.Id,
                 IsPlaying = result.Value.IsPlaying,
+                Loop = result.Value.Loop,
             })
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
@@ -391,14 +393,15 @@ internal static class EncounterHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterSoundSourceUpdateRequest request, [FromServices] IEncounterService encounterService) {
+    internal static async Task<IResult> UpdateSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterSoundUpdateRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterSoundSourceUpdateData {
+        var data = new EncounterSoundUpdateData {
             Name = request.Name,
             Position = request.Position,
             Range = request.Range,
             ResourceId = request.ResourceId,
             IsPlaying = request.IsPlaying,
+            Loop = request.Loop,
         };
         var result = await encounterService.UpdateSoundSourceAsync(userId, id, (uint)index, data);
         return result.IsSuccessful

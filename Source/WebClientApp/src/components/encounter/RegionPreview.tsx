@@ -1,19 +1,43 @@
 import { useTheme } from '@mui/material';
 import React from 'react';
-import { Circle, Group, Line } from 'react-konva';
+import { Circle, Group, Shape } from 'react-konva';
 import type { Point } from '@/types/domain';
 
 export interface RegionPreviewProps {
   vertices: Point[];
+  holes?: Point[][];
   cursorPos?: { x: number; y: number };
   color?: string;
 }
 
-function flattenPoints(vertices: Point[]): number[] {
-  return vertices.flatMap((v) => [v.x, v.y]);
+function drawPolygonWithHoles(
+  ctx: CanvasRenderingContext2D,
+  outer: Point[],
+  holes: Point[][]
+): void {
+  if (outer.length < 3) return;
+
+  ctx.beginPath();
+
+  const first = outer[0]!;
+  ctx.moveTo(first.x, first.y);
+  for (let i = 1; i < outer.length; i++) {
+    ctx.lineTo(outer[i]!.x, outer[i]!.y);
+  }
+  ctx.closePath();
+
+  for (const hole of holes) {
+    if (hole.length < 3) continue;
+    const holeFirst = hole[0]!;
+    ctx.moveTo(holeFirst.x, holeFirst.y);
+    for (let i = 1; i < hole.length; i++) {
+      ctx.lineTo(hole[i]!.x, hole[i]!.y);
+    }
+    ctx.closePath();
+  }
 }
 
-export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertices, cursorPos, color }) => {
+export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertices, holes = [], cursorPos, color }) => {
   const theme = useTheme();
   const strokeColor = color || theme.palette.primary.main;
 
@@ -22,41 +46,48 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertice
   return (
     <Group name='RegionPreview'>
       {vertices.length >= 3 && (
-        <Line points={flattenPoints(vertices)} fill={strokeColor} opacity={0.2} closed={true} listening={false} />
+        <Shape
+          sceneFunc={(ctx, shape) => {
+            drawPolygonWithHoles(ctx._context, vertices, holes);
+            ctx.fillStrokeShape(shape);
+          }}
+          fill={strokeColor}
+          opacity={0.2}
+          listening={false}
+        />
       )}
 
-      {vertices.length >= 2 &&
-        vertices.slice(0, -1).map((vertex, index) => {
-          const nextVertex = vertices[index + 1];
-          if (!nextVertex) return null;
-          return (
-            <Line
-              key={`segment-${vertex.x}-${vertex.y}-${nextVertex.x}-${nextVertex.y}`}
-              points={[vertex.x, vertex.y, nextVertex.x, nextVertex.y]}
-              stroke={strokeColor}
-              strokeWidth={2}
-              opacity={0.8}
-              listening={false}
-            />
-          );
-        })}
+      {vertices.length >= 3 && (
+        <Shape
+          sceneFunc={(ctx) => {
+            const context = ctx._context;
+            context.beginPath();
+            const first = vertices[0]!;
+            context.moveTo(first.x, first.y);
+            for (let i = 1; i < vertices.length; i++) {
+              context.lineTo(vertices[i]!.x, vertices[i]!.y);
+            }
+            context.closePath();
+            context.strokeStyle = strokeColor;
+            context.lineWidth = 2;
+            context.globalAlpha = 0.8;
+            context.stroke();
 
-      {vertices.length >= 3 &&
-        (() => {
-          const firstVertex = vertices[0];
-          const lastVertex = vertices[vertices.length - 1];
-          if (!firstVertex || !lastVertex) return null;
-          return (
-            <Line
-              key='closing-line'
-              points={[lastVertex.x, lastVertex.y, firstVertex.x, firstVertex.y]}
-              stroke={strokeColor}
-              strokeWidth={2}
-              opacity={0.8}
-              listening={false}
-            />
-          );
-        })()}
+            for (const hole of holes) {
+              if (hole.length < 3) continue;
+              context.beginPath();
+              const holeFirst = hole[0]!;
+              context.moveTo(holeFirst.x, holeFirst.y);
+              for (let i = 1; i < hole.length; i++) {
+                context.lineTo(hole[i]!.x, hole[i]!.y);
+              }
+              context.closePath();
+              context.stroke();
+            }
+          }}
+          listening={false}
+        />
+      )}
 
       {cursorPos &&
         vertices.length > 0 &&
@@ -68,34 +99,54 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({ vertice
           return (
             <>
               {vertices.length >= 2 && (
-                <Line
-                  key='cursor-preview-fill'
-                  points={flattenPoints([...vertices, cursorPos])}
+                <Shape
+                  sceneFunc={(ctx, shape) => {
+                    const context = ctx._context;
+                    context.beginPath();
+                    context.moveTo(vertices[0]!.x, vertices[0]!.y);
+                    for (let i = 1; i < vertices.length; i++) {
+                      context.lineTo(vertices[i]!.x, vertices[i]!.y);
+                    }
+                    context.lineTo(cursorPos.x, cursorPos.y);
+                    context.closePath();
+                    ctx.fillStrokeShape(shape);
+                  }}
                   fill={strokeColor}
                   opacity={0.15}
-                  closed={true}
                   listening={false}
                 />
               )}
 
-              <Line
-                key='cursor-line-to-cursor'
-                points={[lastVertex.x, lastVertex.y, cursorPos.x, cursorPos.y]}
-                stroke={strokeColor}
-                strokeWidth={2}
-                dash={[8, 4]}
-                opacity={0.6}
+              <Shape
+                sceneFunc={(ctx) => {
+                  const context = ctx._context;
+                  context.beginPath();
+                  context.moveTo(lastVertex.x, lastVertex.y);
+                  context.lineTo(cursorPos.x, cursorPos.y);
+                  context.strokeStyle = strokeColor;
+                  context.lineWidth = 2;
+                  context.setLineDash([8, 4]);
+                  context.globalAlpha = 0.6;
+                  context.stroke();
+                  context.setLineDash([]);
+                }}
                 listening={false}
               />
 
               {vertices.length >= 2 && (
-                <Line
-                  key='cursor-line-to-first'
-                  points={[cursorPos.x, cursorPos.y, firstVertex.x, firstVertex.y]}
-                  stroke={strokeColor}
-                  strokeWidth={2}
-                  dash={[8, 4]}
-                  opacity={0.6}
+                <Shape
+                  sceneFunc={(ctx) => {
+                    const context = ctx._context;
+                    context.beginPath();
+                    context.moveTo(cursorPos.x, cursorPos.y);
+                    context.lineTo(firstVertex.x, firstVertex.y);
+                    context.strokeStyle = strokeColor;
+                    context.lineWidth = 2;
+                    context.setLineDash([8, 4]);
+                    context.globalAlpha = 0.6;
+                    context.stroke();
+                    context.setLineDash([]);
+                  }}
                   listening={false}
                 />
               )}

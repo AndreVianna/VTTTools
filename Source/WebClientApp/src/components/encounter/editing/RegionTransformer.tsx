@@ -21,6 +21,20 @@ const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 const LINE_HIT_AREA_WIDTH = 100;
 
+function isPointInPolygon(point: Point, vertices: Point[]): boolean {
+  if (vertices.length < 3) return false;
+  let inside = false;
+  for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+    const xi = vertices[i].x, yi = vertices[i].y;
+    const xj = vertices[j].x, yj = vertices[j].y;
+    if (((yi > point.y) !== (yj > point.y)) &&
+        (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
 function projectPointToLineSegment(
   point: { x: number; y: number },
   lineStart: { x: number; y: number },
@@ -78,14 +92,15 @@ export interface RegionTransformerProps {
   gridConfig: GridConfig;
   viewport: { x: number; y: number; scale: number };
   onVerticesChange: (vertices: Point[]) => void;
-  onClearSelections: () => void;
+  onClearSelections: () => void | Promise<void>;
+  onSwitchToRegion?: (regionIndex: number) => void | Promise<void>;
   onFinish?: () => void;
   onCancel?: () => void;
   onLocalAction?: (action: LocalAction) => void;
 }
 
 export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
-  ({ segment, allRegions, gridConfig, onVerticesChange, onFinish, onCancel, onLocalAction }) => {
+  ({ segment, allRegions, gridConfig, viewport, onVerticesChange, onClearSelections, onSwitchToRegion, onFinish, onCancel, onLocalAction }) => {
     const theme = useTheme();
 
     const [selectedVertices, setSelectedVertices] = useState<Set<number>>(new Set());
@@ -470,18 +485,64 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
 
             if (marqueeStart) {
               setMarqueeEnd(pointerPos);
+            } else {
+              const worldPos: Point = {
+                x: (pointerPos.x - viewport.x) / viewport.scale,
+                y: (pointerPos.y - viewport.y) / viewport.scale,
+              };
+
+              const otherRegions = allRegions.filter(
+                (region) =>
+                  region.index !== segment.regionIndex &&
+                  region.type !== 'FogOfWar'
+              );
+
+              const hoveredRegion = otherRegions.find((region) =>
+                isPointInPolygon(worldPos, region.vertices)
+              );
+
+              const container = stage.container();
+              if (container) {
+                container.style.cursor = hoveredRegion ? 'pointer' : 'default';
+              }
             }
           }}
-          onMouseUp={(_e) => {
+          onMouseUp={async (_e) => {
             if (marqueeStart && marqueeEnd && marqueeRect) {
-              const newSelected = new Set<number>();
-              verticesToUse.forEach((vertex, index) => {
-                if (isPointInRect(vertex, marqueeRect)) {
-                  newSelected.add(index);
+              const isSimpleClick = marqueeRect.width < 5 && marqueeRect.height < 5;
+
+              if (isSimpleClick) {
+                const clickScreenPos = { x: marqueeStart.x, y: marqueeStart.y };
+                const clickWorldPos: Point = {
+                  x: (clickScreenPos.x - viewport.x) / viewport.scale,
+                  y: (clickScreenPos.y - viewport.y) / viewport.scale,
+                };
+
+                const otherRegions = allRegions.filter(
+                  (region) =>
+                    region.index !== segment.regionIndex &&
+                    region.type !== 'FogOfWar'
+                );
+
+                const clickedRegion = otherRegions.find((region) =>
+                  isPointInPolygon(clickWorldPos, region.vertices)
+                );
+
+                if (clickedRegion && onSwitchToRegion) {
+                  onSwitchToRegion(clickedRegion.index);
+                } else {
+                  onClearSelections();
                 }
-              });
-              setSelectedVertices(newSelected);
-              setSelectedLineIndex(null);
+              } else {
+                const newSelected = new Set<number>();
+                verticesToUse.forEach((vertex, index) => {
+                  if (isPointInRect(vertex, marqueeRect)) {
+                    newSelected.add(index);
+                  }
+                });
+                setSelectedVertices(newSelected);
+                setSelectedLineIndex(null);
+              }
             }
             setMarqueeStart(null);
             setMarqueeEnd(null);
@@ -503,12 +564,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             if (draggingLine !== null && lineDragStartRef.current) {
               const worldPos = screenToWorld(pointerPos, stage);
 
-              const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Half;
-
-              let snappedWorldPos = worldPos;
-              if (gridConfig.snap) {
-                snappedWorldPos = snap(worldPos, gridConfig, currentSnapMode);
-              }
+              const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Free;
+              const snappedWorldPos = snap(worldPos, gridConfig, currentSnapMode);
 
               const deltaX = snappedWorldPos.x - lineDragStartRef.current.mouseX;
               const deltaY = snappedWorldPos.y - lineDragStartRef.current.mouseY;
@@ -537,23 +594,20 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                   const deltaX = worldPos.x - lineDragStartRef.current.mouseX;
                   const deltaY = worldPos.y - lineDragStartRef.current.mouseY;
 
-                  const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Half;
+                  const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Free;
 
-                  let newVertex1X = lineDragStartRef.current.vertex1.x + deltaX;
-                  let newVertex1Y = lineDragStartRef.current.vertex1.y + deltaY;
-                  let newVertex2X = lineDragStartRef.current.vertex2.x + deltaX;
-                  let newVertex2Y = lineDragStartRef.current.vertex2.y + deltaY;
+                  const snapped1 = snap(
+                    { x: lineDragStartRef.current.vertex1.x + deltaX, y: lineDragStartRef.current.vertex1.y + deltaY },
+                    gridConfig,
+                    currentSnapMode
+                  );
+                  const actualDeltaX = snapped1.x - lineDragStartRef.current.vertex1.x;
+                  const actualDeltaY = snapped1.y - lineDragStartRef.current.vertex1.y;
 
-                  if (gridConfig.snap) {
-                    const snapped1 = snap({ x: newVertex1X, y: newVertex1Y }, gridConfig, currentSnapMode);
-                    const actualDeltaX = snapped1.x - lineDragStartRef.current.vertex1.x;
-                    const actualDeltaY = snapped1.y - lineDragStartRef.current.vertex1.y;
-
-                    newVertex1X = snapped1.x;
-                    newVertex1Y = snapped1.y;
-                    newVertex2X = lineDragStartRef.current.vertex2.x + actualDeltaX;
-                    newVertex2Y = lineDragStartRef.current.vertex2.y + actualDeltaY;
-                  }
+                  const newVertex1X = snapped1.x;
+                  const newVertex1Y = snapped1.y;
+                  const newVertex2X = lineDragStartRef.current.vertex2.x + actualDeltaX;
+                  const newVertex2Y = lineDragStartRef.current.vertex2.y + actualDeltaY;
 
                   const newVertices = [...segment.vertices];
                   const vertex1Index = draggingLine;
@@ -666,11 +720,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
                         if (pointerPos) {
                           let worldPos = screenToWorld(pointerPos, stage);
 
-                          const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Half;
-
-                          if (gridConfig.snap) {
-                            worldPos = snap(worldPos, gridConfig, currentSnapMode);
-                          }
+                          const currentSnapMode = e.evt ? getSnapModeFromEvent(e.evt) : SnapMode.Free;
+                          worldPos = snap(worldPos, gridConfig, currentSnapMode);
 
                           setDraggingLine(index);
                           lineDragStartRef.current = {
@@ -702,11 +753,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
 
                       const projected = projectPointToLineSegment(worldPos, vertex, nextVertex);
 
-                      let insertPos = projected;
-                      if (gridConfig.snap) {
-                        const snapMode = getSnapModeFromEvent(e.evt);
-                        insertPos = snap(projected, gridConfig, snapMode);
-                      }
+                      const snapMode = getSnapModeFromEvent(e.evt);
+                      const insertPos = snap(projected, gridConfig, snapMode);
 
                       const newVertices = [...segment.vertices];
                       newVertices.splice(index + 1, 0, insertPos);
@@ -768,11 +816,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
 
                       const projected = projectPointToLineSegment(worldPos, vertex, nextVertex);
 
-                      let finalPos = projected;
-                      if (gridConfig.snap) {
-                        const currentSnapMode = getSnapModeFromEvent(e.evt);
-                        finalPos = snap(projected, gridConfig, currentSnapMode);
-                      }
+                      const currentSnapMode = getSnapModeFromEvent(e.evt);
+                      const finalPos = snap(projected, gridConfig, currentSnapMode);
 
                       setInsertPreviewPos(finalPos);
                       setHoveredLineIndex(index);
@@ -814,8 +859,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
               },
               dragBoundFunc: createDragBoundFunc(
                 gridConfig,
-                () => currentSnapModeRef.current ?? SnapMode.Half,
-                () => gridConfig.snap,
+                () => currentSnapModeRef.current ?? SnapMode.Free,
+                () => true,
               ),
               onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
                 handleVertexDragStart(index);

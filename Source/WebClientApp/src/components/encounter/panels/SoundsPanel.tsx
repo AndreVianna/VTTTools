@@ -389,7 +389,7 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                           primary={source.name || `Sound #${source.index}`}
                           primaryTypographyProps={{ fontSize: '10px' }}
                           secondary={
-                            `Range: ${source.range}ft | ${source.isPlaying ? 'Playing' : 'Paused'}${source.resourceId ? ` | Resource: ${source.resourceId}` : ''}`
+                            `Range: ${source.range}ft | ${source.isPlaying ? 'Playing' : 'Paused'}${source.resource?.id ? ` | Has Sound` : ''}`
                           }
                           secondaryTypographyProps={{ fontSize: '8px' }}
                         />
@@ -420,11 +420,11 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                           Sound Resource
                         </Typography>
 
-                        {source.resourceId ? (
+                        {source.resource?.id ? (
                           <>
-                            <SoundResourceInfo resourceId={source.resourceId} />
+                            <SoundResourceInfo resourceId={source.resource.id} />
 
-                            <AudioPreviewPlayer resourceId={source.resourceId} compact />
+                            <AudioPreviewPlayer resourceId={source.resource.id} compact />
 
                             <Box sx={{ display: 'flex', gap: 0.5 }}>
                               <Button
@@ -506,9 +506,9 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
           }}
           onSelect={handleSoundSelected}
           {...(soundPickerSourceIndex !== null &&
-            soundSources.find((s) => s.index === soundPickerSourceIndex)?.resourceId && {
+            soundSources.find((s) => s.index === soundPickerSourceIndex)?.resource?.id && {
               currentResourceId: soundSources.find((s) => s.index === soundPickerSourceIndex)!
-                .resourceId!,
+                .resource!.id,
             })}
         />
 

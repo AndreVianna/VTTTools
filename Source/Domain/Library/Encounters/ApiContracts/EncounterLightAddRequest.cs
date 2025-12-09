@@ -1,7 +1,7 @@
 
 namespace VttTools.Library.Encounters.ApiContracts;
 
-public record EncounterLightSourceAddRequest {
+public record EncounterLightAddRequest {
     [MaxLength(128)]
     public string? Name { get; init; }
     public LightSourceType Type { get; init; }

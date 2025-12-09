@@ -17,11 +17,11 @@ export function segmentsToPoles(wall: EncounterWall): Pole[] {
 }
 
 export function isSegmentBlocking(segment: EncounterWallSegment): boolean {
-  return segment.type === SegmentType.Wall || segment.type === SegmentType.Fence;
+  return segment.type === SegmentType.Wall;
 }
 
 export function isSegmentOpaque(segment: EncounterWallSegment): boolean {
-  return segment.type === SegmentType.Wall;
+  return segment.isOpaque;
 }
 
 export function segmentToLineSegment(segment: EncounterWallSegment): {

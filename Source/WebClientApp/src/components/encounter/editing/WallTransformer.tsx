@@ -113,8 +113,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   onPolesChange,
   onPolesPreview,
   gridConfig,
-  snapEnabled = true,
-  snapMode: externalSnapMode,
+  snapEnabled: _snapEnabled = true,
+  snapMode: _externalSnapMode,
+  onClearSelections,
   isAltPressed = false,
   encounterId: _encounterId,
   wallIndex: _wallIndex,
@@ -146,7 +147,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     pole2: { x: number; y: number; h: number };
   } | null>(null);
   const circleRefs = useRef<Map<number, Konva.Group>>(new Map());
-  const currentSnapModeRef = useRef<SnapMode>(externalSnapMode ?? SnapMode.Half);
+  const currentSnapModeRef = useRef<SnapMode>(SnapMode.Free);
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   const [insertPreviewPos, setInsertPreviewPos] = useState<{
     x: number;
@@ -248,15 +249,16 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   }, [poles]);
 
   // Track keyboard state for snap mode
+  // New behavior: No key = Free, Ctrl = Half, Alt = Quarter
   useEffect(() => {
     const updateSnapMode = (e: KeyboardEvent | MouseEvent) => {
       if ('altKey' in e) {
-        if (e.altKey && e.ctrlKey) {
-          currentSnapModeRef.current = SnapMode.Quarter;
+        if (e.ctrlKey) {
+          currentSnapModeRef.current = SnapMode.Half;
         } else if (e.altKey) {
-          currentSnapModeRef.current = SnapMode.Free;
+          currentSnapModeRef.current = SnapMode.Quarter;
         } else {
-          currentSnapModeRef.current = externalSnapMode ?? SnapMode.Half;
+          currentSnapModeRef.current = SnapMode.Free;
         }
       }
     };
@@ -267,7 +269,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
       window.removeEventListener('keydown', updateSnapMode);
       window.removeEventListener('keyup', updateSnapMode);
     };
-  }, [externalSnapMode]);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -599,14 +601,20 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
           }}
           onMouseUp={(_e) => {
             if (marqueeStart && marqueeEnd && marqueeRect) {
-              const newSelected = new Set<number>();
-              polesToUse.forEach((pole, index) => {
-                if (isPointInRect(pole, marqueeRect)) {
-                  newSelected.add(index);
-                }
-              });
-              setSelectedPoles(newSelected);
-              setSelectedLines(new Set());
+              const isSimpleClick = marqueeRect.width < 5 && marqueeRect.height < 5;
+
+              if (isSimpleClick && onClearSelections) {
+                onClearSelections();
+              } else {
+                const newSelected = new Set<number>();
+                polesToUse.forEach((pole, index) => {
+                  if (isPointInRect(pole, marqueeRect)) {
+                    newSelected.add(index);
+                  }
+                });
+                setSelectedPoles(newSelected);
+                setSelectedLines(new Set());
+              }
             }
             setMarqueeStart(null);
             setMarqueeEnd(null);
@@ -633,14 +641,13 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             const worldPos = screenToWorld(pointerPos, stage);
 
             const currentSnapMode = e.evt
-              ? getSnapModeFromEvent(e.evt, externalSnapMode)
-              : (externalSnapMode ?? SnapMode.Half);
+              ? getSnapModeFromEvent(e.evt)
+              : SnapMode.Free;
 
-            // Snap the current mouse position
-            let snappedWorldPos = worldPos;
-            if (snapEnabled && gridConfig) {
-              snappedWorldPos = snap(worldPos, gridConfig, currentSnapMode);
-            }
+            // Snap the current mouse position (keyboard modifier determines snap mode)
+            const snappedWorldPos = gridConfig
+              ? snap(worldPos, gridConfig, currentSnapMode)
+              : worldPos;
 
             // Calculate delta from start position using snapped mouse position
             const deltaX = snappedWorldPos.x - lineDragStartRef.current.mouseX;
@@ -684,25 +691,20 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 const deltaY = worldPos.y - lineDragStartRef.current.mouseY;
 
                 const currentSnapMode = e.evt
-                  ? getSnapModeFromEvent(e.evt, externalSnapMode)
-                  : (externalSnapMode ?? SnapMode.Half);
+                  ? getSnapModeFromEvent(e.evt)
+                  : SnapMode.Free;
 
-                let newPole1X = lineDragStartRef.current.pole1.x + deltaX;
-                let newPole1Y = lineDragStartRef.current.pole1.y + deltaY;
-                let newPole2X = lineDragStartRef.current.pole2.x + deltaX;
-                let newPole2Y = lineDragStartRef.current.pole2.y + deltaY;
+                // Apply snapping to first pole and calculate actual delta (keyboard modifier determines snap mode)
+                const snapped1 = gridConfig
+                  ? snap({ x: lineDragStartRef.current.pole1.x + deltaX, y: lineDragStartRef.current.pole1.y + deltaY }, gridConfig, currentSnapMode)
+                  : { x: lineDragStartRef.current.pole1.x + deltaX, y: lineDragStartRef.current.pole1.y + deltaY };
+                const actualDeltaX = snapped1.x - lineDragStartRef.current.pole1.x;
+                const actualDeltaY = snapped1.y - lineDragStartRef.current.pole1.y;
 
-                // Apply snapping to first pole and calculate actual delta
-                if (snapEnabled && gridConfig) {
-                  const snapped1 = snap({ x: newPole1X, y: newPole1Y }, gridConfig, currentSnapMode);
-                  const actualDeltaX = snapped1.x - lineDragStartRef.current.pole1.x;
-                  const actualDeltaY = snapped1.y - lineDragStartRef.current.pole1.y;
-
-                  newPole1X = snapped1.x;
-                  newPole1Y = snapped1.y;
-                  newPole2X = lineDragStartRef.current.pole2.x + actualDeltaX;
-                  newPole2Y = lineDragStartRef.current.pole2.y + actualDeltaY;
-                }
+                const newPole1X = snapped1.x;
+                const newPole1Y = snapped1.y;
+                const newPole2X = lineDragStartRef.current.pole2.x + actualDeltaX;
+                const newPole2Y = lineDragStartRef.current.pole2.y + actualDeltaY;
 
                 const newPoles = [...poles];
                 const pole1 = poles[draggingLine];
@@ -842,11 +844,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                         let worldPos = screenToWorld(pointerPos, stage);
 
                         const currentSnapMode = e.evt
-                          ? getSnapModeFromEvent(e.evt, externalSnapMode)
-                          : (externalSnapMode ?? SnapMode.Half);
+                          ? getSnapModeFromEvent(e.evt)
+                          : SnapMode.Free;
 
-                        // Snap the starting mouse position
-                        if (snapEnabled && gridConfig) {
+                        // Snap the starting mouse position (keyboard modifier determines snap mode)
+                        if (gridConfig) {
                           worldPos = snap(worldPos, gridConfig, currentSnapMode);
                         }
 
@@ -884,11 +886,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
                     const projected = nextPole ? projectPointToLineSegment(worldPos, pole, nextPole) : worldPos;
 
-                    let insertPos = projected;
-                    if (snapEnabled && gridConfig) {
-                      const snapMode = getSnapModeFromEvent(e.evt);
-                      insertPos = snap(projected, gridConfig, snapMode);
-                    }
+                    const snapMode = getSnapModeFromEvent(e.evt);
+                    const insertPos = gridConfig
+                      ? snap(projected, gridConfig, snapMode)
+                      : projected;
 
                     const insertedPole = {
                       x: insertPos.x,
@@ -973,12 +974,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     // Project onto line segment
                     const projected = nextPole ? projectPointToLineSegment(worldPos, pole, nextPole) : worldPos;
 
-                    // Apply snap
-                    let finalPos = projected;
-                    if (snapEnabled && gridConfig) {
-                      const currentSnapMode = getSnapModeFromEvent(e.evt, externalSnapMode);
-                      finalPos = snap(projected, gridConfig, currentSnapMode);
-                    }
+                    // Apply snap (keyboard modifier determines snap mode)
+                    const currentSnapMode = getSnapModeFromEvent(e.evt);
+                    const finalPos = gridConfig
+                      ? snap(projected, gridConfig, currentSnapMode)
+                      : projected;
 
                     setInsertPreviewPos(finalPos);
                     setHoveredLineIndex(index);
@@ -1020,7 +1020,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             dragBoundFunc: createDragBoundFunc(
               gridConfig!,
               () => currentSnapModeRef.current,
-              () => snapEnabled && gridConfig !== undefined,
+              () => gridConfig !== undefined,
             ),
             onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
               handleDragStart(index);

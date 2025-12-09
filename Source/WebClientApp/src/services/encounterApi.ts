@@ -148,7 +148,6 @@ export const encounterApi = createApi({
           size: {
             width: size.width,
             height: size.height,
-            isSquare: Math.abs(size.width - size.height) < 0.001,
           },
           frame: {
             shape: 0,
@@ -204,7 +203,6 @@ export const encounterApi = createApi({
             size: {
               width: size.width,
               height: size.height,
-              isSquare: Math.abs(size.width - size.height) < 0.001,
             },
           }),
           ...(rotation !== undefined && { rotation }),
@@ -233,7 +231,6 @@ export const encounterApi = createApi({
               size: {
                 width: update.size.width,
                 height: update.size.height,
-                isSquare: Math.abs(update.size.width - update.size.height) < 0.001,
               },
             }),
             ...(update.rotation !== undefined && { rotation: update.rotation }),
@@ -291,7 +288,6 @@ export const encounterApi = createApi({
             size: {
               width: a.size.width,
               height: a.size.height,
-              isSquare: Math.abs(a.size.width - a.size.height) < 0.001,
             },
             frame: {
               shape: 0,

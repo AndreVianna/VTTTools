@@ -3,9 +3,9 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
 using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
-using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLight;
 using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
-using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSoundSource;
+using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSound;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterWallSegmentEntity = VttTools.Data.Library.Entities.EncounterWallSegment;
 using WorldEntity = VttTools.Data.Library.Entities.World;
@@ -466,9 +466,11 @@ internal static class Mapper {
                 EncounterId = encounterId,
                 WallIndex = model.Index,
                 Index = s.Index,
+                Name = s.Name,
                 StartPole = GridConverter.PoleToGrid(s.StartPole, grid),
                 EndPole = GridConverter.PoleToGrid(s.EndPole, grid),
                 Type = s.Type,
+                IsOpaque = s.IsOpaque,
                 State = s.State,
             })],
         };
@@ -480,9 +482,11 @@ internal static class Mapper {
             EncounterId = encounterId,
             WallIndex = model.Index,
             Index = s.Index,
+            Name = s.Name,
             StartPole = GridConverter.PoleToGrid(s.StartPole, grid),
             EndPole = GridConverter.PoleToGrid(s.EndPole, grid),
             Type = s.Type,
+            IsOpaque = s.IsOpaque,
             State = s.State,
         })];
         return entity;
@@ -528,9 +532,11 @@ internal static class Mapper {
     internal static EncounterWallSegment? ToModel(this EncounterWallSegmentEntity? entity)
         => entity == null ? null : new() {
             Index = entity.Index,
+            Name = entity.Name,
             StartPole = entity.StartPole,
             EndPole = entity.EndPole,
             Type = entity.Type,
+            IsOpaque = entity.IsOpaque,
             State = entity.State,
         };
 
@@ -539,9 +545,11 @@ internal static class Mapper {
             EncounterId = encounterId,
             WallIndex = wallIndex,
             Index = model.Index,
+            Name = model.Name,
             StartPole = model.StartPole,
             EndPole = model.EndPole,
             Type = model.Type,
+            IsOpaque = model.IsOpaque,
             State = model.State,
         };
 
@@ -584,7 +592,7 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<EncounterLightSourceEntity, EncounterLightSource>> AsEncounterLightSource = entity
+    internal static Expression<Func<EncounterLightSourceEntity, EncounterLight>> AsEncounterLightSource = entity
         => new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -598,7 +606,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterLightSource? ToModel(this EncounterLightSourceEntity? entity, Grid grid)
+    internal static EncounterLight? ToModel(this EncounterLightSourceEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -611,7 +619,7 @@ internal static class Mapper {
             IsOn = entity.IsOn,
         };
 
-    internal static EncounterLightSourceEntity ToEntity(this EncounterLightSource model, Guid encounterId, Grid grid)
+    internal static EncounterLightSourceEntity ToEntity(this EncounterLight model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
@@ -625,7 +633,7 @@ internal static class Mapper {
             IsOn = model.IsOn,
         };
 
-    internal static EncounterLightSourceEntity UpdateFrom(this EncounterLightSourceEntity entity, Guid encounterId, EncounterLightSource model, Grid grid) {
+    internal static EncounterLightSourceEntity UpdateFrom(this EncounterLightSourceEntity entity, Guid encounterId, EncounterLight model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
@@ -639,7 +647,7 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<EncounterSoundSourceEntity, EncounterSoundSource>> AsEncounterSoundSource = entity
+    internal static Expression<Func<EncounterSoundSourceEntity, EncounterSound>> AsEncounterSoundSource = entity
         => new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -647,10 +655,11 @@ internal static class Mapper {
             Range = entity.Range,
             Resource = entity.Resource != null ? entity.Resource.ToModel() : null,
             IsPlaying = entity.IsPlaying,
+            Loop = entity.Loop,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static EncounterSoundSource? ToModel(this EncounterSoundSourceEntity? entity, Grid grid)
+    internal static EncounterSound? ToModel(this EncounterSoundSourceEntity? entity, Grid grid)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -658,9 +667,10 @@ internal static class Mapper {
             Range = entity.Range,
             Resource = entity.Resource?.ToModel(),
             IsPlaying = entity.IsPlaying,
+            Loop = entity.Loop,
         };
 
-    internal static EncounterSoundSourceEntity ToEntity(this EncounterSoundSource model, Guid encounterId, Grid grid)
+    internal static EncounterSoundSourceEntity ToEntity(this EncounterSound model, Guid encounterId, Grid grid)
         => new() {
             EncounterId = encounterId,
             Index = model.Index,
@@ -669,9 +679,10 @@ internal static class Mapper {
             Range = model.Range,
             ResourceId = model.Resource?.Id,
             IsPlaying = model.IsPlaying,
+            Loop = model.Loop,
         };
 
-    internal static EncounterSoundSourceEntity UpdateFrom(this EncounterSoundSourceEntity entity, Guid encounterId, EncounterSoundSource model, Grid grid) {
+    internal static EncounterSoundSourceEntity UpdateFrom(this EncounterSoundSourceEntity entity, Guid encounterId, EncounterSound model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
@@ -679,6 +690,7 @@ internal static class Mapper {
         entity.Range = model.Range;
         entity.ResourceId = model.Resource?.Id;
         entity.IsPlaying = model.IsPlaying;
+        entity.Loop = model.Loop;
         return entity;
     }
 }

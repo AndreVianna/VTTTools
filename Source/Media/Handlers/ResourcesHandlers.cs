@@ -20,8 +20,8 @@ internal static class ResourcesHandlers {
             OwnerId = userId,
             IsPublic = request.IsPublic,
             IsPublished = request.IsPublished,
-            Skip = request.Skip,
-            Take = request.Take,
+            Skip = request.Skip ?? 0,
+            Take = request.Take ?? 50,
         };
 
         var validationResult = filter.Validate();
@@ -35,14 +35,20 @@ internal static class ResourcesHandlers {
     internal static async Task<IResult> UploadResourceHandler(
         HttpContext context,
         [FromForm] IFormFile file,
+        [FromForm] string? resourceType,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
         var userId = context.User.GetUserId();
+
+        var parsedResourceType = Enum.TryParse<ResourceType>(resourceType, ignoreCase: true, out var rt)
+            ? rt
+            : ResourceType.Undefined;
 
         var data = new UploadResourceData {
             ContentType = file.ContentType,
             FileName = file.FileName,
             Stream = file.OpenReadStream(),
+            ResourceType = parsedResourceType,
         };
 
         var validationResult = data.Validate();

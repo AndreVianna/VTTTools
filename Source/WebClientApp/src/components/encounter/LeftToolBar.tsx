@@ -15,7 +15,7 @@ import { Box, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/mat
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Asset, EncounterLightSource, EncounterSoundSource, PlacedAsset, PlacedRegion, PlacedWall } from '@/types/domain';
-import { AssetKind, type SegmentType } from '@/types/domain';
+import { AssetKind, type SegmentState, type SegmentType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import type { LightPlacementProperties, SoundPlacementProperties } from './panels';
@@ -46,7 +46,9 @@ export interface LeftToolBarProps {
   onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
-    segmentType: SegmentType;
+    type: SegmentType;
+    isOpaque: boolean;
+    state: SegmentState;
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;

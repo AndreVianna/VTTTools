@@ -1,8 +1,8 @@
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using EncounterAsset = VttTools.Data.Library.Entities.EncounterAsset;
-using EncounterLightSource = VttTools.Data.Library.Entities.EncounterLightSource;
+using EncounterLight = VttTools.Data.Library.Entities.EncounterLight;
 using EncounterRegion = VttTools.Data.Library.Entities.EncounterRegion;
-using EncounterSoundSource = VttTools.Data.Library.Entities.EncounterSoundSource;
+using EncounterSound = VttTools.Data.Library.Entities.EncounterSound;
 using EncounterWall = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterWallSegment = VttTools.Data.Library.Entities.EncounterWallSegment;
 
@@ -165,8 +165,8 @@ internal static class EncounterSchemaBuilder {
             entity.HasIndex(e => e.EncounterId);
         });
 
-        builder.Entity<EncounterLightSource>(entity => {
-            entity.ToTable("EncounterLightSources");
+        builder.Entity<EncounterLight>(entity => {
+            entity.ToTable("EncounterLights");
             entity.HasKey(e => new { e.EncounterId, e.Index });
             entity.Property(e => e.EncounterId).IsRequired();
             entity.Property(e => e.Index).IsRequired();
@@ -192,14 +192,15 @@ internal static class EncounterSchemaBuilder {
             entity.HasIndex(e => e.EncounterId);
         });
 
-        builder.Entity<EncounterSoundSource>(entity => {
-            entity.ToTable("EncounterSoundSources");
+        builder.Entity<EncounterSound>(entity => {
+            entity.ToTable("EncounterSounds");
             entity.HasKey(e => new { e.EncounterId, e.Index });
             entity.Property(e => e.EncounterId).IsRequired();
             entity.Property(e => e.Index).IsRequired();
             entity.Property(e => e.Name).IsRequired(false).HasMaxLength(128);
             entity.Property(e => e.Range).IsRequired().HasDefaultValue(0.0);
             entity.Property(e => e.IsPlaying).IsRequired();
+            entity.Property(e => e.Loop).IsRequired();
 
             entity.ComplexProperty(e => e.Position, position => {
                 position.IsRequired();

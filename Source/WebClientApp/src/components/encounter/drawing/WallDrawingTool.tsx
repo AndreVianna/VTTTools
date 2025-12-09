@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import type { useWallTransaction } from '@/hooks/useWallTransaction';
 import { useGetEncounterQuery } from '@/services/encounterApi';
-import type { EncounterWallSegment, Point, Pole } from '@/types/domain';
+import { type EncounterWallSegment, type Point, type Pole, SegmentState, SegmentType } from '@/types/domain';
 import { createPlacePoleAction } from '@/types/wallUndoActions';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
@@ -22,6 +22,9 @@ export interface WallDrawingToolProps {
   wallIndex: number;
   gridConfig: GridConfig;
   defaultHeight: number;
+  segmentType?: SegmentType;
+  isOpaque?: boolean;
+  segmentState?: SegmentState;
   onCancel: () => void;
   onFinish: () => void;
   onPolesChange?: (poles: Pole[]) => void;
@@ -33,6 +36,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
   wallIndex,
   gridConfig,
   defaultHeight,
+  segmentType = SegmentType.Wall,
+  isOpaque = true,
+  segmentState = SegmentState.Visible,
   onCancel,
   onFinish,
   onPolesChange,
@@ -66,7 +72,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     const polePoints = poles.map((p) => ({ x: p.x, y: p.y }));
     const { closedWalls, openSegments } = decomposeSelfIntersectingPath(polePoints, TOLERANCE);
 
-    const createSegmentsFromPoles = (poleList: Point[], defaultSegmentType: number = 0): EncounterWallSegment[] => {
+    const createSegmentsFromPoles = (poleList: Point[]): EncounterWallSegment[] => {
       const segments: EncounterWallSegment[] = [];
       for (let i = 0; i < poleList.length - 1; i++) {
         const startPole = poleList[i];
@@ -76,8 +82,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
           index: i,
           startPole: { x: startPole.x, y: startPole.y, h: defaultHeight },
           endPole: { x: endPole.x, y: endPole.y, h: defaultHeight },
-          type: defaultSegmentType,
-          state: 1,
+          type: segmentType,
+          isOpaque,
+          state: segmentState,
         });
       }
       return segments;
@@ -94,8 +101,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
               index: segments.length,
               startPole: { x: lastPole.x, y: lastPole.y, h: defaultHeight },
               endPole: { x: firstPole.x, y: firstPole.y, h: defaultHeight },
-              type: 0,
-              state: 1,
+              type: segmentType,
+              isOpaque,
+              state: segmentState,
             });
           }
           return {
@@ -131,8 +139,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
           index: segments.length,
           startPole: { x: lastPole.x, y: lastPole.y, h: defaultHeight },
           endPole: { x: firstPole.x, y: firstPole.y, h: defaultHeight },
-          type: 0,
-          state: 1,
+          type: segmentType,
+          isOpaque,
+          state: segmentState,
         });
       }
     }
@@ -188,26 +197,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       setPreviewPoint(snappedPos);
     },
     [gridConfig],
-  );
-
-  const buildSegmentsFromPoles = useCallback(
-    (poleList: Pole[]): EncounterWallSegment[] => {
-      const segments: EncounterWallSegment[] = [];
-      for (let i = 0; i < poleList.length - 1; i++) {
-        const startPole = poleList[i];
-        const endPole = poleList[i + 1];
-        if (!startPole || !endPole) continue;
-        segments.push({
-          index: i,
-          startPole: { x: startPole.x, y: startPole.y, h: startPole.h },
-          endPole: { x: endPole.x, y: endPole.y, h: endPole.h },
-          type: 0,
-          state: 1,
-        });
-      }
-      return segments;
-    },
-    [],
   );
 
   const handleClick = useCallback(

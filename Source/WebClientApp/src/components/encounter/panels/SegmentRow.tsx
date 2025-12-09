@@ -12,18 +12,26 @@ import { type EncounterWallSegment, SegmentState, SegmentType } from '@/types/do
 
 export interface SegmentRowProps {
   segment: EncounterWallSegment;
-  onTypeChange: (segmentIndex: number, newType: SegmentType, newState: SegmentState) => void;
+  onPresetChange: (segmentIndex: number, type: SegmentType, isOpaque: boolean, state: SegmentState) => void;
   onStateChange: (segmentIndex: number, newState: SegmentState) => void;
 }
 
-const SEGMENT_TYPE_LABELS: Record<SegmentType, string> = {
-  [SegmentType.Wall]: 'Wall',
-  [SegmentType.Fence]: 'Fence',
-  [SegmentType.Door]: 'Door',
-  [SegmentType.Passage]: 'Passage',
-  [SegmentType.Window]: 'Window',
-  [SegmentType.Opening]: 'Opening',
-};
+interface SegmentPreset {
+  key: string;
+  label: string;
+  type: SegmentType;
+  isOpaque: boolean;
+  defaultState: SegmentState;
+}
+
+const SEGMENT_PRESETS: SegmentPreset[] = [
+  { key: 'wall', label: 'Wall', type: SegmentType.Wall, isOpaque: true, defaultState: SegmentState.Visible },
+  { key: 'fence', label: 'Fence', type: SegmentType.Wall, isOpaque: false, defaultState: SegmentState.Visible },
+  { key: 'door', label: 'Door', type: SegmentType.Door, isOpaque: true, defaultState: SegmentState.Closed },
+  { key: 'window', label: 'Window', type: SegmentType.Window, isOpaque: true, defaultState: SegmentState.Closed },
+  { key: 'passage', label: 'Passage', type: SegmentType.Door, isOpaque: false, defaultState: SegmentState.Open },
+  { key: 'opening', label: 'Opening', type: SegmentType.Window, isOpaque: false, defaultState: SegmentState.Open },
+];
 
 const SEGMENT_STATE_LABELS: Record<SegmentState, string> = {
   [SegmentState.Open]: 'Open',
@@ -37,58 +45,52 @@ const BARRIER_STATE_LABELS: Partial<Record<SegmentState, string>> = {
   [SegmentState.Secret]: 'Hidden',
 };
 
-const BARRIER_TYPES = [SegmentType.Wall, SegmentType.Fence];
-const OPEN_ONLY_TYPES = [SegmentType.Passage, SegmentType.Opening];
-
-function isBarrier(type: SegmentType): boolean {
-  return BARRIER_TYPES.includes(type);
+function getPresetFromSegment(segment: EncounterWallSegment): SegmentPreset {
+  const preset = SEGMENT_PRESETS.find(
+    (p) => p.type === segment.type && p.isOpaque === segment.isOpaque
+  );
+  return preset ?? SEGMENT_PRESETS[0]!;
 }
 
-function isOpenOnly(type: SegmentType): boolean {
-  return OPEN_ONLY_TYPES.includes(type);
+function isOpenOnlyPreset(type: SegmentType, isOpaque: boolean): boolean {
+  return (type === SegmentType.Door || type === SegmentType.Window) && !isOpaque;
 }
 
-function getValidStatesForType(type: SegmentType): SegmentState[] {
-  if (isBarrier(type)) {
+function getValidStatesForPreset(type: SegmentType, isOpaque: boolean): SegmentState[] {
+  if (type === SegmentType.Wall) {
     return [SegmentState.Visible, SegmentState.Secret];
   }
-  if (isOpenOnly(type)) {
+  if (isOpenOnlyPreset(type, isOpaque)) {
     return [SegmentState.Open, SegmentState.Secret];
   }
   return [SegmentState.Open, SegmentState.Closed, SegmentState.Locked, SegmentState.Secret];
 }
 
-function getDefaultStateForType(type: SegmentType): SegmentState {
-  if (isBarrier(type)) {
-    return SegmentState.Visible;
-  }
-  if (type === SegmentType.Door || type === SegmentType.Window) {
-    return SegmentState.Closed;
-  }
-  return SegmentState.Open;
-}
-
-function normalizeStateForType(state: SegmentState, type: SegmentType): SegmentState {
-  const validStates = getValidStatesForType(type);
+function normalizeStateForPreset(state: SegmentState, type: SegmentType, isOpaque: boolean): SegmentState {
+  const validStates = getValidStatesForPreset(type, isOpaque);
   if (validStates.includes(state)) {
     return state;
   }
   if (state === SegmentState.Secret) {
     return SegmentState.Secret;
   }
-  return getDefaultStateForType(type);
+  const preset = SEGMENT_PRESETS.find((p) => p.type === type && p.isOpaque === isOpaque);
+  return preset?.defaultState ?? SegmentState.Visible;
 }
 
-export const SegmentRow: React.FC<SegmentRowProps> = React.memo(({ segment, onTypeChange, onStateChange }) => {
+export const SegmentRow: React.FC<SegmentRowProps> = React.memo(({ segment, onPresetChange, onStateChange }) => {
   const theme = useTheme();
-  const isBarrierType = isBarrier(segment.type);
-  const validStates = getValidStatesForType(segment.type);
-  const normalizedState = normalizeStateForType(segment.state, segment.type);
+  const currentPreset = getPresetFromSegment(segment);
+  const isBarrierType = segment.type === SegmentType.Wall;
+  const validStates = getValidStatesForPreset(segment.type, segment.isOpaque);
+  const normalizedState = normalizeStateForPreset(segment.state, segment.type, segment.isOpaque);
 
-  const handleTypeChange = (event: SelectChangeEvent<number>) => {
-    const newType = event.target.value as SegmentType;
-    const newState = normalizeStateForType(segment.state, newType);
-    onTypeChange(segment.index, newType, newState);
+  const handlePresetChange = (event: SelectChangeEvent<string>) => {
+    const newPreset = SEGMENT_PRESETS.find((p) => p.key === event.target.value);
+    if (newPreset) {
+      const newState = normalizeStateForPreset(segment.state, newPreset.type, newPreset.isOpaque);
+      onPresetChange(segment.index, newPreset.type, newPreset.isOpaque, newState);
+    }
   };
 
   const handleStateChange = (event: SelectChangeEvent<number>) => {
@@ -133,10 +135,10 @@ export const SegmentRow: React.FC<SegmentRowProps> = React.memo(({ segment, onTy
       </Typography>
 
       <FormControl size='small' sx={{ flex: 1, minWidth: 0 }}>
-        <Select value={segment.type} onChange={handleTypeChange} sx={compactSelectStyle}>
-          {Object.entries(SEGMENT_TYPE_LABELS).map(([value, label]) => (
-            <MenuItem key={value} value={Number(value)} sx={{ fontSize: '10px', py: 0.5 }}>
-              {label}
+        <Select<string> value={currentPreset.key} onChange={handlePresetChange} sx={compactSelectStyle}>
+          {SEGMENT_PRESETS.map((preset) => (
+            <MenuItem key={preset.key} value={preset.key} sx={{ fontSize: '10px', py: 0.5 }}>
+              {preset.label}
             </MenuItem>
           ))}
         </Select>

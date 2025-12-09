@@ -17,6 +17,7 @@ public partial class SeedApplicationSchema : Migration {
                 { new Guid("019A50F8-394B-79D2-9660-9B803391DD71"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "Character", "Elf", "Paladin", null, "image/png", "images/dd71/019a50f8394b79d296609b803391dd71", "hero-character.png", 6821, "00:00:00.0000000", 200, 200 },
                 { new Guid("019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Token", "Object", "Container", "Storage", null, "image/png", "images/fa86/019a50f8af0e7edebbabc1aa0775fa86", "treasure-chest.png", 2286, "00:00:00.0000000", 200, 200 },
                 { new Guid("019ACE1D-5B91-72D1-8D9F-70640D3DBFE1"), new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"), "Background", "Map", "Encounter", "House", "Interior", "image/png", "images/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", "The_Nesti.png", 1394149, "00:00:00.0000000", 1026, 972 },
+                { new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), "AmbientSound", "", "", "", null, "audio/ogg", "audio/1995/019b0192ca877ae69e0bfb23c2c71995", "file_example_MP3_700KB.ogg", 399753, "00:00:42.0080000", 0, 0},
             });
 
         migrationBuilder.InsertData(
@@ -57,12 +58,12 @@ public partial class SeedApplicationSchema : Migration {
             """
             INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Category], [Type], [Subtype], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [Height], [Width])
             VALUES
-            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Small Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5),
-            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature' , 'Monster', 'Fey', 'Goblinoid', 'Goblin'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
-            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wide Chest'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
-            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Large Create'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
-            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Wooden Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),
-            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf', 'Paladin', 'Squire', 'Pelotas', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
+            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create, Small'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5),
+            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature' , 'Monster', 'Fey', 'Goblinoid', 'Goblin Warrior'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
+            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Chest, Wide'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
+            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create, Large'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
+            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),
+            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf', 'Paladin', 'Squire', 'Sir Pelotas', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
             """
         );
 
@@ -148,6 +149,14 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
+            INSERT INTO [EncounterSounds] ([EncounterId], [Index], [Name], [Range], [IsPlaying], [Loop], [ResourceId], [X], [Y])
+            VALUES
+            ('019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c', 0, 'Sound #1', 4, 0, 0, '019b0192-ca87-7ae6-9e0b-fb23c2c71995', 6.25, 5.75);
+            """
+        );
+
+        migrationBuilder.Sql(
+            """
             INSERT INTO [EncounterAssets] ([EncounterId], [Index], [AssetId], [Name], [IsLocked], [IsVisible], [ImageId], [Rotation], [Elevation], [ControlledBy], [Notes], [FrameBackground], [FrameBorderColor], [FrameBorderThickness], [FrameShape], [X], [Y], [Height], [Width])
             VALUES
             ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, '019A0363-9294-749D-9323-B759664A5436', 'Wooden Create', 0, 1, '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 26.5, 22.5, 50, 50),
@@ -163,6 +172,12 @@ public partial class SeedApplicationSchema : Migration {
         migrationBuilder.Sql(
             """
             DELETE FROM [EncounterAssets];
+            """
+        );
+
+        migrationBuilder.Sql(
+            """
+            DELETE FROM [EncounterSounds];
             """
         );
 

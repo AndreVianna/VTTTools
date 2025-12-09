@@ -2,6 +2,7 @@ namespace VttTools.Media.ServiceContracts;
 
 public record UploadResourceData
     : Data {
+    public ResourceType ResourceType { get; init; } = ResourceType.Undefined;
     public string ContentType { get; init; } = string.Empty;
     public string FileName { get; init; } = string.Empty;
     public Stream? Stream { get; init; }

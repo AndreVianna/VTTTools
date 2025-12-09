@@ -92,17 +92,17 @@ public interface IEncounterStorage {
     /// <summary>
     /// Retrieves a encounter light source by its ID.
     /// </summary>
-    Task<EncounterLightSource?> GetLightSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<EncounterLight?> GetLightSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a encounter light source to a encounter.
     /// </summary>
-    Task<bool> AddLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default);
+    Task<bool> AddLightSourceAsync(Guid id, EncounterLight lightSource, CancellationToken ct = default);
 
     /// <summary>
     /// Updates a encounter light source.
     /// </summary>
-    Task<bool> UpdateLightSourceAsync(Guid id, EncounterLightSource lightSource, CancellationToken ct = default);
+    Task<bool> UpdateLightSourceAsync(Guid id, EncounterLight lightSource, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a encounter light source.
@@ -112,17 +112,17 @@ public interface IEncounterStorage {
     /// <summary>
     /// Retrieves a encounter sound source by its ID.
     /// </summary>
-    Task<EncounterSoundSource?> GetSoundSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
+    Task<EncounterSound?> GetSoundSourceByKeyAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a encounter sound source to a encounter.
     /// </summary>
-    Task<bool> AddSoundSourceAsync(Guid id, EncounterSoundSource soundSource, CancellationToken ct = default);
+    Task<bool> AddSoundSourceAsync(Guid id, EncounterSound soundSource, CancellationToken ct = default);
 
     /// <summary>
     /// Updates a encounter sound source.
     /// </summary>
-    Task<bool> UpdateSoundSourceAsync(Guid id, EncounterSoundSource soundSource, CancellationToken ct = default);
+    Task<bool> UpdateSoundSourceAsync(Guid id, EncounterSound soundSource, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a encounter sound source.

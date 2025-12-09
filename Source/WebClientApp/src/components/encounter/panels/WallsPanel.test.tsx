@@ -15,7 +15,8 @@ const mockEncounterWall: EncounterWall = {
       startPole: { x: 0, y: 0, h: 2.0 },
       endPole: { x: 100, y: 0, h: 2.0 },
       type: SegmentType.Wall,
-      state: SegmentState.Open,
+      isOpaque: true,
+      state: SegmentState.Visible,
     },
   ],
 };

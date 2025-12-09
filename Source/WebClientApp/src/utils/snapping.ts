@@ -32,35 +32,43 @@ export interface KeyModifiers {
  */
 export interface SnapConfig {
   default: SnapMode;
-  ctrlAlt: SnapMode;
+  ctrl: SnapMode;
+  alt: SnapMode;
 }
 
 /**
  * Pre-configured snap configurations for different contexts:
- * - Assets: Full (center) by default, Half with Ctrl
- * - Walls: Half by default, Quarter with Ctrl
- * - Alt key always means Free (no snap) for all contexts
+ * - No key pressed: Free (no snap)
+ * - Ctrl pressed: Standard snap for the scope
+ * - Alt pressed: Half of standard snap for the scope
+ *
+ * Assets: Ctrl = Full (center), Alt = Half (corners + edges)
+ * Walls: Ctrl = Half (corners + edges), Alt = Quarter
  */
 export const AssetSnapConfig: SnapConfig = {
-  default: SnapMode.Full,
-  ctrlAlt: SnapMode.Half,
+  default: SnapMode.Free,
+  ctrl: SnapMode.Full,
+  alt: SnapMode.Half,
 };
 
 export const WallSnapConfig: SnapConfig = {
-  default: SnapMode.Half,
-  ctrlAlt: SnapMode.Quarter,
+  default: SnapMode.Free,
+  ctrl: SnapMode.Half,
+  alt: SnapMode.Quarter,
 };
 
 /**
  * Resolve snap mode from keyboard modifiers and configuration.
- * Alt key always means Free (no snap) regardless of context.
+ * - No modifier: Free (no snap)
+ * - Ctrl: Standard snap for the scope
+ * - Alt: Half of standard snap for the scope
  */
 export function resolveSnapMode(modifiers: KeyModifiers, config: SnapConfig): SnapMode {
-  if (modifiers.altKey) {
-    return SnapMode.Free;
-  }
   if (modifiers.ctrlKey) {
-    return config.ctrlAlt;
+    return config.ctrl;
+  }
+  if (modifiers.altKey) {
+    return config.alt;
   }
   return config.default;
 }
@@ -112,14 +120,14 @@ export function getWorldPositionFromEvent(e: Konva.KonvaEventObject<MouseEvent |
 }
 
 /**
- * Determine snap mode from keyboard modifier keys using a specific config.
- * @deprecated Use resolveSnapMode with explicit config instead
+ * Determine snap mode from keyboard modifier keys.
+ * Uses WallSnapConfig by default (suitable for walls, regions, sources).
+ * - No modifier: Free (no snap)
+ * - Ctrl: Half (corners + edges)
+ * - Alt: Quarter
  */
-export function getSnapModeFromEvent(
-  evt: { altKey: boolean; ctrlKey: boolean },
-  defaultMode: SnapMode = SnapMode.Half,
-): SnapMode {
-  return resolveSnapMode(evt, { default: defaultMode, ctrlAlt: SnapMode.Quarter });
+export function getSnapModeFromEvent(evt: { altKey: boolean; ctrlKey: boolean }): SnapMode {
+  return resolveSnapMode(evt, WallSnapConfig);
 }
 
 /**
@@ -296,7 +304,7 @@ function getSnapTargets(cellX: number, cellY: number, gridConfig: GridConfig, mo
  * we always want to snap to the closest point in the current snap mode.
  */
 export function snap(worldPos: Point, gridConfig: GridConfig, mode: SnapMode): Point {
-  if (mode === SnapMode.Free || !gridConfig.snap) {
+  if (mode === SnapMode.Free) {
     return worldPos;
   }
 

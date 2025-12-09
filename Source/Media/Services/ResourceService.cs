@@ -19,15 +19,16 @@ public class ResourceService(
 
         try {
             var processResult = await mediaProcessor.ProcessAsync(
-                ResourceType.Undefined,
+                data.ResourceType,
                 data.Stream!,
                 contentType,
                 fileName,
                 ct);
 
             if (!processResult.IsSuccessful) {
-                logger.LogWarning("Media processing failed for file {FileName}: {Error}", fileName, processResult.Errors[0].Message);
-                return Result.Failure<ResourceFile>(null!, "Media processing failed");
+                var errorMessage = processResult.Errors[0].Message;
+                logger.LogWarning("Media processing failed for file {FileName}: {Error}", fileName, errorMessage);
+                return Result.Failure<ResourceFile>(null!, errorMessage);
             }
 
             var processed = processResult.Value;
@@ -52,7 +53,7 @@ public class ResourceService(
 
             var resource = new ResourceMetadata {
                 Id = guidId,
-                ResourceType = ResourceType.Undefined,
+                ResourceType = data.ResourceType,
                 Path = path,
                 ContentType = processed.ContentType,
                 FileLength = processed.FileLength,

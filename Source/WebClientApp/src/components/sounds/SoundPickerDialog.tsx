@@ -29,6 +29,7 @@ export interface SoundPickerDialogProps {
     onClose: () => void;
     onSelect: (resourceId: string) => void;
     currentResourceId?: string;
+    defaultResourceType?: ResourceType.SoundEffect | ResourceType.AmbientSound;
 }
 
 export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
@@ -36,16 +37,18 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     onClose,
     onSelect,
     currentResourceId,
+    defaultResourceType = ResourceType.AmbientSound,
 }) => {
     const theme = useTheme();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'all'>('mine');
+    const [soundTypeFilter, setSoundTypeFilter] = useState<ResourceType.SoundEffect | ResourceType.AmbientSound>(defaultResourceType);
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
     const { data, isLoading, refetch } = useFilterResourcesQuery({
-        resourceType: ResourceType.SoundEffect,
+        resourceType: soundTypeFilter,
         searchText: searchQuery || undefined,
         take: 50,
     }, { skip: !open });
@@ -87,8 +90,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
         try {
             const result = await uploadFile({
                 file,
-                mediaType: 'encounter',
-                resourceType: 'SoundEffect',
+                resourceType: ResourceType[soundTypeFilter],
             }).unwrap();
             await refetch();
             setSelectedResourceId(result.id);
@@ -203,6 +205,41 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                                 display: 'block',
                             }}
                         >
+                            SOUND TYPE
+                        </Typography>
+                        <ToggleButtonGroup
+                            value={soundTypeFilter}
+                            exclusive
+                            onChange={(_, value) => {
+                                if (value !== null) {
+                                    setSoundTypeFilter(value);
+                                    setSelectedResourceId(null);
+                                }
+                            }}
+                            size="small"
+                            fullWidth
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    fontSize: '0.65rem',
+                                    py: 0.5,
+                                },
+                            }}
+                        >
+                            <ToggleButton value={ResourceType.AmbientSound}>Ambient</ToggleButton>
+                            <ToggleButton value={ResourceType.SoundEffect}>Effect</ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
+
+                    <Box>
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                color: theme.palette.text.secondary,
+                                fontWeight: 600,
+                                mb: 1,
+                                display: 'block',
+                            }}
+                        >
                             OWNERSHIP
                         </Typography>
                         <ToggleButtonGroup
@@ -246,15 +283,15 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                             startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
                             disabled={isUploading}
                             sx={{
-                                fontSize: '0.75rem',
+                                fontSize: '0.65rem',
                                 py: 0.75,
                             }}
                         >
-                            {isUploading ? 'Uploading...' : 'Upload Sound'}
+                            {isUploading ? 'Uploading...' : `Upload ${soundTypeFilter === ResourceType.SoundEffect ? 'Effect' : 'Ambient'}`}
                             <input
                                 type="file"
                                 hidden
-                                accept=".mp3,audio/mpeg"
+                                accept=".mp3,.wav,.ogg,.webm,audio/mpeg,audio/wav,audio/ogg,audio/webm"
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {

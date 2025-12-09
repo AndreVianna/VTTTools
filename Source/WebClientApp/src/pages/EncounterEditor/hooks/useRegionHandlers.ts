@@ -899,6 +899,57 @@ export const useRegionHandlers = ({
     [encounterId, encounter, setEncounter, updateEncounterRegion, refetch],
   );
 
+  const handleSwitchToRegion = useCallback(
+    async (newRegionIndex: number) => {
+      if (!encounterId || !encounter) return;
+
+      if (regionTransaction.transaction.isActive) {
+        const encounterForCommit = filterEncounterForMergeDetection(encounter, {
+          excludeRegionIndex: editingRegionIndex ?? undefined,
+        });
+
+        await regionTransaction.commitTransaction(
+          encounterId,
+          { addEncounterRegion, updateEncounterRegion },
+          encounterForCommit || undefined,
+        );
+      }
+
+      setEditingRegionIndex(null);
+      setSelectedRegionIndex(null);
+      setIsEditingRegionVertices(false);
+      setOriginalRegionVertices(null);
+
+      const { data: refreshedEncounter } = await refetch();
+      if (!refreshedEncounter) return;
+
+      const newRegion = refreshedEncounter.regions?.find((r) => r.index === newRegionIndex);
+      if (!newRegion) return;
+
+      setDrawingRegionIndex(null);
+      setOriginalRegionVertices([...newRegion.vertices]);
+      setEditingRegionIndex(newRegionIndex);
+      setIsEditingRegionVertices(true);
+      setSelectedRegionIndex(newRegionIndex);
+
+      regionTransaction.startTransaction('editing', newRegion);
+    },
+    [
+      encounterId,
+      encounter,
+      editingRegionIndex,
+      regionTransaction,
+      addEncounterRegion,
+      updateEncounterRegion,
+      refetch,
+      setDrawingRegionIndex,
+      setOriginalRegionVertices,
+      setEditingRegionIndex,
+      setIsEditingRegionVertices,
+      setSelectedRegionIndex,
+    ],
+  );
+
   return {
     handleRegionDelete,
     handleCancelEditingRegion,
@@ -910,5 +961,6 @@ export const useRegionHandlers = ({
     handleRegionSelect,
     handleEditRegionVertices,
     handleRegionPropertyUpdate,
+    handleSwitchToRegion,
   };
 };

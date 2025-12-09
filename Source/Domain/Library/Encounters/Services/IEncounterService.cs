@@ -1,13 +1,13 @@
 ﻿using AddAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetAddData;
-using AddLightSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterLightSourceAddData;
+using AddLightSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterLightAddData;
 using AddRegionData = VttTools.Library.Encounters.ServiceContracts.EncounterRegionAddData;
-using AddSoundSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSoundSourceAddData;
+using AddSoundSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSoundAddData;
 using AddWallData = VttTools.Library.Encounters.ServiceContracts.EncounterWallAddData;
 using BulkUpdateAssetsData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
 using UpdateAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
-using UpdateLightSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterLightSourceUpdateData;
+using UpdateLightSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterLightUpdateData;
 using UpdateRegionData = VttTools.Library.Encounters.ServiceContracts.EncounterRegionUpdateData;
-using UpdateSoundSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSoundSourceUpdateData;
+using UpdateSoundSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSoundUpdateData;
 using UpdateWallData = VttTools.Library.Encounters.ServiceContracts.EncounterWallUpdateData;
 
 namespace VttTools.Library.Encounters.Services;
@@ -37,11 +37,11 @@ public interface IEncounterService {
     Task<Result> UpdateRegionAsync(Guid userId, Guid id, uint index, UpdateRegionData data, CancellationToken ct = default);
     Task<Result> RemoveRegionAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 
-    Task<Result<EncounterLightSource>> AddLightSourceAsync(Guid userId, Guid id, AddLightSourceData data, CancellationToken ct = default);
+    Task<Result<EncounterLight>> AddLightSourceAsync(Guid userId, Guid id, AddLightSourceData data, CancellationToken ct = default);
     Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, uint index, UpdateLightSourceData data, CancellationToken ct = default);
     Task<Result> RemoveLightSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 
-    Task<Result<EncounterSoundSource>> AddSoundSourceAsync(Guid userId, Guid id, AddSoundSourceData data, CancellationToken ct = default);
+    Task<Result<EncounterSound>> AddSoundSourceAsync(Guid userId, Guid id, AddSoundSourceData data, CancellationToken ct = default);
     Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, uint index, UpdateSoundSourceData data, CancellationToken ct = default);
     Task<Result> RemoveSoundSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 }

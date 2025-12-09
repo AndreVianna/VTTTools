@@ -22,7 +22,6 @@ internal static class Mapper {
             FileLength = entity.FileLength,
             Size = entity.Size,
             Duration = entity.Duration,
-            Features = new(entity.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())),
             OwnerId = entity.OwnerId,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,

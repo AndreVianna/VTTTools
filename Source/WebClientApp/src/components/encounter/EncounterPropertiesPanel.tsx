@@ -27,6 +27,7 @@ const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 export interface EncounterPropertiesPanelProps {
   open: boolean;
   encounter: Encounter | null | undefined;
+  gridConfig: GridConfig;
   onDescriptionChange: (description: string) => void;
   onPublishedChange: (published: boolean) => void;
   onBackgroundUpload?: (file: File) => void;
@@ -68,6 +69,7 @@ const AdventureLink: React.FC<AdventureLinkProps> = ({ adventure }) => {
 export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> = ({
   open,
   encounter,
+  gridConfig,
   onDescriptionChange,
   onPublishedChange,
   onBackgroundUpload,
@@ -170,73 +172,73 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
 
     onGridChange({
       type: newType,
-      cellSize: encounter.grid.cellSize ?? { width: 50, height: 50 },
-      offset: encounter.grid.offset ?? { left: 0, top: 0 },
-      snap: encounter.grid.snap ?? true,
-      scale: encounter.grid.scale ?? 1,
+      cellSize: gridConfig.cellSize ?? { width: 50, height: 50 },
+      offset: gridConfig.offset ?? { left: 0, top: 0 },
+      snap: gridConfig.snap ?? true,
+      scale: gridConfig.scale ?? 1,
     });
   };
 
   const handleCellWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!encounter || !onGridChange) return;
+    if (!onGridChange) return;
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value) || value < 10) return;
     onGridChange({
-      type: encounter.grid.type as GridType,
-      cellSize: { ...encounter.grid.cellSize, width: value },
-      offset: encounter.grid.offset,
-      snap: encounter.grid.snap,
-      scale: encounter.grid.scale,
+      type: gridConfig.type as GridType,
+      cellSize: { ...gridConfig.cellSize, width: value },
+      offset: gridConfig.offset,
+      snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
   const handleCellHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!encounter || !onGridChange) return;
+    if (!onGridChange) return;
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value) || value < 10) return;
     onGridChange({
-      type: encounter.grid.type as GridType,
-      cellSize: { ...encounter.grid.cellSize, height: value },
-      offset: encounter.grid.offset,
-      snap: encounter.grid.snap,
-      scale: encounter.grid.scale,
+      type: gridConfig.type as GridType,
+      cellSize: { ...gridConfig.cellSize, height: value },
+      offset: gridConfig.offset,
+      snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
   const handleOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!encounter || !onGridChange) return;
+    if (!onGridChange) return;
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value)) return;
     onGridChange({
-      type: encounter.grid.type as GridType,
-      cellSize: encounter.grid.cellSize,
-      offset: { ...encounter.grid.offset, left: value },
-      snap: encounter.grid.snap,
-      scale: encounter.grid.scale,
+      type: gridConfig.type as GridType,
+      cellSize: gridConfig.cellSize,
+      offset: { ...gridConfig.offset, left: value },
+      snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
   const handleOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!encounter || !onGridChange) return;
+    if (!onGridChange) return;
     const value = parseFloat(e.target.value);
     if (Number.isNaN(value)) return;
     onGridChange({
-      type: encounter.grid.type as GridType,
-      cellSize: encounter.grid.cellSize,
-      offset: { ...encounter.grid.offset, top: value },
-      snap: encounter.grid.snap,
-      scale: encounter.grid.scale,
+      type: gridConfig.type as GridType,
+      cellSize: gridConfig.cellSize,
+      offset: { ...gridConfig.offset, top: value },
+      snap: gridConfig.snap,
+      scale: gridConfig.scale,
     });
   };
 
   const handleSnapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!encounter || !onGridChange) return;
+    if (!onGridChange) return;
     onGridChange({
-      type: encounter.grid.type as GridType,
-      cellSize: encounter.grid.cellSize,
-      offset: encounter.grid.offset,
+      type: gridConfig.type as GridType,
+      cellSize: gridConfig.cellSize,
+      offset: gridConfig.offset,
       snap: e.target.checked,
-      scale: encounter.grid.scale,
+      scale: gridConfig.scale,
     });
   };
 

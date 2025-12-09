@@ -68,11 +68,11 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({
       id={encounterRegion.id}
       points={points}
       fill={isTransparent ? 'transparent' : color}
-      stroke={isSelected ? theme.palette.primary.main : isTransparent ? theme.palette.grey[500] : color}
-      strokeWidth={isSelected ? 4 : 2}
+      stroke={'#ff0000'}
+      strokeWidth={1}
       opacity={isSelected ? 0.5 : encounterRegion.type === 'Illumination' ? fillOpacity : 0.3}
       fillOpacity={isTransparent ? 0 : 0.3}
-      strokeOpacity={isSelected ? 1 : 0.8}
+      strokeOpacity={1}
       closed={true}
       listening={isInteractive}
       onClick={handleClick}

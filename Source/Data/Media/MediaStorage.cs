@@ -6,7 +6,6 @@ public class MediaStorage(ApplicationDbContext context)
         ResourceFilterData filter,
         CancellationToken ct = default) {
         var query = context.Resources
-            .Include(r => r.Features)
             .AsNoTracking();
 
         if (filter.ResourceType.HasValue)

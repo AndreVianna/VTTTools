@@ -175,7 +175,8 @@ export class CreateSoundSourceCommand implements Command {
       position: source.position,
       range: source.range,
       isPlaying: source.isPlaying,
-      ...(source.resourceId !== undefined && { resourceId: source.resourceId }),
+      loop: source.loop,
+      ...(source.resource !== undefined && { resource: source.resource }),
     };
     await onCreate(encounterId, sourceData);
     await onRefetch();
@@ -209,7 +210,8 @@ export class UpdateSoundSourceCommand implements Command {
       position: oldSource.position,
       range: oldSource.range,
       isPlaying: oldSource.isPlaying,
-      ...(oldSource.resourceId !== undefined && { resourceId: oldSource.resourceId }),
+      loop: oldSource.loop,
+      resource: oldSource.resource,
     };
     await onUpdate(encounterId, sourceIndex, updates);
     await onRefetch();
@@ -222,7 +224,8 @@ export class UpdateSoundSourceCommand implements Command {
       position: newSource.position,
       range: newSource.range,
       isPlaying: newSource.isPlaying,
-      ...(newSource.resourceId !== undefined && { resourceId: newSource.resourceId }),
+      loop: newSource.loop,
+      resource: newSource.resource,
     };
     await onUpdate(encounterId, sourceIndex, updates);
     await onRefetch();
@@ -259,7 +262,8 @@ export class DeleteSoundSourceCommand implements Command {
       position: source.position,
       range: source.range,
       isPlaying: source.isPlaying,
-      ...(source.resourceId !== undefined && { resourceId: source.resourceId }),
+      loop: source.loop,
+      resource: source.resource,
     };
     const restoredSource = await onAdd(encounterId, sourceData);
     this.restoredIndex = restoredSource.index;

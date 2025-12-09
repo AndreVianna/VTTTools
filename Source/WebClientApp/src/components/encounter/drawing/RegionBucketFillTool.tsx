@@ -34,7 +34,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
   cursor,
 }) => {
   const [previewVertices, setPreviewVertices] = useState<Point[] | null>(null);
-  const [_isFullStage, setIsFullStage] = useState(false);
+  const [previewHoles, setPreviewHoles] = useState<Point[][]>([]);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -82,19 +82,19 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
       const result = traceBoundary(stagePos, walls, stageSize);
 
       if (result.isFullStage) {
-        setIsFullStage(true);
         setPreviewVertices([
           { x: 0, y: 0 },
           { x: stageSize.width, y: 0 },
           { x: stageSize.width, y: stageSize.height },
           { x: 0, y: stageSize.height },
         ]);
+        setPreviewHoles([]);
       } else if (result.vertices) {
-        setIsFullStage(false);
         setPreviewVertices(result.vertices);
+        setPreviewHoles(result.holes);
       } else {
-        setIsFullStage(false);
         setPreviewVertices(null);
+        setPreviewHoles([]);
       }
     },
     [walls, stageSize],
@@ -180,6 +180,7 @@ export const RegionBucketFillTool: React.FC<RegionBucketFillToolProps> = ({
       {previewVertices && (
         <RegionPreview
           vertices={previewVertices}
+          holes={previewHoles}
           {...(regionColor && { color: regionColor })}
         />
       )}

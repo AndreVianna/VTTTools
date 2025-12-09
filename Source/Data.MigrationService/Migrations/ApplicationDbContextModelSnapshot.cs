@@ -642,7 +642,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("EncounterAssets", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterLightSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterLight", b =>
                 {
                     b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
@@ -678,7 +678,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Natural");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterLightSource.Position#Point", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterLight.Position#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -699,7 +699,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("EncounterId");
 
-                    b.ToTable("EncounterLightSources", (string)null);
+                    b.ToTable("EncounterLights", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
@@ -730,7 +730,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("EncounterRegions", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSoundSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSound", b =>
                 {
                     b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
@@ -739,6 +739,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<bool>("IsPlaying")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Loop")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -753,7 +756,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("ResourceId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterSoundSource.Position#Point", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Entities.EncounterSound.Position#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -776,7 +779,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("ResourceId");
 
-                    b.ToTable("EncounterSoundSources", (string)null);
+                    b.ToTable("EncounterSounds", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
@@ -1607,7 +1610,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterLightSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterLight", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany("LightSources")
@@ -1654,7 +1657,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Vertices");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSoundSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSound", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany("SoundSources")

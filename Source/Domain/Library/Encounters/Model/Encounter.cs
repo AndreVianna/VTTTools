@@ -15,6 +15,6 @@ public record Encounter {
     public List<EncounterAsset> Assets { get; init; } = [];
     public List<EncounterWall> Walls { get; init; } = [];
     public List<EncounterRegion> Regions { get; init; } = [];
-    public List<EncounterLightSource> LightSources { get; init; } = [];
-    public List<EncounterSoundSource> SoundSources { get; init; } = [];
+    public List<EncounterLight> LightSources { get; init; } = [];
+    public List<EncounterSound> SoundSources { get; init; } = [];
 }

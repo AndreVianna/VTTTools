@@ -55,3 +55,11 @@ export function isRegionInScope(scope: InteractionScope | undefined): boolean {
 export function isSourceInScope(scope: InteractionScope | undefined): boolean {
   return scope === 'lights' || scope === 'sounds';
 }
+
+export function isLightSourceInScope(scope: InteractionScope | undefined): boolean {
+  return scope === 'lights';
+}
+
+export function isSoundSourceInScope(scope: InteractionScope | undefined): boolean {
+  return scope === 'sounds';
+}

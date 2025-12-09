@@ -2,12 +2,12 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import type { Context } from 'konva/lib/Context';
 import type React from 'react';
-import { Fragment, useMemo } from 'react';
-import { Circle, Shape } from 'react-konva';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Circle, Group, Path, Shape } from 'react-konva';
 import type { EncounterSoundSource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { InteractionScope } from '@/utils/scopeFiltering';
-import { isSourceInScope } from '@/utils/scopeFiltering';
+import { isSoundSourceInScope } from '@/utils/scopeFiltering';
 
 export interface SoundSourceRendererProps {
   encounterSoundSource: EncounterSoundSource;
@@ -15,6 +15,7 @@ export interface SoundSourceRendererProps {
   activeScope: InteractionScope;
   onSelect?: (index: number) => void;
   onContextMenu?: (sourceIndex: number, position: { x: number; y: number }) => void;
+  onPositionChange?: (sourceIndex: number, position: { x: number; y: number }) => void;
   isSelected?: boolean;
 }
 
@@ -26,10 +27,18 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
   activeScope,
   onSelect,
   onContextMenu,
+  onPositionChange,
   isSelected = false,
 }) => {
   const theme = useTheme();
-  const isInteractive = isSourceInScope(activeScope);
+  const isInteractive = isSoundSourceInScope(activeScope);
+  const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    setDragPosition(null);
+  }, [encounterSoundSource.position.x, encounterSoundSource.position.y]);
+
+  const currentPosition = dragPosition ?? encounterSoundSource.position;
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (onSelect && isInteractive) {
@@ -57,7 +66,7 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
     if (!isInteractive) return;
     const container = e.target.getStage()?.container();
     if (container) {
-      container.style.cursor = 'pointer';
+      container.style.cursor = isSelected ? 'move' : 'pointer';
     }
   };
 
@@ -65,6 +74,25 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
     const container = e.target.getStage()?.container();
     if (container) {
       container.style.cursor = 'default';
+    }
+  };
+
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+    const node = e.target;
+    setDragPosition({
+      x: node.x(),
+      y: node.y(),
+    });
+  };
+
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+    const node = e.target;
+    const finalPosition = {
+      x: node.x(),
+      y: node.y(),
+    };
+    if (onPositionChange && isSelected) {
+      onPositionChange(encounterSoundSource.index, finalPosition);
     }
   };
 
@@ -84,8 +112,8 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
       rings.push(
         <Circle
           key={`ring-${i}`}
-          x={encounterSoundSource.position.x}
-          y={encounterSoundSource.position.y}
+          x={currentPosition.x}
+          y={currentPosition.y}
           radius={ringRadius}
           stroke={SOUND_COLOR}
           strokeWidth={1}
@@ -97,7 +125,12 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
     }
 
     return rings;
-  }, [encounterSoundSource.position.x, encounterSoundSource.position.y, rangeInPixels, effectiveOpacity]);
+  }, [currentPosition.x, currentPosition.y, rangeInPixels, effectiveOpacity]);
+
+  const ICON_SIZE = 12;
+  const ICON_HIT_RADIUS = 8;
+
+  const soundIconPath = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z';
 
   return (
     <Fragment>
@@ -105,8 +138,8 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
         sceneFunc={(context: Context) => {
           context.beginPath();
           context.arc(
-            encounterSoundSource.position.x,
-            encounterSoundSource.position.y,
+            currentPosition.x,
+            currentPosition.y,
             rangeInPixels,
             0,
             2 * Math.PI,
@@ -114,11 +147,11 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
           context.closePath();
 
           const gradient = context.createRadialGradient(
-            encounterSoundSource.position.x,
-            encounterSoundSource.position.y,
+            currentPosition.x,
+            currentPosition.y,
             0,
-            encounterSoundSource.position.x,
-            encounterSoundSource.position.y,
+            currentPosition.x,
+            currentPosition.y,
             rangeInPixels,
           );
 
@@ -143,23 +176,46 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
             context.stroke();
           }
         }}
-        listening={true}
+        listening={false}
+      />
+      {concentricRings}
+
+      <Group
+        x={currentPosition.x}
+        y={currentPosition.y}
+        draggable={isSelected && !!onPositionChange}
+        onDragMove={handleDragMove}
+        onDragEnd={handleDragEnd}
         onClick={handleClick}
         onContextMenu={handleContextMenu}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-      />
-      {concentricRings}
-      <Circle
-        x={encounterSoundSource.position.x}
-        y={encounterSoundSource.position.y}
-        radius={4}
-        fill={SOUND_COLOR}
-        stroke={theme.palette.background.paper}
-        strokeWidth={1}
-        opacity={effectiveOpacity}
-        listening={false}
-      />
+      >
+        <Circle
+          radius={ICON_HIT_RADIUS}
+          fill="transparent"
+          listening={true}
+        />
+
+        <Circle
+          radius={ICON_SIZE / 2 + 2}
+          fill={theme.palette.background.paper}
+          stroke={isSelected ? theme.palette.primary.main : SOUND_COLOR}
+          strokeWidth={isSelected ? 2 : 1}
+          opacity={1}
+          listening={false}
+        />
+
+        <Path
+          data={soundIconPath}
+          x={-ICON_SIZE / 2}
+          y={-ICON_SIZE / 2}
+          fill={encounterSoundSource.isPlaying ? SOUND_COLOR : theme.palette.text.disabled}
+          scaleX={ICON_SIZE / 24}
+          scaleY={ICON_SIZE / 24}
+          listening={false}
+        />
+      </Group>
     </Fragment>
   );
 };

@@ -26,6 +26,13 @@ const STATE_COLORS = {
   secret: '#c084fc',
 };
 
+function isInvisibleSegment(segment: EncounterWallSegment): boolean {
+  const isOpaque = segment.isOpaque ?? true;
+  const isOpen = segment.state === SegmentState.Open;
+  const isDoorOrWindow = segment.type === SegmentType.Door || segment.type === SegmentType.Window;
+  return !isOpaque && isOpen && isDoorOrWindow;
+}
+
 function getSegmentStyle(segment: EncounterWallSegment): {
   stroke: string;
   strokeWidth: number;
@@ -37,7 +44,13 @@ function getSegmentStyle(segment: EncounterWallSegment): {
     opacity: 1,
   };
 
-  const isOpaque = segment.isOpaque;
+  // Default to opaque (true) if isOpaque is undefined
+  const isOpaque = segment.isOpaque ?? true;
+
+  // Non-opaque + Open doors/windows are invisible (but still interactive)
+  if (isInvisibleSegment(segment)) {
+    return { ...baseStyle, stroke: 'transparent', opacity: 0 };
+  }
 
   switch (segment.type) {
     case SegmentType.Wall:
@@ -225,17 +238,20 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCli
         const points = [segment.startPole.x, segment.startPole.y, segment.endPole.x, segment.endPole.y];
         const isHovered = hoveredSegmentIndex === segment.index;
         const midpoint = getSegmentMidpoint(segment);
+        const isInvisible = isInvisibleSegment(segment);
 
         return (
           <Group key={`segment-${segment.index}`}>
-            <Line
-              points={points}
-              stroke='#000000'
-              strokeWidth={style.strokeWidth + 2}
-              {...(style.dash && { dash: style.dash })}
-              opacity={style.opacity * 0.5}
-              listening={false}
-            />
+            {!isInvisible && (
+              <Line
+                points={points}
+                stroke='#000000'
+                strokeWidth={style.strokeWidth + 2}
+                {...(style.dash && { dash: style.dash })}
+                opacity={style.opacity * 0.5}
+                listening={false}
+              />
+            )}
             {isHovered && isWallScopeActive && (
               <Line
                 points={points}
@@ -248,10 +264,10 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCli
             <Line
               id={segmentIdx === 0 ? wallId : `${wallId}-seg-${segmentIdx}`}
               points={points}
-              stroke={style.stroke}
+              stroke={isInvisible ? 'transparent' : style.stroke}
               strokeWidth={style.strokeWidth}
               {...(style.dash && { dash: style.dash })}
-              opacity={style.opacity}
+              opacity={isInvisible ? 0 : style.opacity}
               listening={isInteractive}
               onClick={handleClick}
               onContextMenu={handleContextMenu(segment.index)}
@@ -273,7 +289,9 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCli
                 }
               }}
             />
-            <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} isOpaque={segment.isOpaque} />
+            {!isInvisible && (
+              <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} isOpaque={segment.isOpaque} />
+            )}
             {isHovered && segment.name && segment.type !== SegmentType.Wall && (() => {
               const textWidth = segment.name.length * 3.3;
               const textHeight = 6;

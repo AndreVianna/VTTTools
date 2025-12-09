@@ -1,21 +1,28 @@
 import {
     Box,
     Button,
-    Checkbox,
     CircularProgress,
-    FormControlLabel,
+    IconButton,
+    LinearProgress,
     Menu,
     Slider,
     TextField,
+    Tooltip,
     Typography,
     useTheme,
 } from '@mui/material';
-import { CloudUpload as UploadIcon, FolderOpen as BrowseIcon, Clear as ClearIcon } from '@mui/icons-material';
+import {
+    FolderOpen as BrowseIcon,
+    PlayArrow as PlayIcon,
+    Pause as PauseIcon,
+    Repeat as LoopIcon,
+} from '@mui/icons-material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EncounterSoundSource } from '@/types/domain';
-import { AudioPreviewPlayer, SoundPickerDialog } from '@/components/sounds';
-import { useGetMediaResourceQuery, useUploadFileMutation } from '@/services/mediaApi';
+import { SoundPickerDialog } from '@/components/sounds';
+import { useGetMediaResourceQuery } from '@/services/mediaApi';
+import { useAuthenticatedResource } from '@/hooks/useAuthenticatedResource';
 
 export type SoundSourceUpdatePayload = {
     name?: string;
@@ -23,6 +30,7 @@ export type SoundSourceUpdatePayload = {
     range?: number;
     resourceId?: string | null;
     isPlaying?: boolean;
+    loop?: boolean;
 };
 
 export interface SoundContextMenuProps {
@@ -44,18 +52,104 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
 }) => {
     const theme = useTheme();
     const menuRef = useRef<HTMLDivElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     const [nameValue, setNameValue] = useState('');
     const [rangeValue, setRangeValue] = useState(6);
-    const [isPlayingValue, setIsPlayingValue] = useState(true);
+    const [isPlayingValue, setIsPlayingValue] = useState(false);
+    const [loopValue, setLoopValue] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [soundPickerOpen, setSoundPickerOpen] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
 
-    const { data: currentResource } = useGetMediaResourceQuery(soundSource?.resourceId ?? '', {
-        skip: !soundSource?.resourceId,
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [isAudioLoading, setIsAudioLoading] = useState(false);
+
+    const resourceId = soundSource?.resource?.id;
+    const { data: currentResource } = useGetMediaResourceQuery(resourceId ?? '', {
+        skip: !resourceId,
     });
-    const [uploadFile] = useUploadFileMutation();
+
+    const audioResourceUrl = resourceId ? `/api/resources/${resourceId}` : null;
+    const { url: audioBlobUrl, isLoading: isResourceLoading } = useAuthenticatedResource(audioResourceUrl ?? '');
+
+    useEffect(() => {
+        if (resourceId) {
+            setIsAudioLoading(true);
+            setCurrentTime(0);
+            setDuration(0);
+        }
+    }, [resourceId]);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        const handleLoadedMetadata = () => {
+            setDuration(audio.duration);
+            setIsAudioLoading(false);
+            audio.loop = loopValue;
+        };
+
+        const handleTimeUpdate = () => {
+            setCurrentTime(audio.currentTime);
+        };
+
+        const handleEnded = () => {
+            if (!loopValue) {
+                setIsPlayingValue(false);
+                setCurrentTime(0);
+            }
+        };
+
+        const handleError = () => {
+            setIsAudioLoading(false);
+        };
+
+        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('error', handleError);
+
+        return () => {
+            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('error', handleError);
+        };
+    }, [audioBlobUrl, loopValue]);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        if (isPlayingValue && audioBlobUrl) {
+            audio.play().catch(() => {
+                setIsPlayingValue(false);
+            });
+        } else {
+            audio.pause();
+        }
+    }, [isPlayingValue, audioBlobUrl]);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (audio) {
+            audio.loop = loopValue;
+        }
+    }, [loopValue]);
+
+    useEffect(() => {
+        if (!open) {
+            const audio = audioRef.current;
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            setIsPlayingValue(false);
+            setCurrentTime(0);
+        }
+    }, [open]);
 
     const handleClickOutside = useCallback(
         (event: MouseEvent) => {
@@ -80,24 +174,18 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
         if (soundSource) {
             setNameValue(soundSource.name || '');
             setRangeValue(soundSource.range);
-            setIsPlayingValue(soundSource.isPlaying);
+            setLoopValue(soundSource.loop ?? false);
             setShowDeleteConfirm(false);
         }
     }, [soundSource]);
 
     if (!soundSource) return null;
 
-    const formatDuration = (duration: string): string => {
-        if (!duration) return '0:00';
-        const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
-        if (!match) return duration;
-        const hours = parseInt(match[1] || '0', 10);
-        const minutes = parseInt(match[2] || '0', 10);
-        const seconds = Math.floor(parseFloat(match[3] || '0'));
-        if (hours > 0) {
-            return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const formatTime = (seconds: number): string => {
+        if (!isFinite(seconds)) return '0:00';
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,44 +224,36 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
         setSoundPickerOpen(true);
     };
 
-    const handleSoundSelected = (resourceId: string) => {
+    const handleSoundSelected = (selectedResourceId: string) => {
         if (onSoundSourceUpdate && soundSource) {
-            onSoundSourceUpdate(soundSource.index, { resourceId });
+            onSoundSourceUpdate(soundSource.index, { resourceId: selectedResourceId });
         }
         setSoundPickerOpen(false);
     };
 
-    const handleUploadSound = async (file: File) => {
-        if (!soundSource || !onSoundSourceUpdate) return;
-
-        setIsUploading(true);
-        try {
-            const result = await uploadFile({
-                file,
-                type: 'encounter',
-                resource: 'audio',
-            }).unwrap();
-
-            onSoundSourceUpdate(soundSource.index, { resourceId: result.id });
-        } catch (_error) {
-            console.error('[SoundContextMenu] Failed to upload sound');
-        } finally {
-            setIsUploading(false);
-        }
+    const handleTogglePlaying = () => {
+        setIsPlayingValue(!isPlayingValue);
     };
 
-    const handleClearSound = () => {
-        if (onSoundSourceUpdate && soundSource) {
-            onSoundSourceUpdate(soundSource.index, { resourceId: null });
-        }
-    };
-
-    const handleIsPlayingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const checked = event.target.checked;
-        setIsPlayingValue(checked);
+    const handleToggleLoop = () => {
+        const newValue = !loopValue;
+        setLoopValue(newValue);
         if (onSoundSourceUpdate) {
-            onSoundSourceUpdate(soundSource.index, { isPlaying: checked });
+            onSoundSourceUpdate(soundSource.index, { loop: newValue });
         }
+    };
+
+    const handleProgressClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        const audio = audioRef.current;
+        if (!audio || duration === 0) return;
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const percentage = clickX / rect.width;
+        const newTime = percentage * duration;
+
+        audio.currentTime = newTime;
+        setCurrentTime(newTime);
     };
 
     const handleDeleteClick = () => {
@@ -209,14 +289,8 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
         },
     };
 
-    const compactCheckboxStyle = {
-        '& .MuiFormControlLabel-label': {
-            fontSize: '11px',
-        },
-        '& .MuiCheckbox-root': {
-            padding: '4px',
-        },
-    };
+    const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+    const isLoading = isResourceLoading || isAudioLoading;
 
     return (
         <Menu
@@ -245,18 +319,25 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography sx={{ fontSize: '10px', minWidth: 60 }}>Name:</Typography>
-                        <TextField
-                            value={nameValue}
-                            onChange={handleNameChange}
-                            onBlur={handleNameBlur}
-                            onKeyDown={handleNameKeyDown}
-                            size="small"
-                            placeholder="Optional"
-                            inputProps={{ maxLength: 64 }}
-                            sx={{ ...compactTextFieldStyle, flex: 1 }}
-                        />
+                    <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography sx={{ fontSize: '10px', minWidth: 60 }}>Name:</Typography>
+                            <TextField
+                                value={nameValue}
+                                onChange={handleNameChange}
+                                onBlur={handleNameBlur}
+                                onKeyDown={handleNameKeyDown}
+                                size="small"
+                                placeholder="Optional"
+                                inputProps={{ maxLength: 64 }}
+                                sx={{ ...compactTextFieldStyle, flex: 1 }}
+                            />
+                        </Box>
+                        <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary, ml: '68px', mt: 0.25 }}>
+                            {resourceId
+                                ? (currentResource?.fileName || soundSource.resource?.fileName || 'Loading...')
+                                : 'No sound assigned'}
+                        </Typography>
                     </Box>
 
                     <Box>
@@ -281,105 +362,116 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
                         />
                     </Box>
 
-                    <Box>
-                        <Typography sx={{ fontSize: '10px', color: theme.palette.text.secondary, fontWeight: 600, mb: 0.5 }}>
-                            Sound Resource
-                        </Typography>
+                    {resourceId ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {audioBlobUrl && <audio ref={audioRef} src={audioBlobUrl} preload='metadata' loop={loopValue} />}
 
-                        {soundSource.resourceId ? (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                <Typography sx={{ fontSize: '10px' }}>
-                                    {currentResource?.fileName || 'Loading...'}
-                                    {currentResource?.duration && ` (${formatDuration(currentResource.duration)})`}
-                                </Typography>
-
-                                <AudioPreviewPlayer resourceId={soundSource.resourceId} compact />
-
-                                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                    <Button
-                                        size='small'
-                                        variant='outlined'
-                                        startIcon={<BrowseIcon sx={{ fontSize: 14 }} />}
-                                        onClick={handleBrowseSound}
-                                        sx={{ fontSize: '10px', py: 0.25, flex: 1, textTransform: 'none' }}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Tooltip title={isPlayingValue ? 'Pause' : 'Play'}>
+                                        <span>
+                                            <IconButton
+                                                size='small'
+                                                onClick={handleTogglePlaying}
+                                                disabled={isLoading}
+                                                sx={{
+                                                    color: isPlayingValue ? theme.palette.primary.main : theme.palette.text.secondary,
+                                                }}
+                                            >
+                                                {isLoading ? (
+                                                    <CircularProgress size={16} />
+                                                ) : isPlayingValue ? (
+                                                    <PauseIcon sx={{ fontSize: 18 }} />
+                                                ) : (
+                                                    <PlayIcon sx={{ fontSize: 18 }} />
+                                                )}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title={loopValue ? 'Loop enabled' : 'Loop disabled'}>
+                                        <IconButton
+                                            size='small'
+                                            onClick={handleToggleLoop}
+                                            sx={{
+                                                color: loopValue ? theme.palette.primary.main : theme.palette.text.disabled,
+                                            }}
+                                        >
+                                            <LoopIcon sx={{ fontSize: 16 }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Box
+                                        sx={{
+                                            flex: 1,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 0.5,
+                                        }}
+                                        onClick={handleProgressClick}
                                     >
-                                        Change
-                                    </Button>
-                                    <Button
-                                        size='small'
-                                        variant='outlined'
-                                        color='error'
-                                        startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
-                                        onClick={handleClearSound}
-                                        sx={{ fontSize: '10px', py: 0.25, textTransform: 'none' }}
-                                    >
-                                        Clear
-                                    </Button>
-                                </Box>
-                            </Box>
-                        ) : (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                <Typography sx={{ fontSize: '10px', color: theme.palette.text.disabled }}>
-                                    No sound assigned
-                                </Typography>
-                                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                    <Button
-                                        size='small'
-                                        variant='outlined'
-                                        startIcon={<BrowseIcon sx={{ fontSize: 14 }} />}
-                                        onClick={handleBrowseSound}
-                                        sx={{ fontSize: '10px', py: 0.25, flex: 1, textTransform: 'none' }}
-                                    >
-                                        Browse
-                                    </Button>
-                                    <Button
-                                        size='small'
-                                        variant='outlined'
-                                        component='label'
-                                        startIcon={isUploading ? <CircularProgress size={14} /> : <UploadIcon sx={{ fontSize: 14 }} />}
-                                        disabled={isUploading}
-                                        sx={{ fontSize: '10px', py: 0.25, textTransform: 'none' }}
-                                    >
-                                        Upload
-                                        <input
-                                            type='file'
-                                            hidden
-                                            accept='.mp3,audio/mpeg'
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    handleUploadSound(file);
-                                                }
-                                                e.target.value = '';
+                                        <LinearProgress
+                                            variant="determinate"
+                                            value={progressPercentage}
+                                            sx={{
+                                                flex: 1,
+                                                height: 4,
+                                                borderRadius: 2,
+                                                backgroundColor: theme.palette.action.disabledBackground,
+                                                '& .MuiLinearProgress-bar': {
+                                                    borderRadius: 2,
+                                                },
                                             }}
                                         />
-                                    </Button>
+                                        <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary, minWidth: 55 }}>
+                                            {formatTime(currentTime)} / {formatTime(duration)}
+                                        </Typography>
+                                    </Box>
                                 </Box>
-                            </Box>
-                        )}
-                    </Box>
 
-                    <FormControlLabel
-                        control={<Checkbox checked={isPlayingValue} onChange={handleIsPlayingChange} size="small" />}
-                        label="Playing"
-                        sx={compactCheckboxStyle}
-                    />
+                        </Box>
+                    ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Tooltip title="Loop (will apply when sound is assigned)">
+                                <IconButton
+                                    size='small'
+                                    onClick={handleToggleLoop}
+                                    sx={{
+                                        color: loopValue ? theme.palette.primary.main : theme.palette.text.disabled,
+                                    }}
+                                >
+                                    <LoopIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </Tooltip>
+                            <Typography sx={{ fontSize: '9px', color: theme.palette.text.disabled }}>
+                                {loopValue ? 'Loop enabled' : 'Loop disabled'}
+                            </Typography>
+                        </Box>
+                    )}
 
                     {!showDeleteConfirm ? (
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            onClick={handleDeleteClick}
-                            sx={{
-                                height: '28px',
-                                fontSize: '10px',
-                                textTransform: 'none',
-                                mt: 0.5,
-                            }}
-                        >
-                            Delete Sound
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                            <Button
+                                size='small'
+                                variant='outlined'
+                                startIcon={<BrowseIcon sx={{ fontSize: 14 }} />}
+                                onClick={handleBrowseSound}
+                                sx={{ fontSize: '10px', py: 0.25, flex: 1, textTransform: 'none' }}
+                            >
+                                {resourceId ? 'Change' : 'Browse'}
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                onClick={handleDeleteClick}
+                                sx={{
+                                    fontSize: '10px',
+                                    textTransform: 'none',
+                                    flex: 1,
+                                }}
+                            >
+                                Delete
+                            </Button>
+                        </Box>
                     ) : (
                         <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
                             <Button
@@ -419,7 +511,7 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
                     open={soundPickerOpen}
                     onClose={() => setSoundPickerOpen(false)}
                     onSelect={handleSoundSelected}
-                    {...(soundSource.resourceId && { currentResourceId: soundSource.resourceId })}
+                    {...(resourceId && { currentResourceId: resourceId })}
                 />
             )}
         </Menu>

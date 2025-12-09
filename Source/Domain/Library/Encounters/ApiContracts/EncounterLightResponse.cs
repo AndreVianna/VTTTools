@@ -1,7 +1,7 @@
 
 namespace VttTools.Library.Encounters.ApiContracts;
 
-public record EncounterLightSourceResponse {
+public record EncounterLightResponse {
     public uint Index { get; init; }
     public string? Name { get; init; }
     public LightSourceType Type { get; init; }

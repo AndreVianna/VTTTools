@@ -10,7 +10,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 import type { InteractionScope } from '@/utils/scopeFiltering';
-import { isSourceInScope } from '@/utils/scopeFiltering';
+import { isLightSourceInScope } from '@/utils/scopeFiltering';
 
 export interface LightSourceRendererProps {
   encounterLightSource: EncounterLightSource;
@@ -36,7 +36,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   isSelected = false,
 }) => {
   const theme = useTheme();
-  const isInteractive = isSourceInScope(activeScope);
+  const isInteractive = isLightSourceInScope(activeScope);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
   const [dragDirection, setDragDirection] = useState<number | null>(null);
   const [isRotating, setIsRotating] = useState(false);
@@ -132,7 +132,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   const directionRadians = isDirectional ? (currentDirection! * Math.PI) / 180 : 0;
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
-  const color = encounterLightSource.color ?? getDefaultColorForType(encounterLightSource.type);
+  const color = encounterLightSource.color || getDefaultColorForType(encounterLightSource.type);
   const centerColor = `${color}99`; // 60% opacity (0x99 = 153 = 60% of 255)
   const transparentColor = `${color}00`;
 

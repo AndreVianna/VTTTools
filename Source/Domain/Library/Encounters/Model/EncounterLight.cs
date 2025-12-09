@@ -1,7 +1,7 @@
 
 namespace VttTools.Library.Encounters.Model;
 
-public record EncounterLightSource {
+public record EncounterLight {
     public uint Index { get; init; }
     [MaxLength(128)]
     public string? Name { get; init; }

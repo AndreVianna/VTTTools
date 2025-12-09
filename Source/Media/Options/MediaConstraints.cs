@@ -102,10 +102,20 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "cutscenes",
         },
+        [ResourceType.UserAvatar] = new() {
+            AllowedContentTypes = [.. _safeImageTypes],
+            MaxWidth = 256,
+            MaxHeight = 256,
+            MaxDuration = TimeSpan.Zero,
+            MaxFileSize = 500 * 1024,
+            RequiresTransparency = false,
+            GenerateThumbnail = true,
+            StorageFolder = "avatars",
+        },
     };
 
     public static bool IsValidContentType(ResourceType type, string contentType)
-        => For[type].AllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+        => For.TryGetValue(type, out var constraints) && constraints.AllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
 
     public static string GetMediaCategory(string contentType) {
         var normalizedType = contentType.ToLowerInvariant();

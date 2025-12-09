@@ -24,6 +24,6 @@ public class Encounter {
     public ICollection<EncounterAsset> EncounterAssets { get; set; } = [];
     public ICollection<EncounterWall> Walls { get; set; } = [];
     public ICollection<EncounterRegion> Regions { get; set; } = [];
-    public ICollection<EncounterLightSource> LightSources { get; set; } = [];
-    public ICollection<EncounterSoundSource> SoundSources { get; set; } = [];
+    public ICollection<EncounterLight> LightSources { get; set; } = [];
+    public ICollection<EncounterSound> SoundSources { get; set; } = [];
 }

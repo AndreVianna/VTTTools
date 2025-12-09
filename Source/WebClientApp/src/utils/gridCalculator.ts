@@ -36,13 +36,13 @@ export interface Offset {
 }
 
 /**
- * Grid configuration matching backend Grid value object
+ * Grid configuration extending backend Grid value object with UI-only properties
  */
 export interface GridConfig {
   type: GridType;
   cellSize: CellSize;
   offset: Offset;
-  snap: boolean;
+  snap: boolean; // UI-only: not persisted to backend
   scale: number;
 }
 

@@ -140,7 +140,9 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         var imageId = data.ImageId;
 
         var name = data.Name ?? asset.Name;
-        var number = encounter.Assets.Max(sa => ExtractAssetNumberOrDefault(sa.Name, name)) + 1;
+        var number = encounter.Assets.Count != 0
+            ? encounter.Assets.Max(sa => ExtractAssetNumberOrDefault(sa.Name, name)) + 1
+            : 1;
 
         var encounterAsset = new EncounterAsset {
             AssetId = assetId,
@@ -377,13 +379,13 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             return Result.Failure("NotAllowed");
 
         var index = encounter.Walls.Count != 0 ? encounter.Walls.Max(sw => sw.Index) + 1 : 0;
-        var encounterWall = new EncounterWall {
+        var wall = new EncounterWall {
             Index = index,
             Segments = data.Segments,
         };
 
-        await encounterStorage.AddWallAsync(id, encounterWall, ct);
-        return encounterWall;
+        await encounterStorage.AddWallAsync(id, wall, ct);
+        return wall;
     }
 
     /// <inheritdoc />
@@ -430,7 +432,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             return Result.Failure("NotAllowed");
 
         var index = encounter.Regions.Count != 0 ? encounter.Regions.Max(sr => sr.Index) + 1 : 0;
-        var encounterRegion = new EncounterRegion {
+        var region = new EncounterRegion {
             Index = index,
             Name = data.Name ?? $"Region {index + 1}",
             Vertices = data.Vertices,
@@ -438,8 +440,8 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             Value = data.Value,
         };
 
-        await encounterStorage.AddRegionAsync(id, encounterRegion, ct);
-        return encounterRegion;
+        await encounterStorage.AddRegionAsync(id, region, ct);
+        return region;
     }
 
     /// <inheritdoc />
@@ -447,21 +449,21 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterRegion = encounter.Regions.FirstOrDefault(b => b.Index == index);
-        if (encounterRegion is null)
+        var region = encounter.Regions.FirstOrDefault(b => b.Index == index);
+        if (region is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        encounterRegion = encounterRegion with {
+        region = region with {
             Index = index,
-            Name = data.Name.IsSet ? data.Name.Value : encounterRegion.Name,
-            Vertices = data.Vertices.IsSet ? data.Vertices.Value : encounterRegion.Vertices,
-            Value = data.Value.IsSet ? data.Value.Value : encounterRegion.Value,
-            Type = data.Type.IsSet ? data.Type.Value : encounterRegion.Type,
+            Name = data.Name.IsSet ? data.Name.Value : region.Name,
+            Vertices = data.Vertices.IsSet ? data.Vertices.Value : region.Vertices,
+            Value = data.Value.IsSet ? data.Value.Value : region.Value,
+            Type = data.Type.IsSet ? data.Type.Value : region.Type,
         };
 
-        await encounterStorage.UpdateRegionAsync(id, encounterRegion, ct);
+        await encounterStorage.UpdateRegionAsync(id, region, ct);
         return Result.Success();
     }
 
@@ -470,8 +472,8 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterRegion = encounter.Regions.FirstOrDefault(b => b.Index == index);
-        if (encounterRegion is null)
+        var region = encounter.Regions.FirstOrDefault(b => b.Index == index);
+        if (region is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
@@ -481,7 +483,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
     }
 
     /// <inheritdoc />
-    public async Task<Result<EncounterLightSource>> AddLightSourceAsync(Guid userId, Guid id, EncounterLightSourceAddData data, CancellationToken ct = default) {
+    public async Task<Result<EncounterLight>> AddLightSourceAsync(Guid userId, Guid id, EncounterLightAddData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
@@ -493,7 +495,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             return result;
 
         var index = encounter.LightSources.Count != 0 ? encounter.LightSources.Max(ss => ss.Index) + 1 : 0;
-        var encounterLightSource = new EncounterLightSource {
+        var light = new EncounterLight {
             Index = index,
             Name = data.Name ?? $"LightSource {index + 1}",
             Type = data.Type,
@@ -505,17 +507,17 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             IsOn = data.IsOn,
         };
 
-        await encounterStorage.AddLightSourceAsync(id, encounterLightSource, ct);
-        return encounterLightSource;
+        await encounterStorage.AddLightSourceAsync(id, light, ct);
+        return light;
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, uint index, EncounterLightSourceUpdateData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, uint index, EncounterLightUpdateData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterLightSource = encounter.LightSources.FirstOrDefault(b => b.Index == index);
-        if (encounterLightSource is null)
+        var light = encounter.LightSources.FirstOrDefault(b => b.Index == index);
+        if (light is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
@@ -524,19 +526,19 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         if (result.HasErrors)
             return result;
 
-        encounterLightSource = encounterLightSource with {
+        light = light with {
             Index = index,
-            Type = data.Type.IsSet ? data.Type.Value : encounterLightSource.Type,
-            Name = data.Name.IsSet ? data.Name.Value : encounterLightSource.Name,
-            Position = data.Position.IsSet ? data.Position.Value : encounterLightSource.Position,
-            Range = data.Range.IsSet ? data.Range.Value : encounterLightSource.Range,
-            Direction = data.Direction.IsSet ? data.Direction.Value : encounterLightSource.Direction,
-            Arc = data.Arc.IsSet ? data.Arc.Value : encounterLightSource.Arc,
-            Color = data.Color.IsSet ? data.Color.Value : encounterLightSource.Color,
-            IsOn = data.IsOn.IsSet ? data.IsOn.Value : encounterLightSource.IsOn,
+            Type = data.Type.IsSet ? data.Type.Value : light.Type,
+            Name = data.Name.IsSet ? data.Name.Value : light.Name,
+            Position = data.Position.IsSet ? data.Position.Value : light.Position,
+            Range = data.Range.IsSet ? data.Range.Value : light.Range,
+            Direction = data.Direction.IsSet ? data.Direction.Value : light.Direction,
+            Arc = data.Arc.IsSet ? data.Arc.Value : light.Arc,
+            Color = data.Color.IsSet ? data.Color.Value : light.Color,
+            IsOn = data.IsOn.IsSet ? data.IsOn.Value : light.IsOn,
         };
 
-        await encounterStorage.UpdateLightSourceAsync(id, encounterLightSource, ct);
+        await encounterStorage.UpdateLightSourceAsync(id, light, ct);
         return Result.Success();
     }
 
@@ -555,7 +557,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         return Result.Success();
     }
     /// <inheritdoc />
-    public async Task<Result<EncounterSoundSource>> AddSoundSourceAsync(Guid userId, Guid id, EncounterSoundSourceAddData data, CancellationToken ct = default) {
+    public async Task<Result<EncounterSound>> AddSoundSourceAsync(Guid userId, Guid id, EncounterSoundAddData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
@@ -567,12 +569,13 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
             return result;
 
         var index = encounter.SoundSources.Count != 0 ? encounter.SoundSources.Max(ss => ss.Index) + 1 : 0;
-        var encounterSoundSource = new EncounterSoundSource {
+        var encounterSoundSource = new EncounterSound {
             Index = index,
             Name = data.Name ?? $"SoundSource {index + 1}",
             Position = data.Position,
             Range = data.Range,
             IsPlaying = data.IsPlaying,
+            Loop = data.Loop,
             Resource = data.ResourceId.HasValue ? new ResourceMetadata { Id = data.ResourceId.Value } : null,
         };
 
@@ -581,12 +584,12 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, uint index, EncounterSoundSourceUpdateData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, uint index, EncounterSoundUpdateData data, CancellationToken ct = default) {
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterSoundSource = encounter.SoundSources.FirstOrDefault(b => b.Index == index);
-        if (encounterSoundSource is null)
+        var sound = encounter.SoundSources.FirstOrDefault(b => b.Index == index);
+        if (sound is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
@@ -595,16 +598,17 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         if (result.HasErrors)
             return result;
 
-        encounterSoundSource = encounterSoundSource with {
+        sound = sound with {
             Index = index,
-            Name = data.Name.IsSet ? data.Name.Value : encounterSoundSource.Name,
-            Position = data.Position.IsSet ? data.Position.Value : encounterSoundSource.Position,
-            Range = data.Range.IsSet ? data.Range.Value : encounterSoundSource.Range,
-            IsPlaying = data.IsPlaying.IsSet ? data.IsPlaying.Value : encounterSoundSource.IsPlaying,
-            Resource = data.ResourceId.IsSet ? (data.ResourceId.Value.HasValue ? new ResourceMetadata { Id = data.ResourceId.Value.Value } : null) : encounterSoundSource.Resource,
+            Name = data.Name.IsSet ? data.Name.Value : sound.Name,
+            Position = data.Position.IsSet ? data.Position.Value : sound.Position,
+            Range = data.Range.IsSet ? data.Range.Value : sound.Range,
+            IsPlaying = data.IsPlaying.IsSet ? data.IsPlaying.Value : sound.IsPlaying,
+            Loop = data.Loop.IsSet ? data.Loop.Value : sound.Loop,
+            Resource = data.ResourceId.IsSet ? (data.ResourceId.Value.HasValue ? new ResourceMetadata { Id = data.ResourceId.Value.Value } : null) : sound.Resource,
         };
 
-        await encounterStorage.UpdateSoundSourceAsync(id, encounterSoundSource, ct);
+        await encounterStorage.UpdateSoundSourceAsync(id, sound, ct);
         return Result.Success();
     }
 
@@ -613,8 +617,8 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
         var encounter = await encounterStorage.GetByIdAsync(id, ct);
         if (encounter is null)
             return Result.Failure("NotFound");
-        var encounterSoundSource = encounter.SoundSources.FirstOrDefault(b => b.Index == index);
-        if (encounterSoundSource is null)
+        var sound = encounter.SoundSources.FirstOrDefault(b => b.Index == index);
+        if (sound is null)
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");

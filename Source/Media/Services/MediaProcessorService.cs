@@ -13,7 +13,8 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         string contentType,
         string fileName,
         CancellationToken ct = default) {
-        var constraints = MediaConstraints.For[resourceType];
+        if (!MediaConstraints.For.TryGetValue(resourceType, out var constraints))
+            return Result.Failure<ProcessedMedia>(null!, $"Invalid resource type: '{resourceType}'. Please specify a valid resource type.");
 
         if (!MediaConstraints.IsValidContentType(resourceType, contentType)) {
             var allowedTypes = string.Join(", ", constraints.AllowedContentTypes);

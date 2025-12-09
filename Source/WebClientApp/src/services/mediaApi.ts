@@ -16,7 +16,7 @@ export const mediaApi = createApi({
     }),
 
     getMediaResource: builder.query<MediaResource, string>({
-      query: (id) => `/resources/${id}`,
+      query: (id) => `/resources/${id}/info`,
       providesTags: (_result, _error, id) => [{ type: 'MediaResource', id }],
     }),
 
@@ -24,15 +24,13 @@ export const mediaApi = createApi({
       MediaResource,
       {
         file: File;
-        mediaType?: string;
         resourceType?: string;
         entityId?: string;
       }
     >({
-      query: ({ file, mediaType = 'asset', resourceType = 'token', entityId }) => {
+      query: ({ file, resourceType = 'token', entityId }) => {
         const formData = new FormData();
-        formData.append('mediaType', mediaType);
-        formData.append('resource', resourceType);
+        formData.append('resourceType', resourceType);
         formData.append('file', file);
 
         if (entityId) {
