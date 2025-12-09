@@ -14,8 +14,6 @@ public class EncounterStorage(ApplicationDbContext context)
     public Task<Encounter[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Encounters
                   .Include(e => e.Background)
-                  .Include(e => e.AmbientSound)
-                  .Include(e => e.EncounterAssets)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .Select(Mapper.AsEncounter);
@@ -27,8 +25,6 @@ public class EncounterStorage(ApplicationDbContext context)
     public Task<Encounter[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default) {
         var query = context.Encounters
                   .Include(e => e.Background)
-                  .Include(e => e.AmbientSound)
-                  .Include(e => e.EncounterAssets)
                   .Where(e => e.AdventureId == adventureId)
                   .AsSplitQuery()
                   .AsNoTracking()
@@ -42,6 +38,8 @@ public class EncounterStorage(ApplicationDbContext context)
         var entity = await context.Encounters
                   .Include(e => e.Background)
                   .Include(e => e.AmbientSound)
+                  .Include(e => e.EncounterAssets)
+                    .ThenInclude(s => s.Image)
                   .Include(e => e.EncounterAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Include(e => e.Walls)
@@ -84,6 +82,8 @@ public class EncounterStorage(ApplicationDbContext context)
         var entity = await context.Encounters
             .Include(s => s.EncounterAssets)
                 .ThenInclude(s => s.Asset)
+            .Include(e => e.EncounterAssets)
+                .ThenInclude(s => s.Image)
             .Include(s => s.Walls)
                 .ThenInclude(w => w.Segments)
             .Include(s => s.Regions)

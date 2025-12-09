@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, Box, CircularProgress } from '@mui/material';
 import {
@@ -59,9 +59,12 @@ export const AssetStudioPage: React.FC = () => {
 
   const [formState, setFormState] = useState<AssetFormState>(defaultFormState);
   const [isDirty, setIsDirty] = useState(false);
+  const prevAssetIdRef = useRef(existingAsset?.id);
 
   useEffect(() => {
-    if (existingAsset && !isNew) {
+    // Initialize form state when loading an existing asset
+    if (existingAsset && !isNew && prevAssetIdRef.current !== existingAsset.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormState({
         name: existingAsset.name,
         description: existingAsset.description,
@@ -73,7 +76,9 @@ export const AssetStudioPage: React.FC = () => {
         isPublic: existingAsset.isPublic,
         isPublished: existingAsset.isPublished,
       });
+       
       setIsDirty(false);
+      prevAssetIdRef.current = existingAsset.id;
     }
   }, [existingAsset, isNew]);
 

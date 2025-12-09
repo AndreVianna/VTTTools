@@ -149,8 +149,9 @@ export const useAssetImageLoader = ({
     }, [placedAssets, draggedAsset, loadImage, token]);
 
     useEffect(() => {
+        const loadedIds = loadedAssetIdsRef.current;
         return () => {
-            loadedAssetIdsRef.current.forEach((id) => {
+            loadedIds.forEach((id) => {
                 const cached = imageCache.get(id);
                 if (cached) {
                     cached.refCount--;

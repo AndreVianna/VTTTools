@@ -20,11 +20,6 @@ function convertRegionTypeToString(type: string | number): string {
   return RegionType[type] ?? 'Elevation';
 }
 
-function convertRegionTypeToNumber(type: string | number): number {
-  if (typeof type === 'number') return type;
-  return RegionType[type as keyof typeof RegionType] ?? RegionType.Elevation;
-}
-
 function getAssetLayer(asset: Asset): GroupName {
   if (asset.classification.kind === 'Creature') {
     return GroupName.Monsters;

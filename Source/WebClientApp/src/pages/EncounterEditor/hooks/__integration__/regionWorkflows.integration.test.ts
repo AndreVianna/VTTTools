@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CommitResult } from '@/hooks/useRegionTransaction';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import type { LocalAction } from '@/types/regionUndoActions';
 import { Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { useMergeRegions } from '../useMergeRegions';
@@ -54,7 +55,8 @@ describe('Region Workflows - Integration Tests', () => {
       assets: [],
       walls: [],
       regions: [],
-      sources: [],
+      lightSources: [],
+      soundSources: [],
     };
 
     gridConfig = {
@@ -168,7 +170,9 @@ describe('Region Workflows - Integration Tests', () => {
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
       const mockVertices: Point[] = [];
 
-      const createVertexAction = (vertex: Point) => ({
+      const createVertexAction = (vertex: Point): LocalAction => ({
+        type: 'PLACE_VERTEX',
+        description: `Place vertex at (${vertex.x}, ${vertex.y})`,
         undo: () => {
           mockVertices.pop();
         },

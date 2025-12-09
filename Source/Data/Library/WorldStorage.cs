@@ -9,7 +9,6 @@ public class WorldStorage(ApplicationDbContext context)
     public async Task<World[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Worlds
             .Include(e => e.Campaigns)
-                .ThenInclude(c => c.Adventures)
             .Include(e => e.Background)
             .AsSplitQuery()
             .AsNoTracking();
@@ -21,7 +20,6 @@ public class WorldStorage(ApplicationDbContext context)
     public async Task<World[]> GetManyAsync(string filterDefinition, CancellationToken ct = default) {
         var query = context.Worlds
             .Include(e => e.Campaigns)
-                .ThenInclude(c => c.Adventures)
             .Include(e => e.Background)
             .AsSplitQuery()
             .AsNoTracking();

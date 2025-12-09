@@ -38,7 +38,8 @@ const createMockEncounter = (overrides?: Partial<Encounter>): Encounter => ({
   assets: [],
   walls: [],
   regions: [],
-  sources: [],
+  lightSources: [],
+  soundSources: [],
   ...overrides,
 });
 

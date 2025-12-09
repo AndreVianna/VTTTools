@@ -89,7 +89,8 @@ describe('useMergeRegions', () => {
       assets: [],
       regions: [targetRegion, regionToDelete],
       walls: [],
-      sources: [],
+      lightSources: [],
+      soundSources: [],
     };
 
     mockUpdateRegionOptimistic.mockImplementation((encounter, regionIndex, changes) => ({

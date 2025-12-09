@@ -995,13 +995,10 @@ export declare interface EncounterOpening {
     wallIndex: number;
     startPoleIndex: number;
     endPoleIndex: number;
-    width: number;
     height: number;
     visibility: OpeningVisibility;
     state: OpeningState;
     opacity: OpeningOpacity;
-    material?: string;
-    color?: string;
 }
 
 export declare interface EncounterRegion {
@@ -1054,7 +1051,6 @@ export declare interface EncounterWall {
     poles: Pole[];
     visibility: WallVisibility;
     isClosed: boolean;
-    color?: string | undefined;
 }
 
 export declare interface EnhancedError {

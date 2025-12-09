@@ -41,11 +41,15 @@ export const RegionContextMenu: React.FC<RegionContextMenuProps> = ({
     return undefined;
   }, [open, handleClickOutside]);
 
+  const regionIndex = encounterRegion?.index;
+
   useEffect(() => {
-    if (encounterRegion) {
+    // Sync form state when context menu opens or region changes
+    if (open && encounterRegion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNameValue(encounterRegion.name);
     }
-  }, [encounterRegion]);
+  }, [open, encounterRegion, regionIndex]);
 
   if (!encounterRegion) return null;
 

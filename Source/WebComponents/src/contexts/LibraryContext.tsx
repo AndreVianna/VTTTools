@@ -57,6 +57,7 @@ export const LibraryProvider = ({
     return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLibrary = (): LibraryContextValue => {
     const context = useContext(LibraryContext);
     if (!context) {
@@ -65,6 +66,7 @@ export const useLibrary = (): LibraryContextValue => {
     return context;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLibraryOptional = (): LibraryContextValue | null => {
     return useContext(LibraryContext);
 };

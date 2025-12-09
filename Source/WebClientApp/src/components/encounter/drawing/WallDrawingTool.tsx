@@ -155,7 +155,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 
     wallTransaction.setAllSegments([finalSegment]);
     onFinish();
-  }, [poles, encounter, wall, wallTransaction, defaultHeight, onFinish]);
+  }, [poles, encounter, wall, wallTransaction, defaultHeight, segmentType, isOpaque, segmentState, onFinish]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

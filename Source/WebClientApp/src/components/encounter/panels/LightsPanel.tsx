@@ -52,7 +52,7 @@ export interface LightPlacementProperties {
 }
 
 const DEFAULT_COLORS: Record<LightSourceType, string> = {
-  [LightSourceType.Natural]: '#FF4500',
+  [LightSourceType.Natural]: '#FF9900',
   [LightSourceType.Artificial]: '#FFFFFF',
   [LightSourceType.Supernatural]: '#9370DB',
 };

@@ -91,7 +91,8 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     name: 'Test Encounter',
     walls,
     regions: [],
-    sources: [],
+    lightSources: [],
+    soundSources: [],
   });
 
   const mockEncounterEmpty = createMockEncounter([
@@ -329,9 +330,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack).toEqual([]);
-      // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack).toEqual([]);
+      expect(transaction!.history.undoStackSize).toBe(0);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
       expect(transaction!.canUndoLocal()).toBe(false);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -357,9 +356,17 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
           isActive: true,
           type: 'placement',
           originalWall: null,
-          localUndoStack: [],
-          localRedoStack: [],
           segments: [],
+        },
+        history: {
+          push: vi.fn(),
+          undo: vi.fn(),
+          redo: vi.fn(),
+          canUndo: false,
+          canRedo: false,
+          clear: vi.fn(),
+          undoStackSize: 0,
+          redoStackSize: 0,
         },
         canUndoLocal: () => false,
         canRedoLocal: () => false,
@@ -496,16 +503,16 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(0);
+      expect(transaction!.history.undoStackSize).toBe(0);
 
       act(() => {
         rect.click();
       });
 
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      expect(transaction!.history.undoStackSize).toBe(1);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
+      expect(transaction!.canUndoLocal()).toBe(true);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
       expect(transaction!.canUndoLocal()).toBe(true);
     });
@@ -707,9 +714,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(3);
+      expect(transaction!.history.undoStackSize).toBe(3);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack.length).toBe(0);
+      expect(transaction!.history.redoStackSize).toBe(0);
 
       act(() => {
         // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -717,9 +724,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(2);
+      expect(transaction!.history.undoStackSize).toBe(2);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack.length).toBe(1);
+      expect(transaction!.history.redoStackSize).toBe(1);
 
       act(() => {
         // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -727,9 +734,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      expect(transaction!.history.undoStackSize).toBe(1);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack.length).toBe(2);
+      expect(transaction!.history.redoStackSize).toBe(2);
 
       act(() => {
         // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -737,9 +744,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       });
 
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(0);
+      expect(transaction!.history.undoStackSize).toBe(0);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack.length).toBe(3);
+      expect(transaction!.history.redoStackSize).toBe(3);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
       expect(transaction!.canUndoLocal()).toBe(false);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -796,7 +803,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
       expect(transaction!.canRedoLocal()).toBe(false);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack.length).toBe(0);
+      expect(transaction!.history.redoStackSize).toBe(0);
     });
 
     it('should maintain correct canUndo/canRedo state throughout lifecycle', () => {
@@ -934,7 +941,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(1);
+      expect(transaction!.history.undoStackSize).toBe(1);
 
       act(() => {
         // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -944,9 +951,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
       expect(transaction!.transaction.isActive).toBe(false);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localUndoStack.length).toBe(0);
+      expect(transaction!.history.undoStackSize).toBe(0);
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-      expect(transaction!.transaction.localRedoStack.length).toBe(0);
+      expect(transaction!.history.redoStackSize).toBe(0);
     });
   });
 });

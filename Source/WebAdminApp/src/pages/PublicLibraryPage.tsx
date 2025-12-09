@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -306,10 +306,10 @@ function assetFiltersToRequest(
 
 function taxonomyPathToFilters(path: string[]): Pick<LibrarySearchRequest, 'kind' | 'category' | 'type' | 'subtype'> {
   const filters: Pick<LibrarySearchRequest, 'kind' | 'category' | 'type' | 'subtype'> = {};
-  if (path.length >= 1) filters.kind = path[0];
-  if (path.length >= 2) filters.category = path[1];
-  if (path.length >= 3) filters.type = path[2];
-  if (path.length >= 4) filters.subtype = path[3];
+  if (path.length >= 1 && path[0]) filters.kind = path[0];
+  if (path.length >= 2 && path[1]) filters.category = path[1];
+  if (path.length >= 3 && path[2]) filters.type = path[2];
+  if (path.length >= 4 && path[3]) filters.subtype = path[3];
   return filters;
 }
 

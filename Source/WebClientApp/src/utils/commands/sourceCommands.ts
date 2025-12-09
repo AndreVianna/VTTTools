@@ -13,7 +13,7 @@ export class CreateLightSourceCommand implements Command {
   readonly description: string;
 
   constructor(private params: CreateLightSourceCommandParams) {
-    this.description = `Create light source "${params.source.name || 'Unnamed'}"`;
+    this.description = `Create light source "${params.source.name ?? 'Unnamed'}"`;
   }
 
   async execute(): Promise<void> {
@@ -28,11 +28,11 @@ export class CreateLightSourceCommand implements Command {
   async redo(): Promise<void> {
     const { encounterId, source, onCreate, onRefetch } = this.params;
     const sourceData: Omit<EncounterLightSource, 'index'> = {
-      name: source.name,
       type: source.type,
       position: source.position,
       range: source.range,
       isOn: source.isOn,
+      ...(source.name !== undefined && { name: source.name }),
       ...(source.direction !== undefined && { direction: source.direction }),
       ...(source.arc !== undefined && { arc: source.arc }),
       ...(source.color !== undefined && { color: source.color }),
@@ -55,7 +55,7 @@ export class UpdateLightSourceCommand implements Command {
   readonly description: string;
 
   constructor(private params: UpdateLightSourceCommandParams) {
-    this.description = `Update light source "${params.newSource.name || 'Unnamed'}"`;
+    this.description = `Update light source "${params.newSource.name ?? 'Unnamed'}"`;
   }
 
   async execute(): Promise<void> {
@@ -65,11 +65,11 @@ export class UpdateLightSourceCommand implements Command {
   async undo(): Promise<void> {
     const { oldSource, encounterId, sourceIndex, onUpdate, onRefetch } = this.params;
     const updates: Partial<EncounterLightSource> = {
-      name: oldSource.name,
       type: oldSource.type,
       position: oldSource.position,
       range: oldSource.range,
       isOn: oldSource.isOn,
+      ...(oldSource.name !== undefined && { name: oldSource.name }),
       ...(oldSource.direction !== undefined && { direction: oldSource.direction }),
       ...(oldSource.arc !== undefined && { arc: oldSource.arc }),
       ...(oldSource.color !== undefined && { color: oldSource.color }),
@@ -81,11 +81,11 @@ export class UpdateLightSourceCommand implements Command {
   async redo(): Promise<void> {
     const { newSource, encounterId, sourceIndex, onUpdate, onRefetch } = this.params;
     const updates: Partial<EncounterLightSource> = {
-      name: newSource.name,
       type: newSource.type,
       position: newSource.position,
       range: newSource.range,
       isOn: newSource.isOn,
+      ...(newSource.name !== undefined && { name: newSource.name }),
       ...(newSource.direction !== undefined && { direction: newSource.direction }),
       ...(newSource.arc !== undefined && { arc: newSource.arc }),
       ...(newSource.color !== undefined && { color: newSource.color }),
@@ -109,7 +109,7 @@ export class DeleteLightSourceCommand implements Command {
   private restoredIndex?: number;
 
   constructor(private params: DeleteLightSourceCommandParams) {
-    this.description = `Delete light source "${params.source.name || 'Unnamed'}"`;
+    this.description = `Delete light source "${params.source.name ?? 'Unnamed'}"`;
   }
 
   async execute(): Promise<void> {
@@ -121,11 +121,11 @@ export class DeleteLightSourceCommand implements Command {
   async undo(): Promise<void> {
     const { encounterId, source, onAdd, onRefetch } = this.params;
     const sourceData: Omit<EncounterLightSource, 'index'> = {
-      name: source.name,
       type: source.type,
       position: source.position,
       range: source.range,
       isOn: source.isOn,
+      ...(source.name !== undefined && { name: source.name }),
       ...(source.direction !== undefined && { direction: source.direction }),
       ...(source.arc !== undefined && { arc: source.arc }),
       ...(source.color !== undefined && { color: source.color }),
@@ -156,7 +156,7 @@ export class CreateSoundSourceCommand implements Command {
   readonly description: string;
 
   constructor(private params: CreateSoundSourceCommandParams) {
-    this.description = `Create sound source "${params.source.name || 'Unnamed'}"`;
+    this.description = `Create sound source "${params.source.name ?? 'Unnamed'}"`;
   }
 
   async execute(): Promise<void> {
@@ -171,12 +171,12 @@ export class CreateSoundSourceCommand implements Command {
   async redo(): Promise<void> {
     const { encounterId, source, onCreate, onRefetch } = this.params;
     const sourceData: Omit<EncounterSoundSource, 'index'> = {
-      name: source.name,
       position: source.position,
       range: source.range,
       isPlaying: source.isPlaying,
-      loop: source.loop,
-      ...(source.resource !== undefined && { resource: source.resource }),
+      resource: source.resource ?? null,
+      ...(source.name !== undefined && { name: source.name }),
+      ...(source.loop !== undefined && { loop: source.loop }),
     };
     await onCreate(encounterId, sourceData);
     await onRefetch();
@@ -196,7 +196,7 @@ export class UpdateSoundSourceCommand implements Command {
   readonly description: string;
 
   constructor(private params: UpdateSoundSourceCommandParams) {
-    this.description = `Update sound source "${params.newSource.name || 'Unnamed'}"`;
+    this.description = `Update sound source "${params.newSource.name ?? 'Unnamed'}"`;
   }
 
   async execute(): Promise<void> {
@@ -206,12 +206,12 @@ export class UpdateSoundSourceCommand implements Command {
   async undo(): Promise<void> {
     const { oldSource, encounterId, sourceIndex, onUpdate, onRefetch } = this.params;
     const updates: Partial<EncounterSoundSource> = {
-      name: oldSource.name,
       position: oldSource.position,
       range: oldSource.range,
       isPlaying: oldSource.isPlaying,
-      loop: oldSource.loop,
-      resource: oldSource.resource,
+      resource: oldSource.resource ?? null,
+      ...(oldSource.name !== undefined && { name: oldSource.name }),
+      ...(oldSource.loop !== undefined && { loop: oldSource.loop }),
     };
     await onUpdate(encounterId, sourceIndex, updates);
     await onRefetch();
@@ -220,12 +220,12 @@ export class UpdateSoundSourceCommand implements Command {
   async redo(): Promise<void> {
     const { newSource, encounterId, sourceIndex, onUpdate, onRefetch } = this.params;
     const updates: Partial<EncounterSoundSource> = {
-      name: newSource.name,
       position: newSource.position,
       range: newSource.range,
       isPlaying: newSource.isPlaying,
-      loop: newSource.loop,
-      resource: newSource.resource,
+      resource: newSource.resource ?? null,
+      ...(newSource.name !== undefined && { name: newSource.name }),
+      ...(newSource.loop !== undefined && { loop: newSource.loop }),
     };
     await onUpdate(encounterId, sourceIndex, updates);
     await onRefetch();
@@ -246,7 +246,7 @@ export class DeleteSoundSourceCommand implements Command {
   private restoredIndex?: number;
 
   constructor(private params: DeleteSoundSourceCommandParams) {
-    this.description = `Delete sound source "${params.source.name || 'Unnamed'}"`;
+    this.description = `Delete sound source "${params.source.name ?? 'Unnamed'}"`;
   }
 
   async execute(): Promise<void> {
@@ -258,12 +258,12 @@ export class DeleteSoundSourceCommand implements Command {
   async undo(): Promise<void> {
     const { encounterId, source, onAdd, onRefetch } = this.params;
     const sourceData: Omit<EncounterSoundSource, 'index'> = {
-      name: source.name,
       position: source.position,
       range: source.range,
       isPlaying: source.isPlaying,
-      loop: source.loop,
-      resource: source.resource,
+      resource: source.resource ?? null,
+      ...(source.name !== undefined && { name: source.name }),
+      ...(source.loop !== undefined && { loop: source.loop }),
     };
     const restoredSource = await onAdd(encounterId, sourceData);
     this.restoredIndex = restoredSource.index;

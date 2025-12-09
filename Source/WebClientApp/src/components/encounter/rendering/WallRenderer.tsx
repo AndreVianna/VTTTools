@@ -85,10 +85,9 @@ interface StateIconProps {
   y: number;
   state: SegmentState;
   type: SegmentType;
-  isOpaque: boolean;
 }
 
-const StateIcon: React.FC<StateIconProps> = ({ x, y, state, type, isOpaque }) => {
+const StateIcon: React.FC<StateIconProps> = ({ x, y, state, type }) => {
   const isWallOrFence = type === SegmentType.Wall;
   if (isWallOrFence && state !== SegmentState.Secret) {
     return null;
@@ -290,7 +289,7 @@ export const WallRenderer: React.FC<WallRendererProps> = ({ encounterWall, onCli
               }}
             />
             {!isInvisible && (
-              <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} isOpaque={segment.isOpaque} />
+              <StateIcon x={midpoint.x} y={midpoint.y} state={segment.state} type={segment.type} />
             )}
             {isHovered && segment.name && segment.type !== SegmentType.Wall && (() => {
               const textWidth = segment.name.length * 3.3;

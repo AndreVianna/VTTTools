@@ -9,7 +9,7 @@ import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { VertexMarker } from './VertexMarker';
 
 const DEFAULT_COLORS: Record<LightSourceType, string> = {
-  [LightSourceType.Natural]: '#FF4500',
+  [LightSourceType.Natural]: '#FF9900',
   [LightSourceType.Artificial]: '#FFFFFF',
   [LightSourceType.Supernatural]: '#9370DB',
 };
@@ -39,13 +39,13 @@ export const LightSourcePreview: React.FC<LightSourcePreviewProps> = ({
   const losPolygon = useMemo(() => {
     const tempSource: EncounterLightSource = {
       index: -1,
-      name: lightSource.name,
       type: lightSource.type,
       position: centerPos,
-      direction: lightSource.direction,
-      arc: lightSource.arc,
       range,
       isOn: true,
+      ...(lightSource.name !== undefined && { name: lightSource.name }),
+      ...(lightSource.direction !== undefined && { direction: lightSource.direction }),
+      ...(lightSource.arc !== undefined && { arc: lightSource.arc }),
     };
     return calculateLineOfSight(tempSource, range, opaqueWalls, gridConfig);
   }, [centerPos, range, opaqueWalls, gridConfig, lightSource]);

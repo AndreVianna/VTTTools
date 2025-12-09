@@ -175,7 +175,7 @@ describe('EntityPlacement', () => {
   it.skip('renders placed assets on correct layers', async () => {
     const placedAsset = createMockPlacedAsset('placed-1', 'asset-1');
 
-    const { container } = render(
+    render(
       <EntityPlacement
         placedAssets={[placedAsset]}
         onAssetPlaced={mockOnAssetPlaced}

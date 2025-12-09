@@ -1,4 +1,3 @@
-import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import type React from 'react';
 import { Line } from 'react-konva';
@@ -24,7 +23,6 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({
   onContextMenu,
   isSelected = false,
 }) => {
-  const theme = useTheme();
   const isInteractive = isRegionInScope(activeScope);
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {

@@ -72,19 +72,32 @@ export const LightContextMenu: React.FC<LightContextMenuProps> = ({
         return undefined;
     }, [open, handleClickOutside]);
 
+    const sourceIndex = lightSource?.index;
+
     useEffect(() => {
-        if (lightSource) {
+        // Sync form state when context menu opens or light source changes
+        if (open && lightSource) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setNameValue(lightSource.name || '');
+             
             setRangeValue(lightSource.range);
-            setIsDirectional(lightSource.direction !== undefined);
+            const shouldBeDirectional = lightSource.direction !== undefined;
+             
+            setIsDirectional(shouldBeDirectional);
+             
             setDirectionValue(lightSource.direction ?? 0);
+             
             setArcValue(lightSource.arc ?? 90);
+             
             setTypeValue(lightSource.type);
+             
             setColorValue(lightSource.color || '');
+             
             setIsOnValue(lightSource.isOn);
+             
             setShowDeleteConfirm(false);
         }
-    }, [lightSource]);
+    }, [open, lightSource, sourceIndex]);
 
     if (!lightSource) return null;
 
@@ -94,7 +107,12 @@ export const LightContextMenu: React.FC<LightContextMenuProps> = ({
 
     const handleNameBlur = () => {
         if (onLightSourceUpdate && nameValue !== (lightSource.name || '')) {
-            onLightSourceUpdate(lightSource.index, { name: nameValue.trim() || undefined });
+            const trimmed = nameValue.trim();
+            if (trimmed) {
+                onLightSourceUpdate(lightSource.index, { name: trimmed });
+            } else if (lightSource.name) {
+                onLightSourceUpdate(lightSource.index, { name: undefined });
+            }
         } else {
             setNameValue(lightSource.name || '');
         }
@@ -133,7 +151,12 @@ export const LightContextMenu: React.FC<LightContextMenuProps> = ({
 
     const handleColorBlur = () => {
         if (onLightSourceUpdate && colorValue !== (lightSource.color || '')) {
-            onLightSourceUpdate(lightSource.index, { color: colorValue.trim() || undefined });
+            const trimmed = colorValue.trim();
+            if (trimmed) {
+                onLightSourceUpdate(lightSource.index, { color: trimmed });
+            } else if (lightSource.color) {
+                onLightSourceUpdate(lightSource.index, { color: undefined });
+            }
         } else {
             setColorValue(lightSource.color || '');
         }
@@ -165,11 +188,11 @@ export const LightContextMenu: React.FC<LightContextMenuProps> = ({
                     direction: directionValue,
                     arc: arcValue,
                 });
-            } else {
-                onLightSourceUpdate(lightSource.index, {
-                    direction: undefined,
-                    arc: undefined,
-                });
+            } else if (lightSource.direction !== undefined || lightSource.arc !== undefined) {
+                const updates: Partial<EncounterLightSource> = {};
+                if (lightSource.direction !== undefined) updates.direction = undefined;
+                if (lightSource.arc !== undefined) updates.arc = undefined;
+                onLightSourceUpdate(lightSource.index, updates);
             }
         }
     };

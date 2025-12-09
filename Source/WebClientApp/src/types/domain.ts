@@ -699,13 +699,13 @@ export interface PlacedRegion extends EncounterRegion {
 
 export interface EncounterLightSource {
   index: number;
-  name?: string;
+  name?: string | undefined;
   type: LightSourceType;
   position: Point;
   range: number;
-  direction?: number;
-  arc?: number;
-  color?: string;
+  direction?: number | undefined;
+  arc?: number | undefined;
+  color?: string | undefined;
   isOn: boolean;
 }
 

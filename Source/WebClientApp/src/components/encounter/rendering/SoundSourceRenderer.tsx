@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import type { Context } from 'konva/lib/Context';
 import type React from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Path, Shape } from 'react-konva';
 import type { EncounterSoundSource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -33,10 +33,19 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
   const theme = useTheme();
   const isInteractive = isSoundSourceInScope(activeScope);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+  const positionRef = useRef(encounterSoundSource.position);
 
   useEffect(() => {
-    setDragPosition(null);
-  }, [encounterSoundSource.position.x, encounterSoundSource.position.y]);
+    // Reset drag state when position prop changes externally
+    if (
+      positionRef.current.x !== encounterSoundSource.position.x ||
+      positionRef.current.y !== encounterSoundSource.position.y
+    ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDragPosition(null);
+      positionRef.current = encounterSoundSource.position;
+    }
+  }, [encounterSoundSource.position]);
 
   const currentPosition = dragPosition ?? encounterSoundSource.position;
 

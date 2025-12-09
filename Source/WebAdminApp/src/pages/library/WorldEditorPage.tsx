@@ -85,11 +85,12 @@ export function WorldEditorPage() {
     async (request: { name?: string; description?: string; isPublished?: boolean; backgroundId?: string }) => {
       if (!id) return;
 
-      const updated = await libraryService.updateWorld(id, {
-        name: request.name,
-        description: request.description,
-        isPublished: request.isPublished,
-      });
+      const updateRequest: { name?: string; description?: string; isPublished?: boolean } = {};
+      if (request.name !== undefined) updateRequest.name = request.name;
+      if (request.description !== undefined) updateRequest.description = request.description;
+      if (request.isPublished !== undefined) updateRequest.isPublished = request.isPublished;
+
+      const updated = await libraryService.updateWorld(id, updateRequest);
       setWorld(mapToWorld(updated));
     },
     [id]

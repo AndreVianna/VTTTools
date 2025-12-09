@@ -12560,7 +12560,6 @@ const AssetCardCompact = ({
   const hasMultipleTokens = tokens.length > 1;
   useEffect(() => {
     if (!isHovering || !hasMultipleTokens) {
-      setCurrentTokenIndex(0);
       return;
     }
     const interval = setInterval(() => {
@@ -12569,7 +12568,10 @@ const AssetCardCompact = ({
     return () => clearInterval(interval);
   }, [isHovering, hasMultipleTokens, tokens.length]);
   const handleMouseEnter = useCallback(() => setIsHovering(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovering(false), []);
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false);
+    setCurrentTokenIndex(0);
+  }, []);
   const handleCheckboxClick = useCallback(
     (e) => {
       e.stopPropagation();

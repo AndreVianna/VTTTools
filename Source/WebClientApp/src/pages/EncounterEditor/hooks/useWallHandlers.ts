@@ -109,6 +109,7 @@ export const useWallHandlers = ({
       setSelectedWallIndex,
       setIsEditingVertices,
       setOriginalWallPoles,
+      setPreviewWallPoles,
       wallTransaction,
       setErrorMessage,
       selectedWallIndex,

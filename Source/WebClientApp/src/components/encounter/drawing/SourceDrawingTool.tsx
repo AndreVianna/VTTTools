@@ -110,14 +110,14 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           const lightSource = source as LightSourceDrawingProps;
           const sourceData: EncounterLightSource = {
             index: 0,
-            name: lightSource.name,
             type: lightSource.type,
             position: centerPos,
-            direction: isDirectional ? currentDirection : undefined,
-            arc: isDirectional ? currentArc : undefined,
             range: rangeToUse,
-            color: lightSource.color,
             isOn: lightSource.isOn ?? true,
+            ...(lightSource.name !== undefined && { name: lightSource.name }),
+            ...(isDirectional && { direction: currentDirection }),
+            ...(isDirectional && { arc: currentArc }),
+            ...(lightSource.color !== undefined && { color: lightSource.color }),
           };
 
           const command = new CreateLightSourceCommand({
@@ -138,12 +138,12 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           const soundSource = source as SoundSourceDrawingProps;
           const sourceData = {
             index: 0,
-            name: soundSource.name,
             position: centerPos,
             range: rangeToUse,
-            resource: soundSource.resourceId ? { id: soundSource.resourceId } as MediaResource : undefined,
+            resource: soundSource.resourceId ? { id: soundSource.resourceId } as MediaResource : null,
             isPlaying: soundSource.isPlaying ?? true,
-            loop: soundSource.loop ?? false,
+            ...(soundSource.name !== undefined && { name: soundSource.name }),
+            ...(soundSource.loop !== undefined && { loop: soundSource.loop }),
           };
 
           const command = new CreateSoundSourceCommand({
@@ -384,14 +384,14 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       const lightSource = source as LightSourceDrawingProps;
       const tempLightSource: EncounterLightSource = {
         index: -1,
-        name: lightSource.name,
         type: lightSource.type,
         position: centerPos,
         range: currentRange,
-        direction: isDirectional ? currentDirection : undefined,
-        arc: isDirectional ? currentArc : undefined,
-        color: lightSource.color,
         isOn: lightSource.isOn ?? true,
+        ...(lightSource.name !== undefined && { name: lightSource.name }),
+        ...(isDirectional && { direction: currentDirection }),
+        ...(isDirectional && { arc: currentArc }),
+        ...(lightSource.color !== undefined && { color: lightSource.color }),
       };
 
       return (

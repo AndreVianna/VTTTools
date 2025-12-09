@@ -48,7 +48,7 @@ export const AuthenticatedResourceImage: React.FC<AuthenticatedResourceImageProp
       component="img"
       src={blobUrl}
       alt={alt}
-      sx={sx}
+      {...(sx && { sx })}
     />
   );
 };

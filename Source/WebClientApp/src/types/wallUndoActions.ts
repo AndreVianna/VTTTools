@@ -54,6 +54,7 @@ function polesToSegments(poles: Pole[], defaultHeight: number): EncounterWallSeg
       endPole: { x: endPole.x, y: endPole.y, h: endPole.h ?? defaultHeight },
       type: 0,
       state: 1,
+      isOpaque: true,
     });
   }
   return segments;

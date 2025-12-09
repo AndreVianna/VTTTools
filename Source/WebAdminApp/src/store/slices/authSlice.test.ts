@@ -37,7 +37,7 @@ describe('authSlice', () => {
                 token: mockToken,
             });
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }));
+            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
 
             const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(true);
@@ -63,7 +63,7 @@ describe('authSlice', () => {
 
             vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser);
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }));
+            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
 
             const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(true);
@@ -79,7 +79,7 @@ describe('authSlice', () => {
                 error: 'Invalid credentials',
             });
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'wrong' }));
+            await store.dispatch(login({ email: 'admin@test.com', password: 'wrong' }) as any);
 
             const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(false);
@@ -117,7 +117,7 @@ describe('authSlice', () => {
 
             vi.mocked(authService.logout).mockResolvedValue();
 
-            await store.dispatch(logout());
+            await store.dispatch(logout() as any);
 
             const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(false);

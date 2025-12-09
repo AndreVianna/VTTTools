@@ -1,11 +1,11 @@
 import type React from 'react';
-import type { EncounterRegion, EncounterSource, EncounterWall } from '@/types/domain';
+import type { EncounterRegion, EncounterWall } from '@/types/domain';
 import type { DrawingMode } from './StructureToolbar';
 
 export interface StructureSelectionModalProps {
   open: boolean;
   mode: DrawingMode;
-  onSelect: (structure: EncounterWall | EncounterRegion | EncounterSource) => void;
+  onSelect: (structure: EncounterWall | EncounterRegion) => void;
   onCancel: () => void;
 }
 

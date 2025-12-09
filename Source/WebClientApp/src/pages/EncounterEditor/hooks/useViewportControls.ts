@@ -43,13 +43,7 @@ export const useViewportControls = ({ initialViewport, canvasRef, stageSize, con
 
   useEffect(() => {
     if (stageSize && stageSize.width > 0 && stageSize.height > 0) {
-      // Skip centering if we restored from session storage
-      if (restoredFromSessionRef.current) {
-        return;
-      }
-
-      // Only center on first initialization
-      if (!hasInitializedRef.current) {
+      if (!restoredFromSessionRef.current && !hasInitializedRef.current) {
         hasInitializedRef.current = true;
 
         const canvasWidth = window.innerWidth - offsetLeft;
@@ -59,13 +53,14 @@ export const useViewportControls = ({ initialViewport, canvasRef, stageSize, con
           y: offsetTop + (canvasHeight - stageSize.height) / 2,
           scale: initialViewport.scale,
         };
-        setViewport(newViewport);
-        setTimeout(() => {
+
+        queueMicrotask(() => {
+          setViewport(newViewport);
           canvasRef.current?.setViewport(newViewport);
-        }, 0);
+        });
       }
     }
-  }, [stageSize, offsetLeft, offsetTop, encounterId, canvasRef, initialViewport.scale]);
+  }, [stageSize, offsetLeft, offsetTop, canvasRef, initialViewport.scale]);
 
   const handleViewportChange = useCallback((newViewport: Viewport) => {
     setViewport(newViewport);

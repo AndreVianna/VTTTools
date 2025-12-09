@@ -44,7 +44,7 @@ export const AssetLibraryPage: React.FC = () => {
   const filteredAssets = useMemo(() => {
     if (!allAssets) return [];
     return browser.filterAssets(allAssets);
-  }, [allAssets, browser.filterAssets]);
+  }, [allAssets, browser]);
 
   const selectedAsset = useMemo(() => {
     if (!browser.selectedAssetId || !filteredAssets) return null;

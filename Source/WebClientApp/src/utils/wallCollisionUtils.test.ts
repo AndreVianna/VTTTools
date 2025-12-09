@@ -30,6 +30,7 @@ const createWall = (poles: Pole[], index: number = 0): EncounterWall => ({
     startPole: pole,
     endPole: poles[i + 1]!,
     type: SegmentType.Wall,
+    isOpaque: true,
     state: SegmentState.Closed,
   })),
 });

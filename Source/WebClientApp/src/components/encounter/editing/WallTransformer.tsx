@@ -393,7 +393,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
       window.removeEventListener('keydown', handleKeyDown, { capture: true });
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [selectedPoles, selectedLines, poles, onPolesChange, isAltPressed, isClosed, handleBreakWall, wallTransaction]);
+  }, [selectedPoles, selectedLines, poles, onPolesChange, isAltPressed, isClosed, handleBreakWall, wallTransaction, _wall?.name, defaultHeight, onPoleDeleted]);
 
   const handleDragStart = (index: number) => {
     const pole = poles[index];
@@ -1004,6 +1004,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
           );
         })}
 
+        {/* eslint-disable-next-line react-hooks/refs */}
         {polesToUse.map((pole, index) => {
           const isSelected = selectedPoles.has(index);
 

@@ -73,13 +73,21 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
     const audioResourceUrl = resourceId ? `/api/resources/${resourceId}` : null;
     const { url: audioBlobUrl, isLoading: isResourceLoading } = useAuthenticatedResource(audioResourceUrl ?? '');
 
-    useEffect(() => {
-        if (resourceId) {
-            setIsAudioLoading(true);
-            setCurrentTime(0);
-            setDuration(0);
+    const prevResourceIdRef = useRef(resourceId);
+
+    if (prevResourceIdRef.current !== resourceId) {
+        prevResourceIdRef.current = resourceId;
+
+        if (!resourceId) {
+            if (isAudioLoading !== false) setIsAudioLoading(false);
+            if (currentTime !== 0) setCurrentTime(0);
+            if (duration !== 0) setDuration(0);
+        } else {
+            if (isAudioLoading !== true) setIsAudioLoading(true);
+            if (currentTime !== 0) setCurrentTime(0);
+            if (duration !== 0) setDuration(0);
         }
-    }, [resourceId]);
+    }
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -140,13 +148,16 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
     }, [loopValue]);
 
     useEffect(() => {
+        // Reset audio playback state when menu closes
         if (!open) {
             const audio = audioRef.current;
             if (audio) {
                 audio.pause();
                 audio.currentTime = 0;
             }
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsPlayingValue(false);
+             
             setCurrentTime(0);
         }
     }, [open]);
@@ -170,14 +181,23 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
         return undefined;
     }, [open, handleClickOutside]);
 
+    const sourceIndex = soundSource?.index;
+    const prevSourceIndexRef = useRef<number | undefined>(undefined);
+
     useEffect(() => {
-        if (soundSource) {
+        // Sync form state when context menu opens or sound source changes
+        if (open && soundSource && prevSourceIndexRef.current !== sourceIndex) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setNameValue(soundSource.name || '');
+             
             setRangeValue(soundSource.range);
+             
             setLoopValue(soundSource.loop ?? false);
+             
             setShowDeleteConfirm(false);
+            prevSourceIndexRef.current = sourceIndex;
         }
-    }, [soundSource]);
+    }, [open, soundSource, sourceIndex]);
 
     if (!soundSource) return null;
 

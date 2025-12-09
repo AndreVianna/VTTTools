@@ -42,7 +42,6 @@ export const AssetCardCompact: React.FC<AssetCardCompactProps> = ({
 
   useEffect(() => {
     if (!isHovering || !hasMultipleTokens) {
-      setCurrentTokenIndex(0);
       return;
     }
 
@@ -54,7 +53,10 @@ export const AssetCardCompact: React.FC<AssetCardCompactProps> = ({
   }, [isHovering, hasMultipleTokens, tokens.length]);
 
   const handleMouseEnter = useCallback(() => setIsHovering(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovering(false), []);
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false);
+    setCurrentTokenIndex(0);
+  }, []);
 
   const handleCheckboxClick = useCallback(
     (e: React.MouseEvent) => {

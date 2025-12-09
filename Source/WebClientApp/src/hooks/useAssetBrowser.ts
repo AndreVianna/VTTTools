@@ -175,7 +175,7 @@ export function useAssetBrowser() {
           case 'type':
             comparison = (a.classification.type || '').localeCompare(b.classification.type || '');
             break;
-          case 'createdAt':
+          default:
             comparison = 0;
             break;
         }

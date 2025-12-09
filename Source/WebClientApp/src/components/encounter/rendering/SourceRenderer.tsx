@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import type { Context } from 'konva/lib/Context';
 import type React from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Line, Shape } from 'react-konva';
 import type { EncounterLightSource, EncounterWall } from '@/types/domain';
 import { LightSourceType } from '@/types/domain';
@@ -40,15 +40,28 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
   const [dragDirection, setDragDirection] = useState<number | null>(null);
   const [isRotating, setIsRotating] = useState(false);
+  const positionRef = useRef(encounterLightSource.position);
+  const directionRef = useRef(encounterLightSource.direction);
 
-  // Clear drag position when the props position updates (API call completed)
   useEffect(() => {
-    setDragPosition(null);
-  }, [encounterLightSource.position.x, encounterLightSource.position.y]);
+    // Reset drag state when position prop changes externally
+    if (
+      positionRef.current.x !== encounterLightSource.position.x ||
+      positionRef.current.y !== encounterLightSource.position.y
+    ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDragPosition(null);
+      positionRef.current = encounterLightSource.position;
+    }
+  }, [encounterLightSource.position]);
 
-  // Clear drag direction when the props direction updates (API call completed)
   useEffect(() => {
-    setDragDirection(null);
+    // Reset drag state when direction prop changes externally
+    if (directionRef.current !== encounterLightSource.direction) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDragDirection(null);
+      directionRef.current = encounterLightSource.direction;
+    }
   }, [encounterLightSource.direction]);
 
   const currentPosition = dragPosition ?? encounterLightSource.position;
@@ -94,7 +107,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   const getDefaultColorForType = (type: LightSourceType): string => {
     switch (type) {
       case LightSourceType.Natural:
-        return '#FF4500';
+        return '#FF9900';
       case LightSourceType.Artificial:
         return '#FFFFFF';
       case LightSourceType.Supernatural:
@@ -110,22 +123,19 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     if (effectiveRange <= 0 || !currentPosition) {
       return [];
     }
-    const sourceWithCurrentPosition = {
+    const sourceWithCurrentPosition: EncounterLightSource = {
       ...encounterLightSource,
       position: currentPosition,
-      direction: currentDirection,
+      ...(currentDirection !== undefined && currentDirection !== null ? { direction: currentDirection } : {}),
     };
     return calculateLineOfSight(sourceWithCurrentPosition, effectiveRange, walls, gridConfig);
   }, [
-    currentPosition.x,
-    currentPosition.y,
-    encounterLightSource.type,
+    currentPosition,
+    encounterLightSource,
     currentDirection,
-    encounterLightSource.arc,
     effectiveRange,
     walls,
-    gridConfig.cellSize.width,
-    gridConfig.cellSize.height,
+    gridConfig,
   ]);
 
   const isDirectional = encounterLightSource.direction != null && encounterLightSource.arc != null;

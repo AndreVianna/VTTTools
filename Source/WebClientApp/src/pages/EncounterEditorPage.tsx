@@ -584,10 +584,13 @@ const EncounterEditorPageInternal: React.FC = () => {
     },
   });
 
+  const setPlacedAssetsRef = useRef(assetManagement.setPlacedAssets);
+  setPlacedAssetsRef.current = assetManagement.setPlacedAssets;
+
+  const assetsLoadedForEncounterRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!encounterData || isInitialized) return;
-
-    let isMounted = true;
 
     const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
     const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
@@ -610,40 +613,37 @@ const EncounterEditorPageInternal: React.FC = () => {
     setPlacedLightSources(hydratedLightSources);
     setPlacedSoundSources(hydratedSoundSources);
     setIsInitialized(true);
+  }, [encounterData, isInitialized, encounterId]);
+
+  useEffect(() => {
+    if (!encounterData || !encounterId) return;
+    if (assetsLoadedForEncounterRef.current === encounterId) return;
+
+    assetsLoadedForEncounterRef.current = encounterId;
+    setIsHydrating(true);
 
     const loadAssetsAsync = async () => {
-      if (!isMounted) return;
-      setIsHydrating(true);
-
       try {
         const hydratedAssets = await hydratePlacedAssets(
           encounterData.assets,
-          encounterId || '',
+          encounterId,
           async (assetId: string) => {
             const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
             return result;
           },
         );
 
-        if (!isMounted) return;
-        assetManagement.setPlacedAssets(hydratedAssets);
+        setPlacedAssetsRef.current(hydratedAssets);
       } catch (error) {
-        if (!isMounted) return;
         console.error('Failed to hydrate assets:', error);
-        assetManagement.setPlacedAssets([]);
+        setPlacedAssetsRef.current([]);
       } finally {
-        if (isMounted) {
-          setIsHydrating(false);
-        }
+        setIsHydrating(false);
       }
     };
 
     loadAssetsAsync();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [encounterData, isInitialized, dispatch, encounterId, assetManagement]);
+  }, [encounterData, encounterId, dispatch]);
 
   useEffect(() => {
     if (encounterData && isInitialized) {
@@ -721,7 +721,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       setEditingRegionIndex(null);
     }
     prevActiveScopeRef.current = activeScope;
-  }, [activeScope, assetManagement.handleAssetSelected, wallTransaction, regionTransaction]);
+  }, [activeScope, assetManagement, setPreviewWallPoles, setSelectedLightSourceIndex, setSelectedRegionIndex, setSelectedSoundSourceIndex, setSelectedWallIndex, wallTransaction, regionTransaction]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -1011,12 +1011,12 @@ const EncounterEditorPageInternal: React.FC = () => {
   const handleLightSourceSelect = useCallback((index: number) => {
     setSelectedLightSourceIndex(index);
     setSelectedSoundSourceIndex(null);
-  }, []);
+  }, [setSelectedLightSourceIndex, setSelectedSoundSourceIndex]);
 
   const handleSoundSourceSelect = useCallback((index: number) => {
     setSelectedSoundSourceIndex(index);
     setSelectedLightSourceIndex(null);
-  }, []);
+  }, [setSelectedSoundSourceIndex, setSelectedLightSourceIndex]);
 
   const handleLightSourceDelete = useCallback(
     async (index: number) => {
@@ -1045,7 +1045,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         setSelectedLightSourceIndex(null);
       }
     },
-    [encounterId, placedLightSources, execute, addEncounterLightSource, removeEncounterLightSource, selectedLightSourceIndex, refetch],
+    [encounterId, placedLightSources, execute, addEncounterLightSource, removeEncounterLightSource, selectedLightSourceIndex, setSelectedLightSourceIndex, refetch],
   );
 
   const handleSoundSourceDelete = useCallback(
@@ -1075,7 +1075,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         setSelectedSoundSourceIndex(null);
       }
     },
-    [encounterId, placedSoundSources, execute, addEncounterSoundSource, removeEncounterSoundSource, selectedSoundSourceIndex, refetch],
+    [encounterId, placedSoundSources, execute, addEncounterSoundSource, removeEncounterSoundSource, selectedSoundSourceIndex, setSelectedSoundSourceIndex, refetch],
   );
 
   useEffect(() => {
@@ -1106,26 +1106,26 @@ const EncounterEditorPageInternal: React.FC = () => {
     setSelectedSoundSourceIndex(null);
     setSourcePlacementProperties({ ...properties, sourceType: 'light' });
     setActiveTool('sourceDrawing');
-  }, []);
+  }, [setSelectedLightSourceIndex, setSelectedSoundSourceIndex]);
 
   const handlePlaceSound = useCallback((properties: SoundPlacementProperties) => {
     setSelectedLightSourceIndex(null);
     setSelectedSoundSourceIndex(null);
     setSourcePlacementProperties({ ...properties, sourceType: 'sound' });
     setActiveTool('sourceDrawing');
-  }, []);
+  }, [setSelectedLightSourceIndex, setSelectedSoundSourceIndex]);
 
   const handleLightSourceContextMenu = useCallback((sourceIndex: number, position: { x: number; y: number }) => {
     setSelectedLightSourceIndex(sourceIndex);
     setSelectedSoundSourceIndex(null);
     setLightContextMenuPosition({ left: position.x, top: position.y });
-  }, []);
+  }, [setSelectedLightSourceIndex, setSelectedSoundSourceIndex]);
 
   const handleSoundSourceContextMenu = useCallback((sourceIndex: number, position: { x: number; y: number }) => {
     setSelectedSoundSourceIndex(sourceIndex);
     setSelectedLightSourceIndex(null);
     setSoundContextMenuPosition({ left: position.x, top: position.y });
-  }, []);
+  }, [setSelectedSoundSourceIndex, setSelectedLightSourceIndex]);
 
   const handleLightContextMenuClose = useCallback(() => {
     setLightContextMenuPosition(null);
@@ -1151,7 +1151,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
     setIsEditingRegionVertices(false);
     setEditingRegionIndex(null);
-  }, [assetManagement.handleAssetSelected, wallTransaction, regionTransaction]);
+  }, [assetManagement, setPreviewWallPoles, setSelectedLightSourceIndex, setSelectedRegionIndex, setSelectedSoundSourceIndex, setSelectedWallIndex, wallTransaction, regionTransaction]);
 
   const handleLightSourceUpdate = useCallback(
     async (sourceIndex: number, updates: Partial<EncounterLightSource>) => {
@@ -1224,11 +1224,11 @@ const EncounterEditorPageInternal: React.FC = () => {
           } = {
             encounterId: eid,
             sourceIndex: idx,
-            name: upd.name,
-            position: upd.position,
-            range: upd.range,
-            isPlaying: upd.isPlaying,
-            loop: upd.loop,
+            ...(upd.name !== undefined && { name: upd.name }),
+            ...(upd.position !== undefined && { position: upd.position }),
+            ...(upd.range !== undefined && { range: upd.range }),
+            ...(upd.isPlaying !== undefined && { isPlaying: upd.isPlaying }),
+            ...(upd.loop !== undefined && { loop: upd.loop }),
           };
 
           if (upd.resource !== undefined) {
@@ -1360,7 +1360,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       console.error('Failed to hide all areas:', error);
       setErrorMessage('Failed to hide all areas. Please try again.');
     }
-  }, [fogMode, handlePolygonComplete]);
+  }, [fogMode, stageSize, handlePolygonComplete]);
 
   const handleFogRevealAll = useCallback(async () => {
     try {

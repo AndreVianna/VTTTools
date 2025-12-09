@@ -300,10 +300,10 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
 
         {/* Background Image/Video */}
         <BackgroundPanel
-          backgroundUrl={backgroundUrl}
-          backgroundContentType={backgroundContentType}
-          isUploadingBackground={isUploadingBackground}
-          onBackgroundUpload={onBackgroundUpload}
+          {...(backgroundUrl !== null && backgroundUrl !== undefined ? { backgroundUrl } : {})}
+          {...(backgroundContentType !== null && backgroundContentType !== undefined ? { backgroundContentType } : {})}
+          {...(isUploadingBackground !== null && isUploadingBackground !== undefined ? { isUploadingBackground } : {})}
+          {...(onBackgroundUpload !== null && onBackgroundUpload !== undefined ? { onBackgroundUpload } : {})}
         />
 
         {/* Description */}

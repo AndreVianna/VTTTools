@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AdventureDetailPage, type Adventure, type Encounter } from '@vtttools/web-components';
+import { AdventureDetailPage, type Adventure, type Encounter, Weather } from '@vtttools/web-components';
 import { libraryService, type LibraryContentResponse } from '@services/libraryService';
 
 const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || '';
@@ -26,8 +26,8 @@ function mapToEncounter(response: LibraryContentResponse): Encounter {
     name: response.name,
     description: response.description,
     isPublished: response.isPublished,
-    light: { ambient: 1, explored: 0.5, unexplored: 0 },
-    weather: { type: 'clear', intensity: 0 },
+    light: 0,
+    weather: Weather.Clear,
     elevation: 0,
     grid: {
       type: 1,
@@ -36,11 +36,15 @@ function mapToEncounter(response: LibraryContentResponse): Encounter {
       snap: true,
     },
     stage: {
-      width: 1920,
-      height: 1080,
       background: null,
-      foreground: null,
+      zoomLevel: 1,
+      panning: { x: 0, y: 0 },
     },
+    assets: [],
+    walls: [],
+    openings: [],
+    regions: [],
+    sources: [],
   };
 }
 
@@ -105,11 +109,12 @@ export function AdventureEditorPage() {
     async (request: { name?: string; description?: string; isPublished?: boolean; backgroundId?: string }) => {
       if (!id) return;
 
-      const updated = await libraryService.updateAdventure(id, {
-        name: request.name,
-        description: request.description,
-        isPublished: request.isPublished,
-      });
+      const updateRequest: { name?: string; description?: string; isPublished?: boolean } = {};
+      if (request.name !== undefined) updateRequest.name = request.name;
+      if (request.description !== undefined) updateRequest.description = request.description;
+      if (request.isPublished !== undefined) updateRequest.isPublished = request.isPublished;
+
+      const updated = await libraryService.updateAdventure(id, updateRequest);
       setAdventure(mapToAdventure(updated));
     },
     [id]

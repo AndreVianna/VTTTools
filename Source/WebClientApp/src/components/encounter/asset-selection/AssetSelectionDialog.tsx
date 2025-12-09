@@ -99,6 +99,19 @@ export const AssetSelectionDialog: React.FC<AssetSelectionDialogProps> = ({
     }
   }, [open, selectedAsset, filteredResults, selectAsset]);
 
+  const handleClose = useCallback(() => {
+    reset();
+    onClose();
+  }, [reset, onClose]);
+
+  const handlePlace = useCallback(() => {
+    if (selectedAsset) {
+      recordRecentAsset(selectedAsset);
+      onPlace(selectedAsset, placementSettings, selectedTokenIndex);
+      handleClose();
+    }
+  }, [selectedAsset, recordRecentAsset, onPlace, placementSettings, selectedTokenIndex, handleClose]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
@@ -122,21 +135,8 @@ export const AssetSelectionDialog: React.FC<AssetSelectionDialogProps> = ({
           break;
       }
     },
-    [navigateList, selectedAsset]
+    [navigateList, selectedAsset, handlePlace, handleClose]
   );
-
-  const handlePlace = () => {
-    if (selectedAsset) {
-      recordRecentAsset(selectedAsset);
-      onPlace(selectedAsset, placementSettings, selectedTokenIndex);
-      handleClose();
-    }
-  };
-
-  const handleClose = () => {
-    reset();
-    onClose();
-  };
 
   const handleDoubleClick = (asset: Asset) => {
     selectAsset(asset);
@@ -145,7 +145,7 @@ export const AssetSelectionDialog: React.FC<AssetSelectionDialogProps> = ({
     handleClose();
   };
 
-  const letterButtonSx = (letter: string, isActive: boolean, isEnabled: boolean) => ({
+  const letterButtonSx = (isActive: boolean, isEnabled: boolean) => ({
     minWidth: 28,
     height: 24,
     px: 0.5,
@@ -255,7 +255,7 @@ export const AssetSelectionDialog: React.FC<AssetSelectionDialogProps> = ({
                     setLetterFilter(isActive ? null : letter);
                   }
                 }}
-                sx={letterButtonSx(letter, isActive, isEnabled)}
+                sx={letterButtonSx(isActive, isEnabled)}
               >
                 {letter}
               </Box>

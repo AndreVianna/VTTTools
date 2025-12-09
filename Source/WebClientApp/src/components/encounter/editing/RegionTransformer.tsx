@@ -25,8 +25,11 @@ function isPointInPolygon(point: Point, vertices: Point[]): boolean {
   if (vertices.length < 3) return false;
   let inside = false;
   for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-    const xi = vertices[i].x, yi = vertices[i].y;
-    const xj = vertices[j].x, yj = vertices[j].y;
+    const vi = vertices[i];
+    const vj = vertices[j];
+    if (!vi || !vj) continue;
+    const xi = vi.x, yi = vi.y;
+    const xj = vj.x, yj = vj.y;
     if (((yi > point.y) !== (yj > point.y)) &&
         (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
       inside = !inside;
@@ -842,6 +845,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
             );
           })}
 
+          {/* eslint-disable-next-line react-hooks/refs */}
           {verticesToUse.map((vertex, index) => {
             const isSelected = selectedVertices.has(index);
 

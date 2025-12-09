@@ -467,13 +467,13 @@ export const encounterApi = createApi({
       EncounterLightSource,
       {
         encounterId: string;
-        name?: string;
+        name?: string | undefined;
         type: LightSourceType;
         position: Point;
         range: number;
-        direction?: number;
-        arc?: number;
-        color?: string;
+        direction?: number | undefined;
+        arc?: number | undefined;
+        color?: string | undefined;
         isOn?: boolean;
       }
     >({
@@ -493,13 +493,13 @@ export const encounterApi = createApi({
       {
         encounterId: string;
         sourceIndex: number;
-        name?: string;
+        name?: string | undefined;
         type?: LightSourceType;
         position?: Point;
         range?: number;
-        direction?: number;
-        arc?: number;
-        color?: string;
+        direction?: number | undefined;
+        arc?: number | undefined;
+        color?: string | undefined;
         isOn?: boolean;
       }
     >({

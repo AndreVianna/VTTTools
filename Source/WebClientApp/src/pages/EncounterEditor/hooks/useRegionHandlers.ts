@@ -831,12 +831,10 @@ export const useRegionHandlers = ({
       drawingRegionIndex,
       regionTransaction,
       addEncounterRegion,
-      updateEncounterRegion,
       removeEncounterRegion,
       setEncounter,
       setDrawingRegionIndex,
       setErrorMessage,
-      executeMerge,
       recordAction,
       refetch,
     ],
@@ -904,9 +902,11 @@ export const useRegionHandlers = ({
       if (!encounterId || !encounter) return;
 
       if (regionTransaction.transaction.isActive) {
-        const encounterForCommit = filterEncounterForMergeDetection(encounter, {
-          excludeRegionIndex: editingRegionIndex ?? undefined,
-        });
+        const encounterForCommit = filterEncounterForMergeDetection(encounter,
+          editingRegionIndex !== null && editingRegionIndex !== undefined
+            ? { excludeRegionIndex: editingRegionIndex }
+            : {}
+        );
 
         await regionTransaction.commitTransaction(
           encounterId,

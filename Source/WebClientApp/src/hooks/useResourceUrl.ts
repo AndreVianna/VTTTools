@@ -34,20 +34,34 @@ export function useResourceUrl(resourceId: string | null | undefined): UseResour
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const resourceIdRef = useRef(resourceId);
+    const prevResourceIdRef = useRef(resourceId);
 
     const token = useSelector((state: RootState) => state.auth.token);
 
     useEffect(() => {
-        resourceIdRef.current = resourceId;
+        // Reset state when resource ID changes
+        if (prevResourceIdRef.current !== resourceId) {
+            resourceIdRef.current = resourceId;
 
-        if (!resourceId) {
-            setBlobUrl(null);
-            setIsLoading(false);
-            setError(null);
+            if (!resourceId) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setBlobUrl(null);
+                 
+                setIsLoading(false);
+                 
+                setError(null);
+            }
+            prevResourceIdRef.current = resourceId;
+        }
+    }, [resourceId]);
+
+    useEffect(() => {
+        if (!resourceId || prevResourceIdRef.current !== resourceId) {
             return;
         }
 
         if (!token) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setError(new Error('Not authenticated'));
             return;
         }
@@ -162,16 +176,28 @@ export function useResourceImage(resourceId: string | null | undefined): UseReso
     const [image, setImage] = useState<HTMLImageElement | null>(null);
     const [imageLoading, setImageLoading] = useState(false);
     const [imageError, setImageError] = useState<Error | null>(null);
+    const prevUrlRef = useRef(url);
+
+    useEffect(() => {
+        // Reset image state when URL becomes null
+        if (!url && prevUrlRef.current !== url) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setImage(null);
+             
+            setImageLoading(false);
+             
+            setImageError(null);
+            prevUrlRef.current = url;
+        }
+    }, [url]);
 
     useEffect(() => {
         if (!url) {
-            setImage(null);
-            setImageLoading(false);
-            setImageError(null);
             return;
         }
 
         let isMounted = true;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setImageLoading(true);
         const img = new window.Image();
 

@@ -58,7 +58,7 @@ export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
 
     useEffect(() => {
         loadAuditLogs(true, 0);
-    }, [userId]);
+    }, [userId, loadAuditLogs]);
 
     const handleLoadMore = () => {
         if (!loading && hasMore) {

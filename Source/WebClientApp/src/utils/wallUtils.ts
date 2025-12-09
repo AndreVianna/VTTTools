@@ -65,6 +65,7 @@ export function polesToSegments(poles: Pole[], isClosed: boolean): EncounterWall
       startPole,
       endPole,
       type: SegmentType.Wall,
+      isOpaque: true,
       state: SegmentState.Closed,
     });
   }

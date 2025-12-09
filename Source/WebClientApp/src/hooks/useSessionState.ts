@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface SessionStateOptions<T> {
   key: string;
@@ -20,9 +20,16 @@ export function useSessionState<T>({ key, defaultValue, encounterId }: SessionSt
   }, [storageKey, defaultValue]);
 
   const [value, setValue] = useState<T>(getStoredValue);
+  const prevStorageKeyRef = useRef(storageKey);
 
   useEffect(() => {
-    setValue(getStoredValue());
+    // Reload value when storage key changes (e.g., switching encounters)
+    if (prevStorageKeyRef.current !== storageKey) {
+      const newValue = getStoredValue();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setValue(newValue);
+      prevStorageKeyRef.current = storageKey;
+    }
   }, [storageKey, getStoredValue]);
 
   const setStoredValue = useCallback((newValue: T | ((prev: T) => T)) => {

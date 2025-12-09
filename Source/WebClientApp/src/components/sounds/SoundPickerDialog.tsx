@@ -49,7 +49,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
 
     const { data, isLoading, refetch } = useFilterResourcesQuery({
         resourceType: soundTypeFilter,
-        searchText: searchQuery || undefined,
+        ...(searchQuery && { searchText: searchQuery }),
         take: 50,
     }, { skip: !open });
     const resources = data?.items ?? [];

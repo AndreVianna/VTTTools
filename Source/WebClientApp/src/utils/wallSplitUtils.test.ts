@@ -34,6 +34,7 @@ function createWall(
       startPole,
       endPole,
       type: SegmentType.Wall,
+      isOpaque: true,
       state: SegmentState.Closed,
     });
   }

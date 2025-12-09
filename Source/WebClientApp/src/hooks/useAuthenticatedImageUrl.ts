@@ -69,12 +69,13 @@ export function useAuthenticatedImageUrl(
             const fetchUrl = normalizeToRelativeUrl(resourceUrl);
 
             try {
+                const signal = abortControllerRef.current?.signal;
                 const response = await fetch(fetchUrl, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'X-Requested-With': 'XMLHttpRequest',
                     },
-                    signal: abortControllerRef.current?.signal,
+                    ...(signal && { signal }),
                 });
 
                 if (!response.ok) {

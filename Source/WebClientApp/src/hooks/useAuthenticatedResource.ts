@@ -191,7 +191,7 @@ export function useAuthenticatedResourceCached(
                 }
             }
         };
-    }, [fetchResource]);
+    }, [fetchResource, resourcePath]);
 
     return {
         url: blobUrl,

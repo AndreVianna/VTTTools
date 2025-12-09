@@ -139,7 +139,8 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       assets: [],
       walls: [],
       regions: [],
-      sources: [],
+      lightSources: [],
+      soundSources: [],
     };
 
     mockAddEncounterAsset = vi.fn().mockImplementation(() => ({

@@ -44,8 +44,8 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
 
         const observer = new IntersectionObserver(
             (entries) => {
-                const [entry] = entries;
-                if (entry.isIntersecting && hasMore && !isLoading) {
+                const entry = entries[0];
+                if (entry?.isIntersecting && hasMore && !isLoading) {
                     onLoadMore();
                 }
             },
@@ -95,11 +95,12 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
                 }}
             >
                 {items.map((media) => {
+                    if (!media) return null;
                     const isSelected = selectedId === media.id;
                     const isChecked = selectedIds.includes(media.id);
 
                     return (
-                        <Grid item key={media.id}>
+                        <Grid key={media.id}>
                             <MediaCard
                                 media={media}
                                 isSelected={isSelected}

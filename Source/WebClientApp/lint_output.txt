@@ -1,0 +1,495 @@
+
+> vtttools-webclientapp@1.0.0 lint
+> eslint "src/**/*.{ts,tsx}"
+
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\LightContextMenu.tsx
+  78:32  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\LightContextMenu.tsx:78:32
+  76 |     const prevSourceIndexRef = useRef<number | undefined>(undefined);
+  77 |
+> 78 |     if (open && lightSource && prevSourceIndexRef.current !== sourceIndex) {
+     |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  79 |         if (nameValue !== (lightSource.name || '')) setNameValue(lightSource.name || '');
+  80 |         if (rangeValue !== lightSource.range) setRangeValue(lightSource.range);
+  81 |         const shouldBeDirectional = lightSource.direction !== undefined;  react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\RegionContextMenu.tsx
+  47:34  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\RegionContextMenu.tsx:47:34
+  45 |   const prevRegionIndexRef = useRef<number | undefined>(undefined);
+  46 |
+> 47 |   if (open && encounterRegion && prevRegionIndexRef.current !== regionIndex) {
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  48 |     if (nameValue !== encounterRegion.name) setNameValue(encounterRegion.name);
+  49 |     prevRegionIndexRef.current = regionIndex;
+  50 |   }  react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx
+  152:18  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:152:18
+  150 |     const prevOpenRef = useRef(open);
+  151 |
+> 152 |     if (!open && prevOpenRef.current !== open) {
+      |                  ^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  153 |         prevOpenRef.current = open;
+  154 |         const audio = audioRef.current;
+  155 |         if (audio) {                                                                                                                                                                                                                                                                            react-hooks/refs
+  153:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:153:9
+  151 |
+  152 |     if (!open && prevOpenRef.current !== open) {
+> 153 |         prevOpenRef.current = open;
+      |         ^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  154 |         const audio = audioRef.current;
+  155 |         if (audio) {
+  156 |             audio.pause();                                                                                                                                                                                                                                                                                                       react-hooks/refs
+  154:23  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:154:23
+  152 |     if (!open && prevOpenRef.current !== open) {
+  153 |         prevOpenRef.current = open;
+> 154 |         const audio = audioRef.current;
+      |                       ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  155 |         if (audio) {
+  156 |             audio.pause();
+  157 |             audio.currentTime = 0;                                                                                                                                                                                                                                                  react-hooks/refs
+  156:13  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:156:13
+  154 |         const audio = audioRef.current;
+  155 |         if (audio) {
+> 156 |             audio.pause();
+      |             ^^^^^ Passing a ref to a function may read its value during render
+  157 |             audio.currentTime = 0;
+  158 |         }
+  159 |         if (isPlayingValue !== false) setIsPlayingValue(false);                                                                                                                                                                                                                                                           react-hooks/refs
+  156:13  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:156:13
+  154 |         const audio = audioRef.current;
+  155 |         if (audio) {
+> 156 |             audio.pause();
+      |             ^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  157 |             audio.currentTime = 0;
+  158 |         }
+  159 |         if (isPlayingValue !== false) setIsPlayingValue(false);                                                                                                                                                                                                                                                     react-hooks/refs
+  157:13  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:157:13
+  155 |         if (audio) {
+  156 |             audio.pause();
+> 157 |             audio.currentTime = 0;
+      |             ^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  158 |         }
+  159 |         if (isPlayingValue !== false) setIsPlayingValue(false);
+  160 |         if (currentTime !== 0) setCurrentTime(0);                                                                                                                                                                                                                                                                  react-hooks/refs
+  161:24  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:161:24
+  159 |         if (isPlayingValue !== false) setIsPlayingValue(false);
+  160 |         if (currentTime !== 0) setCurrentTime(0);
+> 161 |     } else if (open && prevOpenRef.current !== open) {
+      |                        ^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  162 |         prevOpenRef.current = open;
+  163 |     }
+  164 |                                                                                                                                                                                                                                           react-hooks/refs
+  162:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:162:9
+  160 |         if (currentTime !== 0) setCurrentTime(0);
+  161 |     } else if (open && prevOpenRef.current !== open) {
+> 162 |         prevOpenRef.current = open;
+      |         ^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  163 |     }
+  164 |
+  165 |     const handleClickOutside = useCallback(                                                                                                                                                                                                                                                                                     react-hooks/refs
+  187:32  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\SoundContextMenu.tsx:187:32
+  185 |     const prevSourceIndexRef = useRef<number | undefined>(undefined);
+  186 |
+> 187 |     if (open && soundSource && prevSourceIndexRef.current !== sourceIndex) {
+      |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  188 |         if (nameValue !== (soundSource.name || '')) setNameValue(soundSource.name || '');
+  189 |         if (rangeValue !== soundSource.range) setRangeValue(soundSource.range);
+  190 |         if (loopValue !== (soundSource.loop ?? false)) setLoopValue(soundSource.loop ?? false);  react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\asset-selection\AssetSelectionDialog.tsx
+  102:9  warning  The 'handlePlace' function makes the dependencies of useCallback Hook (at line 138) change on every render. To fix this, wrap the definition of 'handlePlace' in its own useCallback() Hook  react-hooks/exhaustive-deps
+  110:9  warning  The 'handleClose' function makes the dependencies of useCallback Hook (at line 138) change on every render. To fix this, wrap the definition of 'handleClose' in its own useCallback() Hook  react-hooks/exhaustive-deps
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\editing\RegionTransformer.tsx
+  845:30  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\editing\RegionTransformer.tsx:845:30
+  843 |           })}
+  844 |
+> 845 |           {verticesToUse.map((vertex, index) => {
+      |                              ^^^^^^^^^^^^^^^^^^^^
+> 846 |             const isSelected = selectedVertices.has(index);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 847 |
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 914 |             );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 915 |           })}
+      | ^^^^^^^^^^^^ Cannot access ref value during render
+  916 |
+  917 |           {insertPreviewPos && (
+  918 |             <Circle  react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\editing\WallTransformer.tsx
+  1007:25  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\editing\WallTransformer.tsx:1007:25
+  1005 |         })}
+  1006 |
+> 1007 |         {polesToUse.map((pole, index) => {
+       |                         ^^^^^^^^^^^^^^^^^^
+> 1008 |           const isSelected = selectedPoles.has(index);
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1009 |
+       …
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1113 |           );
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1114 |         })}
+       | ^^^^^^^^^^ Cannot access ref value during render
+  1115 |
+  1116 |         {/* Pole insertion preview circle */}
+  1117 |         {insertPreviewPos && (  react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\panels\RegionsPanel.tsx
+  12:3  error  'ButtonGroup' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\RegionRenderer.tsx
+  27:9  error  'theme' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SoundSourceRenderer.tsx
+   5:20  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  39:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SoundSourceRenderer.tsx:39:5
+  37 |
+  38 |   if (
+> 39 |     positionRef.current.x !== encounterSoundSource.position.x ||
+     |     ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  40 |     positionRef.current.y !== encounterSoundSource.position.y
+  41 |   ) {
+  42 |     if (dragPosition !== null) setDragPosition(null);                                                           react-hooks/refs
+  40:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SoundSourceRenderer.tsx:40:5
+  38 |   if (
+  39 |     positionRef.current.x !== encounterSoundSource.position.x ||
+> 40 |     positionRef.current.y !== encounterSoundSource.position.y
+     |     ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  41 |   ) {
+  42 |     if (dragPosition !== null) setDragPosition(null);
+  43 |     positionRef.current = encounterSoundSource.position;  react-hooks/refs
+  43:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SoundSourceRenderer.tsx:43:5
+  41 |   ) {
+  42 |     if (dragPosition !== null) setDragPosition(null);
+> 43 |     positionRef.current = encounterSoundSource.position;
+     |     ^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  44 |   }
+  45 |
+  46 |   const currentPosition = dragPosition ?? encounterSoundSource.position;                                                                   react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SourceRenderer.tsx
+   5:20  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  47:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SourceRenderer.tsx:47:5
+  45 |
+  46 |   if (
+> 47 |     positionRef.current.x !== encounterLightSource.position.x ||
+     |     ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  48 |     positionRef.current.y !== encounterLightSource.position.y
+  49 |   ) {
+  50 |     if (dragPosition !== null) setDragPosition(null);                                                           react-hooks/refs
+  48:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SourceRenderer.tsx:48:5
+  46 |   if (
+  47 |     positionRef.current.x !== encounterLightSource.position.x ||
+> 48 |     positionRef.current.y !== encounterLightSource.position.y
+     |     ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  49 |   ) {
+  50 |     if (dragPosition !== null) setDragPosition(null);
+  51 |     positionRef.current = encounterLightSource.position;  react-hooks/refs
+  51:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SourceRenderer.tsx:51:5
+  49 |   ) {
+  50 |     if (dragPosition !== null) setDragPosition(null);
+> 51 |     positionRef.current = encounterLightSource.position;
+     |     ^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  52 |   }
+  53 |
+  54 |   if (directionRef.current !== encounterLightSource.direction) {                                                                           react-hooks/refs
+  54:7   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SourceRenderer.tsx:54:7
+  52 |   }
+  53 |
+> 54 |   if (directionRef.current !== encounterLightSource.direction) {
+     |       ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  55 |     if (dragDirection !== null) setDragDirection(null);
+  56 |     directionRef.current = encounterLightSource.direction;
+  57 |   }                                                                react-hooks/refs
+  56:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\SourceRenderer.tsx:56:5
+  54 |   if (directionRef.current !== encounterLightSource.direction) {
+  55 |     if (dragDirection !== null) setDragDirection(null);
+> 56 |     directionRef.current = encounterLightSource.direction;
+     |     ^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  57 |   }
+  58 |
+  59 |   const currentPosition = dragPosition ?? encounterLightSource.position;   react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\encounter\rendering\WallRenderer.tsx
+  91:67  error  'isOpaque' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\sounds\AudioPreviewPlayer.tsx
+  36:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\sounds\AudioPreviewPlayer.tsx:36:9
+  34 |     const prevResourceIdRef = useRef(resourceId);
+  35 |
+> 36 |     if (prevResourceIdRef.current !== resourceId) {
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  37 |         if (isAudioLoading !== true) setIsAudioLoading(true);
+  38 |         if (error !== null) setError(null);
+  39 |         if (currentTime !== 0) setCurrentTime(0);                                                        react-hooks/refs
+  42:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\sounds\AudioPreviewPlayer.tsx:42:9
+  40 |         if (duration !== 0) setDuration(0);
+  41 |         if (isPlaying !== false) setIsPlaying(false);
+> 42 |         prevResourceIdRef.current = resourceId;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  43 |     }
+  44 |
+  45 |     const prevErrorRef = useRef(resourceError);                                                                                                                        react-hooks/refs
+  47:44  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\sounds\AudioPreviewPlayer.tsx:47:44
+  45 |     const prevErrorRef = useRef(resourceError);
+  46 |
+> 47 |     if (resourceError && resourceError !== prevErrorRef.current) {
+     |                                            ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  48 |         const errorMessage = resourceError.message || 'Failed to load audio file';
+  49 |         if (error !== errorMessage) setError(errorMessage);
+  50 |         if (onError) {  react-hooks/refs
+  53:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\components\sounds\AudioPreviewPlayer.tsx:53:9
+  51 |             onError(errorMessage);
+  52 |         }
+> 53 |         prevErrorRef.current = resourceError;
+     |         ^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  54 |     }
+  55 |
+  56 |     useEffect(() => {                                                                                                                                                                                                              react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\features\content-library\pages\WorldDetailPage.tsx
+  24:10  error  'AuthenticatedBackgroundBox' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useAssetImageLoader.ts
+  153:31  warning  The ref value 'loadedAssetIdsRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadedAssetIdsRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts
+   41:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts:41:9
+  39 |     const token = useSelector((state: RootState) => state.auth.token);
+  40 |
+> 41 |     if (prevResourceIdRef.current !== resourceId) {
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  42 |         resourceIdRef.current = resourceId;
+  43 |
+  44 |         if (!resourceId) {                                                          react-hooks/refs
+   42:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts:42:9
+  40 |
+  41 |     if (prevResourceIdRef.current !== resourceId) {
+> 42 |         resourceIdRef.current = resourceId;
+     |         ^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  43 |
+  44 |         if (!resourceId) {
+  45 |             if (blobUrl !== null) setBlobUrl(null);                                                                                       react-hooks/refs
+   48:13  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts:48:13
+  46 |             if (isLoading !== false) setIsLoading(false);
+  47 |             if (error !== null) setError(null);
+> 48 |             prevResourceIdRef.current = resourceId;
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  49 |         } else {
+  50 |             prevResourceIdRef.current = resourceId;
+  51 |         }                react-hooks/refs
+   50:13  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts:50:13
+  48 |             prevResourceIdRef.current = resourceId;
+  49 |         } else {
+> 50 |             prevResourceIdRef.current = resourceId;
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  51 |         }
+  52 |     }
+  53 |                                                                                                                    react-hooks/refs
+  176:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts:176:17
+  174 |     const prevUrlRef = useRef(url);
+  175 |
+> 176 |     if (!url && prevUrlRef.current !== url) {
+      |                 ^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  177 |         if (image !== null) setImage(null);
+  178 |         if (imageLoading !== false) setImageLoading(false);
+  179 |         if (imageError !== null) setImageError(null);  react-hooks/refs
+  180:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useResourceUrl.ts:180:9
+  178 |         if (imageLoading !== false) setImageLoading(false);
+  179 |         if (imageError !== null) setImageError(null);
+> 180 |         prevUrlRef.current = url;
+      |         ^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  181 |     }
+  182 |
+  183 |     useEffect(() => {                                                                                 react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useSessionState.ts
+   1:33  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  25:7   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useSessionState.ts:25:7
+  23 |   const prevStorageKeyRef = useRef(storageKey);
+  24 |
+> 25 |   if (prevStorageKeyRef.current !== storageKey) {
+     |       ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  26 |     const newValue = getStoredValue();
+  27 |     if (value !== newValue) setValue(newValue);
+  28 |     prevStorageKeyRef.current = storageKey;  react-hooks/refs
+  28:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\hooks\useSessionState.ts:28:5
+  26 |     const newValue = getStoredValue();
+  27 |     if (value !== newValue) setValue(newValue);
+> 28 |     prevStorageKeyRef.current = storageKey;
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  29 |   }
+  30 |
+  31 |   const setStoredValue = useCallback((newValue: T | ((prev: T) => T)) => {                             react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\pages\AssetStudioPage.tsx
+   1:17  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  62:26  error  'useRef' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-undef
+  64:34  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\pages\AssetStudioPage.tsx:64:34
+  62 |   const prevAssetIdRef = useRef(existingAsset?.id);
+  63 |
+> 64 |   if (existingAsset && !isNew && prevAssetIdRef.current !== existingAsset.id) {
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  65 |     setFormState({
+  66 |       name: existingAsset.name,
+  67 |       description: existingAsset.description,  react-hooks/refs
+  77:5   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\pages\AssetStudioPage.tsx:77:5
+  75 |     });
+  76 |     if (isDirty !== false) setIsDirty(false);
+> 77 |     prevAssetIdRef.current = existingAsset.id;
+     |     ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  78 |   }
+  79 |
+  80 |   const updateField = useCallback(<K extends keyof AssetFormState>(                                                                                              react-hooks/refs
+
+C:\Projects\Personal\VTTTools\Source\WebClientApp\src\pages\EncounterEditorPage.tsx
+   590:9  error    'encounterDataRef' is assigned a value but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+  1471:6  warning  React Hook useMemo has a missing dependency: 'scopeVisibility'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 49 problems (45 errors, 4 warnings)
+

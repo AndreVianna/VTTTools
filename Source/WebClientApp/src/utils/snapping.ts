@@ -347,7 +347,7 @@ export function snapFromEvent(
   const worldPos = getWorldPositionFromEvent(e);
   if (!worldPos) return null;
 
-  const mode = getSnapModeFromEvent(e.evt, defaultMode);
+  const mode = defaultMode ?? getSnapModeFromEvent(e.evt);
   return snap(worldPos, gridConfig, mode);
 }
 

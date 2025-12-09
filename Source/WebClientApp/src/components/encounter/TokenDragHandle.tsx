@@ -672,7 +672,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
       handleNodeClick(e);
     },
-    [stageRef, handleNodeClick, activeScope],
+    [stageRef, handleNodeClick],
   );
 
   useEffect(() => {
@@ -720,7 +720,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         }
       });
     };
-  }, [stageRef, enableDragMove, placedAssets.length, handleDragStart, handleDragMove, handleDragEnd, onReady]);
+  }, [stageRef, enableDragMove, placedAssets, handleDragStart, handleDragMove, handleDragEnd, onReady]);
 
   useEffect(() => {
     if (!enableDragMove) return;

@@ -31,21 +31,37 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
     const audioResourceUrl = `/api/resources/${resourceId}`;
     const { url: audioBlobUrl, isLoading: isResourceLoading, error: resourceError } = useAuthenticatedResource(audioResourceUrl);
 
-    useEffect(() => {
-        setIsAudioLoading(true);
-        setError(null);
-        setCurrentTime(0);
-        setDuration(0);
-        setIsPlaying(false);
-    }, [resourceId]);
+    const prevResourceIdRef = useRef(resourceId);
 
     useEffect(() => {
-        if (resourceError) {
+        // Reset audio state when resource changes
+        if (prevResourceIdRef.current !== resourceId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsAudioLoading(true);
+             
+            setError(null);
+             
+            setCurrentTime(0);
+             
+            setDuration(0);
+             
+            setIsPlaying(false);
+            prevResourceIdRef.current = resourceId;
+        }
+    }, [resourceId]);
+
+    const prevErrorRef = useRef(resourceError);
+
+    useEffect(() => {
+        // Handle resource loading errors
+        if (resourceError && resourceError !== prevErrorRef.current) {
             const errorMessage = resourceError.message || 'Failed to load audio file';
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setError(errorMessage);
             if (onError) {
                 onError(errorMessage);
             }
+            prevErrorRef.current = resourceError;
         }
     }, [resourceError, onError]);
 
