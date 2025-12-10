@@ -155,6 +155,7 @@ export interface Asset {
   tokenSize: NamedSize;
   tokens: MediaResource[];
   statBlocks: Record<number, Record<string, StatBlockValue>>;
+  tags: string[];
   ownerId: string;
   isPublished: boolean;
   isPublic: boolean;

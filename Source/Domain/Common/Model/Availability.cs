@@ -4,5 +4,4 @@ namespace VttTools.Common.Model;
 public enum Availability {
     Public,
     MineOnly,
-    MineAndPublished,
 }

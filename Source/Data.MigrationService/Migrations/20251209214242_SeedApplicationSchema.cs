@@ -56,14 +56,14 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Category], [Type], [Subtype], [Name], [Description], [PortraitId], [IsPublished], [IsPublic], [Height], [Width])
+            INSERT INTO [Assets] ([Id], [OwnerId], [Kind], [Category], [Type], [Subtype], [Name], [Description], [Tags], [PortraitId], [IsPublished], [IsPublic], [Height], [Width])
             VALUES
-            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create, Small'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5),
-            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature' , 'Monster', 'Fey', 'Goblinoid', 'Goblin Warrior'            , '', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
-            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Chest, Wide'        , '', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
-            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create, Large'      , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
-            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create'     , '', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),
-            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf', 'Paladin', 'Squire', 'Sir Pelotas', '', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
+            ('019A07E4-ECBC-7F23-B6C9-26A7D72AC421', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create, Small', '', '[]', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 0.5, 0.5),
+            ('019A0363-E277-7FA4-9A78-654F24400B79', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Creature' , 'Monster', 'Fey', 'Goblinoid', 'Goblin Warrior', '', '[]', '019A50CE-4B04-7378-8E6E-372BDF798985', 1, 1, 1.0, 1.0),
+            ('019A07E6-82A2-7286-ACAB-7CCB6CF652BD', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Chest, Wide', '', '[]', '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, 1.0, 2.0),
+            ('019A07E5-5550-7993-9B0B-84244F1543DF', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create, Large', '', '[]', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 2.0, 2.0),
+            ('019A0363-9294-749D-9323-B759664A5436', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Object'   , 'Container', 'Storage', NULL, 'Create', '', '[]', '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, 1.0, 1.0),
+            ('019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', '019639EA-C7DE-7A01-8548-41EDFCCDE206', 'Character', 'Elf', 'Paladin', 'Squire', 'Sir Pelotas', '', '[]', '019A50F8-394B-79D2-9660-9B803391DD71', 1, 1, 1.0, 1.0);
             """
         );
 
@@ -157,12 +157,21 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
+            INSERT INTO [EncounterLights] ([EncounterId], [Index], [Name], [Type], [Range], [Direction], [Arc], [IsOn], [Color], [X], [Y])
+            VALUES
+            ('019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c', 0, '', 'Natural', 4.5, NULL, NULL, 1, '', 4.5, 6.75);
+            """
+        );
+
+        migrationBuilder.Sql(
+            """
             INSERT INTO [EncounterAssets] ([EncounterId], [Index], [AssetId], [Name], [IsLocked], [IsVisible], [ImageId], [Rotation], [Elevation], [ControlledBy], [Notes], [FrameBackground], [FrameBorderColor], [FrameBorderThickness], [FrameShape], [X], [Y], [Height], [Width])
             VALUES
             ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, '019A0363-9294-749D-9323-B759664A5436', 'Wooden Create', 0, 1, '019A50F8-F3E5-702B-89D3-33D694391F66', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 26.5, 22.5, 50, 50),
             ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 1, '019A07E6-82A2-7286-ACAB-7CCB6CF652BD', 'Wide Chest', 0, 1, '019A50F8-AF0E-7EDE-BBAB-C1AA0775FA86', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 30, 21.5, 50, 100),
             ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 2, '019A0363-E277-7FA4-9A78-654F24400B79', 'Goblin #1', 0, 1, '019A50CE-4B04-7378-8E6E-372BDF798985', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 33.5, 20.5, 50, 50),
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 3, '019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', 'Elf Paladin Squire', 0, 1, '019A50F8-394B-79D2-9660-9B803391DD71', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 21.5, 19.5, 50, 50);
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 3, '019A2B1B-25CF-74A7-B1C3-C9F46CBFB9FA', 'Elf Paladin Squire', 0, 1, '019A50F8-394B-79D2-9660-9B803391DD71', 0, 0, '019639EA-C7DE-7A01-8548-41EDFCCDE206', NULL, '#00000000', '#0d6efd', 1, 'Square', 21.5, 19.5, 50, 50),
+            ('019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c', 0, '019a0363-9294-749d-9323-b759664a5436', 'Create', 0, 1, '019a50f8-f3e5-702b-89d3-33d694391f66', 0, 0, '019639ea-c7de-7a01-8548-41edfccde206', NULL, '#00000000', '#0d6efd', 1, 'Square', 4.5, 5.5, 53.75, 53.75);
             """
         );
     }
@@ -172,6 +181,12 @@ public partial class SeedApplicationSchema : Migration {
         migrationBuilder.Sql(
             """
             DELETE FROM [EncounterAssets];
+            """
+        );
+
+        migrationBuilder.Sql(
+            """
+            DELETE FROM [EncounterLights];
             """
         );
 

@@ -14,7 +14,10 @@ public record Asset {
 
     public Dictionary<int, Map<StatBlockValue>> StatBlocks { get; init; } = [];
 
+    public string[] Tags { get; init; } = [];
+
     public Guid OwnerId { get; init; }
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
+    public bool IsDeleted { get; init; }
 }

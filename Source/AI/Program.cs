@@ -54,6 +54,9 @@ internal static class Program {
         builder.Services.AddScoped<IAudioGenerationService, AudioGenerationService>();
         builder.Services.AddScoped<IVideoGenerationService, VideoGenerationService>();
 
+        builder.Services.AddScoped<IPromptTemplateStorage, PromptTemplateStorage>();
+        builder.Services.AddScoped<IPromptTemplateService, PromptTemplateService>();
+
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddSingleton(sp => {

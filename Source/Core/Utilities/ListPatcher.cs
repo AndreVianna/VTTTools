@@ -41,4 +41,16 @@ public record ListPatcher<T>() {
         => HashCode.Combine(_items, _add, _remove);
 
     public override string ToString() => JsonSerializer.Serialize(this);
+
+    public T[] Apply(T[] current) {
+        if (_items.Length > 0)
+            return _items;
+        var result = current.ToList();
+        foreach (var item in _remove)
+            result.Remove(item);
+        foreach (var item in _add)
+            if (!result.Contains(item))
+                result.Add(item);
+        return [.. result];
+    }
 }

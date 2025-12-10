@@ -5,6 +5,7 @@ using Campaign = VttTools.Data.Library.Entities.Campaign;
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
+using PromptTemplate = VttTools.Data.AI.Entities.PromptTemplate;
 using Resource = VttTools.Data.Media.Entities.Resource;
 using Schedule = VttTools.Data.Game.Entities.Schedule;
 using StatBlock = VttTools.Data.Game.Entities.StatBlock;
@@ -25,6 +26,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<StatBlock> StatBlocks { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<MaintenanceMode> MaintenanceMode { get; set; }
+    public DbSet<PromptTemplate> PromptTemplates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
@@ -43,6 +45,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         GameSessionSchemaBuilder.ConfigureModel(builder);
         AuditLogSchemaBuilder.ConfigureModel(builder);
         MaintenanceModeSchemaBuilder.ConfigureModel(builder);
+        PromptTemplateSchemaBuilder.ConfigureModel(builder);
         //ApplicationSchemaSeeder.Seed(builder);
     }
 }

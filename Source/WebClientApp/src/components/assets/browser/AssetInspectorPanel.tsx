@@ -12,6 +12,7 @@ import {
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
+  ContentCopy as CloneIcon,
   Category as CategoryIcon,
 } from '@mui/icons-material';
 import type { Asset } from '@/types/domain';
@@ -22,12 +23,14 @@ export interface AssetInspectorPanelProps {
   asset: Asset;
   onEdit: () => void;
   onDelete: () => void;
+  onClone?: () => void;
 }
 
 export const AssetInspectorPanel: React.FC<AssetInspectorPanelProps> = ({
   asset,
   onEdit,
   onDelete,
+  onClone,
 }) => {
   const theme = useTheme();
 
@@ -240,6 +243,13 @@ export const AssetInspectorPanel: React.FC<AssetInspectorPanelProps> = ({
         >
           Edit Asset
         </Button>
+        {onClone && (
+          <Tooltip title="Clone">
+            <IconButton size="small" color="primary" onClick={onClone}>
+              <CloneIcon />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title="Delete">
           <IconButton size="small" color="error" onClick={onDelete}>
             <DeleteIcon />

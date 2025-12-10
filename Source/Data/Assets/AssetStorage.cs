@@ -26,6 +26,7 @@ public class AssetStorage(ApplicationDbContext context)
         string? type = null,
         string? subtype = null,
         string? search = null,
+        string[]? tags = null,
         ICollection<AdvancedSearchFilter>? filters = null,
         AssetSortBy? sortBy = null,
         SortDirection? sortDirection = null,
@@ -44,23 +45,29 @@ public class AssetStorage(ApplicationDbContext context)
 
         query = availability switch {
             Availability.MineOnly => query.Where(a => a.OwnerId == userId),
-            Availability.MineAndPublished => query.Where(a => a.OwnerId == userId && a.IsPublished),
             _ => query.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished)),
         };
 
         if (kind.HasValue)
-            query = query.Where(a => a.Classification.Kind == kind.Value);
+            query = query.Where(a => a.Kind == kind.Value);
         if (!string.IsNullOrWhiteSpace(category))
-            query = query.Where(a => a.Classification.Category == category);
+            query = query.Where(a => a.Category == category);
         if (!string.IsNullOrWhiteSpace(type))
-            query = query.Where(a => a.Classification.Type == type);
+            query = query.Where(a => a.Type == type);
         if (!string.IsNullOrWhiteSpace(subtype))
-            query = query.Where(a => a.Classification.Subtype == subtype);
+            query = query.Where(a => a.Subtype == subtype);
 
         if (!string.IsNullOrWhiteSpace(search)) {
+            var pattern = $"%{search}%";
             query = query.Where(a =>
-                EF.Functions.Like(a.Name, search) ||
-                EF.Functions.Like(a.Description, search));
+                EF.Functions.Like(a.Name, pattern) ||
+                EF.Functions.Like(a.Description, pattern));
+        }
+
+        if (tags is { Length: > 0 }) {
+            foreach (var tag in tags) {
+                query = query.Where(a => a.Tags.Contains(tag));
+            }
         }
 
         query = AddAdvancedSearchFilters(filters, query);
@@ -88,14 +95,14 @@ public class AssetStorage(ApplicationDbContext context)
                 ? query.OrderByDescending(a => a.Name)
                 : query.OrderBy(a => a.Name),
             AssetSortBy.Kind => isDescending
-                ? query.OrderByDescending(a => a.Classification.Kind)
-                : query.OrderBy(a => a.Classification.Kind),
+                ? query.OrderByDescending(a => a.Kind)
+                : query.OrderBy(a => a.Kind),
             AssetSortBy.Category => isDescending
-                ? query.OrderByDescending(a => a.Classification.Category)
-                : query.OrderBy(a => a.Classification.Category),
+                ? query.OrderByDescending(a => a.Category)
+                : query.OrderBy(a => a.Category),
             AssetSortBy.Type => isDescending
-                ? query.OrderByDescending(a => a.Classification.Type)
-                : query.OrderBy(a => a.Classification.Type),
+                ? query.OrderByDescending(a => a.Type)
+                : query.OrderBy(a => a.Type),
             _ => query.OrderBy(a => a.Name),
         };
     }
@@ -165,11 +172,19 @@ public class AssetStorage(ApplicationDbContext context)
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
-        var asset = await context.Assets.FindAsync([id], ct);
+        var asset = await context.Assets.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == id, ct);
         if (asset == null)
             return false;
         context.Assets.Remove(asset);
         var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    public async Task<bool> SoftDeleteAsync(Guid id, CancellationToken ct = default) {
+        var result = await context.Assets
+            .IgnoreQueryFilters()
+            .Where(a => a.Id == id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(a => a.IsDeleted, true), ct);
         return result > 0;
     }
 }

@@ -1,13 +1,27 @@
 # Phase 10: Game Sessions - Real-Time Collaboration
 
-**Status**: 🔜 Ready (Backend ✅ Complete | Frontend ❌ Not Started)
-**Estimated**: 22h (frontend only)
+**Status**: ⚠️ MOVED TO EPIC-004
+**Moved Date**: 2025-12-09 (during EPIC-001 completion review)
+**Original Estimate**: 22h (frontend only)
 **Backend**: ✅ COMPLETE (12 endpoints, 5 tests)
-**Frontend**: ❌ NOT STARTED (0%)
+**Frontend**: ❌ NOT STARTED (0%) → Deferred to EPIC-004
 
 ---
 
-## Objective
+## ⚠️ Scope Change Notice
+
+**This phase has been moved to EPIC-004 (Game Sessions).**
+
+During the EPIC-001 completion review (2025-12-09), it was determined that:
+1. EPIC-001 scope is focused on the **Encounter Editor** migration
+2. Game Sessions is a separate feature requiring real-time SignalR collaboration
+3. The backend is complete and ready for frontend implementation in EPIC-004
+
+**See**: `Documents/Tasks/EPIC-004/TASK.md` for continued work on this feature.
+
+---
+
+## Original Objective
 
 Implement real-time game session UI with SignalR for chat, events, and participant management
 

@@ -27,19 +27,19 @@ public sealed class AssetAdminService(
                 a => a.IsPublic);
 
             if (!string.IsNullOrWhiteSpace(request.Kind) && Enum.TryParse<AssetKind>(request.Kind, ignoreCase: true, out var kind)) {
-                query = query.Where(a => a.Classification.Kind == kind);
+                query = query.Where(a => a.Kind == kind);
             }
 
             if (!string.IsNullOrWhiteSpace(request.Category)) {
-                query = query.Where(a => a.Classification.Category == request.Category);
+                query = query.Where(a => a.Category == request.Category);
             }
 
             if (!string.IsNullOrWhiteSpace(request.Type)) {
-                query = query.Where(a => a.Classification.Type == request.Type);
+                query = query.Where(a => a.Type == request.Type);
             }
 
             if (!string.IsNullOrWhiteSpace(request.Subtype)) {
-                query = query.Where(a => a.Classification.Subtype == request.Subtype);
+                query = query.Where(a => a.Subtype == request.Subtype);
             }
 
             var totalCount = await query.CountAsync(ct);
@@ -214,10 +214,10 @@ public sealed class AssetAdminService(
         try {
             var classifications = await DbContext.Assets
                 .Select(a => new AssetClassification(
-                    a.Classification.Kind,
-                    a.Classification.Category,
-                    a.Classification.Type,
-                    a.Classification.Subtype))
+                    a.Kind,
+                    a.Category,
+                    a.Type,
+                    a.Subtype))
                 .ToListAsync(ct);
 
             var tree = BuildTaxonomyTree(classifications);

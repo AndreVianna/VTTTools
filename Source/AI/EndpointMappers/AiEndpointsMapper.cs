@@ -48,5 +48,31 @@ public static class AiEndpointsMapper {
         ai.MapGet("/health", HealthCheckHandlers.GetHealthHandler)
             .WithName("GetAiHealth")
             .WithSummary("Check health of AI providers");
+
+        var templates = ai.MapGroup("/templates");
+        templates.MapGet("", PromptTemplateHandlers.SearchTemplatesHandler)
+            .RequireAuthorization()
+            .WithName("SearchTemplates")
+            .WithSummary("Search prompt templates with filters and pagination");
+        templates.MapGet("{id:guid}", PromptTemplateHandlers.GetTemplateByIdHandler)
+            .RequireAuthorization()
+            .WithName("GetTemplateById")
+            .WithSummary("Get a prompt template by ID");
+        templates.MapGet("by-name/{name}", PromptTemplateHandlers.GetLatestTemplateByNameHandler)
+            .RequireAuthorization()
+            .WithName("GetLatestTemplateByName")
+            .WithSummary("Get the latest prompt template by name");
+        templates.MapPost("", PromptTemplateHandlers.CreateTemplateHandler)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .WithName("CreateTemplate")
+            .WithSummary("Create a new prompt template");
+        templates.MapPut("{id:guid}", PromptTemplateHandlers.UpdateTemplateHandler)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .WithName("UpdateTemplate")
+            .WithSummary("Update a prompt template");
+        templates.MapDelete("{id:guid}", PromptTemplateHandlers.DeleteTemplateHandler)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .WithName("DeleteTemplate")
+            .WithSummary("Delete a prompt template");
     }
 }

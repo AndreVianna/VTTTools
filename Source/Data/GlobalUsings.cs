@@ -1,6 +1,7 @@
 global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Linq.Expressions;
+global using System.Text.Json;
 global using System.Text.Json.Serialization;
 
 global using DotNetToolbox;
@@ -10,6 +11,10 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 
+global using VttTools.AI;
+global using VttTools.AI.Templates;
+global using VttTools.AI.Templates.Model;
+global using VttTools.AI.Templates.Storage;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
 global using VttTools.Audit.Storage;

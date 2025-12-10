@@ -1,12 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Asset, AssetKind } from '@/types/domain';
 import type { ViewMode, SortField, SortDirection } from '@/components/assets/browser/BrowserToolbar';
+import { getFirstLetter, useLetterFilter } from '@/hooks/useLetterFilter';
 
 export interface AssetBrowserState {
   selectedPath: string[];
   searchQuery: string;
   attributeFilters: Record<string, [number, number]>;
   tagFilters: string[];
+  letterFilter: string | null;
   ownershipFilter: 'mine' | 'others' | 'all';
   statusFilter: 'all' | 'published' | 'draft';
   viewMode: ViewMode;
@@ -22,6 +24,7 @@ const initialState: AssetBrowserState = {
   searchQuery: '',
   attributeFilters: {},
   tagFilters: [],
+  letterFilter: null,
   ownershipFilter: 'all',
   statusFilter: 'all',
   viewMode: 'grid-large',
@@ -57,6 +60,10 @@ export function useAssetBrowser() {
 
   const setTagFilters = useCallback((tags: string[]) => {
     setState((prev) => ({ ...prev, tagFilters: tags }));
+  }, []);
+
+  const setLetterFilter = useCallback((letter: string | null) => {
+    setState((prev) => ({ ...prev, letterFilter: letter }));
   }, []);
 
   const setOwnershipFilter = useCallback((filter: 'mine' | 'others' | 'all') => {
@@ -107,6 +114,7 @@ export function useAssetBrowser() {
       searchQuery: '',
       attributeFilters: {},
       tagFilters: [],
+      letterFilter: null,
       ownershipFilter: 'all',
       statusFilter: 'all',
     }));
@@ -156,9 +164,13 @@ export function useAssetBrowser() {
       }
 
       if (state.tagFilters.length > 0) {
-        filtered = filtered.filter((_a) => {
-          return true;
+        filtered = filtered.filter((a) => {
+          return state.tagFilters.every((tag) => a.tags?.includes(tag));
         });
+      }
+
+      if (state.letterFilter) {
+        filtered = filtered.filter((a) => getFirstLetter(a.name) === state.letterFilter);
       }
 
       filtered.sort((a, b) => {
@@ -184,7 +196,7 @@ export function useAssetBrowser() {
 
       return filtered;
     },
-    [state.statusFilter, state.attributeFilters, state.tagFilters, state.sortField, state.sortDirection]
+    [state.statusFilter, state.attributeFilters, state.tagFilters, state.letterFilter, state.sortField, state.sortDirection]
   );
 
   const inspectorOpen = state.selectedAssetId !== null;
@@ -199,6 +211,7 @@ export function useAssetBrowser() {
     setSearchQuery,
     setAttributeFilter,
     setTagFilters,
+    setLetterFilter,
     setOwnershipFilter,
     setStatusFilter,
     setViewMode,

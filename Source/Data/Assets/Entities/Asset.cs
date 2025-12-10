@@ -5,7 +5,13 @@ namespace VttTools.Data.Assets.Entities;
 public class Asset {
     public Guid Id { get; set; } = Guid.CreateVersion7();
 
-    public AssetClassification Classification { get; set; } = null!;
+    public AssetKind Kind { get; set; } = AssetKind.Undefined;
+    [MaxLength(64)]
+    public string Category { get; set; } = string.Empty;
+    [MaxLength(64)]
+    public string Type { get; set; } = string.Empty;
+    [MaxLength(64)]
+    public string? Subtype { get; set; }
 
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
@@ -19,7 +25,10 @@ public class Asset {
 
     public ICollection<AssetStatBlockValue> StatBlock { get; set; } = [];
 
+    public string[] Tags { get; set; } = [];
+
     public Guid OwnerId { get; set; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
+    public bool IsDeleted { get; set; }
 }

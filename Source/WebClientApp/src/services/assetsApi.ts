@@ -22,6 +22,7 @@ export const assetsApi = createApi({
       {
         kind?: AssetKind;
         search?: string;
+        tags?: string[];
         published?: boolean;
         owner?: 'mine' | 'public' | 'all';
         availability?: string;
@@ -59,6 +60,7 @@ export const assetsApi = createApi({
       {
         kind?: AssetKind;
         search?: string;
+        tags?: string[];
         published?: boolean;
         owner?: 'mine' | 'public' | 'all';
         page: number;
@@ -127,6 +129,18 @@ export const assetsApi = createApi({
         { type: 'Asset', id: 'LIST' },
       ],
     }),
+
+    /**
+     * Clone an existing asset
+     * Creates a copy owned by the current user
+     */
+    cloneAsset: builder.mutation<Asset, string>({
+      query: (id) => ({
+        url: `/${id}/clone`,
+        method: 'POST',
+      }),
+      invalidatesTags: [{ type: 'Asset', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -142,4 +156,5 @@ export const {
   useCreateAssetMutation,
   useUpdateAssetMutation,
   useDeleteAssetMutation,
+  useCloneAssetMutation,
 } = assetsApi;

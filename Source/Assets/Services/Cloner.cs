@@ -14,6 +14,8 @@ public static class Cloner {
 
             StatBlocks = original.StatBlocks.ToDictionary(keySelector: k => k.Key, elementSelector: k => k.Value),
 
+            Tags = [.. original.Tags],
+
             OwnerId = ownerId ?? original.OwnerId,
             IsPublic = original.IsPublic,
             IsPublished = original.IsPublished,

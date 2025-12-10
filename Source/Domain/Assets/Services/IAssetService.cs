@@ -9,6 +9,7 @@ public interface IAssetService {
                                                              string? type,
                                                              string? subtype,
                                                              string? basicSearch,
+                                                             string[]? tags,
                                                              ICollection<AdvancedSearchFilter>? advancedSearch,
                                                              AssetSortBy? sortBy,
                                                              SortDirection? sortDirection,

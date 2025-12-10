@@ -1,25 +1,39 @@
 # Phase 13: Release Preparation
 
-**Status**: 🔜 Ready (Blocked by EPIC-002)
-**Estimated**: 5h
-**Dependencies**: Phases 1-12 complete + EPIC-002 (Admin Application)
+**Status**: ⚠️ MOVED TO EPIC-002
+**Moved Date**: 2025-12-09 (during EPIC-001 completion review)
+**Original Estimate**: 5h
+**Dependencies**: EPIC-002 (Admin Application)
 
 ---
 
-## Objective
+## ⚠️ Scope Change Notice
+
+**This phase has been moved to EPIC-002 (Admin Application).**
+
+During the EPIC-001 completion review (2025-12-09), it was determined that:
+1. EPIC-001 scope is focused on the **Encounter Editor** migration (complete)
+2. Release Preparation is inherently tied to EPIC-002 (Admin Application)
+3. Legacy Blazor deprecation should happen after Admin Application is ready
+
+**See**: `Documents/Tasks/EPIC-002/TASK.md` for Release Preparation work.
+
+---
+
+## Original Objective
 
 Prepare application for production deployment - documentation, cleanup, build configuration
 
 ---
 
-## Critical Dependency
+## Original Critical Dependency
 
 **EPIC-002 Admin Application REQUIRED** for production operations:
 - Audit log viewer
 - User management
 - System configuration
 
-Phase 13 cannot complete until EPIC-002 is delivered.
+This is why Phase 13 has been moved to EPIC-002.
 
 ---
 

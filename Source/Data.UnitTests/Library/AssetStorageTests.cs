@@ -63,7 +63,7 @@ public class AssetStorageTests
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Classification.Kind.Should().Be(AssetKind.Creature);
+        dbAsset.Kind.Should().Be(AssetKind.Creature);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
@@ -107,7 +107,7 @@ public class AssetStorageTests
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Classification.Kind.Should().Be(AssetKind.Creature);
+        dbAsset.Kind.Should().Be(AssetKind.Creature);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
@@ -132,12 +132,10 @@ public class AssetStorageTests
         var entity = new Assets.Entities.Asset {
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
-            Classification = new() {
-                Kind = AssetKind.Character,
-                Category = "test-category",
-                Type = "test-type",
-                Subtype = null,
-            },
+            Kind = AssetKind.Character,
+            Category = "test-category",
+            Type = "test-type",
+            Subtype = null,
             Name = "Asset With Images",
             Description = "Test description",
             IsPublished = false,

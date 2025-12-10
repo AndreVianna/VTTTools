@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     AudioFile as AudioFileIcon,
+    Cancel as CancelIcon,
     Close as CloseIcon,
     CloudUpload as UploadIcon,
     Search as SearchIcon,
@@ -11,6 +12,7 @@ import {
     Card,
     CardContent,
     CircularProgress,
+    LinearProgress,
     Dialog,
     IconButton,
     InputAdornment,
@@ -20,7 +22,8 @@ import {
     Typography,
     useTheme,
 } from '@mui/material';
-import { useFilterResourcesQuery, useUploadFileMutation } from '@/services/mediaApi';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useFilterResourcesQuery } from '@/services/mediaApi';
 import { ResourceType } from '@/types/domain';
 import { AudioPreviewPlayer } from './AudioPreviewPlayer';
 
@@ -45,7 +48,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'all'>('mine');
     const [soundTypeFilter, setSoundTypeFilter] = useState<ResourceType.SoundEffect | ResourceType.AmbientSound>(defaultResourceType);
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
+    
 
     const { data, isLoading, refetch } = useFilterResourcesQuery({
         resourceType: soundTypeFilter,
@@ -53,14 +56,18 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
         take: 50,
     }, { skip: !open });
     const resources = data?.items ?? [];
-    const [uploadFile] = useUploadFileMutation();
-
-    const filteredResources = resources.filter(() => {
-        if (ownershipFilter === 'mine') {
-            return true;
-        }
-        return true;
+    const { uploadState, uploadFile, cancelUpload } = useFileUpload({
+        resourceType: ResourceType[soundTypeFilter],
+        onSuccess: async (resource) => {
+            await refetch();
+            setSelectedResourceId(resource.id);
+        },
+        onError: (error) => {
+            console.error('[SoundPickerDialog] Failed to upload sound:', error);
+        },
     });
+
+    const filteredResources = resources;
 
     useEffect(() => {
         if (open && currentResourceId) {
@@ -86,19 +93,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     };
 
     const handleUpload = async (file: File) => {
-        setIsUploading(true);
-        try {
-            const result = await uploadFile({
-                file,
-                resourceType: ResourceType[soundTypeFilter],
-            }).unwrap();
-            await refetch();
-            setSelectedResourceId(result.id);
-        } catch (error) {
-            console.error('[SoundPickerDialog] Failed to upload sound:', error);
-        } finally {
-            setIsUploading(false);
-        }
+        await uploadFile(file);
     };
 
     const selectedResource = filteredResources.find((r) => r.id === selectedResourceId);
@@ -280,14 +275,14 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                             variant="outlined"
                             component="label"
                             fullWidth
-                            startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
-                            disabled={isUploading}
+                            startIcon={uploadState.isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
+                            disabled={uploadState.isUploading}
                             sx={{
                                 fontSize: '0.65rem',
                                 py: 0.75,
                             }}
                         >
-                            {isUploading ? 'Uploading...' : `Upload ${soundTypeFilter === ResourceType.SoundEffect ? 'Effect' : 'Ambient'}`}
+                            {uploadState.isUploading ? 'Uploading...' : `Upload ${soundTypeFilter === ResourceType.SoundEffect ? 'Effect' : 'Ambient'}`}
                             <input
                                 type="file"
                                 hidden

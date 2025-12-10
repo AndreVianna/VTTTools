@@ -11,6 +11,7 @@ public interface IAssetStorage {
         string? type = null,
         string? subtype = null,
         string? search = null,
+        string[]? tags = null,
         ICollection<AdvancedSearchFilter>? filters = null,
         AssetSortBy? sortBy = null,
         SortDirection? sortDirection = null,
@@ -21,4 +22,5 @@ public interface IAssetStorage {
     Task AddAsync(Asset asset, CancellationToken ct = default);
     Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task<bool> SoftDeleteAsync(Guid id, CancellationToken ct = default);
 }

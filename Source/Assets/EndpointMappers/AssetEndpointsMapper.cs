@@ -10,6 +10,7 @@ internal static class AssetEndpointsMapper {
         assets.MapGet("/", AssetHandlers.GetAssetsHandler);
         assets.MapGet("/{id:guid}", AssetHandlers.GetAssetByIdHandler);
         assets.MapPost("/", AssetHandlers.CreateAssetHandler);
+        assets.MapPost("/{id:guid}/clone", AssetHandlers.CloneAssetHandler);
         assets.MapPatch("/{id:guid}", AssetHandlers.UpdateAssetHandler);
         assets.MapDelete("/{id:guid}", AssetHandlers.DeleteAssetHandler);
     }

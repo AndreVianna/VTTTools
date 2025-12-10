@@ -3,18 +3,18 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
   Grid,
   IconButton,
+  LinearProgress,
   Typography,
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { DisplayPreview } from '@/components/common/DisplayPreview';
 import { ResourceImage } from '@/components/common/ResourceImage';
 import { TokenPreview } from '@/components/common/TokenPreview';
-import { useUploadFileMutation } from '@/services/mediaApi';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import type { NamedSize } from '@/types/domain';
 
 export interface AssetResourceManagerProps {
@@ -37,30 +37,28 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
   entityId,
 }) => {
   const theme = useTheme();
-  const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const pendingCallbackRef = useRef<((id: string) => void) | null>(null);
+
+  const { uploadState, uploadFile, cancelUpload, resetState } = useFileUpload({
+    entityId,
+    onSuccess: (resource) => {
+      pendingCallbackRef.current?.(resource.id);
+      pendingCallbackRef.current = null;
+      setTimeout(resetState, 1500);
+    },
+    onError: (error) => {
+      setUploadError(`Failed to upload image: ${error}`);
+      pendingCallbackRef.current = null;
+    },
+  });
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>, onChange: (id: string) => void) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setUploadError(null);
-    try {
-      const result = await uploadFile({
-        file,
-        ...(entityId ? { entityId } : {}),
-      }).unwrap();
-
-      onChange(result.id);
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.detail ||
-        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.data?.title ||
-        (error as { data?: { detail?: string; title?: string }; error?: string; message?: string })?.error ||
-        (error as { message?: string })?.message ||
-        JSON.stringify(error);
-      setUploadError(`Failed to upload image: ${errorMessage}`);
-    }
+    pendingCallbackRef.current = onChange;
+    await uploadFile(file);
     event.target.value = '';
   };
 
@@ -99,8 +97,8 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
           <Button
             component='label'
             size='small'
-            startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
-            disabled={isUploading}
+            startIcon={<UploadIcon />}
+            disabled={uploadState.isUploading}
           >
             Upload
             <input
@@ -108,11 +106,30 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
               accept='image/jpeg,image/png,image/svg+xml,image/gif,image/webp,image/bmp,image/tiff'
               hidden
               onChange={onUpload}
-              disabled={isUploading}
+              disabled={uploadState.isUploading}
             />
           </Button>
         )}
       </Box>
+
+      {uploadState.isUploading && (
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+            <Typography variant='caption' color='text.secondary' sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {uploadState.fileName}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant='caption' color='text.secondary'>
+                {uploadState.progress}%
+              </Typography>
+              <IconButton size='small' onClick={cancelUpload} sx={{ p: 0.25 }}>
+                <CloseIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Box>
+          </Box>
+          <LinearProgress variant='determinate' value={uploadState.progress} sx={{ height: 4, borderRadius: 2 }} />
+        </Box>
+      )}
 
       {imageId ? (
         <Box sx={{ position: 'relative', display: 'inline-block' }}>

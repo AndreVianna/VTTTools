@@ -62,7 +62,7 @@ The Assets Module is a mature, well-architected feature enabling users to create
 │  Infrastructure/Data Layer                              │
 │  - AssetStorage.cs (EF Core repository)                 │
 │  - Entity/Model mapping                                 │
-│  - PostgreSQL database                                  │
+│  - SQL Server database                                  │
 └─────────────────────────────────────────────────────────┘
                          │
                          │
@@ -508,7 +508,7 @@ CREATE INDEX [IX_Assets_Kind] ON [Assets] ([Kind]);
 
 **P1: Performance & Scalability**
 - Server-side pagination
-- Full-text search (PostgreSQL FTS or Azure Cognitive Search)
+- Full-text search (SQL Server FTS or Azure Cognitive Search)
 - Image thumbnails and lazy loading
 - Virtualized asset grid for large libraries
 

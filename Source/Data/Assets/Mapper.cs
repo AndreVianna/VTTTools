@@ -1,7 +1,6 @@
 using Asset = VttTools.Assets.Model.Asset;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
-using AssetClassification = VttTools.Data.Assets.Entities.AssetClassification;
 using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
 
 namespace VttTools.Data.Assets;
@@ -11,7 +10,7 @@ internal static class Mapper {
         => new() {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
-            Classification = new(entity.Classification.Kind, entity.Classification.Category, entity.Classification.Type, entity.Classification.Subtype),
+            Classification = new(entity.Kind, entity.Category, entity.Type, entity.Subtype),
             Name = entity.Name,
             Description = entity.Description,
             TokenSize = entity.TokenSize,
@@ -22,6 +21,8 @@ internal static class Mapper {
                     v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
+            IsDeleted = entity.IsDeleted,
+            Tags = entity.Tags,
             Portrait = entity.Portrait != null ? entity.Portrait.ToModel() : null,
             Tokens = entity.AssetTokens.AsQueryable().OrderBy(a => a.Index).Select(AsToken!).ToList(),
         };
@@ -33,11 +34,13 @@ internal static class Mapper {
            : new Asset {
                Id = entity.Id,
                OwnerId = entity.OwnerId,
-               Classification = new(entity.Classification.Kind, entity.Classification.Category, entity.Classification.Type, entity.Classification.Subtype),
+               Classification = new(entity.Kind, entity.Category, entity.Type, entity.Subtype),
                Name = entity.Name,
                Description = entity.Description,
                IsPublic = entity.IsPublic,
                IsPublished = entity.IsPublished,
+               IsDeleted = entity.IsDeleted,
+               Tags = entity.Tags,
                TokenSize = entity.TokenSize,
                StatBlocks = entity.StatBlock.GroupBy(stv => stv.Level)
                     .ToDictionary(g => g.Key, g => new Map<StatBlockValue>(g.ToDictionary(k => k.Key, v => new StatBlockValue(
@@ -52,16 +55,16 @@ internal static class Mapper {
         => new() {
             Id = model.Id,
             OwnerId = model.OwnerId,
-            Classification = new() {
-                Kind = model.Classification.Kind,
-                Category = model.Classification.Category,
-                Type = model.Classification.Type,
-                Subtype = model.Classification.Subtype
-            },
+            Kind = model.Classification.Kind,
+            Category = model.Classification.Category,
+            Type = model.Classification.Type,
+            Subtype = model.Classification.Subtype,
             Name = model.Name,
             Description = model.Description,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
+            IsDeleted = model.IsDeleted,
+            Tags = model.Tags,
             TokenSize = model.TokenSize,
             StatBlock = [..model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatBlockValue{
                 AssetId = model.Id,
@@ -77,16 +80,15 @@ internal static class Mapper {
         };
 
     public static void UpdateFrom(this AssetEntity entity, Asset model) {
-        entity.Classification = new() {
-            Kind = model.Classification.Kind,
-            Category = model.Classification.Category,
-            Type = model.Classification.Type,
-            Subtype = model.Classification.Subtype
-        };
+        entity.Kind = model.Classification.Kind;
+        entity.Category = model.Classification.Category;
+        entity.Type = model.Classification.Type;
+        entity.Subtype = model.Classification.Subtype;
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
+        entity.Tags = model.Tags;
         entity.TokenSize = model.TokenSize;
         entity.StatBlock = [..model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatBlockValue{
             AssetId = model.Id,

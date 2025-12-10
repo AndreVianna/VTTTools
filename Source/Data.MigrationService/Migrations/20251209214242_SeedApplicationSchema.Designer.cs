@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251209060649_SeedApplicationSchema")]
+    [Migration("20251209214242_SeedApplicationSchema")]
     partial class SeedApplicationSchema
     {
         /// <inheritdoc />
@@ -32,10 +32,20 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublic")
                         .ValueGeneratedOnAdd()
@@ -46,6 +56,10 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -58,9 +72,31 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("PortraitId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Subtype")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("OwnerId")
+                        .HasDatabaseName("IX_Assets_OwnerId");
+
                     b.HasIndex("PortraitId");
+
+                    b.HasIndex("IsPublic", "IsPublished")
+                        .HasDatabaseName("IX_Assets_IsPublic_IsPublished");
+
+                    b.HasIndex("Kind", "Category", "Type")
+                        .HasDatabaseName("IX_Assets_Taxonomy");
 
                     b.ToTable("Assets", (string)null);
                 });
@@ -1335,44 +1371,6 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("AssetId");
                         });
-
-                    b.OwnsOne("VttTools.Data.Assets.Entities.AssetClassification", "Classification", b1 =>
-                        {
-                            b1.Property<Guid>("AssetId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Category")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)")
-                                .HasColumnName("Category");
-
-                            b1.Property<string>("Kind")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)")
-                                .HasColumnName("Kind");
-
-                            b1.Property<string>("Subtype")
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)")
-                                .HasColumnName("Subtype");
-
-                            b1.Property<string>("Type")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)")
-                                .HasColumnName("Type");
-
-                            b1.HasKey("AssetId");
-
-                            b1.ToTable("Assets");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AssetId");
-                        });
-
-                    b.Navigation("Classification")
-                        .IsRequired();
 
                     b.Navigation("Portrait");
 

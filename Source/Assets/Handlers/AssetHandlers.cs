@@ -13,6 +13,7 @@ internal static class AssetHandlers {
         [FromQuery] string? type,
         [FromQuery] string? subtype,
         [FromQuery] string? search,
+        [FromQuery] string[]? tags,
         [FromQuery] string[]? filter,
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
@@ -45,7 +46,7 @@ internal static class AssetHandlers {
             ? new Pagination(pageIndex.Value, pageSize.Value)
             : null;
 
-        var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, advancedFilter, sortByFilter, sortDirectionFilter, pagination, cts.Token);
+        var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, tags, advancedFilter, sortByFilter, sortDirectionFilter, pagination, cts.Token);
 
         return Results.Ok(new {
             data = assets,
@@ -128,6 +129,18 @@ internal static class AssetHandlers {
         var result = await assetService.DeleteAssetAsync(userId, id);
         return result.IsSuccessful
             ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAssetService assetService) {
+        var userId = context.User.GetUserId();
+        var result = await assetService.CloneAssetAsync(userId, id);
+        return result.IsSuccessful
+            ? Results.Created($"/api/assets/{result.Value.Id}", result.Value)
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"

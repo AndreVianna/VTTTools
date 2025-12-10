@@ -12,12 +12,13 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                                                                     string? type,
                                                                     string? subtype,
                                                                     string? basicSearch,
+                                                                    string[]? tags,
                                                                     ICollection<AdvancedSearchFilter>? advancedSearch,
                                                                     AssetSortBy? sortBy,
                                                                     SortDirection? sortDirection,
                                                                     Pagination? pagination,
                                                                     CancellationToken ct = default)
-        => assetStorage.SearchAsync(userId, availability, kind, category, type, subtype, basicSearch, advancedSearch, sortBy, sortDirection, pagination, ct);
+        => assetStorage.SearchAsync(userId, availability, kind, category, type, subtype, basicSearch, tags, advancedSearch, sortBy, sortDirection, pagination, ct);
 
     public Task<Asset?> GetAssetByIdAsync(Guid userId, Guid id, CancellationToken ct = default)
         => assetStorage.FindByIdAsync(userId, id, ct);
@@ -40,6 +41,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             Description = data.Description,
             Portrait = portrait,
             TokenSize = data.TokenSize,
+            Tags = data.Tags,
         };
 
         await assetStorage.AddAsync(asset, ct);
@@ -50,6 +52,8 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         var original = await assetStorage.FindByIdAsync(userId, templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
+        if (original.OwnerId != userId && !(original.IsPublic && original.IsPublished))
+            return Result.Failure("NotAllowed");
         var clone = original.Clone(userId);
         await assetStorage.AddAsync(clone, ct);
         return clone;
@@ -82,6 +86,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             ),
             Portrait = portrait,
             TokenSize = data.TokenSize.IsSet ? data.TokenSize.Value : asset.TokenSize,
+            Tags = data.Tags.IsSet ? data.Tags.Value.Apply(asset.Tags) : asset.Tags,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : asset.IsPublished,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : asset.IsPublic,
         };
@@ -96,7 +101,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             return Result.Failure("NotFound");
         if (asset.OwnerId != userId)
             return Result.Failure("NotAllowed");
-        await assetStorage.DeleteAsync(id, ct);
+        await assetStorage.SoftDeleteAsync(id, ct);
         return Result.Success();
     }
 }

@@ -29,8 +29,10 @@ import {
   BrowserToolbar,
   TaxonomyTree,
 } from '@/components/assets/browser';
+import { LetterFilterBar } from '@/components/common/LetterFilterBar';
 import { useAssetBrowser } from '@/hooks/useAssetBrowser';
-import { useGetAssetsQuery, useDeleteAssetMutation } from '@/services/assetsApi';
+import { useLetterFilter } from '@/hooks/useLetterFilter';
+import { useGetAssetsQuery, useDeleteAssetMutation, useCloneAssetMutation } from '@/services/assetsApi';
 import type { Asset } from '@/types/domain';
 
 export const AssetLibraryPage: React.FC = () => {
@@ -38,8 +40,14 @@ export const AssetLibraryPage: React.FC = () => {
   const navigate = useNavigate();
   const browser = useAssetBrowser();
   const [deleteAsset] = useDeleteAssetMutation();
+  const [cloneAsset] = useCloneAssetMutation();
 
   const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(browser.queryParams);
+
+  const { availableLetters } = useLetterFilter({
+    items: allAssets,
+    getName: (asset) => asset.name,
+  });
 
   const filteredAssets = useMemo(() => {
     if (!allAssets) return [];
@@ -73,6 +81,15 @@ export const AssetLibraryPage: React.FC = () => {
     if (selectedAsset && window.confirm(`Delete "${selectedAsset.name}"?`)) {
       await deleteAsset(selectedAsset.id);
       browser.setSelectedAssetId(null);
+    }
+  };
+
+  const handleCloneAsset = async () => {
+    if (selectedAsset) {
+      const result = await cloneAsset(selectedAsset.id);
+      if ('data' in result && result.data) {
+        navigate(`/assets/${result.data.id}/edit`);
+      }
     }
   };
 
@@ -247,6 +264,7 @@ export const AssetLibraryPage: React.FC = () => {
 
         {(browser.selectedPath.length > 0 ||
           browser.searchQuery ||
+          browser.letterFilter ||
           Object.keys(browser.attributeFilters).length > 0) && (
           <Box sx={{ p: 1, pt: 2 }}>
             <Button
@@ -277,6 +295,13 @@ export const AssetLibraryPage: React.FC = () => {
         selectedCount={browser.selectedAssetIds.length}
         onBulkDelete={handleBulkDelete}
         totalCount={filteredAssets.length}
+      />
+
+      <LetterFilterBar
+        selectedLetter={browser.letterFilter}
+        onLetterChange={browser.setLetterFilter}
+        availableLetters={availableLetters}
+        compact
       />
 
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
@@ -351,7 +376,7 @@ export const AssetLibraryPage: React.FC = () => {
   );
 
   const rightSidebar = selectedAsset ? (
-    <AssetInspectorPanel asset={selectedAsset} onEdit={handleEditAsset} onDelete={handleDeleteAsset} />
+    <AssetInspectorPanel asset={selectedAsset} onEdit={handleEditAsset} onDelete={handleDeleteAsset} onClone={handleCloneAsset} />
   ) : null;
 
   return (
