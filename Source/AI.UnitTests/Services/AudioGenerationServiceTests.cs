@@ -23,14 +23,14 @@ public class AudioGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_WithValidRequest_ReturnsAudioResponse() {
-        var request = new AudioGenerationRequest {
+        var data = new AudioGenerationData {
             Prompt = "Epic battle music",
             Model = "tts-1",
             Provider = AiProviderType.OpenAi,
             Duration = TimeSpan.FromSeconds(30),
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -39,17 +39,17 @@ public class AudioGenerationServiceTests {
         result.Value.Provider.Should().Be(AiProviderType.OpenAi);
         result.Value.Model.Should().Be("tts-1");
         result.Value.Duration.Should().Be(TimeSpan.FromSeconds(30));
-        _mockProvider.LastRequest.Should().BeSameAs(request);
+        _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
-        var request = new AudioGenerationRequest {
+        var data = new AudioGenerationData {
             Prompt = "Test audio",
         };
         _mockProvider.ErrorToReturn = "Audio generation failed";
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("Audio generation failed");
@@ -57,12 +57,12 @@ public class AudioGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_WithNullDuration_UsesZero() {
-        var request = new AudioGenerationRequest {
+        var data = new AudioGenerationData {
             Prompt = "Test audio",
             Duration = null,
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Duration.Should().Be(TimeSpan.Zero);
@@ -80,11 +80,11 @@ public class AudioGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_SetsCostToZero() {
-        var request = new AudioGenerationRequest {
+        var data = new AudioGenerationData {
             Prompt = "Test audio",
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Cost.Should().Be(0m);

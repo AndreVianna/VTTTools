@@ -5,10 +5,16 @@ global using System.Text.Json;
 
 global using AwesomeAssertions;
 
+global using DotNetToolbox.Results;
+
 global using Microsoft.Extensions.Configuration;
 
 global using NSubstitute;
 
+global using VttTools.AI.ApiContracts;
+global using VttTools.AI.Model;
+global using VttTools.AI.ServiceContracts;
+global using VttTools.AI.Services;
 global using VttTools.Assets.Model;
 global using VttTools.Common.Model;
 global using VttTools.Media.Model;

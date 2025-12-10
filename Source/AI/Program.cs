@@ -47,12 +47,15 @@ internal static class Program {
 
         builder.Services.AddScoped<IPromptProvider, OpenAiPromptProvider>();
 
+        builder.Services.AddScoped<ITextProvider, OpenAiTextProvider>();
+
         builder.Services.AddScoped<IAiProviderFactory, AiProviderFactory>();
 
         builder.Services.AddScoped<IImageGenerationService, ImageGenerationService>();
         builder.Services.AddScoped<IPromptEnhancementService, PromptEnhancementService>();
         builder.Services.AddScoped<IAudioGenerationService, AudioGenerationService>();
         builder.Services.AddScoped<IVideoGenerationService, VideoGenerationService>();
+        builder.Services.AddScoped<ITextGenerationService, TextGenerationService>();
 
         builder.Services.AddScoped<IPromptTemplateStorage, PromptTemplateStorage>();
         builder.Services.AddScoped<IPromptTemplateService, PromptTemplateService>();

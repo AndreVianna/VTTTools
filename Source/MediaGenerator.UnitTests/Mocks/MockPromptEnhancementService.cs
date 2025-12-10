@@ -1,15 +1,10 @@
-using DotNetToolbox.Results;
-
-using VttTools.AI;
-using VttTools.AI.PromptEnhancement;
-
 namespace VttTools.MediaGenerator.UnitTests.Mocks;
 
 public sealed class MockPromptEnhancementService : IPromptEnhancementService {
     private readonly Queue<Result<PromptEnhancementResponse>> _responses = new();
-    private readonly List<PromptEnhancementRequest> _receivedRequests = [];
+    private readonly List<PromptEnhancementData> _receivedRequests = [];
 
-    public IReadOnlyList<PromptEnhancementRequest> ReceivedRequests => _receivedRequests;
+    public IReadOnlyList<PromptEnhancementData> ReceivedRequests => _receivedRequests;
 
     public void EnqueueSuccess(string enhancedPrompt) {
         var response = new PromptEnhancementResponse {
@@ -25,9 +20,9 @@ public sealed class MockPromptEnhancementService : IPromptEnhancementService {
     public void EnqueueFailure(string errorMessage) => _responses.Enqueue(Result.Failure<PromptEnhancementResponse>(null!, errorMessage));
 
     public Task<Result<PromptEnhancementResponse>> EnhanceAsync(
-        PromptEnhancementRequest request,
+        PromptEnhancementData data,
         CancellationToken ct = default) {
-        _receivedRequests.Add(request);
+        _receivedRequests.Add(data);
 
         if (_responses.Count == 0) {
             EnqueueSuccess("Enhanced prompt");

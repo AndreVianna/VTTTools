@@ -7,7 +7,7 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
         PropertyNameCaseInsensitive = true
     };
 
-    public async Task<ImageGenerationResponse> GenerateImageFileAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
+    public async Task<GenerateImageResponse> GenerateImageFileAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
         var request = new {
             Contents = new[] {
                 new {
@@ -53,7 +53,7 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
             outputCost,
             content.UsageMetadata.TotalTokenCount,
             totalCost);
-        return new ImageGenerationResponse(
+        return new GenerateImageResponse(
             Convert.FromBase64String(imageData),
             true,
             TotalTokens: content.UsageMetadata.TotalTokenCount,

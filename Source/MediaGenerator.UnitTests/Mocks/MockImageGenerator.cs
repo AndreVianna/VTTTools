@@ -18,14 +18,14 @@ public sealed class MockImageGenerator : IImageGenerator {
         _images.Enqueue(fakeImage);
     }
 
-    public Task<ImageGenerationResponse> GenerateImageFileAsync(string model, string imageType, string? prompt = null, CancellationToken ct = default) {
+    public Task<GenerateImageResponse> GenerateImageFileAsync(string model, string imageType, string? prompt = null, CancellationToken ct = default) {
         _receivedRequests.Add((model, imageType, prompt));
 
         if (_images.Count == 0) {
             EnqueueFakeImage();
         }
 
-        var result = new ImageGenerationResponse(_images.Dequeue(), true);
+        var result = new GenerateImageResponse(_images.Dequeue(), true);
         return Task.FromResult(result);
     }
 

@@ -23,14 +23,14 @@ public class VideoGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_WithValidRequest_ReturnsVideoResponse() {
-        var request = new VideoGenerationRequest {
+        var data = new VideoGenerationData {
             Prompt = "Dragon flying over mountains",
             Model = "gen-2",
             Provider = AiProviderType.RunwayML,
             Duration = TimeSpan.FromSeconds(5),
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -39,17 +39,17 @@ public class VideoGenerationServiceTests {
         result.Value.Provider.Should().Be(AiProviderType.RunwayML);
         result.Value.Model.Should().Be("gen-2");
         result.Value.Duration.Should().Be(TimeSpan.FromSeconds(5));
-        _mockProvider.LastRequest.Should().BeSameAs(request);
+        _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
-        var request = new VideoGenerationRequest {
+        var data = new VideoGenerationData {
             Prompt = "Test video",
         };
         _mockProvider.ErrorToReturn = "Video generation failed";
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("Video generation failed");
@@ -57,12 +57,12 @@ public class VideoGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_WithNullDuration_UsesZero() {
-        var request = new VideoGenerationRequest {
+        var data = new VideoGenerationData {
             Prompt = "Test video",
             Duration = null,
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Duration.Should().Be(TimeSpan.Zero);
@@ -79,11 +79,11 @@ public class VideoGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_SetsCostToZero() {
-        var request = new VideoGenerationRequest {
+        var data = new VideoGenerationData {
             Prompt = "Test video",
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Cost.Should().Be(0m);

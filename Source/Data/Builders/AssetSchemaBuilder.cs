@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using AssetStatBlockValue = VttTools.Data.Assets.Entities.AssetStatBlockValue;
 using AssetToken = VttTools.Data.Assets.Entities.AssetToken;

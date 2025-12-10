@@ -1,8 +1,6 @@
-using VttTools.AI.PromptEnhancement;
-
 namespace VttTools.MediaGenerator.Application.Commands;
 
-public sealed class PrepareCommand(VttTools.AI.PromptEnhancement.IPromptEnhancementService promptEnhancementService,
+public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementService,
                                    IFileStore fileStore,
                                    IConfiguration config) {
 
@@ -119,7 +117,7 @@ public sealed class PrepareCommand(VttTools.AI.PromptEnhancement.IPromptEnhancem
         var model = config["PromptEnhancer:Model"] ?? throw new InvalidOperationException("Prompt enhancer model not configured.");
 
         var provider = ParseProvider(providerName);
-        var request = BuildPromptRequest(imageType, entity, tokenIndex, provider, model);
+        var request = BuildPromptData(imageType, entity, tokenIndex, provider, model);
 
         var result = await promptEnhancementService.EnhanceAsync(request, ct);
         if (result.IsSuccessful) {
@@ -141,7 +139,7 @@ public sealed class PrepareCommand(VttTools.AI.PromptEnhancement.IPromptEnhancem
             _ => throw new InvalidOperationException($"Unsupported prompt enhancer provider: {providerName}.")
         };
 
-    private static PromptEnhancementRequest BuildPromptRequest(
+    private static PromptEnhancementData BuildPromptData(
         string imageType,
         Asset asset,
         int tokenIndex,
@@ -150,7 +148,7 @@ public sealed class PrepareCommand(VttTools.AI.PromptEnhancement.IPromptEnhancem
         var userPrompt = BuildUserPrompt(imageType, asset, tokenIndex);
         var systemPrompt = BuildSystemPrompt(imageType, asset);
 
-        return new PromptEnhancementRequest {
+        return new PromptEnhancementData {
             Prompt = userPrompt,
             Context = systemPrompt,
             Provider = provider,

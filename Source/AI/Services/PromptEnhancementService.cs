@@ -1,16 +1,19 @@
 namespace VttTools.AI.Services;
 
-public class PromptEnhancementService(
-    IAiProviderFactory providerFactory)
+public class PromptEnhancementService(IAiProviderFactory providerFactory)
     : IPromptEnhancementService {
 
     public async Task<Result<PromptEnhancementResponse>> EnhanceAsync(
-        PromptEnhancementRequest request,
+        PromptEnhancementData data,
         CancellationToken ct = default) {
-        var provider = providerFactory.GetPromptProvider(request.Provider);
+        var validation = data.Validate();
+        if (validation.HasErrors)
+            return Result.Failure<PromptEnhancementResponse>(null!, validation.Errors);
+
+        var provider = providerFactory.GetPromptProvider(data.Provider);
 
         var stopwatch = Stopwatch.StartNew();
-        var result = await provider.EnhanceAsync(request, ct);
+        var result = await provider.EnhanceAsync(data, ct);
         stopwatch.Stop();
 
         return !result.IsSuccessful
@@ -18,7 +21,7 @@ public class PromptEnhancementService(
             : (Result<PromptEnhancementResponse>)new PromptEnhancementResponse {
                 EnhancedPrompt = result.Value,
                 Provider = provider.ProviderType,
-                Model = request.Model,
+                Model = data.Model,
                 TokensUsed = 0,
                 Cost = 0m,
                 Duration = stopwatch.Elapsed,

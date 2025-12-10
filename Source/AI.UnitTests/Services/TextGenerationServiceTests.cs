@@ -1,0 +1,198 @@
+using VttTools.AI.UnitTests.Mocks;
+
+namespace VttTools.AI.Services;
+
+public class TextGenerationServiceTests {
+    private readonly IAiProviderFactory _providerFactory = Substitute.For<IAiProviderFactory>();
+    private readonly IPromptTemplateStorage _templateStorage = Substitute.For<IPromptTemplateStorage>();
+    private readonly IPromptTemplateService _templateService = Substitute.For<IPromptTemplateService>();
+    private readonly MockTextProvider _mockTextProvider = new();
+    private readonly TextGenerationService _service;
+    private readonly CancellationToken _ct;
+
+    public TextGenerationServiceTests() {
+        _providerFactory.GetTextProvider(Arg.Any<AiProviderType?>()).Returns(_mockTextProvider);
+        _providerFactory.GetAvailableTextProviders().Returns([AiProviderType.OpenAi]);
+        _service = new TextGenerationService(_providerFactory, _templateStorage, _templateService);
+        _ct = TestContext.Current.CancellationToken;
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithValidData_ReturnsSuccessfulResponse() {
+        var data = new TextGenerationData {
+            Prompt = "Generate a description for a dragon",
+            Category = PromptCategory.TextDescription,
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.GeneratedText.Should().NotBeNullOrEmpty();
+        result.Value.Category.Should().Be(PromptCategory.TextDescription);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithEmptyPrompt_ReturnsValidationError() {
+        var data = new TextGenerationData {
+            Prompt = "",
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.Message.Contains(nameof(TextGenerationData.Prompt)));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithSpecificProvider_UsesRequestedProvider() {
+        var data = new TextGenerationData {
+            Prompt = "Generate a description",
+            Provider = AiProviderType.OpenAi,
+        };
+
+        await _service.GenerateAsync(data, _ct);
+
+        _providerFactory.Received(1).GetTextProvider(AiProviderType.OpenAi);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithTemplateName_ResolvesTemplate() {
+        var template = new PromptTemplate {
+            Id = Guid.CreateVersion7(),
+            Name = "test.template",
+            Category = PromptCategory.TextDescription,
+            UserPromptTemplate = "Describe a {creature} in detail",
+            SystemPrompt = "You are a fantasy writer.",
+        };
+        _templateStorage.GetLatestByNameAsync("test.template", false, _ct).Returns(template);
+        _templateService.ResolveTemplate(template.UserPromptTemplate, Arg.Any<Dictionary<string, string>>())
+            .Returns("Describe a dragon in detail");
+        _templateService.ResolveTemplate(template.SystemPrompt, Arg.Any<Dictionary<string, string>>())
+            .Returns("You are a fantasy writer.");
+
+        var data = new TextGenerationData {
+            Prompt = "dragon",
+            TemplateName = "test.template",
+            TemplateContext = new Dictionary<string, string> { ["creature"] = "dragon" },
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeTrue();
+        _mockTextProvider.LastData!.Prompt.Should().Be("Describe a dragon in detail");
+        _mockTextProvider.LastData!.SystemPrompt.Should().Be("You are a fantasy writer.");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithNonExistentTemplate_ReturnsError() {
+        _templateStorage.GetLatestByNameAsync("missing.template", false, _ct).Returns((PromptTemplate?)null);
+
+        var data = new TextGenerationData {
+            Prompt = "test",
+            TemplateName = "missing.template",
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors[0].Message.Should().Contain("missing.template");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithProviderError_ReturnsError() {
+        _mockTextProvider.ErrorToReturn = "Provider unavailable";
+        var data = new TextGenerationData {
+            Prompt = "Test prompt",
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors[0].Message.Should().Be("Provider unavailable");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithMaxTokensAndTemperature_PassesToProvider() {
+        var data = new TextGenerationData {
+            Prompt = "Generate text",
+            MaxTokens = 500,
+            Temperature = 0.7,
+        };
+
+        await _service.GenerateAsync(data, _ct);
+
+        _mockTextProvider.LastData!.MaxTokens.Should().Be(500);
+        _mockTextProvider.LastData!.Temperature.Should().Be(0.7);
+    }
+
+    [Fact]
+    public async Task GetAvailableProvidersAsync_ReturnsProvidersFromFactory() {
+        var result = await _service.GetAvailableProvidersAsync(_ct);
+
+        result.Should().HaveCount(1);
+        result.Should().Contain(AiProviderType.OpenAi);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithInvalidMaxTokens_ReturnsValidationError() {
+        var data = new TextGenerationData {
+            Prompt = "Test",
+            MaxTokens = 0,
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.Message.Contains(nameof(TextGenerationData.MaxTokens)));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithInvalidTemperature_ReturnsValidationError() {
+        var data = new TextGenerationData {
+            Prompt = "Test",
+            Temperature = 3.0,
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.Message.Contains(nameof(TextGenerationData.Temperature)));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithSystemPrompt_PassesToProvider() {
+        var data = new TextGenerationData {
+            Prompt = "Generate a story",
+            SystemPrompt = "You are a creative storyteller.",
+        };
+
+        await _service.GenerateAsync(data, _ct);
+
+        _mockTextProvider.LastData!.SystemPrompt.Should().Be("You are a creative storyteller.");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithTemplateAndNoSystemPrompt_UsesTemplateSystemPrompt() {
+        var template = new PromptTemplate {
+            Id = Guid.CreateVersion7(),
+            Name = "test.template",
+            Category = PromptCategory.TextDescription,
+            UserPromptTemplate = "{prompt}",
+            SystemPrompt = "Template system prompt",
+        };
+        _templateStorage.GetLatestByNameAsync("test.template", false, _ct).Returns(template);
+        _templateService.ResolveTemplate(template.UserPromptTemplate, Arg.Any<Dictionary<string, string>>())
+            .Returns("User prompt");
+        _templateService.ResolveTemplate(template.SystemPrompt, Arg.Any<Dictionary<string, string>>())
+            .Returns("Template system prompt");
+
+        var data = new TextGenerationData {
+            Prompt = "User prompt",
+            TemplateName = "test.template",
+        };
+
+        await _service.GenerateAsync(data, _ct);
+
+        _mockTextProvider.LastData!.SystemPrompt.Should().Be("Template system prompt");
+    }
+}

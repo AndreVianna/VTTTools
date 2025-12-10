@@ -9,17 +9,17 @@ public sealed class OpenAiImageProvider(
     public AiProviderType ProviderType => AiProviderType.OpenAi;
 
     public async Task<Result<byte[]>> GenerateAsync(
-        ImageGenerationRequest request,
+        ImageGenerationData data,
         CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = request.Model ?? configuration["AI:Providers:OpenAI:Models:Image"]
+            var model = data.Model ?? configuration["AI:Providers:OpenAI:Models:Image"]
                 ?? throw new InvalidOperationException("OpenAI image model not configured.");
 
             logger.LogDebug("Starting OpenAI image generation with model {Model}", model);
 
-            var apiRequest = CreateImageRequest(model, request);
+            var apiRequest = CreateImageRequest(model, data);
             var endpoint = _helper.GetEndpoint(model);
 
             using var client = _helper.CreateAuthenticatedClient();
@@ -62,17 +62,17 @@ public sealed class OpenAiImageProvider(
         }
     }
 
-    private static OpenAiImageRequest CreateImageRequest(string model, ImageGenerationRequest request) {
-        var size = GetImageSize(request);
+    private static OpenAiImageRequest CreateImageRequest(string model, ImageGenerationData data) {
+        var size = GetImageSize(data);
         return new OpenAiImageRequest(
             Model: model,
-            Prompt: request.Prompt,
+            Prompt: data.Prompt,
             OutputFormat: "png",
             Size: size,
             Background: "auto");
     }
 
-    private static string GetImageSize(ImageGenerationRequest request) => request.Width is not null && request.Height is not null
+    private static string GetImageSize(ImageGenerationData request) => request.Width is not null && request.Height is not null
             ? $"{request.Width}x{request.Height}"
             : request.AspectRatio switch {
                 "1:1" => "1024x1024",

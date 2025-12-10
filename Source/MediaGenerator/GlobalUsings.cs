@@ -17,12 +17,14 @@ global using Microsoft.Extensions.DependencyInjection;
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Processing;
 
-global using VttTools.AI;
 global using VttTools.AI.Factory;
+global using VttTools.AI.Model;
 global using VttTools.AI.Providers;
 global using VttTools.AI.Providers.Google;
 global using VttTools.AI.Providers.OpenAi;
 global using VttTools.AI.Providers.Stability;
+global using VttTools.AI.ServiceContracts;
+global using VttTools.AI.Services;
 global using VttTools.Assets.Model;
 global using VttTools.Media.Model;
 global using VttTools.MediaGenerator.Application.HealthChecks;

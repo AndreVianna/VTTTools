@@ -1,8 +1,4 @@
-﻿using VttTools.AI.ImageGeneration;
-using VttTools.AI.PromptEnhancement;
-using VttTools.AI.Services;
-
-using static VttTools.MediaGenerator.Application.Commands.CommandFactory;
+﻿using static VttTools.MediaGenerator.Application.Commands.CommandFactory;
 
 var config = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())

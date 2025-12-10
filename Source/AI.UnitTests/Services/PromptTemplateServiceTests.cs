@@ -1,12 +1,15 @@
+using VttTools.Media.Storage;
+
 namespace VttTools.AI.Services;
 
 public class PromptTemplateServiceTests {
     private readonly IPromptTemplateStorage _storage = Substitute.For<IPromptTemplateStorage>();
+    private readonly IMediaStorage _mediaStorage = Substitute.For<IMediaStorage>();
     private readonly PromptTemplateService _service;
     private readonly CancellationToken _ct;
 
     public PromptTemplateServiceTests() {
-        _service = new PromptTemplateService(_storage);
+        _service = new PromptTemplateService(_storage, _mediaStorage);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -86,7 +89,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public async Task CreateAsync_WithNewNameAndVersion_CreatesTemplate() {
-        var request = new CreatePromptTemplateRequest {
+        var data = new CreatePromptTemplateData {
             Name = "NewTemplate",
             Category = PromptCategory.ImagePortrait,
             UserPromptTemplate = "Create a {subject} portrait",
@@ -95,7 +98,7 @@ public class PromptTemplateServiceTests {
         _storage.AddAsync(Arg.Any<PromptTemplate>(), _ct)
             .Returns(ci => ci.Arg<PromptTemplate>());
 
-        var result = await _service.CreateAsync(request, _ct);
+        var result = await _service.CreateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be("NewTemplate");
@@ -105,7 +108,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public async Task CreateAsync_WithExplicitVersion_UsesProvidedVersion() {
-        var request = new CreatePromptTemplateRequest {
+        var data = new CreatePromptTemplateData {
             Name = "NewTemplate",
             Category = PromptCategory.ImagePortrait,
             Version = "2.0",
@@ -115,7 +118,7 @@ public class PromptTemplateServiceTests {
         _storage.AddAsync(Arg.Any<PromptTemplate>(), _ct)
             .Returns(ci => ci.Arg<PromptTemplate>());
 
-        var result = await _service.CreateAsync(request, _ct);
+        var result = await _service.CreateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Version.Should().Be("2.0");
@@ -123,14 +126,14 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public async Task CreateAsync_WithExistingNameAndVersion_ReturnsFailure() {
-        var request = new CreatePromptTemplateRequest {
+        var data = new CreatePromptTemplateData {
             Name = "ExistingTemplate",
             Category = PromptCategory.ImagePortrait,
             UserPromptTemplate = "Test template",
         };
         _storage.ExistsAsync("ExistingTemplate", "1.0-draft", _ct).Returns(true);
 
-        var result = await _service.CreateAsync(request, _ct);
+        var result = await _service.CreateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("ExistingTemplate");
@@ -141,14 +144,14 @@ public class PromptTemplateServiceTests {
     public async Task UpdateAsync_WithValidId_UpdatesTemplate() {
         var templateId = Guid.CreateVersion7();
         var existing = CreateTemplate(templateId, "Template", systemPrompt: "Old prompt");
-        var request = new UpdatePromptTemplateRequest {
+        var data = new UpdatePromptTemplateData {
             SystemPrompt = "New prompt",
         };
         _storage.GetByIdAsync(templateId, _ct).Returns(existing);
         _storage.UpdateAsync(Arg.Any<PromptTemplate>(), _ct)
             .Returns(ci => ci.Arg<PromptTemplate>());
 
-        var result = await _service.UpdateAsync(templateId, request, _ct);
+        var result = await _service.UpdateAsync(templateId, data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.SystemPrompt.Should().Be("New prompt");
@@ -157,12 +160,12 @@ public class PromptTemplateServiceTests {
     [Fact]
     public async Task UpdateAsync_WithInvalidId_ReturnsFailure() {
         var templateId = Guid.CreateVersion7();
-        var request = new UpdatePromptTemplateRequest {
+        var data = new UpdatePromptTemplateData {
             SystemPrompt = "New prompt",
         };
         _storage.GetByIdAsync(templateId, _ct).Returns((PromptTemplate?)null);
 
-        var result = await _service.UpdateAsync(templateId, request, _ct);
+        var result = await _service.UpdateAsync(templateId, data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain(templateId.ToString());
@@ -174,14 +177,14 @@ public class PromptTemplateServiceTests {
         var existing = CreateTemplate(templateId, "Template",
             systemPrompt: "Original system",
             userPrompt: "Original user");
-        var request = new UpdatePromptTemplateRequest {
+        var data = new UpdatePromptTemplateData {
             SystemPrompt = "New system",
         };
         _storage.GetByIdAsync(templateId, _ct).Returns(existing);
         _storage.UpdateAsync(Arg.Any<PromptTemplate>(), _ct)
             .Returns(ci => ci.Arg<PromptTemplate>());
 
-        var result = await _service.UpdateAsync(templateId, request, _ct);
+        var result = await _service.UpdateAsync(templateId, data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.SystemPrompt.Should().Be("New system");
@@ -192,13 +195,13 @@ public class PromptTemplateServiceTests {
     public async Task UpdateAsync_WithVersionChange_ChecksForDuplicate() {
         var templateId = Guid.CreateVersion7();
         var existing = CreateTemplate(templateId, "Template", version: "1.0");
-        var request = new UpdatePromptTemplateRequest {
+        var data = new UpdatePromptTemplateData {
             Version = "2.0",
         };
         _storage.GetByIdAsync(templateId, _ct).Returns(existing);
         _storage.ExistsAsync("Template", "2.0", _ct).Returns(true);
 
-        var result = await _service.UpdateAsync(templateId, request, _ct);
+        var result = await _service.UpdateAsync(templateId, data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("already exists");
@@ -229,7 +232,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public void ResolveTemplate_WithSimpleVariable_ReplacesCorrectly() {
-        var template = "{name}";
+        const string template = "{name}";
         var context = new Dictionary<string, string> { ["name"] = "Dragon" };
 
         var result = _service.ResolveTemplate(template, context);
@@ -239,7 +242,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public void ResolveTemplate_WithMultipleVariables_ReplacesAll() {
-        var template = "A {adjective} {creature}";
+        const string template = "A {adjective} {creature}";
         var context = new Dictionary<string, string> {
             ["adjective"] = "fierce",
             ["creature"] = "dragon",
@@ -252,7 +255,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public void ResolveTemplate_WithDefaultValue_UsesDefaultWhenEmpty() {
-        var template = "{missing:default}";
+        const string template = "{missing:default}";
         var context = new Dictionary<string, string> { ["missing"] = "" };
 
         var result = _service.ResolveTemplate(template, context);
@@ -262,7 +265,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public void ResolveTemplate_WithDefaultValue_UsesProvidedValueWhenPresent() {
-        var template = "{var:fallback}";
+        const string template = "{var:fallback}";
         var context = new Dictionary<string, string> { ["var"] = "value" };
 
         var result = _service.ResolveTemplate(template, context);
@@ -286,7 +289,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public void ResolveTemplate_WithNoVariables_ReturnsOriginal() {
-        var template = "A static template with no variables";
+        const string template = "A static template with no variables";
 
         var result = _service.ResolveTemplate(template, new Dictionary<string, string>());
 
@@ -295,7 +298,7 @@ public class PromptTemplateServiceTests {
 
     [Fact]
     public void ResolveTemplate_WithMissingVariableAndNoDefault_KeepsPlaceholder() {
-        var template = "Hello {unknown}";
+        const string template = "Hello {unknown}";
 
         var result = _service.ResolveTemplate(template, new Dictionary<string, string>());
 
@@ -309,11 +312,11 @@ public class PromptTemplateServiceTests {
         string version = "1.0",
         string systemPrompt = "",
         string userPrompt = "Default template") => new() {
-        Id = id,
-        Name = name,
-        Category = category,
-        Version = version,
-        SystemPrompt = systemPrompt,
-        UserPromptTemplate = userPrompt,
-    };
+            Id = id,
+            Name = name,
+            Category = category,
+            Version = version,
+            SystemPrompt = systemPrompt,
+            UserPromptTemplate = userPrompt,
+        };
 }

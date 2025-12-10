@@ -5,7 +5,7 @@ public sealed class OpenAiImageGenerator(
     IConfiguration config) : IImageGenerator {
     private readonly OpenAiHttpClientHelper _helper = new(httpClientFactory, config);
 
-    public async Task<ImageGenerationResponse> GenerateImageFileAsync(
+    public async Task<GenerateImageResponse> GenerateImageFileAsync(
         string model,
         string imageType,
         string prompt,
@@ -52,7 +52,7 @@ public sealed class OpenAiImageGenerator(
         && response.Data?.Length > 0
         && !string.IsNullOrEmpty(response.Data[0].Content);
 
-    private static ImageGenerationResponse CreateSuccessResponse(
+    private static GenerateImageResponse CreateSuccessResponse(
         string model,
         OpenAiImageResponse responseBody,
         TimeSpan duration) {
@@ -64,7 +64,7 @@ public sealed class OpenAiImageGenerator(
 
         CostCalculation.LogCost(cost);
 
-        return new ImageGenerationResponse(
+        return new GenerateImageResponse(
             Data: imageData,
             IsSuccess: true,
             TotalTokens: cost.TotalTokens,
@@ -72,7 +72,7 @@ public sealed class OpenAiImageGenerator(
             Duration: duration);
     }
 
-    private static ImageGenerationResponse CreateErrorResponse(string errorMessage, TimeSpan duration)
+    private static GenerateImageResponse CreateErrorResponse(string errorMessage, TimeSpan duration)
         => new(
             Data: [],
             IsSuccess: false,

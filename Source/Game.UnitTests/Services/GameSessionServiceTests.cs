@@ -785,4 +785,298 @@ public class GameSessionServiceTests {
     }
 
     #endregion StopGameSessionAsync
+
+    #region Edge Cases and State Transitions
+
+    [Fact]
+    public async Task JoinGameSessionAsync_AsGameMaster_AddsGameMasterSuccessfully() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var newGmId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            OwnerId = _userId,
+            Players = [new Participant { UserId = _userId, Type = PlayerType.Master }],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.JoinGameSessionAsync(newGmId, sessionId, PlayerType.Master, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        session.Players.Should().Contain(p => p.UserId == newGmId && p.Type == PlayerType.Master);
+    }
+
+    [Fact]
+    public async Task LeaveGameSessionAsync_AsGameMaster_RemovesGameMasterSuccessfully() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var gmId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            OwnerId = _userId,
+            Players = [
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = gmId, Type = PlayerType.Master },
+            ],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.LeaveGameSessionAsync(gmId, sessionId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        session.Players.Should().NotContain(p => p.UserId == gmId);
+        session.Players.Should().ContainSingle(p => p.UserId == _userId);
+    }
+
+    [Fact]
+    public async Task StartGameSessionAsync_WhenAlreadyInProgress_StillUpdatesStatus() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            Status = GameSessionStatus.InProgress,
+            OwnerId = Guid.CreateVersion7(),
+            Players = [
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+            ],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.StartGameSessionAsync(_userId, sessionId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sessionStorage.Received(1).UpdateAsync(
+            Arg.Is<GameSession>(s => s.Id == sessionId && s.Status == GameSessionStatus.InProgress),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task StopGameSessionAsync_WhenAlreadyFinished_StillUpdatesStatus() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            Status = GameSessionStatus.Finished,
+            OwnerId = Guid.CreateVersion7(),
+            Players = [
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+            ],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.StopGameSessionAsync(_userId, sessionId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sessionStorage.Received(1).UpdateAsync(
+            Arg.Is<GameSession>(s => s.Id == sessionId && s.Status == GameSessionStatus.Finished),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SetActiveEncounterAsync_WithSameEncounter_UpdatesSuccessfully() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var encounterId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            OwnerId = Guid.CreateVersion7(),
+            EncounterId = encounterId,
+            Players = [new Participant { UserId = _userId, Type = PlayerType.Master }],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.SetActiveEncounterAsync(_userId, sessionId, encounterId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sessionStorage.Received(1).UpdateAsync(
+            Arg.Is<GameSession>(s => s.Id == sessionId && s.EncounterId == encounterId),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateGameSessionAsync_WithoutEncounterId_CreatesWithEmptyGuid() {
+        // Arrange
+        var data = new CreateGameSessionData {
+            Title = "New GameSession",
+        };
+        var createdGameSession = new GameSession {
+            Title = "New GameSession",
+            EncounterId = Guid.Empty,
+            OwnerId = _userId,
+            Players = [new() { UserId = _userId, Type = PlayerType.Master }],
+        };
+
+        _sessionStorage.AddAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>())
+            .Returns(createdGameSession);
+
+        // Act
+        var result = await _service.CreateGameSessionAsync(_userId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        var encounterId = result.Value.EncounterId;
+        (encounterId == null || encounterId == Guid.Empty).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UpdateGameSessionAsync_ClearEncounterId_UpdatesSuccessfully() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var oldEncounterId = Guid.CreateVersion7();
+        var emptyGuid = Guid.Empty;
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            OwnerId = _userId,
+            EncounterId = oldEncounterId,
+        };
+
+        var data = new UpdateGameSessionData {
+            EncounterId = emptyGuid,
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.EncounterId.Should().Be(emptyGuid);
+    }
+
+    [Fact]
+    public async Task JoinGameSessionAsync_WithMultiplePlayers_MaintainsAllPlayers() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var player1Id = Guid.CreateVersion7();
+        var player2Id = Guid.CreateVersion7();
+        var player3Id = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            OwnerId = _userId,
+            Players = [
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = player1Id, Type = PlayerType.Player },
+                new Participant { UserId = player2Id, Type = PlayerType.Player },
+            ],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.JoinGameSessionAsync(player3Id, sessionId, PlayerType.Player, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        session.Players.Should().HaveCount(4);
+        session.Players.Should().Contain(p => p.UserId == player3Id);
+    }
+
+    [Fact]
+    public async Task LeaveGameSessionAsync_WithLastPlayer_RemovesSuccessfully() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "GameSession",
+            OwnerId = Guid.CreateVersion7(),
+            Players = [
+                new Participant { UserId = _userId, Type = PlayerType.Player },
+            ],
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.LeaveGameSessionAsync(_userId, sessionId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        session.Players.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetGameSessionsAsync_WithEmptyResult_ReturnsEmptyArray() {
+        // Arrange
+        var sessions = Array.Empty<GameSession>();
+        _sessionStorage.GetByUserIdAsync(_userId, Arg.Any<CancellationToken>()).Returns(sessions);
+
+        // Act
+        var result = await _service.GetGameSessionsAsync(_userId, _ct);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task CreateGameSessionAsync_SetsDefaultDraftStatus() {
+        // Arrange
+        var data = new CreateGameSessionData {
+            Title = "New GameSession",
+            EncounterId = Guid.CreateVersion7(),
+        };
+
+        GameSession? capturedSession = null;
+        await _sessionStorage.AddAsync(Arg.Do<GameSession>(s => capturedSession = s), Arg.Any<CancellationToken>());
+
+        // Act
+        await _service.CreateGameSessionAsync(_userId, data, _ct);
+
+        // Assert
+        capturedSession.Should().NotBeNull();
+        capturedSession!.Status.Should().Be(GameSessionStatus.Draft);
+    }
+
+    [Fact]
+    public async Task UpdateGameSessionAsync_WithBothTitleAndEncounterId_UpdatesBothFields() {
+        // Arrange
+        var sessionId = Guid.CreateVersion7();
+        var oldEncounterId = Guid.CreateVersion7();
+        var newEncounterId = Guid.CreateVersion7();
+        var session = new GameSession {
+            Id = sessionId,
+            Title = "Old Title",
+            OwnerId = _userId,
+            EncounterId = oldEncounterId,
+        };
+
+        var data = new UpdateGameSessionData {
+            Title = "New Title",
+            EncounterId = newEncounterId,
+        };
+
+        _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Title.Should().Be("New Title");
+        result.Value.EncounterId.Should().Be(newEncounterId);
+    }
+
+    #endregion Edge Cases and State Transitions
 }

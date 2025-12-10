@@ -7,7 +7,16 @@ internal static class AudioGenerationHandlers {
         [FromBody] AudioGenerationRequest request,
         [FromServices] IAudioGenerationService service,
         CancellationToken ct = default) {
-        var result = await service.GenerateAsync(request, ct);
+        var data = new AudioGenerationData {
+            Prompt = request.Prompt,
+            Provider = request.Provider,
+            Model = request.Model,
+            Duration = request.Duration,
+            Loop = request.Loop,
+            Type = request.Type,
+        };
+
+        var result = await service.GenerateAsync(data, ct);
 
         return !result.IsSuccessful
             ? Results.Problem(

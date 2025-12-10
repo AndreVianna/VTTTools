@@ -1,9 +1,21 @@
-using PromptTemplate = VttTools.AI.Templates.Model.PromptTemplate;
+using PromptTemplate = VttTools.AI.Model.PromptTemplate;
 using PromptTemplateEntity = VttTools.Data.AI.Entities.PromptTemplate;
 
 namespace VttTools.Data.AI;
 
 internal static class Mapper {
+    public static Expression<Func<PromptTemplateEntity, PromptTemplate>> AsTemplate = entity
+        => new() {
+            Id = entity.Id,
+            Name = entity.Name,
+            Category = entity.Category,
+            Version = entity.Version,
+            SystemPrompt = entity.SystemPrompt,
+            UserPromptTemplate = entity.UserPromptTemplate,
+            NegativePromptTemplate = entity.NegativePromptTemplate,
+            ReferenceImage = entity.ReferenceImage != null ? entity.ReferenceImage.ToModel() : null,
+        };
+
     internal static PromptTemplate? ToModel(this PromptTemplateEntity? entity)
         => entity == null ? null : new() {
             Id = entity.Id,
@@ -13,7 +25,7 @@ internal static class Mapper {
             SystemPrompt = entity.SystemPrompt,
             UserPromptTemplate = entity.UserPromptTemplate,
             NegativePromptTemplate = entity.NegativePromptTemplate,
-            ReferenceImageId = entity.ReferenceImageId,
+            ReferenceImage = entity.ReferenceImage?.ToModel(),
         };
 
     [return: NotNullIfNotNull(nameof(model))]
@@ -26,7 +38,7 @@ internal static class Mapper {
             SystemPrompt = model.SystemPrompt,
             UserPromptTemplate = model.UserPromptTemplate,
             NegativePromptTemplate = model.NegativePromptTemplate,
-            ReferenceImageId = model.ReferenceImageId,
+            ReferenceImageId = model.ReferenceImage?.Id,
         };
 
     internal static void UpdateFrom(this PromptTemplateEntity entity, PromptTemplate model) {
@@ -36,6 +48,6 @@ internal static class Mapper {
         entity.SystemPrompt = model.SystemPrompt;
         entity.UserPromptTemplate = model.UserPromptTemplate;
         entity.NegativePromptTemplate = model.NegativePromptTemplate;
-        entity.ReferenceImageId = model.ReferenceImageId;
+        entity.ReferenceImageId = model.ReferenceImage?.Id;
     }
 }

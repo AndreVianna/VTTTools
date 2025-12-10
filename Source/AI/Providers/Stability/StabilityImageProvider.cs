@@ -8,17 +8,17 @@ public sealed class StabilityImageProvider(
     public AiProviderType ProviderType => AiProviderType.Stability;
 
     public async Task<Result<byte[]>> GenerateAsync(
-        ImageGenerationRequest request,
+        ImageGenerationData data,
         CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = request.Model ?? configuration["AI:Providers:Stability:Models:Image"]
+            var model = data.Model ?? configuration["AI:Providers:Stability:Models:Image"]
                 ?? throw new InvalidOperationException("Stability image model not configured.");
 
             logger.LogDebug("Starting Stability AI image generation with model {Model}", model);
 
-            using var formContent = CreateFormContent(request);
+            using var formContent = CreateFormContent(data);
             var endpoint = GetEndpoint(model);
 
             using var client = CreateClient();
@@ -57,7 +57,7 @@ public sealed class StabilityImageProvider(
         }
     }
 
-    private static MultipartFormDataContent CreateFormContent(ImageGenerationRequest request) {
+    private static MultipartFormDataContent CreateFormContent(ImageGenerationData request) {
         var content = new MultipartFormDataContent();
 
         AddFormField(content, "prompt", request.Prompt);
@@ -104,7 +104,7 @@ public sealed class StabilityImageProvider(
         => model switch {
             "sd3" => "/v2beta/stable-image/generate/sd3",
             _ => throw new InvalidOperationException($"Unknown Stability model: {model}")
-    };
+        };
 
     private const string _genericNegativePrompt = "border, frame, text, watermark, signature, blurry, low quality, cropped edges, multiple subjects, duplicates";
 }

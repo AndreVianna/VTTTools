@@ -7,7 +7,18 @@ internal static class ImageGenerationHandlers {
         [FromBody] ImageGenerationRequest request,
         [FromServices] IImageGenerationService service,
         CancellationToken ct = default) {
-        var result = await service.GenerateAsync(request, ct);
+        var data = new ImageGenerationData {
+            Prompt = request.Prompt,
+            NegativePrompt = request.NegativePrompt,
+            Provider = request.Provider,
+            Model = request.Model,
+            AspectRatio = request.AspectRatio,
+            Width = request.Width,
+            Height = request.Height,
+            Style = request.Style,
+        };
+
+        var result = await service.GenerateAsync(data, ct);
 
         return !result.IsSuccessful
             ? Results.Problem(

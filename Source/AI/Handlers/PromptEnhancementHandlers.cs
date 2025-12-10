@@ -7,7 +7,15 @@ internal static class PromptEnhancementHandlers {
         [FromBody] PromptEnhancementRequest request,
         [FromServices] IPromptEnhancementService service,
         CancellationToken ct = default) {
-        var result = await service.EnhanceAsync(request, ct);
+        var data = new PromptEnhancementData {
+            Prompt = request.Prompt,
+            Context = request.Context,
+            Style = request.Style,
+            Provider = request.Provider,
+            Model = request.Model,
+        };
+
+        var result = await service.EnhanceAsync(data, ct);
 
         return !result.IsSuccessful
             ? Results.Problem(

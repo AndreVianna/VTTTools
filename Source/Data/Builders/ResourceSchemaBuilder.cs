@@ -1,6 +1,6 @@
 using Resource = VttTools.Data.Media.Entities.Resource;
-using ResourceFeature = VttTools.Data.Media.Entities.ResourceFeature;
 using ResourceClassification = VttTools.Data.Media.Entities.ResourceClassification;
+using ResourceFeature = VttTools.Data.Media.Entities.ResourceFeature;
 
 namespace VttTools.Data.Builders;
 

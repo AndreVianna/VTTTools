@@ -1,9 +1,5 @@
 namespace VttTools.Assets.ApiContracts;
 
-/// <summary>
-/// Request to update an existing Asset template.
-/// Note: AssetKind cannot be changed after creation.
-/// </summary>
 public record UpdateAssetRequest
     : Request {
     public Optional<AssetKind> Kind { get; init; }

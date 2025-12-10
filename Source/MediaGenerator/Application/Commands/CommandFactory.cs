@@ -1,7 +1,4 @@
-﻿using VttTools.AI.ImageGeneration;
-using VttTools.AI.PromptEnhancement;
-
-namespace VttTools.MediaGenerator.Application.Commands;
+﻿namespace VttTools.MediaGenerator.Application.Commands;
 
 internal static class CommandFactory {
     public static Command CreatePrepareCommand(

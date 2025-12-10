@@ -7,7 +7,16 @@ internal static class VideoGenerationHandlers {
         [FromBody] VideoGenerationRequest request,
         [FromServices] IVideoGenerationService service,
         CancellationToken ct = default) {
-        var result = await service.GenerateAsync(request, ct);
+        var data = new VideoGenerationData {
+            Prompt = request.Prompt,
+            Provider = request.Provider,
+            Model = request.Model,
+            Duration = request.Duration,
+            AspectRatio = request.AspectRatio,
+            ReferenceImage = request.ReferenceImage,
+        };
+
+        var result = await service.GenerateAsync(data, ct);
 
         return !result.IsSuccessful
             ? Results.Problem(

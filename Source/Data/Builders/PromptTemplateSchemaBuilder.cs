@@ -13,7 +13,11 @@ internal static class PromptTemplateSchemaBuilder {
         entity.Property(e => e.SystemPrompt).IsRequired().HasMaxLength(4096);
         entity.Property(e => e.UserPromptTemplate).IsRequired().HasMaxLength(4096);
         entity.Property(e => e.NegativePromptTemplate).HasMaxLength(2048);
-        entity.Property(e => e.ReferenceImageId).IsRequired(false);
+
+        entity.HasOne(e => e.ReferenceImage)
+            .WithMany()
+            .HasForeignKey(e => e.ReferenceImageId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasIndex(e => e.Name);
         entity.HasIndex(e => e.Category);

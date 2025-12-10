@@ -1,16 +1,19 @@
 namespace VttTools.AI.Services;
 
-public class AudioGenerationService(
-    IAiProviderFactory providerFactory)
+public class AudioGenerationService(IAiProviderFactory providerFactory)
     : IAudioGenerationService {
 
     public async Task<Result<AudioGenerationResponse>> GenerateAsync(
-        AudioGenerationRequest request,
+        AudioGenerationData data,
         CancellationToken ct = default) {
-        var provider = providerFactory.GetAudioProvider(request.Provider);
+        var validation = data.Validate();
+        if (validation.HasErrors)
+            return Result.Failure<AudioGenerationResponse>(null!, validation.Errors);
+
+        var provider = providerFactory.GetAudioProvider(data.Provider);
 
         var stopwatch = Stopwatch.StartNew();
-        var result = await provider.GenerateAsync(request, ct);
+        var result = await provider.GenerateAsync(data, ct);
         stopwatch.Stop();
 
         return !result.IsSuccessful
@@ -19,8 +22,8 @@ public class AudioGenerationService(
                 AudioData = result.Value,
                 ContentType = "audio/ogg",
                 Provider = provider.ProviderType,
-                Model = request.Model,
-                Duration = request.Duration ?? TimeSpan.Zero,
+                Model = data.Model,
+                Duration = data.Duration ?? TimeSpan.Zero,
                 Cost = 0m,
             };
     }

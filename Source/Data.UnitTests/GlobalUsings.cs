@@ -9,6 +9,7 @@ global using Microsoft.Extensions.Hosting;
 global using NSubstitute;
 
 global using VttTools.Assets.Model;
+global using VttTools.Audit.Model;
 global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
 global using VttTools.Data.Game;

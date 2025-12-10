@@ -235,4 +235,163 @@ public class GameSessionHandlersTests {
         // Assert
         result.Should().BeOfType<NoContent>();
     }
+
+    [Fact]
+    public async Task UpdateGameSessionHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        var request = new UpdateGameSessionRequest { Title = "Updated Title" };
+        _sessionService.UpdateGameSessionAsync(_userId, _sessionId, Arg.Any<UpdateGameSessionData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task UpdateGameSessionHandler_WithNotAuthorized_ReturnsForbid() {
+        // Arrange
+        var request = new UpdateGameSessionRequest { Title = "Updated Title" };
+        _sessionService.UpdateGameSessionAsync(_userId, _sessionId, Arg.Any<UpdateGameSessionData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Not authorized"));
+
+        // Act
+        var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ForbidHttpResult>();
+    }
+
+    [Fact]
+    public async Task DeleteGameSessionHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        _sessionService.DeleteGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.DeleteGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task DeleteGameSessionHandler_WithNotAuthorized_ReturnsForbid() {
+        // Arrange
+        _sessionService.DeleteGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Not authorized"));
+
+        // Act
+        var result = await GameSessionHandlers.DeleteGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ForbidHttpResult>();
+    }
+
+    [Fact]
+    public async Task JoinGameSessionHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        var request = new JoinGameSessionRequest { JoinAs = PlayerType.Player };
+        _sessionService.JoinGameSessionAsync(_userId, _sessionId, PlayerType.Player, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task LeaveGameSessionHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        _sessionService.LeaveGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.LeaveGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task ActivateEncounterHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        _sessionService.SetActiveEncounterAsync(_userId, _sessionId, _encounterId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.ActivateEncounterHandler(_httpContext, _sessionId, _encounterId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task ActivateEncounterHandler_WithNotAuthorized_ReturnsForbid() {
+        // Arrange
+        _sessionService.SetActiveEncounterAsync(_userId, _sessionId, _encounterId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Not authorized"));
+
+        // Act
+        var result = await GameSessionHandlers.ActivateEncounterHandler(_httpContext, _sessionId, _encounterId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ForbidHttpResult>();
+    }
+
+    [Fact]
+    public async Task StartGameSessionHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        _sessionService.StartGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.StartGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task StartGameSessionHandler_WithNotAuthorized_ReturnsForbid() {
+        // Arrange
+        _sessionService.StartGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Not authorized"));
+
+        // Act
+        var result = await GameSessionHandlers.StartGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ForbidHttpResult>();
+    }
+
+    [Fact]
+    public async Task StopGameSessionHandler_WithSessionNotFound_ReturnsNotFound() {
+        // Arrange
+        _sessionService.StopGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Session not found"));
+
+        // Act
+        var result = await GameSessionHandlers.StopGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task StopGameSessionHandler_WithNotAuthorized_ReturnsForbid() {
+        // Arrange
+        _sessionService.StopGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Not authorized"));
+
+        // Act
+        var result = await GameSessionHandlers.StopGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ForbidHttpResult>();
+    }
 }

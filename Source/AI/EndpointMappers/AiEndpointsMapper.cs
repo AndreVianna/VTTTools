@@ -40,6 +40,16 @@ public static class AiEndpointsMapper {
             .WithName("EnhancePrompt")
             .WithSummary("Enhance a prompt for AI image generation");
 
+        var text = ai.MapGroup("/text");
+        text.MapPost("/generate", TextGenerationHandlers.GenerateTextHandler)
+            .RequireAuthorization()
+            .WithName("GenerateText")
+            .WithSummary("Generate text content using AI");
+        text.MapGet("/providers", TextGenerationHandlers.GetTextProvidersHandler)
+            .RequireAuthorization()
+            .WithName("GetTextProviders")
+            .WithSummary("List available text generation providers");
+
         ai.MapGet("/providers", ProviderInfoHandlers.GetAllProvidersHandler)
             .RequireAuthorization()
             .WithName("GetAllProviders")

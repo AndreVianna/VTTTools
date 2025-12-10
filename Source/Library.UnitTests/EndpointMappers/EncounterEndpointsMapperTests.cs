@@ -34,11 +34,11 @@ public class EncounterEndpointsMapperTests {
         groupDataSource.Endpoints[15].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/regions => AddRegionHandler");
         groupDataSource.Endpoints[16].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/regions/{index:int} => UpdateRegionHandler");
         groupDataSource.Endpoints[17].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/regions/{index:int} => RemoveRegionHandler");
-        groupDataSource.Endpoints[18].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/sources => AddSourceHandler");
-        groupDataSource.Endpoints[19].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/sources/{index:int} => UpdateSourceHandler");
-        groupDataSource.Endpoints[20].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/sources/{index:int} => RemoveSourceHandler");
-        groupDataSource.Endpoints[21].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/openings => PlaceOpeningHandler");
-        groupDataSource.Endpoints[22].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/openings/{index:int} => UpdateOpeningHandler");
-        groupDataSource.Endpoints[23].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/openings/{index:int} => RemoveOpeningHandler");
+        groupDataSource.Endpoints[18].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/lights => AddLightSourceHandler");
+        groupDataSource.Endpoints[19].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/lights/{index:int} => UpdateLightSourceHandler");
+        groupDataSource.Endpoints[20].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/lights/{index:int} => RemoveLightSourceHandler");
+        groupDataSource.Endpoints[21].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/sounds => AddSoundSourceHandler");
+        groupDataSource.Endpoints[22].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/sounds/{index:int} => UpdateSoundSourceHandler");
+        groupDataSource.Endpoints[23].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/sounds/{index:int} => RemoveSoundSourceHandler");
     }
 }

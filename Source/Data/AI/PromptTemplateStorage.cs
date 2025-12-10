@@ -1,4 +1,4 @@
-using PromptTemplate = VttTools.AI.Templates.Model.PromptTemplate;
+using PromptTemplate = VttTools.AI.Model.PromptTemplate;
 
 namespace VttTools.Data.AI;
 
@@ -8,6 +8,7 @@ public class PromptTemplateStorage(ApplicationDbContext context)
     public async Task<PromptTemplate?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.PromptTemplates
             .AsNoTracking()
+            .Include(t => t.ReferenceImage)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
         return entity?.ToModel();
     }
@@ -15,6 +16,7 @@ public class PromptTemplateStorage(ApplicationDbContext context)
     public async Task<PromptTemplate?> GetLatestByNameAsync(string name, bool includeDrafts = false, CancellationToken ct = default) {
         var query = context.PromptTemplates
             .AsNoTracking()
+            .Include(t => t.ReferenceImage)
             .Where(t => t.Name == name);
 
         if (!includeDrafts) {
@@ -28,7 +30,7 @@ public class PromptTemplateStorage(ApplicationDbContext context)
     }
 
     public async Task<(IReadOnlyList<PromptTemplate> Items, int TotalCount)> SearchAsync(PromptTemplateSearchFilters filters, CancellationToken ct = default) {
-        var query = context.PromptTemplates.AsNoTracking();
+        IQueryable<Entities.PromptTemplate> query = context.PromptTemplates.AsNoTracking().Include(t => t.ReferenceImage);
 
         if (!string.IsNullOrWhiteSpace(filters.Name))
             query = query.Where(t => t.Name.Contains(filters.Name));

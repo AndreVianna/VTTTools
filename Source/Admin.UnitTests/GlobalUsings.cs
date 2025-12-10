@@ -7,6 +7,7 @@ global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
 
 global using MockQueryable;
 
@@ -17,11 +18,16 @@ global using VttTools.Admin.ApiContracts;
 global using VttTools.Admin.Exceptions;
 global using VttTools.Admin.Handlers;
 global using VttTools.Admin.Services;
+global using VttTools.Assets.Model;
 global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
+global using VttTools.Configuration;
+global using VttTools.Data;
+global using VttTools.Data.Library.Entities;
 global using VttTools.Domain.Admin.ApiContracts;
+global using VttTools.Domain.Admin.ApiContracts.Library;
 global using VttTools.Domain.Admin.Services;
 global using VttTools.Identity.Model;
 global using VttTools.Maintenance.ApiContracts;

@@ -8,6 +8,7 @@ public class AiProviderFactoryTests {
     private readonly MockAudioProvider _mockAudioProvider;
     private readonly MockVideoProvider _mockVideoProvider;
     private readonly MockPromptProvider _mockPromptProvider;
+    private readonly MockTextProvider _mockTextProvider;
     private readonly AiProviderFactory _factory;
 
     public AiProviderFactoryTests() {
@@ -16,6 +17,7 @@ public class AiProviderFactoryTests {
             ["AI:DefaultProviders:Audio"] = "OpenAi",
             ["AI:DefaultProviders:Video"] = "RunwayML",
             ["AI:DefaultProviders:Prompt"] = "OpenAi",
+            ["AI:DefaultProviders:Text"] = "OpenAi",
         };
 
         _configuration = new ConfigurationBuilder()
@@ -26,13 +28,15 @@ public class AiProviderFactoryTests {
         _mockAudioProvider = new MockAudioProvider { ProviderType = AiProviderType.OpenAi };
         _mockVideoProvider = new MockVideoProvider { ProviderType = AiProviderType.RunwayML };
         _mockPromptProvider = new MockPromptProvider { ProviderType = AiProviderType.OpenAi };
+        _mockTextProvider = new MockTextProvider { ProviderType = AiProviderType.OpenAi };
 
         _factory = new AiProviderFactory(
             _configuration,
             [_mockImageProvider],
             [_mockAudioProvider],
             [_mockVideoProvider],
-            [_mockPromptProvider]);
+            [_mockPromptProvider],
+            [_mockTextProvider]);
     }
 
     [Fact]
@@ -153,5 +157,37 @@ public class AiProviderFactoryTests {
 
         action.Should().Throw<InvalidOperationException>()
             .Which.Message.Should().Contain("Prompt provider 'Google' is not registered");
+    }
+
+    [Fact]
+    public void GetTextProvider_WithSpecificType_ReturnsCorrectProvider() {
+        var provider = _factory.GetTextProvider(AiProviderType.OpenAi);
+
+        provider.Should().BeSameAs(_mockTextProvider);
+        provider.ProviderType.Should().Be(AiProviderType.OpenAi);
+    }
+
+    [Fact]
+    public void GetTextProvider_WithNull_ReturnsDefaultFromConfig() {
+        var provider = _factory.GetTextProvider(null);
+
+        provider.Should().BeSameAs(_mockTextProvider);
+        provider.ProviderType.Should().Be(AiProviderType.OpenAi);
+    }
+
+    [Fact]
+    public void GetTextProvider_WhenNotRegistered_ThrowsInvalidOperationException() {
+        var action = () => _factory.GetTextProvider(AiProviderType.Google);
+
+        action.Should().Throw<InvalidOperationException>()
+            .Which.Message.Should().Contain("Text provider 'Google' is not registered");
+    }
+
+    [Fact]
+    public void GetAvailableTextProviders_ReturnsAllRegisteredProviders() {
+        var providers = _factory.GetAvailableTextProviders();
+
+        providers.Should().HaveCount(1);
+        providers.Should().Contain(AiProviderType.OpenAi);
     }
 }

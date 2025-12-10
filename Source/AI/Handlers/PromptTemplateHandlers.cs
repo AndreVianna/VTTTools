@@ -59,7 +59,17 @@ internal static class PromptTemplateHandlers {
         [FromBody] CreatePromptTemplateRequest request,
         [FromServices] IPromptTemplateService service,
         CancellationToken ct = default) {
-        var result = await service.CreateAsync(request, ct);
+        var data = new CreatePromptTemplateData {
+            Name = request.Name,
+            Category = request.Category,
+            Version = request.Version,
+            SystemPrompt = request.SystemPrompt,
+            UserPromptTemplate = request.UserPromptTemplate,
+            NegativePromptTemplate = request.NegativePromptTemplate,
+            ReferenceImageId = request.ReferenceImageId,
+        };
+
+        var result = await service.CreateAsync(data, ct);
 
         return !result.IsSuccessful
             ? Results.BadRequest(new { error = result.Errors[0].Message })
@@ -71,7 +81,15 @@ internal static class PromptTemplateHandlers {
         [FromBody] UpdatePromptTemplateRequest request,
         [FromServices] IPromptTemplateService service,
         CancellationToken ct = default) {
-        var result = await service.UpdateAsync(id, request, ct);
+        var data = new UpdatePromptTemplateData {
+            Version = request.Version,
+            SystemPrompt = request.SystemPrompt,
+            UserPromptTemplate = request.UserPromptTemplate,
+            NegativePromptTemplate = request.NegativePromptTemplate,
+            ReferenceImageId = request.ReferenceImageId,
+        };
+
+        var result = await service.UpdateAsync(id, data, ct);
 
         return !result.IsSuccessful
             ? Results.NotFound(new { error = result.Errors[0].Message })
@@ -97,6 +115,6 @@ internal static class PromptTemplateHandlers {
         SystemPrompt = template.SystemPrompt,
         UserPromptTemplate = template.UserPromptTemplate,
         NegativePromptTemplate = template.NegativePromptTemplate,
-        ReferenceImageId = template.ReferenceImageId,
+        ReferenceImageId = template.ReferenceImage?.Id,
     };
 }

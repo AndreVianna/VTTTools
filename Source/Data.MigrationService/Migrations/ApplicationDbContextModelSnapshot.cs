@@ -23,6 +23,59 @@ namespace VttTools.Data.MigrationService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("VttTools.Data.AI.Entities.PromptTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("NegativePromptTemplate")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<Guid?>("ReferenceImageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SystemPrompt")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserPromptTemplate")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasDefaultValue("1.0-draft");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("ReferenceImageId");
+
+                    b.HasIndex("Name", "Version")
+                        .IsUnique();
+
+                    b.ToTable("PromptTemplates", (string)null);
+                });
+
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1335,6 +1388,16 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.AI.Entities.PromptTemplate", b =>
+                {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "ReferenceImage")
+                        .WithMany()
+                        .HasForeignKey("ReferenceImageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ReferenceImage");
                 });
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>

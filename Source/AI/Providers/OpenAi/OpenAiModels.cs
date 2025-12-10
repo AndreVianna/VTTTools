@@ -41,7 +41,9 @@ internal sealed record OpenAiPricingCalculator(double InputCostPerM, double Outp
 
 internal sealed record OpenAiTextRequest(
     [property: JsonPropertyName("model")] string Model,
-    [property: JsonPropertyName("messages")] OpenAiMessage[] Messages);
+    [property: JsonPropertyName("messages")] OpenAiMessage[] Messages,
+    [property: JsonPropertyName("max_completion_tokens")] int? MaxTokens = null,
+    [property: JsonPropertyName("temperature")] double? Temperature = null);
 
 internal sealed record OpenAiMessage(
     [property: JsonPropertyName("role")] string Role,

@@ -9,17 +9,17 @@ public sealed class OpenAiPromptProvider(
     public AiProviderType ProviderType => AiProviderType.OpenAi;
 
     public async Task<Result<string>> EnhanceAsync(
-        PromptEnhancementRequest request,
+        PromptEnhancementData data,
         CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = request.Model ?? configuration["AI:Providers:OpenAI:Models:Prompt"]
+            var model = data.Model ?? configuration["AI:Providers:OpenAI:Models:Prompt"]
                 ?? throw new InvalidOperationException("OpenAI prompt model not configured.");
 
             logger.LogDebug("Starting OpenAI prompt enhancement with model {Model}", model);
 
-            var apiRequest = CreateTextRequest(model, request);
+            var apiRequest = CreateTextRequest(model, data);
             var endpoint = _helper.GetEndpoint(model);
 
             using var client = _helper.CreateAuthenticatedClient();
@@ -62,10 +62,10 @@ public sealed class OpenAiPromptProvider(
         }
     }
 
-    private static OpenAiTextRequest CreateTextRequest(string model, PromptEnhancementRequest request) {
+    private static OpenAiTextRequest CreateTextRequest(string model, PromptEnhancementData data) {
         var messages = new List<OpenAiMessage> {
-            new(Role: "system", Content: BuildSystemPrompt(request.Style)),
-            new(Role: "user", Content: BuildUserPrompt(request))
+            new(Role: "system", Content: BuildSystemPrompt(data.Style)),
+            new(Role: "user", Content: BuildUserPrompt(data))
         };
 
         return new OpenAiTextRequest(
@@ -92,12 +92,12 @@ public sealed class OpenAiPromptProvider(
         return !string.IsNullOrWhiteSpace(style) ? $"{basePrompt}\n\nPreferred style: {style}" : basePrompt;
     }
 
-    private static string BuildUserPrompt(PromptEnhancementRequest request) => string.IsNullOrWhiteSpace(request.Context)
-            ? request.Prompt
+    private static string BuildUserPrompt(PromptEnhancementData data) => string.IsNullOrWhiteSpace(data.Context)
+            ? data.Prompt
             : $"""
-            Base prompt: {request.Prompt}
+            Base prompt: {data.Prompt}
 
-            Additional context: {request.Context}
+            Additional context: {data.Context}
             """;
 
     private static bool IsValidResponse(OpenAiTextResponse? response) {

@@ -1,7 +1,7 @@
 namespace VttTools.MediaGenerator.Domain.Images.Contracts;
 
 public interface IImageGenerator {
-    Task<ImageGenerationResponse> GenerateImageFileAsync(
+    Task<GenerateImageResponse> GenerateImageFileAsync(
         string model,
         string imageType,
         string prompt,

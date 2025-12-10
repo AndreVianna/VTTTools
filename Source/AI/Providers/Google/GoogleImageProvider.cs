@@ -12,17 +12,17 @@ public sealed class GoogleImageProvider(
     public AiProviderType ProviderType => AiProviderType.Google;
 
     public async Task<Result<byte[]>> GenerateAsync(
-        ImageGenerationRequest request,
+        ImageGenerationData data,
         CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = request.Model ?? configuration["AI:Providers:Google:Models:Image"]
+            var model = data.Model ?? configuration["AI:Providers:Google:Models:Image"]
                 ?? throw new InvalidOperationException("Google image model not configured.");
 
             logger.LogDebug("Starting Google AI image generation with model {Model}", model);
 
-            var apiRequest = CreateImageRequest(request);
+            var apiRequest = CreateImageRequest(data);
             var endpoint = GetEndpoint(model);
 
             using var client = CreateClient();
@@ -87,12 +87,12 @@ public sealed class GoogleImageProvider(
         }
     }
 
-    private static object CreateImageRequest(ImageGenerationRequest request) => new {
+    private static object CreateImageRequest(ImageGenerationData data) => new {
         Contents = new[] {
             new {
                 Parts = new[] {
                     new {
-                        Text = request.Prompt,
+                        Text = data.Prompt,
                     }
                 },
             }
@@ -100,7 +100,7 @@ public sealed class GoogleImageProvider(
         GenerationConfig = new {
             ResponseModalities = new[] { "Image" },
             ImageConfig = new {
-                request.AspectRatio,
+                data.AspectRatio,
             }
         }
     };
@@ -123,5 +123,5 @@ public sealed class GoogleImageProvider(
         => model switch {
             "gemini-2.5-flash-image" => $"/v1beta/models/{model}:generateContent",
             _ => throw new InvalidOperationException($"Unknown Google model: {model}")
-    };
+        };
 }

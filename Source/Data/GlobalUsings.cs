@@ -11,10 +11,8 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 
-global using VttTools.AI;
-global using VttTools.AI.Templates;
-global using VttTools.AI.Templates.Model;
-global using VttTools.AI.Templates.Storage;
+global using VttTools.AI.Model;
+global using VttTools.AI.Storage;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
 global using VttTools.Audit.Storage;

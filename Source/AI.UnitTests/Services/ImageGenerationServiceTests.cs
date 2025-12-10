@@ -23,13 +23,13 @@ public class ImageGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_WithValidRequest_ReturnsImageResponse() {
-        var request = new ImageGenerationRequest {
+        var data = new ImageGenerationData {
             Prompt = "A beautiful landscape",
             Model = "dall-e-3",
             Provider = AiProviderType.OpenAi,
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -38,17 +38,17 @@ public class ImageGenerationServiceTests {
         result.Value.Provider.Should().Be(AiProviderType.OpenAi);
         result.Value.Model.Should().Be("dall-e-3");
         result.Value.Duration.Should().BeGreaterThan(TimeSpan.Zero);
-        _mockProvider.LastRequest.Should().BeSameAs(request);
+        _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
-        var request = new ImageGenerationRequest {
+        var data = new ImageGenerationData {
             Prompt = "Test prompt",
         };
         _mockProvider.ErrorToReturn = "Provider error occurred";
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("Provider error occurred");
@@ -56,11 +56,11 @@ public class ImageGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_TracksRequestDuration() {
-        var request = new ImageGenerationRequest {
+        var data = new ImageGenerationData {
             Prompt = "Test prompt",
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Duration.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
@@ -78,12 +78,12 @@ public class ImageGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_WithNullProvider_UsesDefaultProvider() {
-        var request = new ImageGenerationRequest {
+        var data = new ImageGenerationData {
             Prompt = "Test prompt",
             Provider = null,
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         _providerFactory.Received(1).GetImageProvider(null);
@@ -91,11 +91,11 @@ public class ImageGenerationServiceTests {
 
     [Fact]
     public async Task GenerateAsync_SetsTokensAndCostToZero() {
-        var request = new ImageGenerationRequest {
+        var data = new ImageGenerationData {
             Prompt = "Test prompt",
         };
 
-        var result = await _service.GenerateAsync(request, _ct);
+        var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.TokensUsed.Should().Be(0);

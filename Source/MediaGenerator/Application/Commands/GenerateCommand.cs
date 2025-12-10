@@ -1,8 +1,6 @@
-using VttTools.AI.ImageGeneration;
-
 namespace VttTools.MediaGenerator.Application.Commands;
 
-public sealed class GenerateCommand(VttTools.AI.ImageGeneration.IImageGenerationService imageGenerationService,
+public sealed class GenerateCommand(IImageGenerationService imageGenerationService,
                                     IFileStore fileStore,
                                     IConfiguration config) {
 
@@ -159,7 +157,7 @@ public sealed class GenerateCommand(VttTools.AI.ImageGeneration.IImageGeneration
         var aspectRatio = config[$"Images:{imageType}:AspectRatio"] ?? "1:1";
 
         var provider = ParseProvider(providerName);
-        var request = new ImageGenerationRequest {
+        var request = new ImageGenerationData {
             Prompt = finalPrompt,
             Provider = provider,
             Model = model,

@@ -5,11 +5,13 @@ public sealed class AiProviderFactory(
     IEnumerable<IImageProvider> imageProviders,
     IEnumerable<IAudioProvider> audioProviders,
     IEnumerable<IVideoProvider> videoProviders,
-    IEnumerable<IPromptProvider> promptProviders) : IAiProviderFactory {
+    IEnumerable<IPromptProvider> promptProviders,
+    IEnumerable<ITextProvider> textProviders) : IAiProviderFactory {
     private readonly Dictionary<AiProviderType, IImageProvider> _imageProviders = imageProviders.ToDictionary(p => p.ProviderType);
     private readonly Dictionary<AiProviderType, IAudioProvider> _audioProviders = audioProviders.ToDictionary(p => p.ProviderType);
     private readonly Dictionary<AiProviderType, IVideoProvider> _videoProviders = videoProviders.ToDictionary(p => p.ProviderType);
     private readonly Dictionary<AiProviderType, IPromptProvider> _promptProviders = promptProviders.ToDictionary(p => p.ProviderType);
+    private readonly Dictionary<AiProviderType, ITextProvider> _textProviders = textProviders.ToDictionary(p => p.ProviderType);
 
     public IImageProvider GetImageProvider(AiProviderType? providerType = null) {
         var type = providerType ?? GetDefaultProvider("Image");
@@ -39,6 +41,13 @@ public sealed class AiProviderFactory(
             : provider;
     }
 
+    public ITextProvider GetTextProvider(AiProviderType? providerType = null) {
+        var type = providerType ?? GetDefaultProvider("Text");
+        return !_textProviders.TryGetValue(type, out var provider)
+            ? throw new InvalidOperationException($"Text provider '{type}' is not registered.")
+            : provider;
+    }
+
     public IReadOnlyList<AiProviderType> GetAvailableImageProviders()
         => _imageProviders.Keys.ToList().AsReadOnly();
 
@@ -47,6 +56,9 @@ public sealed class AiProviderFactory(
 
     public IReadOnlyList<AiProviderType> GetAvailableVideoProviders()
         => _videoProviders.Keys.ToList().AsReadOnly();
+
+    public IReadOnlyList<AiProviderType> GetAvailableTextProviders()
+        => _textProviders.Keys.ToList().AsReadOnly();
 
     private AiProviderType GetDefaultProvider(string category) {
         var providerName = configuration[$"AI:DefaultProviders:{category}"];

@@ -261,4 +261,66 @@ public class OptionalTests {
         optional.IsSet.Should().BeTrue();
         optional.Value.Should().BeSameAs(obj);
     }
+
+    [Fact]
+    public void As_WithSetValue_TransformsValue() {
+        // Arrange
+        var optional = Optional<int>.Some(42);
+
+        // Act
+        var result = optional.As(x => x.ToString());
+
+        // Assert
+        result.IsSet.Should().BeTrue();
+        result.Value.Should().Be("42");
+    }
+
+    [Fact]
+    public void As_WithNone_ReturnsNone() {
+        // Arrange
+        var optional = Optional<int>.None;
+
+        // Act
+        var result = optional.As(x => x.ToString());
+
+        // Assert
+        result.IsSet.Should().BeFalse();
+    }
+
+    [Fact]
+    public void As_WithNullTransform_ThrowsArgumentNullException() {
+        // Arrange
+        var optional = Optional<int>.Some(42);
+
+        // Act & Assert
+        optional.Invoking(o => o.As<string>(null!))
+               .Should().Throw<ArgumentNullException>()
+               .WithParameterName("transform");
+    }
+
+    [Fact]
+    public void As_WithComplexTransformation_WorksCorrectly() {
+        // Arrange
+        var optional = Optional<string>.Some("test");
+
+        // Act
+        var result = optional.As(x => x.Length);
+
+        // Assert
+        result.IsSet.Should().BeTrue();
+        result.Value.Should().Be(4);
+    }
+
+    [Fact]
+    public void As_WithNullValue_TransformsNullValue() {
+        // Arrange
+        var optional = Optional<string?>.Some(null);
+
+        // Act
+        var result = optional.As(x => x?.Length ?? 0);
+
+        // Assert
+        result.IsSet.Should().BeTrue();
+        result.Value.Should().Be(0);
+    }
 }

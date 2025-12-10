@@ -754,7 +754,7 @@ public class EncounterServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Name.Should().Be("Boss Goblin");
+        result.Value.Name.Should().Be("Boss Goblin #1");
     }
 
     [Fact]

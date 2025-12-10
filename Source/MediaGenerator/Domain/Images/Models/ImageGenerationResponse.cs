@@ -1,6 +1,6 @@
 namespace VttTools.MediaGenerator.Domain.Images.Models;
 
-public sealed record ImageGenerationResponse(
+public sealed record GenerateImageResponse(
     byte[] Data,
     bool IsSuccess = true,
     string? ErrorMessage = null,

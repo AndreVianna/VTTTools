@@ -48,9 +48,10 @@ public record ListPatcher<T>() {
         var result = current.ToList();
         foreach (var item in _remove)
             result.Remove(item);
-        foreach (var item in _add)
+        foreach (var item in _add) {
             if (!result.Contains(item))
                 result.Add(item);
+        }
         return [.. result];
     }
 }

@@ -7,7 +7,7 @@ public class EncounterAssetTests {
         var encounterAsset = new EncounterAsset();
 
         // Assert
-        encounterAsset.Name.Should().BeEmpty();
+        encounterAsset.Name.Should().BeNull();
         encounterAsset.Position.Should().NotBeNull();
         encounterAsset.Position.X.Should().Be(0);
         encounterAsset.Position.Y.Should().Be(0);

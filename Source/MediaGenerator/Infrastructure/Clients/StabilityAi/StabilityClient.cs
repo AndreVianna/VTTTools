@@ -2,7 +2,7 @@ namespace VttTools.MediaGenerator.Infrastructure.Clients.StabilityAi;
 
 public sealed class StabilityClient(IHttpClientFactory httpClientFactory, IConfiguration config)
     : IImageGenerator {
-    public async Task<ImageGenerationResponse> GenerateImageFileAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
+    public async Task<GenerateImageResponse> GenerateImageFileAsync(string model, string imageType, string prompt, CancellationToken ct = default) {
         using var input = new MultipartFormDataContent();
 
         AddFormField(input, "prompt", prompt);
@@ -24,7 +24,7 @@ public sealed class StabilityClient(IHttpClientFactory httpClientFactory, IConfi
         }
 
         var imageData = await response.Content.ReadAsByteArrayAsync(ct);
-        return new ImageGenerationResponse(imageData, true);
+        return new GenerateImageResponse(imageData, true);
     }
 
     private static void AddFormField(MultipartFormDataContent content, string name, string value) {

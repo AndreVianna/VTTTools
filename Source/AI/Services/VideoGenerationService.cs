@@ -1,16 +1,19 @@
 namespace VttTools.AI.Services;
 
-public class VideoGenerationService(
-    IAiProviderFactory providerFactory)
+public class VideoGenerationService(IAiProviderFactory providerFactory)
     : IVideoGenerationService {
 
     public async Task<Result<VideoGenerationResponse>> GenerateAsync(
-        VideoGenerationRequest request,
+        VideoGenerationData data,
         CancellationToken ct = default) {
-        var provider = providerFactory.GetVideoProvider(request.Provider);
+        var validation = data.Validate();
+        if (validation.HasErrors)
+            return Result.Failure<VideoGenerationResponse>(null!, validation.Errors);
+
+        var provider = providerFactory.GetVideoProvider(data.Provider);
 
         var stopwatch = Stopwatch.StartNew();
-        var result = await provider.GenerateAsync(request, ct);
+        var result = await provider.GenerateAsync(data, ct);
         stopwatch.Stop();
 
         return !result.IsSuccessful
@@ -19,8 +22,8 @@ public class VideoGenerationService(
                 VideoData = result.Value,
                 ContentType = "video/mp4",
                 Provider = provider.ProviderType,
-                Model = request.Model,
-                Duration = request.Duration ?? TimeSpan.Zero,
+                Model = data.Model,
+                Duration = data.Duration ?? TimeSpan.Zero,
                 Cost = 0m,
             };
     }
