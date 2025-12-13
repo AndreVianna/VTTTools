@@ -5,6 +5,14 @@ namespace VttTools.Library.Worlds.Storage;
 /// </summary>
 public interface IWorldStorage {
     /// <summary>
+    /// Searches worlds with filters and pagination.
+    /// </summary>
+    Task<(World[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves all world templates.
     /// </summary>
     Task<World[]> GetAllAsync(CancellationToken ct = default);

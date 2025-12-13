@@ -25,6 +25,7 @@ import {
   Settings as SettingsIcon,
   LibraryBooks as LibraryIcon,
   Build as BuildIcon,
+  AutoAwesome as AiIcon,
   AccountCircle,
   LightMode,
   DarkMode,
@@ -42,6 +43,7 @@ const menuItems = [
   { text: 'Maintenance Mode', icon: <BuildIcon />, path: '/admin/maintenance', id: 'menu-item-maintenance' },
   { text: 'System Config', icon: <SettingsIcon />, path: '/admin/config', id: 'menu-item-config' },
   { text: 'Public Library', icon: <LibraryIcon />, path: '/admin/library', id: 'menu-item-library' },
+  { text: 'AI Generation', icon: <AiIcon />, path: '/admin/ai-generation', id: 'menu-item-ai-generation' },
 ];
 
 export function AdminLayout() {

@@ -3,14 +3,14 @@ namespace VttTools.Media.Services;
 public interface IMediaProcessorService {
     Task<Result<ProcessedMedia>> ProcessAsync(
         ResourceType resourceType,
-        Stream input,
         string contentType,
         string fileName,
+        Stream stream,
         CancellationToken ct = default);
 
     Task<byte[]?> GenerateThumbnailAsync(
-        Stream input,
         string contentType,
+        Stream stream,
         int maxSize = 256,
         CancellationToken ct = default);
 }

@@ -6,6 +6,36 @@ namespace VttTools.Data.Library;
 public class CampaignStorage(ApplicationDbContext context)
     : ICampaignStorage {
     /// <inheritdoc />
+    public async Task<(Campaign[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default) {
+        var query = context.Campaigns.AsQueryable();
+
+        query = ApplySearchFilters(query, filter, masterUserId);
+        var totalCount = await query.CountAsync(ct);
+
+        query = ApplySorting(query, filter);
+        var entities = await query
+            .Skip(filter.Skip)
+            .Take(filter.Take)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        var items = entities.Select(e => e.ToModel()!).ToArray();
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc />
+    public async Task<Campaign[]> GetByWorldIdAsync(Guid worldId, CancellationToken ct = default) {
+        var entities = await context.Campaigns
+            .Where(c => c.WorldId == worldId)
+            .AsNoTracking()
+            .ToListAsync(ct);
+        return [.. entities.Select(e => e.ToModel()!)];
+    }
+
+    /// <inheritdoc />
     public async Task<Campaign[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Campaigns
             .Include(c => c.Adventures)
@@ -75,5 +105,48 @@ public class CampaignStorage(ApplicationDbContext context)
         context.Campaigns.Remove(entity);
         await context.SaveChangesAsync(ct);
         return true;
+    }
+
+    private static IQueryable<Entities.Campaign> ApplySearchFilters(
+        IQueryable<Entities.Campaign> query,
+        LibrarySearchFilter filter,
+        Guid masterUserId) {
+        if (!string.IsNullOrWhiteSpace(filter.Search)) {
+            var search = filter.Search.ToLowerInvariant();
+            query = query.Where(c =>
+                c.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase) ||
+                c.Description.Contains(search, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        if (filter.OwnerId.HasValue)
+            query = query.Where(c => c.OwnerId == filter.OwnerId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.OwnerType)) {
+            query = filter.OwnerType.ToLowerInvariant() switch {
+                "master" => query.Where(c => c.OwnerId == masterUserId),
+                "user" => query.Where(c => c.OwnerId != masterUserId),
+                _ => query
+            };
+        }
+
+        if (filter.IsPublished.HasValue)
+            query = query.Where(c => c.IsPublished == filter.IsPublished.Value);
+
+        if (filter.IsPublic.HasValue)
+            query = query.Where(c => c.IsPublic == filter.IsPublic.Value);
+
+        return query;
+    }
+
+    private static IOrderedQueryable<Entities.Campaign> ApplySorting(
+        IQueryable<Entities.Campaign> query,
+        LibrarySearchFilter filter) {
+        var sortBy = filter.SortBy?.ToLowerInvariant() ?? "name";
+        var descending = filter.SortOrder?.ToLowerInvariant() == "desc";
+
+        return sortBy switch {
+            "name" => descending ? query.OrderByDescending(c => c.Name) : query.OrderBy(c => c.Name),
+            _ => descending ? query.OrderByDescending(c => c.Name) : query.OrderBy(c => c.Name)
+        };
     }
 }

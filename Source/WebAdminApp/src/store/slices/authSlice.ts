@@ -75,6 +75,7 @@ const authSlice = createSlice({
     },
     updateToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
+      saveTokenToStorage(action.payload);
     },
   },
   extraReducers: (builder) => {

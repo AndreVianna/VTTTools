@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
 
+using VttTools.Admin.Configuration.Model;
+using VttTools.Admin.Configuration.Services;
 using VttTools.Common.Services;
 using VttTools.Common.Utilities;
 
@@ -211,7 +213,7 @@ public class ConfigurationServiceTests {
 
         var entry = result.Entries[0];
         entry.Source.Should().NotBeNull();
-        entry.Source.Type.Should().Be(ConfigSourceType.InMemory);
+        entry.Source.Type.Should().Be(ConfigurationSourceType.InMemory);
     }
 
     [Fact]

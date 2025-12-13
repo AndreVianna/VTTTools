@@ -410,4 +410,352 @@ public class AuthHandlersTests {
     }
 
     #endregion
+
+    #region ForgotPasswordHandler Tests
+
+    [Fact]
+    public async Task ForgotPasswordHandler_WithValidEmail_ReturnsOkResult() {
+        var request = new ForgotPasswordRequest {
+            Email = "user@example.com"
+        };
+
+        var successResponse = new AuthResponse {
+            Success = true,
+            Message = "If that email exists, reset instructions have been sent"
+        };
+
+        _mockAuthService.ForgotPasswordAsync(request.Email).Returns(successResponse);
+
+        var result = await AuthHandlers.ForgotPasswordHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<Ok<AuthResponse>>();
+        await _mockAuthService.Received(1).ForgotPasswordAsync(request.Email);
+    }
+
+    [Fact]
+    public async Task ForgotPasswordHandler_WhenServiceFails_ReturnsBadRequest() {
+        var request = new ForgotPasswordRequest {
+            Email = "nonexistent@example.com"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Email service unavailable"
+        };
+
+        _mockAuthService.ForgotPasswordAsync(request.Email).Returns(failureResponse);
+
+        var result = await AuthHandlers.ForgotPasswordHandler(request, _mockAuthService);
+
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        var statusResult = (IStatusCodeHttpResult)result;
+        statusResult.StatusCode.Should().Be(400);
+    }
+
+    #endregion
+
+    #region ValidateResetTokenHandler Tests
+
+    [Fact]
+    public async Task ValidateResetTokenHandler_WithValidToken_RedirectsToResetPage() {
+        var email = "user@example.com";
+        var token = "valid-reset-token";
+        var frontendOptions = Options.Create(new FrontendOptions {
+            BaseUrl = "http://localhost:3000"
+        });
+
+        var successResponse = new AuthResponse {
+            Success = true
+        };
+
+        _mockAuthService.ValidateResetTokenAsync(email, token).Returns(successResponse);
+
+        var result = await AuthHandlers.ValidateResetTokenHandler(email, token, _mockAuthService, frontendOptions);
+
+        result.Should().BeOfType<RedirectHttpResult>();
+        var redirectResult = (RedirectHttpResult)result;
+        redirectResult.Url.Should().Contain("/resetPassword");
+        redirectResult.Url.Should().Contain("validated=true");
+        redirectResult.Url.Should().Contain($"email={Uri.EscapeDataString(email)}");
+    }
+
+    [Fact]
+    public async Task ValidateResetTokenHandler_WithInvalidToken_RedirectsToErrorPage() {
+        var email = "user@example.com";
+        var token = "invalid-token";
+        var frontendOptions = Options.Create(new FrontendOptions {
+            BaseUrl = "http://localhost:3000"
+        });
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Reset link has expired or is invalid"
+        };
+
+        _mockAuthService.ValidateResetTokenAsync(email, token).Returns(failureResponse);
+
+        var result = await AuthHandlers.ValidateResetTokenHandler(email, token, _mockAuthService, frontendOptions);
+
+        result.Should().BeOfType<RedirectHttpResult>();
+        var redirectResult = (RedirectHttpResult)result;
+        redirectResult.Url.Should().Contain("/resetPassword");
+        redirectResult.Url.Should().Contain("error=");
+    }
+
+    #endregion
+
+    #region ResetPasswordHandler Tests
+
+    [Fact]
+    public async Task ResetPasswordHandler_WithMatchingPasswords_ReturnsOkResult() {
+        var request = new ResetPasswordRequest {
+            Email = "user@example.com",
+            Token = "reset-token",
+            NewPassword = "NewPassword123!",
+            ConfirmPassword = "NewPassword123!"
+        };
+
+        var successResponse = new AuthResponse {
+            Success = true,
+            Message = "Password updated successfully"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword)
+            .Returns(successResponse);
+
+        var result = await AuthHandlers.ResetPasswordHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<Ok<AuthResponse>>();
+        await _mockAuthService.Received(1).ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+    }
+
+    [Fact]
+    public async Task ResetPasswordHandler_WithMismatchedPasswords_ReturnsValidationProblem() {
+        var request = new ResetPasswordRequest {
+            Email = "user@example.com",
+            Token = "reset-token",
+            NewPassword = "NewPassword123!",
+            ConfirmPassword = "DifferentPassword123!"
+        };
+
+        var result = await AuthHandlers.ResetPasswordHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+        await _mockAuthService.DidNotReceive().ResetPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResetPasswordHandler_WhenServiceFails_ReturnsValidationProblem() {
+        var request = new ResetPasswordRequest {
+            Email = "user@example.com",
+            Token = "invalid-token",
+            NewPassword = "NewPassword123!",
+            ConfirmPassword = "NewPassword123!"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Invalid reset token"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword)
+            .Returns(failureResponse);
+
+        var result = await AuthHandlers.ResetPasswordHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    #endregion
+
+    #region ResendEmailConfirmationHandler Tests
+
+    [Fact]
+    public async Task ResendEmailConfirmationHandler_WithValidEmail_ReturnsOkResult() {
+        var request = new ResendEmailConfirmationRequest {
+            Email = "unconfirmed@example.com"
+        };
+
+        var successResponse = new AuthResponse {
+            Success = true,
+            Message = "If that email exists, confirmation instructions have been sent"
+        };
+
+        _mockAuthService.ResendEmailConfirmationAsync(request.Email).Returns(successResponse);
+
+        var result = await AuthHandlers.ResendEmailConfirmationHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<Ok<AuthResponse>>();
+        await _mockAuthService.Received(1).ResendEmailConfirmationAsync(request.Email);
+    }
+
+    [Fact]
+    public async Task ResendEmailConfirmationHandler_WhenServiceFails_ReturnsBadRequest() {
+        var request = new ResendEmailConfirmationRequest {
+            Email = "user@example.com"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Email service unavailable"
+        };
+
+        _mockAuthService.ResendEmailConfirmationAsync(request.Email).Returns(failureResponse);
+
+        var result = await AuthHandlers.ResendEmailConfirmationHandler(request, _mockAuthService);
+
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        var statusResult = (IStatusCodeHttpResult)result;
+        statusResult.StatusCode.Should().Be(400);
+    }
+
+    #endregion
+
+    #region ConfirmEmailHandler Tests
+
+    [Fact]
+    public async Task ConfirmEmailHandler_WithValidToken_RedirectsToLogin() {
+        var email = "user@example.com";
+        var token = "confirmation-token";
+        var frontendOptions = Options.Create(new FrontendOptions {
+            BaseUrl = "http://localhost:3000"
+        });
+
+        var successResponse = new AuthResponse {
+            Success = true,
+            Message = "Email confirmed successfully"
+        };
+
+        _mockAuthService.ConfirmEmailAsync(email, token).Returns(successResponse);
+
+        var result = await AuthHandlers.ConfirmEmailHandler(email, token, _mockAuthService, frontendOptions);
+
+        result.Should().BeOfType<RedirectHttpResult>();
+        var redirectResult = (RedirectHttpResult)result;
+        redirectResult.Url.Should().Contain("/login");
+        redirectResult.Url.Should().Contain("emailConfirmed=true");
+    }
+
+    [Fact]
+    public async Task ConfirmEmailHandler_WithInvalidToken_RedirectsToErrorPage() {
+        var email = "user@example.com";
+        var token = "invalid-token";
+        var frontendOptions = Options.Create(new FrontendOptions {
+            BaseUrl = "http://localhost:3000"
+        });
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Confirmation link has expired or is invalid"
+        };
+
+        _mockAuthService.ConfirmEmailAsync(email, token).Returns(failureResponse);
+
+        var result = await AuthHandlers.ConfirmEmailHandler(email, token, _mockAuthService, frontendOptions);
+
+        result.Should().BeOfType<RedirectHttpResult>();
+        var redirectResult = (RedirectHttpResult)result;
+        redirectResult.Url.Should().Contain("/login");
+        redirectResult.Url.Should().Contain("error=");
+    }
+
+    #endregion
+
+    #region RegisterHandler Edge Cases
+
+    [Fact]
+    public async Task RegisterHandler_WithDuplicatedUserMessage_ReturnsConflict() {
+        var request = new RegisterRequest {
+            Email = "duplicate@example.com",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!",
+            Name = "Test User",
+            DisplayName = "TestUser"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "DuplicatedUser",
+            User = null
+        };
+
+        _mockAuthService.RegisterAsync(request).Returns(failureResponse);
+
+        var result = await AuthHandlers.RegisterHandler(request, _mockAuthService);
+
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        var statusResult = (IStatusCodeHttpResult)result;
+        statusResult.StatusCode.Should().Be(409);
+    }
+
+    [Fact]
+    public async Task RegisterHandler_WithPasswordError_MapsToPasswordField() {
+        var request = new RegisterRequest {
+            Email = "user@example.com",
+            Password = "weak",
+            ConfirmPassword = "weak",
+            Name = "Test User",
+            DisplayName = "TestUser"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Password must be at least 8 characters",
+            User = null
+        };
+
+        _mockAuthService.RegisterAsync(request).Returns(failureResponse);
+
+        var result = await AuthHandlers.RegisterHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task RegisterHandler_WithEmailError_MapsToEmailField() {
+        var request = new RegisterRequest {
+            Email = "invalid-email",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!",
+            Name = "Test User",
+            DisplayName = "TestUser"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Email is not valid",
+            User = null
+        };
+
+        _mockAuthService.RegisterAsync(request).Returns(failureResponse);
+
+        var result = await AuthHandlers.RegisterHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task RegisterHandler_WithNameError_MapsToNameField() {
+        var request = new RegisterRequest {
+            Email = "user@example.com",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!",
+            Name = "",
+            DisplayName = "TestUser"
+        };
+
+        var failureResponse = new AuthResponse {
+            Success = false,
+            Message = "Name is required",
+            User = null
+        };
+
+        _mockAuthService.RegisterAsync(request).Returns(failureResponse);
+
+        var result = await AuthHandlers.RegisterHandler(request, _mockAuthService);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    #endregion
 }

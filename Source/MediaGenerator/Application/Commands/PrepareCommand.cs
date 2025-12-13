@@ -116,14 +116,13 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         var providerName = config["PromptEnhancer:Provider"] ?? throw new InvalidOperationException("Prompt enhancer provider not configured.");
         var model = config["PromptEnhancer:Model"] ?? throw new InvalidOperationException("Prompt enhancer model not configured.");
 
-        var provider = ParseProvider(providerName);
-        var request = BuildPromptData(imageType, entity, tokenIndex, provider, model);
+        var request = BuildPromptData(imageType, entity, tokenIndex, providerName, model);
 
-        var result = await promptEnhancementService.EnhanceAsync(request, ct);
+        var result = await promptEnhancementService.GenerateAsync(request, ct);
         if (result.IsSuccessful) {
             var response = result.Value;
             await fileStore.SavePromptAsync(imageType, entity, tokenIndex, response.EnhancedPrompt, ct);
-            ConsoleOutput.WriteSuccess($" Elapsed: {response.Duration:mm\\:ss\\.fff} ✓ Success");
+            ConsoleOutput.WriteSuccess($" Elapsed: {response.Elapsed:mm\\:ss\\.fff} ✓ Success");
             return (skipOrOverwriteState, (double)response.Cost);
         }
 
@@ -132,18 +131,11 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         return (skipOrOverwriteState, 0.0);
     }
 
-    private static AiProviderType ParseProvider(string providerName)
-        => providerName.ToUpperInvariant() switch {
-            "OPENAI" => AiProviderType.OpenAi,
-            "GOOGLE" => AiProviderType.Google,
-            _ => throw new InvalidOperationException($"Unsupported prompt enhancer provider: {providerName}.")
-        };
-
     private static PromptEnhancementData BuildPromptData(
         string imageType,
         Asset asset,
         int tokenIndex,
-        AiProviderType provider,
+        string provider,
         string model) {
         var userPrompt = BuildUserPrompt(imageType, asset, tokenIndex);
         var systemPrompt = BuildSystemPrompt(imageType, asset);

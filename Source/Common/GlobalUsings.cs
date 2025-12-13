@@ -29,10 +29,12 @@ global using Microsoft.IdentityModel.Tokens;
 
 global using SixLabors.ImageSharp;
 
+global using VttTools.Admin.Configuration.Model;
 global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
+global using VttTools.Common.Model;
 global using VttTools.Configuration;
 global using VttTools.EndpointMappers;
 global using VttTools.HealthChecks;

@@ -6,7 +6,7 @@ public sealed record CreatePromptTemplateData : Data {
     public required string Name { get; init; }
 
     [Required]
-    public required PromptCategory Category { get; init; }
+    public required GeneratedContentType Category { get; init; }
 
     [MaxLength(16)]
     public string? Version { get; init; }

@@ -6,7 +6,7 @@ public sealed record PromptTemplate {
     public Guid Id { get; set; } = Guid.CreateVersion7();
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    public PromptCategory Category { get; set; }
+    public GeneratedContentType Category { get; set; }
     [MaxLength(16)]
     public string Version { get; set; } = "1.0";
     [MaxLength(4096)]

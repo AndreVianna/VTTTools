@@ -17,16 +17,17 @@ public class AudioGenerationService(IAiProviderFactory providerFactory)
         stopwatch.Stop();
 
         return !result.IsSuccessful
-            ? Result.Failure<AudioGenerationResponse>(null!, result.Errors[0].Message)
-            : (Result<AudioGenerationResponse>)new AudioGenerationResponse {
+            ? Result.Failure(result.Errors).WithNo<AudioGenerationResponse>()
+            : new AudioGenerationResponse {
                 AudioData = result.Value,
                 ContentType = "audio/ogg",
-                Provider = provider.ProviderType,
-                Model = data.Model,
-                Duration = data.Duration ?? TimeSpan.Zero,
+                InputTokens = 0,
+                OutputTokens = 0,
                 Cost = 0m,
+                Elapsed = TimeSpan.Zero,
             };
     }
 
-    public Task<IReadOnlyList<AiProviderType>> GetAvailableProvidersAsync(CancellationToken ct = default) => Task.FromResult(providerFactory.GetAvailableAudioProviders());
+    public IReadOnlyList<string> GetAvailableProviders()
+        => providerFactory.GetAvailableAudioProviders();
 }

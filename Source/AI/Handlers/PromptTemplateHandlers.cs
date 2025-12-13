@@ -6,7 +6,7 @@ internal static class PromptTemplateHandlers {
     internal static async Task<IResult> SearchTemplatesHandler(
         [FromServices] IPromptTemplateService service,
         [FromQuery] string? name,
-        [FromQuery] PromptCategory? category,
+        [FromQuery] GeneratedContentType? category,
         [FromQuery] VersionScope? scope,
         [FromQuery] int? pageIndex,
         [FromQuery] int? pageSize,
@@ -110,7 +110,7 @@ internal static class PromptTemplateHandlers {
     private static PromptTemplateResponse MapToResponse(PromptTemplate template) => new() {
         Id = template.Id,
         Name = template.Name,
-        Category = template.Category,
+        ContentType = template.Category,
         Version = template.Version,
         SystemPrompt = template.SystemPrompt,
         UserPromptTemplate = template.UserPromptTemplate,

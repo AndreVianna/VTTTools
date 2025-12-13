@@ -1,5 +1,3 @@
-using VttTools.Admin.ApiContracts;
-using VttTools.Common.Utilities;
 
 namespace VttTools.Common.UnitTests.Utilities;
 
@@ -15,21 +13,21 @@ public class ConfigurationSourceDetectorTests {
 
         var result = detector.DetectSource("TestKey");
 
-        result.Type.Should().Be(ConfigSourceType.InMemory);
+        result.Type.Should().Be(ConfigurationSourceType.InMemory);
     }
 
     [Fact]
     public void DetectSource_WithEnvironmentVariablesProvider_ReturnsEnvironmentVariable() {
-        var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddEnvironmentVariables();
-        var configRoot = configBuilder.Build();
-        var detector = new ConfigurationSourceDetector(configRoot);
-
         Environment.SetEnvironmentVariable("TEST_VAR_FOR_UNIT_TEST", "TestValue");
         try {
+            var configBuilder = new ConfigurationBuilder();
+            configBuilder.AddEnvironmentVariables();
+            var configRoot = configBuilder.Build();
+            var detector = new ConfigurationSourceDetector(configRoot);
+
             var result = detector.DetectSource("TEST_VAR_FOR_UNIT_TEST");
 
-            result.Type.Should().Be(ConfigSourceType.EnvironmentVariable);
+            result.Type.Should().Be(ConfigurationSourceType.EnvironmentVariable);
             result.Path.Should().BeNull();
         }
         finally {
@@ -48,7 +46,7 @@ public class ConfigurationSourceDetectorTests {
 
         var result = detector.DetectSource("InMemoryKey");
 
-        result.Type.Should().Be(ConfigSourceType.InMemory);
+        result.Type.Should().Be(ConfigurationSourceType.InMemory);
         result.Path.Should().BeNull();
     }
 
@@ -60,7 +58,7 @@ public class ConfigurationSourceDetectorTests {
 
         var result = detector.DetectSource("NonExistentKey");
 
-        result.Type.Should().Be(ConfigSourceType.NotFound);
+        result.Type.Should().Be(ConfigurationSourceType.NotFound);
         result.Path.Should().BeNull();
     }
 
@@ -173,6 +171,6 @@ public class ConfigurationSourceDetectorTests {
 
         var result = detector.DetectSource("SharedKey");
 
-        result.Type.Should().Be(ConfigSourceType.InMemory);
+        result.Type.Should().Be(ConfigurationSourceType.InMemory);
     }
 }

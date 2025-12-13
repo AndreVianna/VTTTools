@@ -156,10 +156,9 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
         var model = config[$"Images:{imageType}:Model"] ?? throw new InvalidOperationException($"{imageType} model not configured.");
         var aspectRatio = config[$"Images:{imageType}:AspectRatio"] ?? "1:1";
 
-        var provider = ParseProvider(providerName);
         var request = new ImageGenerationData {
             Prompt = finalPrompt,
-            Provider = provider,
+            Provider = providerName,
             Model = model,
             AspectRatio = aspectRatio
         };
@@ -169,7 +168,7 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
             var response = result.Value;
             await fileStore.SaveImageAsync(imageType, asset, tokenIndex, response.ImageData, ct);
             Console.ForegroundColor = ConsoleColor.Green;
-            ConsoleOutput.WriteLine($" Elapsed: {response.Duration:mm\\:ss\\.fff} ✓ Success");
+            ConsoleOutput.WriteLine($" Elapsed: {response.Elapsed:mm\\:ss\\.fff} ✓ Success");
             Console.ResetColor();
             return (skipOrOverwriteState, (double)response.Cost);
         }
@@ -180,14 +179,6 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
         Console.ResetColor();
         return (skipOrOverwriteState, 0.0);
     }
-
-    private static AiProviderType ParseProvider(string providerName)
-        => providerName.ToUpperInvariant() switch {
-            "OPENAI" => AiProviderType.OpenAi,
-            "STABILITY" => AiProviderType.Stability,
-            "GOOGLE" => AiProviderType.Google,
-            _ => throw new InvalidOperationException($"Unsupported image generation provider: {providerName}.")
-        };
 
     private async Task<string?> GetImagePromptAsync(string imageType, Asset entity, int tokenIndex, CancellationToken ct) {
         var promptFilePath = fileStore.FindPromptFile(imageType, entity, tokenIndex);

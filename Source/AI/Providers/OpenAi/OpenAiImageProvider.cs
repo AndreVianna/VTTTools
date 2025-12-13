@@ -6,7 +6,7 @@ public sealed class OpenAiImageProvider(
     ILogger<OpenAiImageProvider> logger) : IImageProvider {
     private readonly OpenAiHttpHelper _helper = new(httpClientFactory, configuration);
 
-    public AiProviderType ProviderType => AiProviderType.OpenAi;
+    public string Name => "OpenAi";
 
     public async Task<Result<byte[]>> GenerateAsync(
         ImageGenerationData data,

@@ -1,4 +1,3 @@
-using VttTools.AI.UnitTests.Mocks;
 
 namespace VttTools.AI.Services;
 
@@ -10,12 +9,12 @@ public class ImageGenerationServiceTests {
 
     public ImageGenerationServiceTests() {
         _mockProvider = new MockImageProvider {
-            ProviderType = AiProviderType.OpenAi,
+            Name = "OpenAi",
             ImageDataToReturn = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
         };
 
-        _providerFactory.GetImageProvider(Arg.Any<AiProviderType?>()).Returns(_mockProvider);
-        _providerFactory.GetAvailableImageProviders().Returns([AiProviderType.OpenAi, AiProviderType.Google]);
+        _providerFactory.GetImageProvider(Arg.Any<string>()).Returns(_mockProvider);
+        _providerFactory.GetAvailableImageProviders().Returns(["OpenAi", "Google"]);
 
         _service = new ImageGenerationService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
@@ -26,7 +25,7 @@ public class ImageGenerationServiceTests {
         var data = new ImageGenerationData {
             Prompt = "A beautiful landscape",
             Model = "dall-e-3",
-            Provider = AiProviderType.OpenAi,
+            Provider = "OpenAi",
         };
 
         var result = await _service.GenerateAsync(data, _ct);
@@ -35,15 +34,14 @@ public class ImageGenerationServiceTests {
         result.Value.Should().NotBeNull();
         result.Value.ImageData.Should().BeEquivalentTo(_mockProvider.ImageDataToReturn);
         result.Value.ContentType.Should().Be("image/png");
-        result.Value.Provider.Should().Be(AiProviderType.OpenAi);
-        result.Value.Model.Should().Be("dall-e-3");
-        result.Value.Duration.Should().BeGreaterThan(TimeSpan.Zero);
         _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
         var data = new ImageGenerationData {
+            Provider = "OpenAi",
+            Model = "dall-e-3",
             Prompt = "Test prompt",
         };
         _mockProvider.ErrorToReturn = "Provider error occurred";
@@ -57,48 +55,53 @@ public class ImageGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_TracksRequestDuration() {
         var data = new ImageGenerationData {
+            Provider = "OpenAi",
+            Model = "dall-e-3",
             Prompt = "Test prompt",
         };
 
         var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Duration.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
+        result.Value.Elapsed.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
     }
 
     [Fact]
-    public async Task GetAvailableProvidersAsync_ReturnsProvidersFromFactory() {
-        var providers = await _service.GetAvailableProvidersAsync(_ct);
+    public void GetAvailableProviders_ReturnsProvidersFromFactory() {
+        var providers = _service.GetAvailableProviders();
 
         providers.Should().HaveCount(2);
-        providers.Should().Contain(AiProviderType.OpenAi);
-        providers.Should().Contain(AiProviderType.Google);
+        providers.Should().Contain("OpenAi");
+        providers.Should().Contain("Google");
         _providerFactory.Received(1).GetAvailableImageProviders();
     }
 
     [Fact]
     public async Task GenerateAsync_WithNullProvider_UsesDefaultProvider() {
         var data = new ImageGenerationData {
+            Provider = null!,
+            Model = "dall-e-3",
             Prompt = "Test prompt",
-            Provider = null,
         };
 
         var result = await _service.GenerateAsync(data, _ct);
 
-        result.IsSuccessful.Should().BeTrue();
-        _providerFactory.Received(1).GetImageProvider(null);
+        result.IsSuccessful.Should().BeFalse();
     }
 
     [Fact]
     public async Task GenerateAsync_SetsTokensAndCostToZero() {
         var data = new ImageGenerationData {
+            Provider = "OpenAi",
+            Model = "dall-e-3",
             Prompt = "Test prompt",
         };
 
         var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.TokensUsed.Should().Be(0);
+        result.Value.InputTokens.Should().Be(0);
+        result.Value.OutputTokens.Should().Be(0);
         result.Value.Cost.Should().Be(0m);
     }
 }

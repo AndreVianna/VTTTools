@@ -14,9 +14,9 @@ public record UploadResourceData
         if (string.IsNullOrWhiteSpace(ContentType))
             result += new Error("The content type is required.", nameof(ContentType));
         else if (ContentType.Length > 127)
-            result += new Error("ContentType cannot exceed 127 characters.", nameof(ContentType));
+            result += new Error("GeneratedContentType cannot exceed 127 characters.", nameof(ContentType));
         else if (!ContentType.Contains('/'))
-            result += new Error("ContentType must be a valid MIME type.", nameof(ContentType));
+            result += new Error("GeneratedContentType must be a valid MIME type.", nameof(ContentType));
         if (string.IsNullOrWhiteSpace(FileName))
             result += new Error("File name is required.", nameof(FileName));
         else if (FileName.Length > 255)

@@ -465,6 +465,394 @@ public class AuthServiceTests {
 
     #endregion
 
+    #region ForgotPasswordAsync Tests
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithExistingUser_SendsEmailAndReturnsSuccess() {
+        var email = "user@example.com";
+        var user = CreateTestUser(email, "Test User");
+        var resetToken = "reset-token-123";
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.GeneratePasswordResetTokenAsync(user).Returns(resetToken);
+        _mockEmailService.SendPasswordResetEmailAsync(email, Arg.Any<string>()).Returns(Task.CompletedTask);
+
+        var result = await _authService.ForgotPasswordAsync(email);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Contain("reset instructions have been sent");
+        await _mockUserManager.Received(1).FindByEmailAsync(email);
+        await _mockUserManager.Received(1).GeneratePasswordResetTokenAsync(user);
+        await _mockEmailService.Received(1).SendPasswordResetEmailAsync(email, Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
+        var email = "nonexistent@example.com";
+
+        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+
+        var result = await _authService.ForgotPasswordAsync(email);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Contain("reset instructions have been sent");
+        await _mockUserManager.Received(1).FindByEmailAsync(email);
+        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<User>());
+        await _mockEmailService.DidNotReceive().SendPasswordResetEmailAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WhenExceptionThrown_ReturnsInternalServerError() {
+        var email = "error@example.com";
+
+        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _authService.ForgotPasswordAsync(email);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("InternalServerError");
+    }
+
+    #endregion
+
+    #region ValidateResetTokenAsync Tests
+
+    [Fact]
+    public async Task ValidateResetTokenAsync_WithValidToken_ReturnsSuccess() {
+        var email = "user@example.com";
+        var token = "valid-token";
+        var user = CreateTestUser(email, "Test User");
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.VerifyUserTokenAsync(
+            user,
+            Arg.Any<string>(),
+            "ResetPassword",
+            token).Returns(true);
+
+        var result = await _authService.ValidateResetTokenAsync(email, token);
+
+        result.Success.Should().BeTrue();
+        await _mockUserManager.Received(1).FindByEmailAsync(email);
+        await _mockUserManager.Received(1).VerifyUserTokenAsync(user, Arg.Any<string>(), "ResetPassword", token);
+    }
+
+    [Fact]
+    public async Task ValidateResetTokenAsync_WithInvalidToken_ReturnsFailure() {
+        var email = "user@example.com";
+        var token = "invalid-token";
+        var user = CreateTestUser(email, "Test User");
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.VerifyUserTokenAsync(
+            user,
+            Arg.Any<string>(),
+            "ResetPassword",
+            token).Returns(false);
+
+        var result = await _authService.ValidateResetTokenAsync(email, token);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("expired or is invalid");
+    }
+
+    [Fact]
+    public async Task ValidateResetTokenAsync_WithNonExistentUser_ReturnsFailure() {
+        var email = "nonexistent@example.com";
+        var token = "some-token";
+
+        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+
+        var result = await _authService.ValidateResetTokenAsync(email, token);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("Invalid reset link");
+        await _mockUserManager.DidNotReceive().VerifyUserTokenAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ValidateResetTokenAsync_WhenExceptionThrown_ReturnsInternalServerError() {
+        var email = "error@example.com";
+        var token = "some-token";
+
+        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _authService.ValidateResetTokenAsync(email, token);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("InternalServerError");
+    }
+
+    #endregion
+
+    #region ResetPasswordAsync Tests
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithValidToken_ResetsPasswordAndReturnsSuccess() {
+        var email = "user@example.com";
+        var token = "valid-token";
+        var newPassword = "NewPassword123!";
+        var user = CreateTestUser(email, "Test User");
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.ResetPasswordAsync(user, token, newPassword).Returns(IdentityResult.Success);
+
+        var result = await _authService.ResetPasswordAsync(email, token, newPassword);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Be("Password updated successfully");
+        await _mockUserManager.Received(1).FindByEmailAsync(email);
+        await _mockUserManager.Received(1).ResetPasswordAsync(user, token, newPassword);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithInvalidToken_ReturnsFailure() {
+        var email = "user@example.com";
+        var token = "invalid-token";
+        var newPassword = "NewPassword123!";
+        var user = CreateTestUser(email, "Test User");
+        var identityErrors = new List<IdentityError> {
+            new() { Description = "Invalid token" }
+        };
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.ResetPasswordAsync(user, token, newPassword)
+            .Returns(IdentityResult.Failed([.. identityErrors]));
+
+        var result = await _authService.ResetPasswordAsync(email, token, newPassword);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("Invalid token");
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithNonExistentUser_ReturnsFailure() {
+        var email = "nonexistent@example.com";
+        var token = "some-token";
+        var newPassword = "NewPassword123!";
+
+        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+
+        var result = await _authService.ResetPasswordAsync(email, token, newPassword);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("Invalid reset link");
+        await _mockUserManager.DidNotReceive().ResetPasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WhenExceptionThrown_ReturnsInternalServerError() {
+        var email = "error@example.com";
+        var token = "some-token";
+        var newPassword = "NewPassword123!";
+
+        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _authService.ResetPasswordAsync(email, token, newPassword);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("InternalServerError");
+    }
+
+    #endregion
+
+    #region ResendEmailConfirmationAsync Tests
+
+    [Fact]
+    public async Task ResendEmailConfirmationAsync_WithUnconfirmedUser_SendsEmailAndReturnsSuccess() {
+        var email = "unconfirmed@example.com";
+        var user = CreateTestUser(email, "Test User");
+        user.EmailConfirmed = false;
+        var confirmToken = "confirm-token-123";
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.GenerateEmailConfirmationTokenAsync(user).Returns(confirmToken);
+        _mockEmailService.SendEmailConfirmationAsync(email, Arg.Any<string>()).Returns(Task.CompletedTask);
+
+        var result = await _authService.ResendEmailConfirmationAsync(email);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Contain("confirmation instructions have been sent");
+        await _mockUserManager.Received(1).FindByEmailAsync(email);
+        await _mockUserManager.Received(1).GenerateEmailConfirmationTokenAsync(user);
+        await _mockEmailService.Received(1).SendEmailConfirmationAsync(email, Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResendEmailConfirmationAsync_WithAlreadyConfirmedUser_ReturnsSuccessWithoutSendingEmail() {
+        var email = "confirmed@example.com";
+        var user = CreateTestUser(email, "Test User");
+        user.EmailConfirmed = true;
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+
+        var result = await _authService.ResendEmailConfirmationAsync(email);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Contain("already confirmed");
+        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<User>());
+        await _mockEmailService.DidNotReceive().SendEmailConfirmationAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResendEmailConfirmationAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
+        var email = "nonexistent@example.com";
+
+        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+
+        var result = await _authService.ResendEmailConfirmationAsync(email);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Contain("confirmation instructions have been sent");
+        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<User>());
+        await _mockEmailService.DidNotReceive().SendEmailConfirmationAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResendEmailConfirmationAsync_WhenExceptionThrown_ReturnsInternalServerError() {
+        var email = "error@example.com";
+
+        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _authService.ResendEmailConfirmationAsync(email);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("InternalServerError");
+    }
+
+    #endregion
+
+    #region ConfirmEmailAsync Tests
+
+    [Fact]
+    public async Task ConfirmEmailAsync_WithValidToken_ConfirmsEmailAndReturnsSuccess() {
+        var email = "user@example.com";
+        var token = "valid-token";
+        var user = CreateTestUser(email, "Test User");
+        user.EmailConfirmed = false;
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.ConfirmEmailAsync(user, token).Returns(IdentityResult.Success);
+
+        var result = await _authService.ConfirmEmailAsync(email, token);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Be("Email confirmed successfully");
+        await _mockUserManager.Received(1).FindByEmailAsync(email);
+        await _mockUserManager.Received(1).ConfirmEmailAsync(user, token);
+    }
+
+    [Fact]
+    public async Task ConfirmEmailAsync_WithAlreadyConfirmedEmail_ReturnsSuccessWithoutConfirming() {
+        var email = "confirmed@example.com";
+        var token = "some-token";
+        var user = CreateTestUser(email, "Test User");
+        user.EmailConfirmed = true;
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+
+        var result = await _authService.ConfirmEmailAsync(email, token);
+
+        result.Success.Should().BeTrue();
+        result.Message.Should().Contain("already confirmed");
+        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ConfirmEmailAsync_WithInvalidToken_ReturnsFailure() {
+        var email = "user@example.com";
+        var token = "invalid-token";
+        var user = CreateTestUser(email, "Test User");
+        user.EmailConfirmed = false;
+        var identityErrors = new List<IdentityError> {
+            new() { Description = "Invalid token" }
+        };
+
+        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserManager.ConfirmEmailAsync(user, token)
+            .Returns(IdentityResult.Failed([.. identityErrors]));
+
+        var result = await _authService.ConfirmEmailAsync(email, token);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("expired or is invalid");
+    }
+
+    [Fact]
+    public async Task ConfirmEmailAsync_WithNonExistentUser_ReturnsFailure() {
+        var email = "nonexistent@example.com";
+        var token = "some-token";
+
+        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+
+        var result = await _authService.ConfirmEmailAsync(email, token);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("Invalid confirmation link");
+        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ConfirmEmailAsync_WhenExceptionThrown_ReturnsInternalServerError() {
+        var email = "error@example.com";
+        var token = "some-token";
+
+        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _authService.ConfirmEmailAsync(email, token);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("InternalServerError");
+    }
+
+    #endregion
+
+    #region LoginAsync Edge Cases
+
+    [Fact]
+    public async Task LoginAsync_WhenNotAllowed_ReturnsNotAllowedResponse() {
+        var request = new LoginRequest {
+            Email = "unconfirmed@example.com",
+            Password = "Password123!",
+            RememberMe = false
+        };
+
+        var user = CreateTestUser(request.Email, "Unconfirmed User");
+
+        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
+        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
+            .Returns(SignInResult.NotAllowed);
+
+        var result = await _authService.LoginAsync(request);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("NotAllowed");
+        result.User.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenRequiresTwoFactor_ReturnsRequiresTwoFactorResponse() {
+        var request = new LoginRequest {
+            Email = "2fa@example.com",
+            Password = "Password123!",
+            RememberMe = false
+        };
+
+        var user = CreateTestUser(request.Email, "2FA User");
+
+        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
+        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
+            .Returns(SignInResult.TwoFactorRequired);
+
+        var result = await _authService.LoginAsync(request);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("RequiresTwoFactor");
+        result.User.Should().BeNull();
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static User CreateTestUser(string email, string name)

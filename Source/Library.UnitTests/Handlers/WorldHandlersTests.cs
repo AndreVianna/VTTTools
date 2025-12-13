@@ -1,18 +1,12 @@
 namespace VttTools.Library.Handlers;
 
 public class WorldHandlersTests {
-    private readonly WorldService _worldService;
-    private readonly IWorldStorage _worldStorage;
-    private readonly ICampaignStorage _campaignStorage;
-    private readonly IMediaStorage _mediaStorage;
+    private readonly IWorldService _worldService;
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public WorldHandlersTests() {
-        _worldStorage = Substitute.For<IWorldStorage>();
-        _campaignStorage = Substitute.For<ICampaignStorage>();
-        _mediaStorage = Substitute.For<IMediaStorage>();
-        _worldService = new(_worldStorage, _campaignStorage, _mediaStorage, NullLogger<WorldService>.Instance);
+        _worldService = Substitute.For<IWorldService>();
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -133,7 +127,7 @@ public class WorldHandlersTests {
     public async Task CloneWorldHandler_WithNonExistentWorld_ReturnsNotFound() {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _worldService.CloneWorldAsync(_userId, worldId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<World>(null!, error));
 
@@ -147,7 +141,7 @@ public class WorldHandlersTests {
     public async Task CloneWorldHandler_WithUnauthorizedAccess_ReturnsForbid() {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _worldService.CloneWorldAsync(_userId, worldId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<World>(null!, error));
 
@@ -196,7 +190,7 @@ public class WorldHandlersTests {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
         var request = new UpdateWorldRequest { Name = "Updated World" };
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _worldService.UpdateWorldAsync(_userId, worldId, Arg.Any<UpdatedWorldData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<World>(null!, error));
 
@@ -211,7 +205,7 @@ public class WorldHandlersTests {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
         var request = new UpdateWorldRequest { Name = "Updated World" };
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _worldService.UpdateWorldAsync(_userId, worldId, Arg.Any<UpdatedWorldData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<World>(null!, error));
 
@@ -253,7 +247,7 @@ public class WorldHandlersTests {
     public async Task DeleteWorldHandler_WithNonExistentWorld_ReturnsNotFound() {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _worldService.DeleteWorldAsync(_userId, worldId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
@@ -267,7 +261,7 @@ public class WorldHandlersTests {
     public async Task DeleteWorldHandler_WithUnauthorizedAccess_ReturnsForbid() {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _worldService.DeleteWorldAsync(_userId, worldId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
@@ -403,7 +397,7 @@ public class WorldHandlersTests {
     public async Task AddNewCampaignHandler_WithNonExistentWorld_ReturnsNotFound() {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _worldService.AddNewCampaignAsync(_userId, worldId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -416,7 +410,7 @@ public class WorldHandlersTests {
     public async Task AddNewCampaignHandler_WithUnauthorizedAccess_ReturnsForbid() {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _worldService.AddNewCampaignAsync(_userId, worldId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -450,7 +444,7 @@ public class WorldHandlersTests {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _worldService.AddClonedCampaignAsync(_userId, worldId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -464,7 +458,7 @@ public class WorldHandlersTests {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _worldService.AddClonedCampaignAsync(_userId, worldId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -492,7 +486,7 @@ public class WorldHandlersTests {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _worldService.RemoveCampaignAsync(_userId, worldId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
@@ -506,7 +500,7 @@ public class WorldHandlersTests {
         var context = CreateHttpContext(_userId);
         var worldId = Guid.CreateVersion7();
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _worldService.RemoveCampaignAsync(_userId, worldId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 

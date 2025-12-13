@@ -47,6 +47,21 @@ internal static class AppHost {
                             .WithHttpHealthCheck("health")
                             .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
+        var jobs = builder.AddProject<Projects.VttTools_Jobs>("jobs-api")
+                          .WithReference(cache)
+                          .WithReference(database)
+                          .WithHttpHealthCheck("health")
+                          .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+
+        var ai = builder.AddProject<Projects.VttTools_AI>("ai-api")
+                        .WithReference(cache)
+                        .WithReference(database)
+                        .WithReference(resources)
+                        .WithReference(assets)
+                        .WithReference(jobs)
+                        .WithHttpHealthCheck("health")
+                        .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+
         var library = builder.AddProject<Projects.VttTools_Library>("library-api")
                              .WithReference(cache)
                              .WithReference(database)
@@ -88,6 +103,8 @@ internal static class AppHost {
                                  .WithReference(cache)
                                  .WithReference(database)
                                  .WithReference(admin).WaitFor(admin)
+                                 .WithReference(ai).WaitFor(ai)
+                                 .WithReference(jobs).WaitFor(jobs)
                                  .WithEnvironment("NODE_ENV", isDevelopment ? "development" : "production")
                                  .WithEndpoint("https", endpoint => {
                                      endpoint.Port = isDevelopment ? 5193 : null; // Admin app port

@@ -1,4 +1,3 @@
-using FFMpegCore;
 
 using Size = VttTools.Common.Model.Size;
 
@@ -9,51 +8,51 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
 
     public async Task<Result<ProcessedMedia>> ProcessAsync(
         ResourceType resourceType,
-        Stream input,
         string contentType,
         string fileName,
+        Stream stream,
         CancellationToken ct = default) {
         if (!MediaConstraints.For.TryGetValue(resourceType, out var constraints))
-            return Result.Failure<ProcessedMedia>(null!, $"Invalid resource type: '{resourceType}'. Please specify a valid resource type.");
+            return Result.Failure($"Invalid resource type: '{resourceType}'. Please specify a valid resource type.");
 
         if (!MediaConstraints.IsValidContentType(resourceType, contentType)) {
             var allowedTypes = string.Join(", ", constraints.AllowedContentTypes);
-            return Result.Failure<ProcessedMedia>(null!, $"Content type '{contentType}' is not allowed for resource type '{resourceType}'. Allowed types: {allowedTypes}");
+            return Result.Failure($"Content type '{contentType}' is not allowed for resource type '{resourceType}'. Allowed types: {allowedTypes}");
         }
 
-        if (input.Length > constraints.MaxFileSize) {
+        if (stream.Length > constraints.MaxFileSize) {
             var maxSizeMb = constraints.MaxFileSize / 1024.0 / 1024.0;
-            var actualSizeMb = input.Length / 1024.0 / 1024.0;
-            return Result.Failure<ProcessedMedia>(null!, $"File size ({actualSizeMb:F2} MB) exceeds maximum ({maxSizeMb:F2} MB) for resourceType '{resourceType}'");
+            var actualSizeMb = stream.Length / 1024.0 / 1024.0;
+            return Result.Failure($"File size ({actualSizeMb:F2} MB) exceeds maximum ({maxSizeMb:F2} MB) for resourceType '{resourceType}'");
         }
 
         var category = MediaConstraints.GetMediaCategory(contentType);
         return category switch {
-            "image" => await ProcessImageAsync(input, fileName, constraints, ct),
-            "audio" => await ProcessAudioAsync(input, fileName, constraints, ct),
-            "video" => await ProcessVideoAsync(input, fileName, constraints, ct),
-            _ => Result.Failure<ProcessedMedia>(null!, $"Unsupported media category: {category}"),
+            "image" => await ProcessImageAsync(constraints, fileName, stream, ct),
+            "audio" => await ProcessAudioAsync(constraints, fileName, stream, ct),
+            "video" => await ProcessVideoAsync(constraints, fileName, stream, ct),
+            _ => Result.Failure($"Unsupported media category: {category}"),
         };
     }
 
     public async Task<byte[]?> GenerateThumbnailAsync(
-        Stream input,
         string contentType,
+        Stream stream,
         int maxSize = 256,
         CancellationToken ct = default) {
         var category = MediaConstraints.GetMediaCategory(contentType);
 
         return category switch {
-            "image" => await GenerateImageThumbnailAsync(input, maxSize, ct),
-            "video" => await GenerateVideoThumbnailAsync(input, maxSize, ct),
+            "image" => await GenerateImageThumbnailAsync(stream, maxSize, ct),
+            "video" => await GenerateVideoThumbnailAsync(stream, maxSize, ct),
             _ => null,
         };
     }
 
     private async Task<Result<ProcessedMedia>> ProcessImageAsync(
-        Stream input,
-        string fileName,
         TypeConstraints constraints,
+        string fileName,
+        Stream input,
         CancellationToken ct) {
         try {
             using var image = await Image.LoadAsync(input, ct);
@@ -96,14 +95,14 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to process image: {FileName}", fileName);
-            return Result.Failure<ProcessedMedia>(null!, $"Failed to process image: {ex.Message}");
+            return Result.Failure($"Failed to process image: {ex.Message}");
         }
     }
 
     private async Task<Result<ProcessedMedia>> ProcessAudioAsync(
-        Stream input,
-        string fileName,
         TypeConstraints constraints,
+        string fileName,
+        Stream input,
         CancellationToken ct) {
         try {
             var tempInputPath = Path.GetTempFileName();
@@ -118,7 +117,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                 var duration = mediaInfo.Duration;
 
                 if (constraints.MaxDuration > TimeSpan.Zero && duration > constraints.MaxDuration) {
-                    return Result.Failure<ProcessedMedia>(null!, $"Audio duration ({duration.TotalSeconds:F1}s) exceeds maximum ({constraints.MaxDuration.TotalSeconds:F1}s)");
+                    return Result.Failure($"Audio duration ({duration.TotalSeconds:F1}s) exceeds maximum ({constraints.MaxDuration.TotalSeconds:F1}s)");
                 }
 
                 await FFMpegArguments
@@ -155,14 +154,14 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to process audio: {FileName}", fileName);
-            return Result.Failure<ProcessedMedia>(null!, $"Failed to process audio: {ex.Message}");
+            return Result.Failure($"Failed to process audio: {ex.Message}");
         }
     }
 
     private async Task<Result<ProcessedMedia>> ProcessVideoAsync(
-        Stream input,
-        string fileName,
         TypeConstraints constraints,
+        string fileName,
+        Stream input,
         CancellationToken ct) {
         try {
             var tempInputPath = Path.GetTempFileName();
@@ -178,10 +177,10 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                 var videoStream = mediaInfo.PrimaryVideoStream;
 
                 if (videoStream is null)
-                    return Result.Failure<ProcessedMedia>(null!, "Video file contains no video stream");
+                    return Result.Failure("Video file contains no video stream");
 
                 if (constraints.MaxDuration > TimeSpan.Zero && duration > constraints.MaxDuration) {
-                    return Result.Failure<ProcessedMedia>(null!, $"Video duration ({duration.TotalSeconds:F1}s) exceeds maximum ({constraints.MaxDuration.TotalSeconds:F1}s)");
+                    return Result.Failure($"Video duration ({duration.TotalSeconds:F1}s) exceeds maximum ({constraints.MaxDuration.TotalSeconds:F1}s)");
                 }
 
                 var needsResize = videoStream.Width > constraints.MaxWidth || videoStream.Height > constraints.MaxHeight;
@@ -242,7 +241,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to process video: {FileName}", fileName);
-            return Result.Failure<ProcessedMedia>(null!, $"Failed to process video: {ex.Message}");
+            return Result.Failure($"Failed to process video: {ex.Message}");
         }
     }
 

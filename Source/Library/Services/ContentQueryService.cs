@@ -61,7 +61,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
 
         var entities = await query.ToArrayAsync(ct);
 
-        return [..entities.Select(a => new ContentListItem {
+        return [..entities.Select((Func<Data.Library.Entities.Adventure, ContentListItem>)(a => new ContentListItem {
             Id = a.Id,
             Type = ContentType.Adventure,
             Name = a.Name,
@@ -75,7 +75,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
                 Id = a.Background.Id,
                 ResourceType = a.Background.ResourceType,
                 Description = a.Background.Description,
-                Features = [..a.Background.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
+                Features = [.. a.Background.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
                 Path = a.Background.Path,
                 ContentType = a.Background.ContentType,
                 FileName = a.Background.FileName,
@@ -83,6 +83,6 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
                 Size = a.Background.Size,
                 Duration = a.Background.Duration,
             } : null
-        })];
+        }))];
     }
 }

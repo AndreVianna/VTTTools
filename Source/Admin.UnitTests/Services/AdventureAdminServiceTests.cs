@@ -1,8 +1,12 @@
+using AdventureModel = VttTools.Library.Adventures.Model.Adventure;
+using EncounterModel = VttTools.Library.Encounters.Model.Encounter;
+
 namespace VttTools.Admin.UnitTests.Services;
 
 public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
-    private readonly ApplicationDbContext _mockDbContext;
+    private readonly IAdventureStorage _mockAdventureStorage;
+    private readonly IEncounterStorage _mockEncounterStorage;
     private readonly UserManager<User> _mockUserManager;
     private readonly ILogger<AdventureAdminService> _mockLogger;
     private readonly AdventureAdminService _sut;
@@ -12,21 +16,18 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
         _mockOptions = Substitute.For<IOptions<PublicLibraryOptions>>();
         _mockOptions.Value.Returns(new PublicLibraryOptions { MasterUserId = _masterUserId });
 
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.CreateVersion7()}")
-            .Options;
-        _mockDbContext = new ApplicationDbContext(options);
-
+        _mockAdventureStorage = Substitute.For<IAdventureStorage>();
+        _mockEncounterStorage = Substitute.For<IEncounterStorage>();
         _mockUserManager = CreateUserManagerMock();
         _mockLogger = Substitute.For<ILogger<AdventureAdminService>>();
-        _sut = new AdventureAdminService(_mockOptions, _mockDbContext, _mockUserManager, _mockLogger);
+        _sut = new AdventureAdminService(_mockOptions, _mockAdventureStorage, _mockEncounterStorage, _mockUserManager, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async ValueTask DisposeAsync() {
-        await _mockDbContext.DisposeAsync();
+    public ValueTask DisposeAsync() {
         GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 
     #region SearchAdventuresAsync Tests
@@ -34,11 +35,10 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task SearchAdventuresAsync_WithValidRequest_ReturnsPagedResults() {
         var adventures = CreateTestAdventures(15);
-        await _mockDbContext.Adventures.AddRangeAsync(adventures, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.SearchAsync(_masterUserId, Arg.Any<LibrarySearchFilter>(), Arg.Any<CancellationToken>())
+            .Returns(([.. adventures.Take(11)], 15));
 
-        var ownerIds = adventures.Select(a => a.OwnerId).Distinct();
-        var users = ownerIds.Select(id => CreateTestUser(id, $"user{id}@example.com", $"User {id}")).ToList();
+        var users = CreateTestUsers(1);
         _mockUserManager.Users.Returns(users.BuildMock());
 
         var request = new LibrarySearchRequest { Skip = 0, Take = 10 };
@@ -53,63 +53,21 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     }
 
     [Fact]
-    public async Task SearchAdventuresAsync_WithSearchTerm_ReturnsFilteredResults() {
-        var adventures = new List<Adventure> {
-            CreateTestAdventure("Dragon Quest", "Find dragons"),
-            CreateTestAdventure("Wizard Tower", "Climb the tower"),
-            CreateTestAdventure("Dragon's Lair", "Face the dragon")
-        };
-        await _mockDbContext.Adventures.AddRangeAsync(adventures, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+    public async Task SearchAdventuresAsync_WithSearchTerm_CallsStorageWithCorrectFilter() {
+        _mockAdventureStorage.SearchAsync(_masterUserId, Arg.Any<LibrarySearchFilter>(), Arg.Any<CancellationToken>())
+            .Returns(([], 0));
 
         var users = CreateTestUsers(1);
         _mockUserManager.Users.Returns(users.BuildMock());
 
         var request = new LibrarySearchRequest { Search = "dragon", Skip = 0, Take = 10 };
 
-        var result = await _sut.SearchAdventuresAsync(request, TestContext.Current.CancellationToken);
+        await _sut.SearchAdventuresAsync(request, TestContext.Current.CancellationToken);
 
-        result.Content.Count.Should().Be(2);
-    }
-
-    [Fact]
-    public async Task SearchAdventuresAsync_WithOwnerTypeFilter_ReturnsMasterContent() {
-        var adventures = new List<Adventure> {
-            CreateTestAdventure("Master Adventure", "By master", _masterUserId),
-            CreateTestAdventure("User Adventure", "By user", Guid.CreateVersion7())
-        };
-        await _mockDbContext.Adventures.AddRangeAsync(adventures, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var users = CreateTestUsers(2);
-        _mockUserManager.Users.Returns(users.BuildMock());
-
-        var request = new LibrarySearchRequest { OwnerType = "master", Skip = 0, Take = 10 };
-
-        var result = await _sut.SearchAdventuresAsync(request, TestContext.Current.CancellationToken);
-
-        result.Content.Count.Should().Be(1);
-        result.Content[0].Name.Should().Be("Master Adventure");
-    }
-
-    [Fact]
-    public async Task SearchAdventuresAsync_WithIsPublishedFilter_ReturnsPublishedContent() {
-        var adventures = new List<Adventure> {
-            CreateTestAdventure("Published", "desc", isPublished: true),
-            CreateTestAdventure("Draft", "desc", isPublished: false)
-        };
-        await _mockDbContext.Adventures.AddRangeAsync(adventures, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
-
-        var request = new LibrarySearchRequest { IsPublished = true, Skip = 0, Take = 10 };
-
-        var result = await _sut.SearchAdventuresAsync(request, TestContext.Current.CancellationToken);
-
-        result.Content.Count.Should().Be(1);
-        result.Content[0].IsPublished.Should().BeTrue();
+        await _mockAdventureStorage.Received(1).SearchAsync(
+            _masterUserId,
+            Arg.Is<LibrarySearchFilter>(f => f.Search == "dragon"),
+            Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -119,8 +77,8 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task GetAdventureByIdAsync_WithExistingAdventure_ReturnsAdventure() {
         var adventure = CreateTestAdventure("Test Adventure", "Test description");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
 
         var users = CreateTestUsers(1);
         _mockUserManager.Users.Returns(users.BuildMock());
@@ -134,6 +92,9 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
 
     [Fact]
     public async Task GetAdventureByIdAsync_WithNonExistentAdventure_ReturnsNull() {
+        _mockAdventureStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((AdventureModel?)null);
+
         var result = await _sut.GetAdventureByIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
         result.Should().BeNull();
@@ -156,8 +117,9 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
         result.IsPublished.Should().BeFalse();
         result.OwnerId.Should().Be(_masterUserId);
 
-        var saved = await _mockDbContext.Adventures.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
-        saved.Should().NotBeNull();
+        await _mockAdventureStorage.Received(1).AddAsync(
+            Arg.Is<AdventureModel>(a => a.Name == "New Adventure" && a.OwnerId == _masterUserId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -181,8 +143,10 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task UpdateAdventureAsync_WithValidData_UpdatesAdventure() {
         var adventure = CreateTestAdventure("Old Name", "Old description");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
+        _mockAdventureStorage.UpdateAsync(Arg.Any<AdventureModel>(), Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var users = CreateTestUsers(1);
         _mockUserManager.Users.Returns(users.BuildMock());
@@ -203,17 +167,22 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     }
 
     [Fact]
-    public async Task UpdateAdventureAsync_WithNonExistentAdventure_ThrowsInvalidOperationException() {
+    public async Task UpdateAdventureAsync_WithNonExistentAdventure_ThrowsKeyNotFoundException() {
+        _mockAdventureStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((AdventureModel?)null);
+
         var act = () => _sut.UpdateAdventureAsync(Guid.CreateVersion7(), "Name", "Desc", null, null, default);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
     [Fact]
     public async Task UpdateAdventureAsync_WithPartialUpdate_UpdatesOnlySpecifiedFields() {
         var adventure = CreateTestAdventure("Name", "Description", isPublished: false);
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
+        _mockAdventureStorage.UpdateAsync(Arg.Any<AdventureModel>(), Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var users = CreateTestUsers(1);
         _mockUserManager.Users.Returns(users.BuildMock());
@@ -237,18 +206,20 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
 
     [Fact]
     public async Task DeleteAdventureAsync_WithExistingAdventure_DeletesAdventure() {
-        var adventure = CreateTestAdventure("To Delete", "Description");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var adventureId = Guid.CreateVersion7();
+        _mockAdventureStorage.DeleteAsync(adventureId, Arg.Any<CancellationToken>())
+            .Returns(true);
 
-        await _sut.DeleteAdventureAsync(adventure.Id, TestContext.Current.CancellationToken);
+        await _sut.DeleteAdventureAsync(adventureId, TestContext.Current.CancellationToken);
 
-        var deleted = await _mockDbContext.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
-        deleted.Should().BeNull();
+        await _mockAdventureStorage.Received(1).DeleteAsync(adventureId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task DeleteAdventureAsync_WithNonExistentAdventure_DoesNotThrow() {
+        _mockAdventureStorage.DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
         var act = () => _sut.DeleteAdventureAsync(Guid.CreateVersion7(), default);
 
         await act.Should().NotThrowAsync();
@@ -261,52 +232,61 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task TransferAdventureOwnershipAsync_WithTakeAction_TransfersToMaster() {
         var adventure = CreateTestAdventure("Test", "Desc", Guid.CreateVersion7());
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
+        _mockAdventureStorage.UpdateAsync(Arg.Any<AdventureModel>(), Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var request = new TransferOwnershipRequest { Action = "take" };
 
         await _sut.TransferAdventureOwnershipAsync(adventure.Id, request, TestContext.Current.CancellationToken);
 
-        var updated = await _mockDbContext.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
-        updated!.OwnerId.Should().Be(_masterUserId);
+        await _mockAdventureStorage.Received(1).UpdateAsync(
+            Arg.Is<AdventureModel>(a => a.OwnerId == _masterUserId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task TransferAdventureOwnershipAsync_WithGrantAction_TransfersToTarget() {
         var targetUserId = Guid.CreateVersion7();
         var adventure = CreateTestAdventure("Test", "Desc", _masterUserId);
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
+        _mockAdventureStorage.UpdateAsync(Arg.Any<AdventureModel>(), Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var request = new TransferOwnershipRequest { Action = "grant", TargetUserId = targetUserId };
 
         await _sut.TransferAdventureOwnershipAsync(adventure.Id, request, TestContext.Current.CancellationToken);
 
-        var updated = await _mockDbContext.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
-        updated!.OwnerId.Should().Be(targetUserId);
+        await _mockAdventureStorage.Received(1).UpdateAsync(
+            Arg.Is<AdventureModel>(a => a.OwnerId == targetUserId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task TransferAdventureOwnershipAsync_WithInvalidAction_ThrowsInvalidOperationException() {
+    public async Task TransferAdventureOwnershipAsync_WithInvalidAction_ThrowsArgumentException() {
         var adventure = CreateTestAdventure("Test", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
 
         var request = new TransferOwnershipRequest { Action = "invalid" };
 
         var act = () => _sut.TransferAdventureOwnershipAsync(adventure.Id, request, default);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public async Task TransferAdventureOwnershipAsync_WithNonExistentAdventure_ThrowsInvalidOperationException() {
+    public async Task TransferAdventureOwnershipAsync_WithNonExistentAdventure_ThrowsKeyNotFoundException() {
+        _mockAdventureStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((AdventureModel?)null);
+
         var request = new TransferOwnershipRequest { Action = "take" };
 
         var act = () => _sut.TransferAdventureOwnershipAsync(Guid.CreateVersion7(), request, default);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
     #endregion
@@ -316,14 +296,12 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task GetEncountersByAdventureIdAsync_WithEncounters_ReturnsEncounters() {
         var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-
-        var encounters = new List<Encounter> {
-            CreateTestEncounter("Encounter 1", "Desc 1", adventure.Id),
-            CreateTestEncounter("Encounter 2", "Desc 2", adventure.Id)
+        var encounters = new[] {
+            CreateTestEncounter("Encounter 1", "Desc 1", adventure),
+            CreateTestEncounter("Encounter 2", "Desc 2", adventure)
         };
-        await _mockDbContext.Encounters.AddRangeAsync(encounters, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockEncounterStorage.GetByParentIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(encounters);
 
         var result = await _sut.GetEncountersByAdventureIdAsync(adventure.Id, TestContext.Current.CancellationToken);
 
@@ -333,6 +311,9 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
 
     [Fact]
     public async Task GetEncountersByAdventureIdAsync_WithNoEncounters_ReturnsEmptyList() {
+        _mockEncounterStorage.GetByParentIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+
         var result = await _sut.GetEncountersByAdventureIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
@@ -346,8 +327,8 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task CreateEncounterForAdventureAsync_WithValidData_CreatesEncounter() {
         var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
 
         var result = await _sut.CreateEncounterForAdventureAsync(
             adventure.Id,
@@ -359,13 +340,17 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
         result.Name.Should().Be("New Encounter");
         result.IsPublished.Should().BeFalse();
 
-        var saved = await _mockDbContext.Encounters.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
-        saved.Should().NotBeNull();
-        saved!.AdventureId.Should().Be(adventure.Id);
+        await _mockEncounterStorage.Received(1).AddAsync(
+            Arg.Is<EncounterModel>(e => e.Name == "New Encounter"),
+            adventure.Id,
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task CreateEncounterForAdventureAsync_WithNonExistentAdventure_ThrowsKeyNotFoundException() {
+        _mockAdventureStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((AdventureModel?)null);
+
         var act = () => _sut.CreateEncounterForAdventureAsync(Guid.CreateVersion7(), "Name", "Desc", default);
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
@@ -374,8 +359,8 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task CreateEncounterForAdventureAsync_WithEmptyName_ThrowsArgumentException() {
         var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockAdventureStorage.GetByIdAsync(adventure.Id, Arg.Any<CancellationToken>())
+            .Returns(adventure);
 
         var act = () => _sut.CreateEncounterForAdventureAsync(adventure.Id, "", "Desc", default);
 
@@ -389,11 +374,9 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task CloneEncounterAsync_WithValidData_ClonesEncounter() {
         var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-
-        var encounter = CreateTestEncounter("Original", "Original desc", adventure.Id);
-        await _mockDbContext.Encounters.AddAsync(encounter, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var encounter = CreateTestEncounter("Original", "Original desc", adventure);
+        _mockEncounterStorage.GetByIdAsync(encounter.Id, Arg.Any<CancellationToken>())
+            .Returns(encounter);
 
         var result = await _sut.CloneEncounterAsync(
             adventure.Id,
@@ -406,18 +389,18 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
         result.Description.Should().Be("Original desc");
         result.IsPublished.Should().BeFalse();
 
-        var encounters = await _mockDbContext.Encounters.ToListAsync(TestContext.Current.CancellationToken);
-        encounters.Count.Should().Be(2);
+        await _mockEncounterStorage.Received(1).AddAsync(
+            Arg.Is<EncounterModel>(e => e.Name == "Cloned"),
+            adventure.Id,
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task CloneEncounterAsync_WithoutNewName_UsesDefaultName() {
         var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-
-        var encounter = CreateTestEncounter("Original", "Desc", adventure.Id);
-        await _mockDbContext.Encounters.AddAsync(encounter, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var encounter = CreateTestEncounter("Original", "Desc", adventure);
+        _mockEncounterStorage.GetByIdAsync(encounter.Id, Arg.Any<CancellationToken>())
+            .Returns(encounter);
 
         var result = await _sut.CloneEncounterAsync(
             adventure.Id,
@@ -430,11 +413,10 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
 
     [Fact]
     public async Task CloneEncounterAsync_WithNonExistentEncounter_ThrowsKeyNotFoundException() {
-        var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockEncounterStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((EncounterModel?)null);
 
-        var act = () => _sut.CloneEncounterAsync(adventure.Id, Guid.CreateVersion7(), null, default);
+        var act = () => _sut.CloneEncounterAsync(Guid.CreateVersion7(), Guid.CreateVersion7(), null, default);
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
@@ -446,25 +428,23 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task RemoveEncounterFromAdventureAsync_WithValidData_RemovesEncounter() {
         var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-
-        var encounter = CreateTestEncounter("Encounter", "Desc", adventure.Id);
-        await _mockDbContext.Encounters.AddAsync(encounter, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var encounter = CreateTestEncounter("Encounter", "Desc", adventure);
+        _mockEncounterStorage.GetByIdAsync(encounter.Id, Arg.Any<CancellationToken>())
+            .Returns(encounter);
+        _mockEncounterStorage.DeleteAsync(encounter.Id, Arg.Any<CancellationToken>())
+            .Returns(true);
 
         await _sut.RemoveEncounterFromAdventureAsync(adventure.Id, encounter.Id, TestContext.Current.CancellationToken);
 
-        var deleted = await _mockDbContext.Encounters.FindAsync([encounter.Id], TestContext.Current.CancellationToken);
-        deleted.Should().BeNull();
+        await _mockEncounterStorage.Received(1).DeleteAsync(encounter.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task RemoveEncounterFromAdventureAsync_WithNonExistentEncounter_ThrowsKeyNotFoundException() {
-        var adventure = CreateTestAdventure("Adventure", "Desc");
-        await _mockDbContext.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _mockDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        _mockEncounterStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((EncounterModel?)null);
 
-        var act = () => _sut.RemoveEncounterFromAdventureAsync(adventure.Id, Guid.CreateVersion7(), default);
+        var act = () => _sut.RemoveEncounterFromAdventureAsync(Guid.CreateVersion7(), Guid.CreateVersion7(), default);
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
@@ -479,7 +459,7 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private Adventure CreateTestAdventure(
+    private AdventureModel CreateTestAdventure(
         string name,
         string description,
         Guid? ownerId = null,
@@ -493,17 +473,17 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
             IsPublic = isPublic
         };
 
-    private List<Adventure> CreateTestAdventures(int count) {
-        var adventures = new List<Adventure>();
+    private AdventureModel[] CreateTestAdventures(int count) {
+        var adventures = new AdventureModel[count];
         for (var i = 0; i < count; i++) {
-            adventures.Add(CreateTestAdventure($"Adventure {i}", $"Description {i}"));
+            adventures[i] = CreateTestAdventure($"Adventure {i}", $"Description {i}");
         }
         return adventures;
     }
 
-    private static Encounter CreateTestEncounter(string name, string description, Guid adventureId) => new() {
+    private static EncounterModel CreateTestEncounter(string name, string description, AdventureModel adventure) => new() {
         Id = Guid.CreateVersion7(),
-        AdventureId = adventureId,
+        Adventure = adventure,
         Name = name,
         Description = description,
         IsPublished = false

@@ -17,6 +17,10 @@ global using VttTools.AI.ServiceContracts;
 global using VttTools.AI.Services;
 global using VttTools.Assets.Model;
 global using VttTools.Common.Model;
+
+global using SixLabors.ImageSharp;
+global using SixLabors.ImageSharp.PixelFormats;
+global using SixLabors.ImageSharp.Processing;
 global using VttTools.Media.Model;
 global using VttTools.MediaGenerator.Application.Commands;
 global using VttTools.MediaGenerator.Application.Options;

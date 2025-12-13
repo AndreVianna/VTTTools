@@ -5,6 +5,14 @@ namespace VttTools.Library.Encounters.Storage;
 /// </summary>
 public interface IEncounterStorage {
     /// <summary>
+    /// Searches encounters with filters and pagination.
+    /// </summary>
+    Task<(Encounter[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves all encounters
     /// </summary>
     Task<Encounter[]> GetAllAsync(CancellationToken ct = default);

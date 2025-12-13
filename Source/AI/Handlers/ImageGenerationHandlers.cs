@@ -31,10 +31,6 @@ internal static class ImageGenerationHandlers {
             fileDownloadName: $"generated_{DateTime.UtcNow:yyyyMMddHHmmss}.png");
     }
 
-    internal static async Task<IResult> GetImageProvidersHandler(
-        [FromServices] IImageGenerationService service,
-        CancellationToken ct = default) {
-        var providers = await service.GetAvailableProvidersAsync(ct);
-        return Results.Ok(providers.Select(p => p.ToString()));
-    }
+    internal static IResult GetImageProvidersHandler([FromServices] IImageGenerationService service)
+        => Results.Ok(service.GetAvailableProviders());
 }

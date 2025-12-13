@@ -1,3 +1,5 @@
+using VttTools.Admin.Dashboard.Services;
+
 namespace VttTools.Admin.UnitTests.Services;
 
 public class DashboardServiceTests {

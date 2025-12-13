@@ -23,7 +23,7 @@ public sealed record ResourceFilterData
         if (ContentKind is { Length: > 64 })
             result += new Error("ContentKind cannot exceed 64 characters.", nameof(ContentKind));
         if (Category is { Length: > 64 })
-            result += new Error("Category cannot exceed 64 characters.", nameof(Category));
+            result += new Error("ContentType cannot exceed 64 characters.", nameof(Category));
         if (SearchText is { Length: > 256 })
             result += new Error("SearchText cannot exceed 256 characters.", nameof(SearchText));
         return result;

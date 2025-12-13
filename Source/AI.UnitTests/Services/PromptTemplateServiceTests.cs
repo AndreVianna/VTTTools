@@ -1,4 +1,3 @@
-using VttTools.Media.Storage;
 
 namespace VttTools.AI.Services;
 
@@ -74,24 +73,24 @@ public class PromptTemplateServiceTests {
     [Fact]
     public async Task SearchAsync_WithCategoryFilter_ReturnsFilteredTemplates() {
         var templates = new List<PromptTemplate> {
-            CreateTemplate(Guid.CreateVersion7(), "Portrait1", category: PromptCategory.ImagePortrait),
-            CreateTemplate(Guid.CreateVersion7(), "Portrait2", category: PromptCategory.ImagePortrait),
+            CreateTemplate(Guid.CreateVersion7(), "Portrait1", category: GeneratedContentType.ImagePortrait),
+            CreateTemplate(Guid.CreateVersion7(), "Portrait2", category: GeneratedContentType.ImagePortrait),
         };
-        var filters = new PromptTemplateSearchFilters { Category = PromptCategory.ImagePortrait };
+        var filters = new PromptTemplateSearchFilters { Category = GeneratedContentType.ImagePortrait };
         _storage.SearchAsync(filters, _ct).Returns((templates, 2));
 
         var (items, totalCount) = await _service.SearchAsync(filters, _ct);
 
         items.Should().HaveCount(2);
         totalCount.Should().Be(2);
-        items.Should().AllSatisfy(t => t.Category.Should().Be(PromptCategory.ImagePortrait));
+        items.Should().AllSatisfy(t => t.Category.Should().Be(GeneratedContentType.ImagePortrait));
     }
 
     [Fact]
     public async Task CreateAsync_WithNewNameAndVersion_CreatesTemplate() {
         var data = new CreatePromptTemplateData {
             Name = "NewTemplate",
-            Category = PromptCategory.ImagePortrait,
+            Category = GeneratedContentType.ImagePortrait,
             UserPromptTemplate = "Create a {subject} portrait",
         };
         _storage.ExistsAsync("NewTemplate", "1.0-draft", _ct).Returns(false);
@@ -102,7 +101,7 @@ public class PromptTemplateServiceTests {
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be("NewTemplate");
-        result.Value.Category.Should().Be(PromptCategory.ImagePortrait);
+        result.Value.Category.Should().Be(GeneratedContentType.ImagePortrait);
         result.Value.Version.Should().Be("1.0-draft");
     }
 
@@ -110,7 +109,7 @@ public class PromptTemplateServiceTests {
     public async Task CreateAsync_WithExplicitVersion_UsesProvidedVersion() {
         var data = new CreatePromptTemplateData {
             Name = "NewTemplate",
-            Category = PromptCategory.ImagePortrait,
+            Category = GeneratedContentType.ImagePortrait,
             Version = "2.0",
             UserPromptTemplate = "Create a {subject} portrait",
         };
@@ -128,7 +127,7 @@ public class PromptTemplateServiceTests {
     public async Task CreateAsync_WithExistingNameAndVersion_ReturnsFailure() {
         var data = new CreatePromptTemplateData {
             Name = "ExistingTemplate",
-            Category = PromptCategory.ImagePortrait,
+            Category = GeneratedContentType.ImagePortrait,
             UserPromptTemplate = "Test template",
         };
         _storage.ExistsAsync("ExistingTemplate", "1.0-draft", _ct).Returns(true);
@@ -308,7 +307,7 @@ public class PromptTemplateServiceTests {
     private static PromptTemplate CreateTemplate(
         Guid id,
         string name,
-        PromptCategory category = PromptCategory.ImagePortrait,
+        GeneratedContentType category = GeneratedContentType.ImagePortrait,
         string version = "1.0",
         string systemPrompt = "",
         string userPrompt = "Default template") => new() {

@@ -1,5 +1,3 @@
-using VttTools.Admin.ApiContracts;
-
 namespace VttTools.Common.Services;
 
 public class FrontendConfigurationService(ILogger<FrontendConfigurationService> logger) {
@@ -12,7 +10,7 @@ public class FrontendConfigurationService(ILogger<FrontendConfigurationService> 
         "hash"
     ];
 
-    public async Task<IReadOnlyList<ConfigEntry>> GetFrontendConfigurationAsync(
+    public async Task<IReadOnlyList<ConfigurationEntry>> GetFrontendConfigurationAsync(
         string appName,
         CancellationToken ct = default) {
 
@@ -32,7 +30,7 @@ public class FrontendConfigurationService(ILogger<FrontendConfigurationService> 
         logger.LogDebug("Reading frontend configuration from: {FilePath}", envFilePath);
 
         var lines = await File.ReadAllLinesAsync(envFilePath, ct);
-        var entries = new List<ConfigEntry>();
+        var entries = new List<ConfigurationEntry>();
 
         foreach (var line in lines) {
             var trimmedLine = line.Trim();
@@ -52,11 +50,11 @@ public class FrontendConfigurationService(ILogger<FrontendConfigurationService> 
             var isSensitive = IsSensitiveKey(key);
             var redactedValue = isSensitive ? "***REDACTED***" : value;
 
-            entries.Add(new ConfigEntry {
+            entries.Add(new ConfigurationEntry {
                 Key = key,
                 Value = redactedValue,
                 Source = new ConfigurationSource {
-                    Type = ConfigSourceType.FrontendEnvFile,
+                    Type = ConfigurationSourceType.FrontendEnvFile,
                     Path = $"{appName}/.env"
                 },
                 Category = "Frontend"

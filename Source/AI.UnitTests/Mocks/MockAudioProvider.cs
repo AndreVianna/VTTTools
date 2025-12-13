@@ -1,7 +1,7 @@
 namespace VttTools.AI.UnitTests.Mocks;
 
 public class MockAudioProvider : IAudioProvider {
-    public AiProviderType ProviderType { get; set; } = AiProviderType.OpenAi;
+    public string Name { get; set; } = "OpenAi";
     public byte[] AudioDataToReturn { get; set; } = [0x52, 0x49, 0x46, 0x46];
     public string? ErrorToReturn { get; set; }
     public AudioGenerationData? LastRequest { get; private set; }

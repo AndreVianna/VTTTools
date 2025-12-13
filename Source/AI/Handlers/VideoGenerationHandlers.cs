@@ -29,10 +29,6 @@ internal static class VideoGenerationHandlers {
             fileDownloadName: $"generated_{DateTime.UtcNow:yyyyMMddHHmmss}.mp4");
     }
 
-    internal static async Task<IResult> GetVideoProvidersHandler(
-        [FromServices] IVideoGenerationService service,
-        CancellationToken ct = default) {
-        var providers = await service.GetAvailableProvidersAsync(ct);
-        return Results.Ok(providers.Select(p => p.ToString()));
-    }
+    internal static IResult GetVideoProvidersHandler([FromServices] IVideoGenerationService service)
+        => Results.Ok(service.GetAvailableProviders());
 }

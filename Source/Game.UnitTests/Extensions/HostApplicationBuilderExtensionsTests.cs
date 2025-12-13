@@ -22,4 +22,28 @@ public class HostApplicationBuilderExtensionsTests {
             sd.ServiceType == typeof(IGameSessionService) &&
             sd.ImplementationType == typeof(GameSessionService));
     }
+
+    [Fact]
+    public void AddServices_DoesNotThrow() {
+        // Arrange
+        var builder = new HostApplicationBuilder();
+
+        // Act
+        var action = builder.AddServices;
+
+        // Assert
+        action.Should().NotThrow();
+    }
+
+    [Fact]
+    public void AddStorage_DoesNotThrow() {
+        // Arrange
+        var builder = new HostApplicationBuilder();
+
+        // Act
+        var action = builder.AddStorage;
+
+        // Assert
+        action.Should().NotThrow();
+    }
 }

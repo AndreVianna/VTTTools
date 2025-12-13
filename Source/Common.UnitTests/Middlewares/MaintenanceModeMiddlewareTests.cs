@@ -1,4 +1,3 @@
-
 namespace VttTools.Middlewares;
 
 public class MaintenanceModeMiddlewareTests {

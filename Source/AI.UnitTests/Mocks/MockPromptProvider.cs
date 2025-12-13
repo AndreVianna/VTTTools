@@ -1,7 +1,7 @@
 namespace VttTools.AI.UnitTests.Mocks;
 
 public class MockPromptProvider : IPromptProvider {
-    public AiProviderType ProviderType { get; set; } = AiProviderType.OpenAi;
+    public string Name { get; set; } = "OpenAi";
     public string EnhancedPromptToReturn { get; set; } = "Enhanced prompt";
     public string? ErrorToReturn { get; set; }
     public PromptEnhancementData? LastRequest { get; private set; }
@@ -12,4 +12,6 @@ public class MockPromptProvider : IPromptProvider {
             ? Result.Failure<string>(null!, ErrorToReturn)
             : Result.Success(EnhancedPromptToReturn));
     }
+
+    public Task<Result<string>> GenerateAsync(PromptEnhancementData data, CancellationToken ct = default) => throw new NotImplementedException();
 }

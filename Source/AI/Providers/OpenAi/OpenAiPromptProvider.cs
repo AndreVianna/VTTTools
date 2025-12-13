@@ -6,9 +6,9 @@ public sealed class OpenAiPromptProvider(
     ILogger<OpenAiPromptProvider> logger) : IPromptProvider {
     private readonly OpenAiHttpHelper _helper = new(httpClientFactory, configuration);
 
-    public AiProviderType ProviderType => AiProviderType.OpenAi;
+    public string Name => "OpenAi";
 
-    public async Task<Result<string>> EnhanceAsync(
+    public async Task<Result<string>> GenerateAsync(
         PromptEnhancementData data,
         CancellationToken ct = default) {
         var stopwatch = Stopwatch.StartNew();
@@ -40,7 +40,7 @@ public sealed class OpenAiPromptProvider(
             logger.LogInformation(
                 "OpenAI prompt enhancement completed in {Duration}ms - Tokens: {TotalTokens}, Cost: ${TotalCost:F4}",
                 stopwatch.ElapsedMilliseconds,
-                cost.TotalTokens,
+                cost.TotalCost,
                 cost.TotalCost);
 
             return Result.Success(enhancedPrompt);

@@ -26,7 +26,7 @@ public sealed class ListCommand(IFileStore store) {
         ConsoleOutput.WriteBlankLine();
         ConsoleOutput.WriteLine($"Found {assets.Count} entities:");
         ConsoleOutput.WriteBlankLine();
-        ConsoleOutput.WriteLine($"{"Name",-24} {"Category",-12} {"ResourceType",-16} {"Subtype",-16} Tokens");
+        ConsoleOutput.WriteLine($"{"Name",-24} {"GeneratedContentType",-12} {"ResourceType",-16} {"Subtype",-16} Tokens");
         ConsoleOutput.WriteLine(new string('-', 112));
 
         foreach (var asset in assets.OrderBy(s => s.Classification.Kind).ThenBy(s => s.Classification.Category).ThenBy(s => s.Classification.Type).ThenBy(s => s.Classification.Subtype).ThenBy(s => s.Name)) {

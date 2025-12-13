@@ -5,6 +5,19 @@ namespace VttTools.Library.Campaigns.Storage;
 /// </summary>
 public interface ICampaignStorage {
     /// <summary>
+    /// Searches campaigns with filters and pagination.
+    /// </summary>
+    Task<(Campaign[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves campaigns by world ID.
+    /// </summary>
+    Task<Campaign[]> GetByWorldIdAsync(Guid worldId, CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves all campaign templates.
     /// </summary>
     Task<Campaign[]> GetAllAsync(CancellationToken ct = default);

@@ -1,5 +1,3 @@
-using VttTools.Domain.Admin.ApiContracts;
-
 namespace VttTools.Services;
 
 public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> logger)

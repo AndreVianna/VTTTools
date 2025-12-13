@@ -11,7 +11,6 @@ global using DotNetToolbox.Validation;
 
 global using Microsoft.AspNetCore.Identity;
 
-global using VttTools.Admin.ApiContracts;
 global using VttTools.AI.ApiContracts;
 global using VttTools.AI.Model;
 global using VttTools.AI.ServiceContracts;
@@ -23,15 +22,16 @@ global using VttTools.Audit.Model;
 global using VttTools.Common.ApiContracts;
 global using VttTools.Common.Model;
 global using VttTools.Common.ServiceContracts;
-global using VttTools.Domain.Admin.ApiContracts;
-global using VttTools.Domain.Admin.ApiContracts.Library;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Identity.Model;
+global using VttTools.Jobs.ApiContracts;
+global using VttTools.Jobs.Model;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Adventures.ServiceContracts;
 global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Campaigns.ServiceContracts;
+global using VttTools.Library.Common;
 global using VttTools.Library.Content.ApiContracts;
 global using VttTools.Library.Content.Model;
 global using VttTools.Library.Content.ServiceContracts;

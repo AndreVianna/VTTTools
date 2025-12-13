@@ -11,6 +11,29 @@ namespace VttTools.Data.Library;
 public class EncounterStorage(ApplicationDbContext context)
     : IEncounterStorage {
     /// <inheritdoc />
+    public async Task<(Encounter[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default) {
+        var query = context.Encounters
+            .Include(e => e.Adventure)
+            .AsQueryable();
+
+        query = ApplySearchFilters(query, filter, masterUserId);
+        var totalCount = await query.CountAsync(ct);
+
+        query = ApplySorting(query, filter);
+        var entities = await query
+            .Skip(filter.Skip)
+            .Take(filter.Take)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        var items = entities.Select(e => e.ToModel()!).ToArray();
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc />
     public Task<Encounter[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Encounters
                   .Include(e => e.Background)
@@ -301,5 +324,45 @@ public class EncounterStorage(ApplicationDbContext context)
         context.Set<EncounterSoundSourceEntity>().Remove(entity);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
+    }
+
+    private static IQueryable<Entities.Encounter> ApplySearchFilters(
+        IQueryable<Entities.Encounter> query,
+        LibrarySearchFilter filter,
+        Guid masterUserId) {
+        if (!string.IsNullOrWhiteSpace(filter.Search)) {
+            var search = filter.Search.ToLowerInvariant();
+            query = query.Where(e =>
+                e.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase) ||
+                e.Description.Contains(search, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        if (filter.OwnerId.HasValue)
+            query = query.Where(e => e.Adventure.OwnerId == filter.OwnerId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.OwnerType)) {
+            query = filter.OwnerType.ToLowerInvariant() switch {
+                "master" => query.Where(e => e.Adventure.OwnerId == masterUserId),
+                "user" => query.Where(e => e.Adventure.OwnerId != masterUserId),
+                _ => query
+            };
+        }
+
+        if (filter.IsPublished.HasValue)
+            query = query.Where(e => e.IsPublished == filter.IsPublished.Value);
+
+        return query;
+    }
+
+    private static IOrderedQueryable<Entities.Encounter> ApplySorting(
+        IQueryable<Entities.Encounter> query,
+        LibrarySearchFilter filter) {
+        var sortBy = filter.SortBy?.ToLowerInvariant() ?? "name";
+        var descending = filter.SortOrder?.ToLowerInvariant() == "desc";
+
+        return sortBy switch {
+            "name" => descending ? query.OrderByDescending(e => e.Name) : query.OrderBy(e => e.Name),
+            _ => descending ? query.OrderByDescending(e => e.Name) : query.OrderBy(e => e.Name)
+        };
     }
 }

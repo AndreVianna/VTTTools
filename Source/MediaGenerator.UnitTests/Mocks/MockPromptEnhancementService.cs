@@ -9,17 +9,16 @@ public sealed class MockPromptEnhancementService : IPromptEnhancementService {
     public void EnqueueSuccess(string enhancedPrompt) {
         var response = new PromptEnhancementResponse {
             EnhancedPrompt = enhancedPrompt,
-            Provider = AiProviderType.OpenAi,
-            TokensUsed = 100,
+            OutputTokens = 100,
             Cost = 0.01m,
-            Duration = TimeSpan.FromSeconds(1)
+            Elapsed = TimeSpan.FromSeconds(1)
         };
         _responses.Enqueue(Result.Success(response));
     }
 
     public void EnqueueFailure(string errorMessage) => _responses.Enqueue(Result.Failure<PromptEnhancementResponse>(null!, errorMessage));
 
-    public Task<Result<PromptEnhancementResponse>> EnhanceAsync(
+    public Task<Result<PromptEnhancementResponse>> GenerateAsync(
         PromptEnhancementData data,
         CancellationToken ct = default) {
         _receivedRequests.Add(data);
@@ -30,6 +29,9 @@ public sealed class MockPromptEnhancementService : IPromptEnhancementService {
 
         return Task.FromResult(_responses.Dequeue());
     }
+
+    public IReadOnlyList<string> GetAvailableProviders()
+        => ["OpenAi", "Google"];
 
     public void Reset() {
         _responses.Clear();

@@ -1,4 +1,3 @@
-
 namespace VttTools.Library.Content.Services;
 
 public interface IContentQueryService {

@@ -6,6 +6,15 @@ public class AiProviderHealthCheck(
     ILogger<AiProviderHealthCheck> logger)
     : IHealthCheck {
 
+    private static readonly string[] _availableProviders = [
+        "OpenAI",
+        "Stability",
+        "Google",
+        "ElevenLabs",
+        "Suno",
+        "RunwayML",
+    ];
+
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default) {
@@ -13,8 +22,7 @@ public class AiProviderHealthCheck(
         var results = new Dictionary<string, object>();
         var overallHealthy = true;
 
-        foreach (var providerType in Enum.GetValues<AiProviderType>()) {
-            var providerName = GetProviderConfigName(providerType);
+        foreach (var providerName in _availableProviders) {
             var baseUrl = configuration[$"AI:Providers:{providerName}:BaseUrl"];
             var apiKey = configuration[$"AI:Providers:{providerName}:ApiKey"];
             var healthEndpoint = configuration[$"AI:Providers:{providerName}:Health"];
@@ -31,7 +39,7 @@ public class AiProviderHealthCheck(
             }
 
             try {
-                var status = await CheckProviderAsync(providerType, baseUrl, apiKey, healthEndpoint, cancellationToken);
+                var status = await CheckProviderAsync(providerName, baseUrl, apiKey, healthEndpoint, cancellationToken);
                 results[$"{providerName}_status"] = status;
                 if (status != "healthy")
                     overallHealthy = false;
@@ -50,7 +58,7 @@ public class AiProviderHealthCheck(
     }
 
     private async Task<string> CheckProviderAsync(
-        AiProviderType provider,
+        string provider,
         string baseUrl,
         string apiKey,
         string? healthEndpoint,
@@ -64,7 +72,7 @@ public class AiProviderHealthCheck(
         client.BaseAddress = new Uri(baseUrl);
         client.Timeout = TimeSpan.FromSeconds(5);
 
-        if (provider == AiProviderType.Google) {
+        if (provider == "Google") {
             client.DefaultRequestHeaders.Add("x-goog-api-key", apiKey);
         }
         else {
@@ -75,14 +83,4 @@ public class AiProviderHealthCheck(
         var response = await client.GetAsync(healthEndpoint, ct);
         return response.IsSuccessStatusCode ? "healthy" : $"unhealthy_{(int)response.StatusCode}";
     }
-
-    private static string GetProviderConfigName(AiProviderType provider) => provider switch {
-        AiProviderType.OpenAi => "OpenAI",
-        AiProviderType.Stability => "Stability",
-        AiProviderType.Google => "Google",
-        AiProviderType.ElevenLabs => "ElevenLabs",
-        AiProviderType.Suno => "Suno",
-        AiProviderType.RunwayML => "RunwayML",
-        _ => provider.ToString()
-    };
 }

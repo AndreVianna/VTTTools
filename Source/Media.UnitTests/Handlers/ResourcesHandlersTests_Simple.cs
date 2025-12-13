@@ -8,13 +8,16 @@ namespace VttTools.Media.Handlers;
 public class ResourcesHandlersTests_Simple {
     private readonly IResourceService _resourceService = Substitute.For<IResourceService>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
+    private readonly ClaimsPrincipal _user = Substitute.For<ClaimsPrincipal>();
+    private static readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public ResourcesHandlersTests_Simple() {
-        var user = Substitute.For<ClaimsPrincipal>();
-        var userId = Guid.CreateVersion7();
-        user.FindFirst(Arg.Any<string>()).Returns((System.Security.Claims.Claim?)null);
-        _httpContext.User.Returns(user);
+        var claim = new Claim(ClaimTypes.NameIdentifier, _userId.ToString());
+        var claims = new List<Claim> { claim };
+        _user.Claims.Returns(claims);
+        _user.FindFirst(ClaimTypes.NameIdentifier).Returns(claim);
+        _httpContext.User.Returns(_user);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -174,5 +177,196 @@ public class ResourcesHandlersTests_Simple {
         var result = await ResourcesHandlers.UpdateResourceHandler(_httpContext, id, request, _resourceService, _ct);
 
         result.Should().BeOfType<ForbidHttpResult>();
+    }
+
+    [Fact]
+    public async Task UploadResourceHandler_WithValidFile_ReturnsOk() {
+        var file = Substitute.For<IFormFile>();
+        var stream = new MemoryStream("test content"u8.ToArray());
+        file.ContentType.Returns("image/png");
+        file.FileName.Returns("test.png");
+        file.OpenReadStream().Returns(stream);
+
+        var resourceMetadata = new ResourceMetadata {
+            Id = Guid.CreateVersion7(),
+            ContentType = "image/png",
+            FileName = "test.png",
+            FileLength = 100,
+            Size = new Common.Model.Size(256, 256),
+        };
+
+        _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(resourceMetadata));
+
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", _resourceService, _ct);
+
+        var okResult = result.Should().BeOfType<Ok<ResourceMetadata>>().Subject;
+        okResult.Value.Should().BeEquivalentTo(resourceMetadata);
+    }
+
+    [Fact]
+    public async Task UploadResourceHandler_WithInvalidData_ReturnsBadRequest() {
+        var file = Substitute.For<IFormFile>();
+        var stream = new MemoryStream([]);
+        file.ContentType.Returns("");
+        file.FileName.Returns("");
+        file.OpenReadStream().Returns(stream);
+
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", _resourceService, _ct);
+
+        result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
+    }
+
+    [Fact]
+    public async Task UploadResourceHandler_WithProcessingFailure_ReturnsBadRequest() {
+        var file = Substitute.For<IFormFile>();
+        var stream = new MemoryStream("test content"u8.ToArray());
+        file.ContentType.Returns("image/png");
+        file.FileName.Returns("test.png");
+        file.OpenReadStream().Returns(stream);
+
+        _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<ResourceMetadata>(null!, "Invalid file format: corrupted image"));
+
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", _resourceService, _ct);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+    }
+
+    [Fact]
+    public async Task UploadResourceHandler_WithFileSizeExceeded_ReturnsRequestEntityTooLarge() {
+        var file = Substitute.For<IFormFile>();
+        var stream = new MemoryStream("test content"u8.ToArray());
+        file.ContentType.Returns("image/png");
+        file.FileName.Returns("test.png");
+        file.OpenReadStream().Returns(stream);
+
+        _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<ResourceMetadata>(null!, "File size (55.00 MB) exceeds maximum (50.00 MB) for resourceType 'Background'"));
+
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", _resourceService, _ct);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(StatusCodes.Status413RequestEntityTooLarge);
+    }
+
+    [Fact]
+    public async Task UploadResourceHandler_WithSaveFailure_ReturnsInternalServerError() {
+        var file = Substitute.For<IFormFile>();
+        var stream = new MemoryStream("test content"u8.ToArray());
+        file.ContentType.Returns("image/png");
+        file.FileName.Returns("test.png");
+        file.OpenReadStream().Returns(stream);
+
+        _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<ResourceMetadata>(null!, "Failed to save blob to storage"));
+
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", _resourceService, _ct);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
+    [Fact]
+    public async Task UploadResourceHandler_WithInvalidResourceType_ParsesAsUndefined() {
+        var file = Substitute.For<IFormFile>();
+        var stream = new MemoryStream("test content"u8.ToArray());
+        file.ContentType.Returns("image/png");
+        file.FileName.Returns("test.png");
+        file.OpenReadStream().Returns(stream);
+
+        _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<ResourceMetadata>(null!, "Invalid resource type"));
+
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "InvalidType", _resourceService, _ct);
+
+        result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
+    }
+
+    [Fact]
+    public async Task FilterResourcesHandler_WithInvalidFilter_ReturnsBadRequest() {
+        var request = new ResourceFilterRequest {
+            ResourceType = ResourceType.Background,
+            Skip = -1,
+            Take = 1000,
+        };
+
+        var result = await ResourcesHandlers.FilterResourcesHandler(_httpContext, request, _resourceService, _ct);
+
+        result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
+    }
+
+    [Fact]
+    public async Task ServeResourceHandler_WithVideoFile_ReturnsFileWithFileName() {
+        var id = Guid.CreateVersion7();
+        var stream = new MemoryStream("video content"u8.ToArray());
+        var resource = new Resource {
+            Stream = stream,
+            ContentType = "video/mp4",
+            FileName = "test.mp4",
+        };
+
+        _resourceService.ServeResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+            .Returns(resource);
+
+        var result = await ResourcesHandlers.ServeResourceHandler(_httpContext, id, _resourceService, _ct);
+
+        result.Should().BeOfType<FileStreamHttpResult>();
+        var fileResult = (FileStreamHttpResult)result;
+        fileResult.FileDownloadName.Should().Be("test.mp4");
+    }
+
+    [Fact]
+    public async Task ServeResourceHandler_WithImageFile_ReturnsFileWithoutFileName() {
+        var id = Guid.CreateVersion7();
+        var stream = new MemoryStream("image content"u8.ToArray());
+        var resource = new Resource {
+            Stream = stream,
+            ContentType = "image/png",
+            FileName = "test.png",
+        };
+
+        _resourceService.ServeResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+            .Returns(resource);
+
+        var result = await ResourcesHandlers.ServeResourceHandler(_httpContext, id, _resourceService, _ct);
+
+        result.Should().BeOfType<FileStreamHttpResult>();
+        var fileResult = (FileStreamHttpResult)result;
+        fileResult.FileDownloadName.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DeleteResourceHandler_WithUnknownError_ReturnsProblem() {
+        var id = Guid.CreateVersion7();
+        _resourceService.DeleteResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("UnexpectedError"));
+
+        var result = await ResourcesHandlers.DeleteResourceHandler(_httpContext, id, _resourceService, _ct);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
+    [Fact]
+    public async Task UpdateResourceHandler_WithUnknownError_ReturnsProblem() {
+        var id = Guid.CreateVersion7();
+        var request = new UpdateResourceRequest {
+            Description = "Updated",
+        };
+
+        _resourceService.UpdateResourceAsync(Arg.Any<Guid>(), id, Arg.Any<UpdateResourceData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("UnexpectedError"));
+
+        var result = await ResourcesHandlers.UpdateResourceHandler(_httpContext, id, request, _resourceService, _ct);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 }

@@ -1,3 +1,7 @@
+using VttTools.Admin.Auth.ApiContracts;
+using VttTools.Admin.Auth.Model;
+using VttTools.Admin.Auth.Services;
+
 namespace VttTools.Admin.UnitTests.Handlers;
 
 public sealed class AdminAuthHandlersTests {
@@ -70,7 +74,10 @@ public sealed class AdminAuthHandlersTests {
 
         var result = await AdminAuthHandlers.LogoutHandler(_mockAuthService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<BadRequest<object>>();
+        result.Should().BeAssignableTo<IResult>();
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        var statusResult = (IStatusCodeHttpResult)result;
+        statusResult.StatusCode.Should().Be(400);
     }
 
     #endregion

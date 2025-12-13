@@ -12,11 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.0.0" />
+    <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.0.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Admin.Domain\VttTools.Admin.Domain.csproj" />
     <ProjectReference Include="..\Common\VttTools.Common.csproj" />
     <ProjectReference Include="..\Data\VttTools.Data.csproj" />
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
@@ -27,8 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="EndpointMappers\" />
-    <Folder Include="Handlers\" />
+    <Folder Include="Audit\Services\" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,3 @@
-using VttTools.AI.UnitTests.Mocks;
 
 namespace VttTools.AI.Services;
 
@@ -10,12 +9,12 @@ public class VideoGenerationServiceTests {
 
     public VideoGenerationServiceTests() {
         _mockProvider = new MockVideoProvider {
-            ProviderType = AiProviderType.RunwayML,
+            Name = "RunwayML",
             VideoDataToReturn = [0x00, 0x00, 0x00, 0x18],
         };
 
-        _providerFactory.GetVideoProvider(Arg.Any<AiProviderType?>()).Returns(_mockProvider);
-        _providerFactory.GetAvailableVideoProviders().Returns([AiProviderType.RunwayML]);
+        _providerFactory.GetVideoProvider(Arg.Any<string>()).Returns(_mockProvider);
+        _providerFactory.GetAvailableVideoProviders().Returns(["RunwayML"]);
 
         _service = new VideoGenerationService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
@@ -26,7 +25,7 @@ public class VideoGenerationServiceTests {
         var data = new VideoGenerationData {
             Prompt = "Dragon flying over mountains",
             Model = "gen-2",
-            Provider = AiProviderType.RunwayML,
+            Provider = "RunwayML",
             Duration = TimeSpan.FromSeconds(5),
         };
 
@@ -36,15 +35,15 @@ public class VideoGenerationServiceTests {
         result.Value.Should().NotBeNull();
         result.Value.VideoData.Should().BeEquivalentTo(_mockProvider.VideoDataToReturn);
         result.Value.ContentType.Should().Be("video/mp4");
-        result.Value.Provider.Should().Be(AiProviderType.RunwayML);
-        result.Value.Model.Should().Be("gen-2");
-        result.Value.Duration.Should().Be(TimeSpan.FromSeconds(5));
+        result.Value.Elapsed.Should().Be(TimeSpan.FromSeconds(5));
         _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
         var data = new VideoGenerationData {
+            Provider = "RunwayML",
+            Model = "gen-2",
             Prompt = "Test video",
         };
         _mockProvider.ErrorToReturn = "Video generation failed";
@@ -58,6 +57,8 @@ public class VideoGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithNullDuration_UsesZero() {
         var data = new VideoGenerationData {
+            Provider = "RunwayML",
+            Model = "gen-2",
             Prompt = "Test video",
             Duration = null,
         };
@@ -65,21 +66,23 @@ public class VideoGenerationServiceTests {
         var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Duration.Should().Be(TimeSpan.Zero);
+        result.Value.Elapsed.Should().Be(TimeSpan.Zero);
     }
 
     [Fact]
-    public async Task GetAvailableProvidersAsync_ReturnsProvidersFromFactory() {
-        var providers = await _service.GetAvailableProvidersAsync(_ct);
+    public void GetAvailableProviders_ReturnsProvidersFromFactory() {
+        var providers = _service.GetAvailableProviders();
 
         providers.Should().HaveCount(1);
-        providers.Should().Contain(AiProviderType.RunwayML);
+        providers.Should().Contain("RunwayML");
         _providerFactory.Received(1).GetAvailableVideoProviders();
     }
 
     [Fact]
     public async Task GenerateAsync_SetsCostToZero() {
         var data = new VideoGenerationData {
+            Provider = "RunwayML",
+            Model = "gen-2",
             Prompt = "Test video",
         };
 

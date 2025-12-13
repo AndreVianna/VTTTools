@@ -1,6 +1,12 @@
 namespace VttTools.AI.ServiceContracts;
 
 public sealed record TextGenerationData : Data {
+    [MaxLength(64)]
+    public required string Provider { get; init; }
+
+    [MaxLength(64)]
+    public required string Model { get; init; }
+
     [Required]
     [MaxLength(8192)]
     public required string Prompt { get; init; }
@@ -8,17 +14,12 @@ public sealed record TextGenerationData : Data {
     [MaxLength(4096)]
     public string? SystemPrompt { get; init; }
 
-    public PromptCategory? Category { get; init; }
+    public GeneratedContentType ContentType { get; init; }
 
     [MaxLength(128)]
     public string? TemplateName { get; init; }
 
     public Dictionary<string, string>? TemplateContext { get; init; }
-
-    public AiProviderType? Provider { get; init; }
-
-    [MaxLength(64)]
-    public string? Model { get; init; }
 
     [Range(1, 16384)]
     public int? MaxTokens { get; init; }

@@ -1,5 +1,3 @@
-using VttTools.Common.Utilities;
-using VttTools.Services;
 
 namespace VttTools.Common.UnitTests.Services;
 
@@ -11,8 +9,8 @@ public class InternalConfigurationServiceTests {
     public InternalConfigurationServiceTests() {
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
-            { "TestKey1", "TestValue1" },
-            { "TestKey2", "TestValue2" },
+            { "ApplicationName", "TestValue1" },
+            { "ApplicationVersion", "TestValue2" },
             { "Password", "SecretPassword" },
             { "ApiKey", "SecretApiKey" },
             { "ConnectionStrings:Default", "Server=localhost" }
@@ -77,7 +75,7 @@ public class InternalConfigurationServiceTests {
 
         var testEntry = result.FirstOrDefault(e => {
             var key = e.GetType().GetProperty("Key")?.GetValue(e)?.ToString();
-            return key == "TestKey1";
+            return key == "ApplicationName";
         });
 
         testEntry.Should().NotBeNull();
@@ -122,7 +120,7 @@ public class InternalConfigurationServiceTests {
         var result = _service.GetConfigurationEntries();
 
         result.Should().AllSatisfy(entry => {
-            var category = entry.GetType().GetProperty("Category")?.GetValue(entry)?.ToString();
+            var category = entry.GetType().GetProperty("ContentType")?.GetValue(entry)?.ToString();
             category.Should().NotBeNullOrEmpty();
         });
     }
@@ -157,7 +155,7 @@ public class InternalConfigurationServiceTests {
 
         var testEntry = result.FirstOrDefault(e => {
             var key = e.GetType().GetProperty("Key")?.GetValue(e)?.ToString();
-            return key == "TestKey1";
+            return key == "ApplicationName";
         });
 
         testEntry.Should().NotBeNull();

@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Configuration.Json;
 
-using VttTools.Admin.ApiContracts;
-
 namespace VttTools.Common.Utilities;
 
 public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
@@ -13,31 +11,31 @@ public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
                 return providerTypeName switch {
                     "JsonConfigurationProvider" => CreateJsonSource(provider),
                     "EnvironmentVariablesConfigurationProvider" => new ConfigurationSource {
-                        Type = ConfigSourceType.EnvironmentVariable,
+                        Type = ConfigurationSourceType.EnvironmentVariable,
                         Path = null
                     },
                     "UserSecretsConfigurationProvider" => new ConfigurationSource {
-                        Type = ConfigSourceType.UserSecrets,
+                        Type = ConfigurationSourceType.UserSecrets,
                         Path = null
                     },
                     "CommandLineConfigurationProvider" => new ConfigurationSource {
-                        Type = ConfigSourceType.CommandLine,
+                        Type = ConfigurationSourceType.CommandLine,
                         Path = null
                     },
                     "MemoryConfigurationProvider" => new ConfigurationSource {
-                        Type = ConfigSourceType.InMemory,
+                        Type = ConfigurationSourceType.InMemory,
                         Path = null
                     },
                     _ when providerTypeName.Contains("KeyVault", StringComparison.OrdinalIgnoreCase) => new ConfigurationSource {
-                        Type = ConfigSourceType.AzureKeyVault,
+                        Type = ConfigurationSourceType.AzureKeyVault,
                         Path = null
                     },
                     _ when providerTypeName.Contains("AppConfiguration", StringComparison.OrdinalIgnoreCase) => new ConfigurationSource {
-                        Type = ConfigSourceType.AzureAppConfiguration,
+                        Type = ConfigurationSourceType.AzureAppConfiguration,
                         Path = null
                     },
                     _ => new ConfigurationSource {
-                        Type = ConfigSourceType.Unknown,
+                        Type = ConfigurationSourceType.Unknown,
                         Path = providerTypeName
                     }
                 };
@@ -45,7 +43,7 @@ public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
         }
 
         return new ConfigurationSource {
-            Type = ConfigSourceType.NotFound,
+            Type = ConfigurationSourceType.NotFound,
             Path = null
         };
     }
@@ -67,7 +65,7 @@ public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
         }
 
         return new ConfigurationSource {
-            Type = ConfigSourceType.JsonFile,
+            Type = ConfigurationSourceType.JsonFile,
             Path = path
         };
     }

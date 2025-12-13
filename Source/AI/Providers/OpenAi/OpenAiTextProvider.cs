@@ -6,7 +6,7 @@ public sealed class OpenAiTextProvider(
     ILogger<OpenAiTextProvider> logger) : ITextProvider {
     private readonly OpenAiHttpHelper _helper = new(httpClientFactory, configuration);
 
-    public AiProviderType ProviderType => AiProviderType.OpenAi;
+    public string Name => "OpenAi";
 
     public async Task<Result<TextGenerationResponse>> GenerateAsync(
         TextGenerationData data,
@@ -45,14 +45,13 @@ public sealed class OpenAiTextProvider(
 
             return Result.Success(new TextGenerationResponse {
                 GeneratedText = generatedText,
-                Category = data.Category,
-                Provider = ProviderType,
+                ContentType = data.ContentType,
+                Provider = data.Provider,
                 Model = model,
                 InputTokens = cost.InputTokens,
                 OutputTokens = cost.OutputTokens,
-                TotalTokens = cost.TotalTokens,
                 Cost = (decimal)cost.TotalCost,
-                Duration = stopwatch.Elapsed,
+                Elapsed = stopwatch.Elapsed,
             });
         }
         catch (HttpRequestException ex) {

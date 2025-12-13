@@ -13,7 +13,6 @@ internal static class AudioGenerationHandlers {
             Model = request.Model,
             Duration = request.Duration,
             Loop = request.Loop,
-            Type = request.Type,
         };
 
         var result = await service.GenerateAsync(data, ct);
@@ -29,10 +28,6 @@ internal static class AudioGenerationHandlers {
             fileDownloadName: $"generated_{DateTime.UtcNow:yyyyMMddHHmmss}.ogg");
     }
 
-    internal static async Task<IResult> GetAudioProvidersHandler(
-        [FromServices] IAudioGenerationService service,
-        CancellationToken ct = default) {
-        var providers = await service.GetAvailableProvidersAsync(ct);
-        return Results.Ok(providers.Select(p => p.ToString()));
-    }
+    internal static IResult GetAudioProvidersHandler([FromServices] IAudioGenerationService service)
+        => Results.Ok(service.GetAvailableProviders());
 }

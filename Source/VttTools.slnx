@@ -12,6 +12,7 @@
     </Project>
   </Folder>
   <Folder Name="/Source/0 Domain/">
+    <Project Path="Admin.Domain/VttTools.Admin.Domain.csproj" Id="d3aadddf-47fc-471f-9f37-bdce7508e488" />
     <Project Path="Domain/VttTools.Domain.csproj" />
   </Folder>
   <Folder Name="/Source/1 Storage/">
@@ -28,6 +29,9 @@
     </Project>
     <Project Path="Auth/VttTools.Auth.csproj" />
     <Project Path="Game/VttTools.Game.csproj" />
+    <Project Path="Jobs/VttTools.Jobs.csproj">
+      <BuildType Solution="Debug|Any CPU" Project="Release" />
+    </Project>
     <Project Path="Library/VttTools.Library.csproj">
       <BuildType Solution="Debug|Any CPU" Project="Release" />
     </Project>

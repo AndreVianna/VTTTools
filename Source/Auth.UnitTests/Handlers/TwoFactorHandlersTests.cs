@@ -54,9 +54,11 @@ public class TwoFactorHandlersTests {
     public async Task InitiateSetupHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var result = await TwoFactorHandlers.InitiateSetupHandler(_mockHttpContext, _mockTwoFactorService, TestContext.Current.CancellationToken);
+        var act = async () => await TwoFactorHandlers.InitiateSetupHandler(_mockHttpContext, _mockTwoFactorService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockTwoFactorService.DidNotReceive().InitiateSetupAsync(
             Arg.Any<Guid>(),
             Arg.Any<CancellationToken>());
@@ -143,9 +145,11 @@ public class TwoFactorHandlersTests {
             Code = "123456"
         };
 
-        var result = await TwoFactorHandlers.VerifySetupHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
+        var act = async () => await TwoFactorHandlers.VerifySetupHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockTwoFactorService.DidNotReceive().VerifySetupAsync(
             Arg.Any<Guid>(),
             Arg.Any<VerifySetupRequest>(),
@@ -236,9 +240,11 @@ public class TwoFactorHandlersTests {
             Password = "ValidPassword123!"
         };
 
-        var result = await TwoFactorHandlers.DisableTwoFactorHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
+        var act = async () => await TwoFactorHandlers.DisableTwoFactorHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockTwoFactorService.DidNotReceive().DisableTwoFactorAsync(
             Arg.Any<Guid>(),
             Arg.Any<DisableTwoFactorRequest>(),

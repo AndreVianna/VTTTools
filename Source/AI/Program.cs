@@ -9,12 +9,14 @@ internal static class Program {
         builder.AddRequiredServices();
         builder.AddStorage();
         builder.AddJwtAuthentication();
+        builder.AddRateLimiting();
         builder.AddServices();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseRateLimiter();
         app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
@@ -36,26 +38,7 @@ internal static class Program {
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
-        builder.Services.AddScoped<IImageProvider, OpenAiImageProvider>();
-        builder.Services.AddScoped<IImageProvider, StabilityImageProvider>();
-        builder.Services.AddScoped<IImageProvider, GoogleImageProvider>();
-
-        builder.Services.AddScoped<IAudioProvider, ElevenLabsAudioProvider>();
-        builder.Services.AddScoped<IAudioProvider, SunoAudioProvider>();
-
-        builder.Services.AddScoped<IVideoProvider, RunwayVideoProvider>();
-
-        builder.Services.AddScoped<IPromptProvider, OpenAiPromptProvider>();
-
-        builder.Services.AddScoped<ITextProvider, OpenAiTextProvider>();
-
-        builder.Services.AddScoped<IAiProviderFactory, AiProviderFactory>();
-
-        builder.Services.AddScoped<IImageGenerationService, ImageGenerationService>();
-        builder.Services.AddScoped<IPromptEnhancementService, PromptEnhancementService>();
-        builder.Services.AddScoped<IAudioGenerationService, AudioGenerationService>();
-        builder.Services.AddScoped<IVideoGenerationService, VideoGenerationService>();
-        builder.Services.AddScoped<ITextGenerationService, TextGenerationService>();
+        builder.AddAiServices();
 
         builder.Services.AddScoped<IPromptTemplateStorage, PromptTemplateStorage>();
         builder.Services.AddScoped<IPromptTemplateService, PromptTemplateService>();
@@ -70,7 +53,40 @@ internal static class Program {
         });
         builder.Services.AddSingleton<InternalConfigurationService>();
         builder.AddAuditLogging();
+
+        builder.Services.AddScoped<IAiProviderConfigStorage, ProviderStorage>();
+        builder.Services.AddMemoryCache();
+
+        builder.Services.Configure<JobProcessingOptions>(
+            builder.Configuration.GetSection(JobProcessingOptions.SectionName));
+        builder.Services.AddSingleton(Channel.CreateUnbounded<Guid>());
+        builder.Services.AddScoped<IAiJobOrchestrationService, AiJobOrchestrationService>();
+        builder.Services.AddSingleton<BulkAssetGenerationHandler>();
+        builder.Services.AddHostedService<AiJobProcessingService>();
+
+        builder.Services.AddHttpClient<JobsServiceClient>(c => c.BaseAddress = new Uri("https+http://jobs-api"));
+        builder.Services.AddHttpClient<ResourceServiceClient>(c => c.BaseAddress = new Uri("https+http://resources-api"));
+        builder.Services.AddHttpClient<AssetServiceClient>(c => c.BaseAddress = new Uri("https+http://assets-api"));
     }
 
-    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) => app.MapAiEndpoints();
+    internal static void AddRateLimiting(this IHostApplicationBuilder builder)
+        => builder.Services.AddRateLimiter(options => {
+            options.AddSlidingWindowLimiter("admin", rateLimiterOptions => {
+                rateLimiterOptions.PermitLimit = 30;
+                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
+                rateLimiterOptions.SegmentsPerWindow = 6;
+                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                rateLimiterOptions.QueueLimit = 5;
+            });
+
+            options.OnRejected = async (context, cancellationToken) => {
+                context.HttpContext.Response.StatusCode = 429;
+                await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
+            };
+        });
+
+    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
+        app.MapAiEndpoints();
+        app.MapAiJobEndpoints();
+    }
 }

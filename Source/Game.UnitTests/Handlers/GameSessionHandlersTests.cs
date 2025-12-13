@@ -394,4 +394,173 @@ public class GameSessionHandlersTests {
         // Assert
         result.Should().BeOfType<ForbidHttpResult>();
     }
+
+    [Fact]
+    public async Task CreateGameSessionHandler_WithMultipleValidationErrors_ReturnsValidationProblem() {
+        // Arrange
+        var request = new CreateGameSessionRequest {
+            Title = "",
+            EncounterId = _encounterId,
+        };
+
+        _sessionService.CreateGameSessionAsync(_userId, Arg.Any<CreateGameSessionData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure([
+                new Error("Title: Cannot be empty"),
+                new Error("Title: Must be at least 3 characters")
+            ]));
+
+        // Act
+        var result = await GameSessionHandlers.CreateGameSessionHandler(_httpContext, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task GetGameSessionsHandler_WithEmptyResult_ReturnsOkWithEmptyArray() {
+        // Arrange
+        _sessionService.GetGameSessionsAsync(_userId, Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        // Act
+        var result = await GameSessionHandlers.GetGameSessionsHandler(_httpContext, _sessionService);
+
+        // Assert
+        var response = result.Should().BeOfType<Ok<GameSession[]>>().Subject;
+        response.Value.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateGameSessionHandler_WithValidationError_ReturnsValidationProblem() {
+        // Arrange
+        var request = new UpdateGameSessionRequest { Title = "" };
+        _sessionService.UpdateGameSessionAsync(_userId, _sessionId, Arg.Any<UpdateGameSessionData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Title", "Cannot be empty")));
+
+        // Act
+        var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task DeleteGameSessionHandler_WithValidationError_ReturnsValidationProblem() {
+        // Arrange
+        _sessionService.DeleteGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("General", "Invalid operation")));
+
+        // Act
+        var result = await GameSessionHandlers.DeleteGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task LeaveGameSessionHandler_WithValidationError_ReturnsValidationProblem() {
+        // Arrange
+        _sessionService.LeaveGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("General", "Invalid operation")));
+
+        // Act
+        var result = await GameSessionHandlers.LeaveGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task ActivateEncounterHandler_WithValidationError_ReturnsValidationProblem() {
+        // Arrange
+        _sessionService.SetActiveEncounterAsync(_userId, _sessionId, _encounterId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Encounter", "Invalid encounter")));
+
+        // Act
+        var result = await GameSessionHandlers.ActivateEncounterHandler(_httpContext, _sessionId, _encounterId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task StartGameSessionHandler_WithValidationError_ReturnsValidationProblem() {
+        // Arrange
+        _sessionService.StartGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Status", "Invalid status transition")));
+
+        // Act
+        var result = await GameSessionHandlers.StartGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task StopGameSessionHandler_WithValidationError_ReturnsValidationProblem() {
+        // Arrange
+        _sessionService.StopGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Status", "Invalid status transition")));
+
+        // Act
+        var result = await GameSessionHandlers.StopGameSessionHandler(_httpContext, _sessionId, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task JoinGameSessionHandler_AsGameMaster_ReturnsNoContent() {
+        // Arrange
+        var request = new JoinGameSessionRequest { JoinAs = PlayerType.Master };
+        _sessionService.JoinGameSessionAsync(_userId, _sessionId, PlayerType.Master, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task CreateGameSessionHandler_WithEmptyEncounterId_ReturnsCreated() {
+        // Arrange
+        var request = new CreateGameSessionRequest {
+            Title = "Test Session",
+            EncounterId = Guid.Empty,
+        };
+
+        var expectedSession = new GameSession {
+            Id = _sessionId,
+            Title = "Test Session",
+            EncounterId = Guid.Empty,
+            OwnerId = _userId,
+        };
+
+        _sessionService.CreateGameSessionAsync(_userId, Arg.Any<CreateGameSessionData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(expectedSession));
+
+        // Act
+        var result = await GameSessionHandlers.CreateGameSessionHandler(_httpContext, request, _sessionService);
+
+        // Assert
+        var response = result.Should().BeOfType<Created<GameSession>>().Subject;
+        response.Value!.EncounterId.Should().Be(Guid.Empty);
+    }
+
+    [Fact]
+    public async Task UpdateGameSessionHandler_WithEmptyRequest_ReturnsNoContent() {
+        // Arrange
+        var request = new UpdateGameSessionRequest();
+        var expectedSession = new GameSession { Id = _sessionId, Title = "Unchanged", OwnerId = _userId };
+        _sessionService.UpdateGameSessionAsync(_userId, _sessionId, Arg.Any<UpdateGameSessionData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(expectedSession));
+
+        // Act
+        var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
+
+        // Assert
+        result.Should().BeOfType<NoContent>();
+    }
 }

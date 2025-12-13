@@ -17,16 +17,17 @@ public class VideoGenerationService(IAiProviderFactory providerFactory)
         stopwatch.Stop();
 
         return !result.IsSuccessful
-            ? Result.Failure<VideoGenerationResponse>(null!, result.Errors[0].Message)
-            : (Result<VideoGenerationResponse>)new VideoGenerationResponse {
+            ? Result.Failure(result.Errors).WithNo<VideoGenerationResponse>()
+            : new VideoGenerationResponse {
                 VideoData = result.Value,
                 ContentType = "video/mp4",
-                Provider = provider.ProviderType,
-                Model = data.Model,
-                Duration = data.Duration ?? TimeSpan.Zero,
+                InputTokens = 0,
+                OutputTokens = 0,
                 Cost = 0m,
+                Elapsed = stopwatch.Elapsed,
             };
     }
 
-    public Task<IReadOnlyList<AiProviderType>> GetAvailableProvidersAsync(CancellationToken ct = default) => Task.FromResult(providerFactory.GetAvailableVideoProviders());
+    public IReadOnlyList<string> GetAvailableProviders()
+        => providerFactory.GetAvailableVideoProviders();
 }

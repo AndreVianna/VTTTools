@@ -1,3 +1,8 @@
+using VttTools.Admin.Configuration.ApiContracts;
+using VttTools.Admin.Configuration.Handlers;
+using VttTools.Admin.Configuration.Model;
+using VttTools.Admin.Configuration.Services;
+
 namespace VttTools.Admin.UnitTests.Handlers;
 
 public class ConfigurationHandlersTests {
@@ -239,7 +244,7 @@ public class ConfigurationHandlersTests {
                 Key = "JwtSecret",
                 Value = "***REDACTED***",
                 Source = new ConfigurationSource {
-                    Type = ConfigSourceType.EnvironmentVariable
+                    Type = ConfigurationSourceType.EnvironmentVariable
                 },
                 Category = "Security"
             },
@@ -247,7 +252,7 @@ public class ConfigurationHandlersTests {
                 Key = "DatabaseConnection",
                 Value = "***REDACTED***",
                 Source = new ConfigurationSource {
-                    Type = ConfigSourceType.JsonFile,
+                    Type = ConfigurationSourceType.JsonFile,
                     Path = "appsettings.json"
                 },
                 Category = "Database"

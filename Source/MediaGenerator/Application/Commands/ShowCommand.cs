@@ -24,7 +24,7 @@ public sealed class ShowCommand(IFileStore store) {
         ConsoleOutput.WriteBlankLine();
         ConsoleOutput.WriteLine($"Entity: {entityInfo.Name}");
         ConsoleOutput.WriteLine($"Kind: {entityInfo.Classification.Kind}");
-        ConsoleOutput.WriteLine($"Category: {entityInfo.Classification.Category}");
+        ConsoleOutput.WriteLine($"GeneratedContentType: {entityInfo.Classification.Category}");
         ConsoleOutput.WriteLine($"ResourceType: {entityInfo.Classification.Type}");
         ConsoleOutput.WriteLine($"Subtype: {entityInfo.Classification.Subtype}");
         ConsoleOutput.WriteBlankLine();

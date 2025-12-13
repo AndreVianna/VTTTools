@@ -223,7 +223,7 @@ public sealed class PrepareCommandTests : IDisposable {
                 ContentType = "image/png",
                 FileName = $"{name.ToLowerInvariant()}.png",
                 FileLength = 1024,
-                Size = Size.Zero,
+                Size = VttTools.Common.Model.Size.Zero,
                 Duration = TimeSpan.Zero
             }
         ]
@@ -240,7 +240,7 @@ public sealed class PrepareCommandTests : IDisposable {
                 ContentType = "image/png",
                 FileName = $"{name.ToLowerInvariant()}-{i}.png",
                 FileLength = 1024,
-                Size = Size.Zero,
+                Size = VttTools.Common.Model.Size.Zero,
                 Duration = TimeSpan.Zero
             });
         }

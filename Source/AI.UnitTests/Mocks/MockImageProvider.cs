@@ -1,7 +1,7 @@
 namespace VttTools.AI.UnitTests.Mocks;
 
 public class MockImageProvider : IImageProvider {
-    public AiProviderType ProviderType { get; set; } = AiProviderType.OpenAi;
+    public string Name { get; set; } = "OpenAi";
     public byte[] ImageDataToReturn { get; set; } = [0x89, 0x50, 0x4E, 0x47];
     public string? ErrorToReturn { get; set; }
     public ImageGenerationData? LastRequest { get; private set; }

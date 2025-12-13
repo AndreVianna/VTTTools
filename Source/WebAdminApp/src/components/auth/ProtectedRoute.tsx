@@ -11,28 +11,39 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { isAuthenticated, isLoading, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, user, token } = useAppSelector((state) => state.auth);
   const checkedRef = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated && !user && !checkedRef.current) {
+    // If we have a token but not authenticated yet, validate with backend
+    if (token && !isAuthenticated && !checkedRef.current) {
       checkedRef.current = true;
       dispatch(checkAuth());
     }
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, token]);
 
-  if (isLoading) {
+  // Show loading while:
+  // 1. isLoading is true (auth check in progress)
+  // 2. We have a token but haven't validated it yet (isCheckingAuth)
+  const isCheckingAuth = token && !isAuthenticated && !checkedRef.current;
+
+  if (isLoading || isCheckingAuth) {
     return (
       <Box
         id="loading-admin-auth"
         sx={{
           display: 'flex',
+          flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
+          gap: 2,
         }}
       >
         <CircularProgress />
+        <Typography variant="body2" color="text.secondary">
+          Validating session...
+        </Typography>
       </Box>
     );
   }

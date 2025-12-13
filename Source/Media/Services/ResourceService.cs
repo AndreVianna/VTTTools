@@ -9,75 +9,54 @@ public class ResourceService(
     ILogger<ResourceService> logger)
     : IResourceService {
 
-    public async Task<Result<ResourceFile>> UploadResourceAsync(Guid userId, UploadResourceData data, CancellationToken ct = default) {
+    public async Task<Result<ResourceMetadata>> UploadResourceAsync(Guid userId, UploadResourceData data, CancellationToken ct = default) {
         var validationResult = data.Validate();
         if (!validationResult.IsSuccessful)
-            return Result.Failure<ResourceFile>(null!, $"Invalid upload data: {validationResult.Errors[0].Message}");
-
-        var fileName = SanitizeFileName(data.FileName);
-        var contentType = data.ContentType;
+            return Result.Failure($"Invalid upload data: {validationResult.Errors[0].Message}");
 
         try {
+            var fileName = SanitizeFileName(data.FileName);
             var processResult = await mediaProcessor.ProcessAsync(
                 data.ResourceType,
-                data.Stream!,
-                contentType,
+                data.ContentType,
                 fileName,
+                data.Stream!,
                 ct);
 
             if (!processResult.IsSuccessful) {
-                var errorMessage = processResult.Errors[0].Message;
-                logger.LogWarning("Media processing failed for file {FileName}: {Error}", fileName, errorMessage);
-                return Result.Failure<ResourceFile>(null!, errorMessage);
+                logger.LogWarning("Media processing failed for file {FileName}:\n\t{Errors}", fileName, string.Join("\n\t", processResult.Errors));
+                return Result.Failure(processResult.Errors);
             }
 
             var processed = processResult.Value;
             var guidId = Guid.CreateVersion7();
-            var path = GeneratePath(guidId, contentType);
-
-            var metadata = new ResourceMetadata {
-                ContentType = processed.ContentType,
-                FileName = processed.FileName,
-                FileLength = processed.FileLength,
-                Size = processed.Size,
-                Duration = processed.Duration,
-                OwnerId = userId,
-            };
-
-            var uploadResult = await blobStorage.SaveAsync(path, processed.Stream, metadata, ct);
-            if (!uploadResult.IsSuccessful)
-                return Result.Failure<ResourceFile>(null!, uploadResult.Errors[0].Message);
-
-            if (processed.Thumbnail is { Length: > 0 })
-                await blobStorage.SaveThumbnailAsync(path, processed.Thumbnail, ct);
+            var path = GeneratePath(guidId, data.ContentType);
 
             var resource = new ResourceMetadata {
                 Id = guidId,
                 ResourceType = data.ResourceType,
                 Path = path,
                 ContentType = processed.ContentType,
-                FileLength = processed.FileLength,
                 FileName = processed.FileName,
-                Duration = processed.Duration,
+                FileLength = processed.FileLength,
                 Size = processed.Size,
+                Duration = processed.Duration,
                 OwnerId = userId,
-                IsPublished = false,
-                IsPublic = false,
             };
 
-            await mediaStorage.AddAsync(resource, ct);
+            var uploadResult = await blobStorage.SaveAsync(path, processed.Stream, resource, ct);
+            if (!uploadResult.IsSuccessful)
+                return Result.Failure(uploadResult.Errors[0].Message);
 
-            return Result.Success<ResourceFile>(new() {
-                ContentType = resource.ContentType,
-                FileName = resource.FileName,
-                Size = resource.Size,
-                Duration = resource.Duration,
-                FileLength = resource.FileLength,
-            });
+            if (processed.Thumbnail is { Length: > 0 })
+                await blobStorage.SaveThumbnailAsync(path, processed.Thumbnail, ct);
+
+            await mediaStorage.AddAsync(resource, ct);
+            return Result.Success(resource);
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Unexpected error during file upload for {FileName}", fileName);
-            return Result.Failure<ResourceFile>(null!, "Unexpected error during file upload");
+            logger.LogError(ex, "Unexpected error during file upload for {FileName}", data.FileName);
+            return Result.Failure("Unexpected error during file upload");
         }
     }
 

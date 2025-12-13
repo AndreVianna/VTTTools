@@ -44,6 +44,7 @@ describe('authSlice', () => {
             expect(state.user).toEqual(mockUser);
             expect(state.token).toBe(mockToken);
             expect(localStorage.getItem('vtttools_admin_token')).toBe(mockToken);
+            expect(localStorage.getItem('vtttools_admin_user')).toBe(JSON.stringify(mockUser));
         });
 
         it('should handle login without token (backward compatibility)', async () => {
@@ -71,8 +72,9 @@ describe('authSlice', () => {
             expect(state.token).toBeNull();
         });
 
-        it('should clear token on failed login', async () => {
+        it('should clear token and user on failed login', async () => {
             localStorage.setItem('vtttools_admin_token', 'old-token');
+            localStorage.setItem('vtttools_admin_user', JSON.stringify({ id: '123', email: 'test@test.com' }));
 
             vi.mocked(authService.login).mockResolvedValue({
                 success: false,
@@ -85,13 +87,23 @@ describe('authSlice', () => {
             expect(state.isAuthenticated).toBe(false);
             expect(state.user).toBeNull();
             expect(state.token).toBeNull();
+            expect(localStorage.getItem('vtttools_admin_user')).toBeNull();
         });
     });
 
     describe('logout', () => {
-        it('should clear token from state and localStorage', async () => {
+        it('should clear token and user from state and localStorage', async () => {
             const mockToken = 'test-token';
+            const mockUser = {
+                id: '123',
+                email: 'admin@test.com',
+                displayName: 'Admin User',
+                isAdmin: true,
+                emailConfirmed: true,
+                twoFactorEnabled: false,
+            };
             localStorage.setItem('vtttools_admin_token', mockToken);
+            localStorage.setItem('vtttools_admin_user', JSON.stringify(mockUser));
 
             store = configureStore({
                 reducer: {
@@ -99,14 +111,7 @@ describe('authSlice', () => {
                 },
                 preloadedState: {
                     auth: {
-                        user: {
-                            id: '123',
-                            email: 'admin@test.com',
-                            displayName: 'Admin User',
-                            isAdmin: true,
-                            emailConfirmed: true,
-                            twoFactorEnabled: false,
-                        },
+                        user: mockUser,
                         isAuthenticated: true,
                         isLoading: false,
                         error: null,
@@ -124,10 +129,99 @@ describe('authSlice', () => {
             expect(state.user).toBeNull();
             expect(state.token).toBeNull();
             expect(localStorage.getItem('vtttools_admin_token')).toBeNull();
+            expect(localStorage.getItem('vtttools_admin_user')).toBeNull();
         });
     });
 
-    describe('token persistence', () => {
+    describe('auth state persistence', () => {
+        it('should restore user and token from localStorage on initialization', () => {
+            const mockToken = 'stored-token';
+            const mockUser = {
+                id: '123',
+                email: 'admin@test.com',
+                displayName: 'Admin User',
+                isAdmin: true,
+                emailConfirmed: true,
+                twoFactorEnabled: false,
+            };
+
+            localStorage.setItem('vtttools_admin_token', mockToken);
+            localStorage.setItem('vtttools_admin_user', JSON.stringify(mockUser));
+
+            const newStore = configureStore({
+                reducer: {
+                    auth: authReducer,
+                },
+                preloadedState: {
+                    auth: {
+                        user: mockUser,
+                        isAuthenticated: true,
+                        isLoading: false,
+                        error: null,
+                        token: mockToken,
+                    },
+                },
+            });
+
+            const state = newStore.getState().auth;
+            expect(state.token).toBe(mockToken);
+            expect(state.user).toEqual(mockUser);
+            expect(state.isAuthenticated).toBe(true);
+        });
+
+        it('should NOT be authenticated if token exists but user is missing', () => {
+            const newStore = configureStore({
+                reducer: {
+                    auth: authReducer,
+                },
+                preloadedState: {
+                    auth: {
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: null,
+                        token: 'stored-token',
+                    },
+                },
+            });
+
+            const state = newStore.getState().auth;
+            expect(state.token).toBe('stored-token');
+            expect(state.user).toBeNull();
+            expect(state.isAuthenticated).toBe(false);
+        });
+
+        it('should NOT be authenticated if user exists but token is missing', () => {
+            const mockUser = {
+                id: '123',
+                email: 'admin@test.com',
+                displayName: 'Admin User',
+                isAdmin: true,
+                emailConfirmed: true,
+                twoFactorEnabled: false,
+            };
+
+            const newStore = configureStore({
+                reducer: {
+                    auth: authReducer,
+                },
+                preloadedState: {
+                    auth: {
+                        user: mockUser,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: null,
+                        token: null,
+                    },
+                },
+            });
+
+            const state = newStore.getState().auth;
+            expect(state.token).toBeNull();
+            expect(state.user).toEqual(mockUser);
+            expect(state.isAuthenticated).toBe(false);
+        });
+
         it('should handle localStorage errors gracefully', () => {
             vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
                 throw new Error('localStorage disabled');
@@ -140,6 +234,28 @@ describe('authSlice', () => {
                     },
                 });
             }).not.toThrow();
+        });
+
+        it('should handle invalid JSON in user storage gracefully', () => {
+            const newStore = configureStore({
+                reducer: {
+                    auth: authReducer,
+                },
+                preloadedState: {
+                    auth: {
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: null,
+                        token: 'valid-token',
+                    },
+                },
+            });
+
+            const state = newStore.getState().auth;
+            expect(state.token).toBe('valid-token');
+            expect(state.user).toBeNull();
+            expect(state.isAuthenticated).toBe(false);
         });
     });
 

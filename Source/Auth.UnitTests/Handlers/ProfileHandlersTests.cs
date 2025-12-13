@@ -57,9 +57,11 @@ public class ProfileHandlersTests {
     public async Task GetProfileHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var result = await ProfileHandlers.GetProfileHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
+        var act = async () => await ProfileHandlers.GetProfileHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockProfileService.DidNotReceive().GetProfileAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -127,9 +129,11 @@ public class ProfileHandlersTests {
             DisplayName = "UpdatedUser"
         };
 
-        var result = await ProfileHandlers.UpdateProfileHandler(_mockHttpContext, request, _mockProfileService, TestContext.Current.CancellationToken);
+        var act = async () => await ProfileHandlers.UpdateProfileHandler(_mockHttpContext, request, _mockProfileService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockProfileService.DidNotReceive().UpdateProfileAsync(
             Arg.Any<Guid>(),
             Arg.Any<UpdateProfileRequest>(),
@@ -174,7 +178,7 @@ public class ProfileHandlersTests {
         mockFile.FileName.Returns("avatar.png");
         mockFile.OpenReadStream().Returns(new MemoryStream([1, 2, 3]));
 
-        var uploadResult = Result.Success(new ResourceFile());
+        var uploadResult = Result.Success(new ResourceMetadata { Id = Guid.CreateVersion7() });
 
         _mockResourceService.UploadResourceAsync(
             userId,
@@ -257,9 +261,11 @@ public class ProfileHandlersTests {
         mockFile.Length.Returns(1024);
         mockFile.ContentType.Returns("image/png");
 
-        var result = await ProfileHandlers.UpdateAvatarHandler(_mockHttpContext, mockFile, _mockProfileService, _mockResourceService, TestContext.Current.CancellationToken);
+        var act = async () => await ProfileHandlers.UpdateAvatarHandler(_mockHttpContext, mockFile, _mockProfileService, _mockResourceService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
     }
 
     [Fact]
@@ -273,7 +279,7 @@ public class ProfileHandlersTests {
         mockFile.FileName.Returns("avatar.png");
         mockFile.OpenReadStream().Returns(new MemoryStream([1, 2, 3]));
 
-        var uploadResult = Result.Failure<ResourceFile>(null!, new Error("Upload failed", "UPLOAD_ERROR"));
+        var uploadResult = Result.Failure<ResourceMetadata>(null!, new Error("Upload failed", "UPLOAD_ERROR"));
 
         _mockResourceService.UploadResourceAsync(
             userId,
@@ -301,6 +307,41 @@ public class ProfileHandlersTests {
         mockFile.FileName.Returns("avatar.png");
         mockFile.When(f => f.OpenReadStream())
             .Do(_ => throw new IOException("File access error"));
+
+        var result = await ProfileHandlers.UpdateAvatarHandler(_mockHttpContext, mockFile, _mockProfileService, _mockResourceService, TestContext.Current.CancellationToken);
+
+        result.Should().BeOfType<ProblemHttpResult>();
+    }
+
+    [Fact]
+    public async Task UpdateAvatarHandler_WhenProfileServiceFails_ReturnsValidationProblem() {
+        var userId = Guid.CreateVersion7();
+        SetupAuthenticatedUser(userId);
+
+        var mockFile = Substitute.For<IFormFile>();
+        mockFile.Length.Returns(1024);
+        mockFile.ContentType.Returns("image/png");
+        mockFile.FileName.Returns("avatar.png");
+        mockFile.OpenReadStream().Returns(new MemoryStream([1, 2, 3]));
+
+        var uploadResult = Result.Success(new ResourceMetadata { Id = Guid.CreateVersion7() });
+
+        _mockResourceService.UploadResourceAsync(
+            userId,
+            Arg.Any<UploadResourceData>(),
+            Arg.Any<CancellationToken>())
+            .Returns(uploadResult);
+
+        var failureResponse = new ProfileResponse {
+            Success = false,
+            Message = "Failed to update avatar in database"
+        };
+
+        _mockProfileService.UpdateAvatarAsync(
+            userId,
+            Arg.Any<Guid>(),
+            Arg.Any<CancellationToken>())
+            .Returns(failureResponse);
 
         var result = await ProfileHandlers.UpdateAvatarHandler(_mockHttpContext, mockFile, _mockProfileService, _mockResourceService, TestContext.Current.CancellationToken);
 
@@ -337,9 +378,11 @@ public class ProfileHandlersTests {
     public async Task RemoveAvatarHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var result = await ProfileHandlers.RemoveAvatarHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
+        var act = async () => await ProfileHandlers.RemoveAvatarHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockProfileService.DidNotReceive().RemoveAvatarAsync(
             Arg.Any<Guid>(),
             Arg.Any<CancellationToken>());

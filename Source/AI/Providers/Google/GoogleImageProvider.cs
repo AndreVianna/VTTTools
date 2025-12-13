@@ -9,7 +9,7 @@ public sealed class GoogleImageProvider(
         PropertyNameCaseInsensitive = true
     };
 
-    public AiProviderType ProviderType => AiProviderType.Google;
+    public string Name => "Google";
 
     public async Task<Result<byte[]>> GenerateAsync(
         ImageGenerationData data,

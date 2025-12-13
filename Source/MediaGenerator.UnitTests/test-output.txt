@@ -1,0 +1,8 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  VttTools.Core -> C:\Projects\Personal\VTTTools\Source\Core\bin\Debug\net10.0\VttTools.Core.dll
+  VttTools.Domain -> C:\Projects\Personal\VTTTools\Source\Domain\bin\Debug\net10.0\VttTools.Domain.dll
+  VttTools.Common -> C:\Projects\Personal\VTTTools\Source\Common\bin\Debug\net10.0\VttTools.Common.dll
+  VttTools.Data -> C:\Projects\Personal\VTTTools\Source\Data\bin\Debug\net10.0\VttTools.Data.dll
+C:\Projects\Personal\VTTTools\Source\AI\Services\PromptEnhancementService.cs(4,7): error CS0535: 'PromptEnhancementService' does not implement interface member 'IGenerationService<PromptEnhancementData, PromptEnhancementResponse>.GetAvailableProviders()' [C:\Projects\Personal\VTTTools\Source\AI\VttTools.AI.csproj]
+C:\Projects\Personal\VTTTools\Source\AI\Services\PromptEnhancementService.cs(4,7): error CS0535: 'PromptEnhancementService' does not implement interface member 'IGenerationService<PromptEnhancementData, PromptEnhancementResponse>.GenerateAsync(PromptEnhancementData, CancellationToken)' [C:\Projects\Personal\VTTTools\Source\AI\VttTools.AI.csproj]

@@ -1,6 +1,3 @@
-
-using VttTools.Audit.Services;
-
 namespace VttTools.Middlewares;
 
 public class AuditLoggingMiddlewareTests {

@@ -5,7 +5,7 @@ public sealed class StabilityImageProvider(
     IConfiguration configuration,
     ILogger<StabilityImageProvider> logger) : IImageProvider {
 
-    public AiProviderType ProviderType => AiProviderType.Stability;
+    public string Name => "Stability";
 
     public async Task<Result<byte[]>> GenerateAsync(
         ImageGenerationData data,

@@ -54,9 +54,11 @@ public class SecurityHandlersTests {
     public async Task GetSecuritySettingsHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var result = await SecurityHandlers.GetSecuritySettingsHandler(_mockHttpContext, _mockSecurityService, TestContext.Current.CancellationToken);
+        var act = async () => await SecurityHandlers.GetSecuritySettingsHandler(_mockHttpContext, _mockSecurityService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockSecurityService.DidNotReceive().GetSecuritySettingsAsync(
             Arg.Any<Guid>(),
             Arg.Any<CancellationToken>());

@@ -122,6 +122,49 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
+        '/api/ai': {
+          target: 'https://localhost:7176',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/api/jobs': {
+          target: 'https://localhost:7177',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/hubs/jobs': {
+          target: 'https://localhost:7177',
+          ws: true,
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/health/ai': {
+          target: 'https://localhost:7176',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/ai/, '/health'),
+        },
+        '/health/jobs': {
+          target: 'https://localhost:7177',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/jobs/, '/health'),
+        },
         '/health/admin': {
           target: 'https://localhost:7175',
           changeOrigin: true,
@@ -157,6 +200,18 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/health\/game/, '/health'),
+        },
+        '/alive/ai': {
+          target: 'https://localhost:7176',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/ai/, '/alive'),
+        },
+        '/alive/jobs': {
+          target: 'https://localhost:7177',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/jobs/, '/alive'),
         },
         '/alive/admin': {
           target: 'https://localhost:7175',
@@ -230,11 +285,39 @@ export default defineConfig(({ mode }) => {
           secure: false,
           rewrite: (path) => path.replace(/^\/api\/game/, '/api'),
         },
+        '/api/ai': {
+          target: 'https://localhost:7176',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/api/jobs': {
+          target: 'https://localhost:7177',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/hubs/jobs': {
+          target: 'https://localhost:7177',
+          ws: true,
+          changeOrigin: true,
+          secure: false,
+        },
         '/signalr/admin': {
           target: 'https://localhost:5193',
           ws: true,
           changeOrigin: true,
           secure: false,
+        },
+        '/health/ai': {
+          target: 'https://localhost:7176',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/ai/, '/health'),
+        },
+        '/health/jobs': {
+          target: 'https://localhost:7177',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/jobs/, '/health'),
         },
         '/health/admin': {
           target: 'https://localhost:7175',
@@ -271,6 +354,18 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/health\/game/, '/health'),
+        },
+        '/alive/ai': {
+          target: 'https://localhost:7176',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/ai/, '/alive'),
+        },
+        '/alive/jobs': {
+          target: 'https://localhost:7177',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/jobs/, '/alive'),
         },
         '/alive/admin': {
           target: 'https://localhost:7175',

@@ -5,6 +5,19 @@ namespace VttTools.Library.Adventures.Storage;
 /// </summary>
 public interface IAdventureStorage {
     /// <summary>
+    /// Searches adventures with filters and pagination.
+    /// </summary>
+    Task<(Adventure[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves adventures by campaign ID.
+    /// </summary>
+    Task<Adventure[]> GetByCampaignIdAsync(Guid campaignId, CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves all adventure templates.
     /// </summary>
     Task<Adventure[]> GetAllAsync(CancellationToken ct = default);

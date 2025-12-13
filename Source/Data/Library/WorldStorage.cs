@@ -6,6 +6,27 @@ namespace VttTools.Data.Library;
 public class WorldStorage(ApplicationDbContext context)
     : IWorldStorage {
     /// <inheritdoc />
+    public async Task<(World[] Items, int TotalCount)> SearchAsync(
+        Guid masterUserId,
+        LibrarySearchFilter filter,
+        CancellationToken ct = default) {
+        var query = context.Worlds.AsQueryable();
+
+        query = ApplySearchFilters(query, filter, masterUserId);
+        var totalCount = await query.CountAsync(ct);
+
+        query = ApplySorting(query, filter);
+        var entities = await query
+            .Skip(filter.Skip)
+            .Take(filter.Take)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        var items = entities.Select(e => e.ToModel()!).ToArray();
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc />
     public async Task<World[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Worlds
             .Include(e => e.Campaigns)
@@ -75,5 +96,48 @@ public class WorldStorage(ApplicationDbContext context)
         context.Worlds.Remove(entity);
         await context.SaveChangesAsync(ct);
         return true;
+    }
+
+    private static IQueryable<Entities.World> ApplySearchFilters(
+        IQueryable<Entities.World> query,
+        LibrarySearchFilter filter,
+        Guid masterUserId) {
+        if (!string.IsNullOrWhiteSpace(filter.Search)) {
+            var search = filter.Search.ToLowerInvariant();
+            query = query.Where(w =>
+                w.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase) ||
+                w.Description.Contains(search, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        if (filter.OwnerId.HasValue)
+            query = query.Where(w => w.OwnerId == filter.OwnerId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.OwnerType)) {
+            query = filter.OwnerType.ToLowerInvariant() switch {
+                "master" => query.Where(w => w.OwnerId == masterUserId),
+                "user" => query.Where(w => w.OwnerId != masterUserId),
+                _ => query
+            };
+        }
+
+        if (filter.IsPublished.HasValue)
+            query = query.Where(w => w.IsPublished == filter.IsPublished.Value);
+
+        if (filter.IsPublic.HasValue)
+            query = query.Where(w => w.IsPublic == filter.IsPublic.Value);
+
+        return query;
+    }
+
+    private static IOrderedQueryable<Entities.World> ApplySorting(
+        IQueryable<Entities.World> query,
+        LibrarySearchFilter filter) {
+        var sortBy = filter.SortBy?.ToLowerInvariant() ?? "name";
+        var descending = filter.SortOrder?.ToLowerInvariant() == "desc";
+
+        return sortBy switch {
+            "name" => descending ? query.OrderByDescending(w => w.Name) : query.OrderBy(w => w.Name),
+            _ => descending ? query.OrderByDescending(w => w.Name) : query.OrderBy(w => w.Name)
+        };
     }
 }

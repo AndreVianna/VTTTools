@@ -26,15 +26,15 @@ public class TextGenerationService(
         return await provider.GenerateAsync(resolvedData, ct);
     }
 
-    public Task<IReadOnlyList<AiProviderType>> GetAvailableProvidersAsync(CancellationToken ct = default)
-        => Task.FromResult(providerFactory.GetAvailableTextProviders());
+    public IReadOnlyList<string> GetAvailableProviders()
+        => providerFactory.GetAvailableTextProviders();
 
     private async Task<Result<TextGenerationData>> ResolveTemplateAsync(
         TextGenerationData data,
         CancellationToken ct) {
         var template = await templateStorage.GetLatestByNameAsync(data.TemplateName!, includeDrafts: false, ct);
         if (template is null)
-            return Result.Failure<TextGenerationData>(null!, $"Template '{data.TemplateName}' not found.");
+            return Result.Failure($"Template '{data.TemplateName}' not found.").WithNo<TextGenerationData>();
 
         var context = data.TemplateContext ?? [];
         context["prompt"] = data.Prompt;
@@ -47,7 +47,7 @@ public class TextGenerationService(
         return Result.Success(data with {
             Prompt = resolvedUserPrompt,
             SystemPrompt = resolvedSystemPrompt,
-            Category = data.Category ?? template.Category,
+            ContentType = data.ContentType,
         });
     }
 }

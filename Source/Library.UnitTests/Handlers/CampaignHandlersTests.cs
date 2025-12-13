@@ -1,18 +1,12 @@
 namespace VttTools.Library.Handlers;
 
 public class CampaignHandlersTests {
-    private readonly CampaignService _campaignService;
-    private readonly ICampaignStorage _campaignStorage;
-    private readonly IAdventureStorage _adventureStorage;
-    private readonly IMediaStorage _mediaStorage;
+    private readonly ICampaignService _campaignService;
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public CampaignHandlersTests() {
-        _campaignStorage = Substitute.For<ICampaignStorage>();
-        _adventureStorage = Substitute.For<IAdventureStorage>();
-        _mediaStorage = Substitute.For<IMediaStorage>();
-        _campaignService = new(_campaignStorage, _adventureStorage, _mediaStorage, NullLogger<CampaignService>.Instance);
+        _campaignService = Substitute.For<ICampaignService>();
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -133,7 +127,7 @@ public class CampaignHandlersTests {
     public async Task CloneCampaignHandler_WithNonExistentCampaign_ReturnsNotFound() {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _campaignService.CloneCampaignAsync(_userId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -147,7 +141,7 @@ public class CampaignHandlersTests {
     public async Task CloneCampaignHandler_WithUnauthorizedAccess_ReturnsForbid() {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _campaignService.CloneCampaignAsync(_userId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -196,7 +190,7 @@ public class CampaignHandlersTests {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
         var request = new UpdateCampaignRequest { Name = "Updated Campaign" };
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _campaignService.UpdateCampaignAsync(_userId, campaignId, Arg.Any<UpdatedCampaignData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -211,7 +205,7 @@ public class CampaignHandlersTests {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
         var request = new UpdateCampaignRequest { Name = "Updated Campaign" };
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _campaignService.UpdateCampaignAsync(_userId, campaignId, Arg.Any<UpdatedCampaignData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Campaign>(null!, error));
 
@@ -253,7 +247,7 @@ public class CampaignHandlersTests {
     public async Task DeleteCampaignHandler_WithNonExistentCampaign_ReturnsNotFound() {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _campaignService.DeleteCampaignAsync(_userId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
@@ -267,7 +261,7 @@ public class CampaignHandlersTests {
     public async Task DeleteCampaignHandler_WithUnauthorizedAccess_ReturnsForbid() {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _campaignService.DeleteCampaignAsync(_userId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
@@ -403,7 +397,7 @@ public class CampaignHandlersTests {
     public async Task AddNewAdventureHandler_WithNonExistentCampaign_ReturnsNotFound() {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _campaignService.AddNewAdventureAsync(_userId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Adventure>(null!, error));
 
@@ -416,7 +410,7 @@ public class CampaignHandlersTests {
     public async Task AddNewAdventureHandler_WithUnauthorizedAccess_ReturnsForbid() {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _campaignService.AddNewAdventureAsync(_userId, campaignId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Adventure>(null!, error));
 
@@ -450,7 +444,7 @@ public class CampaignHandlersTests {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
         var adventureId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _campaignService.AddClonedAdventureAsync(_userId, campaignId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Adventure>(null!, error));
 
@@ -464,7 +458,7 @@ public class CampaignHandlersTests {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
         var adventureId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _campaignService.AddClonedAdventureAsync(_userId, campaignId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Adventure>(null!, error));
 
@@ -492,7 +486,7 @@ public class CampaignHandlersTests {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
         var adventureId = Guid.CreateVersion7();
-        var error = new Error("", "NotFound");
+        var error = new Error("NotFound");
         _campaignService.RemoveAdventureAsync(_userId, campaignId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
@@ -506,7 +500,7 @@ public class CampaignHandlersTests {
         var context = CreateHttpContext(_userId);
         var campaignId = Guid.CreateVersion7();
         var adventureId = Guid.CreateVersion7();
-        var error = new Error("", "NotAllowed");
+        var error = new Error("NotAllowed");
         _campaignService.RemoveAdventureAsync(_userId, campaignId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 

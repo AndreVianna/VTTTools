@@ -12,7 +12,7 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
 
             var uploadOptions = new BlobUploadOptions {
                 Metadata = new Dictionary<string, string> {
-                    ["ContentType"] = metadata.ContentType,
+                    ["GeneratedContentType"] = metadata.ContentType,
                     ["FileName"] = metadata.FileName,
                     ["FileLength"] = metadata.FileLength.ToString(),
                     ["Width"] = metadata.Size.Width.ToString(),

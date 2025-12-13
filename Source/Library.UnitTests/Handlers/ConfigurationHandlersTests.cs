@@ -3,46 +3,48 @@ namespace VttTools.Library.Handlers;
 public class ConfigurationHandlersTests {
     [Fact]
     public void GetInternalConfigurationHandler_ReturnsConfiguration() {
-        var configRoot = Substitute.For<IConfigurationRoot>();
-        var config = Substitute.For<IConfiguration>();
-        var configSourceDetector = new ConfigurationSourceDetector(configRoot);
-        var configService = new InternalConfigurationService(config, configSourceDetector);
-        var entries = new List<object>() {
-            "Value1",
-            "Value2",
+        var configData = new Dictionary<string, string?> {
+            { "Key1", "Value1" },
+            { "Key2", "Value2" }
         };
-        configService.GetConfigurationEntries().Returns(entries);
+        var configRoot = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var configSourceDetector = new ConfigurationSourceDetector(configRoot);
+        var configService = new InternalConfigurationService(configRoot, configSourceDetector);
 
         var result = ConfigurationHandlers.GetInternalConfigurationHandler(configService);
 
-        var okResult = result.Should().BeOfType<Ok<object>>().Subject;
-        var value = okResult.Value;
+        result.Should().NotBeNull();
+        var value = result.GetType().GetProperty("Value")?.GetValue(result);
         value.Should().NotBeNull();
 
-        var serviceName = value.GetType().GetProperty("ServiceName")?.GetValue(value);
-        var resultEntries = value.GetType().GetProperty("Entries")?.GetValue(value) as Dictionary<string, string>;
+        var serviceName = value!.GetType().GetProperty("ServiceName")?.GetValue(value);
+        var resultEntries = value.GetType().GetProperty("Entries")?.GetValue(value) as IReadOnlyList<object>;
 
         serviceName.Should().Be("Library");
-        resultEntries.Should().BeEquivalentTo(entries);
-        configService.Received(1).GetConfigurationEntries();
+        resultEntries.Should().NotBeNull();
+        resultEntries.Should().HaveCount(2);
     }
 
     [Fact]
     public void GetInternalConfigurationHandler_WithEmptyEntries_ReturnsEmptyConfiguration() {
-        var configRoot = Substitute.For<IConfigurationRoot>();
-        var config = Substitute.For<IConfiguration>();
+        var configData = new Dictionary<string, string?>();
+        var configRoot = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
         var configSourceDetector = new ConfigurationSourceDetector(configRoot);
-        var configService = new InternalConfigurationService(config, configSourceDetector);
-        var entries = new List<object>();
-        configService.GetConfigurationEntries().Returns(entries);
+        var configService = new InternalConfigurationService(configRoot, configSourceDetector);
 
         var result = ConfigurationHandlers.GetInternalConfigurationHandler(configService);
 
-        var okResult = result.Should().BeOfType<Ok<object>>().Subject;
-        var value = okResult.Value;
+        result.Should().NotBeNull();
+        var value = result.GetType().GetProperty("Value")?.GetValue(result);
         value.Should().NotBeNull();
 
-        var resultEntries = value.GetType().GetProperty("Entries")?.GetValue(value) as Dictionary<string, string>;
+        var resultEntries = value!.GetType().GetProperty("Entries")?.GetValue(value) as IReadOnlyList<object>;
         resultEntries.Should().NotBeNull();
         resultEntries.Should().BeEmpty();
     }

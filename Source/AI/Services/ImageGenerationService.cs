@@ -17,18 +17,17 @@ public class ImageGenerationService(IAiProviderFactory providerFactory)
         stopwatch.Stop();
 
         return !result.IsSuccessful
-            ? Result.Failure<ImageGenerationResponse>(null!, result.Errors[0].Message)
-            : (Result<ImageGenerationResponse>)new ImageGenerationResponse {
+            ? Result.Failure(result.Errors).WithNo<ImageGenerationResponse>()
+            : new ImageGenerationResponse {
                 ImageData = result.Value,
                 ContentType = "image/png",
-                Provider = provider.ProviderType,
-                Model = data.Model,
-                TokensUsed = 0,
+                InputTokens = 0,
+                OutputTokens = 0,
                 Cost = 0m,
-                Duration = stopwatch.Elapsed,
+                Elapsed = stopwatch.Elapsed,
             };
     }
 
-    public Task<IReadOnlyList<AiProviderType>> GetAvailableProvidersAsync(CancellationToken ct = default)
-        => Task.FromResult(providerFactory.GetAvailableImageProviders());
+    public IReadOnlyList<string> GetAvailableProviders()
+        => providerFactory.GetAvailableImageProviders();
 }

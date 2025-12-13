@@ -11,10 +11,9 @@ public sealed class MockImageGenerationService : IImageGenerationService {
         var response = new ImageGenerationResponse {
             ImageData = data,
             ContentType = "image/png",
-            Provider = AiProviderType.OpenAi,
-            TokensUsed = 100,
+            OutputTokens = 100,
             Cost = 0.01m,
-            Duration = TimeSpan.FromSeconds(1)
+            Elapsed = TimeSpan.FromSeconds(1)
         };
         _responses.Enqueue(Result.Success(response));
     }
@@ -33,7 +32,7 @@ public sealed class MockImageGenerationService : IImageGenerationService {
         return Task.FromResult(_responses.Dequeue());
     }
 
-    public Task<IReadOnlyList<AiProviderType>> GetAvailableProvidersAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<AiProviderType>>([AiProviderType.OpenAi, AiProviderType.Stability]);
+    public IReadOnlyList<string> GetAvailableProviders() => ["OpenAi", "Stability"];
 
     public void Reset() {
         _responses.Clear();

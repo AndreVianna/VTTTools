@@ -10,9 +10,9 @@ internal static class TextGenerationHandlers {
         var data = new TextGenerationData {
             Prompt = request.Prompt,
             SystemPrompt = request.SystemPrompt,
-            Category = request.Category,
-            TemplateName = request.TemplateName,
-            TemplateContext = request.TemplateContext,
+            ContentType = request.ContentType,
+            TemplateName = request.Template,
+            TemplateContext = request.Context,
             Provider = request.Provider,
             Model = request.Model,
             MaxTokens = request.MaxTokens,
@@ -29,10 +29,6 @@ internal static class TextGenerationHandlers {
             : Results.Ok(result.Value);
     }
 
-    internal static async Task<IResult> GetTextProvidersHandler(
-        [FromServices] ITextGenerationService service,
-        CancellationToken ct = default) {
-        var providers = await service.GetAvailableProvidersAsync(ct);
-        return Results.Ok(providers.Select(p => p.ToString()));
-    }
+    internal static IResult GetTextProvidersHandler([FromServices] ITextGenerationService service)
+        => Results.Ok(service.GetAvailableProviders());
 }

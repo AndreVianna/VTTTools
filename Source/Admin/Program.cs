@@ -179,6 +179,7 @@ internal static class Program {
         builder.Services.AddScoped<IAdventureAdminService, AdventureAdminService>();
         builder.Services.AddScoped<IEncounterAdminService, EncounterAdminService>();
         builder.Services.AddScoped<IAssetAdminService, AssetAdminService>();
+
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root
@@ -201,6 +202,6 @@ internal static class Program {
         app.MapMaintenanceModeEndpoints();
         app.MapConfigurationEndpoints();
         app.MapLibraryAdminEndpoints();
-        app.MapHub<VttTools.Admin.Hubs.AuditLogHub>("/hubs/audit");
+        app.MapHub<AuditLogHub>("/hubs/audit");
     }
 }

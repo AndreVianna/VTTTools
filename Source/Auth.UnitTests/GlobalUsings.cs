@@ -11,6 +11,7 @@ global using DotNetToolbox.Results;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
@@ -27,5 +28,6 @@ global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;
 global using VttTools.Services;
+global using VttTools.Common.Utilities;
 
 global using Xunit;

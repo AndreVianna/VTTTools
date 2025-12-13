@@ -85,9 +85,11 @@ public class RecoveryCodeHandlersTests {
             Password = "ValidPassword123!"
         };
 
-        var result = await RecoveryCodeHandlers.GenerateNewCodesHandler(_mockHttpContext, request, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
+        var act = async () => await RecoveryCodeHandlers.GenerateNewCodesHandler(_mockHttpContext, request, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockRecoveryCodeService.DidNotReceive().GenerateNewCodesAsync(
             Arg.Any<Guid>(),
             Arg.Any<GenerateRecoveryCodesRequest>(),
@@ -146,9 +148,11 @@ public class RecoveryCodeHandlersTests {
     public async Task GetStatusHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var result = await RecoveryCodeHandlers.GetStatusHandler(_mockHttpContext, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
+        var act = async () => await RecoveryCodeHandlers.GetStatusHandler(_mockHttpContext, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
 
-        result.Should().BeOfType<UnauthorizedHttpResult>();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+
+            .WithMessage("User ID claim is missing or invalid.");
         await _mockRecoveryCodeService.DidNotReceive().GetStatusAsync(
             Arg.Any<Guid>(),
             Arg.Any<CancellationToken>());

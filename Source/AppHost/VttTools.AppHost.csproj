@@ -14,18 +14,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.0.0" />
-    <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.0.0" />
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.0.2" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.0.2" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.2" />
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
-    <PackageReference Include="Aspire.Hosting.Redis" Version="13.0.0" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="13.0.2" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Admin\VttTools.Admin.csproj" />
+    <ProjectReference Include="..\AI\VttTools.AI.csproj" />
     <ProjectReference Include="..\Assets\VttTools.Assets.csproj" />
     <ProjectReference Include="..\Data.MigrationService\VttTools.Data.MigrationService.csproj" />
+    <ProjectReference Include="..\Jobs\VttTools.Jobs.csproj" />
     <ProjectReference Include="..\Library\VttTools.Library.csproj" />
     <ProjectReference Include="..\Game\VttTools.Game.csproj" />
     <ProjectReference Include="..\Media\VttTools.Media.csproj" />

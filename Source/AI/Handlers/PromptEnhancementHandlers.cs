@@ -15,7 +15,7 @@ internal static class PromptEnhancementHandlers {
             Model = request.Model,
         };
 
-        var result = await service.EnhanceAsync(data, ct);
+        var result = await service.GenerateAsync(data, ct);
 
         return !result.IsSuccessful
             ? Results.Problem(
