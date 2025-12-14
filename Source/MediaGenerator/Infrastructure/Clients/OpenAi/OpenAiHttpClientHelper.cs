@@ -42,7 +42,7 @@ public sealed class OpenAiHttpClientHelper(IHttpClientFactory httpClientFactory,
     }
 
     public static OpenAiPricingCalculator GetTextPricingCalculator(string model) {
-        var (inputCost, outputCost) = model switch {
+        (var inputCost, var outputCost) = model switch {
             "gpt-5.1" => (1.25, 10.0),
             "gpt-5" => (1.25, 10.0),
             "gpt-5-mini" => (0.25, 2.0),
@@ -54,7 +54,7 @@ public sealed class OpenAiHttpClientHelper(IHttpClientFactory httpClientFactory,
     }
 
     public static OpenAiPricingCalculator GetImagePricingCalculator(string model) {
-        var (inputCost, outputCost) = model switch {
+        (var inputCost, var outputCost) = model switch {
             "gpt-image-1" => (10.0, 40.0),
             "gpt-image-1-mini" => (2.5, 8.0),
             _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")

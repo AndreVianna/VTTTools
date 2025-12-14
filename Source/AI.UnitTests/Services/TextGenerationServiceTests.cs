@@ -1,4 +1,6 @@
 
+using VttTools.AI.Mocks;
+
 namespace VttTools.AI.Services;
 
 public class TextGenerationServiceTests {
@@ -10,8 +12,10 @@ public class TextGenerationServiceTests {
     private readonly CancellationToken _ct;
 
     public TextGenerationServiceTests() {
-        _providerFactory.GetTextProvider(Arg.Any<string>()).Returns(_mockTextProvider);
-        _providerFactory.GetAvailableTextProviders().Returns(["OpenAi"]);
+        _providerFactory.GetTextProvider(Arg.Any<string?>()).Returns(_mockTextProvider);
+        _providerFactory.GetAvailableTextProviders().Returns(["OpenAI"]);
+        _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
+            .Returns(("OpenAI", "gpt-4o-mini"));
         _service = new TextGenerationService(_providerFactory, _templateStorage, _templateService);
         _ct = TestContext.Current.CancellationToken;
     }
@@ -19,10 +23,10 @@ public class TextGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithValidData_ReturnsSuccessfulResponse() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Generate a description for a dragon",
-            ContentType = GeneratedContentType.TextDescription,
         };
 
         var result = await _service.GenerateAsync(data, _ct);
@@ -35,7 +39,8 @@ public class TextGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithEmptyPrompt_ReturnsValidationError() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "",
         };
@@ -49,14 +54,15 @@ public class TextGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithSpecificProvider_UsesRequestedProvider() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Generate a description",
         };
 
         await _service.GenerateAsync(data, _ct);
 
-        _providerFactory.Received(1).GetTextProvider("OpenAi");
+        _providerFactory.Received(1).GetTextProvider("OpenAI");
     }
 
     [Fact]
@@ -75,7 +81,8 @@ public class TextGenerationServiceTests {
             .Returns("You are a fantasy writer.");
 
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "dragon",
             TemplateName = "test.template",
@@ -94,7 +101,8 @@ public class TextGenerationServiceTests {
         _templateStorage.GetLatestByNameAsync("missing.template", false, _ct).Returns((PromptTemplate?)null);
 
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "test",
             TemplateName = "missing.template",
@@ -110,7 +118,8 @@ public class TextGenerationServiceTests {
     public async Task GenerateAsync_WithProviderError_ReturnsError() {
         _mockTextProvider.ErrorToReturn = "Provider unavailable";
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Test prompt",
         };
@@ -124,7 +133,8 @@ public class TextGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithMaxTokensAndTemperature_PassesToProvider() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Generate text",
             MaxTokens = 500,
@@ -142,13 +152,14 @@ public class TextGenerationServiceTests {
         var result = _service.GetAvailableProviders();
 
         result.Should().HaveCount(1);
-        result.Should().Contain("OpenAi");
+        result.Should().Contain("OpenAI");
     }
 
     [Fact]
     public async Task GenerateAsync_WithInvalidMaxTokens_ReturnsValidationError() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Test",
             MaxTokens = 0,
@@ -163,7 +174,8 @@ public class TextGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithInvalidTemperature_ReturnsValidationError() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Test",
             Temperature = 3.0,
@@ -178,7 +190,8 @@ public class TextGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithSystemPrompt_PassesToProvider() {
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDialogue,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "Generate a story",
             SystemPrompt = "You are a creative storyteller.",
@@ -205,7 +218,8 @@ public class TextGenerationServiceTests {
             .Returns("Template system prompt");
 
         var data = new TextGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = "OpenAI",
             Model = "gpt-4",
             Prompt = "User prompt",
             TemplateName = "test.template",
@@ -214,5 +228,20 @@ public class TextGenerationServiceTests {
         await _service.GenerateAsync(data, _ct);
 
         _mockTextProvider.LastData!.SystemPrompt.Should().Be("Template system prompt");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithNullProvider_ResolvesFromConfig() {
+        var data = new TextGenerationData {
+            ContentType = GeneratedContentType.TextDescription,
+            Provider = null,
+            Model = null,
+            Prompt = "Test prompt",
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeTrue();
+        _providerFactory.Received(1).GetProviderAndModel(GeneratedContentType.TextDescription);
     }
 }

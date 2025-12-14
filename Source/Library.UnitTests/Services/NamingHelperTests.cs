@@ -6,7 +6,7 @@ public class NamingHelperTests {
         const string originalName = "Forest Ambush";
         var existingNames = new[] { "Forest Ambush", "Dungeon Entrance" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Forest Ambush (1)");
         cloneName.Should().Be("Forest Ambush (2)");
@@ -17,7 +17,7 @@ public class NamingHelperTests {
         const string originalName = "Forest Ambush (2)";
         var existingNames = new[] { "Forest Ambush (1)", "Forest Ambush (2)", "Dungeon Entrance" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Forest Ambush (2)");
         cloneName.Should().Be("Forest Ambush (3)");
@@ -28,7 +28,7 @@ public class NamingHelperTests {
         const string originalName = "Forest Ambush";
         var existingNames = new[] { "Forest Ambush", "Forest Ambush (2)", "Forest Ambush (3)" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Forest Ambush (1)");
         cloneName.Should().Be("Forest Ambush (4)");
@@ -39,7 +39,7 @@ public class NamingHelperTests {
         const string originalName = "Encounter (5)";
         var existingNames = new[] { "Encounter (1)", "Encounter (5)", "Encounter (10)" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Encounter (5)");
         cloneName.Should().Be("Encounter (11)");
@@ -50,7 +50,7 @@ public class NamingHelperTests {
         const string originalName = "forest ambush";
         var existingNames = new[] { "Forest Ambush", "FOREST AMBUSH (2)", "forest ambush (3)" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("forest ambush (1)");
         cloneName.Should().Be("forest ambush (4)");
@@ -61,7 +61,7 @@ public class NamingHelperTests {
         const string originalName = "New Encounter";
         var existingNames = Array.Empty<string>();
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("New Encounter (1)");
         cloneName.Should().Be("New Encounter (2)");
@@ -72,7 +72,7 @@ public class NamingHelperTests {
         const string originalName = "Encounter (final version)";
         var existingNames = new[] { "Encounter (final version)" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Encounter (final version) (1)");
         cloneName.Should().Be("Encounter (final version) (2)");
@@ -83,7 +83,7 @@ public class NamingHelperTests {
         const string originalName = "Level 3";
         var existingNames = new[] { "Level 3", "Other Encounter" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Level 3 (1)");
         cloneName.Should().Be("Level 3 (2)");
@@ -94,7 +94,7 @@ public class NamingHelperTests {
         const string originalName = "Encounter   (5)";
         var existingNames = new[] { "Encounter (1)", "Encounter   (5)" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Encounter   (5)");
         cloneName.Should().Be("Encounter (6)");
@@ -105,7 +105,7 @@ public class NamingHelperTests {
         const string originalName = "Encounter (1)";
         var existingNames = new[] { "Encounter (1)", "Encounter (2)" };
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
         newOriginalName.Should().Be("Encounter (1)");
         cloneName.Should().Be("Encounter (3)");

@@ -12,9 +12,11 @@ public class RoleNameTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        RoleName.Guest.ToString().Should().Be("Guest");
-        RoleName.User.ToString().Should().Be("User");
-        RoleName.Administrator.ToString().Should().Be("Administrator");
+        nameof(
+        // Act & Assert
+        RoleName.Guest).Should().Be("Guest");
+        nameof(RoleName.User).Should().Be("User");
+        nameof(RoleName.Administrator).Should().Be("Administrator");
     }
 
     [Fact]

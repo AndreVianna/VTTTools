@@ -1,11 +1,13 @@
 namespace VttTools.AI.Providers;
 
 public interface IAiProviderFactory {
-    IImageProvider GetImageProvider(string provider);
-    IAudioProvider GetAudioProvider(string provider);
-    IVideoProvider GetVideoProvider(string provider);
-    IPromptProvider GetPromptProvider(string provider);
-    ITextProvider GetTextProvider(string provider);
+    (string Provider, string Model) GetProviderAndModel(GeneratedContentType contentType);
+
+    IImageProvider GetImageProvider(string? providerName = null);
+    IAudioProvider GetAudioProvider(string? providerName = null);
+    IVideoProvider GetVideoProvider(string? providerName = null);
+    IPromptProvider GetPromptProvider(string? providerName = null);
+    ITextProvider GetTextProvider(string? providerName = null);
 
     IReadOnlyList<string> GetAvailableImageProviders();
     IReadOnlyList<string> GetAvailableAudioProviders();

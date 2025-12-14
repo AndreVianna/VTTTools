@@ -13,10 +13,10 @@ public class LabelPositionTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        LabelPosition.Default.ToString().Should().Be("Default");
-        LabelPosition.Top.ToString().Should().Be("Top");
-        LabelPosition.Middle.ToString().Should().Be("Middle");
-        LabelPosition.Bottom.ToString().Should().Be("Bottom");
+        nameof(LabelPosition.Default).Should().Be("Default");
+        nameof(LabelPosition.Top).Should().Be("Top");
+        nameof(LabelPosition.Middle).Should().Be("Middle");
+        nameof(LabelPosition.Bottom).Should().Be("Bottom");
     }
 
     [Fact]

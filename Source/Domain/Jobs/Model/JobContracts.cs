@@ -1,4 +1,13 @@
-namespace VttTools.Jobs.Services;
+namespace VttTools.Jobs.Model;
+
+public sealed record JobItemContext {
+    public required Guid JobId { get; init; }
+    public required Guid ItemId { get; init; }
+    public required int Index { get; init; }
+    public string? JobInputJson { get; init; }
+    public string? ItemInputJson { get; init; }
+    public string? AuthToken { get; init; }
+}
 
 public sealed record JobItemResult {
     public bool IsSuccess { get; init; }

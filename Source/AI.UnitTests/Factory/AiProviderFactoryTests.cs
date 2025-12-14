@@ -1,11 +1,10 @@
 
+using VttTools.AI.Mocks;
+
 namespace VttTools.AI.Factory;
 
 public class AiProviderFactoryTests {
-    private readonly IConfiguration _configuration;
-    private readonly IAiProviderConfigStorage _mockProviderStorage;
-    private readonly IMemoryCache _mockCache;
-    private readonly ILogger<AiProviderFactory> _mockLogger;
+    private readonly IOptionsSnapshot<AiOptions> _mockOptions;
     private readonly MockImageProvider _mockImageProvider;
     private readonly MockAudioProvider _mockAudioProvider;
     private readonly MockVideoProvider _mockVideoProvider;
@@ -14,33 +13,42 @@ public class AiProviderFactoryTests {
     private readonly AiProviderFactory _factory;
 
     public AiProviderFactoryTests() {
-        var configData = new Dictionary<string, string?> {
-            ["AI:DefaultProviders:Image"] = "OpenAi",
-            ["AI:DefaultProviders:Audio"] = "OpenAi",
-            ["AI:DefaultProviders:Video"] = "RunwayML",
-            ["AI:DefaultProviders:Prompt"] = "OpenAi",
-            ["AI:DefaultProviders:Text"] = "OpenAi",
+        var aiOptions = new AiOptions {
+            Defaults = new Dictionary<string, Dictionary<string, ProviderModelConfig>> {
+                ["Image"] = new() {
+                    ["_default"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-image-1" },
+                    ["Portrait"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-image-1" },
+                    ["Token"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-image-1" },
+                },
+                ["Audio"] = new() {
+                    ["_default"] = new ProviderModelConfig { Provider = "ElevenLabs", Model = "eleven_multilingual_v2" },
+                },
+                ["Video"] = new() {
+                    ["_default"] = new ProviderModelConfig { Provider = "RunwayML", Model = "gen-3" },
+                },
+                ["Text"] = new() {
+                    ["_default"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-4o-mini" },
+                    ["Description"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-4o-mini" },
+                },
+                ["Prompt"] = new() {
+                    ["_default"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-4o-mini" },
+                    ["Enhancement"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-4o-mini" },
+                },
+            },
+            Providers = [],
         };
 
-        _configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
+        _mockOptions = Substitute.For<IOptionsSnapshot<AiOptions>>();
+        _mockOptions.Value.Returns(aiOptions);
 
-        _mockProviderStorage = Substitute.For<IAiProviderConfigStorage>();
-        _mockCache = Substitute.For<IMemoryCache>();
-        _mockLogger = Substitute.For<ILogger<AiProviderFactory>>();
-
-        _mockImageProvider = new MockImageProvider { Name = "OpenAi" };
-        _mockAudioProvider = new MockAudioProvider { Name = "OpenAi" };
+        _mockImageProvider = new MockImageProvider { Name = "OpenAI" };
+        _mockAudioProvider = new MockAudioProvider { Name = "ElevenLabs" };
         _mockVideoProvider = new MockVideoProvider { Name = "RunwayML" };
-        _mockPromptProvider = new MockPromptProvider { Name = "OpenAi" };
-        _mockTextProvider = new MockTextProvider { Name = "OpenAi" };
+        _mockPromptProvider = new MockPromptProvider { Name = "OpenAI" };
+        _mockTextProvider = new MockTextProvider { Name = "OpenAI" };
 
         _factory = new AiProviderFactory(
-            _configuration,
-            _mockProviderStorage,
-            _mockCache,
-            _mockLogger,
+            _mockOptions,
             [_mockImageProvider],
             [_mockAudioProvider],
             [_mockVideoProvider],
@@ -49,11 +57,27 @@ public class AiProviderFactoryTests {
     }
 
     [Fact]
+    public void GetProviderAndModel_WithValidContentType_ReturnsConfiguredProviderAndModel() {
+        (var provider, var model) = _factory.GetProviderAndModel(GeneratedContentType.ImagePortrait);
+
+        provider.Should().Be("OpenAI");
+        model.Should().Be("gpt-image-1");
+    }
+
+    [Fact]
+    public void GetProviderAndModel_FallsBackToDefault_WhenSubtypeNotConfigured() {
+        (var provider, var model) = _factory.GetProviderAndModel(GeneratedContentType.AudioVoice);
+
+        provider.Should().Be("ElevenLabs");
+        model.Should().Be("eleven_multilingual_v2");
+    }
+
+    [Fact]
     public void GetImageProvider_WithSpecificType_ReturnsCorrectProvider() {
-        var provider = _factory.GetImageProvider("OpenAi");
+        var provider = _factory.GetImageProvider("OpenAI");
 
         provider.Should().BeSameAs(_mockImageProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -61,7 +85,7 @@ public class AiProviderFactoryTests {
         var provider = _factory.GetImageProvider(null);
 
         provider.Should().BeSameAs(_mockImageProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -77,15 +101,15 @@ public class AiProviderFactoryTests {
         var providers = _factory.GetAvailableImageProviders();
 
         providers.Should().HaveCount(1);
-        providers.Should().Contain("OpenAi");
+        providers.Should().Contain("OpenAI");
     }
 
     [Fact]
     public void GetAudioProvider_WithSpecificType_ReturnsCorrectProvider() {
-        var provider = _factory.GetAudioProvider("OpenAi");
+        var provider = _factory.GetAudioProvider("ElevenLabs");
 
         provider.Should().BeSameAs(_mockAudioProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("ElevenLabs");
     }
 
     [Fact]
@@ -93,7 +117,7 @@ public class AiProviderFactoryTests {
         var provider = _factory.GetAudioProvider(null);
 
         provider.Should().BeSameAs(_mockAudioProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("ElevenLabs");
     }
 
     [Fact]
@@ -109,7 +133,7 @@ public class AiProviderFactoryTests {
         var providers = _factory.GetAvailableAudioProviders();
 
         providers.Should().HaveCount(1);
-        providers.Should().Contain("OpenAi");
+        providers.Should().Contain("ElevenLabs");
     }
 
     [Fact]
@@ -146,10 +170,10 @@ public class AiProviderFactoryTests {
 
     [Fact]
     public void GetPromptProvider_WithSpecificType_ReturnsCorrectProvider() {
-        var provider = _factory.GetPromptProvider("OpenAi");
+        var provider = _factory.GetPromptProvider("OpenAI");
 
         provider.Should().BeSameAs(_mockPromptProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -157,7 +181,7 @@ public class AiProviderFactoryTests {
         var provider = _factory.GetPromptProvider(null);
 
         provider.Should().BeSameAs(_mockPromptProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -170,10 +194,10 @@ public class AiProviderFactoryTests {
 
     [Fact]
     public void GetTextProvider_WithSpecificType_ReturnsCorrectProvider() {
-        var provider = _factory.GetTextProvider("OpenAi");
+        var provider = _factory.GetTextProvider("OpenAI");
 
         provider.Should().BeSameAs(_mockTextProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -181,7 +205,7 @@ public class AiProviderFactoryTests {
         var provider = _factory.GetTextProvider(null);
 
         provider.Should().BeSameAs(_mockTextProvider);
-        provider.Name.Should().Be("OpenAi");
+        provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -197,6 +221,6 @@ public class AiProviderFactoryTests {
         var providers = _factory.GetAvailableTextProviders();
 
         providers.Should().HaveCount(1);
-        providers.Should().Contain("OpenAi");
+        providers.Should().Contain("OpenAI");
     }
 }

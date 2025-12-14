@@ -8,7 +8,7 @@ public class ConsoleColorHelperTests {
     [InlineData(ConsoleColor.Gray, "\x1b[90m")]
     [InlineData(ConsoleColor.Cyan, "\x1b[36m")]
     public void Colorize_WithSupportedColor_ReturnsColorizedText(ConsoleColor color, string expectedAnsi) {
-        var text = "Test message";
+        const string text = "Test message";
 
         var result = ConsoleColorHelper.Colorize(text, color);
 
@@ -24,7 +24,7 @@ public class ConsoleColorHelperTests {
 
     [Fact]
     public void Colorize_WithUnsupportedColor_ReturnsResetCode() {
-        var text = "Test message";
+        const string text = "Test message";
 
         var result = ConsoleColorHelper.Colorize(text, ConsoleColor.Magenta);
 
@@ -50,7 +50,7 @@ public class ConsoleColorHelperTests {
 
     [Fact]
     public void GetStatusIcon_WithUnknownStatus_ReturnsQuestionMark() {
-        var status = (HealthCheckStatus)999;
+        const HealthCheckStatus status = (HealthCheckStatus)999;
 
         var result = ConsoleColorHelper.GetStatusIcon(status);
 
@@ -70,7 +70,7 @@ public class ConsoleColorHelperTests {
 
     [Fact]
     public void GetStatusColor_WithUnknownStatus_ReturnsGray() {
-        var status = (HealthCheckStatus)999;
+        const HealthCheckStatus status = (HealthCheckStatus)999;
 
         var result = ConsoleColorHelper.GetStatusColor(status);
 

@@ -13,4 +13,31 @@ public enum GeneratedContentType {
     TextDescription = 10,
     TextStatBlock = 11,
     TextDialogue = 12,
+    PromptEnhancement = 13,
+}
+
+public static class GeneratedContentTypeExtensions {
+    public static (string Type, string Subtype) GetTypeAndSubtype(this GeneratedContentType contentType)
+        => contentType switch {
+            GeneratedContentType.ImagePortrait => ("Image", "Portrait"),
+            GeneratedContentType.ImageToken => ("Image", "Token"),
+            GeneratedContentType.ImageBackground => ("Image", "Background"),
+            GeneratedContentType.AudioSoundEffect => ("Audio", "SoundEffect"),
+            GeneratedContentType.AudioAmbientSound => ("Audio", "AmbientSound"),
+            GeneratedContentType.AudioMusic => ("Audio", "Music"),
+            GeneratedContentType.AudioVoice => ("Audio", "Voice"),
+            GeneratedContentType.VideoBackground => ("Video", "Background"),
+            GeneratedContentType.VideoOverlay => ("Video", "Overlay"),
+            GeneratedContentType.TextDescription => ("Text", "Description"),
+            GeneratedContentType.TextStatBlock => ("Text", "StatBlock"),
+            GeneratedContentType.TextDialogue => ("Text", "Dialogue"),
+            GeneratedContentType.PromptEnhancement => ("Prompt", "Enhancement"),
+            _ => throw new ArgumentOutOfRangeException(nameof(contentType), contentType, "Unknown content type")
+        };
+
+    public static string GetType(this GeneratedContentType contentType)
+        => contentType.GetTypeAndSubtype().Type;
+
+    public static string GetSubtype(this GeneratedContentType contentType)
+        => contentType.GetTypeAndSubtype().Subtype;
 }

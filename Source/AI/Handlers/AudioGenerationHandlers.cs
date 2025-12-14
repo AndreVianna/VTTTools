@@ -8,6 +8,7 @@ internal static class AudioGenerationHandlers {
         [FromServices] IAudioGenerationService service,
         CancellationToken ct = default) {
         var data = new AudioGenerationData {
+            ContentType = request.ContentType,
             Prompt = request.Prompt,
             Provider = request.Provider,
             Model = request.Model,

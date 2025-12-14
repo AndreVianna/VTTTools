@@ -22,7 +22,7 @@ internal static class PromptTemplateHandlers {
             Pagination = pagination,
         };
 
-        var (items, totalCount) = await service.SearchAsync(filters, ct);
+        (var items, var totalCount) = await service.SearchAsync(filters, ct);
 
         var response = new PromptTemplateSearchResponse {
             Items = [.. items.Select(MapToResponse)],

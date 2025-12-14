@@ -21,15 +21,16 @@ public class JobsServiceClient(
         return result?.Id;
     }
 
-    private void AddAuthorizationHeader() {
-        var authHeader = httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+    private void AddAuthorizationHeader(string? authToken = null) {
+        var authHeader = authToken ?? httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
         if (!string.IsNullOrEmpty(authHeader)) {
             httpClient.DefaultRequestHeaders.Authorization =
                 AuthenticationHeaderValue.Parse(authHeader);
         }
     }
 
-    public async Task<JobResponse?> GetJobByIdAsync(Guid jobId, CancellationToken ct = default) {
+    public async Task<JobResponse?> GetJobByIdAsync(Guid jobId, CancellationToken ct = default, string? authToken = null) {
+        AddAuthorizationHeader(authToken);
         var response = await httpClient.GetAsync($"/api/jobs/{jobId}", ct);
         if (!response.IsSuccessStatusCode) {
             logger.LogError(
@@ -42,14 +43,12 @@ public class JobsServiceClient(
         return await response.Content.ReadFromJsonAsync<JobResponse>(ct);
     }
 
-    public async Task<bool> UpdateJobStatusAsync(
-        Guid jobId,
-        UpdateJobStatusRequest request,
-        CancellationToken ct = default) {
-        var response = await httpClient.PatchAsJsonAsync($"/api/jobs/{jobId}/status", request, ct);
+    public async Task<bool> CancelJobAsync(Guid jobId, CancellationToken ct = default, string? authToken = null) {
+        AddAuthorizationHeader(authToken);
+        var response = await httpClient.DeleteAsync($"/api/jobs/{jobId}", ct);
         if (!response.IsSuccessStatusCode) {
             logger.LogError(
-                "Job status update failed with status {StatusCode} for job {Id}",
+                "Job cancellation failed with status {StatusCode} for job {Id}",
                 response.StatusCode,
                 jobId);
             return false;
@@ -58,14 +57,12 @@ public class JobsServiceClient(
         return true;
     }
 
-    public async Task<bool> UpdateJobCountsAsync(
-        Guid jobId,
-        UpdateJobCountsRequest request,
-        CancellationToken ct = default) {
-        var response = await httpClient.PatchAsJsonAsync($"/api/jobs/{jobId}/counts", request, ct);
+    public async Task<bool> RetryJobAsync(Guid jobId, CancellationToken ct = default, string? authToken = null) {
+        AddAuthorizationHeader(authToken);
+        var response = await httpClient.PostAsync($"/api/jobs/{jobId}/retry", content: null, ct);
         if (!response.IsSuccessStatusCode) {
             logger.LogError(
-                "Job counts update failed with status {StatusCode} for job {Id}",
+                "Job retry failed with status {StatusCode} for job {Id}",
                 response.StatusCode,
                 jobId);
             return false;
@@ -74,52 +71,21 @@ public class JobsServiceClient(
         return true;
     }
 
-    public async Task<bool> UpdateItemStatusAsync(
-        Guid itemId,
-        UpdateJobItemStatusRequest request,
-        CancellationToken ct = default) {
-        var response = await httpClient.PatchAsJsonAsync($"/api/jobs/items/{itemId}/status", request, ct);
-        if (!response.IsSuccessStatusCode) {
-            logger.LogError(
-                "Job item status update failed with status {StatusCode} for item {ItemId}",
-                response.StatusCode,
-                itemId);
-            return false;
-        }
-
-        return true;
-    }
-
-    public async Task<IReadOnlyList<JobItemResponse>> GetPendingItemsAsync(
+    public async Task<IReadOnlyList<JobItemResponse>> GetJobItemsAsync(
         Guid jobId,
-        CancellationToken ct = default) {
-        var response = await httpClient.GetAsync($"/api/jobs/{jobId}/items/pending", ct);
-        if (!response.IsSuccessStatusCode) {
-            logger.LogError(
-                "Pending items retrieval failed with status {StatusCode} for job {Id}",
-                response.StatusCode,
-                jobId);
-            return [];
-        }
-
-        var result = await response.Content.ReadFromJsonAsync<IReadOnlyList<JobItemResponse>>(ct);
-        return result ?? [];
-    }
-
-    public async Task<IReadOnlyList<JobItemResponse>> GetFailedItemsAsync(
-        Guid jobId,
-        Guid[]? itemIds = null,
-        CancellationToken ct = default) {
-        var url = $"/api/jobs/{jobId}/items/failed";
-        if (itemIds is not null && itemIds.Length > 0) {
-            var queryString = string.Join("&", itemIds.Select(id => $"itemIds={id}"));
-            url = $"{url}?{queryString}";
+        JobItemStatus? status = null,
+        CancellationToken ct = default,
+        string? authToken = null) {
+        AddAuthorizationHeader(authToken);
+        var url = $"/api/jobs/{jobId}/items";
+        if (status.HasValue) {
+            url = $"{url}?status={status.Value}";
         }
 
         var response = await httpClient.GetAsync(url, ct);
         if (!response.IsSuccessStatusCode) {
             logger.LogError(
-                "Failed items retrieval failed with status {StatusCode} for job {Id}",
+                "Job items retrieval failed with status {StatusCode} for job {Id}",
                 response.StatusCode,
                 jobId);
             return [];
@@ -129,9 +95,31 @@ public class JobsServiceClient(
         return result ?? [];
     }
 
+    public async Task<bool> UpdateItemStatusAsync(
+        Guid jobId,
+        int itemIndex,
+        UpdateJobItemStatusRequest request,
+        CancellationToken ct = default,
+        string? authToken = null) {
+        AddAuthorizationHeader(authToken);
+        var response = await httpClient.PatchAsJsonAsync($"/api/jobs/{jobId}/items/{itemIndex}", request, ct);
+        if (!response.IsSuccessStatusCode) {
+            logger.LogError(
+                "Job item status update failed with status {StatusCode} for job {JobId} item {ItemIndex}",
+                response.StatusCode,
+                jobId,
+                itemIndex);
+            return false;
+        }
+
+        return true;
+    }
+
     public async Task<bool> BroadcastProgressAsync(
         BroadcastProgressRequest request,
-        CancellationToken ct = default) {
+        CancellationToken ct = default,
+        string? authToken = null) {
+        AddAuthorizationHeader(authToken);
         var response = await httpClient.PostAsJsonAsync("/api/jobs/progress", request, ct);
         if (!response.IsSuccessStatusCode) {
             logger.LogError(

@@ -61,7 +61,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         var allWorlds = await GetWorldsAsync($"AvailableTo:{userId}", ct);
         var existingNames = allWorlds.Select(e => e.Name);
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name && original.OwnerId == userId) {
             var renamedOriginal = original with { Name = newOriginalName };
@@ -148,7 +148,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
 
         var existingNames = world.Campaigns.Select(c => c.Name);
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name && original.OwnerId == userId) {
             var renamedOriginal = original with { Name = newOriginalName };

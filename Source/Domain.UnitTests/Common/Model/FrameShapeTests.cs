@@ -12,9 +12,11 @@ public class FrameShapeTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        FrameShape.None.ToString().Should().Be("None");
-        FrameShape.Square.ToString().Should().Be("Square");
-        FrameShape.Circle.ToString().Should().Be("Circle");
+        nameof(
+        // Act & Assert
+        FrameShape.None).Should().Be("None");
+        nameof(FrameShape.Square).Should().Be("Square");
+        nameof(FrameShape.Circle).Should().Be("Circle");
     }
 
     [Fact]

@@ -497,7 +497,7 @@ public sealed class UserAdminHandlersTests {
     public async Task RemoveRoleHandler_WithValidRequest_ReturnsOk() {
         var userId = Guid.CreateVersion7();
         var adminUserId = Guid.CreateVersion7();
-        var roleName = "Admin";
+        const string roleName = "Admin";
         var response = new RemoveRoleResponse { Success = true, Roles = ["User"] };
 
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
@@ -515,7 +515,7 @@ public sealed class UserAdminHandlersTests {
     [Fact]
     public async Task RemoveRoleHandler_WithInvalidClaims_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
-        var roleName = "Admin";
+        const string roleName = "Admin";
         var user = new ClaimsPrincipal(new ClaimsIdentity());
 
         var result = await UserAdminHandlers.RemoveRoleHandler(
@@ -529,7 +529,7 @@ public sealed class UserAdminHandlersTests {
     public async Task RemoveRoleHandler_WhenCannotModifySelfExceptionThrown_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
         var adminUserId = Guid.CreateVersion7();
-        var roleName = "Admin";
+        const string roleName = "Admin";
 
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
@@ -548,7 +548,7 @@ public sealed class UserAdminHandlersTests {
     public async Task RemoveRoleHandler_WhenLastAdminExceptionThrown_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
         var adminUserId = Guid.CreateVersion7();
-        var roleName = "Admin";
+        const string roleName = "Admin";
 
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
@@ -567,7 +567,7 @@ public sealed class UserAdminHandlersTests {
     public async Task RemoveRoleHandler_WhenUserNotFoundExceptionThrown_ReturnsNotFound() {
         var userId = Guid.CreateVersion7();
         var adminUserId = Guid.CreateVersion7();
-        var roleName = "Admin";
+        const string roleName = "Admin";
 
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
@@ -585,7 +585,7 @@ public sealed class UserAdminHandlersTests {
     public async Task RemoveRoleHandler_WhenServiceReturnsFalse_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
         var adminUserId = Guid.CreateVersion7();
-        var roleName = "Admin";
+        const string roleName = "Admin";
         var response = new RemoveRoleResponse { Success = false, Roles = [] };
 
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };

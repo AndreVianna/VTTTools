@@ -8,7 +8,7 @@ public static partial class NamingHelper {
         string originalName,
         IEnumerable<string> existingNamesInContainer) {
 
-        var (baseName, originalNumber) = ExtractBaseAndNumber(originalName);
+        (var baseName, var originalNumber) = ExtractBaseAndNumber(originalName);
 
         var existingNumbers = existingNamesInContainer
             .Select(ExtractBaseAndNumber)

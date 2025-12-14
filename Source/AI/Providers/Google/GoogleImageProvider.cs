@@ -2,14 +2,16 @@ namespace VttTools.AI.Providers.Google;
 
 public sealed class GoogleImageProvider(
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration,
+    IOptionsSnapshot<AiOptions> options,
     ILogger<GoogleImageProvider> logger) : IImageProvider {
+    private const string _providerName = "Google";
+
     private static readonly JsonSerializerOptions _jsonOptions = new() {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
 
-    public string Name => "Google";
+    public string Name => _providerName;
 
     public async Task<Result<byte[]>> GenerateAsync(
         ImageGenerationData data,
@@ -17,8 +19,8 @@ public sealed class GoogleImageProvider(
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = data.Model ?? configuration["AI:Providers:Google:Models:Image"]
-                ?? throw new InvalidOperationException("Google image model not configured.");
+            var model = data.Model
+                ?? throw new InvalidOperationException("Model must be specified for image generation.");
 
             logger.LogDebug("Starting Google AI image generation with model {Model}", model);
 
@@ -106,18 +108,22 @@ public sealed class GoogleImageProvider(
     };
 
     private HttpClient CreateClient() {
+        var providerConfig = GetProviderConfig();
         var client = httpClientFactory.CreateClient();
-        var baseUrl = configuration["AI:Providers:Google:BaseUrl"]
-            ?? throw new InvalidOperationException("Google AI API base url not configured.");
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new Uri(providerConfig.BaseUrl);
 
-        var apiKey = configuration["AI:Providers:Google:ApiKey"]
+        var apiKey = providerConfig.ApiKey
             ?? throw new InvalidOperationException("Google AI API key is not configured.");
         client.DefaultRequestHeaders.Add("x-goog-api-key", apiKey);
         client.DefaultRequestHeaders.Add("Accept", "application/json");
 
         return client;
     }
+
+    private ProviderConfig GetProviderConfig()
+        => options.Value.Providers.TryGetValue(_providerName, out var config)
+            ? config
+            : throw new InvalidOperationException($"{_providerName} provider is not configured.");
 
     private static string GetEndpoint(string model)
         => model switch {

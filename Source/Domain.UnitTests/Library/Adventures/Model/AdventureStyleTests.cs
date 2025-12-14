@@ -33,7 +33,7 @@ public class AdventureStyleTests {
             var displayAttribute = memberInfo.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
 
             displayAttribute.Should().NotBeNull($"AdventureType.{value} should have DisplayAttribute");
-            displayAttribute!.Name.Should().NotBeNullOrEmpty($"AdventureType.{value} DisplayAttribute Name should not be null or empty");
+            displayAttribute.Name.Should().NotBeNullOrEmpty($"AdventureType.{value} DisplayAttribute Name should not be null or empty");
         }
     }
 }

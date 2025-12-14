@@ -24,7 +24,7 @@ public sealed class WorldAdminService(
                 Take = request.Take ?? 20
             };
 
-            var (worlds, totalCount) = await worldStorage.SearchAsync(MasterUserId, filter, ct);
+            (var worlds, var totalCount) = await worldStorage.SearchAsync(MasterUserId, filter, ct);
 
             var hasMore = worlds.Length > filter.Take;
             var worldsToReturn = hasMore ? worlds[..filter.Take] : worlds;

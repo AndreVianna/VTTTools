@@ -1,5 +1,5 @@
-using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 using AdventureModel = VttTools.Library.Adventures.Model.Adventure;
+using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 
 namespace VttTools.Admin.Library.Services;
 
@@ -15,7 +15,7 @@ public sealed class CampaignAdminService(
         LibrarySearchRequest request,
         CancellationToken ct = default) {
         try {
-            var (skip, take) = GetPagination(request);
+            (var skip, var take) = GetPagination(request);
             var filter = new LibrarySearchFilter {
                 Search = request.Search,
                 OwnerId = request.OwnerId,
@@ -28,7 +28,7 @@ public sealed class CampaignAdminService(
                 Take = take + 1
             };
 
-            var (campaigns, totalCount) = await campaignStorage.SearchAsync(MasterUserId, filter, ct);
+            (var campaigns, var totalCount) = await campaignStorage.SearchAsync(MasterUserId, filter, ct);
 
             var hasMore = campaigns.Length > take;
             if (hasMore)

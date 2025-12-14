@@ -3,8 +3,7 @@ namespace VttTools.Jobs.Model;
 public enum JobStatus {
     Pending,
     InProgress,
-    Completed,
+    Success,
     Failed,
-    Cancelled,
-    PartialSuccess
+    Canceled
 }

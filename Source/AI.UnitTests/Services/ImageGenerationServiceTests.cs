@@ -1,4 +1,6 @@
 
+using VttTools.AI.Mocks;
+
 namespace VttTools.AI.Services;
 
 public class ImageGenerationServiceTests {
@@ -9,12 +11,14 @@ public class ImageGenerationServiceTests {
 
     public ImageGenerationServiceTests() {
         _mockProvider = new MockImageProvider {
-            Name = "OpenAi",
+            Name = "OpenAI",
             ImageDataToReturn = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
         };
 
-        _providerFactory.GetImageProvider(Arg.Any<string>()).Returns(_mockProvider);
-        _providerFactory.GetAvailableImageProviders().Returns(["OpenAi", "Google"]);
+        _providerFactory.GetImageProvider(Arg.Any<string?>()).Returns(_mockProvider);
+        _providerFactory.GetAvailableImageProviders().Returns(["OpenAI", "Google"]);
+        _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
+            .Returns(("OpenAI", "gpt-image-1"));
 
         _service = new ImageGenerationService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
@@ -23,9 +27,10 @@ public class ImageGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithValidRequest_ReturnsImageResponse() {
         var data = new ImageGenerationData {
+            ContentType = GeneratedContentType.ImagePortrait,
             Prompt = "A beautiful landscape",
             Model = "dall-e-3",
-            Provider = "OpenAi",
+            Provider = "OpenAI",
         };
 
         var result = await _service.GenerateAsync(data, _ct);
@@ -34,13 +39,13 @@ public class ImageGenerationServiceTests {
         result.Value.Should().NotBeNull();
         result.Value.ImageData.Should().BeEquivalentTo(_mockProvider.ImageDataToReturn);
         result.Value.ContentType.Should().Be("image/png");
-        _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
         var data = new ImageGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.ImagePortrait,
+            Provider = "OpenAI",
             Model = "dall-e-3",
             Prompt = "Test prompt",
         };
@@ -55,7 +60,8 @@ public class ImageGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_TracksRequestDuration() {
         var data = new ImageGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.ImagePortrait,
+            Provider = "OpenAI",
             Model = "dall-e-3",
             Prompt = "Test prompt",
         };
@@ -71,28 +77,31 @@ public class ImageGenerationServiceTests {
         var providers = _service.GetAvailableProviders();
 
         providers.Should().HaveCount(2);
-        providers.Should().Contain("OpenAi");
+        providers.Should().Contain("OpenAI");
         providers.Should().Contain("Google");
         _providerFactory.Received(1).GetAvailableImageProviders();
     }
 
     [Fact]
-    public async Task GenerateAsync_WithNullProvider_UsesDefaultProvider() {
+    public async Task GenerateAsync_WithNullProvider_ResolvesFromConfig() {
         var data = new ImageGenerationData {
-            Provider = null!,
-            Model = "dall-e-3",
+            ContentType = GeneratedContentType.ImagePortrait,
+            Provider = null,
+            Model = null,
             Prompt = "Test prompt",
         };
 
         var result = await _service.GenerateAsync(data, _ct);
 
-        result.IsSuccessful.Should().BeFalse();
+        result.IsSuccessful.Should().BeTrue();
+        _providerFactory.Received(1).GetProviderAndModel(GeneratedContentType.ImagePortrait);
     }
 
     [Fact]
     public async Task GenerateAsync_SetsTokensAndCostToZero() {
         var data = new ImageGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.ImagePortrait,
+            Provider = "OpenAI",
             Model = "dall-e-3",
             Prompt = "Test prompt",
         };

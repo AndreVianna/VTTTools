@@ -1,5 +1,4 @@
-
-namespace VttTools.AI.UnitTests.Mocks;
+namespace VttTools.AI.Mocks;
 
 public class MockHttpMessageHandler : HttpMessageHandler {
     private HttpStatusCode _statusCode = HttpStatusCode.OK;

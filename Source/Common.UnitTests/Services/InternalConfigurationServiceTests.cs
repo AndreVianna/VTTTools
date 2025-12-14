@@ -37,7 +37,7 @@ public class InternalConfigurationServiceTests {
         });
 
         passwordEntry.Should().NotBeNull();
-        var value = passwordEntry!.GetType().GetProperty("Value")?.GetValue(passwordEntry)?.ToString();
+        var value = passwordEntry.GetType().GetProperty("Value")?.GetValue(passwordEntry)?.ToString();
         value.Should().Be("***REDACTED***");
     }
 
@@ -51,7 +51,7 @@ public class InternalConfigurationServiceTests {
         });
 
         apiKeyEntry.Should().NotBeNull();
-        var value = apiKeyEntry!.GetType().GetProperty("Value")?.GetValue(apiKeyEntry)?.ToString();
+        var value = apiKeyEntry.GetType().GetProperty("Value")?.GetValue(apiKeyEntry)?.ToString();
         value.Should().Be("***REDACTED***");
     }
 
@@ -65,7 +65,7 @@ public class InternalConfigurationServiceTests {
         });
 
         connStringEntry.Should().NotBeNull();
-        var value = connStringEntry!.GetType().GetProperty("Value")?.GetValue(connStringEntry)?.ToString();
+        var value = connStringEntry.GetType().GetProperty("Value")?.GetValue(connStringEntry)?.ToString();
         value.Should().Be("***REDACTED***");
     }
 
@@ -79,7 +79,7 @@ public class InternalConfigurationServiceTests {
         });
 
         testEntry.Should().NotBeNull();
-        var value = testEntry!.GetType().GetProperty("Value")?.GetValue(testEntry)?.ToString();
+        var value = testEntry.GetType().GetProperty("Value")?.GetValue(testEntry)?.ToString();
         value.Should().Be("TestValue1");
     }
 
@@ -110,7 +110,7 @@ public class InternalConfigurationServiceTests {
         result.Should().AllSatisfy(entry => {
             var source = entry.GetType().GetProperty("Source")?.GetValue(entry);
             source.Should().NotBeNull();
-            var sourceType = source!.GetType().GetProperty("Type")?.GetValue(source)?.ToString();
+            var sourceType = source.GetType().GetProperty("Type")?.GetValue(source)?.ToString();
             sourceType.Should().NotBeNullOrEmpty();
         });
     }
@@ -120,7 +120,7 @@ public class InternalConfigurationServiceTests {
         var result = _service.GetConfigurationEntries();
 
         result.Should().AllSatisfy(entry => {
-            var category = entry.GetType().GetProperty("ContentType")?.GetValue(entry)?.ToString();
+            var category = entry.GetType().GetProperty("Category")?.GetValue(entry)?.ToString();
             category.Should().NotBeNullOrEmpty();
         });
     }
@@ -145,7 +145,7 @@ public class InternalConfigurationServiceTests {
         });
 
         passwordEntry.Should().NotBeNull();
-        var isRedacted = passwordEntry!.GetType().GetProperty("IsRedacted")?.GetValue(passwordEntry);
+        var isRedacted = passwordEntry.GetType().GetProperty("IsRedacted")?.GetValue(passwordEntry);
         isRedacted.Should().Be(true);
     }
 
@@ -159,7 +159,7 @@ public class InternalConfigurationServiceTests {
         });
 
         testEntry.Should().NotBeNull();
-        var isRedacted = testEntry!.GetType().GetProperty("IsRedacted")?.GetValue(testEntry);
+        var isRedacted = testEntry.GetType().GetProperty("IsRedacted")?.GetValue(testEntry);
         isRedacted.Should().Be(false);
     }
 
@@ -189,7 +189,7 @@ public class InternalConfigurationServiceTests {
         });
 
         secretEntry.Should().NotBeNull();
-        var value = secretEntry!.GetType().GetProperty("Value")?.GetValue(secretEntry)?.ToString();
+        var value = secretEntry.GetType().GetProperty("Value")?.GetValue(secretEntry)?.ToString();
         value.Should().Be("***REDACTED***");
     }
 
@@ -212,7 +212,7 @@ public class InternalConfigurationServiceTests {
         });
 
         tokenEntry.Should().NotBeNull();
-        var value = tokenEntry!.GetType().GetProperty("Value")?.GetValue(tokenEntry)?.ToString();
+        var value = tokenEntry.GetType().GetProperty("Value")?.GetValue(tokenEntry)?.ToString();
         value.Should().Be("***REDACTED***");
     }
 }

@@ -1,19 +1,10 @@
 namespace VttTools.AI.HealthChecks;
 
 public class AiProviderHealthCheck(
-    IConfiguration configuration,
+    IOptionsSnapshot<AiOptions> options,
     IHttpClientFactory httpClientFactory,
     ILogger<AiProviderHealthCheck> logger)
     : IHealthCheck {
-
-    private static readonly string[] _availableProviders = [
-        "OpenAI",
-        "Stability",
-        "Google",
-        "ElevenLabs",
-        "Suno",
-        "RunwayML",
-    ];
 
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
@@ -21,25 +12,17 @@ public class AiProviderHealthCheck(
 
         var results = new Dictionary<string, object>();
         var overallHealthy = true;
+        var providers = options.Value.Providers;
 
-        foreach (var providerName in _availableProviders) {
-            var baseUrl = configuration[$"AI:Providers:{providerName}:BaseUrl"];
-            var apiKey = configuration[$"AI:Providers:{providerName}:ApiKey"];
-            var healthEndpoint = configuration[$"AI:Providers:{providerName}:Health"];
-
-            if (string.IsNullOrEmpty(baseUrl)) {
-                results[$"{providerName}_status"] = "not_configured";
-                continue;
-            }
-
-            if (string.IsNullOrEmpty(apiKey)) {
+        foreach ((var providerName, var config) in providers) {
+            if (string.IsNullOrEmpty(config.ApiKey)) {
                 results[$"{providerName}_status"] = "missing_api_key";
                 overallHealthy = false;
                 continue;
             }
 
             try {
-                var status = await CheckProviderAsync(providerName, baseUrl, apiKey, healthEndpoint, cancellationToken);
+                var status = await CheckProviderAsync(providerName, config, cancellationToken);
                 results[$"{providerName}_status"] = status;
                 if (status != "healthy")
                     overallHealthy = false;
@@ -58,29 +41,26 @@ public class AiProviderHealthCheck(
     }
 
     private async Task<string> CheckProviderAsync(
-        string provider,
-        string baseUrl,
-        string apiKey,
-        string? healthEndpoint,
+        string providerName,
+        ProviderConfig config,
         CancellationToken ct) {
 
-        if (string.IsNullOrEmpty(healthEndpoint)) {
+        if (string.IsNullOrEmpty(config.Health))
             return "healthy";
-        }
 
         using var client = httpClientFactory.CreateClient();
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new Uri(config.BaseUrl);
         client.Timeout = TimeSpan.FromSeconds(5);
 
-        if (provider == "Google") {
-            client.DefaultRequestHeaders.Add("x-goog-api-key", apiKey);
+        if (providerName == "Google") {
+            client.DefaultRequestHeaders.Add("x-goog-api-key", config.ApiKey);
         }
         else {
             client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", apiKey);
+                new AuthenticationHeaderValue("Bearer", config.ApiKey);
         }
 
-        var response = await client.GetAsync(healthEndpoint, ct);
+        var response = await client.GetAsync(config.Health, ct);
         return response.IsSuccessStatusCode ? "healthy" : $"unhealthy_{(int)response.StatusCode}";
     }
 }

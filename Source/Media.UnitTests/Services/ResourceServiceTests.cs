@@ -214,7 +214,7 @@ public class ResourceServiceTests {
         var result = await _service.ServeResourceAsync(ownerId, id, _ct);
 
         result.Should().NotBeNull();
-        result!.ContentType.Should().Be("image/png");
+        result.ContentType.Should().Be("image/png");
         result.FileName.Should().Be("test.png");
     }
 
@@ -255,7 +255,7 @@ public class ResourceServiceTests {
         var result = await _service.ServeResourceAsync(requesterId, id, _ct);
 
         result.Should().NotBeNull();
-        result!.ContentType.Should().Be("image/png");
+        result.ContentType.Should().Be("image/png");
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public class ResourceServiceTests {
         var result = await _service.GetResourceAsync(ownerId, id, _ct);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(id);
+        result.Id.Should().Be(id);
         result.FileName.Should().Be("test.png");
     }
 
@@ -342,7 +342,7 @@ public class ResourceServiceTests {
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
             .Returns((resources, 2));
 
-        var (items, totalCount) = await _service.FindResourcesAsync(userId, filter, _ct);
+        (var items, var totalCount) = await _service.FindResourcesAsync(userId, filter, _ct);
 
         items.Should().HaveCount(2);
         totalCount.Should().Be(2);
@@ -623,7 +623,7 @@ public class ResourceServiceTests {
         var result = await _service.GetResourceAsync(requesterId, id, _ct);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(id);
+        result.Id.Should().Be(id);
     }
 
     [Fact]
@@ -689,7 +689,7 @@ public class ResourceServiceTests {
         await _service.UpdateResourceAsync(ownerId, id, updateData, _ct);
 
         await _mediaStorage.Received(1).UpdateAsync(
-            Arg.Is<ResourceMetadata>(r => r.Description == "Updated" && r.IsPublic == false),
+            Arg.Is<ResourceMetadata>(r => r.Description == "Updated" && !r.IsPublic),
             Arg.Any<CancellationToken>());
     }
 

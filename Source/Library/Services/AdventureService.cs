@@ -68,7 +68,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
         var allAdventures = await GetAdventuresAsync($"AvailableTo:{userId}", ct);
         var existingNames = allAdventures.Select(a => a.Name);
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name && original.OwnerId == userId) {
             var renamedOriginal = original with { Name = newOriginalName };
@@ -158,7 +158,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
         var allEncounters = await GetEncountersAsync(id, ct);
         var existingNames = allEncounters.Select(s => s.Name);
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name) {
             var renamedOriginal = original with { Name = newOriginalName };

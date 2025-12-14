@@ -5,11 +5,11 @@ namespace VttTools.AI.Handlers;
 internal static class HealthCheckHandlers {
     internal static async Task<IResult> GetHealthHandler(
         [FromServices] IHttpClientFactory httpClientFactory,
-        [FromServices] IConfiguration configuration,
+        [FromServices] IOptionsSnapshot<AiOptions> options,
         [FromServices] ILogger<AiProviderHealthCheck> logger,
         CancellationToken ct = default) {
 
-        var healthCheck = new AiProviderHealthCheck(configuration, httpClientFactory, logger);
+        var healthCheck = new AiProviderHealthCheck(options, httpClientFactory, logger);
         var context = new HealthCheckContext();
         var result = await healthCheck.CheckHealthAsync(context, ct);
 

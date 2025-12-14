@@ -81,7 +81,7 @@ public class BodySanitizerTests {
         var result = BodySanitizer.SanitizeRequestBody(longJson);
 
         result.Should().NotBeNull();
-        (result!.Length > 8000).Should().BeTrue();
+        (result.Length > 8000).Should().BeTrue();
         (result.Length < 8100).Should().BeTrue();
         result.Should().EndWith("... [truncated]");
     }
@@ -197,7 +197,7 @@ public class BodySanitizerTests {
         var result = BodySanitizer.SanitizeQueryString(queryString);
 
         result.Should().NotBeNull();
-        (result!.Length > 8000).Should().BeTrue();
+        (result.Length > 8000).Should().BeTrue();
         (result.Length < 8100).Should().BeTrue();
         result.Should().EndWith("... [truncated]");
     }

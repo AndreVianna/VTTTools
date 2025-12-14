@@ -23,7 +23,7 @@ public class ConfigurationHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class ConfigurationHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class ConfigurationHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -59,6 +59,6 @@ public class ConfigurationHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
     }
 }

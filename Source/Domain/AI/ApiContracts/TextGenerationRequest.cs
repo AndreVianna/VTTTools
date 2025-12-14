@@ -2,9 +2,9 @@ namespace VttTools.AI.ApiContracts;
 
 public sealed record TextGenerationRequest
     : Request {
-    public required string Provider { get; init; }
-    public required string Model { get; init; }
-    public GeneratedContentType ContentType { get; init; }
+    public required GeneratedContentType ContentType { get; init; }
+    public string? Provider { get; init; }
+    public string? Model { get; init; }
     public string? SystemPrompt { get; init; }
     public required string Prompt { get; init; }
     public string? Template { get; init; }

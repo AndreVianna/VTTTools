@@ -28,7 +28,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        var (found, _) = await assetStorage.SearchAsync(userId, search: data.Name, ct: ct);
+        (var found, _) = await assetStorage.SearchAsync(userId, search: data.Name, ct: ct);
         if (found.Length > 0)
             return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
 

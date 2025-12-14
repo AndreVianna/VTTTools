@@ -194,10 +194,10 @@ public sealed partial class HierarchicalFileStore(string rootPath)
                     => ListItems(typePath, subtypeFilter, subtypePath
                         => ListItems(subtypePath, nameFilter, namePath
                             => {
-                                var kind = Path.GetFileName(kindPath)!;
-                                var category = Path.GetFileName(categoryPath)!;
-                                var type = Path.GetFileName(typePath)!;
-                                var subtype = Path.GetFileName(subtypePath)!;
+                                var kind = Path.GetFileName(kindPath);
+                                var category = Path.GetFileName(categoryPath);
+                                var type = Path.GetFileName(typePath);
+                                var subtype = Path.GetFileName(subtypePath);
                                 assets.Add(CreateAsset(Enum.Parse<AssetKind>(kind, true), category, type, subtype, namePath));
                             })))));
 
@@ -216,7 +216,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
     }
 
     private static Asset CreateAsset(AssetKind kind, string category, string type, string? subtype, string assetPath) {
-        var name = LoadAssetName(assetPath) ?? Path.GetFileName(assetPath)!;
+        var name = LoadAssetName(assetPath) ?? Path.GetFileName(assetPath);
         var assetPathWindows = PreparePathForWindows(assetPath);
 
         var tokenFiles = Directory.Exists(assetPathWindows)

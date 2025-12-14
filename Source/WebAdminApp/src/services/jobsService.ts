@@ -41,7 +41,7 @@ export const jobsService = {
     },
 
     async cancelJob(jobId: string): Promise<void> {
-        await apiClient.patch(`${JOBS_API_BASE}/${jobId}/status`, { status: 'Cancelled' });
+        await apiClient.patch(`${JOBS_API_BASE}/${jobId}/status`, { status: 'Canceled' });
     },
 
     async retryJob(request: JobRetryRequest): Promise<JobResponse> {

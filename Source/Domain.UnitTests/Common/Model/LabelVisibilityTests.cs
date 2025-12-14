@@ -13,10 +13,12 @@ public class LabelVisibilityTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        LabelVisibility.Default.ToString().Should().Be("Default");
-        LabelVisibility.Always.ToString().Should().Be("Always");
-        LabelVisibility.OnHover.ToString().Should().Be("OnHover");
-        LabelVisibility.Never.ToString().Should().Be("Never");
+        nameof(
+        // Act & Assert
+        LabelVisibility.Default).Should().Be("Default");
+        nameof(LabelVisibility.Always).Should().Be("Always");
+        nameof(LabelVisibility.OnHover).Should().Be("OnHover");
+        nameof(LabelVisibility.Never).Should().Be("Never");
     }
 
     [Fact]

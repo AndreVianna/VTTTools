@@ -29,26 +29,28 @@ public class WeatherTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        Weather.Clear.ToString().Should().Be("Clear");
-        Weather.PartlyCloudy.ToString().Should().Be("PartlyCloudy");
-        Weather.Overcast.ToString().Should().Be("Overcast");
-        Weather.Fog.ToString().Should().Be("Fog");
-        Weather.LightRain.ToString().Should().Be("LightRain");
-        Weather.Rain.ToString().Should().Be("Rain");
-        Weather.HeavyRain.ToString().Should().Be("HeavyRain");
-        Weather.Rainstorm.ToString().Should().Be("Rainstorm");
-        Weather.Thunderstorm.ToString().Should().Be("Thunderstorm");
-        Weather.LightSnow.ToString().Should().Be("LightSnow");
-        Weather.Snow.ToString().Should().Be("Snow");
-        Weather.HeavySnow.ToString().Should().Be("HeavySnow");
-        Weather.Snowstorm.ToString().Should().Be("Snowstorm");
-        Weather.Hail.ToString().Should().Be("Hail");
-        Weather.IceStorm.ToString().Should().Be("IceStorm");
-        Weather.Breezy.ToString().Should().Be("Breezy");
-        Weather.Windy.ToString().Should().Be("Windy");
-        Weather.Hurricane.ToString().Should().Be("Hurricane");
-        Weather.Tornado.ToString().Should().Be("Tornado");
-        Weather.FireStorm.ToString().Should().Be("FireStorm");
+        nameof(
+        // Act & Assert
+        Weather.Clear).Should().Be("Clear");
+        nameof(Weather.PartlyCloudy).Should().Be("PartlyCloudy");
+        nameof(Weather.Overcast).Should().Be("Overcast");
+        nameof(Weather.Fog).Should().Be("Fog");
+        nameof(Weather.LightRain).Should().Be("LightRain");
+        nameof(Weather.Rain).Should().Be("Rain");
+        nameof(Weather.HeavyRain).Should().Be("HeavyRain");
+        nameof(Weather.Rainstorm).Should().Be("Rainstorm");
+        nameof(Weather.Thunderstorm).Should().Be("Thunderstorm");
+        nameof(Weather.LightSnow).Should().Be("LightSnow");
+        nameof(Weather.Snow).Should().Be("Snow");
+        nameof(Weather.HeavySnow).Should().Be("HeavySnow");
+        nameof(Weather.Snowstorm).Should().Be("Snowstorm");
+        nameof(Weather.Hail).Should().Be("Hail");
+        nameof(Weather.IceStorm).Should().Be("IceStorm");
+        nameof(Weather.Breezy).Should().Be("Breezy");
+        nameof(Weather.Windy).Should().Be("Windy");
+        nameof(Weather.Hurricane).Should().Be("Hurricane");
+        nameof(Weather.Tornado).Should().Be("Tornado");
+        nameof(Weather.FireStorm).Should().Be("FireStorm");
     }
 
     [Fact]

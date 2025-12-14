@@ -86,7 +86,7 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
         var result = await _sut.GetAdventureByIdAsync(adventure.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(adventure.Id);
+        result.Id.Should().Be(adventure.Id);
         result.Name.Should().Be("Test Adventure");
     }
 

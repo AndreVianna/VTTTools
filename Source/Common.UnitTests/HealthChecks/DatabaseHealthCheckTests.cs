@@ -148,7 +148,7 @@ public class DatabaseHealthCheckTests {
         result.Data.Should().ContainKey("connectionTime");
         var connectionTime = result.Data["connectionTime"].ToString();
         connectionTime.Should().EndWith("ms");
-        var milliseconds = double.Parse(connectionTime!.Replace("ms", ""));
+        var milliseconds = double.Parse(connectionTime.Replace("ms", ""));
         milliseconds.Should().BeGreaterThanOrEqualTo(50);
     }
 

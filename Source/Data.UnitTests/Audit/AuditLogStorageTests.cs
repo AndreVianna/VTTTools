@@ -161,7 +161,7 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_WithNoFilters_ReturnsAllLogs() {
-        var (items, totalCount) = await _storage.QueryAsync(ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(ct: _ct);
 
         totalCount.Should().Be(5);
         items.Should().HaveCount(5);
@@ -171,7 +171,7 @@ public class AuditLogStorageTests
     public async Task QueryAsync_WithStartDate_ReturnsLogsAfterDate() {
         var startDate = DateTime.UtcNow.AddDays(-25);
 
-        var (items, totalCount) = await _storage.QueryAsync(startDate: startDate, ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(startDate: startDate, ct: _ct);
 
         totalCount.Should().BeGreaterThanOrEqualTo(4);
         items.Should().OnlyContain(log => log.Timestamp >= startDate);
@@ -181,14 +181,14 @@ public class AuditLogStorageTests
     public async Task QueryAsync_WithEndDate_ReturnsLogsBeforeDate() {
         var endDate = DateTime.UtcNow.AddDays(-27);
 
-        var (items, totalCount) = await _storage.QueryAsync(endDate: endDate, ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(endDate: endDate, ct: _ct);
 
         items.Should().OnlyContain(log => log.Timestamp <= endDate);
     }
 
     [Fact]
     public async Task QueryAsync_WithUserId_ReturnsLogsForUser() {
-        var (items, totalCount) = await _storage.QueryAsync(userId: _userId1, ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(userId: _userId1, ct: _ct);
 
         totalCount.Should().Be(3);
         items.Should().OnlyContain(log => log.UserId == _userId1);
@@ -196,7 +196,7 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_WithAction_ReturnsLogsWithAction() {
-        var (items, totalCount) = await _storage.QueryAsync(action: "Login", ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(action: "Login", ct: _ct);
 
         totalCount.Should().Be(2);
         items.Should().OnlyContain(log => log.Action == "Login");
@@ -204,7 +204,7 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_WithEntityType_ReturnsLogsForEntityType() {
-        var (items, totalCount) = await _storage.QueryAsync(entityType: "User", ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(entityType: "User", ct: _ct);
 
         totalCount.Should().Be(2);
         items.Should().OnlyContain(log => log.EntityType == "User");
@@ -212,7 +212,7 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_WithResult_ReturnsLogsWithResult() {
-        var (items, totalCount) = await _storage.QueryAsync(result: "Failed", ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(result: "Failed", ct: _ct);
 
         totalCount.Should().Be(1);
         items.Should().OnlyContain(log => log.Result == "Failed");
@@ -220,7 +220,7 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_WithPagination_ReturnsPagedResults() {
-        var (items, totalCount) = await _storage.QueryAsync(skip: 1, take: 2, ct: _ct);
+        (var items, var totalCount) = await _storage.QueryAsync(skip: 1, take: 2, ct: _ct);
 
         totalCount.Should().Be(5);
         items.Should().HaveCount(2);
@@ -228,7 +228,7 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_OrdersByTimestampDescending() {
-        var (items, _) = await _storage.QueryAsync(ct: _ct);
+        (var items, _) = await _storage.QueryAsync(ct: _ct);
 
         var timestamps = items.Select(log => log.Timestamp).ToArray();
         timestamps.Should().BeInDescendingOrder();

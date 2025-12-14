@@ -2,11 +2,11 @@ namespace VttTools.AI.Providers.OpenAi;
 
 public sealed class OpenAiImageProvider(
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration,
+    IOptionsSnapshot<AiOptions> options,
     ILogger<OpenAiImageProvider> logger) : IImageProvider {
-    private readonly OpenAiHttpHelper _helper = new(httpClientFactory, configuration);
+    private readonly OpenAiHttpHelper _helper = new(httpClientFactory, options);
 
-    public string Name => "OpenAi";
+    public string Name => "OpenAI";
 
     public async Task<Result<byte[]>> GenerateAsync(
         ImageGenerationData data,
@@ -14,13 +14,13 @@ public sealed class OpenAiImageProvider(
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = data.Model ?? configuration["AI:Providers:OpenAI:Models:Image"]
-                ?? throw new InvalidOperationException("OpenAI image model not configured.");
+            var model = data.Model
+                ?? throw new InvalidOperationException("Model must be specified for image generation.");
 
             logger.LogDebug("Starting OpenAI image generation with model {Model}", model);
 
             var apiRequest = CreateImageRequest(model, data);
-            var endpoint = _helper.GetEndpoint(model);
+            var endpoint = OpenAiHttpHelper.GetEndpoint(model);
 
             using var client = _helper.CreateAuthenticatedClient();
             var response = await OpenAiHttpHelper.PostAndDeserializeAsync<OpenAiImageResponse>(client, endpoint, apiRequest, ct);

@@ -127,7 +127,7 @@ public class PromptTemplateStorageTests
     public async Task SearchAsync_WithNoFilters_ReturnsAllTemplates() {
         var filters = new PromptTemplateSearchFilters { Scope = VersionScope.AllVersions };
 
-        var (items, totalCount) = await _storage.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
 
         totalCount.Should().Be(4);
         items.Should().HaveCount(4);
@@ -140,7 +140,7 @@ public class PromptTemplateStorageTests
             Scope = VersionScope.AllVersions,
         };
 
-        var (items, totalCount) = await _storage.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
 
         totalCount.Should().Be(3);
         items.Should().OnlyContain(t => t.Name.Contains("Character"));
@@ -153,7 +153,7 @@ public class PromptTemplateStorageTests
             Scope = VersionScope.AllVersions,
         };
 
-        var (items, totalCount) = await _storage.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
 
         totalCount.Should().Be(1);
         items.Should().OnlyContain(t => t.Category == GeneratedContentType.ImageBackground);
@@ -165,7 +165,7 @@ public class PromptTemplateStorageTests
             Scope = VersionScope.LatestOnly,
         };
 
-        var (items, totalCount) = await _storage.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
 
         totalCount.Should().Be(2);
         items.Should().NotContain(t => t.Version.EndsWith("-draft"));
@@ -179,7 +179,7 @@ public class PromptTemplateStorageTests
             Scope = VersionScope.LatestIncludingDrafts,
         };
 
-        var (items, totalCount) = await _storage.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
 
         totalCount.Should().Be(2);
         items.Should().Contain(t => t.Name == "Character Portrait" && t.Version == "2.0-draft");
@@ -193,7 +193,7 @@ public class PromptTemplateStorageTests
             Pagination = new Pagination { Index = 1, Size = 2 },
         };
 
-        var (items, totalCount) = await _storage.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
 
         totalCount.Should().Be(4);
         items.Should().HaveCount(2);
@@ -205,7 +205,7 @@ public class PromptTemplateStorageTests
             Scope = VersionScope.AllVersions,
         };
 
-        var (items, _) = await _storage.SearchAsync(filters, _ct);
+        (var items, _) = await _storage.SearchAsync(filters, _ct);
 
         var names = items.Select(t => t.Name).ToArray();
         names.Should().BeInAscendingOrder();

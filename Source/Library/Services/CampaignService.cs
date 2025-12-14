@@ -64,7 +64,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         var allCampaigns = await GetCampaignsAsync($"AvailableTo:{userId}", ct);
         var existingNames = allCampaigns.Select(c => c.Name);
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name && original.OwnerId == userId) {
             var renamedOriginal = original with { Name = newOriginalName };
@@ -156,7 +156,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
 
         var existingNames = campaign.Adventures.Select(a => a.Name);
 
-        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+        (var newOriginalName, var cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name && original.OwnerId == userId) {
             var renamedOriginal = original with { Name = newOriginalName };

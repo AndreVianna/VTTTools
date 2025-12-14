@@ -19,10 +19,10 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         _config["Images:TopDown:AspectRatio"].Returns("1:1");
         _config["Images:TopDown:Background"].Returns("transparent");
 
-        var client = new HttpClient(_mockHandler) {
+        var client = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new Uri("https://api.openai.com")
         };
-        _httpClientFactory.CreateClient().Returns(client);
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
         _generator = new OpenAiImageGenerator(_httpClientFactory, _config);
     }
@@ -78,7 +78,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_WithEmptyResponse_ReturnsErrorResponse() {
-        var responseJson = """
+        const string responseJson = """
         {
             "id": "img-123",
             "data": [],
@@ -95,7 +95,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_WithNullData_ReturnsErrorResponse() {
-        var responseJson = """
+        const string responseJson = """
         {
             "id": "img-123",
             "usage": { "input_tokens": 100, "output_tokens": 200 }

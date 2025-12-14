@@ -56,39 +56,34 @@ public interface IJobStorage {
         CancellationToken ct = default);
 
     /// <summary>
-    /// Updates the status of a job.
+    /// Retrieves items for a job, optionally filtered by status, ordered by index.
     /// </summary>
     /// <param name="jobId">The ID of the job.</param>
-    /// <param name="status">The new status.</param>
-    /// <param name="startedAt">Optional started timestamp.</param>
-    /// <param name="completedAt">Optional completed timestamp.</param>
-    /// <param name="actualDurationMs">Optional actual duration in milliseconds.</param>
+    /// <param name="status">Optional status filter.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task UpdateJobStatusAsync(
+    /// <returns>List of job items ordered by index.</returns>
+    Task<IReadOnlyList<JobItemResponse>> GetJobItemsAsync(
         Guid jobId,
-        JobStatus status,
-        DateTime? startedAt = null,
-        DateTime? completedAt = null,
-        long? actualDurationMs = null,
+        JobItemStatus? status = null,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Updates the completed and failed item counts for a job.
+    /// Retrieves a specific job item by its index within the job.
     /// </summary>
     /// <param name="jobId">The ID of the job.</param>
-    /// <param name="completedItems">Number of completed items.</param>
-    /// <param name="failedItems">Number of failed items.</param>
+    /// <param name="itemIndex">The index of the item within the job.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task UpdateJobCountsAsync(
+    /// <returns>The job item if found; otherwise, null.</returns>
+    Task<JobItemResponse?> GetJobItemByIndexAsync(
         Guid jobId,
-        int completedItems,
-        int failedItems,
+        int itemIndex,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Updates the status of a job item.
+    /// Updates the status of a job item by job ID and item index.
     /// </summary>
-    /// <param name="itemId">The ID of the item.</param>
+    /// <param name="jobId">The ID of the job.</param>
+    /// <param name="itemIndex">The index of the item within the job.</param>
     /// <param name="status">The new status.</param>
     /// <param name="outputJson">Optional JSON-serialized output data.</param>
     /// <param name="errorMessage">Optional error message if the item failed.</param>
@@ -96,12 +91,31 @@ public interface IJobStorage {
     /// <param name="completedAt">Optional completed timestamp.</param>
     /// <param name="ct">Cancellation token.</param>
     Task UpdateItemStatusAsync(
-        Guid itemId,
+        Guid jobId,
+        int itemIndex,
         JobItemStatus status,
         string? outputJson = null,
         string? errorMessage = null,
         DateTime? startedAt = null,
         DateTime? completedAt = null,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Cancels all pending and in-progress items for a job.
+    /// </summary>
+    /// <param name="jobId">The ID of the job.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task CancelJobItemsAsync(
+        Guid jobId,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Retries all failed and canceled items for a job by resetting them to pending.
+    /// </summary>
+    /// <param name="jobId">The ID of the job.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task RetryJobItemsAsync(
+        Guid jobId,
         CancellationToken ct = default);
 
     /// <summary>

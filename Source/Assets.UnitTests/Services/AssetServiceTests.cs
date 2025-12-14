@@ -369,16 +369,16 @@ public class AssetServiceTests {
                 Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
             }
         };
-        var availability = Availability.Public;
-        var kind = AssetKind.Creature;
-        var category = "Humanoid";
-        var type = "Goblinoid";
-        var subtype = "Goblin";
-        var search = "test";
+        const Availability availability = Availability.Public;
+        const AssetKind kind = AssetKind.Creature;
+        const string category = "Humanoid";
+        const string type = "Goblinoid";
+        const string subtype = "Goblin";
+        const string search = "test";
         var tags = new[] { "tag1", "tag2" };
         var advancedSearch = new List<AdvancedSearchFilter> { new("field", FilterOperator.Equals, "value") };
-        var sortBy = AssetSortBy.Name;
-        var sortDirection = SortDirection.Ascending;
+        const AssetSortBy sortBy = AssetSortBy.Name;
+        const SortDirection sortDirection = SortDirection.Ascending;
         var pagination = new Pagination(0, 10);
 
         _assetStorage.SearchAsync(_userId, availability, kind, category, type, subtype, search, tags, advancedSearch, sortBy, sortDirection, pagination, Arg.Any<CancellationToken>())

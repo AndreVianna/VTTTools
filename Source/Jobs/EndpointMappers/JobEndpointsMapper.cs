@@ -10,9 +10,10 @@ internal static class JobEndpointsMapper {
         jobs.MapPost("/", JobHandlers.CreateJobHandler);
         jobs.MapGet("/", JobHandlers.GetJobsHandler);
         jobs.MapGet("/{id:guid}", JobHandlers.GetJobByIdHandler);
-        jobs.MapPatch("/{id:guid}/status", JobHandlers.UpdateJobStatusHandler);
-        jobs.MapPatch("/{id:guid}/counts", JobHandlers.UpdateJobCountsHandler);
-        jobs.MapPatch("/items/{id:guid}/status", JobHandlers.UpdateItemStatusHandler);
+        jobs.MapDelete("/{id:guid}", JobHandlers.CancelJobHandler);
+        jobs.MapPost("/{id:guid}/retry", JobHandlers.RetryJobHandler);
+        jobs.MapGet("/{id:guid}/items", JobHandlers.GetJobItemsHandler);
+        jobs.MapPatch("/{id:guid}/items/{index:int}", JobHandlers.UpdateItemStatusHandler);
         jobs.MapPost("/progress", JobHandlers.BroadcastProgressHandler);
     }
 }

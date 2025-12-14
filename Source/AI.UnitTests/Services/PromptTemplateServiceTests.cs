@@ -63,7 +63,7 @@ public class PromptTemplateServiceTests {
         var filters = new PromptTemplateSearchFilters();
         _storage.SearchAsync(filters, _ct).Returns((templates, 2));
 
-        var (items, totalCount) = await _service.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _service.SearchAsync(filters, _ct);
 
         items.Should().HaveCount(2);
         totalCount.Should().Be(2);
@@ -79,7 +79,7 @@ public class PromptTemplateServiceTests {
         var filters = new PromptTemplateSearchFilters { Category = GeneratedContentType.ImagePortrait };
         _storage.SearchAsync(filters, _ct).Returns((templates, 2));
 
-        var (items, totalCount) = await _service.SearchAsync(filters, _ct);
+        (var items, var totalCount) = await _service.SearchAsync(filters, _ct);
 
         items.Should().HaveCount(2);
         totalCount.Should().Be(2);

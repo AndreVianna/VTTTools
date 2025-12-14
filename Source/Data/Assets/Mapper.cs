@@ -48,7 +48,7 @@ internal static class Mapper {
                         v.Type == AssetStatBlockValueType.Number ? decimal.Parse(v.Value!) : null,
                         v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
                Portrait = entity.Portrait?.ToModel(),
-               Tokens = [.. entity.AssetTokens.Select(v => v.Token.ToModel()!)],
+               Tokens = [.. entity.AssetTokens.Select(v => v.Token.ToModel())],
            };
 
     public static AssetEntity ToEntity(this Asset model)

@@ -98,7 +98,7 @@ public class SimpleMediaProcessorServiceTests {
         var thumbnail = await _service.GenerateThumbnailAsync("image/png", input, 256, _ct);
 
         thumbnail.Should().NotBeNull();
-        thumbnail!.Length.Should().BeGreaterThan(0);
+        thumbnail.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]

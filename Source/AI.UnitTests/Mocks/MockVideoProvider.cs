@@ -1,4 +1,4 @@
-namespace VttTools.AI.UnitTests.Mocks;
+namespace VttTools.AI.Mocks;
 
 public class MockVideoProvider : IVideoProvider {
     public string Name { get; set; } = "RunwayML";

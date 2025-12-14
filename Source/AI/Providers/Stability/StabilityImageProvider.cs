@@ -2,10 +2,11 @@ namespace VttTools.AI.Providers.Stability;
 
 public sealed class StabilityImageProvider(
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration,
+    IOptionsSnapshot<AiOptions> options,
     ILogger<StabilityImageProvider> logger) : IImageProvider {
+    private const string _providerName = "Stability";
 
-    public string Name => "Stability";
+    public string Name => _providerName;
 
     public async Task<Result<byte[]>> GenerateAsync(
         ImageGenerationData data,
@@ -13,8 +14,8 @@ public sealed class StabilityImageProvider(
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = data.Model ?? configuration["AI:Providers:Stability:Models:Image"]
-                ?? throw new InvalidOperationException("Stability image model not configured.");
+            var model = data.Model
+                ?? throw new InvalidOperationException("Model must be specified for image generation.");
 
             logger.LogDebug("Starting Stability AI image generation with model {Model}", model);
 
@@ -87,18 +88,22 @@ public sealed class StabilityImageProvider(
     }
 
     private HttpClient CreateClient() {
+        var providerConfig = GetProviderConfig();
         var client = httpClientFactory.CreateClient();
-        var baseUrl = configuration["AI:Providers:Stability:BaseUrl"]
-            ?? throw new InvalidOperationException("Stability AI API base url not configured.");
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new Uri(providerConfig.BaseUrl);
 
-        var apiKey = configuration["AI:Providers:Stability:ApiKey"]
+        var apiKey = providerConfig.ApiKey
             ?? throw new InvalidOperationException("Stability AI API key is not configured.");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         client.DefaultRequestHeaders.Add("Accept", "application/json");
 
         return client;
     }
+
+    private ProviderConfig GetProviderConfig()
+        => options.Value.Providers.TryGetValue(_providerName, out var config)
+            ? config
+            : throw new InvalidOperationException($"{_providerName} provider is not configured.");
 
     private static string GetEndpoint(string model)
         => model switch {

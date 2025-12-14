@@ -321,7 +321,7 @@ public partial class EncounterService(IEncounterStorage encounterStorage, IAsset
 
         var currentMaxIndex = encounter.Assets.Count != 0 ? encounter.Assets.Max(sa => sa.Index) : 0;
 
-        foreach (var (assetId, data) in assetsToAdd) {
+        foreach ((var assetId, var data) in assetsToAdd) {
             var result = data.Validate();
             if (result.HasErrors)
                 return result;

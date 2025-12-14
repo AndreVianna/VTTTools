@@ -1,11 +1,12 @@
 
-namespace VttTools.AI.UnitTests.Clients;
+using VttTools.AI.Mocks;
+
+namespace VttTools.AI.Clients;
 
 public sealed class JobsServiceClientTests
     : IDisposable {
     private readonly MockHttpMessageHandler _mockHandler;
     private readonly HttpClient _httpClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<JobsServiceClient> _logger;
     private readonly JobsServiceClient _client;
     private readonly CancellationToken _ct;
@@ -15,9 +16,9 @@ public sealed class JobsServiceClientTests
         _httpClient = new HttpClient(_mockHandler) {
             BaseAddress = new Uri("http://localhost:5000"),
         };
-        _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+        var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
         _logger = Substitute.For<ILogger<JobsServiceClient>>();
-        _client = new JobsServiceClient(_httpClient, _httpContextAccessor, _logger);
+        _client = new JobsServiceClient(_httpClient, httpContextAccessor, _logger);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -83,7 +84,7 @@ public sealed class JobsServiceClientTests
         var result = await _client.GetJobByIdAsync(jobId, _ct);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(jobId);
+        result.Id.Should().Be(jobId);
         result.Status.Should().Be(JobStatus.InProgress);
         result.CompletedItems.Should().Be(5);
     }
@@ -100,66 +101,51 @@ public sealed class JobsServiceClientTests
     }
 
     [Fact]
-    public async Task UpdateJobStatusAsync_WithValidRequest_ReturnsTrue() {
+    public async Task CancelJobAsync_WithValidJobId_ReturnsTrue() {
         var jobId = Guid.CreateVersion7();
-        var request = new UpdateJobStatusRequest {
-            Status = JobStatus.InProgress,
-            StartedAt = DateTime.UtcNow,
-        };
 
-        _mockHandler.SetupResponse(HttpStatusCode.OK);
+        _mockHandler.SetupResponse(HttpStatusCode.NoContent);
 
-        var result = await _client.UpdateJobStatusAsync(jobId, request, _ct);
+        var result = await _client.CancelJobAsync(jobId, _ct);
 
         result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task UpdateJobStatusAsync_WhenRequestFails_ReturnsFalse() {
+    public async Task CancelJobAsync_WhenJobNotFound_ReturnsFalse() {
         var jobId = Guid.CreateVersion7();
-        var request = new UpdateJobStatusRequest {
-            Status = JobStatus.InProgress,
-        };
 
-        _mockHandler.SetupResponse(HttpStatusCode.BadRequest);
+        _mockHandler.SetupResponse(HttpStatusCode.NotFound);
 
-        var result = await _client.UpdateJobStatusAsync(jobId, request, _ct);
+        var result = await _client.CancelJobAsync(jobId, _ct);
 
         result.Should().BeFalse();
     }
 
     [Fact]
-    public async Task UpdateJobCountsAsync_WithValidRequest_ReturnsTrue() {
+    public async Task RetryJobAsync_WithValidJobId_ReturnsTrue() {
         var jobId = Guid.CreateVersion7();
-        var request = new UpdateJobCountsRequest {
-            CompletedItems = 8,
-            FailedItems = 2,
-        };
 
-        _mockHandler.SetupResponse(HttpStatusCode.OK);
+        _mockHandler.SetupResponse(HttpStatusCode.NoContent);
 
-        var result = await _client.UpdateJobCountsAsync(jobId, request, _ct);
+        var result = await _client.RetryJobAsync(jobId, _ct);
 
         result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task UpdateItemStatusAsync_WithValidRequest_ReturnsTrue() {
-        var itemId = Guid.CreateVersion7();
-        var request = new UpdateJobItemStatusRequest {
-            Status = JobItemStatus.Completed,
-            CompletedAt = DateTime.UtcNow,
-        };
+    public async Task RetryJobAsync_WhenJobNotFound_ReturnsFalse() {
+        var jobId = Guid.CreateVersion7();
 
-        _mockHandler.SetupResponse(HttpStatusCode.OK);
+        _mockHandler.SetupResponse(HttpStatusCode.NotFound);
 
-        var result = await _client.UpdateItemStatusAsync(itemId, request, _ct);
+        var result = await _client.RetryJobAsync(jobId, _ct);
 
-        result.Should().BeTrue();
+        result.Should().BeFalse();
     }
 
     [Fact]
-    public async Task GetPendingItemsAsync_WithValidJobId_ReturnsItems() {
+    public async Task GetJobItemsAsync_WithValidJobId_ReturnsItems() {
         var jobId = Guid.CreateVersion7();
         var items = new List<JobItemResponse> {
             new() {
@@ -178,25 +164,14 @@ public sealed class JobsServiceClientTests
 
         _mockHandler.SetupResponse(HttpStatusCode.OK, items);
 
-        var result = await _client.GetPendingItemsAsync(jobId, _ct);
+        var result = await _client.GetJobItemsAsync(jobId, ct: _ct);
 
         result.Should().HaveCount(2);
         result[0].Status.Should().Be(JobItemStatus.Pending);
     }
 
     [Fact]
-    public async Task GetPendingItemsAsync_WhenRequestFails_ReturnsEmptyList() {
-        var jobId = Guid.CreateVersion7();
-
-        _mockHandler.SetupResponse(HttpStatusCode.InternalServerError);
-
-        var result = await _client.GetPendingItemsAsync(jobId, _ct);
-
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetFailedItemsAsync_WithoutItemIds_ReturnsAllFailedItems() {
+    public async Task GetJobItemsAsync_WithStatusFilter_ReturnsFilteredItems() {
         var jobId = Guid.CreateVersion7();
         var items = new List<JobItemResponse> {
             new() {
@@ -210,30 +185,52 @@ public sealed class JobsServiceClientTests
 
         _mockHandler.SetupResponse(HttpStatusCode.OK, items);
 
-        var result = await _client.GetFailedItemsAsync(jobId, null, _ct);
+        var result = await _client.GetJobItemsAsync(jobId, JobItemStatus.Failed, _ct);
 
         result.Should().HaveCount(1);
         result[0].Status.Should().Be(JobItemStatus.Failed);
     }
 
     [Fact]
-    public async Task GetFailedItemsAsync_WithItemIds_ReturnsFilteredItems() {
+    public async Task GetJobItemsAsync_WhenRequestFails_ReturnsEmptyList() {
         var jobId = Guid.CreateVersion7();
-        var itemIds = new[] { Guid.CreateVersion7(), Guid.CreateVersion7() };
-        var items = new List<JobItemResponse> {
-            new() {
-                ItemId = itemIds[0],
-                JobId = jobId,
-                Index = 0,
-                Status = JobItemStatus.Failed,
-            },
+
+        _mockHandler.SetupResponse(HttpStatusCode.InternalServerError);
+
+        var result = await _client.GetJobItemsAsync(jobId, ct: _ct);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateItemStatusAsync_WithValidRequest_ReturnsTrue() {
+        var jobId = Guid.CreateVersion7();
+        const int itemIndex = 0;
+        var request = new UpdateJobItemStatusRequest {
+            Status = JobItemStatus.Success,
+            CompletedAt = DateTime.UtcNow,
         };
 
-        _mockHandler.SetupResponse(HttpStatusCode.OK, items);
+        _mockHandler.SetupResponse(HttpStatusCode.NoContent);
 
-        var result = await _client.GetFailedItemsAsync(jobId, itemIds, _ct);
+        var result = await _client.UpdateItemStatusAsync(jobId, itemIndex, request, _ct);
 
-        result.Should().HaveCount(1);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UpdateItemStatusAsync_WhenRequestFails_ReturnsFalse() {
+        var jobId = Guid.CreateVersion7();
+        const int itemIndex = 0;
+        var request = new UpdateJobItemStatusRequest {
+            Status = JobItemStatus.Success,
+        };
+
+        _mockHandler.SetupResponse(HttpStatusCode.BadRequest);
+
+        var result = await _client.UpdateItemStatusAsync(jobId, itemIndex, request, _ct);
+
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -242,7 +239,7 @@ public sealed class JobsServiceClientTests
             JobId = Guid.CreateVersion7(),
             Type = "BulkAssetGeneration",
             ItemIndex = 5,
-            ItemStatus = JobItemStatus.Processing,
+            ItemStatus = JobItemStatus.InProgress,
             Message = "Processing item 5",
             CurrentItem = 5,
             TotalItems = 10,
@@ -261,7 +258,7 @@ public sealed class JobsServiceClientTests
             JobId = Guid.CreateVersion7(),
             Type = "BulkAssetGeneration",
             ItemIndex = 5,
-            ItemStatus = JobItemStatus.Processing,
+            ItemStatus = JobItemStatus.InProgress,
             Message = "Processing",
             CurrentItem = 5,
             TotalItems = 10,

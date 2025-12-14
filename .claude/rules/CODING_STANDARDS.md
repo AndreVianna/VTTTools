@@ -2,6 +2,17 @@
 
 Coverage: ≥95% | Zero warnings | .editorconfig enforced
 
+## Git Safety (CRITICAL)
+- **NEVER run `git checkout`, `git reset`, or `git restore` on files without first running `git diff <files>` to see ALL uncommitted changes**
+- **Assume other work exists** - never assume you're the only one who modified a file
+- **Surgical reverts only** - use Edit tool to revert specific changes, not blow away entire files
+- **When in doubt, ASK** before any destructive git command
+
+## Test Failures (CRITICAL)
+- **NEVER modify production code to make tests pass** - fix the tests or test setup, not the source
+- If tests fail due to test infrastructure limitations (e.g., In-Memory DB vs SQL Server), fix the test approach
+- Tests should validate production code, not the other way around
+
 ## Principles
 - **Consistency**: Existing patterns | Modern features (primary ctors, collection exprs, pattern matching)
 - **Performance**: Async I/O | CancellationToken | DB-level filtering

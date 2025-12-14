@@ -151,7 +151,7 @@ const jobsSlice = createSlice({
             })
             .addCase(fetchJobHistory.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.jobs = action.payload.jobs;
+                state.jobs = action.payload.jobs ?? [];
                 state.totalCount = action.payload.totalCount;
             })
             .addCase(fetchJobHistory.rejected, (state, action) => {
@@ -179,7 +179,7 @@ const jobsSlice = createSlice({
             .addCase(startBulkGeneration.fulfilled, (state, action) => {
                 state.isSubmitting = false;
                 state.currentJob = action.payload;
-                state.jobs = [action.payload, ...state.jobs];
+                state.jobs = [action.payload, ...(state.jobs ?? [])];
                 state.totalCount += 1;
             })
             .addCase(startBulkGeneration.rejected, (state, action) => {
@@ -195,13 +195,13 @@ const jobsSlice = createSlice({
                 state.isSubmitting = false;
                 const jobId = action.payload;
                 if (state.currentJob?.jobId === jobId) {
-                    state.currentJob.status = 'Cancelled' as JobResponse['status'];
+                    state.currentJob.status = 'Canceled' as JobResponse['status'];
                 }
                 const jobIndex = state.jobs.findIndex(j => j.jobId === jobId);
                 if (jobIndex !== -1) {
                     const job = state.jobs[jobIndex];
                     if (job) {
-                        job.status = 'Cancelled' as JobResponse['status'];
+                        job.status = 'Canceled' as JobResponse['status'];
                     }
                 }
             })

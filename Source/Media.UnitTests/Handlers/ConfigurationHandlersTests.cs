@@ -9,7 +9,7 @@ public class ConfigurationHandlersTests {
         var method = typeof(ConfigurationHandlers).GetMethod("GetInternalConfigurationHandler");
 
         method.Should().NotBeNull();
-        method!.IsStatic.Should().BeTrue();
+        method.IsStatic.Should().BeTrue();
         method.ReturnType.Should().Be<Microsoft.AspNetCore.Http.IResult>();
     }
 }

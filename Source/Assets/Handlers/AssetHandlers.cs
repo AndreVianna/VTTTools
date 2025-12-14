@@ -46,7 +46,7 @@ internal static class AssetHandlers {
             ? new Pagination(pageIndex.Value, pageSize.Value)
             : null;
 
-        var (assets, totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, tags, advancedFilter, sortByFilter, sortDirectionFilter, pagination, cts.Token);
+        (var assets, var totalCount) = await assetService.SearchAssetsAsync(userId, availabilityFilter, kindFilter, category, type, subtype, search, tags, advancedFilter, sortByFilter, sortDirectionFilter, pagination, cts.Token);
 
         return Results.Ok(new {
             data = assets,

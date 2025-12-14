@@ -1,5 +1,5 @@
-using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 using AdventureModel = VttTools.Library.Adventures.Model.Adventure;
+using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 
 namespace VttTools.Admin.UnitTests.Services;
 
@@ -78,7 +78,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
         var result = await _sut.GetCampaignByIdAsync(campaign.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(campaign.Id);
+        result.Id.Should().Be(campaign.Id);
     }
 
     [Fact]

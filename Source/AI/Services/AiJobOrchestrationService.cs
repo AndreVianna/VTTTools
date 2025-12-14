@@ -2,7 +2,8 @@ namespace VttTools.AI.Services;
 
 public sealed class AiJobOrchestrationService(
     JobsServiceClient jobsClient,
-    Channel<Guid> jobChannel,
+    Channel<JobQueueItem> jobChannel,
+    IHttpContextAccessor httpContextAccessor,
     IOptions<JobProcessingOptions> options,
     ILogger<AiJobOrchestrationService> logger)
     : IAiJobOrchestrationService {
@@ -46,7 +47,8 @@ public sealed class AiJobOrchestrationService(
                 return Result.Failure<JobResponse>(null!, "Failed to create job");
             }
 
-            await jobChannel.Writer.WriteAsync(jobId.Value, ct);
+            var authToken = httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+            await jobChannel.Writer.WriteAsync(new JobQueueItem(jobId.Value, authToken), ct);
 
             logger.LogInformation(
                 "AI job {Id} created with {ItemCount} items",
@@ -83,20 +85,7 @@ public sealed class AiJobOrchestrationService(
     public async Task<Result> CancelJobAsync(
         Guid jobId,
         CancellationToken ct = default) {
-        var job = await jobsClient.GetJobByIdAsync(jobId, ct);
-        if (job is null)
-            return Result.Failure("Job not found");
-
-        if (job.Status is JobStatus.Completed or JobStatus.Failed or JobStatus.Cancelled) {
-            return Result.Failure("Job cannot be cancelled in its current state");
-        }
-
-        var updateRequest = new UpdateJobStatusRequest {
-            Status = JobStatus.Cancelled,
-            CompletedAt = DateTime.UtcNow
-        };
-
-        var success = await jobsClient.UpdateJobStatusAsync(jobId, updateRequest, ct);
+        var success = await jobsClient.CancelJobAsync(jobId, ct);
         if (!success) {
             logger.LogError("Failed to cancel job {Id} via Jobs service", jobId);
             return Result.Failure("Failed to cancel job");
@@ -110,42 +99,21 @@ public sealed class AiJobOrchestrationService(
         Guid jobId,
         Guid[]? itemIds = null,
         CancellationToken ct = default) {
-        var job = await jobsClient.GetJobByIdAsync(jobId, ct);
-        if (job is null)
-            return Result.Failure<JobResponse>(null!, "Job not found");
+        _ = itemIds;
 
-        var failedItems = await jobsClient.GetFailedItemsAsync(jobId, itemIds, ct);
-        if (failedItems.Count == 0)
-            return Result.Failure<JobResponse>(null!, "No failed items to retry");
-
-        foreach (var item in failedItems) {
-            var updateItemRequest = new UpdateJobItemStatusRequest {
-                Status = JobItemStatus.Pending
-            };
-            await jobsClient.UpdateItemStatusAsync(item.ItemId, updateItemRequest, ct);
+        var success = await jobsClient.RetryJobAsync(jobId, ct);
+        if (!success) {
+            logger.LogError("Failed to retry job {Id} via Jobs service", jobId);
+            return Result.Failure<JobResponse>(null!, "Failed to retry job");
         }
 
-        var updateStatusRequest = new UpdateJobStatusRequest {
-            Status = JobStatus.Pending
-        };
-        await jobsClient.UpdateJobStatusAsync(jobId, updateStatusRequest, ct);
+        var authToken = httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+        await jobChannel.Writer.WriteAsync(new JobQueueItem(jobId, authToken), ct);
 
-        var updateCountsRequest = new UpdateJobCountsRequest {
-            CompletedItems = job.CompletedItems,
-            FailedItems = job.FailedItems - failedItems.Count
-        };
-        await jobsClient.UpdateJobCountsAsync(jobId, updateCountsRequest, ct);
-
-        await jobChannel.Writer.WriteAsync(jobId, ct);
-
-        logger.LogInformation(
-            "Retrying {Count} failed items for job {Id}",
-            failedItems.Count, jobId);
+        logger.LogInformation("Retrying failed items for job {Id}", jobId);
 
         var updatedJob = await jobsClient.GetJobByIdAsync(jobId, ct);
-        return updatedJob is null
-            ? Result.Failure<JobResponse>(null!, "Failed to retrieve updated job")
-            : updatedJob;
+        return updatedJob ?? Result.Failure<JobResponse>(null!, "Failed to retrieve updated job");
     }
 
     private static string SerializeJobInput(BulkAssetGenerationData data)

@@ -411,11 +411,11 @@ public sealed class UserAdminService(
         try {
             var skip = (page - 1) * pageSize;
 
-            var (logs, totalCount) = await auditLogService.QueryAsync(
-                userId: userId,
-                skip: skip,
-                take: pageSize,
-                ct: ct);
+            (var logs, var totalCount) = await auditLogService.QueryAsync(
+                                                                          userId: userId,
+                                                                          skip: skip,
+                                                                          take: pageSize,
+                                                                          ct: ct);
 
             var auditLogSummaries = logs.Select(log => new AuditLogSummary {
                 Id = log.Id,

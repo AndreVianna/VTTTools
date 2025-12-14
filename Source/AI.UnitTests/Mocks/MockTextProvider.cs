@@ -1,4 +1,4 @@
-namespace VttTools.AI.UnitTests.Mocks;
+namespace VttTools.AI.Mocks;
 
 public class MockTextProvider : ITextProvider {
     public string Name { get; set; } = "OpenAi";

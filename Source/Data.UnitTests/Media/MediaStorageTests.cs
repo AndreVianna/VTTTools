@@ -35,7 +35,7 @@ public class MediaStorageTests
         var result = await _storage.FindByIdAsync(entity.Id, _ct);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(entity.Id);
+        result.Id.Should().Be(entity.Id);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class MediaStorageTests
 
         var dbResource = await _context.Resources.FindAsync([resource.Id], _ct);
         dbResource.Should().NotBeNull();
-        dbResource!.Id.Should().Be(resource.Id);
+        dbResource.Id.Should().Be(resource.Id);
         dbResource.ResourceType.Should().Be(resource.ResourceType);
         dbResource.FileName.Should().Be(resource.FileName);
     }
@@ -99,7 +99,7 @@ public class MediaStorageTests
         result.Should().BeTrue();
         var dbResource = await _context.Resources.FindAsync([resource.Id], _ct);
         dbResource.Should().NotBeNull();
-        dbResource!.FileName.Should().Be("updated-filename.png");
+        dbResource.FileName.Should().Be("updated-filename.png");
     }
 
     [Fact]

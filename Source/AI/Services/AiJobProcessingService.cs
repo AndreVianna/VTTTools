@@ -1,9 +1,8 @@
 namespace VttTools.AI.Services;
 
 public sealed class AiJobProcessingService(
-    Channel<Guid> jobChannel,
+    Channel<JobQueueItem> jobChannel,
     IServiceScopeFactory scopeFactory,
-    BulkAssetGenerationHandler handler,
     IOptions<JobProcessingOptions> options,
     ILogger<AiJobProcessingService> logger)
     : BackgroundService {
@@ -13,51 +12,44 @@ public sealed class AiJobProcessingService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         logger.LogInformation("AI job processing service started");
 
-        await foreach (var jobId in jobChannel.Reader.ReadAllAsync(stoppingToken)) {
+        await foreach (var queueItem in jobChannel.Reader.ReadAllAsync(stoppingToken)) {
             try {
-                await ProcessJobAsync(jobId, stoppingToken);
+                await ProcessJobAsync(queueItem.JobId, queueItem.AuthToken, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
                 logger.LogInformation("AI job processing service stopping");
                 break;
             }
             catch (Exception ex) {
-                logger.LogError(ex, "Error processing job {JobId}", jobId);
+                logger.LogError(ex, "Error processing job {JobId}", queueItem.JobId);
             }
         }
 
         logger.LogInformation("AI job processing service stopped");
     }
 
-    private async Task ProcessJobAsync(Guid jobId, CancellationToken ct) {
+    private async Task ProcessJobAsync(Guid jobId, string? authToken, CancellationToken ct) {
         using var scope = scopeFactory.CreateScope();
         var jobsClient = scope.ServiceProvider.GetRequiredService<JobsServiceClient>();
+        var handler = scope.ServiceProvider.GetRequiredService<BulkAssetGenerationHandler>();
 
-        var job = await jobsClient.GetJobByIdAsync(jobId, ct);
+        var job = await jobsClient.GetJobByIdAsync(jobId, ct, authToken);
         if (job is null) {
             logger.LogWarning("Job {JobId} not found", jobId);
             return;
         }
 
-        if (job.Status == JobStatus.Cancelled) {
+        if (job.Status == JobStatus.Canceled) {
             logger.LogInformation("Job {JobId} was cancelled before processing", jobId);
             return;
         }
 
         if (job.Type != BulkAssetGenerationHandler.JobTypeName) {
             logger.LogWarning("Unknown job type: {JobType}", job.Type);
-            await jobsClient.UpdateJobStatusAsync(jobId, new() {
-                Status = JobStatus.Failed,
-                CompletedAt = DateTime.UtcNow
-            }, ct);
             return;
         }
 
         var startedAt = DateTime.UtcNow;
-        await jobsClient.UpdateJobStatusAsync(jobId, new() {
-            Status = JobStatus.InProgress,
-            StartedAt = startedAt
-        }, ct);
 
         await jobsClient.BroadcastProgressAsync(new() {
             JobId = jobId,
@@ -67,40 +59,30 @@ public sealed class AiJobProcessingService(
             Message = "Job started",
             CurrentItem = 0,
             TotalItems = job.TotalItems
-        }, ct);
+        }, ct, authToken);
 
-        var pendingItems = await jobsClient.GetPendingItemsAsync(jobId, ct);
-        var completedCount = job.CompletedItems;
-        var failedCount = job.FailedItems;
+        var pendingItems = await jobsClient.GetJobItemsAsync(jobId, JobItemStatus.Pending, ct, authToken);
+        var processedCount = 0;
 
         foreach (var item in pendingItems) {
-            var currentJob = await jobsClient.GetJobByIdAsync(jobId, ct);
-            if (currentJob?.Status == JobStatus.Cancelled) {
+            var currentJob = await jobsClient.GetJobByIdAsync(jobId, ct, authToken);
+            if (currentJob?.Status == JobStatus.Canceled) {
                 logger.LogInformation("Job {JobId} was cancelled during processing", jobId);
                 break;
             }
 
-            var itemResult = await ProcessItemWithRetriesAsync(jobsClient, job, item, ct);
-
-            if (itemResult.IsSuccess)
-                completedCount++;
-            else
-                failedCount++;
-
-            await jobsClient.UpdateJobCountsAsync(jobId, new() {
-                CompletedItems = completedCount,
-                FailedItems = failedCount
-            }, ct);
+            var itemResult = await ProcessItemAsync(jobsClient, handler, job, item, authToken, ct);
+            processedCount++;
 
             await jobsClient.BroadcastProgressAsync(new() {
                 JobId = jobId,
                 Type = job.Type,
                 ItemIndex = item.Index,
-                ItemStatus = itemResult.IsSuccess ? JobItemStatus.Completed : JobItemStatus.Failed,
+                ItemStatus = itemResult.IsSuccess ? JobItemStatus.Success : JobItemStatus.Failed,
                 Message = $"Processed item {item.Index + 1}",
-                CurrentItem = completedCount + failedCount,
+                CurrentItem = processedCount,
                 TotalItems = job.TotalItems
-            }, ct);
+            }, ct, authToken);
 
             if (_options.DelayBetweenItemsMs > 0)
                 await Task.Delay(_options.DelayBetweenItemsMs, ct);
@@ -109,98 +91,71 @@ public sealed class AiJobProcessingService(
         var completedAt = DateTime.UtcNow;
         var actualDurationMs = (long)(completedAt - startedAt).TotalMilliseconds;
 
-        var finalStatus = failedCount == 0
-            ? JobStatus.Completed
-            : completedCount == 0
-                ? JobStatus.Failed
-                : JobStatus.PartialSuccess;
-
-        await jobsClient.UpdateJobStatusAsync(jobId, new() {
-            Status = finalStatus,
-            CompletedAt = completedAt,
-            ActualDurationMs = actualDurationMs
-        }, ct);
+        var finalJob = await jobsClient.GetJobByIdAsync(jobId, ct, authToken);
+        var finalStatus = finalJob?.Status ?? JobStatus.Failed;
 
         await jobsClient.BroadcastProgressAsync(new() {
             JobId = jobId,
             Type = job.Type,
             ItemIndex = -1,
-            ItemStatus = JobItemStatus.Completed,
+            ItemStatus = JobItemStatus.Success,
             Message = $"Job completed: {finalStatus}",
-            CurrentItem = completedCount + failedCount,
+            CurrentItem = job.TotalItems,
             TotalItems = job.TotalItems
-        }, ct);
+        }, ct, authToken);
 
         logger.LogInformation(
-            "Job {JobId} completed with status {Status}: {Completed} completed, {Failed} failed in {Duration}ms",
-            jobId, finalStatus, completedCount, failedCount, actualDurationMs);
+            "Job {JobId} completed with status {Status} in {Duration}ms",
+            jobId, finalStatus, actualDurationMs);
     }
 
-    private async Task<JobItemResult> ProcessItemWithRetriesAsync(
+    private async Task<JobItemResult> ProcessItemAsync(
         JobsServiceClient jobsClient,
+        BulkAssetGenerationHandler handler,
         JobResponse job,
         JobItemResponse item,
+        string? authToken,
         CancellationToken ct) {
 
-        await jobsClient.UpdateItemStatusAsync(item.ItemId, new() {
-            Status = JobItemStatus.Processing,
+        await jobsClient.UpdateItemStatusAsync(job.Id, item.Index, new() {
+            Status = JobItemStatus.InProgress,
             StartedAt = DateTime.UtcNow
-        }, ct);
+        }, ct, authToken);
 
         await jobsClient.BroadcastProgressAsync(new() {
             JobId = job.Id,
             Type = job.Type,
             ItemIndex = item.Index,
-            ItemStatus = JobItemStatus.Processing,
+            ItemStatus = JobItemStatus.InProgress,
             Message = $"Processing item {item.Index + 1}",
             CurrentItem = 0,
             TotalItems = job.TotalItems
-        }, ct);
+        }, ct, authToken);
 
         var context = new JobItemContext {
             JobId = job.Id,
             ItemId = item.ItemId,
             Index = item.Index,
             JobInputJson = job.InputJson,
-            ItemInputJson = item.InputJson
+            ItemInputJson = item.InputJson,
+            AuthToken = authToken
         };
 
-        JobItemResult? result = null;
-        var attempts = 0;
-
-        while (attempts < _options.MaxRetries) {
-            attempts++;
-            try {
-                result = await handler.ProcessItemAsync(null!, null!, context, ct);
-                if (result.IsSuccess)
-                    break;
-
-                if (attempts < _options.MaxRetries) {
-                    logger.LogWarning(
-                        "Item {ItemId} failed attempt {Attempt}/{MaxRetries}: {Error}. Retrying...",
-                        item.ItemId, attempts, _options.MaxRetries, result.ErrorMessage);
-                    await Task.Delay(_options.RetryDelayMs, ct);
-                }
-            }
-            catch (Exception ex) {
-                result = JobItemResult.Failure(ex.Message);
-                if (attempts < _options.MaxRetries) {
-                    logger.LogWarning(ex,
-                        "Item {ItemId} threw exception on attempt {Attempt}/{MaxRetries}. Retrying...",
-                        item.ItemId, attempts, _options.MaxRetries);
-                    await Task.Delay(_options.RetryDelayMs, ct);
-                }
-            }
+        JobItemResult result;
+        try {
+            result = await handler.ProcessItemAsync(context, ct);
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Item {ItemId} failed with exception", item.ItemId);
+            result = JobItemResult.Failure(ex.Message);
         }
 
-        result ??= JobItemResult.Failure("Processing failed after all retries");
-
-        await jobsClient.UpdateItemStatusAsync(item.ItemId, new() {
-            Status = result.IsSuccess ? JobItemStatus.Completed : JobItemStatus.Failed,
+        await jobsClient.UpdateItemStatusAsync(job.Id, item.Index, new() {
+            Status = result.IsSuccess ? JobItemStatus.Success : JobItemStatus.Failed,
             OutputJson = result.OutputJson,
             ErrorMessage = result.ErrorMessage,
             CompletedAt = DateTime.UtcNow
-        }, ct);
+        }, ct, authToken);
 
         return result;
     }

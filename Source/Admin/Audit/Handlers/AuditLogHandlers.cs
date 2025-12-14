@@ -20,16 +20,16 @@ public static class AuditLogHandlers {
             return Results.BadRequest(new { error = "Take must be greater than 0" });
         }
 
-        var (items, totalCount) = await service.QueryAsync(
-            request.StartDate,
-            request.EndDate,
-            request.UserId,
-            request.Action,
-            request.EntityType,
-            request.Result,
-            request.Skip,
-            request.Take,
-            ct);
+        (var items, var totalCount) = await service.QueryAsync(
+                                                               request.StartDate,
+                                                               request.EndDate,
+                                                               request.UserId,
+                                                               request.Action,
+                                                               request.EntityType,
+                                                               request.Result,
+                                                               request.Skip,
+                                                               request.Take,
+                                                               ct);
 
         var response = new AuditLogQueryResponse {
             Items = items,

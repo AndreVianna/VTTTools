@@ -458,8 +458,8 @@ public class AuthHandlersTests {
 
     [Fact]
     public async Task ValidateResetTokenHandler_WithValidToken_RedirectsToResetPage() {
-        var email = "user@example.com";
-        var token = "valid-reset-token";
+        const string email = "user@example.com";
+        const string token = "valid-reset-token";
         var frontendOptions = Options.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
@@ -481,8 +481,8 @@ public class AuthHandlersTests {
 
     [Fact]
     public async Task ValidateResetTokenHandler_WithInvalidToken_RedirectsToErrorPage() {
-        var email = "user@example.com";
-        var token = "invalid-token";
+        const string email = "user@example.com";
+        const string token = "invalid-token";
         var frontendOptions = Options.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
@@ -615,8 +615,8 @@ public class AuthHandlersTests {
 
     [Fact]
     public async Task ConfirmEmailHandler_WithValidToken_RedirectsToLogin() {
-        var email = "user@example.com";
-        var token = "confirmation-token";
+        const string email = "user@example.com";
+        const string token = "confirmation-token";
         var frontendOptions = Options.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
@@ -638,8 +638,8 @@ public class AuthHandlersTests {
 
     [Fact]
     public async Task ConfirmEmailHandler_WithInvalidToken_RedirectsToErrorPage() {
-        var email = "user@example.com";
-        var token = "invalid-token";
+        const string email = "user@example.com";
+        const string token = "invalid-token";
         var frontendOptions = Options.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });

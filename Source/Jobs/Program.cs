@@ -39,13 +39,6 @@ internal static class Program {
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IJobStorage, JobStorage>();
 
-        builder.Services.Configure<JobProcessingOptions>(
-            builder.Configuration.GetSection(JobProcessingOptions.SectionName));
-        builder.Services.AddSingleton(Channel.CreateUnbounded<Guid>());
-        builder.Services.AddSingleton<JobProcessingService>();
-        builder.Services.AddSingleton<IJobProcessingService>(sp => sp.GetRequiredService<JobProcessingService>());
-        builder.Services.AddHostedService(sp => sp.GetRequiredService<JobProcessingService>());
-
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddSingleton(sp => {

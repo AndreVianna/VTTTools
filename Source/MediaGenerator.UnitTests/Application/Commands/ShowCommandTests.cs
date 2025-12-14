@@ -140,7 +140,7 @@ public sealed class ShowCommandTests : IDisposable {
         var entityInfo = _imageStore.FindAsset("Red Dragon");
 
         entityInfo.Should().NotBeNull();
-        entityInfo!.Tokens.Should().HaveCount(3);
+        entityInfo.Tokens.Should().HaveCount(3);
         entityInfo.Tokens.Should().AllSatisfy(token => token.Should().NotBeNull());
     }
 

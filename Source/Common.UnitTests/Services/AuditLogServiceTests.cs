@@ -159,7 +159,7 @@ public class AuditLogServiceTests {
         var result = await _service.GetByIdAsync(id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(id);
+        result.Id.Should().Be(id);
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class AuditLogServiceTests {
             TestContext.Current.CancellationToken)
             .Returns((items, 1));
 
-        var (logs, totalCount) = await _service.QueryAsync(ct: TestContext.Current.CancellationToken);
+        (var logs, var totalCount) = await _service.QueryAsync(ct: TestContext.Current.CancellationToken);
 
         logs.Should().HaveCount(1);
         totalCount.Should().Be(1);
@@ -249,7 +249,7 @@ public class AuditLogServiceTests {
             TestContext.Current.CancellationToken)
             .Returns((new List<AuditLog>(), 0));
 
-        var (items, totalCount) = await _service.QueryAsync(take: 100, ct: TestContext.Current.CancellationToken);
+        (var items, var totalCount) = await _service.QueryAsync(take: 100, ct: TestContext.Current.CancellationToken);
 
         items.Should().BeEmpty();
         totalCount.Should().Be(0);

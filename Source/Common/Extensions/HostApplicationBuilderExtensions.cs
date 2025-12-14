@@ -14,7 +14,6 @@ public static class HostApplicationBuilderExtensions {
     public static void AddServiceDiscovery(this IHostApplicationBuilder builder) {
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http => {
-            http.AddStandardResilienceHandler();
             http.AddServiceDiscovery();
         });
     }

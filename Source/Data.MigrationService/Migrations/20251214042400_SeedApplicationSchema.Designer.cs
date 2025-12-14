@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251212194411_SeedApplicationSchema")]
+    [Migration("20251214042400_SeedApplicationSchema")]
     partial class SeedApplicationSchema
     {
         /// <inheritdoc />
@@ -26,140 +26,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("VttTools.Data.AI.Entities.AiJob", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long?>("ActualDurationMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CompletedItems")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("EstimatedDurationMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("FailedItems")
-                        .HasColumnType("int");
-
-                    b.Property<string>("InputJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalItems")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending();
-
-                    b.HasIndex("Type");
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("AiJobs", (string)null);
-                });
-
-            modelBuilder.Entity("VttTools.Data.AI.Entities.AiJobItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("int");
-
-                    b.Property<string>("InputJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("OutputJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("Id", "Index")
-                        .IsUnique();
-
-                    b.ToTable("AiJobItems", (string)null);
-                });
-
-            modelBuilder.Entity("VttTools.Data.AI.Entities.Provider", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("BaseUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<string>("HealthEndpoint")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("AiProviderConfigs", (string)null);
-                });
-
             modelBuilder.Entity("VttTools.Data.AI.Entities.AiModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("GeneratedContentType")
+                    b.Property<string>("ContentType")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -188,11 +61,11 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GeneratedContentType");
+                    b.HasIndex("ContentType");
 
                     b.HasIndex("ProviderId");
 
-                    b.HasIndex("GeneratedContentType", "IsDefault");
+                    b.HasIndex("ContentType", "IsDefault");
 
                     b.ToTable("AiProviderModels", (string)null);
                 });
@@ -203,7 +76,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("GeneratedContentType")
+                    b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -238,7 +111,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GeneratedContentType");
+                    b.HasIndex("Category");
 
                     b.HasIndex("Name");
 
@@ -250,13 +123,47 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("PromptTemplates", (string)null);
                 });
 
+            modelBuilder.Entity("VttTools.Data.AI.Entities.Provider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BaseUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("HealthEndpoint")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("AiProviderConfigs", (string)null);
+                });
+
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("GeneratedContentType")
+                    b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
@@ -319,7 +226,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasIndex("IsPublic", "IsPublished")
                         .HasDatabaseName("IX_Assets_IsPublic_IsPublished");
 
-                    b.HasIndex("Kind", "GeneratedContentType", "Type")
+                    b.HasIndex("Kind", "Category", "Type")
                         .HasDatabaseName("IX_Assets_Taxonomy");
 
                     b.ToTable("Assets", (string)null);
@@ -591,10 +498,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
 
@@ -605,14 +508,19 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<int>("TotalItems")
                         .HasColumnType("int");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt")
                         .IsDescending();
 
-                    b.HasIndex("Type");
-
                     b.HasIndex("Status");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("Jobs", (string)null);
                 });
@@ -637,7 +545,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("JobId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("OutputJson")
@@ -654,7 +562,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("Id", "Index")
+                    b.HasIndex("JobId", "Index")
                         .IsUnique();
 
                     b.ToTable("JobItems", (string)null);
@@ -1318,7 +1226,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("GeneratedContentType")
+                    b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
@@ -1661,17 +1569,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.AI.Entities.AiJobItem", b =>
-                {
-                    b.HasOne("VttTools.Data.AI.Entities.AiJob", "Job")
-                        .WithMany("Items")
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Job");
-                });
-
             modelBuilder.Entity("VttTools.Data.AI.Entities.AiModel", b =>
                 {
                     b.HasOne("VttTools.Data.AI.Entities.Provider", "Provider")
@@ -1876,7 +1773,7 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.HasOne("VttTools.Data.Jobs.Entities.Job", "Job")
                         .WithMany("Items")
-                        .HasForeignKey("Id")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2104,11 +2001,11 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<Guid>("ResourceId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<string>("GeneratedContentType")
+                            b1.Property<string>("Category")
                                 .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)")
-                                .HasColumnName("GeneratedContentType");
+                                .HasColumnName("Category");
 
                             b1.Property<string>("Kind")
                                 .IsRequired()
@@ -2202,11 +2099,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("VttTools.Data.AI.Entities.AiJob", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("VttTools.Data.AI.Entities.Provider", b =>

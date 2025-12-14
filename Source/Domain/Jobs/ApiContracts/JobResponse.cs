@@ -7,6 +7,7 @@ public sealed record JobResponse {
     public required int TotalItems { get; init; }
     public int CompletedItems { get; init; }
     public int FailedItems { get; init; }
+    public int Progress { get; init; }
     public string? InputJson { get; init; }
     public long? EstimatedDurationMs { get; init; }
     public long? ActualDurationMs { get; init; }

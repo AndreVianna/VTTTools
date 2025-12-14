@@ -19,10 +19,10 @@ public sealed class StabilityClientTests : IDisposable {
         _config["Images:TopDown:AspectRatio"].Returns("1:1");
         _config["Images:TopDown:OtherNegativePromptFor"].Returns("extra negative");
 
-        var httpClient = new HttpClient(_mockHandler) {
+        var httpClient = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new Uri("https://api.stability.ai")
         };
-        _httpClientFactory.CreateClient().Returns(httpClient);
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
 
         _client = new StabilityClient(_httpClientFactory, _config);
     }

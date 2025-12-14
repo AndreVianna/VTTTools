@@ -84,5 +84,19 @@ public static class AiEndpointsMapper {
             .RequireAuthorization(policy => policy.RequireRole("Administrator"))
             .WithName("DeleteTemplate")
             .WithSummary("Delete a prompt template");
+
+        var jobs = ai.MapGroup("/jobs");
+        jobs.MapPost("", AiJobHandlers.StartBulkGenerationHandler)
+            .RequireAuthorization()
+            .WithName("StartAiJob")
+            .WithSummary("Start an AI bulk generation job");
+        jobs.MapDelete("{id:guid}", AiJobHandlers.CancelJobHandler)
+            .RequireAuthorization()
+            .WithName("CancelAiJob")
+            .WithSummary("Cancel an AI job");
+        jobs.MapPost("{id:guid}/retry", AiJobHandlers.RetryJobHandler)
+            .RequireAuthorization()
+            .WithName("RetryAiJob")
+            .WithSummary("Retry failed items in an AI job");
     }
 }

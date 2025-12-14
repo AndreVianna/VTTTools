@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
 using VttTools.Admin.Configuration.Model;
-using VttTools.Admin.Configuration.Services;
 using VttTools.Common.Services;
 using VttTools.Common.Utilities;
 
@@ -193,17 +192,17 @@ public class ConfigurationServiceTests {
 
         var passwordEntry = result.Entries.FirstOrDefault(e => e.Key == "TestPassword");
         passwordEntry.Should().NotBeNull();
-        passwordEntry!.Value.Should().Be("***REDACTED***");
+        passwordEntry.Value.Should().Be("***REDACTED***");
         passwordEntry.IsRedacted.Should().BeTrue();
 
         var keyEntry = result.Entries.FirstOrDefault(e => e.Key == "TestKey");
         keyEntry.Should().NotBeNull();
-        keyEntry!.Value.Should().Be("***REDACTED***");
+        keyEntry.Value.Should().Be("***REDACTED***");
         keyEntry.IsRedacted.Should().BeTrue();
 
         var apiKeyEntry = result.Entries.FirstOrDefault(e => e.Key == "ApiKey");
         apiKeyEntry.Should().NotBeNull();
-        apiKeyEntry!.Value.Should().Be("***REDACTED***");
+        apiKeyEntry.Value.Should().Be("***REDACTED***");
         apiKeyEntry.IsRedacted.Should().BeTrue();
     }
 
@@ -222,19 +221,19 @@ public class ConfigurationServiceTests {
 
         var jwtEntry = result.Entries.FirstOrDefault(e => e.Key == "JwtSecret");
         jwtEntry.Should().NotBeNull();
-        jwtEntry!.Category.Should().Be("Security");
+        jwtEntry.Category.Should().Be("Security");
 
         var connectionEntry = result.Entries.FirstOrDefault(e => e.Key == "ConnectionStrings:Open");
         connectionEntry.Should().NotBeNull();
-        connectionEntry!.Category.Should().Be("Storage");
+        connectionEntry.Category.Should().Be("Storage");
 
         var logEntry = result.Entries.FirstOrDefault(e => e.Key == "Logging:LogLevel:Open");
         logEntry.Should().NotBeNull();
-        logEntry!.Category.Should().Be("Logging");
+        logEntry.Category.Should().Be("Logging");
 
         var azureEntry = result.Entries.FirstOrDefault(e => e.Key == "Azure:BlobStorage:ConnectionString");
         azureEntry.Should().NotBeNull();
-        azureEntry!.Category.Should().Be("Storage");
+        azureEntry.Category.Should().Be("Storage");
     }
 
     #endregion

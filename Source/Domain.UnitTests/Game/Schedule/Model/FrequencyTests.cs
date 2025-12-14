@@ -14,11 +14,13 @@ public class FrequencyTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        Frequency.Once.ToString().Should().Be("Once");
-        Frequency.Daily.ToString().Should().Be("Daily");
-        Frequency.Weekly.ToString().Should().Be("Weekly");
-        Frequency.Monthly.ToString().Should().Be("Monthly");
-        Frequency.Yearly.ToString().Should().Be("Yearly");
+        nameof(
+        // Act & Assert
+        Frequency.Once).Should().Be("Once");
+        nameof(Frequency.Daily).Should().Be("Daily");
+        nameof(Frequency.Weekly).Should().Be("Weekly");
+        nameof(Frequency.Monthly).Should().Be("Monthly");
+        nameof(Frequency.Yearly).Should().Be("Yearly");
     }
 
     [Fact]

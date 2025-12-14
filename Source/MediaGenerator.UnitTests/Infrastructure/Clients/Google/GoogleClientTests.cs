@@ -18,10 +18,10 @@ public sealed class GoogleClientTests : IDisposable {
         _config["Providers:Google:gemini-2.0"].Returns("/v1beta/models/gemini-2.0:generate");
         _config["Images:TopDown:AspectRatio"].Returns("1:1");
 
-        var httpClient = new HttpClient(_mockHandler) {
+        var httpClient = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new Uri("https://generativelanguage.googleapis.com")
         };
-        _httpClientFactory.CreateClient().Returns(httpClient);
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
 
         _client = new GoogleClient(_httpClientFactory, _config);
     }
@@ -80,7 +80,7 @@ public sealed class GoogleClientTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_WithEmptyImageData_ThrowsException() {
-        var responseJson = """
+        const string responseJson = """
         {
             "candidates": [{
                 "content": {

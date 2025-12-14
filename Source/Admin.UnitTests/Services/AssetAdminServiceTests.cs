@@ -1,6 +1,6 @@
-using AssetModel = VttTools.Assets.Model.Asset;
-using AssetKind = VttTools.Assets.Model.AssetKind;
 using AssetClassification = VttTools.Assets.Model.AssetClassification;
+using AssetKind = VttTools.Assets.Model.AssetKind;
+using AssetModel = VttTools.Assets.Model.Asset;
 
 namespace VttTools.Admin.UnitTests.Services;
 
@@ -202,7 +202,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
         var result = await _sut.GetAssetByIdAsync(asset.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(asset.Id);
+        result.Id.Should().Be(asset.Id);
         result.Name.Should().Be("Test Asset");
     }
 

@@ -36,13 +36,11 @@ export function JobStatusCard({
                 return 'default';
             case JobStatus.InProgress:
                 return 'primary';
-            case JobStatus.Completed:
+            case JobStatus.Success:
                 return 'success';
             case JobStatus.Failed:
                 return 'error';
-            case JobStatus.PartialSuccess:
-                return 'warning';
-            case JobStatus.Cancelled:
+            case JobStatus.Canceled:
                 return 'default';
             default:
                 return 'default';
@@ -53,8 +51,6 @@ export function JobStatusCard({
         switch (status) {
             case JobStatus.InProgress:
                 return 'In Progress';
-            case JobStatus.PartialSuccess:
-                return 'Partial Success';
             default:
                 return status;
         }
@@ -76,7 +72,7 @@ export function JobStatusCard({
         : 0;
 
     const canCancel = job.status === JobStatus.Pending || job.status === JobStatus.InProgress;
-    const canRetry = job.status === JobStatus.Failed || job.status === JobStatus.PartialSuccess;
+    const canRetry = job.status === JobStatus.Failed;
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';

@@ -120,7 +120,7 @@ public class AssetStorage(ApplicationDbContext context)
                     break;
                 case FilterOperator.Contains:
                     query = query.Where(a =>
-                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsText!.Contains(filter.AsText)) ||
+                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsText.Contains(filter.AsText)) ||
                         a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Contains(filter.AsText))));
                     break;
                 case FilterOperator.Equals:

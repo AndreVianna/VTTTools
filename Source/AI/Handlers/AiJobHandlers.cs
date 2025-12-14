@@ -30,4 +30,26 @@ public static class AiJobHandlers {
             ? Results.Created($"/api/jobs/{result.Value.Id}", result.Value)
             : Results.BadRequest(new { errors = result.Errors.Select(e => e.Message) });
     }
+
+    public static async Task<IResult> CancelJobHandler(
+        [FromRoute] Guid id,
+        IAiJobOrchestrationService service,
+        CancellationToken ct) {
+        var result = await service.CancelJobAsync(id, ct);
+
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : Results.NotFound(new { errors = result.Errors.Select(e => e.Message) });
+    }
+
+    public static async Task<IResult> RetryJobHandler(
+        [FromRoute] Guid id,
+        IAiJobOrchestrationService service,
+        CancellationToken ct) {
+        var result = await service.RetryFailedItemsAsync(id, ct: ct);
+
+        return result.IsSuccessful
+            ? Results.Ok(result.Value)
+            : Results.NotFound(new { errors = result.Errors.Select(e => e.Message) });
+    }
 }

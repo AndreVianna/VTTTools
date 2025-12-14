@@ -38,6 +38,8 @@ internal static class Program {
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.Configure<AiOptions>(
+            builder.Configuration.GetSection(AiOptions.SectionName));
         builder.AddAiServices();
 
         builder.Services.AddScoped<IPromptTemplateStorage, PromptTemplateStorage>();
@@ -54,19 +56,19 @@ internal static class Program {
         builder.Services.AddSingleton<InternalConfigurationService>();
         builder.AddAuditLogging();
 
-        builder.Services.AddScoped<IAiProviderConfigStorage, ProviderStorage>();
-        builder.Services.AddMemoryCache();
-
         builder.Services.Configure<JobProcessingOptions>(
             builder.Configuration.GetSection(JobProcessingOptions.SectionName));
-        builder.Services.AddSingleton(Channel.CreateUnbounded<Guid>());
+        builder.Services.AddSingleton(Channel.CreateUnbounded<JobQueueItem>());
         builder.Services.AddScoped<IAiJobOrchestrationService, AiJobOrchestrationService>();
-        builder.Services.AddSingleton<BulkAssetGenerationHandler>();
+        builder.Services.AddScoped<BulkAssetGenerationHandler>();
         builder.Services.AddHostedService<AiJobProcessingService>();
 
-        builder.Services.AddHttpClient<JobsServiceClient>(c => c.BaseAddress = new Uri("https+http://jobs-api"));
-        builder.Services.AddHttpClient<ResourceServiceClient>(c => c.BaseAddress = new Uri("https+http://resources-api"));
-        builder.Services.AddHttpClient<AssetServiceClient>(c => c.BaseAddress = new Uri("https+http://assets-api"));
+        builder.Services.AddHttpClient<JobsServiceClient>(c => c.BaseAddress = new Uri("https+http://jobs-api"))
+            .AddStandardResilienceHandler();
+        builder.Services.AddHttpClient<ResourceServiceClient>(c => c.BaseAddress = new Uri("https+http://resources-api"))
+            .AddStandardResilienceHandler();
+        builder.Services.AddHttpClient<AssetServiceClient>(c => c.BaseAddress = new Uri("https+http://assets-api"))
+            .AddStandardResilienceHandler();
     }
 
     internal static void AddRateLimiting(this IHostApplicationBuilder builder)

@@ -10,10 +10,11 @@ public class PromptEnhancementService(IAiProviderFactory providerFactory)
         if (validation.HasErrors)
             return Result.Failure<PromptEnhancementResponse>(null!, validation.Errors);
 
-        var provider = providerFactory.GetPromptProvider(data.Provider);
+        var resolvedData = ResolveProviderAndModel(data);
+        var provider = providerFactory.GetPromptProvider(resolvedData.Provider);
 
         var stopwatch = Stopwatch.StartNew();
-        var result = await provider.GenerateAsync(data, ct);
+        var result = await provider.GenerateAsync(resolvedData, ct);
         stopwatch.Stop();
 
         return !result.IsSuccessful
@@ -29,4 +30,15 @@ public class PromptEnhancementService(IAiProviderFactory providerFactory)
 
     public IReadOnlyList<string> GetAvailableProviders()
         => providerFactory.GetAvailablePromptProviders();
+
+    private PromptEnhancementData ResolveProviderAndModel(PromptEnhancementData data) {
+        if (!string.IsNullOrEmpty(data.Provider) && !string.IsNullOrEmpty(data.Model))
+            return data;
+
+        (var provider, var model) = providerFactory.GetProviderAndModel(GeneratedContentType.PromptEnhancement);
+        return data with {
+            Provider = data.Provider ?? provider,
+            Model = data.Model ?? model,
+        };
+    }
 }

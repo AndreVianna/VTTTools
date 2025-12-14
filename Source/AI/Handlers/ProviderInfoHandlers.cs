@@ -6,9 +6,9 @@ internal static class ProviderInfoHandlers {
     internal static Task<IResult> GetAllProvidersHandler(
         [FromServices] IAiProviderFactory factory) {
         var providers = new {
-            image = factory.GetAvailableImageProviders().Select(p => p.ToString()),
-            audio = factory.GetAvailableAudioProviders().Select(p => p.ToString()),
-            video = factory.GetAvailableVideoProviders().Select(p => p.ToString()),
+            image = factory.GetAvailableImageProviders(),
+            audio = factory.GetAvailableAudioProviders(),
+            video = factory.GetAvailableVideoProviders(),
         };
 
         return Task.FromResult(Results.Ok(providers));

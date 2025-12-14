@@ -45,7 +45,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -70,7 +70,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, AssetKind.Creature, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -96,7 +96,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, category, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -122,7 +122,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, null, searchTerm, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -144,7 +144,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, Arg.Is<Pagination>(p => p.Index == pageIndex && p.Size == pageSize), Arg.Any<CancellationToken>());
     }
 
@@ -163,7 +163,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), AssetSortBy.Name, SortDirection.Ascending, null, Arg.Any<CancellationToken>());
     }
 
@@ -310,7 +310,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var conflictResult = result as IStatusCodeHttpResult;
         conflictResult.Should().NotBeNull();
-        conflictResult!.StatusCode.Should().Be(409);
+        conflictResult.StatusCode.Should().Be(409);
     }
 
     [Fact]
@@ -502,7 +502,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, Availability.Public, null, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -522,7 +522,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, type, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -542,7 +542,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, subtype, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -562,7 +562,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, null, null, tags, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 
@@ -581,7 +581,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -695,7 +695,7 @@ public class AssetHandlersTests {
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var okResult = result as IStatusCodeHttpResult;
         okResult.Should().NotBeNull();
-        okResult!.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(200);
         await _assetService.Received(1).SearchAssetsAsync(_userId, null, null, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>());
     }
 

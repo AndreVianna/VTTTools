@@ -156,7 +156,12 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
         var model = config[$"Images:{imageType}:Model"] ?? throw new InvalidOperationException($"{imageType} model not configured.");
         var aspectRatio = config[$"Images:{imageType}:AspectRatio"] ?? "1:1";
 
+        var contentType = imageType == "Token"
+            ? GeneratedContentType.ImageToken
+            : GeneratedContentType.ImagePortrait;
+
         var request = new ImageGenerationData {
+            ContentType = contentType,
             Prompt = finalPrompt,
             Provider = providerName,
             Model = model,

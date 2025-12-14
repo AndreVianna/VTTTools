@@ -20,28 +20,10 @@ public partial class CreateApplicationSchema : Migration {
             defaultValue: 0);
 
         migrationBuilder.CreateTable(
-            name: "AiJobs",
-            columns: table => new {
-                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                JobType = table.Column<int>(type: "int", nullable: false),
-                Status = table.Column<int>(type: "int", nullable: false),
-                TotalItems = table.Column<int>(type: "int", nullable: false),
-                CompletedItems = table.Column<int>(type: "int", nullable: false),
-                FailedItems = table.Column<int>(type: "int", nullable: false),
-                InputJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                EstimatedDurationMs = table.Column<long>(type: "bigint", nullable: true),
-                ActualDurationMs = table.Column<long>(type: "bigint", nullable: true),
-                CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-            },
-            constraints: table => table.PrimaryKey("PK_AiJobs", x => x.Id));
-
-        migrationBuilder.CreateTable(
             name: "AiProviderConfigs",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                ProviderType = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Name = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                 BaseUrl = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                 HealthEndpoint = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                 IsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
@@ -87,7 +69,7 @@ public partial class CreateApplicationSchema : Migration {
             name: "Jobs",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                JobType = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Type = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                 Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
                 TotalItems = table.Column<int>(type: "int", nullable: false),
                 CompletedItems = table.Column<int>(type: "int", nullable: false),
@@ -166,35 +148,12 @@ public partial class CreateApplicationSchema : Migration {
             constraints: table => table.PrimaryKey("PK_StatBlocks", x => x.Id));
 
         migrationBuilder.CreateTable(
-            name: "AiJobItems",
-            columns: table => new {
-                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<int>(type: "int", nullable: false),
-                InputJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                OutputJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                Status = table.Column<int>(type: "int", nullable: false),
-                ErrorMessage = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
-                StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-            },
-            constraints: table => {
-                table.PrimaryKey("PK_AiJobItems", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_AiJobItems_AiJobs_JobId",
-                    column: x => x.JobId,
-                    principalTable: "AiJobs",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-
-        migrationBuilder.CreateTable(
             name: "AiProviderModels",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 ProviderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Category = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                ModelName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                ContentType = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Endpoint = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                 IsDefault = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                 IsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
@@ -732,47 +691,20 @@ public partial class CreateApplicationSchema : Migration {
             column: "WorldId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_AiJobItems_JobId_Index",
-            table: "AiJobItems",
-            columns: ["Id", "Index"],
-            unique: true);
-
-        migrationBuilder.CreateIndex(
-            name: "IX_AiJobItems_Status",
-            table: "AiJobItems",
-            column: "Status");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_AiJobs_CreatedAt",
-            table: "AiJobs",
-            column: "CreatedAt",
-            descending: []);
-
-        migrationBuilder.CreateIndex(
-            name: "IX_AiJobs_JobType",
-            table: "AiJobs",
-            column: "Type");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_AiJobs_Status",
-            table: "AiJobs",
-            column: "Status");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_AiProviderConfigs_ProviderType",
+            name: "IX_AiProviderConfigs_Name",
             table: "AiProviderConfigs",
             column: "Name",
             unique: true);
 
         migrationBuilder.CreateIndex(
-            name: "IX_AiProviderModels_Category",
+            name: "IX_AiProviderModels_ContentType",
             table: "AiProviderModels",
-            column: "GeneratedContentType");
+            column: "ContentType");
 
         migrationBuilder.CreateIndex(
-            name: "IX_AiProviderModels_Category_IsDefault",
+            name: "IX_AiProviderModels_ContentType_IsDefault",
             table: "AiProviderModels",
-            columns: ["GeneratedContentType", "IsDefault"]);
+            columns: ["ContentType", "IsDefault"]);
 
         migrationBuilder.CreateIndex(
             name: "IX_AiProviderModels_ProviderId",
@@ -797,7 +729,7 @@ public partial class CreateApplicationSchema : Migration {
         migrationBuilder.CreateIndex(
             name: "IX_Assets_Taxonomy",
             table: "Assets",
-            columns: ["Kind", "GeneratedContentType", "Type"]);
+            columns: ["Kind", "Category", "Type"]);
 
         migrationBuilder.CreateIndex(
             name: "IX_AssetTokens_AssetId_Index",
@@ -910,7 +842,7 @@ public partial class CreateApplicationSchema : Migration {
         migrationBuilder.CreateIndex(
             name: "IX_JobItems_JobId_Index",
             table: "JobItems",
-            columns: ["Id", "Index"],
+            columns: ["JobId", "Index"],
             unique: true);
 
         migrationBuilder.CreateIndex(
@@ -925,14 +857,14 @@ public partial class CreateApplicationSchema : Migration {
             descending: []);
 
         migrationBuilder.CreateIndex(
-            name: "IX_Jobs_JobType",
-            table: "Jobs",
-            column: "Type");
-
-        migrationBuilder.CreateIndex(
             name: "IX_Jobs_Status",
             table: "Jobs",
             column: "Status");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Jobs_Type",
+            table: "Jobs",
+            column: "Type");
 
         migrationBuilder.CreateIndex(
             name: "IX_MaintenanceMode_EnabledBy",
@@ -962,7 +894,7 @@ public partial class CreateApplicationSchema : Migration {
         migrationBuilder.CreateIndex(
             name: "IX_PromptTemplates_Category",
             table: "PromptTemplates",
-            column: "GeneratedContentType");
+            column: "Category");
 
         migrationBuilder.CreateIndex(
             name: "IX_PromptTemplates_Name",
@@ -1013,9 +945,6 @@ public partial class CreateApplicationSchema : Migration {
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder) {
-        migrationBuilder.DropTable(
-            name: "AiJobItems");
-
         migrationBuilder.DropTable(
             name: "AiProviderModels");
 
@@ -1069,9 +998,6 @@ public partial class CreateApplicationSchema : Migration {
 
         migrationBuilder.DropTable(
             name: "StatBlocks");
-
-        migrationBuilder.DropTable(
-            name: "AiJobs");
 
         migrationBuilder.DropTable(
             name: "AiProviderConfigs");

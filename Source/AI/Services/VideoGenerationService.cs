@@ -10,10 +10,11 @@ public class VideoGenerationService(IAiProviderFactory providerFactory)
         if (validation.HasErrors)
             return Result.Failure<VideoGenerationResponse>(null!, validation.Errors);
 
-        var provider = providerFactory.GetVideoProvider(data.Provider);
+        var resolvedData = ResolveProviderAndModel(data);
+        var provider = providerFactory.GetVideoProvider(resolvedData.Provider);
 
         var stopwatch = Stopwatch.StartNew();
-        var result = await provider.GenerateAsync(data, ct);
+        var result = await provider.GenerateAsync(resolvedData, ct);
         stopwatch.Stop();
 
         return !result.IsSuccessful
@@ -30,4 +31,15 @@ public class VideoGenerationService(IAiProviderFactory providerFactory)
 
     public IReadOnlyList<string> GetAvailableProviders()
         => providerFactory.GetAvailableVideoProviders();
+
+    private VideoGenerationData ResolveProviderAndModel(VideoGenerationData data) {
+        if (!string.IsNullOrEmpty(data.Provider) && !string.IsNullOrEmpty(data.Model))
+            return data;
+
+        (var provider, var model) = providerFactory.GetProviderAndModel(data.ContentType);
+        return data with {
+            Provider = data.Provider ?? provider,
+            Model = data.Model ?? model,
+        };
+    }
 }

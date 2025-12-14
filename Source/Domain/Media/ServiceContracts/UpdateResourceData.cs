@@ -13,7 +13,7 @@ public record UpdateResourceData
         if (Features.IsSet && Features.Value.Count > 50)
             result += new Error("Maximum 50 feature categories allowed.", nameof(Features));
         if (Features.IsSet) {
-            foreach (var (key, values) in Features.Value) {
+            foreach ((var key, var values) in Features.Value) {
                 if (key.Length > 32)
                     result += new Error($"Feature key '{key}' exceeds 32 characters.", nameof(Features));
                 if (values.Count > 100)

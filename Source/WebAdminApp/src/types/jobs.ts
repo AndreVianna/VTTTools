@@ -6,18 +6,17 @@ export enum JobType {
 export enum JobStatus {
     Pending = 'Pending',
     InProgress = 'InProgress',
-    Completed = 'Completed',
+    Success = 'Success',
     Failed = 'Failed',
-    PartialSuccess = 'PartialSuccess',
-    Cancelled = 'Cancelled',
+    Canceled = 'Canceled',
 }
 
 export enum JobItemStatus {
     Pending = 'Pending',
-    Processing = 'Processing',
-    Completed = 'Completed',
+    InProgress = 'InProgress',
+    Success = 'Success',
     Failed = 'Failed',
-    Skipped = 'Skipped',
+    Canceled = 'Canceled',
 }
 
 export enum AssetKind {

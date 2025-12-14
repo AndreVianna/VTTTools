@@ -139,16 +139,16 @@ public class AuditLogServiceTests {
             Arg.Any<CancellationToken>())
             .Returns(queryResult);
 
-        var (items, totalCount) = await _sut.QueryAsync(
-            startDate,
-            endDate,
-            userId,
-            action,
-            entityType,
-            result,
-            skip,
-            take,
-            TestContext.Current.CancellationToken);
+        (var items, var totalCount) = await _sut.QueryAsync(
+                                                            startDate,
+                                                            endDate,
+                                                            userId,
+                                                            action,
+                                                            entityType,
+                                                            result,
+                                                            skip,
+                                                            take,
+                                                            TestContext.Current.CancellationToken);
 
         Assert.Equal(2, items.Count());
         Assert.Equal(100, totalCount);
@@ -185,8 +185,8 @@ public class AuditLogServiceTests {
             Arg.Any<CancellationToken>())
             .Returns(queryResult);
 
-        var (items, totalCount) = await _sut.QueryAsync(
-            ct: TestContext.Current.CancellationToken);
+        (var items, var totalCount) = await _sut.QueryAsync(
+                                                            ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(3, items.Count());
         Assert.Equal(3, totalCount);

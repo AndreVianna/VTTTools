@@ -1,4 +1,6 @@
 
+using VttTools.AI.Mocks;
+
 namespace VttTools.AI.Services;
 
 public class AudioGenerationServiceTests {
@@ -9,12 +11,14 @@ public class AudioGenerationServiceTests {
 
     public AudioGenerationServiceTests() {
         _mockProvider = new MockAudioProvider {
-            Name = "OpenAi",
+            Name = "ElevenLabs",
             AudioDataToReturn = [0x52, 0x49, 0x46, 0x46],
         };
 
-        _providerFactory.GetAudioProvider(Arg.Any<string>()).Returns(_mockProvider);
-        _providerFactory.GetAvailableAudioProviders().Returns(["OpenAi", "ElevenLabs"]);
+        _providerFactory.GetAudioProvider(Arg.Any<string?>()).Returns(_mockProvider);
+        _providerFactory.GetAvailableAudioProviders().Returns(["ElevenLabs", "OpenAI"]);
+        _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
+            .Returns(("ElevenLabs", "eleven_multilingual_v2"));
 
         _service = new AudioGenerationService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
@@ -23,9 +27,10 @@ public class AudioGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithValidRequest_ReturnsAudioResponse() {
         var data = new AudioGenerationData {
+            ContentType = GeneratedContentType.AudioVoice,
             Prompt = "Epic battle music",
             Model = "tts-1",
-            Provider = "OpenAi",
+            Provider = "ElevenLabs",
             Duration = TimeSpan.FromSeconds(30),
         };
 
@@ -41,7 +46,8 @@ public class AudioGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
         var data = new AudioGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.AudioVoice,
+            Provider = "ElevenLabs",
             Model = "tts-1",
             Prompt = "Test audio",
         };
@@ -56,7 +62,8 @@ public class AudioGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithNullDuration_UsesZero() {
         var data = new AudioGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.AudioVoice,
+            Provider = "ElevenLabs",
             Model = "tts-1",
             Prompt = "Test audio",
             Duration = null,
@@ -73,15 +80,16 @@ public class AudioGenerationServiceTests {
         var providers = _service.GetAvailableProviders();
 
         providers.Should().HaveCount(2);
-        providers.Should().Contain("OpenAi");
         providers.Should().Contain("ElevenLabs");
+        providers.Should().Contain("OpenAI");
         _providerFactory.Received(1).GetAvailableAudioProviders();
     }
 
     [Fact]
     public async Task GenerateAsync_SetsCostToZero() {
         var data = new AudioGenerationData {
-            Provider = "OpenAi",
+            ContentType = GeneratedContentType.AudioMusic,
+            Provider = "ElevenLabs",
             Model = "tts-1",
             Prompt = "Test audio",
         };
@@ -90,5 +98,20 @@ public class AudioGenerationServiceTests {
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Cost.Should().Be(0m);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithNullProvider_ResolvesFromConfig() {
+        var data = new AudioGenerationData {
+            ContentType = GeneratedContentType.AudioVoice,
+            Provider = null,
+            Model = null,
+            Prompt = "Test audio",
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeTrue();
+        _providerFactory.Received(1).GetProviderAndModel(GeneratedContentType.AudioVoice);
     }
 }

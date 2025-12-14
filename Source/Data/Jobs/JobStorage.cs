@@ -27,14 +27,13 @@ public class JobStorage(ApplicationDbContext context) : IJobStorage {
         Guid jobId,
         IEnumerable<(int Index, string InputJson)> items,
         CancellationToken ct = default) {
-        foreach (var item in items) {
-            context.JobItems.Add(new JobItem {
-                JobId = jobId,
-                Index = item.Index,
-                InputJson = item.InputJson,
-            });
-        }
+        var jobItems = items.Select(item => new JobItem {
+            JobId = jobId,
+            Index = item.Index,
+            InputJson = item.InputJson,
+        });
 
+        context.JobItems.AddRange(jobItems);
         await context.SaveChangesAsync(ct);
     }
 
@@ -71,52 +70,50 @@ public class JobStorage(ApplicationDbContext context) : IJobStorage {
         return ([.. jobs.Select(MapToResponseWithoutItems)], totalCount);
     }
 
-    public async Task UpdateJobStatusAsync(
+    public async Task<IReadOnlyList<JobItemResponse>> GetJobItemsAsync(
         Guid jobId,
-        JobStatus status,
-        DateTime? startedAt = null,
-        DateTime? completedAt = null,
-        long? actualDurationMs = null,
+        JobItemStatus? status = null,
         CancellationToken ct = default) {
-        var job = await context.Jobs.FindAsync([jobId], ct);
-        if (job is null)
-            return;
+        var query = context.JobItems
+            .Where(i => i.JobId == jobId);
 
-        job.Status = status;
-        if (startedAt.HasValue)
-            job.StartedAt = startedAt.Value;
-        if (completedAt.HasValue)
-            job.CompletedAt = completedAt.Value;
-        if (actualDurationMs.HasValue)
-            job.ActualDurationMs = actualDurationMs.Value;
+        if (status.HasValue) {
+            query = query.Where(i => i.Status == status.Value);
+        }
 
-        await context.SaveChangesAsync(ct);
+        var items = await query
+            .OrderBy(i => i.Index)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return [.. items.Select(MapItemToResponse)];
     }
 
-    public async Task UpdateJobCountsAsync(
+    public async Task<JobItemResponse?> GetJobItemByIndexAsync(
         Guid jobId,
-        int completedItems,
-        int failedItems,
+        int itemIndex,
         CancellationToken ct = default) {
-        var job = await context.Jobs.FindAsync([jobId], ct);
-        if (job is null)
-            return;
+        var item = await context.JobItems
+            .Where(i => i.JobId == jobId && i.Index == itemIndex)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ct);
 
-        job.CompletedItems = completedItems;
-        job.FailedItems = failedItems;
-
-        await context.SaveChangesAsync(ct);
+        return item is null ? null : MapItemToResponse(item);
     }
 
     public async Task UpdateItemStatusAsync(
-        Guid itemId,
+        Guid jobId,
+        int itemIndex,
         JobItemStatus status,
         string? outputJson = null,
         string? errorMessage = null,
         DateTime? startedAt = null,
         DateTime? completedAt = null,
         CancellationToken ct = default) {
-        var item = await context.JobItems.FindAsync([itemId], ct);
+        var item = await context.JobItems
+            .Where(i => i.JobId == jobId && i.Index == itemIndex)
+            .FirstOrDefaultAsync(ct);
+
         if (item is null)
             return;
 
@@ -129,6 +126,41 @@ public class JobStorage(ApplicationDbContext context) : IJobStorage {
             item.StartedAt = startedAt.Value;
         if (completedAt.HasValue)
             item.CompletedAt = completedAt.Value;
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    public async Task CancelJobItemsAsync(
+        Guid jobId,
+        CancellationToken ct = default) {
+        var items = await context.JobItems
+            .Where(i => i.JobId == jobId &&
+                   (i.Status == JobItemStatus.Pending || i.Status == JobItemStatus.InProgress))
+            .ToListAsync(ct);
+
+        foreach (var item in items) {
+            item.Status = JobItemStatus.Canceled;
+            item.CompletedAt = DateTime.UtcNow;
+        }
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    public async Task RetryJobItemsAsync(
+        Guid jobId,
+        CancellationToken ct = default) {
+        var items = await context.JobItems
+            .Where(i => i.JobId == jobId &&
+                   (i.Status == JobItemStatus.Failed || i.Status == JobItemStatus.Canceled))
+            .ToListAsync(ct);
+
+        foreach (var item in items) {
+            item.Status = JobItemStatus.Pending;
+            item.ErrorMessage = null;
+            item.OutputJson = null;
+            item.StartedAt = null;
+            item.CompletedAt = null;
+        }
 
         await context.SaveChangesAsync(ct);
     }

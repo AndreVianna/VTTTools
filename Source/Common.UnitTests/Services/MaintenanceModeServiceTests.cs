@@ -26,7 +26,7 @@ public class MaintenanceModeServiceTests {
         var result = await _service.GetCurrentAsync(TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.IsEnabled.Should().BeTrue();
+        result.IsEnabled.Should().BeTrue();
     }
 
     [Fact]

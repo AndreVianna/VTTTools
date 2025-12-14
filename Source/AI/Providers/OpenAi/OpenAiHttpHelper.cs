@@ -1,18 +1,19 @@
 namespace VttTools.AI.Providers.OpenAi;
 
-internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, IConfiguration config) {
+internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, IOptionsSnapshot<AiOptions> options) {
+    private const string _providerName = "OpenAI";
+
     private static readonly JsonSerializerOptions _jsonOptions = new() {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         PropertyNameCaseInsensitive = true
     };
 
     public HttpClient CreateAuthenticatedClient() {
-        var client = httpClientFactory.CreateClient();
-        var baseUrl = config["AI:Providers:OpenAI:BaseUrl"]
-            ?? throw new InvalidOperationException("OpenAI API base url not configured.");
-        client.BaseAddress = new Uri(baseUrl);
+        var providerConfig = GetProviderConfig();
+        var client = httpClientFactory.CreateClient(Extensions.HostApplicationBuilderExtensions.AiProviderHttpClientName);
+        client.BaseAddress = new Uri(providerConfig.BaseUrl);
 
-        var apiKey = config["AI:Providers:OpenAI:ApiKey"]
+        var apiKey = providerConfig.ApiKey
             ?? throw new InvalidOperationException("OpenAI API key is not configured.");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -20,17 +21,17 @@ internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, ICo
         return client;
     }
 
-    public string GetEndpoint(string model) {
-        var endpoint = model switch {
-            "gpt-image-1" => "/v1/images/generations",
-            "gpt-image-1-mini" => "/v1/images/generations",
-            "gpt-4o" => "/v1/chat/completions",
-            "gpt-4o-mini" => "/v1/chat/completions",
-            _ => config[$"AI:Providers:OpenAI:{model}"]
-                ?? throw new InvalidOperationException($"Unknown OpenAI model: {model}")
+    public static string GetEndpoint(string model)
+        => model switch {
+            "gpt-image-1" or "gpt-image-1-mini" => "/v1/images/generations",
+            "gpt-4o" or "gpt-4o-mini" => "/v1/chat/completions",
+            _ => throw new InvalidOperationException($"Unknown OpenAI model: {model}"),
         };
-        return endpoint;
-    }
+
+    private ProviderConfig GetProviderConfig()
+        => options.Value.Providers.TryGetValue(_providerName, out var config)
+            ? config
+            : throw new InvalidOperationException($"{_providerName} provider is not configured.");
 
     public static async Task<T?> PostAndDeserializeAsync<T>(
         HttpClient client,
@@ -50,7 +51,7 @@ internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, ICo
     }
 
     public static OpenAiPricingCalculator GetImagePricingCalculator(string model) {
-        var (inputCost, outputCost) = model switch {
+        (var inputCost, var outputCost) = model switch {
             "gpt-image-1" => (10.0, 40.0),
             "gpt-image-1-mini" => (2.5, 8.0),
             _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")
@@ -60,7 +61,7 @@ internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, ICo
     }
 
     public static OpenAiPricingCalculator GetTextPricingCalculator(string model) {
-        var (inputCost, outputCost) = model switch {
+        (var inputCost, var outputCost) = model switch {
             "gpt-4o" => (2.5, 10.0),
             "gpt-4o-mini" => (0.15, 0.60),
             _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")

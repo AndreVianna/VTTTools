@@ -80,7 +80,7 @@ public sealed class EncounterAdminServiceTests : IAsyncLifetime {
         var result = await _sut.GetEncounterByIdAsync(encounter.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(encounter.Id);
+        result.Id.Should().Be(encounter.Id);
     }
 
     [Fact]

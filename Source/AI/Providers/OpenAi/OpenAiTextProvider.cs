@@ -2,11 +2,11 @@ namespace VttTools.AI.Providers.OpenAi;
 
 public sealed class OpenAiTextProvider(
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration,
+    IOptionsSnapshot<AiOptions> options,
     ILogger<OpenAiTextProvider> logger) : ITextProvider {
-    private readonly OpenAiHttpHelper _helper = new(httpClientFactory, configuration);
+    private readonly OpenAiHttpHelper _helper = new(httpClientFactory, options);
 
-    public string Name => "OpenAi";
+    public string Name => "OpenAI";
 
     public async Task<Result<TextGenerationResponse>> GenerateAsync(
         TextGenerationData data,
@@ -14,13 +14,13 @@ public sealed class OpenAiTextProvider(
         var stopwatch = Stopwatch.StartNew();
 
         try {
-            var model = data.Model ?? configuration["AI:Providers:OpenAI:Models:Text"]
-                ?? throw new InvalidOperationException("OpenAI text model not configured.");
+            var model = data.Model
+                ?? throw new InvalidOperationException("Model must be specified for text generation.");
 
             logger.LogDebug("Starting OpenAI text generation with model {Model}", model);
 
             var apiRequest = CreateTextRequest(model, data);
-            var endpoint = _helper.GetEndpoint(model);
+            var endpoint = OpenAiHttpHelper.GetEndpoint(model);
 
             using var client = _helper.CreateAuthenticatedClient();
             var response = await OpenAiHttpHelper.PostAndDeserializeAsync<OpenAiTextResponse>(client, endpoint, apiRequest, ct);
@@ -46,7 +46,7 @@ public sealed class OpenAiTextProvider(
             return Result.Success(new TextGenerationResponse {
                 GeneratedText = generatedText,
                 ContentType = data.ContentType,
-                Provider = data.Provider,
+                Provider = data.Provider!,
                 Model = model,
                 InputTokens = cost.InputTokens,
                 OutputTokens = cost.OutputTokens,

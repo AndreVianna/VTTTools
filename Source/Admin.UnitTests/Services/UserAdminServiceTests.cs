@@ -273,7 +273,7 @@ public class UserAdminServiceTests
         var result = await _sut.GetUserByIdAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(user.Id);
+        result.Id.Should().Be(user.Id);
         result.Email.Should().Be(user.Email);
         result.DisplayName.Should().Be(user.DisplayName);
         result.EmailConfirmed.Should().Be(user.EmailConfirmed);
@@ -307,7 +307,7 @@ public class UserAdminServiceTests
         var result = await _sut.GetUserByIdAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.IsLockedOut.Should().BeTrue();
+        result.IsLockedOut.Should().BeTrue();
         result.LockoutEnabled.Should().BeTrue();
         result.LockoutEnd.Should().NotBeNull();
     }

@@ -15,7 +15,7 @@ public sealed class AdventureAdminService(
         LibrarySearchRequest request,
         CancellationToken ct = default) {
         try {
-            var (skip, take) = GetPagination(request);
+            (var skip, var take) = GetPagination(request);
             var filter = new LibrarySearchFilter {
                 Search = request.Search,
                 OwnerId = request.OwnerId,
@@ -28,7 +28,7 @@ public sealed class AdventureAdminService(
                 Take = take + 1
             };
 
-            var (adventures, totalCount) = await adventureStorage.SearchAsync(MasterUserId, filter, ct);
+            (var adventures, var totalCount) = await adventureStorage.SearchAsync(MasterUserId, filter, ct);
 
             var hasMore = adventures.Length > take;
             if (hasMore)

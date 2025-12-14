@@ -1,4 +1,6 @@
 
+using VttTools.AI.Mocks;
+
 namespace VttTools.AI.Services;
 
 public class PromptEnhancementServiceTests {
@@ -9,11 +11,13 @@ public class PromptEnhancementServiceTests {
 
     public PromptEnhancementServiceTests() {
         _mockProvider = new MockPromptProvider {
-            Name = "OpenAi",
+            Name = "OpenAI",
             EnhancedPromptToReturn = "A highly detailed, photorealistic landscape scene",
         };
 
-        _providerFactory.GetPromptProvider(Arg.Any<string>()).Returns(_mockProvider);
+        _providerFactory.GetPromptProvider(Arg.Any<string?>()).Returns(_mockProvider);
+        _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
+            .Returns(("OpenAI", "gpt-4o-mini"));
 
         _service = new PromptEnhancementService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
@@ -67,16 +71,17 @@ public class PromptEnhancementServiceTests {
     }
 
     [Fact]
-    public async Task EnhanceAsync_WithNullProvider_UsesDefaultProvider() {
+    public async Task EnhanceAsync_WithNullProvider_ResolvesFromConfig() {
         var data = new PromptEnhancementData {
-            Provider = null!,
-            Model = "gpt-4",
+            Provider = null,
+            Model = null,
             Prompt = "Test prompt",
         };
 
         var result = await _service.GenerateAsync(data, _ct);
 
-        result.IsSuccessful.Should().BeFalse();
+        result.IsSuccessful.Should().BeTrue();
+        _providerFactory.Received(1).GetProviderAndModel(GeneratedContentType.PromptEnhancement);
     }
 
     [Fact]

@@ -36,7 +36,7 @@ public class TokenRefreshMiddlewareTests {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user)!);
+        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
         _jwtTokenService.GenerateToken(user, roles, false).Returns(newToken);
 
@@ -63,7 +63,7 @@ public class TokenRefreshMiddlewareTests {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user)!);
+        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
         _jwtTokenService.GenerateToken(user, roles, false).Returns(newToken);
 
@@ -238,7 +238,7 @@ public class TokenRefreshMiddlewareTests {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user)!);
+        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns<IList<string>>(_ => throw new Exception("Role error"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
@@ -261,7 +261,7 @@ public class TokenRefreshMiddlewareTests {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user)!);
+        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
         _jwtTokenService.GenerateToken(user, roles, false).Returns<string>(_ => throw new Exception("Token error"));
 

@@ -219,7 +219,7 @@ public class BlobStorageHealthCheckTests {
         result.Data.Should().ContainKey("accessTime");
         var accessTime = result.Data["accessTime"].ToString();
         accessTime.Should().EndWith("ms");
-        var milliseconds = double.Parse(accessTime!.Replace("ms", ""));
+        var milliseconds = double.Parse(accessTime.Replace("ms", ""));
         milliseconds.Should().BeGreaterThanOrEqualTo(75);
     }
 

@@ -1,6 +1,6 @@
-using AssetModel = VttTools.Assets.Model.Asset;
-using AssetKind = VttTools.Assets.Model.AssetKind;
 using AssetClassification = VttTools.Assets.Model.AssetClassification;
+using AssetKind = VttTools.Assets.Model.AssetKind;
+using AssetModel = VttTools.Assets.Model.Asset;
 
 namespace VttTools.Admin.Library.Services;
 
@@ -15,7 +15,7 @@ public sealed class AssetAdminService(
         LibrarySearchRequest request,
         CancellationToken ct = default) {
         try {
-            var (skip, take) = GetPagination(request);
+            (var skip, var take) = GetPagination(request);
 
             AssetKind? kind = null;
             if (!string.IsNullOrWhiteSpace(request.Kind) && Enum.TryParse<AssetKind>(request.Kind, ignoreCase: true, out var parsedKind))
@@ -23,16 +23,16 @@ public sealed class AssetAdminService(
 
             var pagination = new Pagination(skip / take, take + 1);
 
-            var (assets, totalCount) = await assetStorage.SearchAsync(
-                MasterUserId,
-                availability: Availability.MineOnly,
-                kind: kind,
-                category: request.Category,
-                type: request.Type,
-                subtype: request.Subtype,
-                search: request.Search,
-                pagination: pagination,
-                ct: ct);
+            (var assets, var totalCount) = await assetStorage.SearchAsync(
+                                                                          MasterUserId,
+                                                                          availability: Availability.MineOnly,
+                                                                          kind: kind,
+                                                                          category: request.Category,
+                                                                          type: request.Type,
+                                                                          subtype: request.Subtype,
+                                                                          search: request.Search,
+                                                                          pagination: pagination,
+                                                                          ct: ct);
 
             var hasMore = assets.Length > take;
             if (hasMore)
@@ -234,19 +234,19 @@ public sealed class AssetAdminService(
 
         var tree = new List<AssetTaxonomyNode>();
 
-        foreach (var (kind, kindCount) in kindCounts) {
+        foreach ((var kind, var kindCount) in kindCounts) {
             var kindChildren = new List<AssetTaxonomyNode>();
 
             if (kindCategoryMap.TryGetValue(kind, out var categoryMap)) {
-                foreach (var (category, typeMap) in categoryMap) {
+                foreach ((var category, var typeMap) in categoryMap) {
                     var categoryChildren = new List<AssetTaxonomyNode>();
                     var categoryCount = 0;
 
-                    foreach (var (type, subtypeMap) in typeMap) {
+                    foreach ((var type, var subtypeMap) in typeMap) {
                         var typeChildren = new List<AssetTaxonomyNode>();
                         var typeCount = subtypeMap.Values.Sum();
 
-                        foreach (var (subtype, count) in subtypeMap) {
+                        foreach ((var subtype, var count) in subtypeMap) {
                             if (!string.IsNullOrEmpty(subtype)) {
                                 typeChildren.Add(new AssetTaxonomyNode(
                                     $"{kind}/{category}/{type}/{subtype}",

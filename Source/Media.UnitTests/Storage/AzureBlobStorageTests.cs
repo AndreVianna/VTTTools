@@ -27,7 +27,7 @@ public class AzureBlobStorageTests {
         var method = typeof(AzureBlobStorage).GetMethod("SaveAsync");
 
         method.Should().NotBeNull();
-        method!.ReturnType.Should().Be<Task<Result<string>>>();
+        method.ReturnType.Should().Be<Task<Result<string>>>();
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class AzureBlobStorageTests {
         var method = typeof(AzureBlobStorage).GetMethod("SaveThumbnailAsync");
 
         method.Should().NotBeNull();
-        method!.ReturnType.Should().Be<Task<Result<string>>>();
+        method.ReturnType.Should().Be<Task<Result<string>>>();
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class AzureBlobStorageTests {
         var method = typeof(AzureBlobStorage).GetMethod("GetAsync");
 
         method.Should().NotBeNull();
-        method!.ReturnType.Should().Be<Task<ResourceDownloadResult?>>();
+        method.ReturnType.Should().Be<Task<ResourceDownloadResult?>>();
     }
 
     [Fact]
@@ -51,6 +51,6 @@ public class AzureBlobStorageTests {
         var method = typeof(AzureBlobStorage).GetMethod("RemoveAsync");
 
         method.Should().NotBeNull();
-        method!.ReturnType.Should().Be<Task<Result>>();
+        method.ReturnType.Should().Be<Task<Result>>();
     }
 }

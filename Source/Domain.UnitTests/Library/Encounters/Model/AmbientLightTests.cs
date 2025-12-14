@@ -20,17 +20,19 @@ public class AmbientLightTests {
     [Fact]
     public void Enum_CanBeConvertedToString() {
         // Act & Assert
-        AmbientLight.Black.ToString().Should().Be("Black");
-        AmbientLight.Darkness.ToString().Should().Be("Darkness");
-        AmbientLight.Nighttime.ToString().Should().Be("Nighttime");
-        AmbientLight.Dim.ToString().Should().Be("Dim");
-        AmbientLight.Twilight.ToString().Should().Be("Twilight");
-        AmbientLight.Default.ToString().Should().Be("Default");
-        AmbientLight.Candlelight.ToString().Should().Be("Candlelight");
-        AmbientLight.Torchlight.ToString().Should().Be("Torchlight");
-        AmbientLight.Artificial.ToString().Should().Be("Artificial");
-        AmbientLight.Daylight.ToString().Should().Be("Daylight");
-        AmbientLight.Bright.ToString().Should().Be("Bright");
+        nameof(
+        // Act & Assert
+        AmbientLight.Black).Should().Be("Black");
+        nameof(AmbientLight.Darkness).Should().Be("Darkness");
+        nameof(AmbientLight.Nighttime).Should().Be("Nighttime");
+        nameof(AmbientLight.Dim).Should().Be("Dim");
+        nameof(AmbientLight.Twilight).Should().Be("Twilight");
+        nameof(AmbientLight.Default).Should().Be("Default");
+        nameof(AmbientLight.Candlelight).Should().Be("Candlelight");
+        nameof(AmbientLight.Torchlight).Should().Be("Torchlight");
+        nameof(AmbientLight.Artificial).Should().Be("Artificial");
+        nameof(AmbientLight.Daylight).Should().Be("Daylight");
+        nameof(AmbientLight.Bright).Should().Be("Bright");
     }
 
     [Fact]

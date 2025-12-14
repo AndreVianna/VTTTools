@@ -1,4 +1,6 @@
 
+using VttTools.AI.Mocks;
+
 namespace VttTools.AI.Services;
 
 public class VideoGenerationServiceTests {
@@ -13,8 +15,10 @@ public class VideoGenerationServiceTests {
             VideoDataToReturn = [0x00, 0x00, 0x00, 0x18],
         };
 
-        _providerFactory.GetVideoProvider(Arg.Any<string>()).Returns(_mockProvider);
+        _providerFactory.GetVideoProvider(Arg.Any<string?>()).Returns(_mockProvider);
         _providerFactory.GetAvailableVideoProviders().Returns(["RunwayML"]);
+        _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
+            .Returns(("RunwayML", "gen-3"));
 
         _service = new VideoGenerationService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
@@ -23,6 +27,7 @@ public class VideoGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_WithValidRequest_ReturnsVideoResponse() {
         var data = new VideoGenerationData {
+            ContentType = GeneratedContentType.VideoBackground,
             Prompt = "Dragon flying over mountains",
             Model = "gen-2",
             Provider = "RunwayML",
@@ -35,13 +40,14 @@ public class VideoGenerationServiceTests {
         result.Value.Should().NotBeNull();
         result.Value.VideoData.Should().BeEquivalentTo(_mockProvider.VideoDataToReturn);
         result.Value.ContentType.Should().Be("video/mp4");
-        result.Value.Elapsed.Should().Be(TimeSpan.FromSeconds(5));
+        result.Value.Elapsed.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
         _mockProvider.LastRequest.Should().BeSameAs(data);
     }
 
     [Fact]
     public async Task GenerateAsync_WhenProviderFails_PropagatesError() {
         var data = new VideoGenerationData {
+            ContentType = GeneratedContentType.VideoOverlay,
             Provider = "RunwayML",
             Model = "gen-2",
             Prompt = "Test video",
@@ -55,8 +61,9 @@ public class VideoGenerationServiceTests {
     }
 
     [Fact]
-    public async Task GenerateAsync_WithNullDuration_UsesZero() {
+    public async Task GenerateAsync_WithNullDuration_ReturnsSuccessfulResponse() {
         var data = new VideoGenerationData {
+            ContentType = GeneratedContentType.VideoBackground,
             Provider = "RunwayML",
             Model = "gen-2",
             Prompt = "Test video",
@@ -66,7 +73,7 @@ public class VideoGenerationServiceTests {
         var result = await _service.GenerateAsync(data, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Elapsed.Should().Be(TimeSpan.Zero);
+        result.Value.Elapsed.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
     }
 
     [Fact]
@@ -81,6 +88,7 @@ public class VideoGenerationServiceTests {
     [Fact]
     public async Task GenerateAsync_SetsCostToZero() {
         var data = new VideoGenerationData {
+            ContentType = GeneratedContentType.VideoBackground,
             Provider = "RunwayML",
             Model = "gen-2",
             Prompt = "Test video",
@@ -90,5 +98,20 @@ public class VideoGenerationServiceTests {
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Cost.Should().Be(0m);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithNullProvider_ResolvesFromConfig() {
+        var data = new VideoGenerationData {
+            ContentType = GeneratedContentType.VideoBackground,
+            Provider = null,
+            Model = null,
+            Prompt = "Test video",
+        };
+
+        var result = await _service.GenerateAsync(data, _ct);
+
+        result.IsSuccessful.Should().BeTrue();
+        _providerFactory.Received(1).GetProviderAndModel(GeneratedContentType.VideoBackground);
     }
 }

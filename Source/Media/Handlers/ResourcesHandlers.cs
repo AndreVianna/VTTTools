@@ -27,7 +27,7 @@ internal static class ResourcesHandlers {
         if (!validationResult.IsSuccessful)
             return Results.BadRequest(validationResult.Errors);
 
-        var (items, totalCount) = await resourceService.FindResourcesAsync(userId, filter, ct);
+        (var items, var totalCount) = await resourceService.FindResourcesAsync(userId, filter, ct);
         return Results.Ok(new { items, totalCount, skip = Math.Max(0, filter.Skip), take = Math.Clamp(filter.Take, 1, 100) });
     }
 

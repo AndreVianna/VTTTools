@@ -13,10 +13,10 @@ public class TextGenerationService(
         if (validation.HasErrors)
             return Result.Failure<TextGenerationResponse>(null!, validation.Errors);
 
-        var resolvedData = data;
+        var resolvedData = ResolveProviderAndModel(data);
 
-        if (!string.IsNullOrWhiteSpace(data.TemplateName)) {
-            var templateResult = await ResolveTemplateAsync(data, ct);
+        if (!string.IsNullOrWhiteSpace(resolvedData.TemplateName)) {
+            var templateResult = await ResolveTemplateAsync(resolvedData, ct);
             if (!templateResult.IsSuccessful)
                 return Result.Failure<TextGenerationResponse>(null!, templateResult.Errors);
             resolvedData = templateResult.Value;
@@ -28,6 +28,17 @@ public class TextGenerationService(
 
     public IReadOnlyList<string> GetAvailableProviders()
         => providerFactory.GetAvailableTextProviders();
+
+    private TextGenerationData ResolveProviderAndModel(TextGenerationData data) {
+        if (!string.IsNullOrEmpty(data.Provider) && !string.IsNullOrEmpty(data.Model))
+            return data;
+
+        (var provider, var model) = providerFactory.GetProviderAndModel(data.ContentType);
+        return data with {
+            Provider = data.Provider ?? provider,
+            Model = data.Model ?? model,
+        };
+    }
 
     private async Task<Result<TextGenerationData>> ResolveTemplateAsync(
         TextGenerationData data,

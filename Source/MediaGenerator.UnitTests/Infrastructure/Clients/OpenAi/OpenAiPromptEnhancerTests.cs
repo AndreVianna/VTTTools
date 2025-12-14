@@ -18,10 +18,10 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _config["PromptEnhancer:Model"].Returns("gpt-5");
         _config["Providers:OpenAI:gpt-5"].Returns("/v1/chat/completions");
 
-        var client = new HttpClient(_mockHandler) {
+        var client = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new Uri("https://api.openai.com")
         };
-        _httpClientFactory.CreateClient().Returns(client);
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
         _enhancer = new OpenAiPromptEnhancer(_httpClientFactory, _config);
     }
@@ -37,7 +37,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
 
     [Fact]
     public async Task EnhancePromptAsync_WithValidRequest_ReturnsEnhancedPrompt() {
-        var responseJson = """
+        const string responseJson = """
         {
             "output": [
                 {},
@@ -88,7 +88,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
 
     [Fact]
     public async Task EnhancePromptAsync_WithEmptyOutput_ReturnsErrorResponse() {
-        var responseJson = """
+        const string responseJson = """
         {
             "output": [],
             "usage": {
@@ -108,7 +108,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
 
     [Fact]
     public async Task EnhancePromptAsync_WithNullOutput_ReturnsErrorResponse() {
-        var responseJson = """
+        const string responseJson = """
         {
             "usage": {
                 "input_tokens": 100,
@@ -127,7 +127,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
 
     [Fact]
     public async Task EnhancePromptAsync_WithEmptyContent_ReturnsErrorResponse() {
-        var responseJson = """
+        const string responseJson = """
         {
             "output": [
                 {},

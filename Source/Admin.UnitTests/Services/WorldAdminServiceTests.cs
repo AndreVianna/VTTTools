@@ -49,7 +49,7 @@ public sealed class WorldAdminServiceTests {
         var result = await _sut.GetWorldByIdAsync(world.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(world.Id);
+        result.Id.Should().Be(world.Id);
         result.Name.Should().Be("Test World");
     }
 

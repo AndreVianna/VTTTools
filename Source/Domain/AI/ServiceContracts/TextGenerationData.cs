@@ -1,11 +1,13 @@
 namespace VttTools.AI.ServiceContracts;
 
 public sealed record TextGenerationData : Data {
-    [MaxLength(64)]
-    public required string Provider { get; init; }
+    public required GeneratedContentType ContentType { get; init; }
 
     [MaxLength(64)]
-    public required string Model { get; init; }
+    public string? Provider { get; init; }
+
+    [MaxLength(64)]
+    public string? Model { get; init; }
 
     [Required]
     [MaxLength(8192)]
@@ -13,8 +15,6 @@ public sealed record TextGenerationData : Data {
 
     [MaxLength(4096)]
     public string? SystemPrompt { get; init; }
-
-    public GeneratedContentType ContentType { get; init; }
 
     [MaxLength(128)]
     public string? TemplateName { get; init; }
@@ -38,6 +38,8 @@ public sealed record TextGenerationData : Data {
             result += new Error("The system prompt cannot have more than 4096 characters.", nameof(SystemPrompt));
         if (TemplateName?.Length > 128)
             result += new Error("The template name cannot have more than 128 characters.", nameof(TemplateName));
+        if (Provider?.Length > 64)
+            result += new Error("The provider name cannot have more than 64 characters.", nameof(Provider));
         if (Model?.Length > 64)
             result += new Error("The model name cannot have more than 64 characters.", nameof(Model));
         if (MaxTokens is < 1 or > 16384)

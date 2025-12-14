@@ -20,7 +20,7 @@ public class ConfigurationHandlersTests {
         var value = result.GetType().GetProperty("Value")?.GetValue(result);
         value.Should().NotBeNull();
 
-        var serviceName = value!.GetType().GetProperty("ServiceName")?.GetValue(value);
+        var serviceName = value.GetType().GetProperty("ServiceName")?.GetValue(value);
         var resultEntries = value.GetType().GetProperty("Entries")?.GetValue(value) as IReadOnlyList<object>;
 
         serviceName.Should().Be("Library");
@@ -44,7 +44,7 @@ public class ConfigurationHandlersTests {
         var value = result.GetType().GetProperty("Value")?.GetValue(result);
         value.Should().NotBeNull();
 
-        var resultEntries = value!.GetType().GetProperty("Entries")?.GetValue(value) as IReadOnlyList<object>;
+        var resultEntries = value.GetType().GetProperty("Entries")?.GetValue(value) as IReadOnlyList<object>;
         resultEntries.Should().NotBeNull();
         resultEntries.Should().BeEmpty();
     }

@@ -8,6 +8,7 @@ internal static class ImageGenerationHandlers {
         [FromServices] IImageGenerationService service,
         CancellationToken ct = default) {
         var data = new ImageGenerationData {
+            ContentType = request.ContentType,
             Prompt = request.Prompt,
             NegativePrompt = request.NegativePrompt,
             Provider = request.Provider,

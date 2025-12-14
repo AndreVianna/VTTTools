@@ -13,8 +13,8 @@ import {
     CheckCircle as CheckIcon,
     Error as ErrorIcon,
     HourglassEmpty as PendingIcon,
-    Settings as ProcessingIcon,
-    SkipNext as SkippedIcon,
+    Settings as InProgressIcon,
+    Cancel as CanceledIcon,
 } from '@mui/icons-material';
 import type { JobProgressEvent } from '@/types/jobs';
 import { JobItemStatus } from '@/types/jobs';
@@ -42,14 +42,14 @@ export function JobProgressLog({
         switch (status) {
             case JobItemStatus.Pending:
                 return <PendingIcon color="disabled" />;
-            case JobItemStatus.Processing:
-                return <ProcessingIcon color="primary" />;
-            case JobItemStatus.Completed:
+            case JobItemStatus.InProgress:
+                return <InProgressIcon color="primary" />;
+            case JobItemStatus.Success:
                 return <CheckIcon color="success" />;
             case JobItemStatus.Failed:
                 return <ErrorIcon color="error" />;
-            case JobItemStatus.Skipped:
-                return <SkippedIcon color="disabled" />;
+            case JobItemStatus.Canceled:
+                return <CanceledIcon color="warning" />;
             default:
                 return <PendingIcon color="disabled" />;
         }
@@ -59,13 +59,13 @@ export function JobProgressLog({
         switch (status) {
             case JobItemStatus.Pending:
                 return 'default';
-            case JobItemStatus.Processing:
+            case JobItemStatus.InProgress:
                 return 'primary';
-            case JobItemStatus.Completed:
+            case JobItemStatus.Success:
                 return 'success';
             case JobItemStatus.Failed:
                 return 'error';
-            case JobItemStatus.Skipped:
+            case JobItemStatus.Canceled:
                 return 'warning';
             default:
                 return 'default';

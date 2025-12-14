@@ -50,10 +50,10 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         var processedCount = 0;
         var skipCount = 0;
         var previousAssetIndex = -1;
-        foreach (var (assetIndex, asset, tokenIndex, token) in assets.SelectMany((e, i) =>
-            e.Tokens.Count > 0
-                ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (ResourceMetadata?)v))
-                : [(assetIndex: i, entity: e, tokenIndex: 0, token: null)])) {
+        foreach ((var assetIndex, var asset, var tokenIndex, var token) in assets.SelectMany((e, i) =>
+                                                                                                 e.Tokens.Count > 0
+                                                                                                     ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (ResourceMetadata?)v))
+                                                                                                     : [(assetIndex: i, entity: e, tokenIndex: 0, token: null)])) {
             ct.ThrowIfCancellationRequested();
             if (replace is AllowOverwriteResult.Cancel) {
                 skipCount = totalFiles - (processedCount + skipCount);

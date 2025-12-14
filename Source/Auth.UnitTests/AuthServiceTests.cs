@@ -469,9 +469,9 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ForgotPasswordAsync_WithExistingUser_SendsEmailAndReturnsSuccess() {
-        var email = "user@example.com";
+        const string email = "user@example.com";
         var user = CreateTestUser(email, "Test User");
-        var resetToken = "reset-token-123";
+        const string resetToken = "reset-token-123";
 
         _mockUserManager.FindByEmailAsync(email).Returns(user);
         _mockUserManager.GeneratePasswordResetTokenAsync(user).Returns(resetToken);
@@ -488,7 +488,7 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ForgotPasswordAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
-        var email = "nonexistent@example.com";
+        const string email = "nonexistent@example.com";
 
         _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
 
@@ -503,7 +503,7 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ForgotPasswordAsync_WhenExceptionThrown_ReturnsInternalServerError() {
-        var email = "error@example.com";
+        const string email = "error@example.com";
 
         _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -519,8 +519,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ValidateResetTokenAsync_WithValidToken_ReturnsSuccess() {
-        var email = "user@example.com";
-        var token = "valid-token";
+        const string email = "user@example.com";
+        const string token = "valid-token";
         var user = CreateTestUser(email, "Test User");
 
         _mockUserManager.FindByEmailAsync(email).Returns(user);
@@ -539,8 +539,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ValidateResetTokenAsync_WithInvalidToken_ReturnsFailure() {
-        var email = "user@example.com";
-        var token = "invalid-token";
+        const string email = "user@example.com";
+        const string token = "invalid-token";
         var user = CreateTestUser(email, "Test User");
 
         _mockUserManager.FindByEmailAsync(email).Returns(user);
@@ -558,8 +558,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ValidateResetTokenAsync_WithNonExistentUser_ReturnsFailure() {
-        var email = "nonexistent@example.com";
-        var token = "some-token";
+        const string email = "nonexistent@example.com";
+        const string token = "some-token";
 
         _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
 
@@ -572,8 +572,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ValidateResetTokenAsync_WhenExceptionThrown_ReturnsInternalServerError() {
-        var email = "error@example.com";
-        var token = "some-token";
+        const string email = "error@example.com";
+        const string token = "some-token";
 
         _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -589,9 +589,9 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResetPasswordAsync_WithValidToken_ResetsPasswordAndReturnsSuccess() {
-        var email = "user@example.com";
-        var token = "valid-token";
-        var newPassword = "NewPassword123!";
+        const string email = "user@example.com";
+        const string token = "valid-token";
+        const string newPassword = "NewPassword123!";
         var user = CreateTestUser(email, "Test User");
 
         _mockUserManager.FindByEmailAsync(email).Returns(user);
@@ -607,9 +607,9 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResetPasswordAsync_WithInvalidToken_ReturnsFailure() {
-        var email = "user@example.com";
-        var token = "invalid-token";
-        var newPassword = "NewPassword123!";
+        const string email = "user@example.com";
+        const string token = "invalid-token";
+        const string newPassword = "NewPassword123!";
         var user = CreateTestUser(email, "Test User");
         var identityErrors = new List<IdentityError> {
             new() { Description = "Invalid token" }
@@ -627,9 +627,9 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResetPasswordAsync_WithNonExistentUser_ReturnsFailure() {
-        var email = "nonexistent@example.com";
-        var token = "some-token";
-        var newPassword = "NewPassword123!";
+        const string email = "nonexistent@example.com";
+        const string token = "some-token";
+        const string newPassword = "NewPassword123!";
 
         _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
 
@@ -642,9 +642,9 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResetPasswordAsync_WhenExceptionThrown_ReturnsInternalServerError() {
-        var email = "error@example.com";
-        var token = "some-token";
-        var newPassword = "NewPassword123!";
+        const string email = "error@example.com";
+        const string token = "some-token";
+        const string newPassword = "NewPassword123!";
 
         _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -660,10 +660,10 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResendEmailConfirmationAsync_WithUnconfirmedUser_SendsEmailAndReturnsSuccess() {
-        var email = "unconfirmed@example.com";
+        const string email = "unconfirmed@example.com";
         var user = CreateTestUser(email, "Test User");
         user.EmailConfirmed = false;
-        var confirmToken = "confirm-token-123";
+        const string confirmToken = "confirm-token-123";
 
         _mockUserManager.FindByEmailAsync(email).Returns(user);
         _mockUserManager.GenerateEmailConfirmationTokenAsync(user).Returns(confirmToken);
@@ -680,7 +680,7 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResendEmailConfirmationAsync_WithAlreadyConfirmedUser_ReturnsSuccessWithoutSendingEmail() {
-        var email = "confirmed@example.com";
+        const string email = "confirmed@example.com";
         var user = CreateTestUser(email, "Test User");
         user.EmailConfirmed = true;
 
@@ -696,7 +696,7 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResendEmailConfirmationAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
-        var email = "nonexistent@example.com";
+        const string email = "nonexistent@example.com";
 
         _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
 
@@ -710,7 +710,7 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ResendEmailConfirmationAsync_WhenExceptionThrown_ReturnsInternalServerError() {
-        var email = "error@example.com";
+        const string email = "error@example.com";
 
         _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -726,8 +726,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ConfirmEmailAsync_WithValidToken_ConfirmsEmailAndReturnsSuccess() {
-        var email = "user@example.com";
-        var token = "valid-token";
+        const string email = "user@example.com";
+        const string token = "valid-token";
         var user = CreateTestUser(email, "Test User");
         user.EmailConfirmed = false;
 
@@ -744,8 +744,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ConfirmEmailAsync_WithAlreadyConfirmedEmail_ReturnsSuccessWithoutConfirming() {
-        var email = "confirmed@example.com";
-        var token = "some-token";
+        const string email = "confirmed@example.com";
+        const string token = "some-token";
         var user = CreateTestUser(email, "Test User");
         user.EmailConfirmed = true;
 
@@ -760,8 +760,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ConfirmEmailAsync_WithInvalidToken_ReturnsFailure() {
-        var email = "user@example.com";
-        var token = "invalid-token";
+        const string email = "user@example.com";
+        const string token = "invalid-token";
         var user = CreateTestUser(email, "Test User");
         user.EmailConfirmed = false;
         var identityErrors = new List<IdentityError> {
@@ -780,8 +780,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ConfirmEmailAsync_WithNonExistentUser_ReturnsFailure() {
-        var email = "nonexistent@example.com";
-        var token = "some-token";
+        const string email = "nonexistent@example.com";
+        const string token = "some-token";
 
         _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
 
@@ -794,8 +794,8 @@ public class AuthServiceTests {
 
     [Fact]
     public async Task ConfirmEmailAsync_WhenExceptionThrown_ReturnsInternalServerError() {
-        var email = "error@example.com";
-        var token = "some-token";
+        const string email = "error@example.com";
+        const string token = "some-token";
 
         _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
 

@@ -8,6 +8,7 @@ internal static class VideoGenerationHandlers {
         [FromServices] IVideoGenerationService service,
         CancellationToken ct = default) {
         var data = new VideoGenerationData {
+            ContentType = request.ContentType,
             Prompt = request.Prompt,
             Provider = request.Provider,
             Model = request.Model,

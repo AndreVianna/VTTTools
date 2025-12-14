@@ -6,7 +6,6 @@ global using System.Security.Claims;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
-
 global using System.Threading.Channels;
 
 global using DotNetToolbox.Results;
@@ -15,6 +14,7 @@ global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Http.Resilience;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Caching.Memory;
@@ -24,6 +24,7 @@ global using System.Threading.RateLimiting;
 global using Microsoft.AspNetCore.RateLimiting;
 
 global using VttTools.AI.ApiContracts;
+global using VttTools.AI.Options;
 global using VttTools.AI.Clients;
 global using VttTools.AI.EndpointMappers;
 global using VttTools.AI.Factory;

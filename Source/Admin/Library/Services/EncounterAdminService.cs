@@ -14,7 +14,7 @@ public sealed class EncounterAdminService(
         LibrarySearchRequest request,
         CancellationToken ct = default) {
         try {
-            var (skip, take) = GetPagination(request);
+            (var skip, var take) = GetPagination(request);
             var filter = new LibrarySearchFilter {
                 Search = request.Search,
                 OwnerId = request.OwnerId,
@@ -27,7 +27,7 @@ public sealed class EncounterAdminService(
                 Take = take + 1
             };
 
-            var (encounters, totalCount) = await encounterStorage.SearchAsync(MasterUserId, filter, ct);
+            (var encounters, var totalCount) = await encounterStorage.SearchAsync(MasterUserId, filter, ct);
 
             var hasMore = encounters.Length > take;
             if (hasMore)
@@ -86,7 +86,7 @@ public sealed class EncounterAdminService(
                 Skip = 0,
                 Take = 1
             };
-            var (adventures, _) = await adventureStorage.SearchAsync(MasterUserId, filter, ct);
+            (var adventures, _) = await adventureStorage.SearchAsync(MasterUserId, filter, ct);
             var defaultAdventure = adventures.FirstOrDefault()
                 ?? throw new InvalidOperationException("No default adventure found for master user");
 

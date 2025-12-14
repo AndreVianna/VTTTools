@@ -5,8 +5,7 @@ public sealed class BulkAssetGenerationHandler(
     ResourceServiceClient resourceClient,
     AssetServiceClient assetClient,
     IPromptTemplateStorage templateStorage,
-    ILogger<BulkAssetGenerationHandler> logger)
-    : IJobWorkHandler {
+    ILogger<BulkAssetGenerationHandler> logger) {
 
     public const string JobTypeName = "BulkAssetGeneration";
 
@@ -18,7 +17,7 @@ public sealed class BulkAssetGenerationHandler(
 
     public string JobType => JobTypeName;
 
-    public async Task<JobItemResult> ProcessItemAsync(string provider, string model, JobItemContext context, CancellationToken ct) {
+    public async Task<JobItemResult> ProcessItemAsync(JobItemContext context, CancellationToken ct) {
         try {
             var jobInput = DeserializeJobInput(context.JobInputJson);
             var itemData = DeserializeItemInput(context.ItemInputJson);
@@ -38,24 +37,28 @@ public sealed class BulkAssetGenerationHandler(
 
             if (generatePortrait) {
                 logger.LogDebug("Generating portrait for {ItemName}", itemName);
-                var portraitResult = await GenerateImageAsync(provider, model, prompt, "portrait", ct);
+                var portraitResult = await GenerateImageAsync(prompt, "portrait", ct);
                 if (portraitResult.IsSuccessful) {
                     portraitResourceId = await resourceClient.UploadImageAsync(
                         portraitResult.Value.ImageData,
                         $"{itemName}_portrait.png",
                         portraitResult.Value.ContentType,
+                        ResourceType.Portrait,
+                        context.AuthToken,
                         ct);
                 }
             }
 
             if (generateToken) {
                 logger.LogDebug("Generating token for {ItemName}", itemName);
-                var tokenResult = await GenerateImageAsync(provider, model, prompt, "token", ct);
+                var tokenResult = await GenerateImageAsync(prompt, "token", ct);
                 if (tokenResult.IsSuccessful) {
                     tokenResourceId = await resourceClient.UploadImageAsync(
                         tokenResult.Value.ImageData,
                         $"{itemName}_token.png",
                         tokenResult.Value.ContentType,
+                        ResourceType.Token,
+                        context.AuthToken,
                         ct);
                 }
             }
@@ -73,7 +76,7 @@ public sealed class BulkAssetGenerationHandler(
                 TokenId = tokenResourceId
             };
 
-            var assetId = await assetClient.CreateAssetAsync(createAssetRequest, ct);
+            var assetId = await assetClient.CreateAssetAsync(createAssetRequest, context.AuthToken, ct);
             if (assetId is null)
                 return JobItemResult.Failure("Failed to create asset");
 
@@ -87,17 +90,18 @@ public sealed class BulkAssetGenerationHandler(
     }
 
     private Task<Result<ImageGenerationResponse>> GenerateImageAsync(
-        string provider,
-        string model,
         string prompt,
         string imageType,
         CancellationToken ct) {
+        var contentType = imageType == "token"
+            ? GeneratedContentType.ImageToken
+            : GeneratedContentType.ImagePortrait;
+
         var data = new ImageGenerationData {
-            Provider = provider,
-            Model = model,
+            ContentType = contentType,
             Prompt = prompt,
-            Width = imageType == "token" ? 512 : 1024,
-            Height = imageType == "token" ? 512 : 1024,
+            Width = 1024,
+            Height = 1024,
         };
 
         return imageService.GenerateAsync(data, ct);
