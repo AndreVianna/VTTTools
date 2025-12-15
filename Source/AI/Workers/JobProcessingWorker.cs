@@ -1,7 +1,7 @@
 namespace VttTools.AI.Workers;
 
 public sealed class JobProcessingWorker(
-    Channel<JobQueueItem, JobQueueItem> jobChannel,
+    Channel<JobQueueItem> jobChannel,
     IServiceScopeFactory scopeFactory,
     IOptions<JobProcessingOptions> options,
     ILogger<JobProcessingWorker> logger)
@@ -30,7 +30,7 @@ public sealed class JobProcessingWorker(
 
     private async Task ProcessJobAsync(Guid jobId, CancellationToken ct) {
         using var scope = scopeFactory.CreateScope();
-        var jobsClient = scope.ServiceProvider.GetRequiredService<JobsServiceClient>();
+        var jobsClient = scope.ServiceProvider.GetRequiredService<IJobsServiceClient>();
         var handler = scope.ServiceProvider.GetRequiredService<BulkAssetGenerationHandler>();
 
         var job = await jobsClient.GetByIdAsync(jobId, ct);
@@ -73,7 +73,7 @@ public sealed class JobProcessingWorker(
     }
 
     private async Task ProcessItemAsync(
-        JobsServiceClient jobsClient,
+        IJobsServiceClient jobsClient,
         BulkAssetGenerationHandler handler,
         Job job,
         JobItem item,

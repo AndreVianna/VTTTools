@@ -37,7 +37,7 @@ public static class AiJobHandlers {
 
     public static async Task<IResult> CancelJobHandler(
         [FromRoute] Guid id,
-        IJobService service,
+        [FromServices] IJobService service,
         CancellationToken ct) {
         var isSuccess = await service.CancelAsync(id, ct);
 
@@ -48,7 +48,7 @@ public static class AiJobHandlers {
 
     public static async Task<IResult> RetryJobHandler(
         [FromRoute] Guid id,
-        IJobService service,
+        [FromServices] IJobService service,
         CancellationToken ct) {
         var isSuccess = await service.RetryAsync(id, ct: ct);
 

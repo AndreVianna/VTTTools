@@ -3,7 +3,7 @@ namespace VttTools.AI.Services;
 public class ImageGenerationService(IAiProviderFactory providerFactory,
                                     IOptions<JobProcessingOptions> options,
                                     IJobsServiceClient jobsClient,
-                                    Channel<JobQueueItem, JobQueueItem> jobChannel,
+                                    Channel<JobQueueItem> jobChannel,
                                     ILogger<ImageGenerationService> logger)
     : IImageGenerationService {
 

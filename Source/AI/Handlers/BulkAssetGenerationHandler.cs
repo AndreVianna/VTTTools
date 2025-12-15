@@ -2,8 +2,8 @@ namespace VttTools.AI.Handlers;
 
 public sealed class BulkAssetGenerationHandler(
     IImageGenerationService imageService,
-    ResourceServiceClient resourceClient,
-    AssetsServiceClient assetClient,
+    IResourceServiceClient resourceClient,
+    IAssetsServiceClient assetClient,
     IPromptTemplateStorage templateStorage,
     ILogger<BulkAssetGenerationHandler> logger) {
 

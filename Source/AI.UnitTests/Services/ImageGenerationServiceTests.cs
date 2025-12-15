@@ -19,7 +19,7 @@ public class ImageGenerationServiceTests {
 
         var options = Substitute.For<IOptions<JobProcessingOptions>>();
         var client = Substitute.For<IJobsServiceClient>();
-        var channel = Substitute.For<System.Threading.Channels.Channel<JobQueueItem, JobQueueItem>>();
+        var channel = Substitute.For<System.Threading.Channels.Channel<JobQueueItem>>();
         var logger = NullLogger<ImageGenerationService>.Instance;
 
         _service = new ImageGenerationService(_providerFactory, options, client, channel, logger);
