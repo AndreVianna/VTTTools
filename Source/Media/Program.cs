@@ -14,6 +14,7 @@ internal static class Program {
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
         app.UseAuthentication();
+        app.UseMiddleware<InternalApiKeyMiddleware>();
         app.UseAuthorization();
         app.UseAuditLogging();
         app.MapDefaultEndpoints();
@@ -43,6 +44,8 @@ internal static class Program {
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.Configure<InternalApiOptions>(
+            builder.Configuration.GetSection(InternalApiOptions.SectionName));
         builder.Services.AddScoped<IBlobStorage, AzureBlobStorage>();
         builder.Services.AddScoped<IResourceService, ResourceService>();
         builder.Services.AddScoped<IMediaProcessorService, MediaProcessorService>();

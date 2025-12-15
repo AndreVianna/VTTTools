@@ -13,8 +13,8 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251214042400_SeedApplicationSchema")]
-    partial class SeedApplicationSchema
+    [Migration("20251215195428_CreateApplicationSchema")]
+    partial class CreateApplicationSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -300,7 +300,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Error")
+                    b.Property<string>("ErrorMessage")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -476,27 +476,15 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long?>("ActualDuration")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CompletedItems")
-                        .HasColumnType("int");
+                    b.Property<TimeSpan>("EstimatedDuration")
+                        .HasColumnType("time");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("EstimatedDuration")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("FailedItems")
-                        .HasColumnType("int");
-
-                    b.Property<string>("InputData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("OwnerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
@@ -505,18 +493,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("ItemCount")
-                        .HasColumnType("int");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending();
 
                     b.HasIndex("Status");
 
@@ -527,29 +509,23 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Jobs.Entities.JobItem", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("JobId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Error")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
 
                     b.Property<int>("Index")
                         .HasColumnType("int");
 
-                    b.Property<string>("InputData")
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Data")
                         .IsRequired()
+                        .HasMaxLength(8192)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Output")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Message")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
@@ -558,12 +534,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("Id");
+                    b.HasKey("JobId", "Index");
 
                     b.HasIndex("Status");
-
-                    b.HasIndex("JobId", "Index")
-                        .IsUnique();
 
                     b.ToTable("JobItems", (string)null);
                 });
@@ -1194,7 +1167,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("BIT")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("ErrorMessage")
+                    b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");

@@ -10,28 +10,28 @@ public partial class SeedApplicationSchema : Migration {
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(
             table: "Resources",
-            columns: ["Id", "ContentType", "Description", "Duration", "FileLength", "FileName", "IsPublic", "IsPublished", "OwnerId", "Path", "ResourceType"],
+            columns: ["Id", "ContentType", "Description", "Duration", "FileLength", "FileName", "IsPublic", "IsPublished", "OwnerId", "Path", "ResourceType", "Category", "Kind", "Subtype", "Type", "Height", "Width"],
             values: new object[,]
             {
-                { new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), @"image/png", null, new TimeSpan(0L), 1170, @"wooden-crate.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/1f66/019a50f8f3e5702b89d333d694391f66", @"Token" },
-                { new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"image/png", null, new TimeSpan(0L), 8193, @"goblin.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/8985/019a50ce4b0473788e6e372bdf798985", @"Token" },
-                { new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"image/png", null, new TimeSpan(0L), 1394149, @"The_Nesti.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", @"Background" },
-                { new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"image/png", null, new TimeSpan(0L), 6821, @"hero-character.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/dd71/019a50f8394b79d296609b803391dd71", @"Token" },
-                { new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), @"image/png", null, new TimeSpan(0L), 2286, @"treasure-chest.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/fa86/019a50f8af0e7edebbabc1aa0775fa86", @"Token" },
-                { new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995"), @"audio/ogg", null, new TimeSpan(420080000L), 399753, @"file_example_MP3_700KB.ogg", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"audio/1995/019b0192ca877ae69e0bfb23c2c71995", @"AmbientSound" }
+                { new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), @"image/png", null, new TimeSpan(0L), 1170, @"wooden-crate.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/1f66/019a50f8f3e5702b89d333d694391f66", @"Token", @"Container", @"Object", null, @"Storage", 200, 200 },
+                { new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"image/png", null, new TimeSpan(0L), 8193, @"goblin.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/8985/019a50ce4b0473788e6e372bdf798985", @"Token", @"Monster", @"Creature", @"Goblinoid", @"Fey", 200, 200 },
+                { new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"image/png", null, new TimeSpan(0L), 1394149, @"The_Nesti.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", @"Background", @"Encounter", @"Map", @"Interior", @"House", 1026, 972 },
+                { new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"image/png", null, new TimeSpan(0L), 6821, @"hero-character.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/dd71/019a50f8394b79d296609b803391dd71", @"Token", @"Elf", @"Character", null, @"Paladin", 200, 200 },
+                { new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), @"image/png", null, new TimeSpan(0L), 2286, @"treasure-chest.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"images/fa86/019a50f8af0e7edebbabc1aa0775fa86", @"Token", @"Container", @"Object", null, @"Storage", 200, 200 },
+                { new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995"), @"audio/ogg", null, new TimeSpan(420080000L), 399753, @"file_example_MP3_700KB.ogg", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"audio/1995/019b0192ca877ae69e0bfb23c2c71995", @"AmbientSound", @"", @"", null, @"", 0, 0 }
             });
 
         migrationBuilder.InsertData(
             table: "Assets",
-            columns: ["Id", "Category", "Description", "IsDeleted", "IsPublic", "IsPublished", "Kind", "Name", "OwnerId", "PortraitId", "Subtype", "Tags", "Type"],
+            columns: ["Id", "Category", "Description", "IsDeleted", "IsPublic", "IsPublished", "Kind", "Name", "OwnerId", "PortraitId", "Subtype", "Tags", "Type", "Height", "Width"],
             values: new object[,]
             {
-                { new Guid("019a07e4-ecbc-7f23-b6c9-26a7d72ac421"), @"Container", @"", false, false, false, @"Object", @"Create, Small", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, Array.Empty<String>(), @"Storage" },
-                { new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), @"Monster", @"", false, true, true, @"Creature", @"Goblin Warrior", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"Goblinoid", Array.Empty<String>(), @"Fey" },
-                { new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), @"Container", @"", false, false, false, @"Object", @"Chest, Wide", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), null, Array.Empty<String>(), @"Storage" },
-                { new Guid("019a07e5-5550-7993-9b0b-84244f1543df"), @"Container", @"", false, false, false, @"Object", @"Create, Large", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, Array.Empty<String>(), @"Storage" },
-                { new Guid("019a0363-9294-749d-9323-b759664a5436"), @"Container", @"", false, false, false, @"Object", @"Create", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, Array.Empty<String>(), @"Storage" },
-                { new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), @"Elf", @"", false, true, true, @"Character", @"Sir Pelotas", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"Squire", Array.Empty<String>(), @"Paladin" }
+                { new Guid("019a07e4-ecbc-7f23-b6c9-26a7d72ac421"), @"Container", @"", false, false, false, @"Object", @"Create, Small", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, @"[]", @"Storage", 0.5d, 0.5d },
+                { new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), @"Monster", @"", false, true, true, @"Creature", @"Goblin Warrior", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"Goblinoid", @"[]", @"Fey", 1d, 1d },
+                { new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), @"Container", @"", false, false, false, @"Object", @"Chest, Wide", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), null, @"[]", @"Storage", 1d, 2d },
+                { new Guid("019a07e5-5550-7993-9b0b-84244f1543df"), @"Container", @"", false, false, false, @"Object", @"Create, Large", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, @"[]", @"Storage", 2d, 2d },
+                { new Guid("019a0363-9294-749d-9323-b759664a5436"), @"Container", @"", false, false, false, @"Object", @"Create", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, @"[]", @"Storage", 1d, 1d },
+                { new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), @"Elf", @"", false, true, true, @"Character", @"Sir Pelotas", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"Squire", @"[]", @"Paladin", 1d, 1d }
             });
 
         migrationBuilder.InsertData(
@@ -55,29 +55,29 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.InsertData(
             table: "Encounters",
-            columns: ["Id", "AdventureId", "AmbientLight", "AmbientSoundId", "BackgroundId", "Description", "GroundElevation", "IsPublished", "Name", "Weather", "ZoomLevel"],
+            columns: ["Id", "AdventureId", "AmbientLight", "AmbientSoundId", "BackgroundId", "Description", "GroundElevation", "IsPublished", "Name", "Weather", "ZoomLevel", "GridScale", "GridType", "GridCellHeight", "GridCellWidth", "GridOffsetLeft", "GridOffsetTop", "PanningX", "PanningY"],
             values: new object[,]
             {
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", null, null, @"Hello", 0f, false, @"The Tavern", @"Clear", 1f },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", null, new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"", 0f, false, @"The Nesti", @"Clear", 1f }
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", null, null, @"Hello", 0f, false, @"The Tavern", @"Clear", 1f, 5d, @"Square", 50d, 50d, 0d, 0d, 0d, 0d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", null, new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"", 0f, false, @"The Nesti", @"Clear", 1f, 5d, @"Square", 53.75d, 53.75d, 1d, 3d, 0d, 0d }
             });
 
         migrationBuilder.InsertData(
             table: "EncounterAssets",
-            columns: ["EncounterId", "Index", "AssetId", "ControlledBy", "Elevation", "ImageId", "IsLocked", "IsVisible", "Name", "Notes", "Rotation"],
+            columns: ["EncounterId", "Index", "AssetId", "ControlledBy", "Elevation", "ImageId", "IsLocked", "IsVisible", "Name", "Notes", "Rotation", "FrameBackground", "FrameBorderColor", "FrameBorderThickness", "FrameShape", "X", "Y", "Height", "Width"],
             values: new object[,]
             {
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, new Guid("019a0363-9294-749d-9323-b759664a5436"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), false, true, @"Wooden Create", null, 0f },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), false, true, @"Wide Chest", null, 0f },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 2, new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), false, true, @"Goblin #1", null, 0f },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 3, new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), false, true, @"Elf Paladin Squire", null, 0f },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, new Guid("019a0363-9294-749d-9323-b759664a5436"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), false, true, @"Create", null, 0f }
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, new Guid("019a0363-9294-749d-9323-b759664a5436"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), false, true, @"Wooden Create", null, 0f, @"#00000000", @"#0d6efd", 1, @"Square", 26.5d, 22.5d, 50d, 50d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), false, true, @"Wide Chest", null, 0f, @"#00000000", @"#0d6efd", 1, @"Square", 30d, 21.5d, 50d, 100d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 2, new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), false, true, @"Goblin #1", null, 0f, @"#00000000", @"#0d6efd", 1, @"Square", 33.5d, 20.5d, 50d, 50d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 3, new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), false, true, @"Elf Paladin Squire", null, 0f, @"#00000000", @"#0d6efd", 1, @"Square", 21.5d, 19.5d, 50d, 50d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, new Guid("019a0363-9294-749d-9323-b759664a5436"), new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0f, new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), false, true, @"Create", null, 0f, @"#00000000", @"#0d6efd", 1, @"Square", 4.5d, 5.5d, 53.75d, 53.75d }
             });
 
         migrationBuilder.InsertData(
             table: "EncounterLights",
-            columns: ["EncounterId", "Index", "Arc", "Color", "Direction", "IsOn", "Name", "Range", "Type"],
-            values: new object[] { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, null, @"", null, true, @"", 4.5f, @"Natural" });
+            columns: ["EncounterId", "Index", "Arc", "Color", "Direction", "IsOn", "Name", "Range", "Type", "X", "Y"],
+            values: new object[] { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, null, @"", null, true, @"", 4.5f, @"Natural", 4.5d, 6.75d });
 
         migrationBuilder.InsertData(
             table: "EncounterRegions",
@@ -91,8 +91,8 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.InsertData(
             table: "EncounterSounds",
-            columns: ["EncounterId", "Index", "IsPlaying", "Loop", "Name", "Range", "ResourceId"],
-            values: new object[] { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, false, false, @"Sound #1", 4f, new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995") });
+            columns: ["EncounterId", "Index", "IsPlaying", "Loop", "Name", "Range", "ResourceId", "X", "Y"],
+            values: new object[] { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, false, false, @"Sound #1", 4f, new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995"), 6.25d, 5.75d });
 
         migrationBuilder.InsertData(
             table: "EncounterWalls",
@@ -109,59 +109,59 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.InsertData(
             table: "EncounterWallSegments",
-            columns: ["EncounterId", "WallIndex", "Index", "IsOpaque", "Name", "State", "Type"],
+            columns: ["EncounterId", "WallIndex", "Index", "IsOpaque", "Name", "State", "Type", "EndH", "EndX", "EndY", "StartH", "StartX", "StartY"],
             values: new object[,]
             {
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 0, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 1, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 2, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, 0, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, 1, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, 2, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 0, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 1, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 2, true, @"Window #1", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 3, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 4, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 5, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 6, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 7, true, @"Window #2", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 8, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 9, true, @"Window #3", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 10, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 11, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 12, true, @"Door #1", @"Closed", @"Door" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 13, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 14, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 15, true, @"Window #4", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 16, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 17, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 0, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 1, true, @"Window #5", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 2, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 3, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 4, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 5, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 6, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 7, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 0, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 1, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 2, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 3, true, @"Window #6", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 4, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 5, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 6, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 7, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 8, true, @"Door #2", @"Closed", @"Door" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 9, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 10, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 11, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 12, true, @"Window #7", @"Closed", @"Window" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 13, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 0, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 1, true, @"Wall", @"Visible", @"Wall" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 2, false, @"Passage #1", @"Open", @"Door" },
-                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 3, true, @"Wall", @"Visible", @"Wall" }
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 0, true, @"Wall", @"Visible", @"Wall", 10d, 31.5d, 20.5d, 10d, 35d, 15d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 1, true, @"Wall", @"Visible", @"Wall", 10d, 23d, 20.5d, 10d, 31.5d, 20.5d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 2, true, @"Wall", @"Visible", @"Wall", 10d, 30d, 15.5d, 10d, 23d, 20.5d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, 0, true, @"Wall", @"Visible", @"Wall", 10d, 36d, 17.5d, 10d, 36d, 15.5d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, 1, true, @"Wall", @"Visible", @"Wall", 10d, 38d, 17.5d, 10d, 36d, 17.5d },
+                { new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 1, 2, true, @"Wall", @"Visible", @"Wall", 10d, 38d, 15.5d, 10d, 38d, 17.5d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 0, true, @"Wall", @"Visible", @"Wall", 10d, 3.5d, 15d, 10d, 5d, 15d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 1, true, @"Wall", @"Visible", @"Wall", 10d, 3.5d, 14d, 10d, 3.5d, 15d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 2, true, @"Window #1", @"Closed", @"Window", 10d, 3.5d, 13.5d, 10d, 3.5d, 14d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 3, true, @"Wall", @"Visible", @"Wall", 10d, 3.5d, 13d, 10d, 3.5d, 13.5d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 4, true, @"Wall", @"Visible", @"Wall", 10d, 4d, 13d, 10d, 3.5d, 13d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 5, true, @"Wall", @"Visible", @"Wall", 10d, 4d, 11d, 10d, 4d, 13d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 6, true, @"Wall", @"Visible", @"Wall", 10d, 4.25d, 11d, 10d, 4d, 11d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 7, true, @"Window #2", @"Closed", @"Window", 10d, 4.82d, 11d, 10d, 4.25d, 11d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 8, true, @"Wall", @"Visible", @"Wall", 10d, 6.2d, 11d, 10d, 4.82d, 11d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 9, true, @"Window #3", @"Closed", @"Window", 10d, 6.79d, 11d, 10d, 6.2d, 11d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 10, true, @"Wall", @"Visible", @"Wall", 10d, 7d, 11d, 10d, 6.79d, 11d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 11, true, @"Wall", @"Visible", @"Wall", 10d, 7d, 14d, 10d, 7d, 11d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 12, true, @"Door #1", @"Closed", @"Door", 10d, 7d, 15d, 10d, 7d, 14d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 13, true, @"Wall", @"Visible", @"Wall", 10d, 7d, 16d, 10d, 7d, 15d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 14, true, @"Wall", @"Visible", @"Wall", 10d, 6.32d, 16d, 10d, 7d, 16d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 15, true, @"Window #4", @"Closed", @"Window", 10d, 5.75d, 16d, 10d, 6.32d, 16d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 16, true, @"Wall", @"Visible", @"Wall", 10d, 5d, 16d, 10d, 5.75d, 16d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 17, true, @"Wall", @"Visible", @"Wall", 10d, 5d, 15d, 10d, 5d, 16d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 0, true, @"Wall", @"Visible", @"Wall", 10d, 12.76d, 14d, 10d, 11.5d, 14d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 1, true, @"Window #5", @"Closed", @"Window", 10d, 13.23d, 14d, 10d, 12.76d, 14d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 2, true, @"Wall", @"Visible", @"Wall", 10d, 13.5d, 14d, 10d, 13.23d, 14d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 3, true, @"Wall", @"Visible", @"Wall", 10d, 13.5d, 16d, 10d, 13.5d, 14d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 4, true, @"Wall", @"Visible", @"Wall", 10d, 12.5d, 16d, 10d, 13.5d, 16d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 5, true, @"Wall", @"Visible", @"Wall", 10d, 12.5d, 15d, 10d, 12.5d, 16d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 6, true, @"Wall", @"Visible", @"Wall", 10d, 11.5d, 15d, 10d, 12.5d, 15d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 7, true, @"Wall", @"Visible", @"Wall", 10d, 11.5d, 14d, 10d, 11.5d, 15d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 0, true, @"Wall", @"Visible", @"Wall", 10d, 4d, 5d, 10d, 4d, 3d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 1, true, @"Wall", @"Visible", @"Wall", 10d, 3.5d, 5d, 10d, 4d, 5d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 2, true, @"Wall", @"Visible", @"Wall", 10d, 3.5d, 5.27d, 10d, 3.5d, 5d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 3, true, @"Window #6", @"Closed", @"Window", 10d, 3.5d, 5.83d, 10d, 3.5d, 5.27d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 4, true, @"Wall", @"Visible", @"Wall", 10d, 3.5d, 6d, 10d, 3.5d, 5.83d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 5, true, @"Wall", @"Visible", @"Wall", 10d, 3d, 6d, 10d, 3.5d, 6d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 6, true, @"Wall", @"Visible", @"Wall", 10d, 3d, 7d, 10d, 3d, 6d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 7, true, @"Wall", @"Visible", @"Wall", 10d, 5.54d, 7d, 10d, 3d, 7d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 8, true, @"Door #2", @"Closed", @"Door", 10d, 6.47d, 7d, 10d, 5.54d, 7d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 9, true, @"Wall", @"Visible", @"Wall", 10d, 7d, 7d, 10d, 6.47d, 7d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 10, true, @"Wall", @"Visible", @"Wall", 10d, 7d, 3d, 10d, 7d, 7d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 11, true, @"Wall", @"Visible", @"Wall", 10d, 5.81d, 3d, 10d, 7d, 3d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 12, true, @"Window #7", @"Closed", @"Window", 10d, 5.2d, 3d, 10d, 5.81d, 3d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 2, 13, true, @"Wall", @"Visible", @"Wall", 10d, 4d, 3d, 10d, 5.2d, 3d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 0, true, @"Wall", @"Visible", @"Wall", 10d, 5d, 4.5d, 10d, 5d, 3d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 1, true, @"Wall", @"Visible", @"Wall", 10d, 5.22d, 4.5d, 10d, 5d, 4.5d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 2, false, @"Passage #1", @"Open", @"Door", 10d, 5.8d, 4.5d, 10d, 5.22d, 4.5d },
+                { new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 3, 3, true, @"Wall", @"Visible", @"Wall", 10d, 7d, 4.5d, 10d, 5.8d, 4.5d }
             });
 
     }

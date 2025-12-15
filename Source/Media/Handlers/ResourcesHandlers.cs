@@ -35,9 +35,24 @@ internal static class ResourcesHandlers {
         HttpContext context,
         [FromForm] IFormFile file,
         [FromForm] string? resourceType,
+        [FromForm] string? ownerId,
         [FromServices] IResourceService resourceService,
+        [FromServices] UserManager<User> userManager,
         CancellationToken ct = default) {
-        var userId = context.User.GetUserId();
+        Guid userId;
+        if (context.IsInternalService()) {
+            if (string.IsNullOrWhiteSpace(ownerId) || !Guid.TryParse(ownerId, out var parsedOwnerId))
+                return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
+
+            var user = await userManager.FindByIdAsync(parsedOwnerId.ToString());
+            if (user is null)
+                return Results.BadRequest(new { error = $"User {parsedOwnerId} does not exist." });
+
+            userId = parsedOwnerId;
+        }
+        else {
+            userId = context.User.GetUserId();
+        }
 
         var parsedResourceType = Enum.TryParse<ResourceType>(resourceType, ignoreCase: true, out var rt)
             ? rt

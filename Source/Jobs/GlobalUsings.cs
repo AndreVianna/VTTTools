@@ -3,9 +3,15 @@ global using System.Diagnostics.CodeAnalysis;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.SignalR;
 global using Microsoft.EntityFrameworkCore;
+
+global using VttTools.Identity.Model;
+
+global using VttTools.Configuration;
+global using VttTools.Middlewares;
 
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;

@@ -2,6 +2,7 @@ namespace VttTools.Jobs.Model;
 
 public record Job {
     public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid OwnerId { get; init; }
     public string Type { get; init; } = string.Empty;
     public JobStatus Status { get; init; } = JobStatus.Pending;
     public TimeSpan EstimatedDuration { get; init; }

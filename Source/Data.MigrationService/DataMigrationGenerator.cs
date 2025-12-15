@@ -1,7 +1,3 @@
-using System.Text;
-
-using Microsoft.EntityFrameworkCore.Metadata;
-
 namespace VttTools.Data.MigrationService;
 
 /// <summary>
@@ -107,17 +103,72 @@ public static class DataMigrationGenerator {
         return sorted;
     }
 
+    private static IEnumerable<IProperty> GetAllPropertiesIncludingOwned(
+        IEntityType entityType,
+        StoreObjectIdentifier tableIdentifier) {
+        // Get direct properties of the entity that are mapped to this table
+        foreach (var property in entityType.GetProperties()) {
+            var columnName = property.GetColumnName(tableIdentifier);
+            if (columnName is not null) {
+                yield return property;
+            }
+        }
+
+        // Get properties from owned entities (table splitting)
+        foreach (var navigation in entityType.GetNavigations()) {
+            if (navigation.TargetEntityType.IsOwned()) {
+                foreach (var ownedProperty in navigation.TargetEntityType.GetProperties()) {
+                    // Check if property is mapped to a column in this specific table
+                    var columnName = ownedProperty.GetColumnName(tableIdentifier);
+                    if (columnName is not null && !ownedProperty.IsForeignKey()) {
+                        yield return ownedProperty;
+                    }
+                }
+            }
+        }
+
+        // Get properties from complex types (EF Core 8+ feature)
+        foreach (var complexProperty in entityType.GetComplexProperties()) {
+            foreach (var prop in GetComplexTypeProperties(complexProperty.ComplexType, tableIdentifier)) {
+                yield return prop;
+            }
+        }
+    }
+
+    private static IEnumerable<IProperty> GetComplexTypeProperties(
+        IComplexType complexType,
+        StoreObjectIdentifier tableIdentifier) {
+        // Get direct properties of this complex type
+        foreach (var property in complexType.GetProperties()) {
+            var columnName = property.GetColumnName(tableIdentifier);
+            if (columnName is not null) {
+                yield return property;
+            }
+        }
+
+        // Recursively get properties from nested complex types
+        foreach (var nestedComplexProperty in complexType.GetComplexProperties()) {
+            foreach (var prop in GetComplexTypeProperties(nestedComplexProperty.ComplexType, tableIdentifier)) {
+                yield return prop;
+            }
+        }
+    }
+
     private static async Task<(string UpCode, string DownCode, int RowCount)> GenerateTableDataAsync(
         ApplicationDbContext context,
         IEntityType entityType,
         CancellationToken ct) {
         var tableName = entityType.GetTableName()!;
-        var properties = entityType.GetProperties()
+        var schema = entityType.GetSchema();
+        var tableIdentifier = StoreObjectIdentifier.Table(tableName, schema);
+
+        // Get all properties including owned entity properties
+        var properties = GetAllPropertiesIncludingOwned(entityType, tableIdentifier)
             .Where(p => !p.IsShadowProperty() || p.IsPrimaryKey())
             .ToList();
 
-        // Build SQL query
-        var columns = string.Join(", ", properties.Select(p => $"[{p.GetColumnName()}]"));
+        // Build SQL query using table-specific column names
+        var columns = string.Join(", ", properties.Select(p => $"[{p.GetColumnName(tableIdentifier)}]"));
         var sql = $"SELECT {columns} FROM [{tableName}]";
 
         var rows = new List<Dictionary<string, object?>>();
@@ -132,7 +183,7 @@ public static class DataMigrationGenerator {
                 var row = new Dictionary<string, object?>();
                 for (var i = 0; i < properties.Count; i++) {
                     var value = reader.IsDBNull(i) ? null : reader.GetValue(i);
-                    row[properties[i].GetColumnName()] = value;
+                    row[properties[i].GetColumnName(tableIdentifier)!] = value;
                 }
                 rows.Add(row);
             }
@@ -147,9 +198,9 @@ public static class DataMigrationGenerator {
 
         // Generate Up code
         var upBuilder = new StringBuilder();
-        var columnNames = properties.Select(p => p.GetColumnName()).ToArray();
+        var columnNames = properties.Select(p => p.GetColumnName(tableIdentifier)!).ToArray();
         var primaryKeyColumns = entityType.FindPrimaryKey()?.Properties
-            .Select(p => p.GetColumnName())
+            .Select(p => p.GetColumnName(tableIdentifier)!)
             .ToArray() ?? [];
 
         upBuilder.AppendLine("        migrationBuilder.InsertData(");
@@ -157,14 +208,14 @@ public static class DataMigrationGenerator {
         upBuilder.AppendLine($"            columns: [{string.Join(", ", columnNames.Select(c => $"\"{c}\""))}],");
 
         if (rows.Count == 1) {
-            upBuilder.AppendLine($"            values: new object[] {{ {GenerateRowValues(rows[0], properties)} }});");
+            upBuilder.AppendLine($"            values: new object[] {{ {GenerateRowValues(rows[0], properties, tableIdentifier)} }});");
         }
         else {
             upBuilder.AppendLine("            values: new object[,]");
             upBuilder.AppendLine("            {");
             for (var i = 0; i < rows.Count; i++) {
                 var comma = i < rows.Count - 1 ? "," : "";
-                upBuilder.AppendLine($"                {{ {GenerateRowValues(rows[i], properties)} }}{comma}");
+                upBuilder.AppendLine($"                {{ {GenerateRowValues(rows[i], properties, tableIdentifier)} }}{comma}");
             }
             upBuilder.AppendLine("            });");
         }
@@ -174,7 +225,7 @@ public static class DataMigrationGenerator {
         var downBuilder = new StringBuilder();
         if (primaryKeyColumns.Length == 1) {
             var pkColumn = primaryKeyColumns[0];
-            var pkProperty = properties.First(p => p.GetColumnName() == pkColumn);
+            var pkProperty = properties.First(p => p.GetColumnName(tableIdentifier) == pkColumn);
             var pkValues = rows.Select(r => FormatValue(r[pkColumn], pkProperty)).ToArray();
 
             downBuilder.AppendLine("        migrationBuilder.DeleteData(");
@@ -194,7 +245,7 @@ public static class DataMigrationGenerator {
                 downBuilder.AppendLine($"            table: \"{tableName}\",");
                 downBuilder.AppendLine($"            keyColumns: [{string.Join(", ", primaryKeyColumns.Select(c => $"\"{c}\""))}],");
                 var keyValues = primaryKeyColumns.Select(c => {
-                    var prop = properties.First(p => p.GetColumnName() == c);
+                    var prop = properties.First(p => p.GetColumnName(tableIdentifier) == c);
                     return FormatValue(row[c], prop);
                 });
                 downBuilder.AppendLine($"            keyValues: [{string.Join(", ", keyValues)}]);");
@@ -206,8 +257,11 @@ public static class DataMigrationGenerator {
         return (upBuilder.ToString(), downBuilder.ToString(), rows.Count);
     }
 
-    private static string GenerateRowValues(IReadOnlyDictionary<string, object?> row, IEnumerable<IProperty> properties) {
-        var values = properties.Select(p => FormatValue(row[p.GetColumnName()], p));
+    private static string GenerateRowValues(
+        IReadOnlyDictionary<string, object?> row,
+        IEnumerable<IProperty> properties,
+        StoreObjectIdentifier tableIdentifier) {
+        var values = properties.Select(p => FormatValue(row[p.GetColumnName(tableIdentifier)!], p));
         return string.Join(", ", values);
     }
 
@@ -251,28 +305,13 @@ public static class DataMigrationGenerator {
     private static string FormatArrayValue(object value, Type arrayType) {
         var elementType = arrayType.GetElementType()!;
 
-        // Handle string arrays (often stored as JSON in DB)
+        // When the DB stores arrays as JSON strings (nvarchar), output the raw string
+        // EF Core will handle the deserialization when reading
         if (value is string jsonValue) {
-            // Try to parse as JSON array
-            if (jsonValue.StartsWith('[')) {
-                try {
-                    var items = System.Text.Json.JsonSerializer.Deserialize<string[]>(jsonValue);
-                    if (items is null || items.Length == 0) {
-                        return $"Array.Empty<{elementType.Name}>()";
-                    }
-                    var formatted = items.Select(s => $"@\"{EscapeString(s)}\"");
-                    return $"new {elementType.Name}[] {{ {string.Join(", ", formatted)} }}";
-                }
-                catch {
-                    // Not valid JSON, store as-is
-                    return $"@\"{EscapeString(jsonValue)}\"";
-                }
-            }
-            // Empty or non-JSON string
-            return string.IsNullOrEmpty(jsonValue) ? $"Array.Empty<{elementType.Name}>()" : $"@\"{EscapeString(jsonValue)}\"";
+            return $"@\"{EscapeString(jsonValue)}\"";
         }
 
-        // Handle actual arrays
+        // Handle actual arrays (when DB stores as actual array type, which is rare)
         if (value is Array arr) {
             if (arr.Length == 0) {
                 return $"Array.Empty<{elementType.Name}>()";

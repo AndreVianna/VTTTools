@@ -8,6 +8,7 @@ public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
             return Result.Failure(result.Errors).WithNo<Job>();
 
         var job = new Job {
+            OwnerId = data.OwnerId,
             Type = data.Type,
             EstimatedDuration = TimeSpan.FromMilliseconds(1500 * data.Items.Count),
             Items = [.. data.Items.Select((input, index) => new JobItem {

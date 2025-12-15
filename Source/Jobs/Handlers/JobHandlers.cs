@@ -3,8 +3,29 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 namespace VttTools.Jobs.Handlers;
 
 internal static class JobHandlers {
-    internal static async Task<IResult> AddJobHandler([FromBody] AddJobRequest request, [FromServices] IJobService jobService, CancellationToken ct) {
+    internal static async Task<IResult> AddJobHandler(
+        HttpContext context,
+        [FromBody] AddJobRequest request,
+        [FromServices] IJobService jobService,
+        [FromServices] UserManager<User> userManager,
+        CancellationToken ct) {
+        Guid userId;
+        if (context.IsInternalService()) {
+            if (!request.OwnerId.HasValue)
+                return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
+
+            var user = await userManager.FindByIdAsync(request.OwnerId.Value.ToString());
+            if (user is null)
+                return Results.BadRequest(new { error = $"User {request.OwnerId.Value} does not exist." });
+
+            userId = request.OwnerId.Value;
+        }
+        else {
+            userId = context.User.GetUserId();
+        }
+
         var data = new AddJobData {
+            OwnerId = userId,
             Type = request.Type,
             Items = request.Items.ConvertAll(i => new AddJobData.Item() {
                 Index = i.Index,

@@ -2,6 +2,10 @@ namespace VttTools.Assets.ApiContracts;
 
 public record CreateAssetRequest
     : Request {
+    /// <summary>
+    /// Owner ID. Service accounts must provide this; regular users' value is ignored (userId from JWT used instead).
+    /// </summary>
+    public Guid? OwnerId { get; init; }
     public AssetKind Kind { get; init; }
 
     public required string Category {

@@ -41,7 +41,7 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
             };
     }
 
-    public async Task<Result<Job>> GenerateManyAsync(GenerateManyAssetsData data, CancellationToken ct = default) {
+    public async Task<Result<Job>> GenerateManyAsync(Guid ownerId, GenerateManyAssetsData data, CancellationToken ct = default) {
         var context = new Map {
             ["MaxItemsPerBatch"] = _options.MaxItemsPerBatch,
         };
@@ -59,7 +59,7 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
                 })],
             };
 
-            var job = await jobsClient.AddAsync(request, ct);
+            var job = await jobsClient.AddAsync(ownerId, request, ct);
             if (job is null) {
                 logger.LogError("Failed to create job via Jobs service");
                 return Result.Failure("Failed to create job").WithNo<Job>();

@@ -6,9 +6,11 @@ namespace VttTools.AI.Handlers;
 
 public static class AiJobHandlers {
     public static async Task<IResult> StartBulkGenerationHandler(
+        HttpContext context,
         [FromBody] BulkAssetGenerationRequest request,
         IImageGenerationService service,
         CancellationToken ct) {
+        var userId = context.User.GetUserId();
         var data = new GenerateManyAssetsData {
             Items = [.. request.Items.Select(i => new AssetGenerationData {
                 Name = i.Name,
@@ -26,7 +28,7 @@ public static class AiJobHandlers {
             })],
         };
 
-        var result = await service.GenerateManyAsync(data, ct);
+        var result = await service.GenerateManyAsync(userId, data, ct);
 
         return result.IsSuccessful
             ? Results.Created($"/api/jobs/{result.Value.Id}", result.Value)

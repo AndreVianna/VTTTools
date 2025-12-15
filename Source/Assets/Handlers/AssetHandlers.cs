@@ -77,8 +77,26 @@ internal static class AssetHandlers {
         return Results.Ok(asset);
     }
 
-    internal static async Task<IResult> CreateAssetHandler(HttpContext context, [FromBody] CreateAssetRequest request, [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
+    internal static async Task<IResult> CreateAssetHandler(
+        HttpContext context,
+        [FromBody] CreateAssetRequest request,
+        [FromServices] IAssetService assetService,
+        [FromServices] UserManager<User> userManager) {
+        Guid userId;
+        if (context.IsInternalService()) {
+            if (!request.OwnerId.HasValue)
+                return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
+
+            var user = await userManager.FindByIdAsync(request.OwnerId.Value.ToString());
+            if (user is null)
+                return Results.BadRequest(new { error = $"User {request.OwnerId.Value} does not exist." });
+
+            userId = request.OwnerId.Value;
+        }
+        else {
+            userId = context.User.GetUserId();
+        }
+
         var data = new CreateAssetData {
             Kind = request.Kind,
             Category = request.Category,

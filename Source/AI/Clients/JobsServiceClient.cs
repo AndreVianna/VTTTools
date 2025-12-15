@@ -1,13 +1,12 @@
 namespace VttTools.AI.Clients;
 
 public class JobsServiceClient(IHttpClientFactory httpClientFactory,
-                               IHttpContextAccessor httpContextAccessor,
                                ILogger<JobsServiceClient> logger)
     : IJobsServiceClient {
-    public async Task<Job?> AddAsync(AddJobRequest request, CancellationToken ct = default) {
+    public async Task<Job?> AddAsync(Guid ownerId, AddJobRequest request, CancellationToken ct = default) {
+        var requestWithOwner = request with { OwnerId = ownerId };
         var httpClient = httpClientFactory.CreateClient("JobsService");
-        AddAuthorizationHeader(httpClient);
-        var response = await httpClient.PostAsJsonAsync("/api/jobs", request, ct);
+        var response = await httpClient.PostAsJsonAsync("/api/jobs", requestWithOwner, ct);
         if (response.IsSuccessStatusCode)
             return await response.Content.ReadFromJsonAsync<Job>(ct);
 
@@ -21,7 +20,6 @@ public class JobsServiceClient(IHttpClientFactory httpClientFactory,
 
     public async Task<Job?> GetByIdAsync(Guid jobId, CancellationToken ct = default) {
         var httpClient = httpClientFactory.CreateClient("JobsService");
-        AddAuthorizationHeader(httpClient);
         var response = await httpClient.GetAsync($"/api/jobs/{jobId}", ct);
         if (response.IsSuccessStatusCode)
             return await response.Content.ReadFromJsonAsync<Job>(ct);
@@ -34,7 +32,6 @@ public class JobsServiceClient(IHttpClientFactory httpClientFactory,
 
     public async Task<bool> UpdateAsync(Guid jobId, UpdateJobRequest request, CancellationToken ct = default) {
         var httpClient = httpClientFactory.CreateClient("JobsService");
-        AddAuthorizationHeader(httpClient);
         var response = await httpClient.PatchAsJsonAsync($"/api/jobs/{jobId}", request, ct);
         if (response.IsSuccessStatusCode)
             return true;
@@ -45,12 +42,5 @@ public class JobsServiceClient(IHttpClientFactory httpClientFactory,
                         jobId,
                         body);
         return false;
-    }
-
-    private void AddAuthorizationHeader(HttpClient httpClient) {
-        var authToken = httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(authToken))
-            throw new InvalidOperationException("Authorization header is missing");
-        httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(authToken);
     }
 }

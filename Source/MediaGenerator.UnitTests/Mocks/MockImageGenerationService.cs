@@ -36,7 +36,7 @@ public sealed class MockImageGenerationService
         return Task.FromResult((Result<ImageGenerationResponse>)_responses.Dequeue());
     }
 
-    public Task<Result<Job>> GenerateManyAsync(GenerateManyAssetsData data, CancellationToken ct = default) {
+    public Task<Result<Job>> GenerateManyAsync(Guid ownerId, GenerateManyAssetsData data, CancellationToken ct = default) {
         ReceivedRequests.Add(nameof(GenerateManyAsync));
         if (_responses.Count == 0)
             EnqueueJob();

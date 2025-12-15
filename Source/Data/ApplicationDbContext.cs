@@ -6,7 +6,6 @@ using Campaign = VttTools.Data.Library.Entities.Campaign;
 using Encounter = VttTools.Data.Library.Entities.Encounter;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using Job = VttTools.Data.Jobs.Entities.Job;
-using JobItem = VttTools.Data.Jobs.Entities.JobItem;
 using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
 using PromptTemplate = VttTools.Data.AI.Entities.PromptTemplate;
 using Provider = VttTools.Data.AI.Entities.Provider;
@@ -34,7 +33,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Provider> AiProviderConfigs { get; set; }
     public DbSet<AiModel> AiProviderModels { get; set; }
     public DbSet<Job> Jobs { get; set; }
-    public DbSet<JobItem> JobItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);

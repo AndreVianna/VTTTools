@@ -2,8 +2,14 @@
 
 global using DotNetToolbox.Results;
 
+global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
+
+global using VttTools.Identity.Model;
+
+global using VttTools.Configuration;
+global using VttTools.Middlewares;
 
 global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.EndpointMappers;

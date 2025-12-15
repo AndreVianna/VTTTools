@@ -84,7 +84,10 @@ public sealed class JobProcessingWorker(
                 Status = JobItemStatus.InProgress,
                 StartedAt = DateTime.UtcNow,
             };
-            var jobUpdate = new UpdateJobRequest { Items = [startedItem] };
+            var jobUpdate = new UpdateJobRequest {
+                Status = job.Status == JobStatus.Pending ? JobStatus.InProgress : job.Status,
+                Items = [startedItem],
+            };
             await jobsClient.UpdateAsync(job.Id, jobUpdate, ct);
 
             var context = new JobItemContext {
@@ -93,7 +96,7 @@ public sealed class JobProcessingWorker(
                 Data = item.Data,
             };
 
-            var result = await handler.ProcessItemAsync(context, ct);
+            var result = await handler.ProcessItemAsync(job.OwnerId, context, ct);
 
             var completedItem = new UpdateJobRequest.Item {
                 Index = item.Index,

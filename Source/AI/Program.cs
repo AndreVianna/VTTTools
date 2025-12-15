@@ -64,14 +64,21 @@ internal static class Program {
         builder.Services.AddScoped<BulkAssetGenerationHandler>();
         builder.Services.AddHostedService<JobProcessingWorker>();
 
-        builder.Services.AddScoped<IJobsServiceClient, IJobsServiceClient>();
-        builder.Services.AddScoped<IResourceServiceClient, IResourceServiceClient>();
-        builder.Services.AddScoped<IAssetsServiceClient, IAssetsServiceClient>();
+        builder.Services.Configure<InternalApiOptions>(
+            builder.Configuration.GetSection(InternalApiOptions.SectionName));
+        builder.Services.AddTransient<InternalApiKeyHandler>();
+
+        builder.Services.AddScoped<IJobsServiceClient, JobsServiceClient>();
+        builder.Services.AddScoped<IResourceServiceClient, ResourceServiceClient>();
+        builder.Services.AddScoped<IAssetsServiceClient, AssetsServiceClient>();
         builder.Services.AddHttpClient("JobsService", c => c.BaseAddress = new Uri("https+http://jobs-api"))
+            .AddHttpMessageHandler<InternalApiKeyHandler>()
             .AddStandardResilienceHandler();
         builder.Services.AddHttpClient("ResourcesService", c => c.BaseAddress = new Uri("https+http://resources-api"))
+            .AddHttpMessageHandler<InternalApiKeyHandler>()
             .AddStandardResilienceHandler();
         builder.Services.AddHttpClient("AssetsService", c => c.BaseAddress = new Uri("https+http://assets-api"))
+            .AddHttpMessageHandler<InternalApiKeyHandler>()
             .AddStandardResilienceHandler();
     }
 

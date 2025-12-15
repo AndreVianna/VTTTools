@@ -2,11 +2,15 @@ namespace VttTools.Assets.Handlers;
 
 public class AssetHandlersTests {
     private readonly IAssetService _assetService;
+    private readonly UserManager<User> _userManager;
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public AssetHandlersTests() {
         _assetService = Substitute.For<IAssetService>();
+        _userManager = Substitute.For<UserManager<User>>(
+            Substitute.For<IUserStore<User>>(),
+            null, null, null, null, null, null, null, null);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -258,7 +262,7 @@ public class AssetHandlersTests {
         _assetService.CreateAssetAsync(_userId, Arg.Any<CreateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success(createdAsset));
 
-        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService);
+        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService, _userManager);
 
         result.Should().BeOfType<Created<Asset>>();
         var createdResult = (Created<Asset>)result;
@@ -285,7 +289,7 @@ public class AssetHandlersTests {
         _assetService.CreateAssetAsync(_userId, Arg.Any<CreateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Asset>(null!, errors));
 
-        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService);
+        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService, _userManager);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -305,7 +309,7 @@ public class AssetHandlersTests {
         _assetService.CreateAssetAsync(_userId, Arg.Any<CreateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<Asset>(null!, new Error("Duplicate asset name. An asset named 'Duplicate Asset' already exists for this user.")));
 
-        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService);
+        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService, _userManager);
 
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
         var conflictResult = result as IStatusCodeHttpResult;
@@ -771,7 +775,7 @@ public class AssetHandlersTests {
         _assetService.CreateAssetAsync(_userId, Arg.Is<CreateAssetData>(d => d.PortraitId == portraitId), Arg.Any<CancellationToken>())
             .Returns(Result.Success(createdAsset));
 
-        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService);
+        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService, _userManager);
 
         result.Should().BeOfType<Created<Asset>>();
         var createdResult = (Created<Asset>)result;

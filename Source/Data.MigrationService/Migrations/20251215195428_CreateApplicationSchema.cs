@@ -69,15 +69,10 @@ public partial class CreateApplicationSchema : Migration {
             name: "Jobs",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uniqueidentifier", maxLength: 100, nullable: false),
                 Type = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                 Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                TotalItems = table.Column<int>(type: "int", nullable: false),
-                CompletedItems = table.Column<int>(type: "int", nullable: false),
-                FailedItems = table.Column<int>(type: "int", nullable: false),
-                InputJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                EstimatedDurationMs = table.Column<long>(type: "bigint", nullable: true),
-                ActualDurationMs = table.Column<long>(type: "bigint", nullable: true),
-                CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                EstimatedDuration = table.Column<TimeSpan>(type: "time", nullable: false),
                 StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                 CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
             },
@@ -226,18 +221,16 @@ public partial class CreateApplicationSchema : Migration {
         migrationBuilder.CreateTable(
             name: "JobItems",
             columns: table => new {
-                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Index = table.Column<int>(type: "int", nullable: false),
-                InputJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                OutputJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                ErrorMessage = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
+                Data = table.Column<string>(type: "nvarchar(max)", maxLength: 8192, nullable: false),
+                Message = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
                 StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                 CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
             },
             constraints: table => {
-                table.PrimaryKey("PK_JobItems", x => x.Id);
+                table.PrimaryKey("PK_JobItems", x => new { x.JobId, x.Index });
                 table.ForeignKey(
                     name: "FK_JobItems_Jobs_JobId",
                     column: x => x.JobId,
@@ -840,21 +833,9 @@ public partial class CreateApplicationSchema : Migration {
             column: "EncounterId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_JobItems_JobId_Index",
-            table: "JobItems",
-            columns: ["JobId", "Index"],
-            unique: true);
-
-        migrationBuilder.CreateIndex(
             name: "IX_JobItems_Status",
             table: "JobItems",
             column: "Status");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Jobs_CreatedAt",
-            table: "Jobs",
-            column: "CreatedAt",
-            descending: []);
 
         migrationBuilder.CreateIndex(
             name: "IX_Jobs_Status",

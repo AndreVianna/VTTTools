@@ -2,7 +2,7 @@ using PromptTemplateModel = VttTools.AI.Model.PromptTemplate;
 
 namespace VttTools.Data.AI;
 
-public class AIMapperTests {
+public class AiMapperTests {
     [Fact]
     public void ToModel_WithValidEntity_ReturnsCorrectModel() {
         var referenceImage = new Media.Entities.Resource {

@@ -13,6 +13,7 @@ internal static class JobSchemaBuilder {
         entity.ToTable("Jobs");
         entity.HasKey(e => e.Id);
 
+        entity.Property(e => e.OwnerId).IsRequired().HasMaxLength(100);
         entity.Property(e => e.Type).IsRequired().HasMaxLength(100);
         entity.Property(e => e.Status).IsRequired().HasConversion<string>();
         entity.Property(e => e.EstimatedDuration);

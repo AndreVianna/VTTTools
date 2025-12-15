@@ -40,8 +40,6 @@ global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
 global using VttTools.Common.Model;
 global using VttTools.Configuration;
-global using VttTools.Data;
-global using VttTools.Data.Library.Entities;
 global using VttTools.Identity.Model;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Campaigns.Storage;

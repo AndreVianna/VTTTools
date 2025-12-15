@@ -6,7 +6,13 @@ global using Azure.Storage.Blobs.Models;
 global using DotNetToolbox.Results;
 global using FFMpegCore;
 
+global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
+
+global using VttTools.Identity.Model;
+
+global using VttTools.Configuration;
+global using VttTools.Middlewares;
 
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Formats.Png;

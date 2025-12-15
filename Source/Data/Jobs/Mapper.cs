@@ -9,6 +9,7 @@ internal static class Mapper {
     public static Expression<Func<JobEntity, Job>> AsJob = entity
         => new() {
             Id = entity.Id,
+            OwnerId = entity.OwnerId,
             Type = entity.Type,
             Status = entity.Status,
             EstimatedDuration = entity.EstimatedDuration,
@@ -33,6 +34,7 @@ internal static class Mapper {
            ? null
            : new Job {
                Id = entity.Id,
+               OwnerId = entity.OwnerId,
                Type = entity.Type,
                Status = entity.Status,
                EstimatedDuration = entity.EstimatedDuration,
@@ -58,6 +60,7 @@ internal static class Mapper {
     public static JobEntity ToEntity(this Job model)
         => new() {
             Id = model.Id,
+            OwnerId = model.OwnerId,
             Type = model.Type,
             Status = model.Status,
             EstimatedDuration = model.EstimatedDuration,
@@ -79,6 +82,7 @@ internal static class Mapper {
 
     public static void UpdateFrom(this JobEntity entity, Job model) {
         entity.Id = model.Id;
+        entity.OwnerId = model.OwnerId;
         entity.Type = model.Type;
         entity.Status = model.Status;
         entity.EstimatedDuration = model.EstimatedDuration;

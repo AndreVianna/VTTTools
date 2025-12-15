@@ -28,7 +28,3 @@ global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.Storage;
 global using VttTools.Library.Worlds.Model;
 global using VttTools.Media.Model;
-
-global using VttTools.AI.ApiContracts;
-global using VttTools.Data.AI;
-global using VttTools.Data.AI.Entities;

@@ -5,41 +5,48 @@ public sealed class JobsServiceClientTests {
     private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();
 
     public JobsServiceClientTests() {
-        var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
         var logger = NullLogger<JobsServiceClient>.Instance;
-        _client = new JobsServiceClient(_httpClientFactory, httpContextAccessor, logger);
+        _client = new JobsServiceClient(_httpClientFactory, logger);
     }
 
     [Fact]
     public async Task AddJobAsync_WithValidRequest_ReturnsJobId() {
+        var ownerId = Guid.CreateVersion7();
         var request = new AddJobRequest {
             Type = "BulkAssetGeneration",
         };
         var expectedJobId = Guid.CreateVersion7();
         var response = new Job {
             Id = expectedJobId,
+            OwnerId = ownerId,
             Type = "BulkAssetGeneration",
             Status = JobStatus.Pending,
         };
 
         using var mockedHandler = new MockHttpMessageHandler<Job>(HttpStatusCode.Created, response);
-        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler));
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler) {
+            BaseAddress = new Uri("http://localhost"),
+        });
 
-        var result = await _client.AddAsync(request, TestContext.Current.CancellationToken);
+        var result = await _client.AddAsync(ownerId, request, TestContext.Current.CancellationToken);
 
-        result.Should().Be(expectedJobId);
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(expectedJobId);
     }
 
     [Fact]
     public async Task AddJobAsync_WhenRequestFails_ReturnsNull() {
+        var ownerId = Guid.CreateVersion7();
         var request = new AddJobRequest {
             Type = "BulkAssetGeneration",
         };
 
         using var mockedHandler = new MockHttpMessageHandler(HttpStatusCode.BadRequest);
-        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler));
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler) {
+            BaseAddress = new Uri("http://localhost"),
+        });
 
-        var result = await _client.AddAsync(request, TestContext.Current.CancellationToken);
+        var result = await _client.AddAsync(ownerId, request, TestContext.Current.CancellationToken);
 
         result.Should().BeNull();
     }
@@ -54,12 +61,14 @@ public sealed class JobsServiceClientTests {
         };
 
         using var mockedHandler = new MockHttpMessageHandler<Job>(HttpStatusCode.OK, response);
-        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler));
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler) {
+            BaseAddress = new Uri("http://localhost"),
+        });
 
         var result = await _client.GetByIdAsync(jobId, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
-        result.Id.Should().Be(jobId);
+        result!.Id.Should().Be(jobId);
         result.Status.Should().Be(JobStatus.InProgress);
     }
 
@@ -68,7 +77,9 @@ public sealed class JobsServiceClientTests {
         var jobId = Guid.CreateVersion7();
 
         using var mockedHandler = new MockHttpMessageHandler(HttpStatusCode.NotFound);
-        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler));
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler) {
+            BaseAddress = new Uri("http://localhost"),
+        });
 
         var result = await _client.GetByIdAsync(jobId, TestContext.Current.CancellationToken);
 
@@ -83,7 +94,9 @@ public sealed class JobsServiceClientTests {
         };
 
         using var mockedHandler = new MockHttpMessageHandler(HttpStatusCode.NoContent);
-        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler));
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedHandler) {
+            BaseAddress = new Uri("http://localhost"),
+        });
 
         var result = await _client.UpdateAsync(jobId, request, TestContext.Current.CancellationToken);
 

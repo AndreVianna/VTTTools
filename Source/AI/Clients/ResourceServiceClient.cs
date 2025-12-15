@@ -1,11 +1,11 @@
 namespace VttTools.AI.Clients;
 
 public class ResourceServiceClient(IHttpClientFactory httpClientFactory,
-                                   IHttpContextAccessor httpContextAccessor,
                                    ILogger<ResourceServiceClient> logger)
     : IResourceServiceClient {
 
     public async Task<Guid?> UploadImageAsync(
+        Guid ownerId,
         byte[] imageData,
         string fileName,
         string contentType,
@@ -17,9 +17,9 @@ public class ResourceServiceClient(IHttpClientFactory httpClientFactory,
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         content.Add(fileContent, "file", fileName);
         content.Add(new StringContent(resourceType.ToString()), "resourceType");
+        content.Add(new StringContent(ownerId.ToString()), "ownerId");
 
-        var httpClient = httpClientFactory.CreateClient("ResourceService");
-        AddAuthorizationHeader(httpClient);
+        var httpClient = httpClientFactory.CreateClient("ResourcesService");
         var response = await httpClient.PostAsync("/api/resources", content, ct);
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
@@ -36,11 +36,4 @@ public class ResourceServiceClient(IHttpClientFactory httpClientFactory,
     }
 
     private sealed record ResourceUploadResponse(Guid Id);
-
-    private void AddAuthorizationHeader(HttpClient httpClient) {
-        var authToken = httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(authToken))
-            throw new InvalidOperationException("Authorization header is missing");
-        httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(authToken);
-    }
 }

@@ -15,7 +15,7 @@ public sealed class BulkAssetGenerationHandler(
         WriteIndented = false,
     };
 
-    public async Task<Result<AssetGenerationResult>> ProcessItemAsync(JobItemContext context, CancellationToken ct) {
+    public async Task<Result<AssetGenerationResult>> ProcessItemAsync(Guid ownerId, JobItemContext context, CancellationToken ct) {
         try {
             var itemData = JsonSerializer.Deserialize<AssetGenerationData>(context.Data, _jsonOptions);
             var itemName = itemData?.Name ?? $"Item {context.Index}";
@@ -37,6 +37,7 @@ public sealed class BulkAssetGenerationHandler(
                 var portraitResult = await GenerateImageAsync(prompt, "portrait", ct);
                 if (portraitResult.IsSuccessful) {
                     portraitResourceId = await resourceClient.UploadImageAsync(
+                        ownerId,
                         portraitResult.Value.ImageData,
                         $"{itemName}_portrait.png",
                         portraitResult.Value.ContentType,
@@ -50,6 +51,7 @@ public sealed class BulkAssetGenerationHandler(
                 var tokenResult = await GenerateImageAsync(prompt, "token", ct);
                 if (tokenResult.IsSuccessful) {
                     tokenResourceId = await resourceClient.UploadImageAsync(
+                        ownerId,
                         tokenResult.Value.ImageData,
                         $"{itemName}_token.png",
                         tokenResult.Value.ContentType,
@@ -71,7 +73,7 @@ public sealed class BulkAssetGenerationHandler(
                 TokenId = tokenResourceId,
             };
 
-            var createResult = await assetClient.CreateAssetAsync(createAssetRequest, ct);
+            var createResult = await assetClient.CreateAssetAsync(ownerId, createAssetRequest, ct);
             if (!createResult.IsSuccessful)
                 return Result.Failure(createResult.Errors).WithNo<AssetGenerationResult>();
 
