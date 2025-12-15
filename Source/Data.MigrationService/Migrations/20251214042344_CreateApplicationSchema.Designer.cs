@@ -300,7 +300,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ErrorMessage")
+                    b.Property<string>("Error")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -476,7 +476,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long?>("ActualDurationMs")
+                    b.Property<long?>("ActualDuration")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CompletedAt")
@@ -488,13 +488,13 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<long?>("EstimatedDurationMs")
+                    b.Property<long?>("EstimatedDuration")
                         .HasColumnType("bigint");
 
                     b.Property<int>("FailedItems")
                         .HasColumnType("int");
 
-                    b.Property<string>("InputJson")
+                    b.Property<string>("InputData")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -505,7 +505,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("TotalItems")
+                    b.Property<int>("ItemCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
@@ -534,21 +534,21 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ErrorMessage")
+                    b.Property<string>("Error")
                         .HasMaxLength(1024)
                         .HasColumnType("nvarchar(1024)");
 
                     b.Property<int>("Index")
                         .HasColumnType("int");
 
-                    b.Property<string>("InputJson")
+                    b.Property<string>("InputData")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("JobId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("OutputJson")
+                    b.Property<string>("Output")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("StartedAt")
@@ -1194,7 +1194,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("BIT")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("Message")
+                    b.Property<string>("ErrorMessage")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");

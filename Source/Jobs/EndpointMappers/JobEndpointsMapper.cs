@@ -7,13 +7,13 @@ internal static class JobEndpointsMapper {
     public static void MapJobEndpoints(this IEndpointRouteBuilder app) {
         var jobs = app.MapGroup("/api/jobs").RequireAuthorization();
 
-        jobs.MapPost("/", JobHandlers.CreateJobHandler);
+        jobs.MapPost("/", JobHandlers.AddJobHandler);
         jobs.MapGet("/", JobHandlers.GetJobsHandler);
         jobs.MapGet("/{id:guid}", JobHandlers.GetJobByIdHandler);
+        jobs.MapPatch("/{id:guid}", JobHandlers.UpdateJobHandler);
         jobs.MapDelete("/{id:guid}", JobHandlers.CancelJobHandler);
         jobs.MapPost("/{id:guid}/retry", JobHandlers.RetryJobHandler);
-        jobs.MapGet("/{id:guid}/items", JobHandlers.GetJobItemsHandler);
-        jobs.MapPatch("/{id:guid}/items/{index:int}", JobHandlers.UpdateItemStatusHandler);
-        jobs.MapPost("/progress", JobHandlers.BroadcastProgressHandler);
+        //jobs.MapPost("/item-update", JobHandlers.BroadcastItemUpdateHandler);
+        //jobs.MapPost("/progress", JobHandlers.BroadcastProgressHandler);
     }
 }

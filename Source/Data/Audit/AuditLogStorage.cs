@@ -1,5 +1,3 @@
-using VttTools.Admin.Dashboard.Model;
-
 using AuditLog = VttTools.Audit.Model.AuditLog;
 
 namespace VttTools.Data.Audit;

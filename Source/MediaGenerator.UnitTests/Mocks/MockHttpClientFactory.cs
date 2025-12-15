@@ -1,4 +1,4 @@
-namespace VttTools.MediaGenerator.UnitTests.Mocks;
+namespace VttTools.AssetImageManager.Mocks;
 
 public sealed class MockHttpClientFactory
     : IHttpClientFactory, IDisposable {

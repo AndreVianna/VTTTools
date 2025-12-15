@@ -96,7 +96,7 @@ public class WorldStorageTests
 
     [Fact]
     public async Task GetManyAsync_WithOwnedByFilter_ReturnsOwnedWorlds() {
-        var result = await _storage.GetManyAsync($"OwnedBy:{_currentUserId}", _ct);
+        var result = await _storage.SearchAsync($"OwnedBy:{_currentUserId}", _ct);
 
         result.Should().HaveCount(2);
         result.Should().Contain(w => w.Name == "My World");
@@ -106,7 +106,7 @@ public class WorldStorageTests
 
     [Fact]
     public async Task GetManyAsync_WithAvailableToFilter_ReturnsAccessibleWorlds() {
-        var result = await _storage.GetManyAsync($"AvailableTo:{_currentUserId}", _ct);
+        var result = await _storage.SearchAsync($"AvailableTo:{_currentUserId}", _ct);
 
         result.Should().HaveCount(3);
         result.Should().Contain(w => w.Name == "My World");
@@ -117,7 +117,7 @@ public class WorldStorageTests
 
     [Fact]
     public async Task GetManyAsync_WithPublicFilter_ReturnsPublicWorlds() {
-        var result = await _storage.GetManyAsync("Public", _ct);
+        var result = await _storage.SearchAsync("Public", _ct);
 
         result.Should().HaveCount(1);
         result.Should().Contain(w => w.Name == "Public World");
@@ -126,7 +126,7 @@ public class WorldStorageTests
 
     [Fact]
     public async Task GetManyAsync_WithInvalidFilter_ReturnsAllWorlds() {
-        var result = await _storage.GetManyAsync("InvalidFilter", _ct);
+        var result = await _storage.SearchAsync("InvalidFilter", _ct);
 
         result.Should().HaveCount(4);
     }

@@ -116,7 +116,7 @@ public class AuthService(
             };
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Error during registration for email: {Email}. Exception: {Message}", request.Email, ex.Message);
+            logger.LogError(ex, "Error during registration for email: {Email}. Exception: {ErrorMessage}", request.Email, ex.Message);
             return new AuthResponse {
                 Message = "InternalServerError",
             };

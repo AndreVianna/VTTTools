@@ -1,8 +1,3 @@
-using VttTools.Admin.Audit.ApiContracts;
-using VttTools.Admin.Users.ApiContracts;
-using VttTools.Admin.Users.Handlers;
-using VttTools.Admin.Users.Services;
-
 namespace VttTools.Admin.UnitTests.Handlers;
 
 public sealed class UserAdminHandlersTests {

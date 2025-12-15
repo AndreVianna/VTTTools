@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.Application.Validation;
+using VttTools.MediaGenerator.Application.Validation;
+
+namespace VttTools.AssetImageManager.Application.Validation;
 
 public class InputFileValidatorTests {
     [Fact]
@@ -6,7 +8,7 @@ public class InputFileValidatorTests {
         var result = InputFileValidator.ValidateJsonFile(null);
 
         result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("Input path cannot be empty");
+        result.Errors[0].Message.Should().Contain("InputData path cannot be empty");
     }
 
     [Fact]
@@ -14,7 +16,7 @@ public class InputFileValidatorTests {
         var result = InputFileValidator.ValidateJsonFile(string.Empty);
 
         result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("Input path cannot be empty");
+        result.Errors[0].Message.Should().Contain("InputData path cannot be empty");
     }
 
     [Fact]
@@ -22,7 +24,7 @@ public class InputFileValidatorTests {
         var result = InputFileValidator.ValidateJsonFile("   ");
 
         result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("Input path cannot be empty");
+        result.Errors[0].Message.Should().Contain("InputData path cannot be empty");
     }
 
     [Fact]

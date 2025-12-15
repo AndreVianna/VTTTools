@@ -1,4 +1,7 @@
-namespace VttTools.MediaGenerator.Infrastructure.Clients.OpenAi;
+using VttTools.AssetImageManager.Mocks;
+using VttTools.MediaGenerator.Infrastructure.Clients.OpenAi;
+
+namespace VttTools.AssetImageManager.Infrastructure.Clients.OpenAi;
 
 public sealed class OpenAiPromptEnhancerTests : IDisposable {
     private readonly IHttpClientFactory _httpClientFactory;

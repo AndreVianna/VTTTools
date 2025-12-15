@@ -15,7 +15,7 @@ public class AssetStorage(ApplicationDbContext context)
                     .AsSplitQuery()
                     .AsNoTracking()
                     .ToArrayAsync(ct);
-        return [.. entities.Select(e => e.ToModel()).OfType<Asset>()];
+        return [.. entities.Select(e => e.ToModel())];
     }
 
     public async Task<(Asset[] assets, int totalCount)> SearchAsync(
@@ -124,10 +124,9 @@ public class AssetStorage(ApplicationDbContext context)
                         a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Contains(filter.AsText))));
                     break;
                 case FilterOperator.Equals:
-                    var textValue = filter.Value.ToString()!;
                     query = query.Where(a =>
-                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.Value != null && sb.Value.Equals(filter.Value)) ||
-                        a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Equals(filter.Value))));
+                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.Value != null && sb.Value.Equals(filter.AsText, StringComparison.Ordinal)) ||
+                        a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Equals(filter.AsText, StringComparison.Ordinal))));
                     break;
             }
         }

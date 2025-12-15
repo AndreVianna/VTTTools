@@ -1,3 +1,5 @@
+using VttTools.Jobs.Services;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.AI.Handlers;
@@ -5,11 +7,14 @@ namespace VttTools.AI.Handlers;
 public static class AiJobHandlers {
     public static async Task<IResult> StartBulkGenerationHandler(
         [FromBody] BulkAssetGenerationRequest request,
-        IAiJobOrchestrationService service,
+        IImageGenerationService service,
         CancellationToken ct) {
-        var data = new BulkAssetGenerationData {
-            Items = [.. request.Items.Select(i => new BulkAssetGenerationItemData {
+        var data = new GenerateManyAssetsData {
+            Items = [.. request.Items.Select(i => new AssetGenerationData {
                 Name = i.Name,
+                TemplateId = request.TemplateId,
+                GeneratePortrait = request.GeneratePortrait,
+                GenerateToken = request.GenerateToken,
                 Kind = i.Kind,
                 Category = i.Category,
                 Type = i.Type,
@@ -17,14 +22,11 @@ public static class AiJobHandlers {
                 Size = i.Size,
                 Environment = i.Environment,
                 Description = i.Description,
-                Tags = i.Tags
+                Tags = i.Tags,
             })],
-            TemplateId = request.TemplateId,
-            GeneratePortrait = request.GeneratePortrait,
-            GenerateToken = request.GenerateToken
         };
 
-        var result = await service.StartBulkAssetGenerationAsync(data, ct);
+        var result = await service.GenerateManyAsync(data, ct);
 
         return result.IsSuccessful
             ? Results.Created($"/api/jobs/{result.Value.Id}", result.Value)
@@ -33,23 +35,23 @@ public static class AiJobHandlers {
 
     public static async Task<IResult> CancelJobHandler(
         [FromRoute] Guid id,
-        IAiJobOrchestrationService service,
+        IJobService service,
         CancellationToken ct) {
-        var result = await service.CancelJobAsync(id, ct);
+        var isSuccess = await service.CancelAsync(id, ct);
 
-        return result.IsSuccessful
+        return isSuccess
             ? Results.NoContent()
-            : Results.NotFound(new { errors = result.Errors.Select(e => e.Message) });
+            : Results.NotFound();
     }
 
     public static async Task<IResult> RetryJobHandler(
         [FromRoute] Guid id,
-        IAiJobOrchestrationService service,
+        IJobService service,
         CancellationToken ct) {
-        var result = await service.RetryFailedItemsAsync(id, ct: ct);
+        var isSuccess = await service.RetryAsync(id, ct: ct);
 
-        return result.IsSuccessful
-            ? Results.Ok(result.Value)
-            : Results.NotFound(new { errors = result.Errors.Select(e => e.Message) });
+        return isSuccess
+            ? Results.NoContent()
+            : Results.NotFound();
     }
 }

@@ -1,4 +1,7 @@
-namespace VttTools.MediaGenerator.Infrastructure.Clients.Google;
+using VttTools.AssetImageManager.Mocks;
+using VttTools.MediaGenerator.Infrastructure.Clients.Google;
+
+namespace VttTools.AssetImageManager.Infrastructure.Clients.Google;
 
 public sealed class GoogleClientTests : IDisposable {
     private readonly IHttpClientFactory _httpClientFactory;

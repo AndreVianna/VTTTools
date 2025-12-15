@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.Application.HealthChecks;
+using VttTools.MediaGenerator.Application.HealthChecks;
+
+namespace VttTools.AssetImageManager.Application.HealthChecks;
 
 public sealed class ProviderHealthCheckTests {
     [Fact]

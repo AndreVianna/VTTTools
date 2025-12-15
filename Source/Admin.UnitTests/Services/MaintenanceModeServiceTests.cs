@@ -96,7 +96,7 @@ public class MaintenanceModeServiceTests {
             async () => await _sut.EnableAsync(invalidMessage!, null, null, enabledBy, TestContext.Current.CancellationToken));
 
         Assert.Equal("message", exception.ParamName);
-        Assert.Contains("Message is required", exception.Message);
+        Assert.Contains("ErrorMessage is required", exception.Message);
         await _mockStorage.DidNotReceive().SaveAsync(Arg.Any<MaintenanceMode>(), Arg.Any<CancellationToken>());
     }
 
@@ -222,7 +222,7 @@ public class MaintenanceModeServiceTests {
             async () => await _sut.UpdateAsync(id, invalidMessage!, null, null, TestContext.Current.CancellationToken));
 
         Assert.Equal("message", exception.ParamName);
-        Assert.Contains("Message is required", exception.Message);
+        Assert.Contains("ErrorMessage is required", exception.Message);
         await _mockStorage.DidNotReceive().SaveAsync(Arg.Any<MaintenanceMode>(), Arg.Any<CancellationToken>());
     }
 

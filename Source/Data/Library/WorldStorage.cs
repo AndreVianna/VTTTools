@@ -38,7 +38,7 @@ public class WorldStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<World[]> GetManyAsync(string filterDefinition, CancellationToken ct = default) {
+    public async Task<World[]> SearchAsync(string filterDefinition, CancellationToken ct = default) {
         var query = context.Worlds
             .Include(e => e.Campaigns)
             .Include(e => e.Background)

@@ -15,7 +15,7 @@ public class MaintenanceModeService(
         }
         else {
             logger.LogDebug(
-                "Active maintenance mode found: Id={Id}, Message={Message}",
+                "Active maintenance mode found: Id={Id}, ErrorMessage={ErrorMessage}",
                 maintenanceMode.Id,
                 maintenanceMode.Message);
         }
@@ -31,11 +31,11 @@ public class MaintenanceModeService(
         CancellationToken ct = default) {
 
         if (string.IsNullOrWhiteSpace(message)) {
-            throw new ArgumentException("Message is required", nameof(message));
+            throw new ArgumentException("ErrorMessage is required", nameof(message));
         }
 
         if (message.Length > 2000) {
-            throw new ArgumentException("Message must not exceed 2000 characters", nameof(message));
+            throw new ArgumentException("ErrorMessage must not exceed 2000 characters", nameof(message));
         }
 
         if (scheduledStart.HasValue && scheduledEnd.HasValue && scheduledEnd.Value < scheduledStart.Value) {
@@ -59,7 +59,7 @@ public class MaintenanceModeService(
         };
 
         logger.LogInformation(
-            "Enabling maintenance mode: Message={Message}, ScheduledStart={ScheduledStart}, ScheduledEnd={ScheduledEnd}, EnabledBy={EnabledBy}",
+            "Enabling maintenance mode: ErrorMessage={ErrorMessage}, ScheduledStart={ScheduledStart}, ScheduledEnd={ScheduledEnd}, EnabledBy={EnabledBy}",
             message,
             scheduledStart,
             scheduledEnd,
@@ -104,11 +104,11 @@ public class MaintenanceModeService(
         CancellationToken ct = default) {
 
         if (string.IsNullOrWhiteSpace(message)) {
-            throw new ArgumentException("Message is required", nameof(message));
+            throw new ArgumentException("ErrorMessage is required", nameof(message));
         }
 
         if (message.Length > 2000) {
-            throw new ArgumentException("Message must not exceed 2000 characters", nameof(message));
+            throw new ArgumentException("ErrorMessage must not exceed 2000 characters", nameof(message));
         }
 
         if (scheduledStart.HasValue && scheduledEnd.HasValue && scheduledEnd.Value < scheduledStart.Value) {
@@ -127,7 +127,7 @@ public class MaintenanceModeService(
         };
 
         logger.LogInformation(
-            "Updating maintenance mode: Id={Id}, Message={Message}, ScheduledStart={ScheduledStart}, ScheduledEnd={ScheduledEnd}",
+            "Updating maintenance mode: Id={Id}, ErrorMessage={ErrorMessage}, ScheduledStart={ScheduledStart}, ScheduledEnd={ScheduledEnd}",
             id,
             message,
             scheduledStart,

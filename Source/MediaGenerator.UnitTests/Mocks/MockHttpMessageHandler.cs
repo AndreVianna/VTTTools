@@ -1,4 +1,4 @@
-namespace VttTools.MediaGenerator.UnitTests.Mocks;
+namespace VttTools.AssetImageManager.Mocks;
 
 public sealed class MockHttpMessageHandler : HttpMessageHandler {
     private HttpStatusCode _statusCode = HttpStatusCode.OK;

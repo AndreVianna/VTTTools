@@ -10,10 +10,12 @@ global using Microsoft.AspNetCore.Http;
 global using Microsoft.Extensions.Caching.Memory;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;
 
 global using NSubstitute;
 
+global using VttTools.AI.Mocks;
 global using VttTools.AI.ApiContracts;
 global using VttTools.AI.Options;
 global using VttTools.AI.Clients;

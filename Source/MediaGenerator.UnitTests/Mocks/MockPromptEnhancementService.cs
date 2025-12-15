@@ -1,4 +1,4 @@
-namespace VttTools.MediaGenerator.UnitTests.Mocks;
+namespace VttTools.AssetImageManager.Mocks;
 
 public sealed class MockPromptEnhancementService : IPromptEnhancementService {
     private readonly Queue<Result<PromptEnhancementResponse>> _responses = new();

@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.UnitTests.Application.Commands;
+using VttTools.AssetImageManager.Mocks;
+
+namespace VttTools.AssetImageManager.Application.Commands;
 
 public sealed class GenerateCommandTests : IDisposable {
     private readonly string _tempDir;
@@ -127,7 +129,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         for (var i = 0; i < 5; i++) {
-            _mockImageService.EnqueueSuccess();
+            _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
 
@@ -151,7 +153,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 1);
         await CreatePromptFilesAsync(entity, 2);
         for (var i = 0; i < 7; i++) {
-            _mockImageService.EnqueueSuccess();
+            _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
 
@@ -199,7 +201,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(orc, 0);
         await CreatePromptFilesAsync(orc, 1);
         for (var i = 0; i < 5; i++) {
-            _mockImageService.EnqueueSuccess();
+            _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
 
@@ -228,7 +230,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(kobold, 0);
         await CreatePromptFilesAsync(kobold, 1);
         for (var i = 0; i < 15; i++) {
-            _mockImageService.EnqueueSuccess();
+            _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
 
@@ -251,7 +253,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         for (var i = 0; i < 5; i++) {
-            _mockImageService.EnqueueSuccess();
+            _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
 
@@ -276,7 +278,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         for (var i = 0; i < 5; i++) {
-            _mockImageService.EnqueueSuccess();
+            _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
 

@@ -13,9 +13,7 @@ public static class HostApplicationBuilderExtensions {
 
     public static void AddServiceDiscovery(this IHostApplicationBuilder builder) {
         builder.Services.AddServiceDiscovery();
-        builder.Services.ConfigureHttpClientDefaults(http => {
-            http.AddServiceDiscovery();
-        });
+        builder.Services.ConfigureHttpClientDefaults(http => http.AddServiceDiscovery());
     }
 
     public static void AddRequiredServices(this IHostApplicationBuilder builder) {

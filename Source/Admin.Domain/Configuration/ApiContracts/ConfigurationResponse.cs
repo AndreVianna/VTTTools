@@ -1,5 +1,3 @@
-using VttTools.Admin.Configuration.Model;
-
 namespace VttTools.Admin.Configuration.ApiContracts;
 
 public sealed record ConfigurationResponse : Response {

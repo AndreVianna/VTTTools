@@ -1,5 +1,3 @@
-using VttTools.Admin.Configuration.ApiContracts;
-
 namespace VttTools.Admin.Configuration.Services;
 
 public interface IConfigurationService {

@@ -38,17 +38,17 @@ public sealed class Worker(
             logger.LogInformation("Database migrations completed successfully");
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("migrations")) {
-            logger.LogError(ex, "Migration discovery or configuration error: {ErrorMessage}", ex.Message);
+            logger.LogError(ex, "Migration discovery or configuration error: {Error}", ex.Message);
             logger.LogError("Ensure migrations assembly is correctly configured and migration files are present");
             throw;
         }
         catch (SqlException ex) {
-            logger.LogError(ex, "Database connection or execution error during migration: {ErrorMessage}", ex.Message);
+            logger.LogError(ex, "Database connection or execution error during migration: {Error}", ex.Message);
             logger.LogError("Verify database connection string and permissions");
             throw;
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Unexpected error during database migration: {ErrorMessage}", ex.Message);
+            logger.LogError(ex, "Unexpected error during database migration: {Error}", ex.Message);
             throw;
         }
         finally {
@@ -86,7 +86,7 @@ public sealed class Worker(
             }
         }
         catch (Exception ex) {
-            logger.LogWarning(ex, "Could not retrieve migration information: {ErrorMessage}", ex.Message);
+            logger.LogWarning(ex, "Could not retrieve migration information: {Error}", ex.Message);
         }
     }
 
@@ -107,7 +107,7 @@ public sealed class Worker(
             }
         }
         catch (Exception ex) {
-            logger.LogWarning(ex, "Could not retrieve final migration status: {ErrorMessage}", ex.Message);
+            logger.LogWarning(ex, "Could not retrieve final migration status: {Error}", ex.Message);
         }
     }
 
@@ -134,7 +134,7 @@ public sealed class Worker(
             }
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Failed to discover migrations in assembly: {ErrorMessage}", ex.Message);
+            logger.LogError(ex, "Failed to discover migrations in assembly: {Error}", ex.Message);
         }
     }
 }

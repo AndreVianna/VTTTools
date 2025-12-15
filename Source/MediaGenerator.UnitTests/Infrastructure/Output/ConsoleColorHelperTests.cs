@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.Infrastructure.Output;
+using VttTools.MediaGenerator.Infrastructure.Output;
+
+namespace VttTools.AssetImageManager.Infrastructure.Output;
 
 public class ConsoleColorHelperTests {
     [Theory]

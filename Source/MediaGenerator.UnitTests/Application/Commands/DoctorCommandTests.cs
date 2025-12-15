@@ -1,4 +1,4 @@
-namespace VttTools.MediaGenerator.UnitTests.Application.Commands;
+namespace VttTools.AssetImageManager.Application.Commands;
 
 public sealed class DoctorCommandTests : IDisposable {
     private readonly string _tempDir;
@@ -38,7 +38,7 @@ public sealed class DoctorCommandTests : IDisposable {
             }
         }
 
-        var themesPath = Path.Combine(AppContext.BaseDirectory, "Data", "themes.json");
+        var themesPath = Path.Combine(AppContext.BaseDirectory, "JobData", "themes.json");
         if (File.Exists(themesPath)) {
             try {
                 File.Delete(themesPath);
@@ -317,7 +317,7 @@ public sealed class DoctorCommandTests : IDisposable {
     }
 
     private static void CreateValidThemesJson() {
-        var themesPath = Path.Combine(AppContext.BaseDirectory, "Data", "themes.json");
+        var themesPath = Path.Combine(AppContext.BaseDirectory, "JobData", "themes.json");
         Directory.CreateDirectory(Path.GetDirectoryName(themesPath)!);
 
         const string themesJson = """

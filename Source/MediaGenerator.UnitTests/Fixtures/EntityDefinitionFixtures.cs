@@ -1,4 +1,4 @@
-namespace VttTools.MediaGenerator.UnitTests.Fixtures;
+namespace VttTools.AssetImageManager.Fixtures;
 
 public static class EntityDefinitionFixtures {
     public static Asset CreateSimpleGoblin() => new() {

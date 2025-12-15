@@ -1,28 +1,26 @@
 namespace VttTools.AI.Mocks;
 
-public class MockHttpMessageHandler : HttpMessageHandler {
-    private HttpStatusCode _statusCode = HttpStatusCode.OK;
-    private string _responseContent = string.Empty;
-
-    public void SetupResponse(HttpStatusCode statusCode) {
-        _statusCode = statusCode;
-        _responseContent = string.Empty;
+public class MockHttpMessageHandler(HttpStatusCode statusCode)
+    : HttpMessageHandler {
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken) {
+        var response = new HttpResponseMessage(statusCode);
+        return Task.FromResult(response);
     }
+}
 
-    public void SetupResponse<T>(HttpStatusCode statusCode, T content) {
-        _statusCode = statusCode;
-        _responseContent = JsonSerializer.Serialize(content);
-    }
+public class MockHttpMessageHandler<T>(HttpStatusCode statusCode, T content)
+    : HttpMessageHandler
+    where T : notnull {
+    private readonly string _responseContent = JsonSerializer.Serialize(content);
 
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken) {
-        var response = new HttpResponseMessage(_statusCode);
-
-        if (!string.IsNullOrEmpty(_responseContent)) {
-            response.Content = new StringContent(_responseContent, Encoding.UTF8, "application/json");
-        }
-
+        var response = new HttpResponseMessage(statusCode) {
+            Content = new StringContent(_responseContent, Encoding.UTF8, "application/json")
+        };
         return Task.FromResult(response);
     }
 }

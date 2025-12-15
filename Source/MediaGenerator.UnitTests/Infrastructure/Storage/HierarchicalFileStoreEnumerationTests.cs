@@ -1,4 +1,4 @@
-namespace VttTools.MediaGenerator.Infrastructure.Storage;
+namespace VttTools.AssetImageManager.Infrastructure.Storage;
 
 public class HierarchicalFileStoreEnumerationTests {
     [Fact]

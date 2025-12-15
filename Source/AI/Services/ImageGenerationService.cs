@@ -1,11 +1,23 @@
 namespace VttTools.AI.Services;
 
-public class ImageGenerationService(IAiProviderFactory providerFactory)
+public class ImageGenerationService(IAiProviderFactory providerFactory,
+                                    IOptions<JobProcessingOptions> options,
+                                    IJobsServiceClient jobsClient,
+                                    Channel<JobQueueItem, JobQueueItem> jobChannel,
+                                    ILogger<ImageGenerationService> logger)
     : IImageGenerationService {
 
-    public async Task<Result<ImageGenerationResponse>> GenerateAsync(
-        ImageGenerationData data,
-        CancellationToken ct = default) {
+    private readonly JobProcessingOptions _options = options.Value;
+    private static readonly JsonSerializerOptions _jsonOptions = new() {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
+
+    public IReadOnlyList<string> GetAvailableProviders()
+        => providerFactory.GetAvailableImageProviders();
+
+    public async Task<Result<ImageGenerationResponse>> GenerateAsync(ImageGenerationData data, CancellationToken ct = default) {
         var validation = data.Validate();
         if (validation.HasErrors)
             return Result.Failure<ImageGenerationResponse>(null!, validation.Errors);
@@ -29,8 +41,42 @@ public class ImageGenerationService(IAiProviderFactory providerFactory)
             };
     }
 
-    public IReadOnlyList<string> GetAvailableProviders()
-        => providerFactory.GetAvailableImageProviders();
+    public async Task<Result<Job>> GenerateManyAsync(GenerateManyAssetsData data, CancellationToken ct = default) {
+        var context = new Map {
+            ["MaxItemsPerBatch"] = _options.MaxItemsPerBatch,
+        };
+        var validation = data.Validate(context);
+        if (validation.HasErrors)
+            return Result.Failure(validation.Errors).WithNo<Job>();
+
+        try {
+            var request = new AddJobRequest {
+                Type = BulkAssetGenerationHandler.JobTypeName,
+                EstimatedDuration = TimeSpan.FromMilliseconds(1500 * data.Items.Count),
+                Items = [..data.Items.Select((item, index) => new AddJobRequest.Item {
+                    Index = index,
+                    Data = JsonSerializer.Serialize(item, _jsonOptions),
+                })],
+            };
+
+            var job = await jobsClient.AddAsync(request, ct);
+            if (job is null) {
+                logger.LogError("Failed to create job via Jobs service");
+                return Result.Failure("Failed to create job").WithNo<Job>();
+            }
+            logger.LogInformation("AI job {Id} created with {ItemCount} items", job.Id, data.Items.Count);
+
+            var queueItem = new JobQueueItem(job.Id);
+            await jobChannel.Writer.WriteAsync(queueItem, ct);
+
+            logger.LogInformation("AI job {Id} queued", job.Id);
+            return job;
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Failed to start AI job");
+            return Result.Failure("Failed to start job").WithNo<Job>();
+        }
+    }
 
     private ImageGenerationData ResolveProviderAndModel(ImageGenerationData data) {
         if (!string.IsNullOrEmpty(data.Provider) && !string.IsNullOrEmpty(data.Model))

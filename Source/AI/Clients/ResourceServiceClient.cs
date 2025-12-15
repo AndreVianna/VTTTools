@@ -1,18 +1,16 @@
 namespace VttTools.AI.Clients;
 
-public class ResourceServiceClient(
-    HttpClient httpClient,
-    IHttpContextAccessor httpContextAccessor,
-    ILogger<ResourceServiceClient> logger) {
+public class ResourceServiceClient(IHttpClientFactory httpClientFactory,
+                                   IHttpContextAccessor httpContextAccessor,
+                                   ILogger<ResourceServiceClient> logger)
+    : IResourceServiceClient {
 
     public async Task<Guid?> UploadImageAsync(
         byte[] imageData,
         string fileName,
         string contentType,
         ResourceType resourceType,
-        string? authToken = null,
         CancellationToken ct = default) {
-        AddAuthorizationHeader(authToken);
 
         using var content = new MultipartFormDataContent();
         using var fileContent = new ByteArrayContent(imageData);
@@ -20,6 +18,8 @@ public class ResourceServiceClient(
         content.Add(fileContent, "file", fileName);
         content.Add(new StringContent(resourceType.ToString()), "resourceType");
 
+        var httpClient = httpClientFactory.CreateClient("ResourceService");
+        AddAuthorizationHeader(httpClient);
         var response = await httpClient.PostAsync("/api/resources", content, ct);
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
@@ -37,9 +37,10 @@ public class ResourceServiceClient(
 
     private sealed record ResourceUploadResponse(Guid Id);
 
-    private void AddAuthorizationHeader(string? authToken = null) {
-        var authHeader = authToken ?? httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
-        if (!string.IsNullOrEmpty(authHeader))
-            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(authHeader);
+    private void AddAuthorizationHeader(HttpClient httpClient) {
+        var authToken = httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(authToken))
+            throw new InvalidOperationException("Authorization header is missing");
+        httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(authToken);
     }
 }

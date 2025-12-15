@@ -19,7 +19,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
     /// <inheritdoc />
     public async Task<World[]> GetWorldsAsync(string filterDefinition, CancellationToken ct = default) {
         try {
-            return await worldStorage.GetManyAsync(filterDefinition, ct);
+            return await worldStorage.SearchAsync(filterDefinition, ct);
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to retrieve worlds with filter: {FilterDefinition}", filterDefinition);

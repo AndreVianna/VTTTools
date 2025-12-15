@@ -3,7 +3,7 @@ namespace VttTools.AI.Handlers;
 public sealed class BulkAssetGenerationHandler(
     IImageGenerationService imageService,
     ResourceServiceClient resourceClient,
-    AssetServiceClient assetClient,
+    AssetsServiceClient assetClient,
     IPromptTemplateStorage templateStorage,
     ILogger<BulkAssetGenerationHandler> logger) {
 
@@ -12,31 +12,28 @@ public sealed class BulkAssetGenerationHandler(
     private static readonly JsonSerializerOptions _jsonOptions = new() {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
+        WriteIndented = false,
     };
 
-    public string JobType => JobTypeName;
-
-    public async Task<JobItemResult> ProcessItemAsync(JobItemContext context, CancellationToken ct) {
+    public async Task<Result<AssetGenerationResult>> ProcessItemAsync(JobItemContext context, CancellationToken ct) {
         try {
-            var jobInput = DeserializeJobInput(context.JobInputJson);
-            var itemData = DeserializeItemInput(context.ItemInputJson);
+            var itemData = JsonSerializer.Deserialize<AssetGenerationData>(context.Data, _jsonOptions);
             var itemName = itemData?.Name ?? $"Item {context.Index}";
 
             PromptTemplate? template = null;
-            if (jobInput?.TemplateId.HasValue == true)
-                template = await templateStorage.GetByIdAsync(jobInput.TemplateId.Value, ct);
+            if (itemData?.TemplateId.HasValue == true)
+                template = await templateStorage.GetByIdAsync(itemData.TemplateId.Value, ct);
 
             var prompt = BuildPrompt(itemName, itemData, template);
 
             Guid? portraitResourceId = null;
             Guid? tokenResourceId = null;
 
-            var generatePortrait = jobInput?.GeneratePortrait ?? false;
-            var generateToken = jobInput?.GenerateToken ?? false;
+            var generatePortrait = itemData?.GeneratePortrait ?? false;
+            var generateToken = itemData?.GenerateToken ?? false;
 
             if (generatePortrait) {
-                logger.LogDebug("Generating portrait for {ItemName}", itemName);
+                logger.LogDebug("Generating portrait for {AssetName}", itemName);
                 var portraitResult = await GenerateImageAsync(prompt, "portrait", ct);
                 if (portraitResult.IsSuccessful) {
                     portraitResourceId = await resourceClient.UploadImageAsync(
@@ -44,13 +41,12 @@ public sealed class BulkAssetGenerationHandler(
                         $"{itemName}_portrait.png",
                         portraitResult.Value.ContentType,
                         ResourceType.Portrait,
-                        context.AuthToken,
                         ct);
                 }
             }
 
             if (generateToken) {
-                logger.LogDebug("Generating token for {ItemName}", itemName);
+                logger.LogDebug("Generating token for {AssetName}", itemName);
                 var tokenResult = await GenerateImageAsync(prompt, "token", ct);
                 if (tokenResult.IsSuccessful) {
                     tokenResourceId = await resourceClient.UploadImageAsync(
@@ -58,13 +54,12 @@ public sealed class BulkAssetGenerationHandler(
                         $"{itemName}_token.png",
                         tokenResult.Value.ContentType,
                         ResourceType.Token,
-                        context.AuthToken,
                         ct);
                 }
             }
 
-            logger.LogDebug("Creating asset {ItemName}", itemName);
-            var createAssetRequest = new CreateAssetHttpRequest {
+            logger.LogDebug("Creating createResult {AssetName}", itemName);
+            var createAssetRequest = new CreateAssetRequest {
                 Kind = itemData?.Kind ?? AssetKind.Character,
                 Category = itemData?.Category ?? string.Empty,
                 Type = itemData?.Type ?? string.Empty,
@@ -73,26 +68,23 @@ public sealed class BulkAssetGenerationHandler(
                 Description = itemData?.Description ?? string.Empty,
                 Tags = itemData?.Tags ?? [],
                 PortraitId = portraitResourceId,
-                TokenId = tokenResourceId
+                TokenId = tokenResourceId,
             };
 
-            var assetId = await assetClient.CreateAssetAsync(createAssetRequest, context.AuthToken, ct);
-            if (assetId is null)
-                return JobItemResult.Failure("Failed to create asset");
+            var createResult = await assetClient.CreateAssetAsync(createAssetRequest, ct);
+            if (!createResult.IsSuccessful)
+                return Result.Failure(createResult.Errors).WithNo<AssetGenerationResult>();
 
-            var outputJson = SerializeItemOutput(assetId.Value, portraitResourceId, tokenResourceId);
-            return JobItemResult.Success(outputJson);
+            var result = new AssetGenerationResult(createResult.Value, portraitResourceId, tokenResourceId);
+            return result;
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Error processing item {ItemId}", context.ItemId);
-            return JobItemResult.Failure(ex.Message);
+            logger.LogError(ex, "Error processing item {Index}", context.Index);
+            return Result.Failure(ex.Message).WithNo<AssetGenerationResult>();
         }
     }
 
-    private Task<Result<ImageGenerationResponse>> GenerateImageAsync(
-        string prompt,
-        string imageType,
-        CancellationToken ct) {
+    private Task<Result<ImageGenerationResponse>> GenerateImageAsync(string prompt, string imageType, CancellationToken ct) {
         var contentType = imageType == "token"
             ? GeneratedContentType.ImageToken
             : GeneratedContentType.ImagePortrait;
@@ -107,10 +99,7 @@ public sealed class BulkAssetGenerationHandler(
         return imageService.GenerateAsync(data, ct);
     }
 
-    private static string BuildPrompt(
-        string itemName,
-        BulkAssetGenerationItemData? itemData,
-        PromptTemplate? template) {
+    private static string BuildPrompt(string itemName, AssetGenerationData? itemData, PromptTemplate? template) {
         var basePrompt = $"A {itemData?.Category ?? "fantasy"} {itemData?.Type ?? "character"} named {itemName}";
 
         if (!string.IsNullOrWhiteSpace(itemData?.Description))
@@ -128,35 +117,4 @@ public sealed class BulkAssetGenerationHandler(
                 .Replace("{prompt}", basePrompt)
             : basePrompt;
     }
-
-    private static BulkAssetGenerationData? DeserializeJobInput(string? json) {
-        if (string.IsNullOrWhiteSpace(json))
-            return null;
-
-        try {
-            return JsonSerializer.Deserialize<BulkAssetGenerationData>(json, _jsonOptions);
-        }
-        catch {
-            return null;
-        }
-    }
-
-    private static BulkAssetGenerationItemData? DeserializeItemInput(string? json) {
-        if (string.IsNullOrWhiteSpace(json))
-            return null;
-
-        try {
-            return JsonSerializer.Deserialize<BulkAssetGenerationItemData>(json, _jsonOptions);
-        }
-        catch {
-            return null;
-        }
-    }
-
-    private static string SerializeItemOutput(Guid assetId, Guid? portraitResourceId, Guid? tokenResourceId)
-        => JsonSerializer.Serialize(new {
-            AssetId = assetId,
-            PortraitResourceId = portraitResourceId,
-            TokenResourceId = tokenResourceId
-        }, _jsonOptions);
 }

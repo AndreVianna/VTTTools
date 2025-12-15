@@ -22,8 +22,8 @@ internal static class Mapper {
             Background = entity.Background != null ? entity.Background.ToModel() : null,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Campaigns = entity.Campaigns.AsQueryable().Select(AsCampaign!).ToList(),
-            Adventures = entity.Adventures.AsQueryable().Select(AsAdventure!).ToList(),
+            Campaigns = entity.Campaigns.AsQueryable().Select(AsChildCampaign!).ToList(),
+            Adventures = entity.Adventures.AsQueryable().Select(AsChildAdventure!).ToList(),
         };
 
     internal static Expression<Func<CampaignEntity, Campaign>> AsCampaign = entity
@@ -36,7 +36,33 @@ internal static class Mapper {
             Background = entity.Background != null ? entity.Background.ToModel() : null,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
+            Adventures = entity.Adventures.AsQueryable().Select(AsChildAdventure!).ToList(),
+        };
+
+    internal static Expression<Func<CampaignEntity, Campaign>> AsChildCampaign = entity
+        => new() {
+            OwnerId = entity.OwnerId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
             Adventures = entity.Adventures.AsQueryable().Select(AsAdventure!).ToList(),
+        };
+
+    internal static Expression<Func<AdventureEntity, Adventure>> AsChildAdventure = entity
+        => new() {
+            OwnerId = entity.OwnerId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Style = entity.Style,
+            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            IsOneShot = entity.IsOneShot,
+            IsPublic = entity.IsPublic,
+            IsPublished = entity.IsPublished,
+            Encounters = entity.Encounters.AsQueryable().Select(AsChildEncounter!).ToList(),
         };
 
     internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity

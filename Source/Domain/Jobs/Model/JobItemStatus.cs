@@ -5,5 +5,5 @@ public enum JobItemStatus {
     InProgress,
     Success,
     Failed,
-    Canceled
+    Canceled,
 }

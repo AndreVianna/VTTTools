@@ -11,16 +11,16 @@ global using Microsoft.Extensions.Configuration;
 
 global using NSubstitute;
 
+global using SixLabors.ImageSharp;
+global using SixLabors.ImageSharp.PixelFormats;
+global using SixLabors.ImageSharp.Processing;
+
 global using VttTools.AI.ApiContracts;
-global using VttTools.AI.Model;
 global using VttTools.AI.ServiceContracts;
 global using VttTools.AI.Services;
 global using VttTools.Assets.Model;
 global using VttTools.Common.Model;
-
-global using SixLabors.ImageSharp;
-global using SixLabors.ImageSharp.PixelFormats;
-global using SixLabors.ImageSharp.Processing;
+global using VttTools.Jobs.Model;
 global using VttTools.Media.Model;
 global using VttTools.MediaGenerator.Application.Commands;
 global using VttTools.MediaGenerator.Application.Options;
@@ -31,5 +31,3 @@ global using VttTools.MediaGenerator.Domain.Prompts.Contracts;
 global using VttTools.MediaGenerator.Domain.Prompts.Models;
 global using VttTools.MediaGenerator.Domain.Storage.Contracts;
 global using VttTools.MediaGenerator.Infrastructure.Storage;
-global using VttTools.MediaGenerator.UnitTests.Fixtures;
-global using VttTools.MediaGenerator.UnitTests.Mocks;

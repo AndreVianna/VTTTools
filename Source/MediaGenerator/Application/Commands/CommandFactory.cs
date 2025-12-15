@@ -24,7 +24,7 @@ internal static class CommandFactory {
             var limit = parseResult.GetValue(limitOption);
 
             if (inputFile is null) {
-                ConsoleOutput.WriteError("Error: Input file is required.");
+                ConsoleOutput.WriteError("Error: InputData file is required.");
                 return 1;
             }
 

@@ -1,6 +1,6 @@
 using Request = (string imageType, VttTools.Assets.Model.Asset entity, int tokenIndex);
 
-namespace VttTools.MediaGenerator.UnitTests.Mocks;
+namespace VttTools.AssetImageManager.Mocks;
 
 public sealed class MockPromptEnhancer : IPromptEnhancer {
     private readonly Queue<PromptEnhancerResponse> _responses = new();

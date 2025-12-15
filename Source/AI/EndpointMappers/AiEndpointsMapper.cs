@@ -88,15 +88,15 @@ public static class AiEndpointsMapper {
         var jobs = ai.MapGroup("/jobs");
         jobs.MapPost("", AiJobHandlers.StartBulkGenerationHandler)
             .RequireAuthorization()
-            .WithName("StartAiJob")
-            .WithSummary("Start an AI bulk generation job");
+            .WithName("StartJob")
+            .WithSummary("Start an AI job");
         jobs.MapDelete("{id:guid}", AiJobHandlers.CancelJobHandler)
             .RequireAuthorization()
-            .WithName("CancelAiJob")
+            .WithName("CancelJob")
             .WithSummary("Cancel an AI job");
         jobs.MapPost("{id:guid}/retry", AiJobHandlers.RetryJobHandler)
             .RequireAuthorization()
-            .WithName("RetryAiJob")
+            .WithName("RetryJob")
             .WithSummary("Retry failed items in an AI job");
     }
 }

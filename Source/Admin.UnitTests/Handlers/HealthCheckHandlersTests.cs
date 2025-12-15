@@ -1,8 +1,5 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-using VttTools.Admin.Dashboard.ApiContracts;
-using VttTools.Admin.Dashboard.Handlers;
-
 namespace VttTools.Admin.UnitTests.Handlers;
 
 public class HealthCheckHandlersTests {

@@ -1,6 +1,3 @@
-
-using VttTools.AI.Mocks;
-
 namespace VttTools.AI.Services;
 
 public class ImageGenerationServiceTests {
@@ -20,7 +17,12 @@ public class ImageGenerationServiceTests {
         _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
             .Returns(("OpenAI", "gpt-image-1"));
 
-        _service = new ImageGenerationService(_providerFactory);
+        var options = Substitute.For<IOptions<JobProcessingOptions>>();
+        var client = Substitute.For<IJobsServiceClient>();
+        var channel = Substitute.For<System.Threading.Channels.Channel<JobQueueItem, JobQueueItem>>();
+        var logger = NullLogger<ImageGenerationService>.Instance;
+
+        _service = new ImageGenerationService(_providerFactory, options, client, channel, logger);
         _ct = TestContext.Current.CancellationToken;
     }
 

@@ -1,9 +1,6 @@
 global using System.Diagnostics.CodeAnalysis;
-global using System.Threading.Channels;
 
 global using DotNetToolbox.Results;
-
-global using Microsoft.Extensions.Options;
 
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;
@@ -12,7 +9,6 @@ global using Microsoft.EntityFrameworkCore;
 
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
-global using VttTools.Common.Model;
 global using VttTools.Common.Utilities;
 global using VttTools.Data;
 global using VttTools.Data.Audit;
@@ -27,6 +23,7 @@ global using VttTools.Jobs.Events;
 global using VttTools.Jobs.Handlers;
 global using VttTools.Jobs.Hubs;
 global using VttTools.Jobs.Model;
+global using VttTools.Jobs.ServiceContracts;
 global using VttTools.Jobs.Services;
 global using VttTools.Jobs.Storage;
 global using VttTools.Services;

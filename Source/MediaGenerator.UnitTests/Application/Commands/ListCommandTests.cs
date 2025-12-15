@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.UnitTests.Application.Commands;
+using VttTools.AssetImageManager.Fixtures;
+
+namespace VttTools.AssetImageManager.Application.Commands;
 
 public sealed class ListCommandTests : IDisposable {
     private readonly string _tempDir;

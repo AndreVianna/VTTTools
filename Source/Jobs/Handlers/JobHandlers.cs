@@ -3,26 +3,47 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 namespace VttTools.Jobs.Handlers;
 
 internal static class JobHandlers {
-    internal static async Task<IResult> CreateJobHandler(
-        [FromBody] CreateJobRequest request,
-        [FromServices] IJobService jobService,
-        CancellationToken ct) {
-        var result = await jobService.CreateJobAsync(request, ct);
+    internal static async Task<IResult> AddJobHandler([FromBody] AddJobRequest request, [FromServices] IJobService jobService, CancellationToken ct) {
+        var data = new AddJobData {
+            Type = request.Type,
+            Items = request.Items.ConvertAll(i => new AddJobData.Item() {
+                Index = i.Index,
+                Data = i.Data,
+            }),
+        };
+        var result = await jobService.AddAsync(data, ct);
 
-        if (!result.IsSuccessful)
-            return Results.BadRequest(new { errors = result.Errors.Select(e => e.Message).ToArray() });
+        return result.IsSuccessful
+                   ? Results.Created($"/api/jobs/{result.Value.Id}", result.Value)
+                   : Results.BadRequest(result.Errors);
+    }
 
-        var job = await jobService.GetJobByIdAsync(result.Value, ct);
-        return job is null
-            ? Results.Problem(detail: "Failed to retrieve created job", statusCode: 500)
-            : Results.Created($"/api/jobs/{result.Value}", job);
+    internal static async Task<IResult> UpdateJobHandler([FromRoute] Guid id, [FromBody] UpdateJobRequest request, [FromServices] IJobService jobService, CancellationToken ct) {
+        var data = new UpdateJobData {
+            Id = id,
+            CompletedAt = request.CompletedAt,
+            Status = request.Status,
+            StartedAt = request.StartedAt,
+            Items = request.Items.ConvertAll(i => new UpdateJobData.Item() {
+                Index = i.Index,
+                Status = i.Status,
+                Message = i.Message,
+                StartedAt = i.StartedAt,
+                CompletedAt = i.CompletedAt,
+            }),
+        };
+        var result = await jobService.UpdateAsync(data, ct);
+
+        return result.IsSuccessful
+                   ? Results.NoContent()
+                   : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> GetJobByIdHandler(
         [FromRoute] Guid id,
         [FromServices] IJobService jobService,
         CancellationToken ct) {
-        var job = await jobService.GetJobByIdAsync(id, ct);
+        var job = await jobService.GetByIdAsync(id, ct);
 
         return job is null
             ? Results.NotFound()
@@ -38,7 +59,7 @@ internal static class JobHandlers {
         var skipValue = skip ?? 0;
         var takeValue = take ?? 20;
 
-        (var jobs, var totalCount) = await jobService.GetJobsAsync(type, skipValue, takeValue, ct);
+        (var jobs, var totalCount) = await jobService.SearchAsync(type, skipValue, takeValue, ct);
 
         return Results.Ok(new {
             data = jobs,
@@ -52,55 +73,37 @@ internal static class JobHandlers {
         [FromRoute] Guid id,
         [FromServices] IJobService jobService,
         CancellationToken ct) {
-        var result = await jobService.CancelJobAsync(id, ct);
+        var isSuccess = await jobService.CancelAsync(id, ct);
 
-        return result.IsSuccessful
+        return isSuccess
             ? Results.NoContent()
-            : Results.NotFound(new { errors = result.Errors.Select(e => e.Message).ToArray() });
+            : Results.NotFound();
     }
 
     internal static async Task<IResult> RetryJobHandler(
         [FromRoute] Guid id,
         [FromServices] IJobService jobService,
         CancellationToken ct) {
-        var result = await jobService.RetryJobAsync(id, ct);
+        var isSuccess = await jobService.RetryAsync(id, ct);
 
-        return result.IsSuccessful
+        return isSuccess
             ? Results.NoContent()
-            : Results.NotFound(new { errors = result.Errors.Select(e => e.Message).ToArray() });
+            : Results.NotFound();
     }
 
-    internal static async Task<IResult> GetJobItemsHandler(
-        [FromRoute] Guid id,
-        [FromQuery] JobItemStatus? status,
+    internal static async Task<IResult> BroadcastItemUpdateHandler(
+        [FromBody] JobItemUpdateEvent @event,
         [FromServices] IJobService jobService,
         CancellationToken ct) {
-        var items = await jobService.GetJobItemsAsync(id, status, ct);
-
-        return Results.Ok(items);
-    }
-
-    internal static async Task<IResult> UpdateItemStatusHandler(
-        [FromRoute] Guid id,
-        [FromRoute] int index,
-        [FromBody] UpdateJobItemStatusRequest request,
-        [FromServices] IJobService jobService,
-        CancellationToken ct) {
-        var result = await jobService.UpdateItemStatusAsync(id, index, request, ct);
-
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : Results.BadRequest(new { errors = result.Errors.Select(e => e.Message).ToArray() });
+        await jobService.BroadcastItemUpdateAsync(@event, ct);
+        return Results.NoContent();
     }
 
     internal static async Task<IResult> BroadcastProgressHandler(
-        [FromBody] BroadcastProgressRequest request,
+        [FromBody] JobProgressEvent @event,
         [FromServices] IJobService jobService,
         CancellationToken ct) {
-        var result = await jobService.BroadcastProgressAsync(request, ct);
-
-        return result.IsSuccessful
-            ? Results.Ok()
-            : Results.BadRequest(new { errors = result.Errors.Select(e => e.Message).ToArray() });
+        await jobService.BroadcastProgressAsync(@event, ct);
+        return Results.NoContent();
     }
 }

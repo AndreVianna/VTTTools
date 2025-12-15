@@ -1,169 +1,120 @@
 namespace VttTools.Jobs.Services;
 
-public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext) : IJobService {
-    public async Task<Result<Guid>> CreateJobAsync(
-        CreateJobRequest request,
-        CancellationToken ct = default) {
-        var jobId = await storage.CreateJobAsync(
-            request.Type,
-            request.InputJson,
-            request.TotalItems,
-            request.EstimatedDurationMs,
-            ct);
+public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
+    : IJobService {
+    public async Task<Result<Job>> AddAsync(AddJobData data, CancellationToken ct = default) {
+        var result = data.Validate();
+        if (result.IsFailure)
+            return Result.Failure(result.Errors).WithNo<Job>();
 
-        if (request.Items.Count > 0) {
-            var items = request.Items.Select(i => (i.Index, i.InputJson));
-            await storage.AddItemsAsync(jobId, items, ct);
-        }
-
-        return Result.Success(jobId);
+        var job = new Job {
+            Type = data.Type,
+            EstimatedDuration = TimeSpan.FromMilliseconds(1500 * data.Items.Count),
+            Items = [.. data.Items.Select((input, index) => new JobItem {
+                Index = index,
+                Data = input.Data,
+            })],
+        };
+        await storage.AddAsync(job, ct);
+        return job;
     }
 
-    public async Task<JobResponse?> GetJobByIdAsync(
-        Guid jobId,
-        CancellationToken ct = default) {
-        var job = await storage.GetJobByIdAsync(jobId, ct);
-        return job is null ? null : ApplyStateMachine(job);
+    public async Task<Job?> GetByIdAsync(Guid id, CancellationToken ct = default) {
+        var job = await storage.GetByIdAsync(id, ct);
+        return job == null ? null : job with { Status = DeriveJobStatus(job.Items) };
     }
 
-    public async Task<(IReadOnlyList<JobResponse> Jobs, int TotalCount)> GetJobsAsync(
+    public async Task<(IReadOnlyList<Job> Jobs, int TotalCount)> SearchAsync(
         string? type = null,
         int skip = 0,
         int take = 20,
         CancellationToken ct = default) {
-        (var jobs, var totalCount) = await storage.GetJobsAsync(type, skip, take, ct);
-        var jobsWithStateMachine = jobs.Select(ApplyStateMachine).ToList();
+        (var jobs, var totalCount) = await storage.SearchAsync(type, skip, take, ct);
+        var jobsWithStateMachine = jobs.Select(job => job with { Status = DeriveJobStatus(job.Items) }).ToList();
         return (jobsWithStateMachine, totalCount);
     }
 
-    public async Task<IReadOnlyList<JobItemResponse>> GetJobItemsAsync(
-        Guid jobId,
-        JobItemStatus? status = null,
-        CancellationToken ct = default)
-        => await storage.GetJobItemsAsync(jobId, status, ct);
+    public async Task<Result<Job>> UpdateAsync(UpdateJobData data, CancellationToken ct = default) {
+        var result = data.Validate();
+        if (result.IsFailure)
+            return Result.Failure(result.Errors).WithNo<Job>();
 
-    public async Task<Result> CancelJobAsync(
-        Guid jobId,
-        CancellationToken ct = default) {
-        var job = await storage.GetJobByIdAsync(jobId, ct);
-        if (job is null) {
-            return Result.Failure("Job not found");
-        }
+        var job = await storage.GetByIdAsync(data.Id, ct);
+        if (job is null)
+            return Result.Failure("Job not found.").WithNo<Job>();
 
-        await storage.CancelJobItemsAsync(jobId, ct);
-
-        return Result.Success();
-    }
-
-    public async Task<Result> RetryJobAsync(
-        Guid jobId,
-        CancellationToken ct = default) {
-        var job = await storage.GetJobByIdAsync(jobId, ct);
-        if (job is null) {
-            return Result.Failure("Job not found");
-        }
-
-        await storage.RetryJobItemsAsync(jobId, ct);
-
-        return Result.Success();
-    }
-
-    public async Task<Result> UpdateItemStatusAsync(
-        Guid jobId,
-        int itemIndex,
-        UpdateJobItemStatusRequest request,
-        CancellationToken ct = default) {
-        var item = await storage.GetJobItemByIndexAsync(jobId, itemIndex, ct);
-        if (item is null) {
-            return Result.Failure("Job item not found");
-        }
-
-        var isValidTransition = IsValidTransition(item.Status, request.Status);
-        if (!isValidTransition) {
-            return Result.Failure(
-                $"Invalid state transition from {item.Status} to {request.Status}. " +
-                "Valid transitions: Pending → InProgress, InProgress → Success/Failed/Canceled");
-        }
-
-        await storage.UpdateItemStatusAsync(
-            jobId,
-            itemIndex,
-            request.Status,
-            request.OutputJson,
-            request.ErrorMessage,
-            request.StartedAt,
-            request.CompletedAt,
-            ct);
-
-        return Result.Success();
-    }
-
-    public async Task<Result> BroadcastProgressAsync(
-        BroadcastProgressRequest request,
-        CancellationToken ct = default) {
-        var progressEvent = new JobProgressEvent {
-            JobId = request.JobId,
-            Type = request.Type,
-            ItemIndex = request.ItemIndex,
-            ItemStatus = request.ItemStatus,
-            Message = request.Message,
-            CurrentItem = request.CurrentItem,
-            TotalItems = request.TotalItems
+        job = job with {
+            Status = data.Status,
+            StartedAt = data.StartedAt.IsSet ? data.StartedAt.Value : job.StartedAt,
+            CompletedAt = data.CompletedAt.IsSet ? data.CompletedAt.Value : job.CompletedAt,
+            Items = [.. job.Items.Select(item => {
+                var updatedItem = data.Items.FirstOrDefault(i => i.Index == item.Index);
+                return updatedItem is null ? item : item with {
+                    Status = updatedItem.Status,
+                    Message = updatedItem.Message.IsSet ? updatedItem.Message.Value : item.Message,
+                    StartedAt = updatedItem.StartedAt.IsSet ? updatedItem.StartedAt.Value : item.StartedAt,
+                    CompletedAt = updatedItem.CompletedAt.IsSet ? updatedItem.CompletedAt.Value : item.CompletedAt,
+                };
+            })],
         };
 
-        await hubContext.SendProgressAsync(progressEvent, ct);
-        return Result.Success();
+        await storage.UpdateAsync(job, ct);
+        return job;
     }
 
-    private static JobStatus DeriveJobStatus(IReadOnlyList<JobItemResponse> items) {
+    public async Task<bool> CancelAsync(Guid id, CancellationToken ct = default) {
+        var job = await storage.GetByIdAsync(id, ct);
+        if (job is null)
+            return false;
+
+        for (var i = 0; i < job.Items.Count; i++) {
+            if (job.Items[i].Status is not (JobItemStatus.Pending or JobItemStatus.InProgress))
+                continue;
+            job.Items[i] = job.Items[i] with {
+                Status = JobItemStatus.Canceled,
+                Message = null,
+            };
+        }
+
+        await storage.UpdateAsync(job, ct);
+        return true;
+    }
+
+    public async Task<bool> RetryAsync(Guid id, CancellationToken ct = default) {
+        var job = await storage.GetByIdAsync(id, ct);
+        if (job is null)
+            return false;
+
+        for (var i = 0; i < job.Items.Count; i++) {
+            if (job.Items[i].Status is not (JobItemStatus.Failed or JobItemStatus.Canceled))
+                continue;
+            job.Items[i] = job.Items[i] with {
+                Status = JobItemStatus.Pending,
+                Message = null,
+            };
+        }
+
+        await storage.UpdateAsync(job, ct);
+        return true;
+    }
+
+    public Task BroadcastItemUpdateAsync(JobItemUpdateEvent @event, CancellationToken ct = default)
+        => hubContext.SendItemUpdateAsync(@event, ct);
+
+    public Task BroadcastProgressAsync(JobProgressEvent @event, CancellationToken ct = default)
+        => hubContext.SendProgressAsync(@event, ct);
+
+    private static JobStatus DeriveJobStatus(IReadOnlyCollection<JobItem> items) {
         if (items.Count == 0)
             return JobStatus.Pending;
 
-        var pendingCount = items.Count(i => i.Status == JobItemStatus.Pending);
-        var successCount = items.Count(i => i.Status == JobItemStatus.Success);
-        var failedCount = items.Count(i => i.Status == JobItemStatus.Failed);
+        var pendingCount = items.Count(i => i.Status is JobItemStatus.Pending);
+        var completedCount = items.Count(i => i.Status is JobItemStatus.Success or JobItemStatus.Failed);
         var canceledCount = items.Count(i => i.Status == JobItemStatus.Canceled);
-        var completedCount = successCount + failedCount + canceledCount;
 
         return pendingCount == items.Count ? JobStatus.Pending
-             : completedCount == items.Count && successCount == items.Count ? JobStatus.Success
-             : completedCount == items.Count && canceledCount > 0 ? JobStatus.Canceled
-             : completedCount == items.Count && failedCount > 0 && canceledCount == 0 ? JobStatus.Failed
+             : completedCount == items.Count ? JobStatus.Completed
+             : (canceledCount + completedCount) == items.Count ? JobStatus.Canceled
              : JobStatus.InProgress;
     }
-
-    private static (int Progress, int CompletedCount, int FailedCount) CalculateProgress(IReadOnlyCollection<JobItemResponse> items) {
-        if (items.Count == 0) {
-            return (0, 0, 0);
-        }
-
-        var successCount = items.Count(i => i.Status == JobItemStatus.Success);
-        var failedCount = items.Count(i => i.Status == JobItemStatus.Failed);
-        var progressCount = successCount + failedCount;
-        var progress = (int)Math.Round((double)progressCount / items.Count * 100);
-
-        return (progress, progressCount, failedCount);
-    }
-
-    private static JobResponse ApplyStateMachine(JobResponse job) {
-        var status = DeriveJobStatus(job.Items);
-        (var progress, var completedItems, var failedItems) = CalculateProgress(job.Items);
-
-        return job with {
-            Status = status,
-            Progress = progress,
-            CompletedItems = completedItems,
-            FailedItems = failedItems
-        };
-    }
-
-    private static bool IsValidTransition(JobItemStatus currentStatus, JobItemStatus newStatus)
-        => (currentStatus, newStatus) switch {
-            (JobItemStatus.Pending, JobItemStatus.InProgress) => true,
-            (JobItemStatus.InProgress, JobItemStatus.Success) => true,
-            (JobItemStatus.InProgress, JobItemStatus.Failed) => true,
-            (JobItemStatus.InProgress, JobItemStatus.Canceled) => true,
-            (var current, var target) when current == target => true,
-            _ => false,
-        };
 }

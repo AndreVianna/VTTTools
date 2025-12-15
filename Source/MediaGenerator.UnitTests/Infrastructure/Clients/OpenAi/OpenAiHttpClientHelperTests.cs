@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.Infrastructure.Clients.OpenAi;
+using VttTools.MediaGenerator.Infrastructure.Clients.OpenAi;
+
+namespace VttTools.AssetImageManager.Infrastructure.Clients.OpenAi;
 
 public class OpenAiHttpClientHelperTests {
     private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();

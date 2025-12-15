@@ -1,3 +1,5 @@
+using VttTools.AI.Workers;
+
 namespace VttTools.AI;
 
 [ExcludeFromCodeCoverage]
@@ -59,15 +61,17 @@ internal static class Program {
         builder.Services.Configure<JobProcessingOptions>(
             builder.Configuration.GetSection(JobProcessingOptions.SectionName));
         builder.Services.AddSingleton(Channel.CreateUnbounded<JobQueueItem>());
-        builder.Services.AddScoped<IAiJobOrchestrationService, AiJobOrchestrationService>();
         builder.Services.AddScoped<BulkAssetGenerationHandler>();
-        builder.Services.AddHostedService<AiJobProcessingService>();
+        builder.Services.AddHostedService<JobProcessingWorker>();
 
-        builder.Services.AddHttpClient<JobsServiceClient>(c => c.BaseAddress = new Uri("https+http://jobs-api"))
+        builder.Services.AddScoped<IJobsServiceClient, IJobsServiceClient>();
+        builder.Services.AddScoped<IResourceServiceClient, IResourceServiceClient>();
+        builder.Services.AddScoped<IAssetsServiceClient, IAssetsServiceClient>();
+        builder.Services.AddHttpClient("JobsService", c => c.BaseAddress = new Uri("https+http://jobs-api"))
             .AddStandardResilienceHandler();
-        builder.Services.AddHttpClient<ResourceServiceClient>(c => c.BaseAddress = new Uri("https+http://resources-api"))
+        builder.Services.AddHttpClient("ResourcesService", c => c.BaseAddress = new Uri("https+http://resources-api"))
             .AddStandardResilienceHandler();
-        builder.Services.AddHttpClient<AssetServiceClient>(c => c.BaseAddress = new Uri("https+http://assets-api"))
+        builder.Services.AddHttpClient("AssetsService", c => c.BaseAddress = new Uri("https+http://assets-api"))
             .AddStandardResilienceHandler();
     }
 

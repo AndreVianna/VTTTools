@@ -1,4 +1,7 @@
-namespace VttTools.MediaGenerator.Infrastructure.Clients.StabilityAi;
+using VttTools.AssetImageManager.Mocks;
+using VttTools.MediaGenerator.Infrastructure.Clients.StabilityAi;
+
+namespace VttTools.AssetImageManager.Infrastructure.Clients.StabilityAi;
 
 public sealed class StabilityClientTests : IDisposable {
     private readonly IHttpClientFactory _httpClientFactory;

@@ -10,18 +10,19 @@ public static class HostApplicationBuilderExtensions {
 
         var totalTimeout = TimeSpan.FromSeconds(resilienceConfig.TotalTimeoutSeconds);
         var attemptTimeout = TimeSpan.FromSeconds(resilienceConfig.AttemptTimeoutSeconds);
-        var samplingDuration = attemptTimeout * 2 + TimeSpan.FromMinutes(1);
+        var samplingDuration = (attemptTimeout * 2) + TimeSpan.FromMinutes(1);
 
         var httpClientBuilder = builder.Services.AddHttpClient(AiProviderHttpClientName)
             .ConfigureHttpClient(client => client.Timeout = totalTimeout);
 
-        if (resilienceConfig.MaxRetries > 0)
+        if (resilienceConfig.MaxRetries > 0) {
             httpClientBuilder.AddStandardResilienceHandler(options => {
                 options.TotalRequestTimeout.Timeout = totalTimeout;
                 options.AttemptTimeout.Timeout = attemptTimeout;
                 options.Retry.MaxRetryAttempts = resilienceConfig.MaxRetries;
                 options.CircuitBreaker.SamplingDuration = samplingDuration;
             });
+        }
 
         builder.Services.AddScoped<IImageProvider, OpenAiImageProvider>();
         builder.Services.AddScoped<IImageProvider, StabilityImageProvider>();

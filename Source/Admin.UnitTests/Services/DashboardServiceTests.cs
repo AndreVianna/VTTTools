@@ -1,5 +1,3 @@
-using VttTools.Admin.Dashboard.Services;
-
 namespace VttTools.Admin.UnitTests.Services;
 
 public class DashboardServiceTests {
@@ -20,7 +18,7 @@ public class DashboardServiceTests {
         var users = new List<User> {
             CreateTestUser("user1@example.com", "User One"),
             CreateTestUser("user2@example.com", "User Two"),
-            CreateTestUser("user3@example.com", "User Three")
+            CreateTestUser("user3@example.com", "User Three"),
         };
 
         _mockUserManager.Users.Returns(users.AsQueryable());

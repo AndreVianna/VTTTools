@@ -1,4 +1,6 @@
-namespace VttTools.MediaGenerator.Infrastructure;
+using VttTools.MediaGenerator.Infrastructure;
+
+namespace VttTools.AssetImageManager.Infrastructure;
 
 public class ImageProcessorTests {
     [Fact]

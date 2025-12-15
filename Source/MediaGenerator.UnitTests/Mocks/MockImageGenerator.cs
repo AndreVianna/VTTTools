@@ -1,6 +1,6 @@
 using VttTools.MediaGenerator.Domain.Images.Models;
 
-namespace VttTools.MediaGenerator.UnitTests.Mocks;
+namespace VttTools.AssetImageManager.Mocks;
 
 public sealed class MockImageGenerator : IImageGenerator {
     private readonly Queue<byte[]> _images = new();
