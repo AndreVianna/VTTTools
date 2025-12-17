@@ -19,7 +19,6 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Result = "Success",
             Timestamp = DateTime.UtcNow
         };
 
@@ -35,66 +34,13 @@ public class AuditLogServiceTests {
         => Assert.ThrowsAsync<ArgumentNullException>(async () => await _service.AddAsync(null!, TestContext.Current.CancellationToken));
 
     [Fact]
-    public async Task AddAsync_WithInvalidResult_ThrowsArgumentException() {
+    public async Task AddAsync_WithValidAuditLog_NoValidationError() {
         var auditLog = new AuditLog {
             Id = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Result = "InvalidResult",
-            Timestamp = DateTime.UtcNow
-        };
-
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            async () => await _service.AddAsync(auditLog, TestContext.Current.CancellationToken));
-
-        exception.Message.Should().Contain("Result must be one of: Success, Failure, Error");
-    }
-
-    [Fact]
-    public async Task AddAsync_WithSuccessResult_CallsStorage() {
-        var auditLog = new AuditLog {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Action = "Create",
-            EntityType = "User",
-            EntityId = Guid.NewGuid().ToString(),
-            Result = "Success",
-            Timestamp = DateTime.UtcNow
-        };
-
-        await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
-
-        await _storage.Received(1).AddAsync(Arg.Any<AuditLog>(), TestContext.Current.CancellationToken);
-    }
-
-    [Fact]
-    public async Task AddAsync_WithFailureResult_CallsStorage() {
-        var auditLog = new AuditLog {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Action = "Create",
-            EntityType = "User",
-            EntityId = Guid.NewGuid().ToString(),
-            Result = "Failure",
-            Timestamp = DateTime.UtcNow
-        };
-
-        await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
-
-        await _storage.Received(1).AddAsync(Arg.Any<AuditLog>(), TestContext.Current.CancellationToken);
-    }
-
-    [Fact]
-    public async Task AddAsync_WithErrorResult_CallsStorage() {
-        var auditLog = new AuditLog {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Action = "Create",
-            EntityType = "User",
-            EntityId = Guid.NewGuid().ToString(),
-            Result = "Error",
             Timestamp = DateTime.UtcNow
         };
 
@@ -111,7 +57,6 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Result = "Success",
             Timestamp = default
         };
 
@@ -131,7 +76,6 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Result = "Success",
             Timestamp = timestamp
         };
 
@@ -151,7 +95,6 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Result = "Success",
             Timestamp = DateTime.UtcNow
         };
         _storage.GetByIdAsync(id, TestContext.Current.CancellationToken).Returns(auditLog);
@@ -181,7 +124,6 @@ public class AuditLogServiceTests {
                 Action = "Create",
                 EntityType = "User",
                 EntityId = Guid.NewGuid().ToString(),
-                Result = "Success",
                 Timestamp = DateTime.UtcNow
             }
         };
@@ -189,7 +131,6 @@ public class AuditLogServiceTests {
             Arg.Any<DateTime?>(),
             Arg.Any<DateTime?>(),
             Arg.Any<Guid?>(),
-            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<int>(),
@@ -243,7 +184,6 @@ public class AuditLogServiceTests {
             Arg.Any<Guid?>(),
             Arg.Any<string?>(),
             Arg.Any<string?>(),
-            Arg.Any<string?>(),
             Arg.Any<int>(),
             Arg.Any<int>(),
             TestContext.Current.CancellationToken)
@@ -262,7 +202,6 @@ public class AuditLogServiceTests {
         var userId = Guid.NewGuid();
         const string action = "Create";
         const string entityType = "User";
-        const string result = "Success";
         const int skip = 10;
         const int take = 20;
 
@@ -272,7 +211,6 @@ public class AuditLogServiceTests {
             userId,
             action,
             entityType,
-            result,
             skip,
             take,
             TestContext.Current.CancellationToken)
@@ -284,7 +222,6 @@ public class AuditLogServiceTests {
             userId,
             action,
             entityType,
-            result,
             skip,
             take,
             TestContext.Current.CancellationToken);
@@ -295,7 +232,6 @@ public class AuditLogServiceTests {
             userId,
             action,
             entityType,
-            result,
             skip,
             take,
             TestContext.Current.CancellationToken);

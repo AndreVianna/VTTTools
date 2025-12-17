@@ -91,18 +91,16 @@ export interface AuditLogQueryRequest {
     userId?: string;
     action?: string;
     entityType?: string;
-    result?: string;
 }
 
 export interface AuditLogSummary {
     id: string;
     timestamp: string;
     action: string;
-    entityType: string;
+    entityType?: string;
     entityId?: string;
-    result: string;
-    ipAddress?: string;
-    durationInMilliseconds: number;
+    errorMessage?: string;
+    payload?: string; // JSON string
 }
 
 export interface AuditTrailResponse {
@@ -203,7 +201,6 @@ export const userService = {
         if (request.userId) params.append('userId', request.userId);
         if (request.action) params.append('action', request.action);
         if (request.entityType) params.append('entityType', request.entityType);
-        if (request.result) params.append('result', request.result);
 
         const response = await apiClient.get<AuditTrailResponse>(
             `${API_BASE}/${userId}/audit?${params.toString()}`

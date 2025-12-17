@@ -421,11 +421,10 @@ public sealed class UserAdminService(
                 Id = log.Id,
                 Timestamp = log.Timestamp,
                 Action = log.Action,
-                EntityType = log.EntityType ?? "Unknown",
+                EntityType = log.EntityType,
                 EntityId = string.IsNullOrEmpty(log.EntityId) ? null : Guid.Parse(log.EntityId),
-                Result = log.Result,
-                IpAddress = log.IpAddress,
-                DurationInMilliseconds = log.DurationInMilliseconds
+                ErrorMessage = log.ErrorMessage,
+                Payload = log.Payload,
             }).ToList();
 
             logger.LogInformation(

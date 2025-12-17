@@ -15,7 +15,7 @@ public class AuditLogServiceTests {
 
     [Fact]
     public async Task AddAsync_WithValidAuditLog_CreatesSuccessfully() {
-        var auditLog = CreateTestAuditLog("User.Login", "Success");
+        var auditLog = CreateTestAuditLog("User.Login");
         _mockStorage.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
@@ -26,7 +26,7 @@ public class AuditLogServiceTests {
     [Fact]
     public async Task AddAsync_WithNoTimestamp_SetsTimestampToUtcNow() {
         var beforeCall = DateTime.UtcNow;
-        var auditLog = CreateTestAuditLog("User.Login", "Success") with { Timestamp = default };
+        var auditLog = CreateTestAuditLog("User.Login") with { Timestamp = default };
         var createdLog = auditLog with { Timestamp = DateTime.UtcNow };
 
         _mockStorage.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
@@ -48,41 +48,13 @@ public class AuditLogServiceTests {
         await _mockStorage.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData("InvalidResult")]
-    [InlineData("")]
-    [InlineData("success")]
-    [InlineData("FAILURE")]
-    [InlineData("Unknown")]
-    public async Task AddAsync_WithInvalidResult_ThrowsArgumentException(string invalidResult) {
-        var auditLog = CreateTestAuditLog("User.Login", invalidResult);
-
-        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await _sut.AddAsync(auditLog, TestContext.Current.CancellationToken));
-
-        Assert.Contains("Result must be one of: Success, Failure, Error", exception.Message);
-        await _mockStorage.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
-    }
-
-    [Theory]
-    [InlineData("Success")]
-    [InlineData("Failure")]
-    [InlineData("Error")]
-    public async Task AddAsync_WithValidResult_CreatesSuccessfully(string validResult) {
-        var auditLog = CreateTestAuditLog("User.Login", validResult);
-        _mockStorage.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
-
-        await _sut.AddAsync(auditLog, TestContext.Current.CancellationToken);
-        await _mockStorage.Received(1).AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
-    }
-
     #endregion
 
     #region GetAuditLogByIdAsync Tests
 
     [Fact]
     public async Task GetAuditLogByIdAsync_WhenFound_ReturnsAuditLog() {
-        var auditLog = CreateTestAuditLog("User.Login", "Success");
+        var auditLog = CreateTestAuditLog("User.Login");
         _mockStorage.GetByIdAsync(auditLog.Id, Arg.Any<CancellationToken>())
             .Returns(auditLog);
 
@@ -117,13 +89,12 @@ public class AuditLogServiceTests {
         var userId = Guid.CreateVersion7();
         const string action = "User.Login";
         const string entityType = "User";
-        const string result = "Success";
         const int skip = 10;
         const int take = 20;
 
         var logs = new[] {
-            CreateTestAuditLog(action, result),
-            CreateTestAuditLog(action, result)
+            CreateTestAuditLog(action),
+            CreateTestAuditLog(action)
         };
         var queryResult = (Items: (IEnumerable<AuditLog>)logs, TotalCount: 100);
 
@@ -133,7 +104,6 @@ public class AuditLogServiceTests {
             userId,
             action,
             entityType,
-            result,
             skip,
             take,
             Arg.Any<CancellationToken>())
@@ -145,7 +115,6 @@ public class AuditLogServiceTests {
                                                             userId,
                                                             action,
                                                             entityType,
-                                                            result,
                                                             skip,
                                                             take,
                                                             TestContext.Current.CancellationToken);
@@ -158,7 +127,6 @@ public class AuditLogServiceTests {
             userId,
             action,
             entityType,
-            result,
             skip,
             take,
             Arg.Any<CancellationToken>());
@@ -167,14 +135,13 @@ public class AuditLogServiceTests {
     [Fact]
     public async Task QueryAuditLogsAsync_WithNoFilters_ReturnsAllLogs() {
         var logs = new[] {
-            CreateTestAuditLog("User.Login", "Success"),
-            CreateTestAuditLog("User.Logout", "Success"),
-            CreateTestAuditLog("Asset.Upload", "Failure")
+            CreateTestAuditLog("User.Login"),
+            CreateTestAuditLog("User.Logout"),
+            CreateTestAuditLog("Asset.Upload")
         };
         var queryResult = (Items: (IEnumerable<AuditLog>)logs, TotalCount: 3);
 
         _mockStorage.QueryAsync(
-            null,
             null,
             null,
             null,
@@ -203,7 +170,6 @@ public class AuditLogServiceTests {
             Arg.Any<DateTime?>(),
             Arg.Any<DateTime?>(),
             Arg.Any<Guid?>(),
-            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<int>(),
@@ -240,14 +206,13 @@ public class AuditLogServiceTests {
     [InlineData(50)]
     [InlineData(100)]
     public async Task QueryAuditLogsAsync_WithValidTake_QueriesSuccessfully(int validTake) {
-        var logs = new[] { CreateTestAuditLog("User.Login", "Success") };
+        var logs = new[] { CreateTestAuditLog("User.Login") };
         var queryResult = (Items: (IEnumerable<AuditLog>)logs, TotalCount: 1);
 
         _mockStorage.QueryAsync(
             Arg.Any<DateTime?>(),
             Arg.Any<DateTime?>(),
             Arg.Any<Guid?>(),
-            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<int>(),
@@ -261,7 +226,6 @@ public class AuditLogServiceTests {
             Arg.Any<DateTime?>(),
             Arg.Any<DateTime?>(),
             Arg.Any<Guid?>(),
-            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<int>(),
@@ -299,21 +263,14 @@ public class AuditLogServiceTests {
 
     #region Helper Methods
 
-    private static AuditLog CreateTestAuditLog(string action, string result) => new() {
+    private static AuditLog CreateTestAuditLog(string action) => new() {
         Id = Guid.CreateVersion7(),
         Timestamp = DateTime.UtcNow,
         UserId = Guid.CreateVersion7(),
         UserEmail = "test@example.com",
         Action = action,
         EntityType = "User",
-        EntityId = Guid.CreateVersion7().ToString(),
-        HttpMethod = "POST",
-        Path = "/api/test",
-        StatusCode = 200,
-        IpAddress = "127.0.0.1",
-        UserAgent = "Test Agent",
-        DurationInMilliseconds = 100,
-        Result = result
+        EntityId = Guid.CreateVersion7().ToString()
     };
 
     #endregion

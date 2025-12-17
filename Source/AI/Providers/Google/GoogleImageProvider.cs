@@ -6,11 +6,6 @@ public sealed class GoogleImageProvider(
     ILogger<GoogleImageProvider> logger) : IImageProvider {
     private const string _providerName = "Google";
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
-    };
-
     public string Name => _providerName;
 
     public async Task<Result<byte[]>> GenerateAsync(
@@ -28,7 +23,7 @@ public sealed class GoogleImageProvider(
             var endpoint = GetEndpoint(model);
 
             using var client = CreateClient();
-            using var response = await client.PostAsJsonAsync(endpoint, apiRequest, _jsonOptions, ct);
+            using var response = await client.PostAsJsonAsync(endpoint, apiRequest, JsonDefaults.Options, ct);
 
             if (!response.IsSuccessStatusCode) {
                 var errorBody = await response.Content.ReadAsStringAsync(ct);
@@ -42,7 +37,7 @@ public sealed class GoogleImageProvider(
             }
 
             var contentString = await response.Content.ReadAsStringAsync(ct);
-            var content = JsonSerializer.Deserialize<GoogleResponse>(contentString, _jsonOptions);
+            var content = JsonSerializer.Deserialize<GoogleResponse>(contentString, JsonDefaults.Options);
 
             if (content?.Candidates is null || content.Candidates.Length == 0) {
                 logger.LogWarning("Google API returned empty response");

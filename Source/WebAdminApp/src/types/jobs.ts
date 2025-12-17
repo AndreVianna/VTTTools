@@ -6,8 +6,7 @@ export enum JobType {
 export enum JobStatus {
     Pending = 'Pending',
     InProgress = 'InProgress',
-    Success = 'Success',
-    Failed = 'Failed',
+    Completed = 'Completed',
     Canceled = 'Canceled',
 }
 
@@ -86,26 +85,55 @@ export interface JobRetryRequest {
     itemIds?: string[];
 }
 
-export interface JobProgressEvent {
+export interface JobCreatedEvent {
+    eventType: 'JobCreated';
     jobId: string;
-    jobType: JobType;
-    itemIndex: number;
-    itemStatus: JobItemStatus;
-    message: string;
-    currentItem: number;
+    type: string;
+    estimatedDuration?: string;
     totalItems: number;
-    itemName?: string;
-    outputJson?: string;
-    errorMessage?: string;
 }
 
 export interface JobCompletedEvent {
+    eventType: 'JobCompleted';
     jobId: string;
-    jobType: string;
-    status: string;
-    completedItems: number;
-    failedItems: number;
-    totalItems: number;
+}
+
+export interface JobCanceledEvent {
+    eventType: 'JobCanceled';
+    jobId: string;
+}
+
+export interface JobRetriedEvent {
+    eventType: 'JobRetried';
+    jobId: string;
+}
+
+export interface JobItemStartedEvent {
+    eventType: 'JobItemStarted';
+    jobId: string;
+    index: number;
+    startedAt?: string;
+}
+
+export interface JobItemCompletedEvent {
+    eventType: 'JobItemCompleted';
+    jobId: string;
+    index: number;
+    status: JobItemStatus;
+    message?: string;
+    completedAt?: string;
+}
+
+export type JobEvent = JobCreatedEvent | JobCompletedEvent | JobCanceledEvent | JobRetriedEvent;
+export type JobItemEvent = JobItemStartedEvent | JobItemCompletedEvent;
+
+export interface JobProgressItem {
+    jobId: string;
+    index: number;
+    status: JobItemStatus;
+    message?: string;
+    startedAt?: string;
+    completedAt?: string;
 }
 
 export interface BulkAssetItemOutput {

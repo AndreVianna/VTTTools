@@ -16,8 +16,6 @@ internal static class Program {
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
-        app.UseAuthentication();
-        app.UseAuthorization();
         app.UseRateLimiter();
         app.UseAuditLogging();
         app.MapDefaultEndpoints();
@@ -64,8 +62,6 @@ internal static class Program {
         builder.Services.AddScoped<BulkAssetGenerationHandler>();
         builder.Services.AddHostedService<JobProcessingWorker>();
 
-        builder.Services.Configure<InternalApiOptions>(
-            builder.Configuration.GetSection(InternalApiOptions.SectionName));
         builder.Services.AddTransient<InternalApiKeyHandler>();
 
         builder.Services.AddScoped<IJobsServiceClient, JobsServiceClient>();

@@ -38,7 +38,16 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import { auditLogService, AuditLog, AuditLogQueryParams } from '@services/auditLogService';
+import {
+    auditLogService,
+    AuditLog,
+    AuditLogQueryParams,
+    HttpAuditPayload,
+    parsePayload,
+    isHttpAction,
+    isJobAction,
+    isViaJobAction,
+} from '@services/auditLogService';
 import { exportToCSV, exportToJSON } from '@utils/auditLogExport';
 
 const DATE_PRESETS = [
@@ -48,7 +57,7 @@ const DATE_PRESETS = [
     { label: 'Last 30 Days', hours: 24 * 30 },
 ];
 
-const RESULT_OPTIONS = ['Success', 'Failure', 'Error'];
+const ENTITY_TYPE_OPTIONS = ['Asset', 'Resource', 'Job', 'JobItem', 'User', 'Session', 'AuditLog'];
 
 const formatJson = (json: string | undefined | null): string => {
     if (!json) return 'N/A';
@@ -72,6 +81,30 @@ const isDetailRow = (row: GridRow): row is DetailRow => {
     return 'isDetailRow' in row && row.isDetailRow === true;
 };
 
+// Helper to get result from HTTP payload or derive from action
+function getResultFromLog(log: AuditLog): string {
+    if (log.errorMessage) return 'Error';
+    const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+    if (httpPayload?.result) return httpPayload.result;
+    if (isJobAction(log.action)) {
+        if (log.action.includes('Failed') || log.action.includes('Canceled')) return 'Failure';
+        if (log.action.includes('Completed') || log.action.includes('Created')) return 'Success';
+    }
+    return 'Success';
+}
+
+// Helper to get HTTP info from payload
+function getHttpInfo(log: AuditLog): { method: string; path: string; statusCode: number; durationMs: number } | null {
+    const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+    if (!httpPayload?.httpMethod) return null;
+    return {
+        method: httpPayload.httpMethod,
+        path: httpPayload.path,
+        statusCode: httpPayload.statusCode,
+        durationMs: httpPayload.durationMs,
+    };
+}
+
 export function AuditLogsPage() {
     const theme = useTheme();
     const [activeTab, setActiveTab] = useState(0);
@@ -93,9 +126,7 @@ export function AuditLogsPage() {
     const [filters, setFilters] = useState<AuditLogQueryParams>({
         userId: '',
         action: '',
-        result: '',
-        ipAddress: '',
-        keyword: '',
+        entityType: '',
     });
 
     const [tempFilters, setTempFilters] = useState<AuditLogQueryParams>(filters);
@@ -170,9 +201,7 @@ export function AuditLogsPage() {
         const clearedFilters: AuditLogQueryParams = {
             userId: '',
             action: '',
-            result: '',
-            ipAddress: '',
-            keyword: '',
+            entityType: '',
         };
         setTempFilters(clearedFilters);
         setFilters(clearedFilters);
@@ -211,6 +240,13 @@ export function AuditLogsPage() {
             default:
                 return 'default';
         }
+    };
+
+    const getActionColor = (action: string): 'primary' | 'secondary' | 'info' | 'default' => {
+        if (isViaJobAction(action)) return 'secondary';
+        if (isJobAction(action)) return 'info';
+        if (isHttpAction(action)) return 'primary';
+        return 'default';
     };
 
     const handleToggleExpand = (rowId: string) => {
@@ -269,51 +305,28 @@ export function AuditLogsPage() {
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12 }}>
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Request Details
+                                        Details
                                     </Typography>
                                 </Grid>
 
-                                <Grid size={{ xs: 12 }}>
-                                    <Typography variant="caption" color="text.secondary">
-                                        User Agent
-                                    </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            fontFamily: 'monospace',
-                                            fontSize: '0.875rem',
-                                            wordBreak: 'break-word',
-                                        }}
-                                    >
-                                        {log.userAgent || 'N/A'}
-                                    </Typography>
-                                </Grid>
-
-                                {log.queryString && (
+                                {log.errorMessage && (
                                     <Grid size={{ xs: 12 }}>
-                                        <Typography variant="caption" color="text.secondary">
-                                            Query String
+                                        <Typography variant="caption" color="error">
+                                            Error Message
                                         </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                fontFamily: 'monospace',
-                                                fontSize: '0.875rem',
-                                                wordBreak: 'break-word',
-                                            }}
-                                        >
-                                            {log.queryString}
+                                        <Typography variant="body2" color="error">
+                                            {log.errorMessage}
                                         </Typography>
                                     </Grid>
                                 )}
 
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <Typography variant="caption" color="text.secondary" gutterBottom>
-                                        Request Body
+                                <Grid size={{ xs: 12 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Payload
                                     </Typography>
                                     <Box
                                         sx={{
-                                            maxHeight: 300,
+                                            maxHeight: 400,
                                             overflow: 'auto',
                                             bgcolor: 'background.paper',
                                             p: 2,
@@ -330,35 +343,7 @@ export function AuditLogsPage() {
                                                 wordBreak: 'break-word',
                                             }}
                                         >
-                                            {formatJson(log.requestBody)}
-                                        </pre>
-                                    </Box>
-                                </Grid>
-
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <Typography variant="caption" color="text.secondary" gutterBottom>
-                                        Response Body
-                                    </Typography>
-                                    <Box
-                                        sx={{
-                                            maxHeight: 300,
-                                            overflow: 'auto',
-                                            bgcolor: 'background.paper',
-                                            p: 2,
-                                            borderRadius: 1,
-                                            border: 1,
-                                            borderColor: 'divider',
-                                        }}
-                                    >
-                                        <pre
-                                            style={{
-                                                margin: 0,
-                                                fontSize: '0.75rem',
-                                                whiteSpace: 'pre-wrap',
-                                                wordBreak: 'break-word',
-                                            }}
-                                        >
-                                            {formatJson(log.responseBody)}
+                                            {formatJson(log.payload)}
                                         </pre>
                                     </Box>
                                 </Grid>
@@ -395,23 +380,56 @@ export function AuditLogsPage() {
         {
             field: 'userEmail',
             headerName: 'User',
-            width: 200,
+            width: 180,
             renderCell: (params: GridRenderCellParams<GridRow>) => {
                 if (isDetailRow(params.row)) return null;
-                return <Typography variant="body2">{params.value || 'Anonymous'}</Typography>;
+                return <Typography variant="body2">{params.value || 'System'}</Typography>;
             },
         },
         {
             field: 'action',
             headerName: 'Action',
-            flex: 1,
-            minWidth: 250,
+            width: 220,
             renderCell: (params: GridRenderCellParams<GridRow>) => {
                 if (isDetailRow(params.row)) return null;
-                const log = params.row as AuditLog;
+                const action = params.value as string;
                 return (
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {log.httpMethod} {log.path}
+                    <Chip
+                        label={action}
+                        color={getActionColor(action)}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+                    />
+                );
+            },
+        },
+        {
+            field: 'entityType',
+            headerName: 'Entity',
+            width: 100,
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
+                return <Typography variant="body2">{params.value || '-'}</Typography>;
+            },
+        },
+        {
+            field: 'entityId',
+            headerName: 'Entity ID',
+            width: 150,
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
+                const id = params.value as string | undefined;
+                if (!id) return '-';
+                // Truncate long IDs
+                const display = id.length > 12 ? `${id.substring(0, 8)}...` : id;
+                return (
+                    <Typography
+                        variant="body2"
+                        sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+                        title={id}
+                    >
+                        {display}
                     </Typography>
                 );
             },
@@ -419,47 +437,33 @@ export function AuditLogsPage() {
         {
             field: 'result',
             headerName: 'Result',
-            width: 120,
+            width: 100,
             renderCell: (params: GridRenderCellParams<GridRow>) => {
                 if (isDetailRow(params.row)) return null;
+                const log = params.row as AuditLog;
+                const result = getResultFromLog(log);
                 return (
                     <Chip
-                        label={params.value}
-                        color={getResultColor(params.value)}
+                        label={result}
+                        color={getResultColor(result)}
                         size="small"
                     />
                 );
             },
         },
         {
-            field: 'statusCode',
-            headerName: 'Status',
-            width: 80,
-            align: 'center',
+            field: 'httpInfo',
+            headerName: 'HTTP',
+            flex: 1,
+            minWidth: 200,
             renderCell: (params: GridRenderCellParams<GridRow>) => {
                 if (isDetailRow(params.row)) return null;
-                return params.value;
-            },
-        },
-        {
-            field: 'durationInMilliseconds',
-            headerName: 'Duration (ms)',
-            width: 120,
-            align: 'right',
-            renderCell: (params: GridRenderCellParams<GridRow>) => {
-                if (isDetailRow(params.row)) return null;
-                return <Typography variant="body2">{params.value}</Typography>;
-            },
-        },
-        {
-            field: 'ipAddress',
-            headerName: 'IP Address',
-            width: 140,
-            renderCell: (params: GridRenderCellParams<GridRow>) => {
-                if (isDetailRow(params.row)) return null;
+                const log = params.row as AuditLog;
+                const httpInfo = getHttpInfo(log);
+                if (!httpInfo) return <Typography variant="body2" color="text.secondary">-</Typography>;
                 return (
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {params.value || '-'}
+                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                        {httpInfo.method} {httpInfo.path} ({httpInfo.statusCode}) {httpInfo.durationMs}ms
                     </Typography>
                 );
             },
@@ -537,51 +541,32 @@ export function AuditLogsPage() {
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                         fullWidth
-                        label="Action (Path)"
+                        label="Action (contains)"
                         value={tempFilters.action || ''}
                         onChange={(e) =>
                             setTempFilters({ ...tempFilters, action: e.target.value })
                         }
+                        placeholder="e.g., Asset:Created, Job:, :ViaJob"
                     />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
-                        <InputLabel>Result</InputLabel>
+                        <InputLabel>Entity Type</InputLabel>
                         <Select
-                            value={tempFilters.result || ''}
-                            label="Result"
+                            value={tempFilters.entityType || ''}
+                            label="Entity Type"
                             onChange={(e) =>
-                                setTempFilters({ ...tempFilters, result: e.target.value })
+                                setTempFilters({ ...tempFilters, entityType: e.target.value })
                             }
                         >
                             <MenuItem value="">All</MenuItem>
-                            {RESULT_OPTIONS.map((option) => (
+                            {ENTITY_TYPE_OPTIONS.map((option) => (
                                 <MenuItem key={option} value={option}>
                                     {option}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                        fullWidth
-                        label="IP Address"
-                        value={tempFilters.ipAddress || ''}
-                        onChange={(e) =>
-                            setTempFilters({ ...tempFilters, ipAddress: e.target.value })
-                        }
-                    />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <TextField
-                        fullWidth
-                        label="Keyword (searches request/response)"
-                        value={tempFilters.keyword || ''}
-                        onChange={(e) =>
-                            setTempFilters({ ...tempFilters, keyword: e.target.value })
-                        }
-                    />
                 </Grid>
             </Grid>
 

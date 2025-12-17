@@ -80,16 +80,13 @@ internal static class AssetHandlers {
     internal static async Task<IResult> CreateAssetHandler(
         HttpContext context,
         [FromBody] CreateAssetRequest request,
-        [FromServices] IAssetService assetService,
-        [FromServices] UserManager<User> userManager) {
+        [FromServices] IAssetService assetService) {
         Guid userId;
         if (context.IsInternalService()) {
+            // Internal service calls must provide OwnerId
+            // Trust the calling service - user was already validated when original request was made
             if (!request.OwnerId.HasValue)
                 return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
-
-            var user = await userManager.FindByIdAsync(request.OwnerId.Value.ToString());
-            if (user is null)
-                return Results.BadRequest(new { error = $"User {request.OwnerId.Value} does not exist." });
 
             userId = request.OwnerId.Value;
         }

@@ -905,14 +905,7 @@ public class UserAdminServiceTests
         Timestamp = DateTime.UtcNow,
         Action = action,
         EntityType = "User",
-        EntityId = userId.ToString(),
-        Result = "Success",
-        IpAddress = "127.0.0.1",
-        HttpMethod = "POST",
-        Path = "/api/test",
-        StatusCode = 200,
-        UserAgent = "Test Agent",
-        DurationInMilliseconds = 100
+        EntityId = userId.ToString()
     };
 
     #endregion

@@ -1,3 +1,4 @@
+using VttTools.Audit.Model.Payloads;
 
 namespace VttTools.Middlewares;
 
@@ -52,6 +53,7 @@ public class AuditLoggingMiddleware(
             var queryString = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : null;
             var ipAddress = context.Connection.RemoteIpAddress?.ToString();
             var userAgent = context.Request.Headers.UserAgent.ToString();
+            var durationMs = (int)stopwatch.ElapsedMilliseconds;
 
             await Task.Run(async () => {
                 try {
@@ -69,7 +71,7 @@ public class AuditLoggingMiddleware(
                         requestBody,
                         responseBody,
                         statusCode,
-                        (int)stopwatch.ElapsedMilliseconds,
+                        durationMs,
                         scopedAuditLogService);
                 }
                 catch (Exception ex) {
@@ -118,14 +120,12 @@ public class AuditLoggingMiddleware(
         string? requestBody,
         string? responseBody,
         int statusCode,
-        int durationInMilliseconds,
+        int durationMs,
         IAuditLogService auditLogService) {
 
-        var auditLog = new AuditLog {
-            Timestamp = DateTime.UtcNow,
-            UserId = userId,
-            UserEmail = userEmail,
-            Action = DetermineAction(httpMethod, path),
+        var (action, entityType, entityId) = DeriveActionAndEntity(httpMethod, path, statusCode);
+
+        var httpPayload = new HttpAuditPayload {
             HttpMethod = httpMethod,
             Path = path,
             QueryString = BodySanitizer.SanitizeQueryString(queryString),
@@ -134,42 +134,97 @@ public class AuditLoggingMiddleware(
             UserAgent = userAgent,
             RequestBody = requestBody,
             ResponseBody = responseBody,
-            DurationInMilliseconds = durationInMilliseconds,
-            Result = DetermineResult(statusCode)
+            DurationMs = durationMs,
+            Result = DetermineResult(statusCode),
+        };
+
+        var auditLog = new AuditLog {
+            Timestamp = DateTime.UtcNow,
+            UserId = userId,
+            UserEmail = userEmail,
+            Action = action,
+            EntityType = entityType,
+            EntityId = entityId,
+            ErrorMessage = statusCode >= 400 ? $"HTTP {statusCode}" : null,
+            Payload = JsonSerializer.Serialize(httpPayload, JsonDefaults.Options),
         };
 
         await auditLogService.AddAsync(auditLog);
     }
 
-    private static string DetermineAction(string method, PathString path) {
+    private static (string Action, string? EntityType, string? EntityId) DeriveActionAndEntity(
+        string method,
+        PathString path,
+        int statusCode) {
+
         var pathSegments = path.ToString().Split('/', StringSplitOptions.RemoveEmptyEntries);
 
         if (pathSegments.Length == 0)
-            return $"{method} Unknown";
+            return ($"HTTP:{method}", null, null);
 
         var startIndex = pathSegments[0].Equals("api", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
 
         if (startIndex >= pathSegments.Length)
-            return $"{method} Unknown";
+            return ($"HTTP:{method}", null, null);
 
-        var actionSegments = new List<string>();
-        for (var i = startIndex; i < pathSegments.Length; i++) {
-            var segment = pathSegments[i];
+        // Extract entity type from first meaningful segment
+        var entitySegment = pathSegments[startIndex];
+        var entityType = NormalizeEntityType(entitySegment);
 
-            if (Guid.TryParse(segment, out _)) {
-                actionSegments.Add("{guid}");
-            }
-            else if (int.TryParse(segment, out _)) {
-                actionSegments.Add("{int}");
-            }
-            else {
-                actionSegments.Add(segment);
+        // Extract entity ID if present (typically a GUID after the entity segment)
+        string? entityId = null;
+        if (startIndex + 1 < pathSegments.Length) {
+            var potentialId = pathSegments[startIndex + 1];
+            if (Guid.TryParse(potentialId, out _)) {
+                entityId = potentialId;
             }
         }
 
-        var action = string.Join('/', actionSegments);
-        return $"{method} {action}";
+        // Determine the operation verb
+        var verb = DetermineVerb(method, entityId, statusCode);
+
+        // Build action string: "{EntityType}:{Verb}:ByUser"
+        var action = $"{entityType}:{verb}:ByUser";
+
+        return (action, entityType, entityId);
     }
+
+    private static string NormalizeEntityType(string segment) {
+        // Capitalize first letter and handle plurals
+        var normalized = segment.TrimEnd('s'); // Simple plural handling
+        if (normalized.Length > 0) {
+            normalized = char.ToUpperInvariant(normalized[0]) + normalized[1..];
+        }
+        return normalized switch {
+            "Asset" => "Asset",
+            "Resource" => "Resource",
+            "Job" => "Job",
+            "User" => "User",
+            "Session" => "Session",
+            "Campaign" => "Campaign",
+            "Adventure" => "Adventure",
+            "Encounter" => "Encounter",
+            "World" => "World",
+            "Auth" => "User", // Auth endpoints affect User entity
+            "Account" => "User", // Account endpoints affect User entity
+            "Admin" => "Admin",
+            "Audit" => "AuditLog",
+            _ => segment
+        };
+    }
+
+    private static string DetermineVerb(string method, string? entityId, int statusCode)
+        => statusCode >= 400
+            ? "FailedAccess"
+            : method.ToUpperInvariant() switch {
+                "POST" => "Created",
+                "PUT" => "Updated",
+                "PATCH" => "Updated",
+                "DELETE" => "Deleted",
+                "GET" when entityId is not null => "Viewed",
+                "GET" => "Listed",
+                _ => "Accessed"
+            };
 
     private static string DetermineResult(int statusCode) => statusCode switch {
         >= 200 and < 300 => "Success",

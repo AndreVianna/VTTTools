@@ -3,11 +3,6 @@ namespace VttTools.AI.Providers.OpenAi;
 internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, IOptionsSnapshot<AiOptions> options) {
     private const string _providerName = "OpenAI";
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        PropertyNameCaseInsensitive = true
-    };
-
     public HttpClient CreateAuthenticatedClient() {
         var providerConfig = GetProviderConfig();
         var client = httpClientFactory.CreateClient(Extensions.HostApplicationBuilderExtensions.AiProviderHttpClientName);
@@ -38,7 +33,7 @@ internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, IOp
         string endpoint,
         object request,
         CancellationToken ct = default) {
-        using var response = await client.PostAsJsonAsync(endpoint, request, _jsonOptions, ct);
+        using var response = await client.PostAsJsonAsync(endpoint, request, JsonDefaults.SnakeCaseOptions, ct);
 
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
@@ -47,7 +42,7 @@ internal sealed class OpenAiHttpHelper(IHttpClientFactory httpClientFactory, IOp
         }
 
         var contentString = await response.Content.ReadAsStringAsync(ct);
-        return JsonSerializer.Deserialize<T>(contentString, _jsonOptions);
+        return JsonSerializer.Deserialize<T>(contentString, JsonDefaults.SnakeCaseOptions);
     }
 
     public static OpenAiPricingCalculator GetImagePricingCalculator(string model) {

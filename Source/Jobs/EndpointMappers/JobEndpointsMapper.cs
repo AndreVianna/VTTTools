@@ -13,7 +13,5 @@ internal static class JobEndpointsMapper {
         jobs.MapPatch("/{id:guid}", JobHandlers.UpdateJobHandler);
         jobs.MapDelete("/{id:guid}", JobHandlers.CancelJobHandler);
         jobs.MapPost("/{id:guid}/retry", JobHandlers.RetryJobHandler);
-        //jobs.MapPost("/item-update", JobHandlers.BroadcastItemUpdateHandler);
-        //jobs.MapPost("/progress", JobHandlers.BroadcastProgressHandler);
     }
 }

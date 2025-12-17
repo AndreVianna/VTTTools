@@ -18,7 +18,15 @@ public class AssetsServiceClient(IHttpClientFactory httpClientFactory,
             return Result.Failure(errorBody).WithNo<Guid>();
         }
 
-        var result = await response.Content.ReadFromJsonAsync<Asset>(ct);
-        return result!.Id;
+        // Extract ID from Location header (e.g., "/api/assets/{id}")
+        // This avoids deserializing the full Asset which contains Map<HashSet<string>> types
+        var location = response.Headers.Location?.ToString();
+        if (location is not null && Guid.TryParse(location.Split('/')[^1], out var assetId))
+            return assetId;
+
+        var result = await response.Content.ReadFromJsonAsync<AssetIdResponse>(JsonDefaults.Options, ct);
+        return result?.Id ?? Result.Failure("Failed to extract asset ID from response").WithNo<Guid>();
     }
+
+    private sealed record AssetIdResponse(Guid Id);
 }

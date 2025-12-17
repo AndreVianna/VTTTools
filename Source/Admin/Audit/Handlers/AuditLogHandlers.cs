@@ -26,7 +26,6 @@ public static class AuditLogHandlers {
                                                                request.UserId,
                                                                request.Action,
                                                                request.EntityType,
-                                                               request.Result,
                                                                request.Skip,
                                                                request.Take,
                                                                ct);

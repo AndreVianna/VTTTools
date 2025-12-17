@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration.Json;
-
 namespace VttTools.Common.Utilities;
 
 public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {

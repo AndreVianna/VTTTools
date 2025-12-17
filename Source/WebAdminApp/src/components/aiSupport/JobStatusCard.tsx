@@ -36,10 +36,8 @@ export function JobStatusCard({
                 return 'default';
             case JobStatus.InProgress:
                 return 'primary';
-            case JobStatus.Success:
-                return 'success';
-            case JobStatus.Failed:
-                return 'error';
+            case JobStatus.Completed:
+                return job.failedItems > 0 ? 'warning' : 'success';
             case JobStatus.Canceled:
                 return 'default';
             default:
@@ -72,7 +70,7 @@ export function JobStatusCard({
         : 0;
 
     const canCancel = job.status === JobStatus.Pending || job.status === JobStatus.InProgress;
-    const canRetry = job.status === JobStatus.Failed;
+    const canRetry = job.status === JobStatus.Completed && job.failedItems > 0;
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';

@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251215195428_CreateApplicationSchema")]
+    [Migration("20251217154858_CreateApplicationSchema")]
     partial class CreateApplicationSchema
     {
         /// <inheritdoc />
@@ -289,9 +289,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("DurationInMilliseconds")
-                        .HasColumnType("int");
-
                     b.Property<string>("EntityId")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -304,46 +301,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<string>("HttpMethod")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("QueryString")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("RequestBody")
+                    b.Property<string>("Payload")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ResponseBody")
-                        .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Result")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("StatusCode")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("UserEmail")
                         .HasColumnType("nvarchar(max)");
@@ -356,8 +319,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasIndex("Action");
 
                     b.HasIndex("EntityType");
-
-                    b.HasIndex("Result");
 
                     b.HasIndex("Timestamp")
                         .IsDescending();

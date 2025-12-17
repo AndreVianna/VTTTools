@@ -1,4 +1,5 @@
 global using System.Diagnostics.CodeAnalysis;
+global using System.Text.Json;
 
 global using DotNetToolbox.Results;
 
@@ -19,9 +20,11 @@ global using VttTools.Common.Utilities;
 global using VttTools.Data;
 global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;
+global using VttTools.Audit.Model;
 global using VttTools.Data.Jobs;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
+global using VttTools.Json;
 global using VttTools.HealthChecks;
 global using VttTools.Jobs.ApiContracts;
 global using VttTools.Jobs.EndpointMappers;

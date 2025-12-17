@@ -7,6 +7,4 @@ public interface IJobService {
     Task<Result<Job>> UpdateAsync(UpdateJobData data, CancellationToken ct = default);
     Task<bool> CancelAsync(Guid id, CancellationToken ct = default);
     Task<bool> RetryAsync(Guid id, CancellationToken ct = default);
-    Task BroadcastItemUpdateAsync(JobItemUpdateEvent @event, CancellationToken ct = default);
-    Task BroadcastProgressAsync(JobProgressEvent @event, CancellationToken ct = default);
 }

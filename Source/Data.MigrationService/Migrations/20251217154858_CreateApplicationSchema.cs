@@ -38,19 +38,10 @@ public partial class CreateApplicationSchema : Migration {
                 UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 UserEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 Action = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                ErrorMessage = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
                 EntityType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                 EntityId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                HttpMethod = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                Path = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                QueryString = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                StatusCode = table.Column<int>(type: "int", nullable: false),
-                IpAddress = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                UserAgent = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                RequestBody = table.Column<string>(type: "nvarchar(max)", maxLength: 8000, nullable: true),
-                ResponseBody = table.Column<string>(type: "nvarchar(max)", maxLength: 8000, nullable: true),
-                DurationInMilliseconds = table.Column<int>(type: "int", nullable: false),
-                Result = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                ErrorMessage = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true)
+                Payload = table.Column<string>(type: "nvarchar(max)", maxLength: 8000, nullable: true)
             },
             constraints: table => table.PrimaryKey("PK_AuditLogs", x => x.Id));
 
@@ -744,11 +735,6 @@ public partial class CreateApplicationSchema : Migration {
             name: "IX_AuditLogs_EntityType",
             table: "AuditLogs",
             column: "EntityType");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_AuditLogs_Result",
-            table: "AuditLogs",
-            column: "Result");
 
         migrationBuilder.CreateIndex(
             name: "IX_AuditLogs_Timestamp",

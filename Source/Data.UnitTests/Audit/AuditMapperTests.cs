@@ -1,16 +1,12 @@
+using System.Text.Json;
+
+using VttTools.Audit.Model.Payloads;
+
 namespace VttTools.Data.Audit;
 
 public class AuditMapperTests {
-    [Fact]
-    public void ToModel_WithValidEntity_ReturnsCorrectModel() {
-        var entity = new Entities.AuditLog {
-            Id = Guid.CreateVersion7(),
-            Timestamp = DateTime.UtcNow,
-            UserId = Guid.CreateVersion7(),
-            UserEmail = "test@test.com",
-            Action = "Create",
-            EntityType = "Asset",
-            EntityId = Guid.CreateVersion7().ToString(),
+    private static string CreateHttpPayload() {
+        var payload = new HttpAuditPayload {
             HttpMethod = "POST",
             Path = "/api/assets",
             QueryString = "?filter=published",
@@ -19,8 +15,23 @@ public class AuditMapperTests {
             UserAgent = "Mozilla/5.0",
             RequestBody = "{\"name\":\"test\"}",
             ResponseBody = "{\"id\":\"123\"}",
-            DurationInMilliseconds = 150,
+            DurationMs = 150,
             Result = "Success",
+        };
+        return JsonSerializer.Serialize(payload, JsonDefaults.Options);
+    }
+
+    [Fact]
+    public void ToModel_WithValidEntity_ReturnsCorrectModel() {
+        var entity = new Entities.AuditLog {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            UserId = Guid.CreateVersion7(),
+            UserEmail = "test@test.com",
+            Action = "Asset:Created:ByUser",
+            EntityType = "Asset",
+            EntityId = Guid.CreateVersion7().ToString(),
+            Payload = CreateHttpPayload(),
             ErrorMessage = null,
         };
 
@@ -34,16 +45,7 @@ public class AuditMapperTests {
         result.Action.Should().Be(entity.Action);
         result.EntityType.Should().Be(entity.EntityType);
         result.EntityId.Should().Be(entity.EntityId);
-        result.HttpMethod.Should().Be(entity.HttpMethod);
-        result.Path.Should().Be(entity.Path);
-        result.QueryString.Should().Be(entity.QueryString);
-        result.StatusCode.Should().Be(entity.StatusCode);
-        result.IpAddress.Should().Be(entity.IpAddress);
-        result.UserAgent.Should().Be(entity.UserAgent);
-        result.RequestBody.Should().Be(entity.RequestBody);
-        result.ResponseBody.Should().Be(entity.ResponseBody);
-        result.DurationInMilliseconds.Should().Be(entity.DurationInMilliseconds);
-        result.Result.Should().Be(entity.Result);
+        result.Payload.Should().Be(entity.Payload);
         result.ErrorMessage.Should().BeNull();
     }
 
@@ -63,15 +65,9 @@ public class AuditMapperTests {
             Timestamp = DateTime.UtcNow,
             UserId = Guid.CreateVersion7(),
             UserEmail = "test@test.com",
-            Action = "Update",
+            Action = "Campaign:Updated:ByUser",
             EntityType = "Campaign",
-            HttpMethod = "PUT",
-            Path = "/api/campaigns",
-            StatusCode = 500,
-            IpAddress = "192.168.1.1",
-            UserAgent = "Mozilla/5.0",
-            DurationInMilliseconds = 200,
-            Result = "Failed",
+            Payload = CreateHttpPayload(),
             ErrorMessage = "Database connection failed",
         };
 
@@ -79,7 +75,6 @@ public class AuditMapperTests {
 
         result.Should().NotBeNull();
         result.ErrorMessage.Should().Be("Database connection failed");
-        result.Result.Should().Be("Failed");
     }
 
     [Fact]
@@ -89,19 +84,10 @@ public class AuditMapperTests {
             Timestamp = DateTime.UtcNow,
             UserId = Guid.CreateVersion7(),
             UserEmail = "user@example.com",
-            Action = "Delete",
+            Action = "World:Deleted:ByUser",
             EntityType = "World",
             EntityId = Guid.CreateVersion7().ToString(),
-            HttpMethod = "DELETE",
-            Path = "/api/worlds",
-            QueryString = null,
-            StatusCode = 200,
-            IpAddress = "10.0.0.1",
-            UserAgent = "Chrome/100",
-            RequestBody = null,
-            ResponseBody = null,
-            DurationInMilliseconds = 75,
-            Result = "Success",
+            Payload = CreateHttpPayload(),
             ErrorMessage = null,
         };
 
@@ -115,16 +101,7 @@ public class AuditMapperTests {
         result.Action.Should().Be(model.Action);
         result.EntityType.Should().Be(model.EntityType);
         result.EntityId.Should().Be(model.EntityId);
-        result.HttpMethod.Should().Be(model.HttpMethod);
-        result.Path.Should().Be(model.Path);
-        result.QueryString.Should().BeNull();
-        result.StatusCode.Should().Be(model.StatusCode);
-        result.IpAddress.Should().Be(model.IpAddress);
-        result.UserAgent.Should().Be(model.UserAgent);
-        result.RequestBody.Should().BeNull();
-        result.ResponseBody.Should().BeNull();
-        result.DurationInMilliseconds.Should().Be(model.DurationInMilliseconds);
-        result.Result.Should().Be(model.Result);
+        result.Payload.Should().Be(model.Payload);
         result.ErrorMessage.Should().BeNull();
     }
 
@@ -138,16 +115,7 @@ public class AuditMapperTests {
             Action = "OldAction",
             EntityType = "OldType",
             EntityId = "old-id",
-            HttpMethod = "GET",
-            Path = "/old/path",
-            QueryString = "old-query",
-            StatusCode = 200,
-            IpAddress = "192.168.1.1",
-            UserAgent = "OldAgent",
-            RequestBody = "old-request",
-            ResponseBody = "old-response",
-            DurationInMilliseconds = 100,
-            Result = "OldResult",
+            Payload = "{\"old\":\"payload\"}",
             ErrorMessage = "old-error",
         };
 
@@ -159,16 +127,7 @@ public class AuditMapperTests {
             Action = "NewAction",
             EntityType = "NewType",
             EntityId = "new-id",
-            HttpMethod = "POST",
-            Path = "/new/path",
-            QueryString = "new-query",
-            StatusCode = 201,
-            IpAddress = "10.0.0.1",
-            UserAgent = "NewAgent",
-            RequestBody = "new-request",
-            ResponseBody = "new-response",
-            DurationInMilliseconds = 250,
-            Result = "NewResult",
+            Payload = "{\"new\":\"payload\"}",
             ErrorMessage = "new-error",
         };
 
@@ -180,16 +139,52 @@ public class AuditMapperTests {
         entity.Action.Should().Be(model.Action);
         entity.EntityType.Should().Be(model.EntityType);
         entity.EntityId.Should().Be(model.EntityId);
-        entity.HttpMethod.Should().Be(model.HttpMethod);
-        entity.Path.Should().Be(model.Path);
-        entity.QueryString.Should().Be(model.QueryString);
-        entity.StatusCode.Should().Be(model.StatusCode);
-        entity.IpAddress.Should().Be(model.IpAddress);
-        entity.UserAgent.Should().Be(model.UserAgent);
-        entity.RequestBody.Should().Be(model.RequestBody);
-        entity.ResponseBody.Should().Be(model.ResponseBody);
-        entity.DurationInMilliseconds.Should().Be(model.DurationInMilliseconds);
-        entity.Result.Should().Be(model.Result);
+        entity.Payload.Should().Be(model.Payload);
         entity.ErrorMessage.Should().Be(model.ErrorMessage);
+    }
+
+    [Fact]
+    public void ToModel_WithJobPayload_ParsesCorrectly() {
+        var jobPayload = new JobCreatedPayload {
+            Type = "BulkAssetGeneration",
+            TotalItems = 5,
+            EstimatedDuration = "00:00:07.5",
+        };
+        var entity = new Entities.AuditLog {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            UserId = Guid.CreateVersion7(),
+            UserEmail = "test@test.com",
+            Action = "Job:Created",
+            EntityType = "Job",
+            EntityId = Guid.CreateVersion7().ToString(),
+            Payload = JsonSerializer.Serialize(jobPayload, JsonDefaults.Options),
+        };
+
+        var result = entity.ToModel();
+
+        result.Should().NotBeNull();
+        result.Payload.Should().NotBeNullOrEmpty();
+        result.Payload.Should().Contain("BulkAssetGeneration");
+        result.Payload.Should().Contain("5");
+    }
+
+    [Fact]
+    public void ToModel_WithNullPayload_ReturnsNullPayload() {
+        var entity = new Entities.AuditLog {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            UserId = Guid.CreateVersion7(),
+            UserEmail = "test@test.com",
+            Action = "Job:Canceled",
+            EntityType = "Job",
+            EntityId = Guid.CreateVersion7().ToString(),
+            Payload = null,
+        };
+
+        var result = entity.ToModel();
+
+        result.Should().NotBeNull();
+        result.Payload.Should().BeNull();
     }
 }

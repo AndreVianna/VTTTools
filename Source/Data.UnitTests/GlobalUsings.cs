@@ -1,4 +1,5 @@
 global using System.Collections.Generic;
+global using System.Text.Json;
 
 global using AwesomeAssertions;
 
@@ -27,4 +28,5 @@ global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.Storage;
 global using VttTools.Library.Worlds.Model;
+global using VttTools.Json;
 global using VttTools.Media.Model;

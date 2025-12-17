@@ -37,16 +37,13 @@ internal static class ResourcesHandlers {
         [FromForm] string? resourceType,
         [FromForm] string? ownerId,
         [FromServices] IResourceService resourceService,
-        [FromServices] UserManager<User> userManager,
         CancellationToken ct = default) {
         Guid userId;
         if (context.IsInternalService()) {
+            // Internal service calls must provide OwnerId
+            // Trust the calling service - user was already validated when original request was made
             if (string.IsNullOrWhiteSpace(ownerId) || !Guid.TryParse(ownerId, out var parsedOwnerId))
                 return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
-
-            var user = await userManager.FindByIdAsync(parsedOwnerId.ToString());
-            if (user is null)
-                return Results.BadRequest(new { error = $"User {parsedOwnerId} does not exist." });
 
             userId = parsedOwnerId;
         }

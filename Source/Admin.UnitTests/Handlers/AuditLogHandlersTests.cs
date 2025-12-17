@@ -15,14 +15,13 @@ public class AuditLogHandlersTests {
             UserId = Guid.CreateVersion7(),
             Action = "User.Login",
             EntityType = "User",
-            Result = "Success",
             Skip = 0,
             Take = 50
         };
 
         var logs = new[] {
-            CreateTestAuditLog("User.Login", "Success"),
-            CreateTestAuditLog("User.Login", "Success")
+            CreateTestAuditLog("User.Login"),
+            CreateTestAuditLog("User.Login")
         };
 
         _mockService.QueryAsync(
@@ -31,7 +30,6 @@ public class AuditLogHandlersTests {
             request.UserId,
             request.Action,
             request.EntityType,
-            request.Result,
             request.Skip,
             request.Take,
             Arg.Any<CancellationToken>())
@@ -98,10 +96,9 @@ public class AuditLogHandlersTests {
     [Fact]
     public async Task QueryAuditLogsHandler_WithDefaultPagination_ReturnsResults() {
         var request = new AuditLogQueryRequest();
-        var logs = new[] { CreateTestAuditLog("User.Login", "Success") };
+        var logs = new[] { CreateTestAuditLog("User.Login") };
 
         _mockService.QueryAsync(
-            null,
             null,
             null,
             null,
@@ -124,7 +121,7 @@ public class AuditLogHandlersTests {
 
     [Fact]
     public async Task GetAuditLogByIdHandler_WhenAuditLogExists_ReturnsOk() {
-        var auditLog = CreateTestAuditLog("User.Login", "Success");
+        var auditLog = CreateTestAuditLog("User.Login");
         _mockService.GetByIdAsync(auditLog.Id, Arg.Any<CancellationToken>())
             .Returns(auditLog);
 
@@ -179,20 +176,13 @@ public class AuditLogHandlersTests {
         Assert.Equal(0, okResult.Value!.Count);
     }
 
-    private static AuditLog CreateTestAuditLog(string action, string result) => new() {
+    private static AuditLog CreateTestAuditLog(string action) => new() {
         Id = Guid.CreateVersion7(),
         Timestamp = DateTime.UtcNow,
         UserId = Guid.CreateVersion7(),
         UserEmail = "test@example.com",
         Action = action,
         EntityType = "User",
-        EntityId = Guid.CreateVersion7().ToString(),
-        HttpMethod = "POST",
-        Path = "/api/test",
-        StatusCode = 200,
-        IpAddress = "127.0.0.1",
-        UserAgent = "Test Agent",
-        DurationInMilliseconds = 100,
-        Result = result
+        EntityId = Guid.CreateVersion7().ToString()
     };
 }

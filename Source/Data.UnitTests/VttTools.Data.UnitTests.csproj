@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Data\VttTools.Data.csproj" />
+    <ProjectReference Include="..\Common\VttTools.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

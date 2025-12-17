@@ -2,26 +2,18 @@ namespace VttTools.Services;
 
 public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> logger)
     : IAuditLogService {
-    private static readonly string[] _validResults = ["Success", "Failure", "Error"];
-
     public async Task AddAsync(AuditLog auditLog, CancellationToken ct = default) {
         ArgumentNullException.ThrowIfNull(auditLog);
-
-        if (!_validResults.Contains(auditLog.Result)) {
-            throw new ArgumentException(
-                $"Result must be one of: {string.Join(", ", _validResults)}",
-                nameof(auditLog));
-        }
 
         var logToCreate = auditLog.Timestamp == default
             ? auditLog with { Timestamp = DateTime.UtcNow }
             : auditLog;
 
         logger.LogInformation(
-            "Creating audit log: Action={Action}, EntityType={EntityType}, Result={Result}",
+            "Creating audit log: Action={Action}, EntityType={EntityType}, EntityId={EntityId}",
             logToCreate.Action,
             logToCreate.EntityType,
-            logToCreate.Result);
+            logToCreate.EntityId);
 
         await storage.AddAsync(logToCreate, ct);
         logger.LogDebug("Audit log created successfully with ID: {Id}", logToCreate.Id);
@@ -45,7 +37,6 @@ public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> 
         Guid? userId = null,
         string? action = null,
         string? entityType = null,
-        string? result = null,
         int skip = 0,
         int take = 50,
         CancellationToken ct = default) {
@@ -63,13 +54,12 @@ public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> 
         }
 
         logger.LogDebug(
-            "Querying audit logs: StartDate={StartDate}, EndDate={EndDate}, UserId={UserId}, Action={Action}, EntityType={EntityType}, Result={Result}, Skip={Skip}, Take={Take}",
+            "Querying audit logs: StartDate={StartDate}, EndDate={EndDate}, UserId={UserId}, Action={Action}, EntityType={EntityType}, Skip={Skip}, Take={Take}",
             startDate,
             endDate,
             userId,
             action,
             entityType,
-            result,
             skip,
             take);
 
@@ -79,7 +69,6 @@ public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> 
             userId,
             action,
             entityType,
-            result,
             skip,
             take,
             ct);

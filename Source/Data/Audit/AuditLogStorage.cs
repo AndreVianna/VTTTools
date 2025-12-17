@@ -23,7 +23,6 @@ public class AuditLogStorage(ApplicationDbContext context)
         Guid? userId = null,
         string? action = null,
         string? entityType = null,
-        string? result = null,
         int skip = 0,
         int take = 50,
         CancellationToken ct = default) {
@@ -40,13 +39,10 @@ public class AuditLogStorage(ApplicationDbContext context)
             query = query.Where(a => a.UserId == userId.Value);
 
         if (!string.IsNullOrWhiteSpace(action))
-            query = query.Where(a => a.Action == action);
+            query = query.Where(a => a.Action.Contains(action));
 
         if (!string.IsNullOrWhiteSpace(entityType))
             query = query.Where(a => a.EntityType == entityType);
-
-        if (!string.IsNullOrWhiteSpace(result))
-            query = query.Where(a => a.Result == result);
 
         var totalCount = await query.CountAsync(ct);
 
@@ -79,34 +75,46 @@ public class AuditLogStorage(ApplicationDbContext context)
             .CountAsync(ct);
 
     public async Task<double> GetAverageResponseTimeAsync(DateTime startDate, CancellationToken ct = default) {
-        var logsWithDuration = await context.AuditLogs
+        // Only HTTP audit logs have durationMs in their payload
+        // These are identified by having a non-null Payload with httpMethod field
+        var logs = await context.AuditLogs
             .AsNoTracking()
-            .Where(a => a.Timestamp >= startDate && a.DurationInMilliseconds > 0)
+            .Where(a => a.Timestamp >= startDate && a.Payload != null)
+            .Select(a => a.Payload!)
             .ToListAsync(ct);
 
-        return logsWithDuration.Count != 0
-            ? logsWithDuration.Average(a => (double)a.DurationInMilliseconds)
-            : 0;
+        var durations = logs
+            .Select(ExtractDurationMs)
+            .Where(d => d > 0)
+            .ToList();
+
+        return durations.Count != 0 ? durations.Average() : 0;
     }
 
     public async Task<List<TimeSeriesDataPoint>> GetHourlyAverageResponseTimesAsync(
         DateTime startDate,
         CancellationToken ct = default) {
 
+        // Only HTTP audit logs have durationMs in their payload
         var logs = await context.AuditLogs
             .AsNoTracking()
-            .Where(a => a.Timestamp >= startDate && a.DurationInMilliseconds > 0)
+            .Where(a => a.Timestamp >= startDate && a.Payload != null)
             .Select(a => new {
                 a.Timestamp,
-                a.DurationInMilliseconds
+                a.Payload
             })
             .ToListAsync(ct);
 
         var results = logs
+            .Select(a => new {
+                a.Timestamp,
+                DurationMs = ExtractDurationMs(a.Payload!)
+            })
+            .Where(a => a.DurationMs > 0)
             .GroupBy(a => new DateTime(a.Timestamp.Year, a.Timestamp.Month, a.Timestamp.Day, a.Timestamp.Hour, 0, 0, DateTimeKind.Utc))
             .Select(g => new TimeSeriesDataPoint {
                 Timestamp = g.Key,
-                Value = g.Average(a => (double)a.DurationInMilliseconds)
+                Value = g.Average(a => a.DurationMs)
             })
             .OrderBy(dp => dp.Timestamp)
             .ToList();
@@ -126,7 +134,7 @@ public class AuditLogStorage(ApplicationDbContext context)
     public async Task<DateTime?> GetUserLastLoginDateAsync(Guid userId, CancellationToken ct = default)
         => await context.AuditLogs
             .AsNoTracking()
-            .Where(a => a.UserId == userId && a.Action == "Login")
+            .Where(a => a.UserId == userId && a.Action == "User:LoggedIn")
             .MaxAsync(a => (DateTime?)a.Timestamp, ct);
 
     public async Task<DateTime?> GetUserLastModifiedDateAsync(Guid userId, CancellationToken ct = default)
@@ -134,4 +142,16 @@ public class AuditLogStorage(ApplicationDbContext context)
             .AsNoTracking()
             .Where(a => a.UserId == userId)
             .MaxAsync(a => (DateTime?)a.Timestamp, ct);
+
+    private static double ExtractDurationMs(string payload) {
+        try {
+            using var doc = JsonDocument.Parse(payload);
+            if (doc.RootElement.TryGetProperty("durationMs", out var durationElement))
+                return durationElement.GetDouble();
+        }
+        catch {
+            // Invalid JSON or missing property
+        }
+        return 0;
+    }
 }

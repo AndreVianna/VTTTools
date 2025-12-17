@@ -24,6 +24,10 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.ConfigureHttpJsonOptions(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
+        // Configure internal API key authentication (used by service-to-service calls)
+        builder.Services.Configure<InternalApiOptions>(
+            builder.Configuration.GetSection(InternalApiOptions.SectionName));
+
         builder.Services.AddCors(options => options.AddPolicy("AllowAllOrigins", policy => {
             if (builder.Environment.IsDevelopment()) {
                 policy.WithOrigins("http://localhost:5173", "http://localhost:5193")
@@ -106,13 +110,27 @@ public static class HostApplicationBuilderExtensions {
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
+
+                // SignalR: Extract JWT from query string for WebSocket/SSE connections
+                options.Events = new JwtBearerEvents {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                            context.Token = accessToken;
+                        return Task.CompletedTask;
+                    }
+                };
             });
     }
 
     internal static void ConfigureJsonOptions(JsonOptions options) {
-        options.SerializerOptions.PropertyNameCaseInsensitive = true;
-        options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
+        var defaults = JsonDefaults.Options;
+        options.SerializerOptions.PropertyNameCaseInsensitive = defaults.PropertyNameCaseInsensitive;
+        options.SerializerOptions.PropertyNamingPolicy = defaults.PropertyNamingPolicy;
+        options.SerializerOptions.TypeInfoResolver = defaults.TypeInfoResolver;
+        foreach (var converter in defaults.Converters)
+            options.SerializerOptions.Converters.Add(converter);
     }
 
     public static IApplicationBuilder UseMaintenanceModeMiddleware(this IApplicationBuilder app)

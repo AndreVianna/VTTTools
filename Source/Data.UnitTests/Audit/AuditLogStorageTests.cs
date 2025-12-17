@@ -1,3 +1,7 @@
+using System.Text.Json;
+
+using VttTools.Audit.Model.Payloads;
+
 namespace VttTools.Data.Audit;
 
 public class AuditLogStorageTests
@@ -20,6 +24,19 @@ public class AuditLogStorageTests
         GC.SuppressFinalize(this);
     }
 
+    private static string CreateHttpPayload(string httpMethod, string path, int statusCode, string result, int durationMs, string? ipAddress = null) {
+        var payload = new HttpAuditPayload {
+            HttpMethod = httpMethod,
+            Path = path,
+            StatusCode = statusCode,
+            Result = result,
+            DurationMs = durationMs,
+            IpAddress = ipAddress,
+            UserAgent = "Mozilla/5.0",
+        };
+        return JsonSerializer.Serialize(payload, JsonDefaults.Options);
+    }
+
     private void SeedAuditLogs() {
         var baseDate = DateTime.UtcNow.AddDays(-30);
         var logs = new[] {
@@ -31,29 +48,17 @@ public class AuditLogStorageTests
                 Action = "Login",
                 EntityType = "User",
                 EntityId = _userId1.ToString(),
-                HttpMethod = "POST",
-                Path = "/api/auth/login",
-                StatusCode = 200,
-                IpAddress = "192.168.1.1",
-                UserAgent = "Mozilla/5.0",
-                DurationInMilliseconds = 150,
-                Result = "Success",
+                Payload = CreateHttpPayload("POST", "/api/auth/login", 200, "Success", 150, "192.168.1.1"),
             },
             new Entities.AuditLog {
                 Id = Guid.CreateVersion7(),
                 Timestamp = baseDate.AddDays(1),
                 UserId = _userId1,
                 UserEmail = "user1@test.com",
-                Action = "Create",
+                Action = "Campaign:Created:ByUser",
                 EntityType = "Campaign",
                 EntityId = Guid.CreateVersion7().ToString(),
-                HttpMethod = "POST",
-                Path = "/api/campaigns",
-                StatusCode = 201,
-                IpAddress = "192.168.1.1",
-                UserAgent = "Mozilla/5.0",
-                DurationInMilliseconds = 250,
-                Result = "Success",
+                Payload = CreateHttpPayload("POST", "/api/campaigns", 201, "Success", 250, "192.168.1.1"),
             },
             new Entities.AuditLog {
                 Id = Guid.CreateVersion7(),
@@ -63,44 +68,26 @@ public class AuditLogStorageTests
                 Action = "Login",
                 EntityType = "User",
                 EntityId = _userId2.ToString(),
-                HttpMethod = "POST",
-                Path = "/api/auth/login",
-                StatusCode = 200,
-                IpAddress = "192.168.1.2",
-                UserAgent = "Mozilla/5.0",
-                DurationInMilliseconds = 120,
-                Result = "Success",
+                Payload = CreateHttpPayload("POST", "/api/auth/login", 200, "Success", 120, "192.168.1.2"),
             },
             new Entities.AuditLog {
                 Id = Guid.CreateVersion7(),
                 Timestamp = baseDate.AddDays(3),
                 UserId = null,
                 UserEmail = null,
-                Action = "HealthCheck",
+                Action = "System:HealthCheck",
                 EntityType = "System",
-                HttpMethod = "GET",
-                Path = "/api/health",
-                StatusCode = 200,
-                IpAddress = "192.168.1.100",
-                UserAgent = "HealthCheckBot",
-                DurationInMilliseconds = 50,
-                Result = "Success",
+                Payload = CreateHttpPayload("GET", "/api/health", 200, "Success", 50, "192.168.1.100"),
             },
             new Entities.AuditLog {
                 Id = Guid.CreateVersion7(),
                 Timestamp = baseDate.AddDays(4),
                 UserId = _userId1,
                 UserEmail = "user1@test.com",
-                Action = "Update",
+                Action = "Asset:Updated:ByUser",
                 EntityType = "Asset",
                 EntityId = Guid.CreateVersion7().ToString(),
-                HttpMethod = "PUT",
-                Path = "/api/assets",
-                StatusCode = 400,
-                IpAddress = "192.168.1.1",
-                UserAgent = "Mozilla/5.0",
-                DurationInMilliseconds = 80,
-                Result = "Failed",
+                Payload = CreateHttpPayload("PUT", "/api/assets", 400, "Failure", 80, "192.168.1.1"),
                 ErrorMessage = "Validation error",
             },
         };
@@ -115,16 +102,10 @@ public class AuditLogStorageTests
             Timestamp = DateTime.UtcNow,
             UserId = _userId1,
             UserEmail = "test@test.com",
-            Action = "Delete",
+            Action = "World:Deleted:ByUser",
             EntityType = "World",
             EntityId = Guid.CreateVersion7().ToString(),
-            HttpMethod = "DELETE",
-            Path = "/api/worlds",
-            StatusCode = 200,
-            IpAddress = "192.168.1.1",
-            UserAgent = "Mozilla/5.0",
-            DurationInMilliseconds = 100,
-            Result = "Success",
+            Payload = CreateHttpPayload("DELETE", "/api/worlds", 200, "Success", 100, "192.168.1.1"),
         };
 
         await _storage.AddAsync(auditLog, _ct);
@@ -134,7 +115,7 @@ public class AuditLogStorageTests
         dbLog.Id.Should().Be(auditLog.Id);
         dbLog.Action.Should().Be(auditLog.Action);
         dbLog.EntityType.Should().Be(auditLog.EntityType);
-        dbLog.Result.Should().Be(auditLog.Result);
+        dbLog.Payload.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -208,14 +189,6 @@ public class AuditLogStorageTests
 
         totalCount.Should().Be(2);
         items.Should().OnlyContain(log => log.EntityType == "User");
-    }
-
-    [Fact]
-    public async Task QueryAsync_WithResult_ReturnsLogsWithResult() {
-        (var items, var totalCount) = await _storage.QueryAsync(result: "Failed", ct: _ct);
-
-        totalCount.Should().Be(1);
-        items.Should().OnlyContain(log => log.Result == "Failed");
     }
 
     [Fact]
@@ -359,5 +332,58 @@ public class AuditLogStorageTests
         var result = await _storage.GetUserLastModifiedDateAsync(nonExistingUserId, _ct);
 
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AddAsync_WithJobPayload_StoresPayloadCorrectly() {
+        var jobPayload = new JobCreatedPayload {
+            Type = "BulkAssetGeneration",
+            TotalItems = 5,
+            EstimatedDuration = "00:00:07.5",
+        };
+        var auditLog = new AuditLog {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            UserId = _userId1,
+            UserEmail = "test@test.com",
+            Action = "Job:Created",
+            EntityType = "Job",
+            EntityId = Guid.CreateVersion7().ToString(),
+            Payload = JsonSerializer.Serialize(jobPayload, JsonDefaults.Options),
+        };
+
+        await _storage.AddAsync(auditLog, _ct);
+
+        var dbLog = await _context.AuditLogs.FindAsync([auditLog.Id], _ct);
+        dbLog.Should().NotBeNull();
+        dbLog.Payload.Should().Contain("BulkAssetGeneration");
+        dbLog.Payload.Should().Contain("5");
+    }
+
+    [Fact]
+    public async Task AddAsync_WithAssetGeneratedPayload_StoresPayloadCorrectly() {
+        var assetPayload = new AssetGeneratedPayload {
+            JobId = Guid.CreateVersion7().ToString(),
+            JobItemIndex = 0,
+            PortraitResourceId = Guid.CreateVersion7().ToString(),
+            TokenResourceId = Guid.CreateVersion7().ToString(),
+        };
+        var auditLog = new AuditLog {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            UserId = _userId1,
+            UserEmail = "test@test.com",
+            Action = "Asset:Generated:ViaJob",
+            EntityType = "Asset",
+            EntityId = Guid.CreateVersion7().ToString(),
+            Payload = JsonSerializer.Serialize(assetPayload, JsonDefaults.Options),
+        };
+
+        await _storage.AddAsync(auditLog, _ct);
+
+        var dbLog = await _context.AuditLogs.FindAsync([auditLog.Id], _ct);
+        dbLog.Should().NotBeNull();
+        dbLog.Payload.Should().Contain("jobId");
+        dbLog.Payload.Should().Contain("portraitResourceId");
     }
 }

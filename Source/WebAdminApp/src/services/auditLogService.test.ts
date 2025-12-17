@@ -60,10 +60,8 @@ describe('AuditLogService', () => {
                 skip: 0,
                 take: 10,
                 userId: 'user@test.com',
-                action: 'POST',
-                result: 'Success',
-                ipAddress: '127.0.0.1',
-                keyword: 'test',
+                action: 'Asset:Created:ByUser',
+                entityType: 'Asset',
                 startDate: '2025-01-01T00:00:00Z',
                 endDate: '2025-01-31T23:59:59Z',
             };
@@ -82,7 +80,6 @@ describe('AuditLogService', () => {
             const params: AuditLogQueryParams = {
                 userId: '',
                 action: '',
-                result: '',
             };
 
             mockAxios.onGet(/\/api\/admin\/audit/).reply(200, { items: [], totalCount: 0 });
@@ -110,17 +107,10 @@ describe('AuditLogService', () => {
                 timestamp: '2025-01-01T00:00:00Z',
                 userId: 'user-123',
                 userEmail: 'user@test.com',
-                action: 'GET /api/test',
-                httpMethod: 'GET',
-                path: '/api/test',
-                queryString: '?param=value',
-                statusCode: 200,
-                result: 'Success',
-                ipAddress: '192.168.1.1',
-                userAgent: 'Mozilla/5.0',
-                requestBody: '{"data":"value"}',
-                responseBody: '{"success":true}',
-                durationInMilliseconds: 150,
+                action: 'Asset:Created:ByUser',
+                entityType: 'Asset',
+                entityId: 'asset-456',
+                payload: '{"httpMethod":"GET","path":"/api/test","statusCode":200}',
             };
 
             mockAxios.onGet('/api/admin/audit/123').reply(200, mockLog);

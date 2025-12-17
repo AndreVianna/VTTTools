@@ -11,6 +11,7 @@ public static class ApplicationBuilderExtensions {
         app.UseRouting();
         app.UseCors("AllowAllOrigins");
         app.UseAuthentication();
+        app.UseMiddleware<InternalApiKeyMiddleware>();
         app.UseAuthorization();
     }
 

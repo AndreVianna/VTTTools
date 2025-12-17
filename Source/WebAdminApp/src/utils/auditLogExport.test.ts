@@ -60,17 +60,21 @@ describe('AuditLog Export Utilities', () => {
                     timestamp: '2025-01-01T00:00:00Z',
                     userId: 'user-123',
                     userEmail: 'test@example.com',
-                    action: 'POST /api/test',
-                    httpMethod: 'POST',
-                    path: '/api/test',
-                    queryString: '?param=value',
-                    statusCode: 200,
-                    result: 'Success',
-                    ipAddress: '127.0.0.1',
-                    userAgent: 'Mozilla/5.0',
-                    requestBody: '{"data":"test"}',
-                    responseBody: '{"success":true}',
-                    durationInMilliseconds: 100,
+                    action: 'Http:POST:/api/test',
+                    entityType: 'Asset',
+                    entityId: 'asset-456',
+                    payload: JSON.stringify({
+                        httpMethod: 'POST',
+                        path: '/api/test',
+                        queryString: '?param=value',
+                        statusCode: 200,
+                        result: 'Success',
+                        ipAddress: '127.0.0.1',
+                        userAgent: 'Mozilla/5.0',
+                        requestBody: '{"data":"test"}',
+                        responseBody: '{"success":true}',
+                        durationMs: 100,
+                    }),
                 },
             ];
 
@@ -87,12 +91,13 @@ describe('AuditLog Export Utilities', () => {
                 {
                     id: '1',
                     timestamp: '2025-01-01T00:00:00Z',
-                    action: 'GET /api/test',
-                    httpMethod: 'GET',
-                    path: '/api/test',
-                    statusCode: 404,
-                    result: 'Failure',
-                    durationInMilliseconds: 50,
+                    action: 'Http:GET:/api/test',
+                    payload: JSON.stringify({
+                        httpMethod: 'GET',
+                        path: '/api/test',
+                        statusCode: 404,
+                        durationMs: 50,
+                    }),
                 },
             ];
 
@@ -108,15 +113,17 @@ describe('AuditLog Export Utilities', () => {
                     timestamp: '2025-01-01T00:00:00Z',
                     userId: 'user-123',
                     userEmail: 'test@example.com',
-                    action: 'POST /api/test',
-                    httpMethod: 'POST',
-                    path: '/api/test',
-                    statusCode: 200,
-                    result: 'Success',
-                    ipAddress: '127.0.0.1',
-                    userAgent: 'Mozilla/5.0',
-                    requestBody: '{"key":"value with \\"quotes\\""}',
-                    durationInMilliseconds: 100,
+                    action: 'Http:POST:/api/test',
+                    entityType: 'Asset',
+                    payload: JSON.stringify({
+                        httpMethod: 'POST',
+                        path: '/api/test',
+                        statusCode: 200,
+                        ipAddress: '127.0.0.1',
+                        userAgent: 'Mozilla/5.0',
+                        requestBody: '{"key":"value with \\"quotes\\""}',
+                        durationMs: 100,
+                    }),
                 },
             ];
 
@@ -152,6 +159,28 @@ describe('AuditLog Export Utilities', () => {
 
             expect(mockLink.setAttribute).toHaveBeenCalledWith('download', 'custom_filename.csv');
         });
+
+        it('should handle non-HTTP actions with different payload', () => {
+            const mockLogs: AuditLog[] = [
+                {
+                    id: '1',
+                    timestamp: '2025-01-01T00:00:00Z',
+                    userId: 'user-123',
+                    userEmail: 'test@example.com',
+                    action: 'Job:Created',
+                    entityType: 'Job',
+                    entityId: 'job-789',
+                    payload: JSON.stringify({
+                        type: 'BulkAssetGeneration',
+                        totalItems: 5,
+                    }),
+                },
+            ];
+
+            exportToCSV(mockLogs);
+
+            expect(mockClick).toHaveBeenCalled();
+        });
     });
 
     describe('exportToJSON', () => {
@@ -162,17 +191,21 @@ describe('AuditLog Export Utilities', () => {
                     timestamp: '2025-01-01T00:00:00Z',
                     userId: 'user-123',
                     userEmail: 'test@example.com',
-                    action: 'POST /api/test',
-                    httpMethod: 'POST',
-                    path: '/api/test',
-                    queryString: '?param=value',
-                    statusCode: 200,
-                    result: 'Success',
-                    ipAddress: '127.0.0.1',
-                    userAgent: 'Mozilla/5.0',
-                    requestBody: '{"data":"test"}',
-                    responseBody: '{"success":true}',
-                    durationInMilliseconds: 100,
+                    action: 'Http:POST:/api/test',
+                    entityType: 'Asset',
+                    entityId: 'asset-456',
+                    payload: JSON.stringify({
+                        httpMethod: 'POST',
+                        path: '/api/test',
+                        queryString: '?param=value',
+                        statusCode: 200,
+                        result: 'Success',
+                        ipAddress: '127.0.0.1',
+                        userAgent: 'Mozilla/5.0',
+                        requestBody: '{"data":"test"}',
+                        responseBody: '{"success":true}',
+                        durationMs: 100,
+                    }),
                 },
             ];
 
@@ -191,14 +224,16 @@ describe('AuditLog Export Utilities', () => {
                     timestamp: '2025-01-01T00:00:00Z',
                     userId: 'user-123',
                     userEmail: 'test@example.com',
-                    action: 'GET /api/test',
-                    httpMethod: 'GET',
-                    path: '/api/test',
-                    statusCode: 200,
-                    result: 'Success',
-                    ipAddress: '127.0.0.1',
-                    userAgent: 'Mozilla/5.0',
-                    durationInMilliseconds: 75,
+                    action: 'Http:GET:/api/test',
+                    entityType: 'Resource',
+                    payload: JSON.stringify({
+                        httpMethod: 'GET',
+                        path: '/api/test',
+                        statusCode: 200,
+                        ipAddress: '127.0.0.1',
+                        userAgent: 'Mozilla/5.0',
+                        durationMs: 75,
+                    }),
                 },
             ];
 
@@ -247,6 +282,32 @@ describe('AuditLog Export Utilities', () => {
             expect(mockClick).toHaveBeenCalled();
             expect(capturedBlobContent).toBeDefined();
             expect(JSON.parse(capturedBlobContent!)).toEqual([]);
+        });
+
+        it('should include parsedPayload in JSON export', () => {
+            const mockLogs: AuditLog[] = [
+                {
+                    id: '1',
+                    timestamp: '2025-01-01T00:00:00Z',
+                    action: 'Job:Completed',
+                    entityType: 'Job',
+                    entityId: 'job-123',
+                    payload: JSON.stringify({
+                        completedAt: '2025-01-01T00:01:00Z',
+                        successCount: 4,
+                        failedCount: 1,
+                    }),
+                },
+            ];
+
+            exportToJSON(mockLogs);
+
+            expect(capturedBlobContent).toBeDefined();
+            const parsed = JSON.parse(capturedBlobContent!);
+
+            expect(parsed[0].parsedPayload).toBeDefined();
+            expect(parsed[0].parsedPayload.successCount).toBe(4);
+            expect(parsed[0].parsedPayload.failedCount).toBe(1);
         });
     });
 });

@@ -1,6 +1,12 @@
+using VttTools.Audit.Model.Payloads;
+using VttTools.Json;
+
 namespace VttTools.Jobs.Services;
 
-public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
+public class JobService(
+    IJobStorage storage,
+    IHubContext<JobHub> hubContext,
+    IAuditLogService auditLogService)
     : IJobService {
     public async Task<Result<Job>> AddAsync(AddJobData data, CancellationToken ct = default) {
         var result = data.Validate();
@@ -11,12 +17,25 @@ public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
             OwnerId = data.OwnerId,
             Type = data.Type,
             EstimatedDuration = TimeSpan.FromMilliseconds(1500 * data.Items.Count),
-            Items = [.. data.Items.Select((input, index) => new JobItem {
-                Index = index,
-                Data = input.Data,
-            })],
         };
+        job.Items.AddRange(data.Items.Select((input, index) => new JobItem {
+            Job = job,
+            Index = index,
+            Data = input.Data,
+        }));
         await storage.AddAsync(job, ct);
+
+        var createdEvent = new JobCreatedEvent {
+            JobId = job.Id,
+            Type = job.Type,
+            EstimatedDuration = job.EstimatedDuration,
+            TotalItems = job.Items.Count,
+        };
+        await hubContext.SendJobCreatedAsync(createdEvent, ct);
+
+        // Audit log: Job created
+        await LogJobCreatedAsync(job, ct);
+
         return job;
     }
 
@@ -60,6 +79,44 @@ public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
         };
 
         await storage.UpdateAsync(job, ct);
+
+        foreach (var dataItem in data.Items) {
+            var jobItem = job.Items.First(i => i.Index == dataItem.Index);
+            if (dataItem.Status == JobItemStatus.InProgress) {
+                var startedEvent = new JobItemStartedEvent {
+                    JobId = job.Id,
+                    Index = dataItem.Index,
+                    StartedAt = jobItem.StartedAt,
+                };
+                await hubContext.SendJobItemStartedAsync(startedEvent, ct);
+
+                // Audit log: Job item started
+                await LogJobItemStartedAsync(job, jobItem, ct);
+            }
+            else if (dataItem.Status is JobItemStatus.Success or JobItemStatus.Failed or JobItemStatus.Canceled) {
+                var completedEvent = new JobItemCompletedEvent {
+                    JobId = job.Id,
+                    Index = dataItem.Index,
+                    Status = dataItem.Status,
+                    Message = jobItem.Message,
+                    CompletedAt = jobItem.CompletedAt,
+                };
+                await hubContext.SendJobItemCompletedAsync(completedEvent, ct);
+
+                // Audit log: Job item completed
+                await LogJobItemCompletedAsync(job, jobItem, ct);
+            }
+        }
+
+        var derivedStatus = DeriveJobStatus(job.Items);
+        if (derivedStatus == JobStatus.Completed) {
+            var completedEvent = new JobCompletedEvent { JobId = job.Id };
+            await hubContext.SendJobCompletedAsync(completedEvent, ct);
+
+            // Audit log: Job completed
+            await LogJobCompletedAsync(job, ct);
+        }
+
         return job;
     }
 
@@ -78,6 +135,13 @@ public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
         }
 
         await storage.UpdateAsync(job, ct);
+
+        var canceledEvent = new JobCanceledEvent { JobId = id };
+        await hubContext.SendJobCanceledAsync(canceledEvent, ct);
+
+        // Audit log: Job canceled
+        await LogJobCanceledAsync(job, ct);
+
         return true;
     }
 
@@ -96,14 +160,15 @@ public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
         }
 
         await storage.UpdateAsync(job, ct);
+
+        var retriedEvent = new JobRetriedEvent { JobId = id };
+        await hubContext.SendJobRetriedAsync(retriedEvent, ct);
+
+        // Audit log: Job retried
+        await LogJobRetriedAsync(job, ct);
+
         return true;
     }
-
-    public Task BroadcastItemUpdateAsync(JobItemUpdateEvent @event, CancellationToken ct = default)
-        => hubContext.SendItemUpdateAsync(@event, ct);
-
-    public Task BroadcastProgressAsync(JobProgressEvent @event, CancellationToken ct = default)
-        => hubContext.SendProgressAsync(@event, ct);
 
     private static JobStatus DeriveJobStatus(IReadOnlyCollection<JobItem> items) {
         if (items.Count == 0)
@@ -117,5 +182,92 @@ public class JobService(IJobStorage storage, IHubContext<JobHub> hubContext)
              : completedCount == items.Count ? JobStatus.Completed
              : (canceledCount + completedCount) == items.Count ? JobStatus.Canceled
              : JobStatus.InProgress;
+    }
+
+    private async Task LogJobCreatedAsync(Job job, CancellationToken ct) {
+        var payload = new JobCreatedPayload {
+            Type = job.Type,
+            TotalItems = job.Items.Count,
+            EstimatedDuration = job.EstimatedDuration.ToString(),
+        };
+        var auditLog = new AuditLog {
+            UserId = job.OwnerId,
+            Action = "Job:Created",
+            EntityType = "Job",
+            EntityId = job.Id.ToString(),
+            Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
+        };
+        await auditLogService.AddAsync(auditLog, ct);
+    }
+
+    private async Task LogJobItemStartedAsync(Job job, JobItem item, CancellationToken ct) {
+        var payload = new JobItemStartedPayload {
+            Index = item.Index,
+            StartedAt = item.StartedAt ?? DateTime.UtcNow,
+        };
+        var auditLog = new AuditLog {
+            UserId = job.OwnerId,
+            Action = "JobItem:Started",
+            EntityType = "JobItem",
+            EntityId = $"{job.Id}:{item.Index}",
+            Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
+        };
+        await auditLogService.AddAsync(auditLog, ct);
+    }
+
+    private async Task LogJobItemCompletedAsync(Job job, JobItem item, CancellationToken ct) {
+        var payload = new JobItemCompletedPayload {
+            Index = item.Index,
+            Status = item.Status.ToString(),
+            Message = item.Message,
+        };
+        var auditLog = new AuditLog {
+            UserId = job.OwnerId,
+            Action = "JobItem:Completed",
+            EntityType = "JobItem",
+            EntityId = $"{job.Id}:{item.Index}",
+            ErrorMessage = item.Status == JobItemStatus.Failed ? item.Message : null,
+            Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
+        };
+        await auditLogService.AddAsync(auditLog, ct);
+    }
+
+    private async Task LogJobCompletedAsync(Job job, CancellationToken ct) {
+        var successCount = job.Items.Count(i => i.Status == JobItemStatus.Success);
+        var failedCount = job.Items.Count(i => i.Status == JobItemStatus.Failed);
+        var payload = new JobCompletedPayload {
+            CompletedAt = job.CompletedAt ?? DateTime.UtcNow,
+            SuccessCount = successCount,
+            FailedCount = failedCount,
+        };
+        var auditLog = new AuditLog {
+            UserId = job.OwnerId,
+            Action = "Job:Completed",
+            EntityType = "Job",
+            EntityId = job.Id.ToString(),
+            ErrorMessage = failedCount > 0 ? $"{failedCount} items failed" : null,
+            Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
+        };
+        await auditLogService.AddAsync(auditLog, ct);
+    }
+
+    private async Task LogJobCanceledAsync(Job job, CancellationToken ct) {
+        var auditLog = new AuditLog {
+            UserId = job.OwnerId,
+            Action = "Job:Canceled",
+            EntityType = "Job",
+            EntityId = job.Id.ToString(),
+        };
+        await auditLogService.AddAsync(auditLog, ct);
+    }
+
+    private async Task LogJobRetriedAsync(Job job, CancellationToken ct) {
+        var auditLog = new AuditLog {
+            UserId = job.OwnerId,
+            Action = "Job:Retried",
+            EntityType = "Job",
+            EntityId = job.Id.ToString(),
+        };
+        await auditLogService.AddAsync(auditLog, ct);
     }
 }

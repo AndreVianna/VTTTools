@@ -31,7 +31,7 @@ public class ResourceServiceClient(IHttpClientFactory httpClientFactory,
             return null;
         }
 
-        var result = await response.Content.ReadFromJsonAsync<ResourceUploadResponse>(ct);
+        var result = await response.Content.ReadFromJsonAsync<ResourceUploadResponse>(JsonDefaults.Options, ct);
         return result?.Id;
     }
 

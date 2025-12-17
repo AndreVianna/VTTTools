@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import {
     Paper,
     Typography,
@@ -8,6 +8,7 @@ import {
     ListItemText,
     Box,
     Chip,
+    LinearProgress,
 } from '@mui/material';
 import {
     CheckCircle as CheckIcon,
@@ -16,27 +17,38 @@ import {
     Settings as InProgressIcon,
     Cancel as CanceledIcon,
 } from '@mui/icons-material';
-import type { JobProgressEvent } from '@/types/jobs';
+import type { JobProgressItem } from '@/types/jobs';
 import { JobItemStatus } from '@/types/jobs';
 
 interface JobProgressLogProps {
-    events: JobProgressEvent[];
+    itemUpdates: JobProgressItem[];
+    totalItems: number;
     maxHeight?: number;
     autoScroll?: boolean;
 }
 
 export function JobProgressLog({
-    events,
+    itemUpdates,
+    totalItems,
     maxHeight = 400,
     autoScroll = true,
 }: JobProgressLogProps) {
     const listEndRef = useRef<HTMLDivElement>(null);
 
+    const stats = useMemo(() => {
+        const success = itemUpdates.filter(u => u.status === JobItemStatus.Success).length;
+        const failed = itemUpdates.filter(u => u.status === JobItemStatus.Failed).length;
+        const inProgress = itemUpdates.filter(u => u.status === JobItemStatus.InProgress).length;
+        const completed = success + failed;
+        const progress = totalItems > 0 ? (completed / totalItems) * 100 : 0;
+        return { success, failed, inProgress, completed, progress };
+    }, [itemUpdates, totalItems]);
+
     useEffect(() => {
         if (autoScroll && listEndRef.current) {
             listEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [events, autoScroll]);
+    }, [itemUpdates, autoScroll]);
 
     const getStatusIcon = (status: JobItemStatus) => {
         switch (status) {
@@ -72,7 +84,7 @@ export function JobProgressLog({
         }
     };
 
-    if (events.length === 0) {
+    if (itemUpdates.length === 0) {
         return (
             <Paper sx={{ p: 3 }}>
                 <Typography variant="body2" color="text.secondary" textAlign="center">
@@ -86,9 +98,21 @@ export function JobProgressLog({
         <Paper sx={{ overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="h6">Progress Log</Typography>
-                <Typography variant="caption" color="text.secondary">
-                    {events.length} events
-                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1, mb: 1 }}>
+                    <Chip label={`${stats.success} Success`} color="success" size="small" variant="outlined" />
+                    <Chip label={`${stats.failed} Failed`} color="error" size="small" variant="outlined" />
+                    <Chip label={`${stats.inProgress} In Progress`} color="primary" size="small" variant="outlined" />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LinearProgress
+                        variant="determinate"
+                        value={stats.progress}
+                        sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                        {stats.completed}/{totalItems}
+                    </Typography>
+                </Box>
             </Box>
             <List
                 sx={{
@@ -100,20 +124,20 @@ export function JobProgressLog({
                     },
                 }}
             >
-                {events.map((event, index) => (
-                    <ListItem key={`${event.jobId}-${event.itemIndex}-${index}`} alignItems="flex-start">
+                {itemUpdates.map((update) => (
+                    <ListItem key={`${update.jobId}-${update.index}`} alignItems="flex-start">
                         <ListItemIcon sx={{ minWidth: 40, mt: 1 }}>
-                            {getStatusIcon(event.itemStatus)}
+                            {getStatusIcon(update.status)}
                         </ListItemIcon>
                         <ListItemText
                             primary={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Typography variant="body2" component="span">
-                                        {event.message}
+                                        Item {update.index + 1}
                                     </Typography>
                                     <Chip
-                                        label={event.itemStatus}
-                                        color={getStatusColor(event.itemStatus)}
+                                        label={update.status}
+                                        color={getStatusColor(update.status)}
                                         size="small"
                                         variant="outlined"
                                     />
@@ -121,28 +145,16 @@ export function JobProgressLog({
                             }
                             secondary={
                                 <Box component="span">
-                                    {event.itemName && (
-                                        <Typography variant="caption" color="text.secondary" component="span">
-                                            Item: {event.itemName}
-                                        </Typography>
-                                    )}
-                                    {event.errorMessage && (
+                                    {update.message && (
                                         <Typography
                                             variant="caption"
-                                            color="error"
-                                            component="div"
-                                            sx={{ mt: 0.5 }}
+                                            color={update.status === JobItemStatus.Failed ? 'error' : 'text.secondary'}
+                                            component="span"
+                                            sx={{ display: 'block' }}
                                         >
-                                            Error: {event.errorMessage}
+                                            {update.message}
                                         </Typography>
                                     )}
-                                    <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        component="div"
-                                    >
-                                        Progress: {event.currentItem}/{event.totalItems}
-                                    </Typography>
                                 </Box>
                             }
                         />

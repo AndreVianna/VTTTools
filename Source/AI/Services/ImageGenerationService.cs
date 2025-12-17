@@ -8,11 +8,6 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
     : IImageGenerationService {
 
     private readonly JobProcessingOptions _options = options.Value;
-    private static readonly JsonSerializerOptions _jsonOptions = new() {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-    };
 
     public IReadOnlyList<string> GetAvailableProviders()
         => providerFactory.GetAvailableImageProviders();
@@ -55,7 +50,7 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
                 EstimatedDuration = TimeSpan.FromMilliseconds(1500 * data.Items.Count),
                 Items = [..data.Items.Select((item, index) => new AddJobRequest.Item {
                     Index = index,
-                    Data = JsonSerializer.Serialize(item, _jsonOptions),
+                    Data = JsonSerializer.Serialize(item, JsonDefaults.Options),
                 })],
             };
 

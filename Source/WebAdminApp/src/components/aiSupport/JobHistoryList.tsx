@@ -50,16 +50,14 @@ export function JobHistoryList({
     onCancelJob,
     onRetryJob,
 }: JobHistoryListProps) {
-    const getStatusColor = (status: JobStatus): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
+    const getStatusColor = (status: JobStatus, failedItems = 0): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
         switch (status) {
             case JobStatus.Pending:
                 return 'default';
             case JobStatus.InProgress:
                 return 'primary';
-            case JobStatus.Success:
-                return 'success';
-            case JobStatus.Failed:
-                return 'error';
+            case JobStatus.Completed:
+                return failedItems > 0 ? 'warning' : 'success';
             case JobStatus.Canceled:
                 return 'default';
             default:
@@ -150,7 +148,7 @@ export function JobHistoryList({
                         ) : (
                             jobs.map((job) => {
                                 const canCancel = job.status === JobStatus.Pending || job.status === JobStatus.InProgress;
-                                const canRetry = job.status === JobStatus.Failed;
+                                const canRetry = job.status === JobStatus.Completed && job.failedItems > 0;
 
                                 return (
                                     <TableRow key={job.jobId} hover>
@@ -158,7 +156,7 @@ export function JobHistoryList({
                                         <TableCell>
                                             <Chip
                                                 label={getStatusLabel(job.status)}
-                                                color={getStatusColor(job.status)}
+                                                color={getStatusColor(job.status, job.failedItems)}
                                                 size="small"
                                             />
                                         </TableCell>

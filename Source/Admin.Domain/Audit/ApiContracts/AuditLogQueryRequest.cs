@@ -11,9 +11,6 @@ public sealed record AuditLogQueryRequest : Request {
     [MaxLength(100, ErrorMessage = "EntityType cannot exceed 100 characters")]
     public string? EntityType { get; init; }
 
-    [MaxLength(50, ErrorMessage = "Result cannot exceed 50 characters")]
-    public string? Result { get; init; }
-
     [Range(0, int.MaxValue, ErrorMessage = "Skip must be 0 or greater")]
     public int Skip { get; init; }
 

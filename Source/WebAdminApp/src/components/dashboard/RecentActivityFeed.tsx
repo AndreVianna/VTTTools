@@ -17,10 +17,109 @@ import {
     Delete as DeleteIcon,
     Edit as EditIcon,
     ArrowForward as ArrowForwardIcon,
+    Work as JobIcon,
+    AutoAwesome as GeneratedIcon,
+    Visibility as ViewIcon,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import { auditLogService, type AuditLog } from '@services/auditLogService';
+import {
+    auditLogService,
+    type AuditLog,
+    isHttpAction,
+    isJobAction,
+    isViaJobAction,
+    parsePayload,
+    HttpAuditPayload,
+} from '@services/auditLogService';
 import { useNavigate } from 'react-router-dom';
+
+// Get display info from action
+function getActionDisplayInfo(log: AuditLog): { icon: React.ReactNode; label: string; color: 'success' | 'warning' | 'error' | 'info' | 'secondary' | 'default' } {
+    // Job-related actions
+    if (isJobAction(log.action)) {
+        return { icon: <JobIcon fontSize="small" color="info" />, label: 'Job', color: 'info' };
+    }
+
+    // AI-generated actions
+    if (isViaJobAction(log.action)) {
+        return { icon: <GeneratedIcon fontSize="small" color="secondary" />, label: 'Generated', color: 'secondary' };
+    }
+
+    // HTTP actions - determine icon from payload
+    if (isHttpAction(log.action) && log.payload) {
+        const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+        if (httpPayload) {
+            const method = httpPayload.httpMethod?.toUpperCase() || '';
+            let icon: React.ReactNode;
+            switch (method) {
+                case 'POST':
+                    icon = <AddIcon fontSize="small" color="primary" />;
+                    break;
+                case 'DELETE':
+                    icon = <DeleteIcon fontSize="small" color="error" />;
+                    break;
+                case 'PUT':
+                case 'PATCH':
+                    icon = <EditIcon fontSize="small" color="info" />;
+                    break;
+                case 'GET':
+                    icon = <ViewIcon fontSize="small" color="action" />;
+                    break;
+                default:
+                    icon = <LoginIcon fontSize="small" color="action" />;
+            }
+
+            // Determine result color from status code
+            const statusCode = httpPayload.statusCode || 0;
+            let color: 'success' | 'warning' | 'error' | 'default' = 'default';
+            let label = httpPayload.result || 'Unknown';
+            if (statusCode >= 200 && statusCode < 300) {
+                color = 'success';
+                label = 'Success';
+            } else if (statusCode >= 400 && statusCode < 500) {
+                color = 'warning';
+                label = 'Failure';
+            } else if (statusCode >= 500) {
+                color = 'error';
+                label = 'Error';
+            }
+
+            return { icon, label, color };
+        }
+    }
+
+    // Check for error
+    if (log.errorMessage) {
+        return { icon: <LoginIcon fontSize="small" color="error" />, label: 'Error', color: 'error' };
+    }
+
+    // Default
+    return { icon: <LoginIcon fontSize="small" color="action" />, label: 'Success', color: 'success' };
+}
+
+// Get description for display
+function getActionDescription(log: AuditLog): string {
+    const userPart = log.userEmail || 'Anonymous';
+
+    if (isHttpAction(log.action) && log.payload) {
+        const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+        if (httpPayload) {
+            return `${userPart} ${httpPayload.httpMethod} ${httpPayload.path}`;
+        }
+    }
+
+    // For non-HTTP actions, use the action directly
+    return `${userPart} - ${log.action}`;
+}
+
+// Get duration from payload
+function getDuration(log: AuditLog): number | undefined {
+    if (log.payload) {
+        const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+        return httpPayload?.durationMs;
+    }
+    return undefined;
+}
 
 export function RecentActivityFeed() {
     const theme = useTheme();
@@ -55,33 +154,6 @@ export function RecentActivityFeed() {
         return () => clearInterval(interval);
     }, []);
 
-    const getActionIcon = (httpMethod: string) => {
-        switch (httpMethod.toUpperCase()) {
-            case 'POST':
-                return <AddIcon fontSize="small" color="primary" />;
-            case 'DELETE':
-                return <DeleteIcon fontSize="small" color="error" />;
-            case 'PUT':
-            case 'PATCH':
-                return <EditIcon fontSize="small" color="info" />;
-            default:
-                return <LoginIcon fontSize="small" color="action" />;
-        }
-    };
-
-    const getResultColor = (result: string): 'success' | 'warning' | 'error' | 'default' => {
-        switch (result.toLowerCase()) {
-            case 'success':
-                return 'success';
-            case 'failure':
-                return 'warning';
-            case 'error':
-                return 'error';
-            default:
-                return 'default';
-        }
-    };
-
     return (
         <Paper sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -112,54 +184,62 @@ export function RecentActivityFeed() {
                 </Typography>
             ) : (
                 <List sx={{ p: 0 }}>
-                    {logs.map((log, index) => (
-                        <ListItem
-                            key={log.id}
-                            sx={{
-                                p: 2,
-                                borderBottom:
-                                    index < logs.length - 1
-                                        ? `1px solid ${theme.palette.divider}`
-                                        : 'none',
-                                '&:hover': {
-                                    backgroundColor: theme.palette.action.hover,
-                                },
-                            }}
-                        >
-                            <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
-                                <Box sx={{ minWidth: 24 }}>
-                                    {getActionIcon(log.httpMethod)}
-                                </Box>
-                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            fontWeight: 500,
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                        }}
-                                    >
-                                        {log.userEmail || 'Anonymous'} {log.httpMethod} {log.path}
-                                    </Typography>
-                                    <Stack direction="row" spacing={2} alignItems="center">
-                                        <Typography variant="caption" color="text.secondary">
-                                            {dayjs(log.timestamp).format('MMM DD, HH:mm:ss')}
+                    {logs.map((log, index) => {
+                        const { icon, label, color } = getActionDisplayInfo(log);
+                        const description = getActionDescription(log);
+                        const duration = getDuration(log);
+
+                        return (
+                            <ListItem
+                                key={log.id}
+                                sx={{
+                                    p: 2,
+                                    borderBottom:
+                                        index < logs.length - 1
+                                            ? `1px solid ${theme.palette.divider}`
+                                            : 'none',
+                                    '&:hover': {
+                                        backgroundColor: theme.palette.action.hover,
+                                    },
+                                }}
+                            >
+                                <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
+                                    <Box sx={{ minWidth: 24 }}>
+                                        {icon}
+                                    </Box>
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                fontWeight: 500,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {description}
                                         </Typography>
-                                        <Chip
-                                            label={log.result}
-                                            color={getResultColor(log.result)}
-                                            size="small"
-                                            sx={{ height: 20 }}
-                                        />
-                                        <Typography variant="caption" color="text.secondary">
-                                            {log.durationInMilliseconds}ms
-                                        </Typography>
-                                    </Stack>
-                                </Box>
-                            </Stack>
-                        </ListItem>
-                    ))}
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <Typography variant="caption" color="text.secondary">
+                                                {dayjs(log.timestamp).format('MMM DD, HH:mm:ss')}
+                                            </Typography>
+                                            <Chip
+                                                label={label}
+                                                color={color}
+                                                size="small"
+                                                sx={{ height: 20 }}
+                                            />
+                                            {duration !== undefined && (
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {duration}ms
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                    </Box>
+                                </Stack>
+                            </ListItem>
+                        );
+                    })}
                 </List>
             )}
         </Paper>

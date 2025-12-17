@@ -1,10 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
-import type { JobProgressEvent, JobCompletedEvent } from '@/types/jobs';
+import type {
+    JobCreatedEvent,
+    JobCompletedEvent,
+    JobCanceledEvent,
+    JobRetriedEvent,
+    JobItemStartedEvent,
+    JobItemCompletedEvent,
+    JobEvent,
+    JobItemEvent,
+} from '@/types/jobs';
 
 export interface UseJobsHubOptions {
-    onProgress?: (event: JobProgressEvent) => void;
+    onJobCreated?: (event: JobCreatedEvent) => void;
     onJobCompleted?: (event: JobCompletedEvent) => void;
+    onJobCanceled?: (event: JobCanceledEvent) => void;
+    onJobRetried?: (event: JobRetriedEvent) => void;
+    onJobItemStarted?: (event: JobItemStartedEvent) => void;
+    onJobItemCompleted?: (event: JobItemCompletedEvent) => void;
     onConnectionStateChanged?: (state: signalR.HubConnectionState) => void;
     autoConnect?: boolean;
 }
@@ -20,8 +33,12 @@ export interface UseJobsHubReturn {
 
 export function useJobsHub(options: UseJobsHubOptions = {}): UseJobsHubReturn {
     const {
-        onProgress,
+        onJobCreated,
         onJobCompleted,
+        onJobCanceled,
+        onJobRetried,
+        onJobItemStarted,
+        onJobItemCompleted,
         onConnectionStateChanged,
         autoConnect = false,
     } = options;
@@ -74,17 +91,37 @@ export function useJobsHub(options: UseJobsHubOptions = {}): UseJobsHubReturn {
             updateConnectionState(signalR.HubConnectionState.Disconnected);
         });
 
-        connection.on('ReceiveProgress', (event: JobProgressEvent) => {
-            onProgress?.(event);
+        connection.on('JobEvent', (event: JobEvent) => {
+            switch (event.eventType) {
+                case 'JobCreated':
+                    onJobCreated?.(event);
+                    break;
+                case 'JobCompleted':
+                    onJobCompleted?.(event);
+                    break;
+                case 'JobCanceled':
+                    onJobCanceled?.(event);
+                    break;
+                case 'JobRetried':
+                    onJobRetried?.(event);
+                    break;
+            }
         });
 
-        connection.on('JobCompleted', (event: JobCompletedEvent) => {
-            onJobCompleted?.(event);
+        connection.on('JobItemEvent', (event: JobItemEvent) => {
+            switch (event.eventType) {
+                case 'JobItemStarted':
+                    onJobItemStarted?.(event);
+                    break;
+                case 'JobItemCompleted':
+                    onJobItemCompleted?.(event);
+                    break;
+            }
         });
 
         connectionRef.current = connection;
         return connection;
-    }, [onProgress, onJobCompleted, updateConnectionState]);
+    }, [onJobCreated, onJobCompleted, onJobCanceled, onJobRetried, onJobItemStarted, onJobItemCompleted, updateConnectionState]);
 
     const connect = useCallback(async () => {
         try {

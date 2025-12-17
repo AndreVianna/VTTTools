@@ -13,9 +13,6 @@ internal static class Program {
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
-        app.UseAuthentication();
-        app.UseMiddleware<InternalApiKeyMiddleware>();
-        app.UseAuthorization();
         app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
@@ -37,8 +34,6 @@ internal static class Program {
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
-        builder.Services.Configure<InternalApiOptions>(
-            builder.Configuration.GetSection(InternalApiOptions.SectionName));
         builder.Services.AddScoped<IAssetService, AssetService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();

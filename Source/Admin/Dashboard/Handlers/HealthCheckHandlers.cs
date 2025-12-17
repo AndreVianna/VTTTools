@@ -31,10 +31,8 @@ public static class HealthCheckHandlers {
         if (userId is not null) {
             await auditLogService.AddAsync(new AuditLog {
                 UserId = Guid.Parse(userId),
-                Action = "ViewHealthChecks",
+                Action = "Dashboard:HealthChecks:ByUser",
                 EntityType = "Dashboard",
-                Result = "Success",
-                DurationInMilliseconds = (int)stopwatch.ElapsedMilliseconds
             }, ct);
         }
 

@@ -16,22 +16,26 @@ import {
     DialogActions,
 } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
-import type { AppDispatch } from '@store/store';
+import type { AppDispatch, RootState } from '@store/store';
 import {
     fetchJobHistory,
     fetchJobStatus,
     startBulkGeneration,
     cancelJob,
     retryJob,
-    addProgressEvent,
+    addItemStarted,
+    addItemCompleted,
     handleJobCompleted,
-    clearProgressEvents,
+    handleJobCanceled,
+    handleJobRetried,
+    clearItemUpdates,
     selectJobs,
     selectTotalCount,
     selectCurrentJob,
     selectIsLoading,
     selectIsSubmitting,
     selectError,
+    selectItemUpdates,
 } from '@store/slices/jobsSlice';
 import { useJobsHub } from '@/hooks/useJobsHub';
 import {
@@ -40,7 +44,15 @@ import {
     JobProgressLog,
     JobHistoryList,
 } from '@components/aiSupport';
-import type { BulkAssetGenerationRequest, JobProgressEvent, JobCompletedEvent } from '@/types/jobs';
+import type {
+    BulkAssetGenerationRequest,
+    JobCreatedEvent,
+    JobCompletedEvent,
+    JobCanceledEvent,
+    JobRetriedEvent,
+    JobItemStartedEvent,
+    JobItemCompletedEvent,
+} from '@/types/jobs';
 import { JobStatus } from '@/types/jobs';
 
 interface TabPanelProps {
@@ -64,6 +76,8 @@ function TabPanel(props: TabPanelProps) {
     );
 }
 
+const EMPTY_ITEM_UPDATES: never[] = [];
+
 export function BulkAssetGenerationPage() {
     const dispatch = useDispatch<AppDispatch>();
     const jobs = useSelector(selectJobs);
@@ -72,11 +86,14 @@ export function BulkAssetGenerationPage() {
     const isLoading = useSelector(selectIsLoading);
     const isSubmitting = useSelector(selectIsSubmitting);
     const error = useSelector(selectError);
+    const itemUpdates = useSelector((state: RootState) => {
+        const jobId = state.jobs.currentJob?.jobId;
+        return jobId ? selectItemUpdates(state, jobId) : EMPTY_ITEM_UPDATES;
+    });
 
     const [tabValue, setTabValue] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(20);
-    const [progressEvents, setProgressEvents] = useState<JobProgressEvent[]>([]);
     const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
         open: false,
         message: '',
@@ -88,23 +105,52 @@ export function BulkAssetGenerationPage() {
         action: 'cancel',
     });
 
-    const handleProgress = useCallback((event: JobProgressEvent) => {
-        dispatch(addProgressEvent(event));
-        setProgressEvents(prev => [...prev, event]);
+    const handleJobCreated = useCallback((_event: JobCreatedEvent) => {
+        // Event received - job info already in Redux from startBulkGeneration
+    }, []);
+
+    const handleJobItemStarted = useCallback((event: JobItemStartedEvent) => {
+        dispatch(addItemStarted(event));
+    }, [dispatch]);
+
+    const handleJobItemCompleted = useCallback((event: JobItemCompletedEvent) => {
+        dispatch(addItemCompleted(event));
     }, [dispatch]);
 
     const handleJobCompletedEvent = useCallback((event: JobCompletedEvent) => {
-        dispatch(handleJobCompleted(event));
+        dispatch(handleJobCompleted({ jobId: event.jobId }));
         setSnackbar({
             open: true,
-            message: `Job ${event.status}: ${event.completedItems} completed, ${event.failedItems} failed`,
-            severity: event.failedItems > 0 ? 'warning' : 'success',
+            message: 'Job completed successfully',
+            severity: 'success',
+        });
+    }, [dispatch]);
+
+    const handleJobCanceledEvent = useCallback((event: JobCanceledEvent) => {
+        dispatch(handleJobCanceled({ jobId: event.jobId }));
+        setSnackbar({
+            open: true,
+            message: 'Job was canceled',
+            severity: 'info',
+        });
+    }, [dispatch]);
+
+    const handleJobRetriedEvent = useCallback((event: JobRetriedEvent) => {
+        dispatch(handleJobRetried({ jobId: event.jobId }));
+        setSnackbar({
+            open: true,
+            message: 'Job retry started',
+            severity: 'info',
         });
     }, [dispatch]);
 
     const { connect, subscribeToJob, unsubscribeFromJob } = useJobsHub({
-        onProgress: handleProgress,
+        onJobCreated: handleJobCreated,
         onJobCompleted: handleJobCompletedEvent,
+        onJobCanceled: handleJobCanceledEvent,
+        onJobRetried: handleJobRetriedEvent,
+        onJobItemStarted: handleJobItemStarted,
+        onJobItemCompleted: handleJobItemCompleted,
     });
 
     useEffect(() => {
@@ -115,19 +161,19 @@ export function BulkAssetGenerationPage() {
         if (currentJob?.jobId && (currentJob.status === JobStatus.Pending || currentJob.status === JobStatus.InProgress)) {
             connect()
                 .then(() => subscribeToJob(currentJob.jobId))
-                .catch(console.error);
+                .then(() => dispatch(fetchJobStatus(currentJob.jobId)))
+                .catch(() => { /* SignalR connection error - job will still work via polling */ });
 
             return () => {
-                unsubscribeFromJob(currentJob.jobId).catch(console.error);
+                unsubscribeFromJob(currentJob.jobId).catch(() => {});
             };
         }
         return undefined;
-    }, [currentJob?.jobId, currentJob?.status, connect, subscribeToJob, unsubscribeFromJob]);
+    }, [currentJob?.jobId, currentJob?.status, connect, subscribeToJob, unsubscribeFromJob, dispatch]);
 
     const handleSubmit = useCallback(async (request: BulkAssetGenerationRequest) => {
         const result = await dispatch(startBulkGeneration(request));
         if (startBulkGeneration.fulfilled.match(result)) {
-            setProgressEvents([]);
             setTabValue(1);
             setSnackbar({
                 open: true,
@@ -155,8 +201,7 @@ export function BulkAssetGenerationPage() {
                 setSnackbar({ open: true, message: 'Job cancelled', severity: 'info' });
             }
         } else {
-            dispatch(clearProgressEvents(jobId));
-            setProgressEvents([]);
+            dispatch(clearItemUpdates(jobId));
             const result = await dispatch(retryJob({ jobId }));
             if (retryJob.fulfilled.match(result)) {
                 setSnackbar({ open: true, message: 'Retry started', severity: 'success' });
@@ -166,10 +211,8 @@ export function BulkAssetGenerationPage() {
         setConfirmDialog({ open: false, jobId: null, action: 'cancel' });
     }, [dispatch, confirmDialog]);
 
-    const handleViewJob = useCallback((jobId: string) => {
-        dispatch(fetchJobStatus(jobId));
-        dispatch(clearProgressEvents(jobId));
-        setProgressEvents([]);
+    const handleViewJob = useCallback(async (jobId: string) => {
+        await dispatch(fetchJobStatus(jobId));
         setTabValue(1);
     }, [dispatch]);
 
@@ -244,7 +287,8 @@ export function BulkAssetGenerationPage() {
                                 </Grid>
                                 <Grid size={{ xs: 12, lg: 7 }}>
                                     <JobProgressLog
-                                        events={progressEvents}
+                                        itemUpdates={itemUpdates}
+                                        totalItems={currentJob.totalItems}
                                         maxHeight={500}
                                         autoScroll
                                     />

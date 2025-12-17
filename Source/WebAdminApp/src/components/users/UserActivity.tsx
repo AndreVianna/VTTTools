@@ -14,11 +14,49 @@ import {
     Error as ErrorIcon,
     Warning as WarningIcon,
     Refresh as RefreshIcon,
+    Work as JobIcon,
+    AutoAwesome as GeneratedIcon,
 } from '@mui/icons-material';
 import { userService, AuditLogSummary } from '@services/userService';
+import { isHttpAction, isJobAction, isViaJobAction, parsePayload, HttpAuditPayload } from '@services/auditLogService';
 
 interface UserActivityProps {
     userId: string;
+}
+
+// Derive result from action and parsed payload
+function deriveResult(log: AuditLogSummary): string {
+    if (log.errorMessage) {
+        return 'Error';
+    }
+
+    if (isHttpAction(log.action) && log.payload) {
+        const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+        if (httpPayload) {
+            return httpPayload.result || (httpPayload.statusCode >= 400 ? 'Failure' : 'Success');
+        }
+    }
+
+    // For non-HTTP actions, assume success unless there's an error
+    return 'Success';
+}
+
+// Get duration from payload if available
+function getDuration(log: AuditLogSummary): number | undefined {
+    if (log.payload) {
+        const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+        return httpPayload?.durationMs;
+    }
+    return undefined;
+}
+
+// Get IP address from payload if available
+function getIpAddress(log: AuditLogSummary): string | undefined {
+    if (log.payload) {
+        const httpPayload = parsePayload<HttpAuditPayload>(log.payload);
+        return httpPayload?.ipAddress;
+    }
+    return undefined;
 }
 
 export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
@@ -71,7 +109,16 @@ export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
         return date.toLocaleString();
     };
 
-    const getResultIcon = (result: string) => {
+    const getResultIcon = (log: AuditLogSummary) => {
+        // Check for job-related or generated actions
+        if (isJobAction(log.action)) {
+            return <JobIcon sx={{ color: 'info.main', fontSize: 20 }} />;
+        }
+        if (isViaJobAction(log.action)) {
+            return <GeneratedIcon sx={{ color: 'secondary.main', fontSize: 20 }} />;
+        }
+
+        const result = deriveResult(log);
         switch (result.toLowerCase()) {
             case 'success':
                 return <SuccessIcon sx={{ color: 'success.main', fontSize: 20 }} />;
@@ -83,7 +130,15 @@ export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
         }
     };
 
-    const getResultColor = (result: string): 'success' | 'error' | 'warning' => {
+    const getResultColor = (log: AuditLogSummary): 'success' | 'error' | 'warning' | 'info' | 'secondary' => {
+        if (isJobAction(log.action)) {
+            return 'info';
+        }
+        if (isViaJobAction(log.action)) {
+            return 'secondary';
+        }
+
+        const result = deriveResult(log);
         switch (result.toLowerCase()) {
             case 'success':
                 return 'success';
@@ -93,6 +148,16 @@ export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
             default:
                 return 'warning';
         }
+    };
+
+    const getResultLabel = (log: AuditLogSummary): string => {
+        if (isJobAction(log.action)) {
+            return 'Job';
+        }
+        if (isViaJobAction(log.action)) {
+            return 'Generated';
+        }
+        return deriveResult(log);
     };
 
     if (loading && logs.length === 0) {
@@ -137,60 +202,72 @@ export const UserActivity: React.FC<UserActivityProps> = ({ userId }) => {
             </Box>
 
             <List sx={{ maxHeight: 500, overflow: 'auto' }}>
-                {logs.map((log, index) => (
-                    <React.Fragment key={log.id}>
-                        <ListItem
-                            alignItems="flex-start"
-                            sx={{
-                                '&:hover': {
-                                    bgcolor: 'action.hover',
-                                },
-                            }}
-                        >
-                            <Box display="flex" alignItems="flex-start" width="100%" gap={2}>
-                                <Box mt={0.5}>
-                                    {getResultIcon(log.result)}
-                                </Box>
-                                <Box flex={1}>
-                                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={0.5}>
-                                        <Typography variant="body2" fontWeight="medium">
-                                            {log.action}
-                                        </Typography>
-                                        <Chip
-                                            label={log.result}
-                                            color={getResultColor(log.result)}
-                                            size="small"
-                                        />
+                {logs.map((log, index) => {
+                    const duration = getDuration(log);
+                    const ipAddress = getIpAddress(log);
+
+                    return (
+                        <React.Fragment key={log.id}>
+                            <ListItem
+                                alignItems="flex-start"
+                                sx={{
+                                    '&:hover': {
+                                        bgcolor: 'action.hover',
+                                    },
+                                }}
+                            >
+                                <Box display="flex" alignItems="flex-start" width="100%" gap={2}>
+                                    <Box mt={0.5}>
+                                        {getResultIcon(log)}
                                     </Box>
-                                    <Typography variant="caption" color="textSecondary" display="block">
-                                        {formatDate(log.timestamp)}
-                                    </Typography>
-                                    {log.entityType && (
-                                        <Typography variant="caption" color="textSecondary" display="block">
-                                            Entity: {log.entityType}
-                                            {log.entityId && ` (${log.entityId})`}
-                                        </Typography>
-                                    )}
-                                    <Box display="flex" gap={1} mt={0.5}>
-                                        {log.ipAddress && (
+                                    <Box flex={1}>
+                                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={0.5}>
+                                            <Typography variant="body2" fontWeight="medium">
+                                                {log.action}
+                                            </Typography>
                                             <Chip
-                                                label={`IP: ${log.ipAddress}`}
+                                                label={getResultLabel(log)}
+                                                color={getResultColor(log)}
                                                 size="small"
-                                                variant="outlined"
                                             />
+                                        </Box>
+                                        <Typography variant="caption" color="textSecondary" display="block">
+                                            {formatDate(log.timestamp)}
+                                        </Typography>
+                                        {log.entityType && (
+                                            <Typography variant="caption" color="textSecondary" display="block">
+                                                Entity: {log.entityType}
+                                                {log.entityId && ` (${log.entityId})`}
+                                            </Typography>
                                         )}
-                                        <Chip
-                                            label={`${log.durationInMilliseconds}ms`}
-                                            size="small"
-                                            variant="outlined"
-                                        />
+                                        {log.errorMessage && (
+                                            <Typography variant="caption" color="error" display="block">
+                                                Error: {log.errorMessage}
+                                            </Typography>
+                                        )}
+                                        <Box display="flex" gap={1} mt={0.5}>
+                                            {ipAddress && (
+                                                <Chip
+                                                    label={`IP: ${ipAddress}`}
+                                                    size="small"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                            {duration !== undefined && (
+                                                <Chip
+                                                    label={`${duration}ms`}
+                                                    size="small"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                        </Box>
                                     </Box>
                                 </Box>
-                            </Box>
-                        </ListItem>
-                        {index < logs.length - 1 && <Divider variant="inset" component="li" />}
-                    </React.Fragment>
-                ))}
+                            </ListItem>
+                            {index < logs.length - 1 && <Divider variant="inset" component="li" />}
+                        </React.Fragment>
+                    );
+                })}
             </List>
 
             {hasMore && (

@@ -11,7 +11,6 @@ public interface IAuditLogStorage {
         Guid? userId = null,
         string? action = null,
         string? entityType = null,
-        string? result = null,
         int skip = 0,
         int take = 50,
         CancellationToken ct = default);

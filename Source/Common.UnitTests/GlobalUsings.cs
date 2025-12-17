@@ -27,6 +27,7 @@ global using NSubstitute;
 
 global using VttTools.Admin.Configuration.Model;
 global using VttTools.Audit.Model;
+global using VttTools.Audit.Model.Payloads;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
@@ -36,6 +37,7 @@ global using VttTools.Common.Utilities;
 global using VttTools.Configuration;
 global using VttTools.Extensions;
 global using VttTools.Identity.Model;
+global using VttTools.Json;
 global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;
 global using VttTools.Maintenance.Storage;

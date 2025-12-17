@@ -32,8 +32,10 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.RequestBody.Should().NotBeNull();
-        capturedLog.RequestBody.Should().Contain("***REDACTED***");
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.RequestBody.Should().Contain("***REDACTED***");
     }
 
     [Fact]
@@ -64,7 +66,10 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.RequestBody.Should().BeNull();
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.RequestBody.Should().BeNull();
     }
 
     [Fact]
@@ -97,8 +102,11 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.RequestBody.Should().Contain("***REDACTED***");
-        capturedLog.RequestBody.Should().NotContain("secret123");
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.RequestBody.Should().Contain("***REDACTED***");
+        payload.RequestBody.Should().NotContain("secret123");
     }
 
     [Fact]
@@ -132,9 +140,12 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.ResponseBody.Should().NotBeNull();
-        capturedLog.ResponseBody.Should().Contain("***REDACTED***");
-        capturedLog.ResponseBody.Should().NotContain("abc123");
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.ResponseBody.Should().NotBeNull();
+        payload.ResponseBody.Should().Contain("***REDACTED***");
+        payload.ResponseBody.Should().NotContain("abc123");
     }
 
     [Fact]
@@ -180,7 +191,7 @@ public class AuditLoggingMiddlewareTests {
     }
 
     [Fact]
-    public async Task InvokeAsync_WithSuccessStatusCode_SetsResultToSuccess() {
+    public async Task InvokeAsync_WithSuccessStatusCode_CapturesHttpPayload() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
         var serviceProvider = CreateServiceProvider(auditLogService);
@@ -210,8 +221,11 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.Result.Should().Be("Success");
-        capturedLog.StatusCode.Should().Be(200);
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.StatusCode.Should().Be(200);
+        payload.Result.Should().Be("Success");
     }
 
     [Fact]
@@ -245,8 +259,11 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.Result.Should().Be("Failure");
-        capturedLog.StatusCode.Should().Be(404);
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.StatusCode.Should().Be(404);
+        payload.Result.Should().Be("Failure");
     }
 
     [Fact]
@@ -280,8 +297,11 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.Result.Should().Be("Error");
-        capturedLog.StatusCode.Should().Be(500);
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.StatusCode.Should().Be(500);
+        payload.Result.Should().Be("Error");
     }
 
     [Fact]
@@ -337,9 +357,12 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.QueryString.Should().NotBeNull();
-        capturedLog.QueryString.Should().Contain("token=***REDACTED***");
-        capturedLog.QueryString.Should().Contain("user=john");
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.QueryString.Should().NotBeNull();
+        payload.QueryString.Should().Contain("token=***REDACTED***");
+        payload.QueryString.Should().Contain("user=john");
     }
 
     [Fact]
@@ -556,7 +579,10 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.DurationInMilliseconds.Should().BeGreaterThanOrEqualTo(50);
+        capturedLog!.Payload.Should().NotBeNull();
+        var payload = JsonSerializer.Deserialize<HttpAuditPayload>(capturedLog.Payload!, JsonDefaults.Options);
+        payload.Should().NotBeNull();
+        payload!.DurationMs.Should().BeGreaterThanOrEqualTo(50);
     }
 
     private static IServiceProvider CreateServiceProvider(IAuditLogService auditLogService) {

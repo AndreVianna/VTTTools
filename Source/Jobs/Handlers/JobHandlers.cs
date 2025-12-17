@@ -7,16 +7,13 @@ internal static class JobHandlers {
         HttpContext context,
         [FromBody] AddJobRequest request,
         [FromServices] IJobService jobService,
-        [FromServices] UserManager<User> userManager,
         CancellationToken ct) {
         Guid userId;
         if (context.IsInternalService()) {
+            // Internal service calls must provide OwnerId
+            // Trust the calling service - user was already validated when original request was made
             if (!request.OwnerId.HasValue)
                 return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
-
-            var user = await userManager.FindByIdAsync(request.OwnerId.Value.ToString());
-            if (user is null)
-                return Results.BadRequest(new { error = $"User {request.OwnerId.Value} does not exist." });
 
             userId = request.OwnerId.Value;
         }
@@ -110,21 +107,5 @@ internal static class JobHandlers {
         return isSuccess
             ? Results.NoContent()
             : Results.NotFound();
-    }
-
-    internal static async Task<IResult> BroadcastItemUpdateHandler(
-        [FromBody] JobItemUpdateEvent @event,
-        [FromServices] IJobService jobService,
-        CancellationToken ct) {
-        await jobService.BroadcastItemUpdateAsync(@event, ct);
-        return Results.NoContent();
-    }
-
-    internal static async Task<IResult> BroadcastProgressHandler(
-        [FromBody] JobProgressEvent @event,
-        [FromServices] IJobService jobService,
-        CancellationToken ct) {
-        await jobService.BroadcastProgressAsync(@event, ct);
-        return Results.NoContent();
     }
 }

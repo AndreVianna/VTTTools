@@ -4,9 +4,11 @@ import type {
     JobResponse,
     BulkAssetGenerationRequest,
     JobRetryRequest,
-    JobProgressEvent,
-    JobCompletedEvent,
+    JobItemStartedEvent,
+    JobItemCompletedEvent,
+    JobProgressItem,
 } from '@/types/jobs';
+import { JobItemStatus, JobStatus } from '@/types/jobs';
 
 export interface JobsState {
     jobs: JobResponse[];
@@ -15,7 +17,7 @@ export interface JobsState {
     isLoading: boolean;
     isSubmitting: boolean;
     error: string | null;
-    progressEvents: Record<string, JobProgressEvent[]>;
+    itemUpdates: Record<string, JobProgressItem[]>;
 }
 
 const initialState: JobsState = {
@@ -25,7 +27,7 @@ const initialState: JobsState = {
     isLoading: false,
     isSubmitting: false,
     error: null,
-    progressEvents: {},
+    itemUpdates: {},
 };
 
 export const fetchJobHistory = createAsyncThunk(
@@ -99,32 +101,82 @@ const jobsSlice = createSlice({
         clearCurrentJob: (state) => {
             state.currentJob = null;
         },
-        addProgressEvent: (state, action: PayloadAction<JobProgressEvent>) => {
-            const { jobId } = action.payload;
-            if (!state.progressEvents[jobId]) {
-                state.progressEvents[jobId] = [];
+        addItemStarted: (state, action: PayloadAction<JobItemStartedEvent>) => {
+            const { jobId, index, startedAt } = action.payload;
+            if (!state.itemUpdates[jobId]) {
+                state.itemUpdates[jobId] = [];
             }
-            state.progressEvents[jobId].push(action.payload);
+
+            const progressItem: JobProgressItem = {
+                jobId,
+                index,
+                status: JobItemStatus.InProgress,
+                ...(startedAt !== undefined && { startedAt }),
+            };
+
+            const existingIndex = state.itemUpdates[jobId].findIndex(u => u.index === index);
+            if (existingIndex !== -1) {
+                state.itemUpdates[jobId][existingIndex] = progressItem;
+            } else {
+                state.itemUpdates[jobId].push(progressItem);
+            }
 
             if (state.currentJob?.jobId === jobId) {
-                state.currentJob.completedItems = action.payload.currentItem;
+                state.currentJob.status = JobStatus.InProgress;
+            }
+        },
+        addItemCompleted: (state, action: PayloadAction<JobItemCompletedEvent>) => {
+            const { jobId, index, status, message, completedAt } = action.payload;
+            if (!state.itemUpdates[jobId]) {
+                state.itemUpdates[jobId] = [];
+            }
+
+            const newItem: JobProgressItem = {
+                jobId,
+                index,
+                status,
+                ...(message !== undefined && { message }),
+                ...(completedAt !== undefined && { completedAt }),
+            };
+
+            const existingIndex = state.itemUpdates[jobId].findIndex(u => u.index === index);
+            if (existingIndex !== -1) {
+                const existing = state.itemUpdates[jobId][existingIndex];
+                if (existing) {
+                    state.itemUpdates[jobId][existingIndex] = {
+                        ...existing,
+                        status,
+                        ...(message !== undefined && { message }),
+                        ...(completedAt !== undefined && { completedAt }),
+                    };
+                }
+            } else {
+                state.itemUpdates[jobId].push(newItem);
+            }
+
+            const updates = state.itemUpdates[jobId];
+            const completedCount = updates.filter(u => u.status === JobItemStatus.Success).length;
+            const failedCount = updates.filter(u => u.status === JobItemStatus.Failed).length;
+
+            if (state.currentJob?.jobId === jobId) {
+                state.currentJob.completedItems = completedCount;
+                state.currentJob.failedItems = failedCount;
             }
 
             const jobIndex = state.jobs.findIndex(j => j.jobId === jobId);
             if (jobIndex !== -1) {
                 const job = state.jobs[jobIndex];
                 if (job) {
-                    job.completedItems = action.payload.currentItem;
+                    job.completedItems = completedCount;
+                    job.failedItems = failedCount;
                 }
             }
         },
-        handleJobCompleted: (state, action: PayloadAction<JobCompletedEvent>) => {
-            const { jobId, status, completedItems, failedItems } = action.payload;
+        handleJobCompleted: (state, action: PayloadAction<{ jobId: string }>) => {
+            const { jobId } = action.payload;
 
             if (state.currentJob?.jobId === jobId) {
-                state.currentJob.status = status as JobResponse['status'];
-                state.currentJob.completedItems = completedItems;
-                state.currentJob.failedItems = failedItems;
+                state.currentJob.status = JobStatus.Completed;
                 state.currentJob.completedAt = new Date().toISOString();
             }
 
@@ -132,15 +184,49 @@ const jobsSlice = createSlice({
             if (jobIndex !== -1) {
                 const job = state.jobs[jobIndex];
                 if (job) {
-                    job.status = status as JobResponse['status'];
-                    job.completedItems = completedItems;
-                    job.failedItems = failedItems;
+                    job.status = JobStatus.Completed;
                     job.completedAt = new Date().toISOString();
                 }
             }
         },
-        clearProgressEvents: (state, action: PayloadAction<string>) => {
-            delete state.progressEvents[action.payload];
+        handleJobCanceled: (state, action: PayloadAction<{ jobId: string }>) => {
+            const { jobId } = action.payload;
+
+            if (state.currentJob?.jobId === jobId) {
+                state.currentJob.status = JobStatus.Canceled;
+                state.currentJob.completedAt = new Date().toISOString();
+            }
+
+            const jobIndex = state.jobs.findIndex(j => j.jobId === jobId);
+            if (jobIndex !== -1) {
+                const job = state.jobs[jobIndex];
+                if (job) {
+                    job.status = JobStatus.Canceled;
+                    job.completedAt = new Date().toISOString();
+                }
+            }
+        },
+        handleJobRetried: (state, action: PayloadAction<{ jobId: string }>) => {
+            const { jobId } = action.payload;
+
+            if (state.currentJob?.jobId === jobId) {
+                state.currentJob.status = JobStatus.Pending;
+                delete state.currentJob.completedAt;
+            }
+
+            const jobIndex = state.jobs.findIndex(j => j.jobId === jobId);
+            if (jobIndex !== -1) {
+                const job = state.jobs[jobIndex];
+                if (job) {
+                    job.status = JobStatus.Pending;
+                    delete job.completedAt;
+                }
+            }
+
+            delete state.itemUpdates[jobId];
+        },
+        clearItemUpdates: (state, action: PayloadAction<string>) => {
+            delete state.itemUpdates[action.payload];
         },
     },
     extraReducers: (builder) => {
@@ -166,6 +252,28 @@ const jobsSlice = createSlice({
             .addCase(fetchJobStatus.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.currentJob = action.payload;
+
+                // Populate itemUpdates from job items for items that have started processing
+                const jobId = action.payload.jobId;
+                const existingUpdates = state.itemUpdates[jobId] ?? [];
+                const newUpdates: JobProgressItem[] = action.payload.items
+                    .filter(item => item.status !== JobItemStatus.Pending)
+                    .map(item => ({
+                        jobId: item.jobId,
+                        index: item.index,
+                        status: item.status,
+                        ...(item.errorMessage !== undefined && { message: item.errorMessage }),
+                        ...(item.startedAt !== undefined && { startedAt: item.startedAt }),
+                        ...(item.completedAt !== undefined && { completedAt: item.completedAt }),
+                    }));
+
+                // Merge: keep existing updates but add any missing items
+                const existingIndices = new Set(existingUpdates.map(u => u.index));
+                const mergedUpdates = [
+                    ...existingUpdates,
+                    ...newUpdates.filter(u => !existingIndices.has(u.index)),
+                ];
+                state.itemUpdates[jobId] = mergedUpdates;
             })
             .addCase(fetchJobStatus.rejected, (state, action) => {
                 state.isLoading = false;
@@ -232,9 +340,12 @@ const jobsSlice = createSlice({
 export const {
     clearError,
     clearCurrentJob,
-    addProgressEvent,
+    addItemStarted,
+    addItemCompleted,
     handleJobCompleted,
-    clearProgressEvents,
+    handleJobCanceled,
+    handleJobRetried,
+    clearItemUpdates,
 } = jobsSlice.actions;
 
 export const selectJobs = (state: { jobs: JobsState }) => state.jobs.jobs;
@@ -243,7 +354,7 @@ export const selectCurrentJob = (state: { jobs: JobsState }) => state.jobs.curre
 export const selectIsLoading = (state: { jobs: JobsState }) => state.jobs.isLoading;
 export const selectIsSubmitting = (state: { jobs: JobsState }) => state.jobs.isSubmitting;
 export const selectError = (state: { jobs: JobsState }) => state.jobs.error;
-export const selectProgressEvents = (state: { jobs: JobsState }, jobId: string) =>
-    state.jobs.progressEvents[jobId] ?? [];
+export const selectItemUpdates = (state: { jobs: JobsState }, jobId: string) =>
+    state.jobs.itemUpdates[jobId] ?? [];
 
 export default jobsSlice.reducer;
