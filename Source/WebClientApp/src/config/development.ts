@@ -5,7 +5,11 @@
 
 // Development mode detection
 export const isDevelopment = import.meta.env.MODE === 'development';
-export const isStandalone = !window.location.origin.includes('aspire') && !import.meta.env.VITE_ASPIRE_MODE;
+
+// Use the __STANDALONE_MODE__ define set by vite.config.ts
+// This is true only when VITE_STANDALONE=true or mode=standalone
+declare const __STANDALONE_MODE__: boolean;
+export const isStandalone = typeof __STANDALONE_MODE__ !== 'undefined' ? __STANDALONE_MODE__ : false;
 
 // API configuration
 export const API_CONFIG = {
