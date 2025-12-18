@@ -28,6 +28,7 @@ global using VttTools.Identity.Model;
 global using VttTools.Jobs.Events;
 global using VttTools.Jobs.Model;
 global using VttTools.Jobs.ServiceContracts;
+global using VttTools.Jobs.Services;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Adventures.ServiceContracts;
 global using VttTools.Library.Campaigns.Model;

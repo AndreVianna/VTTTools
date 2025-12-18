@@ -102,7 +102,7 @@ const jobsSlice = createSlice({
             state.currentJob = null;
         },
         addItemStarted: (state, action: PayloadAction<JobItemStartedEvent>) => {
-            const { jobId, index, startedAt } = action.payload;
+            const { jobId, index, occurredAt } = action.payload;
             if (!state.itemUpdates[jobId]) {
                 state.itemUpdates[jobId] = [];
             }
@@ -111,11 +111,16 @@ const jobsSlice = createSlice({
                 jobId,
                 index,
                 status: JobItemStatus.InProgress,
-                ...(startedAt !== undefined && { startedAt }),
+                occurredAt,
+                startedAt: occurredAt,
             };
 
             const existingIndex = state.itemUpdates[jobId].findIndex(u => u.index === index);
             if (existingIndex !== -1) {
+                const existing = state.itemUpdates[jobId][existingIndex];
+                if (existing && existing.occurredAt && occurredAt <= existing.occurredAt) {
+                    return;
+                }
                 state.itemUpdates[jobId][existingIndex] = progressItem;
             } else {
                 state.itemUpdates[jobId].push(progressItem);
@@ -126,7 +131,7 @@ const jobsSlice = createSlice({
             }
         },
         addItemCompleted: (state, action: PayloadAction<JobItemCompletedEvent>) => {
-            const { jobId, index, status, message, completedAt } = action.payload;
+            const { jobId, index, occurredAt, status, result } = action.payload;
             if (!state.itemUpdates[jobId]) {
                 state.itemUpdates[jobId] = [];
             }
@@ -135,19 +140,24 @@ const jobsSlice = createSlice({
                 jobId,
                 index,
                 status,
-                ...(message !== undefined && { message }),
-                ...(completedAt !== undefined && { completedAt }),
+                occurredAt,
+                completedAt: occurredAt,
+                ...(result !== undefined && { result }),
             };
 
             const existingIndex = state.itemUpdates[jobId].findIndex(u => u.index === index);
             if (existingIndex !== -1) {
                 const existing = state.itemUpdates[jobId][existingIndex];
+                if (existing && existing.occurredAt && occurredAt <= existing.occurredAt) {
+                    return;
+                }
                 if (existing) {
                     state.itemUpdates[jobId][existingIndex] = {
                         ...existing,
                         status,
-                        ...(message !== undefined && { message }),
-                        ...(completedAt !== undefined && { completedAt }),
+                        occurredAt,
+                        completedAt: occurredAt,
+                        ...(result !== undefined && { result }),
                     };
                 }
             } else {
@@ -262,7 +272,7 @@ const jobsSlice = createSlice({
                         jobId: item.jobId,
                         index: item.index,
                         status: item.status,
-                        ...(item.errorMessage !== undefined && { message: item.errorMessage }),
+                        ...(item.result !== undefined && { result: item.result }),
                         ...(item.startedAt !== undefined && { startedAt: item.startedAt }),
                         ...(item.completedAt !== undefined && { completedAt: item.completedAt }),
                     }));

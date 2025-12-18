@@ -200,7 +200,7 @@ public class AuditLoggingMiddleware(
             "Resource" => "Resource",
             "Job" => "Job",
             "User" => "User",
-            "Session" => "Session",
+            "GameSession" => "GameSession",
             "Campaign" => "Campaign",
             "Adventure" => "Adventure",
             "Encounter" => "Encounter",

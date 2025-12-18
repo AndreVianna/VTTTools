@@ -6,20 +6,33 @@ public static class AdminAuthHandlers {
     public static async Task<IResult> LoginHandler(
         [FromBody] AdminLoginRequest request,
         IAdminAuthService authService,
+        HttpContext httpContext,
+        IWebHostEnvironment environment,
         CancellationToken ct) {
 
         var response = await authService.LoginAsync(request, ct);
 
-        return response.Success || response.RequiresTwoFactor
+        if (response is { Success: true, Token: not null }) {
+            var cookieOptions = AuthCookieConstants.CreateSecureCookie(environment.IsDevelopment());
+            httpContext.Response.Cookies.Append(AuthCookieConstants.AdminCookieName, response.Token, cookieOptions);
+            return Results.Ok(response with { Token = null });
+        }
+
+        return response.RequiresTwoFactor
             ? Results.Ok(response)
             : Results.Unauthorized();
     }
 
     public static async Task<IResult> LogoutHandler(
         IAdminAuthService authService,
+        HttpContext httpContext,
+        IWebHostEnvironment environment,
         CancellationToken ct) {
 
         var response = await authService.LogoutAsync(ct);
+
+        var cookieOptions = AuthCookieConstants.CreateExpiredCookie(environment.IsDevelopment());
+        httpContext.Response.Cookies.Delete(AuthCookieConstants.AdminCookieName, cookieOptions);
 
         return response.Success
             ? Results.Ok(response)

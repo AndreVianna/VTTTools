@@ -444,6 +444,10 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Result")
+                        .HasMaxLength(8192)
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
 
@@ -481,9 +485,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(8192)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Message")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
+                    b.Property<string>("Result")
+                        .HasMaxLength(8192)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");

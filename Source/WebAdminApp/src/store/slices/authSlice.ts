@@ -2,38 +2,12 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { authService } from '@services/authService';
 import type { AdminUser, AuthState, LoginRequest } from '../../types/auth';
 
-const TOKEN_STORAGE_KEY = 'vtttools_admin_token';
-
-const loadTokenFromStorage = (): string | null => {
-    try {
-        return localStorage.getItem(TOKEN_STORAGE_KEY);
-    } catch {
-        return null;
-    }
-};
-
-const saveTokenToStorage = (token: string): void => {
-    try {
-        localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    } catch {
-        // Silently ignore localStorage errors
-    }
-};
-
-const removeTokenFromStorage = (): void => {
-    try {
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-    } catch {
-        // Silently ignore localStorage errors
-    }
-};
-
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
-  token: loadTokenFromStorage(),
+  token: null,
 };
 
 export const login = createAsyncThunk(
@@ -44,20 +18,15 @@ export const login = createAsyncThunk(
       return rejectWithValue(result.error || 'Login failed');
     }
 
-    if (result.token) {
-      saveTokenToStorage(result.token);
-    }
-
     const user = result.user || await authService.getCurrentUser();
     if (!user) {
       return rejectWithValue('Failed to get user information');
     }
-    return { user, token: result.token };
+    return { user };
   }
 );
 
 export const logout = createAsyncThunk('auth/logout', async () => {
-  removeTokenFromStorage();
   await authService.logout();
 });
 
@@ -73,14 +42,9 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    updateToken: (state, action: PayloadAction<string>) => {
-      state.token = action.payload;
-      saveTokenToStorage(action.payload);
-    },
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -89,24 +53,19 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        state.token = action.payload.token || null;
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
-        state.token = null;
         state.error = action.payload as string;
       })
-      // Logout
       .addCase(logout.fulfilled, (state) => {
         state.isAuthenticated = false;
         state.user = null;
-        state.token = null;
         state.error = null;
       })
-      // Check auth
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
       })
@@ -118,23 +77,18 @@ const authSlice = createSlice({
         } else {
           state.isAuthenticated = false;
           state.user = null;
-          state.token = null;
-          removeTokenFromStorage();
         }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
-        state.token = null;
-        removeTokenFromStorage();
       });
   },
 });
 
-export const { clearError, updateToken } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 
-export const selectToken = (state: { auth: AuthState }) => state.auth.token;
 export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
 
 export default authSlice.reducer;

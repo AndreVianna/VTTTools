@@ -11,35 +11,9 @@ export interface AuthState {
   lastLoginAttempt: number | null;
 }
 
-const TOKEN_STORAGE_KEY = 'vtt_auth_token';
-
-const loadTokenFromStorage = (): string | null => {
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-};
-
-const saveTokenToStorage = (token: string): void => {
-  try {
-    localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  } catch {
-    // Silently ignore localStorage errors
-  }
-};
-
-const clearTokenFromStorage = (): void => {
-  try {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-  } catch {
-    // Silently ignore localStorage errors
-  }
-};
-
 const initialState: AuthState = {
   user: null,
-  token: loadTokenFromStorage(),
+  token: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -51,26 +25,18 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Set loading state for authentication operations
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
 
-    // Set authentication success
-    setAuthenticated: (state, action: PayloadAction<{ user: User; token?: string }>) => {
+    setAuthenticated: (state, action: PayloadAction<{ user: User }>) => {
       state.user = action.payload.user;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
       state.loginAttempts = 0;
-
-      if (action.payload.token) {
-        state.token = action.payload.token;
-        saveTokenToStorage(action.payload.token);
-      }
     },
 
-    // Set authentication failure
     setAuthError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
       state.isAuthenticated = false;
@@ -80,12 +46,10 @@ const authSlice = createSlice({
       state.lastLoginAttempt = Date.now();
     },
 
-    // Clear authentication error
     clearAuthError: (state) => {
       state.error = null;
     },
 
-    // Logout user
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -94,17 +58,14 @@ const authSlice = createSlice({
       state.error = null;
       state.loginAttempts = 0;
       state.lastLoginAttempt = null;
-      clearTokenFromStorage();
     },
 
-    // Update user profile
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
     },
 
-    // Reset login attempts (for rate limiting)
     resetLoginAttempts: (state) => {
       state.loginAttempts = 0;
       state.lastLoginAttempt = null;
@@ -117,7 +78,6 @@ export const { setLoading, setAuthenticated, setAuthError, clearAuthError, logou
 
 export default authSlice.reducer;
 
-// Selectors
 export const selectAuth = (state: { auth: AuthState }) => state.auth;
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;
 export const selectToken = (state: { auth: AuthState }) => state.auth.token;

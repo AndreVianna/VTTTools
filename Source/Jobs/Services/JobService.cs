@@ -5,13 +5,15 @@ namespace VttTools.Jobs.Services;
 
 public class JobService(
     IJobStorage storage,
-    IHubContext<JobHub> hubContext,
+    IJobEventPublisher eventPublisher,
     IAuditLogService auditLogService)
     : IJobService {
     public async Task<Result<Job>> AddAsync(AddJobData data, CancellationToken ct = default) {
         var result = data.Validate();
         if (result.IsFailure)
             return Result.Failure(result.Errors).WithNo<Job>();
+
+        var collector = new JobEventCollector();
 
         var job = new Job {
             OwnerId = data.OwnerId,
@@ -23,18 +25,18 @@ public class JobService(
             Index = index,
             Data = input.Data,
         }));
-        await storage.AddAsync(job, ct);
 
-        var createdEvent = new JobCreatedEvent {
+        await storage.AddAsync(job, ct);
+        await LogJobCreatedAsync(job, ct);
+
+        collector.AddJobEvent(new JobCreatedEvent {
             JobId = job.Id,
             Type = job.Type,
             EstimatedDuration = job.EstimatedDuration,
             TotalItems = job.Items.Count,
-        };
-        await hubContext.SendJobCreatedAsync(createdEvent, ct);
+        });
 
-        // Audit log: Job created
-        await LogJobCreatedAsync(job, ct);
+        await collector.PublishAllAsync(eventPublisher, ct);
 
         return job;
     }
@@ -63,6 +65,8 @@ public class JobService(
         if (job is null)
             return Result.Failure("Job not found.").WithNo<Job>();
 
+        var collector = new JobEventCollector();
+
         job = job with {
             Status = data.Status,
             StartedAt = data.StartedAt.IsSet ? data.StartedAt.Value : job.StartedAt,
@@ -71,51 +75,45 @@ public class JobService(
                 var updatedItem = data.Items.FirstOrDefault(i => i.Index == item.Index);
                 return updatedItem is null ? item : item with {
                     Status = updatedItem.Status,
-                    Message = updatedItem.Message.IsSet ? updatedItem.Message.Value : item.Message,
+                    Result = updatedItem.Result.IsSet ? updatedItem.Result.Value : item.Result,
                     StartedAt = updatedItem.StartedAt.IsSet ? updatedItem.StartedAt.Value : item.StartedAt,
                     CompletedAt = updatedItem.CompletedAt.IsSet ? updatedItem.CompletedAt.Value : item.CompletedAt,
                 };
             })],
         };
 
+        var derivedStatus = DeriveJobStatus(job.Items);
+        if (derivedStatus == JobStatus.Completed)
+            job = job with { Result = BuildJobResult(job.Items) };
+
         await storage.UpdateAsync(job, ct);
 
         foreach (var dataItem in data.Items) {
             var jobItem = job.Items.First(i => i.Index == dataItem.Index);
             if (dataItem.Status == JobItemStatus.InProgress) {
-                var startedEvent = new JobItemStartedEvent {
+                collector.AddItemEvent(new JobItemStartedEvent {
                     JobId = job.Id,
                     Index = dataItem.Index,
-                    StartedAt = jobItem.StartedAt,
-                };
-                await hubContext.SendJobItemStartedAsync(startedEvent, ct);
-
-                // Audit log: Job item started
+                });
                 await LogJobItemStartedAsync(job, jobItem, ct);
             }
             else if (dataItem.Status is JobItemStatus.Success or JobItemStatus.Failed or JobItemStatus.Canceled) {
-                var completedEvent = new JobItemCompletedEvent {
+                collector.AddItemEvent(new JobItemCompletedEvent {
                     JobId = job.Id,
                     Index = dataItem.Index,
                     Status = dataItem.Status,
-                    Message = jobItem.Message,
-                    CompletedAt = jobItem.CompletedAt,
-                };
-                await hubContext.SendJobItemCompletedAsync(completedEvent, ct);
-
-                // Audit log: Job item completed
+                    Result = jobItem.Result,
+                });
                 await LogJobItemCompletedAsync(job, jobItem, ct);
             }
         }
 
-        var derivedStatus = DeriveJobStatus(job.Items);
         if (derivedStatus == JobStatus.Completed) {
-            var completedEvent = new JobCompletedEvent { JobId = job.Id };
-            await hubContext.SendJobCompletedAsync(completedEvent, ct);
-
-            // Audit log: Job completed
+            collector.AddJobEvent(new JobCompletedEvent { JobId = job.Id, Result = job.Result });
             await LogJobCompletedAsync(job, ct);
         }
+
+        await collector.PublishAllAsync(eventPublisher, ct);
 
         return job;
     }
@@ -125,22 +123,22 @@ public class JobService(
         if (job is null)
             return false;
 
+        var collector = new JobEventCollector();
+
         for (var i = 0; i < job.Items.Count; i++) {
             if (job.Items[i].Status is not (JobItemStatus.Pending or JobItemStatus.InProgress))
                 continue;
             job.Items[i] = job.Items[i] with {
                 Status = JobItemStatus.Canceled,
-                Message = null,
+                Result = null,
             };
         }
 
         await storage.UpdateAsync(job, ct);
-
-        var canceledEvent = new JobCanceledEvent { JobId = id };
-        await hubContext.SendJobCanceledAsync(canceledEvent, ct);
-
-        // Audit log: Job canceled
         await LogJobCanceledAsync(job, ct);
+
+        collector.AddJobEvent(new JobCanceledEvent { JobId = id });
+        await collector.PublishAllAsync(eventPublisher, ct);
 
         return true;
     }
@@ -150,22 +148,22 @@ public class JobService(
         if (job is null)
             return false;
 
+        var collector = new JobEventCollector();
+
         for (var i = 0; i < job.Items.Count; i++) {
             if (job.Items[i].Status is not (JobItemStatus.Failed or JobItemStatus.Canceled))
                 continue;
             job.Items[i] = job.Items[i] with {
                 Status = JobItemStatus.Pending,
-                Message = null,
+                Result = null,
             };
         }
 
         await storage.UpdateAsync(job, ct);
-
-        var retriedEvent = new JobRetriedEvent { JobId = id };
-        await hubContext.SendJobRetriedAsync(retriedEvent, ct);
-
-        // Audit log: Job retried
         await LogJobRetriedAsync(job, ct);
+
+        collector.AddJobEvent(new JobRetriedEvent { JobId = id });
+        await collector.PublishAllAsync(eventPublisher, ct);
 
         return true;
     }
@@ -182,6 +180,19 @@ public class JobService(
              : completedCount == items.Count ? JobStatus.Completed
              : (canceledCount + completedCount) == items.Count ? JobStatus.Canceled
              : JobStatus.InProgress;
+    }
+
+    private static string BuildJobResult(IReadOnlyCollection<JobItem> items) {
+        var successCount = items.Count(i => i.Status == JobItemStatus.Success);
+        var failedCount = items.Count(i => i.Status == JobItemStatus.Failed);
+        var canceledCount = items.Count(i => i.Status == JobItemStatus.Canceled);
+
+        var parts = new List<string>();
+        if (successCount > 0) parts.Add($"{successCount} succeeded");
+        if (failedCount > 0) parts.Add($"{failedCount} failed");
+        if (canceledCount > 0) parts.Add($"{canceledCount} canceled");
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "No items processed";
     }
 
     private async Task LogJobCreatedAsync(Job job, CancellationToken ct) {
@@ -219,14 +230,14 @@ public class JobService(
         var payload = new JobItemCompletedPayload {
             Index = item.Index,
             Status = item.Status.ToString(),
-            Message = item.Message,
+            Result = item.Result,
         };
         var auditLog = new AuditLog {
             UserId = job.OwnerId,
             Action = "JobItem:Completed",
             EntityType = "JobItem",
             EntityId = $"{job.Id}:{item.Index}",
-            ErrorMessage = item.Status == JobItemStatus.Failed ? item.Message : null,
+            ErrorMessage = item.Status == JobItemStatus.Failed ? item.Result : null,
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };
         await auditLogService.AddAsync(auditLog, ct);

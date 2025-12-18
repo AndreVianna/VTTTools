@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { useSignalRHub } from '@vtttools/web-components';
 import type {
     JobCreatedEvent,
     JobCompletedEvent,
@@ -10,6 +11,13 @@ import type {
     JobEvent,
     JobItemEvent,
 } from '@/types/jobs';
+
+/** Event types for the Jobs hub (camelCase to match SignalR wire format) */
+type JobHubEvents = {
+    publishJobEvent: JobEvent;
+    publishJobItemEvent: JobItemEvent;
+    [key: string]: unknown;
+};
 
 export interface UseJobsHubOptions {
     onJobCreated?: (event: JobCreatedEvent) => void;
@@ -29,8 +37,18 @@ export interface UseJobsHubReturn {
     subscribeToJob: (jobId: string) => Promise<void>;
     unsubscribeFromJob: (jobId: string) => Promise<void>;
     error: Error | null;
+    failedSubscriptions: string[];
+    isResubscribing: boolean;
+    retryFailedSubscriptions: () => Promise<void>;
 }
 
+/**
+ * Hook for managing SignalR connection to the Jobs hub.
+ * Provides real-time job event subscriptions with automatic reconnection.
+ *
+ * This hook wraps the generic useSignalRHub from @vtttools/web-components
+ * with Jobs-specific event handling.
+ */
 export function useJobsHub(options: UseJobsHubOptions = {}): UseJobsHubReturn {
     const {
         onJobCreated,
@@ -43,146 +61,70 @@ export function useJobsHub(options: UseJobsHubOptions = {}): UseJobsHubReturn {
         autoConnect = false,
     } = options;
 
-    const connectionRef = useRef<signalR.HubConnection | null>(null);
-    const [connectionState, setConnectionState] = useState<signalR.HubConnectionState>(
-        signalR.HubConnectionState.Disconnected
-    );
-    const [error, setError] = useState<Error | null>(null);
-    const subscribedJobsRef = useRef<Set<string>>(new Set());
-
-    const updateConnectionState = useCallback((state: signalR.HubConnectionState) => {
-        setConnectionState(state);
-        onConnectionStateChanged?.(state);
-    }, [onConnectionStateChanged]);
-
-    const createConnection = useCallback(() => {
-        if (connectionRef.current) {
-            return connectionRef.current;
+    // Handle JobEvent dispatch to specific callbacks
+    const handleJobEvent = useCallback((event: JobEvent) => {
+        switch (event.eventType) {
+            case 'JobCreated':
+                onJobCreated?.(event);
+                break;
+            case 'JobCompleted':
+                onJobCompleted?.(event);
+                break;
+            case 'JobCanceled':
+                onJobCanceled?.(event);
+                break;
+            case 'JobRetried':
+                onJobRetried?.(event);
+                break;
         }
+    }, [onJobCreated, onJobCompleted, onJobCanceled, onJobRetried]);
 
-        const token = localStorage.getItem('vtttools_admin_token');
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl('/hubs/jobs', {
-                accessTokenFactory: () => token ?? '',
-            })
-            .withAutomaticReconnect({
-                nextRetryDelayInMilliseconds: (retryContext) => {
-                    if (retryContext.previousRetryCount >= 5) {
-                        return null;
-                    }
-                    return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 30000);
-                },
-            })
-            .configureLogging(signalR.LogLevel.Warning)
-            .build();
-
-        connection.onreconnecting(() => {
-            updateConnectionState(signalR.HubConnectionState.Reconnecting);
-        });
-
-        connection.onreconnected(() => {
-            updateConnectionState(signalR.HubConnectionState.Connected);
-            for (const jobId of subscribedJobsRef.current) {
-                connection.invoke('SubscribeToJob', jobId).catch(console.error);
-            }
-        });
-
-        connection.onclose(() => {
-            updateConnectionState(signalR.HubConnectionState.Disconnected);
-        });
-
-        connection.on('JobEvent', (event: JobEvent) => {
-            switch (event.eventType) {
-                case 'JobCreated':
-                    onJobCreated?.(event);
-                    break;
-                case 'JobCompleted':
-                    onJobCompleted?.(event);
-                    break;
-                case 'JobCanceled':
-                    onJobCanceled?.(event);
-                    break;
-                case 'JobRetried':
-                    onJobRetried?.(event);
-                    break;
-            }
-        });
-
-        connection.on('JobItemEvent', (event: JobItemEvent) => {
-            switch (event.eventType) {
-                case 'JobItemStarted':
-                    onJobItemStarted?.(event);
-                    break;
-                case 'JobItemCompleted':
-                    onJobItemCompleted?.(event);
-                    break;
-            }
-        });
-
-        connectionRef.current = connection;
-        return connection;
-    }, [onJobCreated, onJobCompleted, onJobCanceled, onJobRetried, onJobItemStarted, onJobItemCompleted, updateConnectionState]);
-
-    const connect = useCallback(async () => {
-        try {
-            setError(null);
-            const connection = createConnection();
-
-            if (connection.state === signalR.HubConnectionState.Disconnected) {
-                updateConnectionState(signalR.HubConnectionState.Connecting);
-                await connection.start();
-                updateConnectionState(signalR.HubConnectionState.Connected);
-            }
-        } catch (err) {
-            const connectionError = err instanceof Error ? err : new Error('Failed to connect');
-            setError(connectionError);
-            updateConnectionState(signalR.HubConnectionState.Disconnected);
-            throw connectionError;
+    // Handle JobItemEvent dispatch to specific callbacks
+    const handleJobItemEvent = useCallback((event: JobItemEvent) => {
+        switch (event.eventType) {
+            case 'JobItemStarted':
+                onJobItemStarted?.(event);
+                break;
+            case 'JobItemCompleted':
+                onJobItemCompleted?.(event);
+                break;
         }
-    }, [createConnection, updateConnectionState]);
+    }, [onJobItemStarted, onJobItemCompleted]);
 
-    const disconnect = useCallback(async () => {
-        const connection = connectionRef.current;
-        if (connection && connection.state !== signalR.HubConnectionState.Disconnected) {
-            subscribedJobsRef.current.clear();
-            await connection.stop();
-            updateConnectionState(signalR.HubConnectionState.Disconnected);
-        }
-    }, [updateConnectionState]);
+    // Memoize event handlers to prevent unnecessary re-renders
+    // Note: SignalR sends method names in camelCase
+    const eventHandlers = useMemo(() => ({
+        publishJobEvent: handleJobEvent as (event: unknown) => void,
+        publishJobItemEvent: handleJobItemEvent as (event: unknown) => void,
+    }), [handleJobEvent, handleJobItemEvent]);
 
+    const {
+        connectionState,
+        connect,
+        disconnect,
+        subscribeToGroup,
+        unsubscribeFromGroup,
+        error,
+        failedSubscriptions,
+        isResubscribing,
+        retryFailedSubscriptions,
+    } = useSignalRHub<JobHubEvents>({
+        config: {
+            hubUrl: '/hubs/jobs',
+        },
+        eventHandlers,
+        onConnectionStateChanged,
+        autoConnect,
+    });
+
+    // Wrap subscribeToGroup/unsubscribeFromGroup with Jobs-specific method names
     const subscribeToJob = useCallback(async (jobId: string) => {
-        const connection = connectionRef.current;
-        if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
-            throw new Error('Not connected to hub');
-        }
-
-        await connection.invoke('SubscribeToJob', jobId);
-        subscribedJobsRef.current.add(jobId);
-    }, []);
+        await subscribeToGroup('SubscribeToJob', jobId);
+    }, [subscribeToGroup]);
 
     const unsubscribeFromJob = useCallback(async (jobId: string) => {
-        const connection = connectionRef.current;
-        if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
-            return;
-        }
-
-        await connection.invoke('UnsubscribeFromJob', jobId);
-        subscribedJobsRef.current.delete(jobId);
-    }, []);
-
-    useEffect(() => {
-        if (autoConnect) {
-            connect().catch(console.error);
-        }
-
-        return () => {
-            const connection = connectionRef.current;
-            if (connection) {
-                connection.stop().catch(console.error);
-                connectionRef.current = null;
-            }
-        };
-    }, [autoConnect, connect]);
+        await unsubscribeFromGroup('UnsubscribeFromJob', jobId);
+    }, [unsubscribeFromGroup]);
 
     return {
         connectionState,
@@ -191,5 +133,8 @@ export function useJobsHub(options: UseJobsHubOptions = {}): UseJobsHubReturn {
         subscribeToJob,
         unsubscribeFromJob,
         error,
+        failedSubscriptions,
+        isResubscribing,
+        retryFailedSubscriptions,
     };
 }

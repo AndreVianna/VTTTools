@@ -114,10 +114,17 @@ public static class DataMigrationGenerator {
             }
         }
 
-        // Get properties from owned entities (table splitting)
+        // Get properties from owned entities (table splitting) - but NOT JSON columns
+        // JSON columns are handled separately by GetJsonColumnNames
         foreach (var navigation in entityType.GetNavigations()) {
             if (navigation.TargetEntityType.IsOwned()) {
-                foreach (var ownedProperty in navigation.TargetEntityType.GetProperties()) {
+                // Skip JSON-stored owned entities - they're handled as raw JSON columns
+                var ownedEntityType = navigation.TargetEntityType;
+                if (ownedEntityType.IsMappedToJson()) {
+                    continue;
+                }
+
+                foreach (var ownedProperty in ownedEntityType.GetProperties()) {
                     // Check if property is mapped to a column in this specific table
                     var columnName = ownedProperty.GetColumnName(tableIdentifier);
                     if (columnName is not null && !ownedProperty.IsForeignKey()) {
@@ -131,6 +138,21 @@ public static class DataMigrationGenerator {
         foreach (var complexProperty in entityType.GetComplexProperties()) {
             foreach (var prop in GetComplexTypeProperties(complexProperty.ComplexType, tableIdentifier)) {
                 yield return prop;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets JSON column names for owned entities stored with ToJson().
+    /// </summary>
+    private static IEnumerable<string> GetJsonColumnNames(IEntityType entityType) {
+        foreach (var navigation in entityType.GetNavigations()) {
+            if (navigation.TargetEntityType.IsOwned()) {
+                var ownedEntityType = navigation.TargetEntityType;
+                if (ownedEntityType.IsMappedToJson()) {
+                    // The JSON column is typically named after the navigation property
+                    yield return navigation.Name;
+                }
             }
         }
     }
@@ -162,13 +184,19 @@ public static class DataMigrationGenerator {
         var schema = entityType.GetSchema();
         var tableIdentifier = StoreObjectIdentifier.Table(tableName, schema);
 
-        // Get all properties including owned entity properties
+        // Get all properties including owned entity properties (excluding JSON columns)
         var properties = GetAllPropertiesIncludingOwned(entityType, tableIdentifier)
             .Where(p => !p.IsShadowProperty() || p.IsPrimaryKey())
             .ToList();
 
+        // Get JSON column names (for OwnsMany/OwnsOne with ToJson())
+        var jsonColumnNames = GetJsonColumnNames(entityType).ToList();
+
         // Build SQL query using table-specific column names
-        var columns = string.Join(", ", properties.Select(p => $"[{p.GetColumnName(tableIdentifier)}]"));
+        var propertyColumns = properties.Select(p => $"[{p.GetColumnName(tableIdentifier)}]");
+        var jsonColumns = jsonColumnNames.Select(name => $"[{name}]");
+        var allColumns = propertyColumns.Concat(jsonColumns);
+        var columns = string.Join(", ", allColumns);
         var sql = $"SELECT {columns} FROM [{tableName}]";
 
         var rows = new List<Dictionary<string, object?>>();
@@ -181,10 +209,22 @@ public static class DataMigrationGenerator {
             await using var reader = await command.ExecuteReaderAsync(ct);
             while (await reader.ReadAsync(ct)) {
                 var row = new Dictionary<string, object?>();
+                var columnIndex = 0;
+
+                // Read property columns
                 for (var i = 0; i < properties.Count; i++) {
-                    var value = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                    var value = reader.IsDBNull(columnIndex) ? null : reader.GetValue(columnIndex);
                     row[properties[i].GetColumnName(tableIdentifier)!] = value;
+                    columnIndex++;
                 }
+
+                // Read JSON columns as strings
+                foreach (var jsonColumn in jsonColumnNames) {
+                    var value = reader.IsDBNull(columnIndex) ? null : reader.GetString(columnIndex);
+                    row[jsonColumn] = value;
+                    columnIndex++;
+                }
+
                 rows.Add(row);
             }
         }
@@ -198,7 +238,8 @@ public static class DataMigrationGenerator {
 
         // Generate Up code
         var upBuilder = new StringBuilder();
-        var columnNames = properties.Select(p => p.GetColumnName(tableIdentifier)!).ToArray();
+        var propertyColumnNames = properties.Select(p => p.GetColumnName(tableIdentifier)!);
+        var columnNames = propertyColumnNames.Concat(jsonColumnNames).ToArray();
         var primaryKeyColumns = entityType.FindPrimaryKey()?.Properties
             .Select(p => p.GetColumnName(tableIdentifier)!)
             .ToArray() ?? [];
@@ -208,14 +249,14 @@ public static class DataMigrationGenerator {
         upBuilder.AppendLine($"            columns: [{string.Join(", ", columnNames.Select(c => $"\"{c}\""))}],");
 
         if (rows.Count == 1) {
-            upBuilder.AppendLine($"            values: new object[] {{ {GenerateRowValues(rows[0], properties, tableIdentifier)} }});");
+            upBuilder.AppendLine($"            values: new object[] {{ {GenerateRowValues(rows[0], properties, tableIdentifier, jsonColumnNames)} }});");
         }
         else {
             upBuilder.AppendLine("            values: new object[,]");
             upBuilder.AppendLine("            {");
             for (var i = 0; i < rows.Count; i++) {
                 var comma = i < rows.Count - 1 ? "," : "";
-                upBuilder.AppendLine($"                {{ {GenerateRowValues(rows[i], properties, tableIdentifier)} }}{comma}");
+                upBuilder.AppendLine($"                {{ {GenerateRowValues(rows[i], properties, tableIdentifier, jsonColumnNames)} }}{comma}");
             }
             upBuilder.AppendLine("            });");
         }
@@ -260,9 +301,19 @@ public static class DataMigrationGenerator {
     private static string GenerateRowValues(
         IReadOnlyDictionary<string, object?> row,
         IEnumerable<IProperty> properties,
-        StoreObjectIdentifier tableIdentifier) {
-        var values = properties.Select(p => FormatValue(row[p.GetColumnName(tableIdentifier)!], p));
-        return string.Join(", ", values);
+        StoreObjectIdentifier tableIdentifier,
+        IEnumerable<string> jsonColumnNames) {
+        var propertyValues = properties.Select(p => FormatValue(row[p.GetColumnName(tableIdentifier)!], p));
+        var jsonValues = jsonColumnNames.Select(name => FormatJsonValue(row[name]));
+        return string.Join(", ", propertyValues.Concat(jsonValues));
+    }
+
+    private static string FormatJsonValue(object? value) {
+        if (value is null or DBNull) {
+            return "null";
+        }
+        // JSON columns are stored as strings
+        return $"@\"{EscapeString((string)value)}\"";
     }
 
     private static string FormatValue(object? value, IReadOnlyPropertyBase property) {

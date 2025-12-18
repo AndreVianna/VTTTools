@@ -7,8 +7,8 @@ public class JobItem {
     public JobItemStatus Status { get; set; } = JobItemStatus.Pending;
     [MaxLength(8192)]
     public string Data { get; init; } = string.Empty;
-    [MaxLength(1024)]
-    public string? Message { get; set; }
+    [MaxLength(8192)]
+    public string? Result { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 }

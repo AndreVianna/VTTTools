@@ -27,6 +27,7 @@ global using VttTools.Extensions;
 global using VttTools.Json;
 global using VttTools.HealthChecks;
 global using VttTools.Jobs.ApiContracts;
+global using VttTools.Jobs.Authorization;
 global using VttTools.Jobs.EndpointMappers;
 global using VttTools.Jobs.Events;
 global using VttTools.Jobs.Handlers;

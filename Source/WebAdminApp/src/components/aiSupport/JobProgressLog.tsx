@@ -145,14 +145,14 @@ export function JobProgressLog({
                             }
                             secondary={
                                 <Box component="span">
-                                    {update.message && (
+                                    {update.result && (
                                         <Typography
                                             variant="caption"
                                             color={update.status === JobItemStatus.Failed ? 'error' : 'text.secondary'}
                                             component="span"
                                             sx={{ display: 'block' }}
                                         >
-                                            {update.message}
+                                            {update.result}
                                         </Typography>
                                     )}
                                 </Box>

@@ -101,7 +101,7 @@ public sealed class JobProcessingWorker(
             var completedItem = new UpdateJobRequest.Item {
                 Index = item.Index,
                 Status = result.IsSuccessful ? JobItemStatus.Success : JobItemStatus.Failed,
-                Message = result.IsSuccessful
+                Result = result.IsSuccessful
                              ? $"PortraitId : {result.Value.PortraitId}, TokenId : {result.Value.TokenId}"
                              : string.Join(", ", result.Errors),
                 CompletedAt = DateTime.UtcNow,

@@ -8,7 +8,11 @@ import { ErrorBoundary } from '@components/error/ErrorBoundary';
 import { configureApiClient } from '@api/client';
 import App from './App';
 
-configureApiClient(store);
+configureApiClient({
+  onUnauthorized: () => {
+    window.location.href = '/login';
+  },
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

@@ -11,7 +11,7 @@ public sealed record UpdateJobData
     public sealed record Item {
         public required int Index { get; init; }
         public JobItemStatus Status { get; init; }
-        public Optional<string?> Message { get; init; }
+        public Optional<string?> Result { get; init; }
         public Optional<DateTime?> StartedAt { get; init; }
         public Optional<DateTime?> CompletedAt { get; init; }
     }

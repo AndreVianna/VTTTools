@@ -33,7 +33,7 @@ export interface JobItemResponse {
     status: JobItemStatus;
     inputJson?: string;
     outputJson?: string;
-    errorMessage?: string;
+    result?: string;
     startedAt?: string;
     completedAt?: string;
 }
@@ -48,6 +48,7 @@ export interface JobResponse {
     inputJson?: string;
     estimatedDurationMs?: number;
     actualDurationMs?: number;
+    result?: string;
     createdAt: string;
     startedAt?: string;
     completedAt?: string;
@@ -88,6 +89,7 @@ export interface JobRetryRequest {
 export interface JobCreatedEvent {
     eventType: 'JobCreated';
     jobId: string;
+    occurredAt: string;
     type: string;
     estimatedDuration?: string;
     totalItems: number;
@@ -96,32 +98,36 @@ export interface JobCreatedEvent {
 export interface JobCompletedEvent {
     eventType: 'JobCompleted';
     jobId: string;
+    occurredAt: string;
+    result?: string;
 }
 
 export interface JobCanceledEvent {
     eventType: 'JobCanceled';
     jobId: string;
+    occurredAt: string;
 }
 
 export interface JobRetriedEvent {
     eventType: 'JobRetried';
     jobId: string;
+    occurredAt: string;
 }
 
 export interface JobItemStartedEvent {
     eventType: 'JobItemStarted';
     jobId: string;
     index: number;
-    startedAt?: string;
+    occurredAt: string;
 }
 
 export interface JobItemCompletedEvent {
     eventType: 'JobItemCompleted';
     jobId: string;
     index: number;
+    occurredAt: string;
     status: JobItemStatus;
-    message?: string;
-    completedAt?: string;
+    result?: string;
 }
 
 export type JobEvent = JobCreatedEvent | JobCompletedEvent | JobCanceledEvent | JobRetriedEvent;
@@ -131,7 +137,8 @@ export interface JobProgressItem {
     jobId: string;
     index: number;
     status: JobItemStatus;
-    message?: string;
+    occurredAt?: string;
+    result?: string;
     startedAt?: string;
     completedAt?: string;
 }

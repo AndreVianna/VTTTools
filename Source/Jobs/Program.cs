@@ -36,6 +36,7 @@ internal static class Program {
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IJobStorage, JobStorage>();
+        builder.Services.AddScoped<IJobEventPublisher, JobEventPublisher>();
 
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
@@ -47,6 +48,10 @@ internal static class Program {
         });
         builder.Services.AddSingleton<InternalConfigurationService>();
         builder.AddAuditLogging();
+
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy("JobOwner", policy => policy.Requirements.Add(new JobOwnerRequirement()));
+        builder.Services.AddScoped<IAuthorizationHandler, JobOwnerAuthorizationHandler>();
 
         builder.Services.AddSignalR();
     }

@@ -111,13 +111,30 @@ public static class HostApplicationBuilderExtensions {
                     ClockSkew = TimeSpan.Zero
                 };
 
-                // SignalR: Extract JWT from query string for WebSocket/SSE connections
                 options.Events = new JwtBearerEvents {
                     OnMessageReceived = context => {
-                        var accessToken = context.Request.Query["access_token"];
+                        if (!string.IsNullOrEmpty(context.Token))
+                            return Task.CompletedTask;
+
                         var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
-                            context.Token = accessToken;
+
+                        if (path.StartsWithSegments("/hubs")) {
+                            var accessToken = context.Request.Query["access_token"];
+                            if (!string.IsNullOrEmpty(accessToken)) {
+                                context.Token = accessToken;
+                                return Task.CompletedTask;
+                            }
+                        }
+
+                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.AdminCookieName, out var adminToken)) {
+                            context.Token = adminToken;
+                            return Task.CompletedTask;
+                        }
+
+                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.ClientCookieName, out var clientToken)) {
+                            context.Token = clientToken;
+                        }
+
                         return Task.CompletedTask;
                     }
                 };

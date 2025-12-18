@@ -45,7 +45,7 @@ internal static class JobHandlers {
             Items = request.Items.ConvertAll(i => new UpdateJobData.Item() {
                 Index = i.Index,
                 Status = i.Status,
-                Message = i.Message,
+                Result = i.Result,
                 StartedAt = i.StartedAt,
                 CompletedAt = i.CompletedAt,
             }),

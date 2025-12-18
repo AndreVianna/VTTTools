@@ -4,14 +4,21 @@ namespace VttTools.Auth.Handlers;
 public static class AuthHandlers {
     public static async Task<IResult> LoginHandler(
         [FromBody] LoginRequest request,
-        IAuthService authService) {
+        IAuthService authService,
+        HttpContext httpContext,
+        IWebHostEnvironment environment) {
 
         var response = await authService.LoginAsync(request);
+
+        if (response is { Success: true, Token: not null }) {
+            var cookieOptions = AuthCookieConstants.CreateSecureCookie(environment.IsDevelopment());
+            httpContext.Response.Cookies.Append(AuthCookieConstants.ClientCookieName, response.Token, cookieOptions);
+            return Results.Ok(response with { Token = null });
+        }
 
         if (response.Success)
             return Results.Ok(response);
 
-        // Return structured error for login failures
         var errors = new Dictionary<string, string[]> {
             [""] = [response.Message ?? "Login failed"]
         };
@@ -53,8 +60,16 @@ public static class AuthHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<IResult> LogoutHandler(IAuthService authService) {
+    public static async Task<IResult> LogoutHandler(
+        IAuthService authService,
+        HttpContext httpContext,
+        IWebHostEnvironment environment) {
+
         var response = await authService.LogoutAsync();
+
+        var cookieOptions = AuthCookieConstants.CreateExpiredCookie(environment.IsDevelopment());
+        httpContext.Response.Cookies.Delete(AuthCookieConstants.ClientCookieName, cookieOptions);
+
         return Results.Ok(response);
     }
 

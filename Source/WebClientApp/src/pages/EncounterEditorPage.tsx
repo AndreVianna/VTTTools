@@ -222,17 +222,27 @@ const EncounterEditorPageInternal: React.FC = () => {
   const backgroundSize = encounter?.stage?.background?.size;
 
   useEffect(() => {
-    if (backgroundSize && backgroundSize.width > 0 && backgroundSize.height > 0) {
+    const hasValidBackgroundSize = backgroundSize && backgroundSize.width > 0 && backgroundSize.height > 0;
+    if (hasValidBackgroundSize) {
       setStageSize({ width: backgroundSize.width, height: backgroundSize.height });
     } else {
       setStageSize({ width: DEFAULT_STAGE_WIDTH, height: DEFAULT_STAGE_HEIGHT });
     }
   }, [backgroundSize]);
 
+  // Track if we've loaded dimensions from the actual image (fallback when encounter doesn't have stored dimensions)
+  const [imageDimensionsLoaded, setImageDimensionsLoaded] = useState(false);
+
+  // Reset imageDimensionsLoaded when navigating to a different encounter
+  useEffect(() => {
+    setImageDimensionsLoaded(false);
+  }, [encounterId]);
+
   const handleBackgroundImageLoaded = useCallback((dimensions: { width: number; height: number }) => {
     // Update stage size from actual image dimensions if encounter doesn't have them stored
     if (!backgroundSize || backgroundSize.width === 0 || backgroundSize.height === 0) {
       setStageSize(dimensions);
+      setImageDimensionsLoaded(true);
     }
   }, [backgroundSize]);
 
@@ -551,6 +561,8 @@ const EncounterEditorPageInternal: React.FC = () => {
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
     stageSize,
     encounterId,
+    // Pass backgroundSize directly for centering calculation to avoid timing issues with stageSize state
+    backgroundSize: backgroundSize ?? (imageDimensionsLoaded ? stageSize : undefined),
   });
 
   const contextMenus = useContextMenus({

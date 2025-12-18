@@ -1,10 +1,8 @@
 namespace VttTools.Configuration;
 
 public sealed class JwtOptions {
-    private string _secretKey = string.Empty;
-
     public string SecretKey {
-        get => _secretKey;
+        get;
         set {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("JWT SecretKey cannot be empty", nameof(SecretKey));
@@ -12,9 +10,9 @@ public sealed class JwtOptions {
             if (value.Length < 32)
                 throw new ArgumentException("JWT SecretKey must be at least 32 characters long", nameof(SecretKey));
 
-            _secretKey = value;
+            field = value;
         }
-    }
+    } = string.Empty;
 
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;

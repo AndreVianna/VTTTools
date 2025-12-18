@@ -13,6 +13,7 @@ internal static class Mapper {
             Type = entity.Type,
             Status = entity.Status,
             EstimatedDuration = entity.EstimatedDuration,
+            Result = entity.Result,
             StartedAt = entity.StartedAt,
             CompletedAt = entity.CompletedAt,
             Items = entity.Items.AsQueryable().OrderBy(i => i.Index).Select(AsJobItem!).ToList(),
@@ -23,7 +24,7 @@ internal static class Mapper {
             Index = entity.Index,
             Status = entity.Status,
             Data = entity.Data,
-            Message = entity.Message,
+            Result = entity.Result,
             StartedAt = entity.StartedAt,
             CompletedAt = entity.CompletedAt,
         };
@@ -38,6 +39,7 @@ internal static class Mapper {
                Type = entity.Type,
                Status = entity.Status,
                EstimatedDuration = entity.EstimatedDuration,
+               Result = entity.Result,
                StartedAt = entity.StartedAt,
                CompletedAt = entity.CompletedAt,
                Items = entity.Items.Select(ToModel).ToList()!,
@@ -52,7 +54,7 @@ internal static class Mapper {
                Index = entity.Index,
                Status = entity.Status,
                Data = entity.Data,
-               Message = entity.Message,
+               Result = entity.Result,
                StartedAt = entity.StartedAt,
                CompletedAt = entity.CompletedAt,
            };
@@ -64,6 +66,7 @@ internal static class Mapper {
             Type = model.Type,
             Status = model.Status,
             EstimatedDuration = model.EstimatedDuration,
+            Result = model.Result,
             StartedAt = model.StartedAt,
             CompletedAt = model.CompletedAt,
             Items = model.Items.ConvertAll(i => i.ToEntity()),
@@ -75,7 +78,7 @@ internal static class Mapper {
             Index = model.Index,
             Status = model.Status,
             Data = model.Data,
-            Message = model.Message,
+            Result = model.Result,
             StartedAt = model.StartedAt,
             CompletedAt = model.CompletedAt,
         };
@@ -86,6 +89,7 @@ internal static class Mapper {
         entity.Type = model.Type;
         entity.Status = model.Status;
         entity.EstimatedDuration = model.EstimatedDuration;
+        entity.Result = model.Result;
         entity.StartedAt = model.StartedAt;
         entity.CompletedAt = model.CompletedAt;
         entity.Items = model.Items.ConvertAll(i => i.ToEntity());

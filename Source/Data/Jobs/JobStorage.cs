@@ -79,7 +79,7 @@ public class JobStorage(ApplicationDbContext context)
 
         foreach (var item in job.Items.Where(i => i.Status is JobItemStatus.Failed or JobItemStatus.Canceled)) {
             item.Status = JobItemStatus.Pending;
-            item.Message = null;
+            item.Result = null;
             item.StartedAt = null;
             item.CompletedAt = null;
         }

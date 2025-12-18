@@ -8,6 +8,7 @@ import { MutationDefinition } from '@reduxjs/toolkit/query';
 import { QueryDefinition } from '@reduxjs/toolkit/query';
 import { ReactNode } from 'react';
 import { RefObject } from 'react';
+import * as signalR from '@microsoft/signalr';
 import { TypographyProps } from '@mui/material';
 
 export declare interface AddResourceRequest {
@@ -1060,6 +1061,13 @@ export declare interface EnhancedError {
     isNetworkError?: boolean;
 }
 
+/**
+ * Event handler map type - maps event names to their handler functions.
+ */
+export declare type EventHandlers<TEvents extends Record<string, unknown>> = {
+    [K in keyof TEvents]?: (event: TEvents[K]) => void;
+};
+
 export declare interface ExternalLoginCallbackRequest {
     provider: string;
     returnUrl?: string;
@@ -1524,6 +1532,20 @@ declare interface SaveStatusIndicatorProps {
     compact?: boolean;
 }
 
+/**
+ * Configuration options for the SignalR hub connection.
+ */
+export declare interface SignalRHubConfig {
+    /** The hub URL path (e.g., '/hubs/jobs') */
+    hubUrl: string;
+    /** Function to get the current access token (optional - uses cookies if not provided) */
+    getAccessToken?: (() => string | null) | undefined;
+    /** Maximum number of reconnection attempts (default: 5) */
+    maxReconnectAttempts?: number;
+    /** Log level for SignalR (default: Warning) */
+    logLevel?: signalR.LogLevel;
+}
+
 export declare enum SizeName {
     Zero = 0,
     Miniscule = 1,
@@ -1787,6 +1809,74 @@ export declare interface User {
     createdAt: string;
     lastLoginAt?: string;
     profilePictureUrl?: string;
+}
+
+/**
+ * Generic hook for managing SignalR hub connections.
+ * Provides automatic reconnection, token refresh, and proper cleanup.
+ *
+ * @example
+ * ```typescript
+ * interface JobEvents {
+ *   JobEvent: JobEvent;
+ *   JobItemEvent: JobItemEvent;
+ * }
+ *
+ * const { connect, subscribeToGroup, connectionState } = useSignalRHub<JobEvents>({
+ *   config: {
+ *     hubUrl: '/hubs/jobs',
+ *     getAccessToken: () => localStorage.getItem('token'),
+ *   },
+ *   eventHandlers: {
+ *     JobEvent: (event) => dispatch(handleJobEvent(event)),
+ *     JobItemEvent: (event) => dispatch(handleJobItemEvent(event)),
+ *   },
+ *   autoConnect: true,
+ * });
+ * ```
+ */
+export declare function useSignalRHub<TEvents extends Record<string, unknown> = Record<string, unknown>>(options: UseSignalRHubOptions<TEvents>): UseSignalRHubReturn;
+
+/**
+ * Options for the useSignalRHub hook.
+ */
+export declare interface UseSignalRHubOptions<TEvents extends Record<string, unknown>> {
+    /** Hub configuration */
+    config: SignalRHubConfig;
+    /** Event handlers for hub events */
+    eventHandlers?: EventHandlers<TEvents> | undefined;
+    /** Callback when connection state changes */
+    onConnectionStateChanged?: ((state: signalR.HubConnectionState) => void) | undefined;
+    /** Auto-connect on mount (default: false) */
+    autoConnect?: boolean | undefined;
+}
+
+/**
+ * Return type for the useSignalRHub hook.
+ */
+export declare interface UseSignalRHubReturn {
+    /** Current connection state */
+    connectionState: signalR.HubConnectionState;
+    /** Connect to the hub */
+    connect: () => Promise<void>;
+    /** Disconnect from the hub */
+    disconnect: () => Promise<void>;
+    /** Invoke a hub method */
+    invoke: <T = void>(methodName: string, ...args: unknown[]) => Promise<T>;
+    /** Subscribe to a group */
+    subscribeToGroup: (methodName: string, groupId: string) => Promise<void>;
+    /** Unsubscribe from a group */
+    unsubscribeFromGroup: (methodName: string, groupId: string) => Promise<void>;
+    /** Current error, if any */
+    error: Error | null;
+    /** Whether currently connected */
+    isConnected: boolean;
+    /** Group IDs that failed to resubscribe after reconnection */
+    failedSubscriptions: string[];
+    /** Whether resubscription is in progress */
+    isResubscribing: boolean;
+    /** Retry failed subscriptions */
+    retryFailedSubscriptions: () => Promise<void>;
 }
 
 export declare const validatePlacement: (position: {

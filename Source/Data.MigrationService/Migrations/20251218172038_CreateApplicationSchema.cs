@@ -64,6 +64,7 @@ public partial class CreateApplicationSchema : Migration {
                 Type = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                 Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
                 EstimatedDuration = table.Column<TimeSpan>(type: "time", nullable: false),
+                Result = table.Column<string>(type: "nvarchar(max)", maxLength: 8192, nullable: true),
                 StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                 CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
             },
@@ -216,7 +217,7 @@ public partial class CreateApplicationSchema : Migration {
                 Index = table.Column<int>(type: "int", nullable: false),
                 Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
                 Data = table.Column<string>(type: "nvarchar(max)", maxLength: 8192, nullable: false),
-                Message = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
+                Result = table.Column<string>(type: "nvarchar(max)", maxLength: 8192, nullable: true),
                 StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                 CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
             },
