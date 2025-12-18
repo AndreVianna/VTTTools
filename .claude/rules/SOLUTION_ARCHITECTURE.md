@@ -93,6 +93,24 @@ Result: `Result.Success(v)` / `Result.Failure("msg")` | TypedResult for handlers
 Optional: `Optional<string> Name` → `data.Name.IsSet ? data.Name.Value : existing`
 Primary Ctors: `public class Svc(IStorage s) : ISvc { }`
 
+## SignalR Real-Time Events
+Full guide: `Documents/Guides/SIGNALR_HUB_PATTERN.md`
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Hub | `{Area}/Hubs/{Area}Hub.cs` | Client subscriptions, authorization |
+| Hub Client | `Domain/{Area}/Hubs/I{Area}HubClient.cs` | Event contract |
+| EventPublisher | `{Area}/Services/{Area}EventPublisher.cs` | Push via HubContext |
+| EventCollector | `{Area}/Services/{Area}EventCollector.cs` | Transaction-safe batching |
+| useSignalRHub | `WebComponents/src/hooks/` | Generic React hook |
+| use{Area}Hub | `Web{App}/src/hooks/` | Domain-specific wrapper |
+
+Key rules:
+- Use `EventCollector` → publish events AFTER all DB commits (transaction safety)
+- Use policy-based authorization in hub (`IAuthorizationService`)
+- Use httpOnly cookies for auth (not localStorage tokens)
+- Frontend: `useSignalRHub` with `withCredentials: true` for cookie auth
+
 ## Design Decisions
 | Rule | Rationale |
 |------|-----------|

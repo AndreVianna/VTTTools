@@ -637,30 +637,30 @@ export interface Pole {
 
 
 export enum SegmentType {
-  Wall = 0,
-  Door = 1,
-  Window = 2,
+  Wall = 'Wall',
+  Door = 'Door',
+  Window = 'Window',
 }
 
 export enum SegmentState {
-  Open = 0,
-  Closed = 1,
-  Locked = 2,
-  Visible = 2, // Alias for Locked, used for barriers (walls/fences)
-  Secret = 3,
+  Open = 'Open',
+  Closed = 'Closed',
+  Locked = 'Locked',
+  Visible = 'Locked', // Alias for Locked, used for barriers (walls/fences)
+  Secret = 'Secret',
 }
 
 export enum LightSourceType {
-  Natural = 0,
-  Artificial = 1,
-  Supernatural = 2,
+  Natural = 'Natural',
+  Artificial = 'Artificial',
+  Supernatural = 'Supernatural',
 }
 
 export enum RegionType {
-  Elevation = 0,
-  Terrain = 1,
-  Illumination = 2,
-  FogOfWar = 3,
+  Elevation = 'Elevation',
+  Terrain = 'Terrain',
+  Illumination = 'Illumination',
+  FogOfWar = 'FogOfWar',
 }
 
 export interface EncounterWallSegment {

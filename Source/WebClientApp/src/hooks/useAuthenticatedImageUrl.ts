@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/store';
 
 interface UseAuthenticatedImageUrlResult {
     blobUrl: string | null;
@@ -32,8 +30,6 @@ export function useAuthenticatedImageUrl(
     const urlRef = useRef(resourceUrl);
     const abortControllerRef = useRef<AbortController | null>(null);
 
-    const token = useSelector((state: RootState) => state.auth.token);
-
     useEffect(() => {
         urlRef.current = resourceUrl;
 
@@ -58,11 +54,6 @@ export function useAuthenticatedImageUrl(
         abortControllerRef.current = new AbortController();
 
         const fetchImage = async () => {
-            if (!token) {
-                setError(new Error('Not authenticated'));
-                return;
-            }
-
             setIsLoading(true);
             setError(null);
 
@@ -70,9 +61,10 @@ export function useAuthenticatedImageUrl(
 
             try {
                 const signal = abortControllerRef.current?.signal;
+                // Use credentials: 'include' for cookie-based auth (not Bearer token)
                 const response = await fetch(fetchUrl, {
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                     ...(signal && { signal }),
@@ -124,7 +116,7 @@ export function useAuthenticatedImageUrl(
                 }
             }
         };
-    }, [resourceUrl, token]);
+    }, [resourceUrl]);
 
     return { blobUrl, isLoading, error };
 }
