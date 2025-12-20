@@ -11,6 +11,14 @@ public sealed record AssetGenerationData
     public bool GeneratePortrait { get; init; } = true;
     public bool GenerateToken { get; init; } = true;
 
+    /// <summary>
+    /// The specific generation type for this job item.
+    /// Set during job creation when expanding items by type.
+    /// Values: "Portrait" or "Token"
+    /// </summary>
+    [MaxLength(16)]
+    public string? GenerationType { get; init; }
+
     [Required]
     [MaxLength(64)]
     public required string Category { get; init; }

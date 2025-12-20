@@ -45,13 +45,28 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
             return Result.Failure(validation.Errors).WithNo<Job>();
 
         try {
+            // Expand items by generation type: 1 input with both types → 2 job items
+            var expandedItems = new List<AddJobRequest.Item>();
+            var index = 0;
+            foreach (var item in data.Items) {
+                if (item.GeneratePortrait) {
+                    expandedItems.Add(new AddJobRequest.Item {
+                        Index = index++,
+                        Data = JsonSerializer.Serialize(item with { GenerationType = "Portrait" }, JsonDefaults.Options),
+                    });
+                }
+                if (item.GenerateToken) {
+                    expandedItems.Add(new AddJobRequest.Item {
+                        Index = index++,
+                        Data = JsonSerializer.Serialize(item with { GenerationType = "Token" }, JsonDefaults.Options),
+                    });
+                }
+            }
+
             var request = new AddJobRequest {
                 Type = BulkAssetGenerationHandler.JobTypeName,
-                EstimatedDuration = TimeSpan.FromMilliseconds(1500 * data.Items.Count),
-                Items = [..data.Items.Select((item, index) => new AddJobRequest.Item {
-                    Index = index,
-                    Data = JsonSerializer.Serialize(item, JsonDefaults.Options),
-                })],
+                EstimatedDuration = TimeSpan.FromMilliseconds(1500 * expandedItems.Count),
+                Items = [..expandedItems],
             };
 
             var job = await jobsClient.AddAsync(ownerId, request, ct);
@@ -59,7 +74,8 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
                 logger.LogError("Failed to create job via Jobs service");
                 return Result.Failure("Failed to create job").WithNo<Job>();
             }
-            logger.LogInformation("AI job {Id} created with {ItemCount} items", job.Id, data.Items.Count);
+            logger.LogInformation("AI job {Id} created with {ItemCount} items (expanded from {OriginalCount} inputs)",
+                job.Id, expandedItems.Count, data.Items.Count);
 
             var queueItem = new JobQueueItem(job.Id);
             await jobChannel.Writer.WriteAsync(queueItem, ct);

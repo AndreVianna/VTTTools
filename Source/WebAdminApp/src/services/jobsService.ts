@@ -22,6 +22,7 @@ interface BackendJobItem {
     index: number;
     status: JobItemStatus | number; // Backend sends 0-4 or 'Pending'/'InProgress'/'Success'/'Failed'/'Canceled'
     data: string;
+    result?: string;
     message?: string;
     startedAt?: string;
     completedAt?: string;
@@ -67,6 +68,7 @@ function mapJobItemToResponse(item: BackendJobItem, jobId: string): JobItemRespo
         index: item.index,
         status: mapItemStatusToFrontend(item.status),
         ...(item.data && { inputJson: item.data }),
+        ...(item.result !== undefined && { result: item.result }),
         ...(item.message !== undefined && { errorMessage: item.message }),
         ...(item.startedAt !== undefined && { startedAt: item.startedAt }),
         ...(item.completedAt !== undefined && { completedAt: item.completedAt }),
@@ -160,7 +162,10 @@ export const jobsService = {
 
     async getJobStatus(jobId: string): Promise<JobResponse> {
         const response = await apiClient.get<BackendJob>(`${JOBS_API_BASE}/${jobId}`);
-        return mapJobToResponse(response.data);
+        console.log('[JobsService] Raw backend response:', JSON.stringify(response.data, null, 2));
+        const mapped = mapJobToResponse(response.data);
+        console.log('[JobsService] Mapped response:', JSON.stringify(mapped, null, 2));
+        return mapped;
     },
 
     async cancelJob(jobId: string): Promise<void> {

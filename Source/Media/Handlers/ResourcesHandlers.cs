@@ -9,14 +9,16 @@ internal static class ResourcesHandlers {
         [AsParameters] ResourceFilterRequest request,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
-        var userId = context.User.GetUserId();
+        // Internal services can query all resources without user-scoping
+        var isInternalService = context.IsInternalService();
+        var userId = isInternalService ? (Guid?)null : context.User.GetUserId();
 
         var filter = new ResourceFilterData {
             ResourceType = request.ResourceType,
             ContentKind = request.ContentKind,
             Category = request.Category,
             SearchText = request.SearchText,
-            OwnerId = userId,
+            OwnerId = isInternalService ? null : userId,
             IsPublic = request.IsPublic,
             IsPublished = request.IsPublished,
             Skip = request.Skip ?? 0,
@@ -36,6 +38,11 @@ internal static class ResourcesHandlers {
         [FromForm] IFormFile file,
         [FromForm] string? resourceType,
         [FromForm] string? ownerId,
+        [FromForm] string? kind,
+        [FromForm] string? category,
+        [FromForm] string? type,
+        [FromForm] string? subtype,
+        [FromForm] string? description,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
         Guid userId;
@@ -55,11 +62,23 @@ internal static class ResourcesHandlers {
             ? rt
             : ResourceType.Undefined;
 
+        // Build classification if any field is provided
+        ResourceClassification? classification = null;
+        if (!string.IsNullOrWhiteSpace(kind) || !string.IsNullOrWhiteSpace(category) || !string.IsNullOrWhiteSpace(type)) {
+            classification = new ResourceClassification(
+                kind ?? string.Empty,
+                category ?? string.Empty,
+                type ?? string.Empty,
+                subtype);
+        }
+
         var data = new UploadResourceData {
             ContentType = file.ContentType,
             FileName = file.FileName,
             Stream = file.OpenReadStream(),
             ResourceType = parsedResourceType,
+            Classification = classification,
+            Description = description,
         };
 
         var validationResult = data.Validate();
@@ -100,7 +119,8 @@ internal static class ResourcesHandlers {
         [FromRoute] Guid id,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
-        var userId = context.User.GetUserId();
+        var isInternalService = context.IsInternalService();
+        var userId = isInternalService ? (Guid?)null : context.User.GetUserId();
 
         var result = await resourceService.DeleteResourceAsync(userId, id, ct);
         return !result.IsSuccessful
@@ -119,7 +139,9 @@ internal static class ResourcesHandlers {
         [FromRoute] Guid id,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
-        var userId = context.User.GetUserId();
+        // Internal services can serve any resource (for admin proxy)
+        var isInternalService = context.IsInternalService();
+        var userId = isInternalService ? (Guid?)null : context.User.GetUserId();
 
         var download = await resourceService.ServeResourceAsync(userId, id, ct);
         if (download == null)

@@ -1,4 +1,5 @@
 ﻿global using System.Data.Common;
+global using System.Threading.RateLimiting;
 global using System.Diagnostics;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.Security.Claims;
@@ -48,4 +49,5 @@ global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;
 global using VttTools.Maintenance.Storage;
 global using VttTools.Middlewares;
+global using VttTools.Common.Options;
 global using VttTools.Utilities;

@@ -128,9 +128,9 @@ export const WallContextMenu: React.FC<WallContextMenuProps> = ({
     });
   };
 
-  const handleStateChange = (event: SelectChangeEvent<number>) => {
+  const handleStateChange = (event: SelectChangeEvent<SegmentState>) => {
     if (segmentIndex === null || !onSegmentUpdate) return;
-    const newState = event.target.value as SegmentState;
+    const newState = event.target.value;
     onSegmentUpdate(encounterWall.index, segmentIndex, { state: newState });
   };
 
@@ -188,7 +188,7 @@ export const WallContextMenu: React.FC<WallContextMenuProps> = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography sx={{ fontSize: '10px', minWidth: 40 }}>State:</Typography>
               <FormControl size='small'>
-                <Select value={normalizedState} onChange={handleStateChange} sx={compactSelectStyle}>
+                <Select<SegmentState> value={normalizedState} onChange={handleStateChange} sx={compactSelectStyle}>
                   {validStates.map((state) => (
                     <MenuItem key={state} value={state} sx={{ fontSize: '11px' }}>
                       {SEGMENT_STATE_LABELS[state]}

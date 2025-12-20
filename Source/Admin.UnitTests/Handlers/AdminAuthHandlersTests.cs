@@ -4,9 +4,19 @@ namespace VttTools.Admin.UnitTests.Handlers;
 
 public sealed class AdminAuthHandlersTests {
     private readonly IAdminAuthService _mockAuthService;
+    private readonly HttpContext _mockHttpContext;
+    private readonly IWebHostEnvironment _mockEnvironment;
 
     public AdminAuthHandlersTests() {
         _mockAuthService = Substitute.For<IAdminAuthService>();
+        _mockHttpContext = Substitute.For<HttpContext>();
+        _mockEnvironment = Substitute.For<IWebHostEnvironment>();
+
+        var responseCookies = Substitute.For<IResponseCookies>();
+        var response = Substitute.For<HttpResponse>();
+        response.Cookies.Returns(responseCookies);
+        _mockHttpContext.Response.Returns(response);
+        _mockEnvironment.EnvironmentName.Returns("Development");
     }
 
     #region LoginHandler Tests
@@ -18,7 +28,7 @@ public sealed class AdminAuthHandlersTests {
 
         _mockAuthService.LoginAsync(request, Arg.Any<CancellationToken>()).Returns(response);
 
-        var result = await AdminAuthHandlers.LoginHandler(request, _mockAuthService, TestContext.Current.CancellationToken);
+        var result = await AdminAuthHandlers.LoginHandler(request, _mockAuthService, _mockHttpContext, _mockEnvironment, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<AdminLoginResponse>>();
         var okResult = (Ok<AdminLoginResponse>)result;
@@ -32,7 +42,7 @@ public sealed class AdminAuthHandlersTests {
 
         _mockAuthService.LoginAsync(request, Arg.Any<CancellationToken>()).Returns(response);
 
-        var result = await AdminAuthHandlers.LoginHandler(request, _mockAuthService, TestContext.Current.CancellationToken);
+        var result = await AdminAuthHandlers.LoginHandler(request, _mockAuthService, _mockHttpContext, _mockEnvironment, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<AdminLoginResponse>>();
     }
@@ -44,7 +54,7 @@ public sealed class AdminAuthHandlersTests {
 
         _mockAuthService.LoginAsync(request, Arg.Any<CancellationToken>()).Returns(response);
 
-        var result = await AdminAuthHandlers.LoginHandler(request, _mockAuthService, TestContext.Current.CancellationToken);
+        var result = await AdminAuthHandlers.LoginHandler(request, _mockAuthService, _mockHttpContext, _mockEnvironment, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<UnauthorizedHttpResult>();
     }
@@ -59,7 +69,7 @@ public sealed class AdminAuthHandlersTests {
 
         _mockAuthService.LogoutAsync(Arg.Any<CancellationToken>()).Returns(response);
 
-        var result = await AdminAuthHandlers.LogoutHandler(_mockAuthService, TestContext.Current.CancellationToken);
+        var result = await AdminAuthHandlers.LogoutHandler(_mockAuthService, _mockHttpContext, _mockEnvironment, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<AdminLoginResponse>>();
     }
@@ -70,7 +80,7 @@ public sealed class AdminAuthHandlersTests {
 
         _mockAuthService.LogoutAsync(Arg.Any<CancellationToken>()).Returns(response);
 
-        var result = await AdminAuthHandlers.LogoutHandler(_mockAuthService, TestContext.Current.CancellationToken);
+        var result = await AdminAuthHandlers.LogoutHandler(_mockAuthService, _mockHttpContext, _mockEnvironment, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IResult>();
         result.Should().BeAssignableTo<IStatusCodeHttpResult>();

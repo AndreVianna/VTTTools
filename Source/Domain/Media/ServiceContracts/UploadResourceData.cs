@@ -6,6 +6,8 @@ public record UploadResourceData
     public string ContentType { get; init; } = string.Empty;
     public string FileName { get; init; } = string.Empty;
     public Stream? Stream { get; init; }
+    public ResourceClassification? Classification { get; init; }
+    public string? Description { get; init; }
 
     private const long _maxFileSizeBytes = 100 * 1024 * 1024; // 100 MB
 

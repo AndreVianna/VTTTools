@@ -11,7 +11,7 @@ internal static class Program {
         builder.AddRequiredServices();
         builder.AddStorage();
         builder.AddJwtAuthentication();
-        builder.AddRateLimiting();
+        builder.AddConfigurableRateLimiting("write");
         builder.AddServices();
 
         var app = builder.Build();
@@ -77,22 +77,6 @@ internal static class Program {
             .AddHttpMessageHandler<InternalApiKeyHandler>()
             .AddStandardResilienceHandler();
     }
-
-    internal static void AddRateLimiting(this IHostApplicationBuilder builder)
-        => builder.Services.AddRateLimiter(options => {
-            options.AddSlidingWindowLimiter("admin", rateLimiterOptions => {
-                rateLimiterOptions.PermitLimit = 30;
-                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
-                rateLimiterOptions.SegmentsPerWindow = 6;
-                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                rateLimiterOptions.QueueLimit = 5;
-            });
-
-            options.OnRejected = async (context, cancellationToken) => {
-                context.HttpContext.Response.StatusCode = 429;
-                await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
-            };
-        });
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
         app.MapAiEndpoints();

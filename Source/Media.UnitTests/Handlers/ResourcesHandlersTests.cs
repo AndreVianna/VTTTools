@@ -30,13 +30,13 @@ public class ResourcesHandlersTests {
             new ResourceMetadata { Id = Guid.CreateVersion7(), FileName = "test.png" },
         };
 
-        _resourceService.FindResourcesAsync(Arg.Any<Guid>(), Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
+        _resourceService.FindResourcesAsync(Arg.Any<Guid?>(), Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
             .Returns((resources, 1));
 
         var result = await ResourcesHandlers.FilterResourcesHandler(_httpContext, request, _resourceService, _ct);
 
         result.Should().NotBeNull();
-        await _resourceService.Received(1).FindResourcesAsync(Arg.Any<Guid>(), Arg.Any<ResourceFilterData>(), _ct);
+        await _resourceService.Received(1).FindResourcesAsync(Arg.Any<Guid?>(), Arg.Any<ResourceFilterData>(), _ct);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success(resourceMetadata));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
 
         var okResult = result.Should().BeOfType<Ok<ResourceMetadata>>().Subject;
         okResult.Value.Should().BeEquivalentTo(resourceMetadata);
@@ -209,7 +209,7 @@ public class ResourcesHandlersTests {
         file.FileName.Returns("");
         file.OpenReadStream().Returns(stream);
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
 
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
     }
@@ -225,7 +225,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "Invalid file format: corrupted image"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -243,7 +243,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "File size (55.00 MB) exceeds maximum (50.00 MB) for resourceType 'Background'"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -261,7 +261,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "Failed to save blob to storage"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -279,7 +279,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "Invalid resource type"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "InvalidType", null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "InvalidType", null, null, null, null, null, null, _resourceService, _ct);
 
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
     }

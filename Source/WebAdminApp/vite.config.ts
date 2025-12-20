@@ -111,6 +111,16 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
+        '/api/resources': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
         '/api/game': {
           target: 'https://localhost:7173',
           changeOrigin: true,
@@ -278,6 +288,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api\/media/, '/api'),
+        },
+        '/api/resources': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
         },
         '/api/game': {
           target: 'https://localhost:7173',

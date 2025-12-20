@@ -7,9 +7,19 @@ namespace VttTools.Auth.UnitTests;
 /// </summary>
 public class AuthHandlersTests {
     private readonly IAuthService _mockAuthService;
+    private readonly HttpContext _mockHttpContext;
+    private readonly IWebHostEnvironment _mockEnvironment;
 
     public AuthHandlersTests() {
         _mockAuthService = Substitute.For<IAuthService>();
+        _mockHttpContext = Substitute.For<HttpContext>();
+        _mockEnvironment = Substitute.For<IWebHostEnvironment>();
+
+        var responseCookies = Substitute.For<IResponseCookies>();
+        var response = Substitute.For<HttpResponse>();
+        response.Cookies.Returns(responseCookies);
+        _mockHttpContext.Response.Returns(response);
+        _mockEnvironment.EnvironmentName.Returns("Development");
     }
 
     #region LoginHandler Tests
@@ -38,7 +48,7 @@ public class AuthHandlersTests {
         _mockAuthService.LoginAsync(request).Returns(successResponse);
 
         // Act
-        var result = await AuthHandlers.LoginHandler(request, _mockAuthService);
+        var result = await AuthHandlers.LoginHandler(request, _mockAuthService, _mockHttpContext, _mockEnvironment);
 
         // Assert
         Assert.IsType<Ok<AuthResponse>>(result);
@@ -69,7 +79,7 @@ public class AuthHandlersTests {
         _mockAuthService.LoginAsync(request).Returns(failureResponse);
 
         // Act
-        var result = await AuthHandlers.LoginHandler(request, _mockAuthService);
+        var result = await AuthHandlers.LoginHandler(request, _mockAuthService, _mockHttpContext, _mockEnvironment);
 
         // Assert
         Assert.IsType<ProblemHttpResult>(result);
@@ -100,7 +110,7 @@ public class AuthHandlersTests {
         _mockAuthService.LoginAsync(request).Returns(lockedResponse);
 
         // Act
-        var result = await AuthHandlers.LoginHandler(request, _mockAuthService);
+        var result = await AuthHandlers.LoginHandler(request, _mockAuthService, _mockHttpContext, _mockEnvironment);
 
         // Assert
         Assert.IsType<ProblemHttpResult>(result);
@@ -229,7 +239,7 @@ public class AuthHandlersTests {
         _mockAuthService.LogoutAsync().Returns(successResponse);
 
         // Act
-        var result = await AuthHandlers.LogoutHandler(_mockAuthService);
+        var result = await AuthHandlers.LogoutHandler(_mockAuthService, _mockHttpContext, _mockEnvironment);
 
         // Assert
         Assert.IsType<Ok<AuthResponse>>(result);
@@ -253,7 +263,7 @@ public class AuthHandlersTests {
         _mockAuthService.LogoutAsync().Returns(errorResponse);
 
         // Act
-        var result = await AuthHandlers.LogoutHandler(_mockAuthService);
+        var result = await AuthHandlers.LogoutHandler(_mockAuthService, _mockHttpContext, _mockEnvironment);
 
         // Assert
         // Note: LogoutHandler always returns Ok regardless of service response

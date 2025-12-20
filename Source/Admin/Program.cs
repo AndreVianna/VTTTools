@@ -10,7 +10,7 @@ internal static class Program {
         builder.AddStorage();
         builder.AddIdentity();
         builder.AddCors();
-        builder.AddRateLimiting();
+        builder.AddConfigurableRateLimiting("read", "write", "sensitive");
         builder.AddServices();
         builder.AddAuditLogging();
         builder.AddPublicLibrary();
@@ -115,45 +115,6 @@ internal static class Program {
         });
     }
 
-    internal static void AddRateLimiting(this IHostApplicationBuilder builder)
-        => builder.Services.AddRateLimiter(options => {
-            options.AddSlidingWindowLimiter("admin", rateLimiterOptions => {
-                rateLimiterOptions.PermitLimit = 30;
-                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
-                rateLimiterOptions.SegmentsPerWindow = 6;
-                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                rateLimiterOptions.QueueLimit = 5;
-            });
-
-            options.AddSlidingWindowLimiter("reveal", rateLimiterOptions => {
-                rateLimiterOptions.PermitLimit = 5;
-                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
-                rateLimiterOptions.SegmentsPerWindow = 2;
-                rateLimiterOptions.QueueLimit = 0;
-            });
-
-            options.AddSlidingWindowLimiter("audit", rateLimiterOptions => {
-                rateLimiterOptions.PermitLimit = 200;
-                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
-                rateLimiterOptions.SegmentsPerWindow = 6;
-                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                rateLimiterOptions.QueueLimit = 10;
-            });
-
-            options.AddSlidingWindowLimiter("dashboard", rateLimiterOptions => {
-                rateLimiterOptions.PermitLimit = 100;
-                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
-                rateLimiterOptions.SegmentsPerWindow = 6;
-                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                rateLimiterOptions.QueueLimit = 5;
-            });
-
-            options.OnRejected = async (context, cancellationToken) => {
-                context.HttpContext.Response.StatusCode = 429;
-                await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
-            };
-        });
-
     internal static void AddCors(this IHostApplicationBuilder builder)
      => builder.Services.AddCors(options
          => options.AddDefaultPolicy(policy
@@ -180,6 +141,23 @@ internal static class Program {
         builder.Services.AddScoped<IEncounterAdminService, EncounterAdminService>();
         builder.Services.AddScoped<IAssetAdminService, AssetAdminService>();
 
+        builder.Services.AddScoped<IMediaServiceClient, MediaServiceClient>();
+        builder.Services.AddScoped<IAssetsServiceClient, AssetsServiceClient>();
+        builder.Services.AddScoped<IAiServiceClient, AiServiceClient>();
+        builder.Services.AddScoped<IResourceApprovalService, ResourceApprovalService>();
+
+        builder.Services.AddTransient<InternalApiKeyHandler>();
+
+        builder.Services.AddHttpClient("MediaService", c => c.BaseAddress = new Uri("https+http://resources-api"))
+            .AddHttpMessageHandler<InternalApiKeyHandler>()
+            .AddStandardResilienceHandler();
+        builder.Services.AddHttpClient("AssetsService", c => c.BaseAddress = new Uri("https+http://assets-api"))
+            .AddHttpMessageHandler<InternalApiKeyHandler>()
+            .AddStandardResilienceHandler();
+        builder.Services.AddHttpClient("AiService", c => c.BaseAddress = new Uri("https+http://ai-api"))
+            .AddHttpMessageHandler<InternalApiKeyHandler>()
+            .AddStandardResilienceHandler();
+
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root
@@ -202,6 +180,7 @@ internal static class Program {
         app.MapMaintenanceModeEndpoints();
         app.MapConfigurationEndpoints();
         app.MapLibraryAdminEndpoints();
+        app.MapResourceApprovalEndpoints();
         app.MapHub<AuditLogHub>("/hubs/audit");
     }
 }

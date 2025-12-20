@@ -81,10 +81,13 @@ internal static class AppHost {
                            .WithReference(cache)
                            .WithReference(database)
                            .WithReference(blobs)
+                           .WithReference(resources)
+                           .WithReference(assets)
+                           .WithReference(ai)
                            .WithHttpHealthCheck("health")
                            .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
-        builder.AddNpmApp("webapp", "../WebClientApp", "dev")
+        builder.AddJavaScriptApp("web-app", "../WebClientApp", "dev")
                                  .WithReference(cache)
                                  .WithReference(database)
                                  .WithReference(blobs)
@@ -99,7 +102,7 @@ internal static class AppHost {
                                      endpoint.IsProxied = !isDevelopment;
                                  });
 
-        builder.AddNpmApp("adminapp", "../WebAdminApp", "dev")
+        builder.AddJavaScriptApp("admin-app", "../WebAdminApp", "dev")
                                  .WithReference(cache)
                                  .WithReference(database)
                                  .WithReference(admin).WaitFor(admin)

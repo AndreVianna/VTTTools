@@ -17,7 +17,7 @@
  * undo/redo logic for different wall operations (add, move, delete, etc.).
  */
 
-import type { EncounterWallSegment, Pole } from '@/types/domain';
+import { SegmentState, SegmentType, type EncounterWallSegment, type Pole } from '@/types/domain';
 
 /**
  * Base interface for local undo/redo actions
@@ -52,8 +52,8 @@ function polesToSegments(poles: Pole[], defaultHeight: number): EncounterWallSeg
       index: i,
       startPole: { x: startPole.x, y: startPole.y, h: startPole.h ?? defaultHeight },
       endPole: { x: endPole.x, y: endPole.y, h: endPole.h ?? defaultHeight },
-      type: 0,
-      state: 1,
+      type: SegmentType.Wall,
+      state: SegmentState.Closed,
       isOpaque: true,
     });
   }

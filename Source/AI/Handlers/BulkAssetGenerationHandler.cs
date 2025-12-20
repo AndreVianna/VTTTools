@@ -5,17 +5,17 @@ namespace VttTools.AI.Handlers;
 public sealed class BulkAssetGenerationHandler(
     IImageGenerationService imageService,
     IResourceServiceClient resourceClient,
-    IAssetsServiceClient assetClient,
     IPromptTemplateStorage templateStorage,
     IAuditLogService auditLogService,
     ILogger<BulkAssetGenerationHandler> logger) {
 
     public const string JobTypeName = "BulkAssetGeneration";
 
-    public async Task<Result<AssetGenerationResult>> ProcessItemAsync(Guid ownerId, JobItemContext context, CancellationToken ct) {
+    public async Task<Result<GeneratedResourceResult>> ProcessItemAsync(Guid ownerId, JobItemContext context, CancellationToken ct) {
         try {
             var itemData = JsonSerializer.Deserialize<AssetGenerationData>(context.Data, JsonDefaults.Options);
             var itemName = itemData?.Name ?? $"Item {context.Index}";
+            var generationType = itemData?.GenerationType ?? "Portrait"; // Default to Portrait for backward compatibility
 
             PromptTemplate? template = null;
             if (itemData?.TemplateId.HasValue == true)
@@ -23,80 +23,60 @@ public sealed class BulkAssetGenerationHandler(
 
             var prompt = BuildPrompt(itemName, itemData, template);
 
-            Guid? portraitResourceId = null;
-            Guid? tokenResourceId = null;
+            // Generate single image based on GenerationType (atomic operation)
+            var isPortrait = generationType.Equals("Portrait", StringComparison.OrdinalIgnoreCase);
+            var imageType = isPortrait ? "portrait" : "token";
+            var resourceType = isPortrait ? ResourceType.Portrait : ResourceType.Token;
 
-            var generatePortrait = itemData?.GeneratePortrait ?? false;
-            var generateToken = itemData?.GenerateToken ?? false;
+            logger.LogDebug("Generating {GenerationType} for {AssetName}", generationType, itemName);
+            var imageResult = await GenerateImageAsync(prompt, imageType, ct);
 
-            if (generatePortrait) {
-                logger.LogDebug("Generating portrait for {AssetName}", itemName);
-                var portraitResult = await GenerateImageAsync(prompt, "portrait", ct);
-                if (portraitResult.IsSuccessful) {
-                    portraitResourceId = await resourceClient.UploadImageAsync(
-                        ownerId,
-                        portraitResult.Value.ImageData,
-                        $"{itemName}_portrait.png",
-                        portraitResult.Value.ContentType,
-                        ResourceType.Portrait,
-                        ct);
-
-                    // Audit log: Resource generated via job
-                    await LogResourceGeneratedAsync(ownerId, context.JobId, context.Index, portraitResourceId.Value, "Portrait", ct);
-                }
-                else {
-                    logger.LogWarning("Portrait generation failed for {AssetName}: {Errors}", itemName, string.Join(", ", portraitResult.Errors));
-                    return Result.Failure($"Portrait generation failed: {string.Join(", ", portraitResult.Errors)}").WithNo<AssetGenerationResult>();
-                }
+            if (!imageResult.IsSuccessful) {
+                logger.LogWarning("{GenerationType} generation failed for {AssetName}: {Errors}",
+                    generationType, itemName, string.Join(", ", imageResult.Errors));
+                return Result.Failure($"{generationType} generation failed: {string.Join(", ", imageResult.Errors)}").WithNo<GeneratedResourceResult>();
             }
 
-            if (generateToken) {
-                logger.LogDebug("Generating token for {AssetName}", itemName);
-                var tokenResult = await GenerateImageAsync(prompt, "token", ct);
-                if (tokenResult.IsSuccessful) {
-                    tokenResourceId = await resourceClient.UploadImageAsync(
-                        ownerId,
-                        tokenResult.Value.ImageData,
-                        $"{itemName}_token.png",
-                        tokenResult.Value.ContentType,
-                        ResourceType.Token,
-                        ct);
+            var classification = new ResourceClassification(
+                Kind: (itemData?.Kind ?? AssetKind.Character).ToString(),
+                Category: itemData?.Category ?? string.Empty,
+                Type: itemData?.Type ?? string.Empty,
+                Subtype: itemData?.Subtype);
 
-                    // Audit log: Resource generated via job
-                    await LogResourceGeneratedAsync(ownerId, context.JobId, context.Index, tokenResourceId.Value, "Token", ct);
-                }
-                else {
-                    logger.LogWarning("Token generation failed for {AssetName}: {Errors}", itemName, string.Join(", ", tokenResult.Errors));
-                    return Result.Failure($"Token generation failed: {string.Join(", ", tokenResult.Errors)}").WithNo<AssetGenerationResult>();
-                }
+            var resourceId = await resourceClient.UploadImageAsync(
+                ownerId,
+                imageResult.Value.ImageData,
+                $"{itemName}_{imageType}.png",
+                imageResult.Value.ContentType,
+                resourceType,
+                classification,
+                itemData?.Description,
+                ct);
+
+            if (!resourceId.HasValue) {
+                return Result.Failure("Failed to upload resource").WithNo<GeneratedResourceResult>();
             }
 
-            logger.LogDebug("Creating createResult {AssetName}", itemName);
-            var createAssetRequest = new CreateAssetRequest {
-                Kind = itemData?.Kind ?? AssetKind.Character,
-                Category = itemData?.Category ?? string.Empty,
-                Type = itemData?.Type ?? string.Empty,
+            // Audit log: Resource generated via job
+            await LogResourceGeneratedAsync(ownerId, context.JobId, context.Index, resourceId.Value, generationType, ct);
+
+            // Return resource info for frontend review (user will approve to create asset)
+            var result = new GeneratedResourceResult {
+                AssetName = itemName,
+                GenerationType = generationType,
+                ResourceId = resourceId.Value,
+                Kind = (itemData?.Kind ?? AssetKind.Character).ToString(),
+                Category = itemData?.Category,
+                Type = itemData?.Type,
                 Subtype = itemData?.Subtype,
-                Name = itemName,
-                Description = itemData?.Description ?? string.Empty,
+                Description = itemData?.Description,
                 Tags = itemData?.Tags ?? [],
-                PortraitId = portraitResourceId,
-                TokenId = tokenResourceId,
             };
-
-            var createResult = await assetClient.CreateAssetAsync(ownerId, createAssetRequest, ct);
-            if (!createResult.IsSuccessful)
-                return Result.Failure(createResult.Errors).WithNo<AssetGenerationResult>();
-
-            // Audit log: Asset generated via job
-            await LogAssetGeneratedAsync(ownerId, context.JobId, context.Index, createResult.Value, portraitResourceId, tokenResourceId, ct);
-
-            var result = new AssetGenerationResult(createResult.Value, portraitResourceId, tokenResourceId);
             return result;
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error processing item {Index}", context.Index);
-            return Result.Failure(ex.Message).WithNo<AssetGenerationResult>();
+            return Result.Failure(ex.Message).WithNo<GeneratedResourceResult>();
         }
     }
 
@@ -132,31 +112,6 @@ public sealed class BulkAssetGenerationHandler(
                 .Replace("{description}", itemData?.Description ?? "")
                 .Replace("{prompt}", basePrompt)
             : basePrompt;
-    }
-
-    private async Task LogAssetGeneratedAsync(
-        Guid ownerId,
-        Guid jobId,
-        int jobItemIndex,
-        Guid assetId,
-        Guid? portraitResourceId,
-        Guid? tokenResourceId,
-        CancellationToken ct) {
-
-        var payload = new AssetGeneratedPayload {
-            JobId = jobId.ToString(),
-            JobItemIndex = jobItemIndex,
-            PortraitResourceId = portraitResourceId?.ToString(),
-            TokenResourceId = tokenResourceId?.ToString(),
-        };
-        var auditLog = new AuditLog {
-            UserId = ownerId,
-            Action = "Asset:Generated:ViaJob",
-            EntityType = "Asset",
-            EntityId = assetId.ToString(),
-            Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
-        };
-        await auditLogService.AddAsync(auditLog, ct);
     }
 
     private async Task LogResourceGeneratedAsync(

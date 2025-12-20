@@ -102,7 +102,7 @@ public sealed class JobProcessingWorker(
                 Index = item.Index,
                 Status = result.IsSuccessful ? JobItemStatus.Success : JobItemStatus.Failed,
                 Result = result.IsSuccessful
-                             ? $"PortraitId : {result.Value.PortraitId}, TokenId : {result.Value.TokenId}"
+                             ? JsonSerializer.Serialize(result.Value, JsonDefaults.Options)
                              : string.Join(", ", result.Errors),
                 CompletedAt = DateTime.UtcNow,
             };

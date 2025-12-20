@@ -4,7 +4,7 @@ public static class HealthCheckEndpointsMapper {
     public static IEndpointRouteBuilder MapHealthCheckEndpoints(this IEndpointRouteBuilder app) {
         var adminGroup = app.MapGroup("/api/admin/dashboard")
             .RequireAuthorization()
-            .RequireRateLimiting("dashboard");
+            .RequireRateLimiting("read");
 
         adminGroup.MapGet("/health-checks", HealthCheckHandlers.GetHealthChecksHandler)
             .WithName("GetHealthChecks");

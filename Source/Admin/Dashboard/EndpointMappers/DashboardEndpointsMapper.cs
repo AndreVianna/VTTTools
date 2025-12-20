@@ -3,7 +3,7 @@ namespace VttTools.Admin.Dashboard.EndpointMappers;
 public static class DashboardEndpointsMapper {
     public static IEndpointRouteBuilder MapDashboardEndpoints(this IEndpointRouteBuilder app) {
         var group = app.MapGroup("/api/admin/dashboard")
-            .RequireRateLimiting("dashboard");
+            .RequireRateLimiting("read");
 
         group.MapGet("/stats", DashboardHandlers.GetDashboardStatsHandler)
             .WithName("GetDashboardStats")

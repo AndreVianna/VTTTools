@@ -3,13 +3,25 @@ namespace VttTools.Media.ServiceContracts;
 public record UpdateResourceData
     : Data {
     public Optional<string?> Description { get; init; }
+    public Optional<ResourceClassification> Classification { get; init; }
     public Optional<Map<HashSet<string>>> Features { get; init; }
     public Optional<bool> IsPublic { get; init; }
+    public Optional<bool> IsPublished { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
         if (Description.IsSet && Description.Value is { Length: > 1024 })
             result += new Error("Description cannot exceed 1024 characters.", nameof(Description));
+        if (Classification.IsSet) {
+            if (Classification.Value.Kind.Length > 64)
+                result += new Error("Kind cannot exceed 64 characters.", nameof(Classification));
+            if (Classification.Value.Category.Length > 64)
+                result += new Error("Category cannot exceed 64 characters.", nameof(Classification));
+            if (Classification.Value.Type.Length > 64)
+                result += new Error("Type cannot exceed 64 characters.", nameof(Classification));
+            if (Classification.Value.Subtype is { Length: > 64 })
+                result += new Error("Subtype cannot exceed 64 characters.", nameof(Classification));
+        }
         if (Features.IsSet && Features.Value.Count > 50)
             result += new Error("Maximum 50 feature categories allowed.", nameof(Features));
         if (Features.IsSet) {

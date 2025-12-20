@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -15,7 +16,7 @@ import {
     DialogContent,
     DialogActions,
 } from '@mui/material';
-import { Refresh as RefreshIcon } from '@mui/icons-material';
+import { Refresh as RefreshIcon, OpenInNew as OpenInNewIcon } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '@store/store';
 import {
     fetchJobHistory,
@@ -80,6 +81,7 @@ const EMPTY_ITEM_UPDATES: never[] = [];
 
 export function BulkAssetGenerationPage() {
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
     const jobs = useSelector(selectJobs);
     const totalCount = useSelector(selectTotalCount);
     const currentJob = useSelector(selectCurrentJob);
@@ -121,7 +123,7 @@ export function BulkAssetGenerationPage() {
         dispatch(handleJobCompleted({ jobId: event.jobId }));
         setSnackbar({
             open: true,
-            message: 'Job completed successfully',
+            message: 'Job completed - View resources in Resources section',
             severity: 'success',
         });
     }, [dispatch]);
@@ -227,20 +229,34 @@ export function BulkAssetGenerationPage() {
         setTabValue(newValue);
     };
 
+    const handleViewResources = useCallback(() => {
+        navigate('/admin/resources');
+    }, [navigate]);
+
     return (
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4">
                     AI-Powered Asset Generation
                 </Typography>
-                <Button
-                    id="btn-refresh"
-                    startIcon={<RefreshIcon />}
-                    onClick={handleRefresh}
-                    disabled={isLoading}
-                >
-                    Refresh
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button
+                        id="btn-view-resources"
+                        startIcon={<OpenInNewIcon />}
+                        onClick={handleViewResources}
+                        variant="outlined"
+                    >
+                        View Resources
+                    </Button>
+                    <Button
+                        id="btn-refresh"
+                        startIcon={<RefreshIcon />}
+                        onClick={handleRefresh}
+                        disabled={isLoading}
+                    >
+                        Refresh
+                    </Button>
+                </Box>
             </Box>
 
             {error && (

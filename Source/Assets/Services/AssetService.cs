@@ -104,4 +104,35 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         await assetStorage.SoftDeleteAsync(id, ct);
         return Result.Success();
     }
+
+    public async Task<Result> AddTokenAsync(Guid userId, Guid assetId, AddTokenData data, CancellationToken ct = default) {
+        var asset = await assetStorage.FindByIdAsync(userId, assetId, ct);
+        if (asset is null)
+            return Result.Failure("NotFound");
+        if (asset.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var resource = await mediaStorage.FindByIdAsync(data.ResourceId, ct);
+        if (resource is null)
+            return Result.Failure("Resource not found");
+
+        if (asset.Tokens.Any(t => t.Id == data.ResourceId))
+            return Result.Success();
+
+        asset = asset with { Tokens = [..asset.Tokens, resource] };
+        await assetStorage.UpdateAsync(asset, ct);
+        return Result.Success();
+    }
+
+    public async Task<Result> RemoveTokenAsync(Guid userId, Guid assetId, RemoveTokenData data, CancellationToken ct = default) {
+        var asset = await assetStorage.FindByIdAsync(userId, assetId, ct);
+        if (asset is null)
+            return Result.Failure("NotFound");
+        if (asset.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        asset = asset with { Tokens = [..asset.Tokens.Where(t => t.Id != data.ResourceId)] };
+        await assetStorage.UpdateAsync(asset, ct);
+        return Result.Success();
+    }
 }

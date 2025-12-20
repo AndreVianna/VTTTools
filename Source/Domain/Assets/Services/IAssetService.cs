@@ -20,4 +20,6 @@ public interface IAssetService {
     Task<Result<Asset>> CloneAssetAsync(Guid userId, Guid templateId, CancellationToken ct = default);
     Task<Result<Asset>> UpdateAssetAsync(Guid userId, Guid id, UpdateAssetData data, CancellationToken ct = default);
     Task<Result> DeleteAssetAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<Result> AddTokenAsync(Guid userId, Guid assetId, AddTokenData data, CancellationToken ct = default);
+    Task<Result> RemoveTokenAsync(Guid userId, Guid assetId, RemoveTokenData data, CancellationToken ct = default);
 }

@@ -4,7 +4,7 @@ public static class AiJobEndpointsMapper {
     public static void MapAiJobEndpoints(this IEndpointRouteBuilder app) {
         var group = app.MapGroup("/api/ai")
             .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .RequireRateLimiting("admin");
+            .RequireRateLimiting("write");
 
         MapBulkGenerationEndpoints(group);
     }

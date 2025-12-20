@@ -42,6 +42,8 @@ public class ResourceService(
                 Size = processed.Size,
                 Duration = processed.Duration,
                 OwnerId = userId,
+                Classification = data.Classification ?? new(),
+                Description = data.Description,
             };
 
             var uploadResult = await blobStorage.SaveAsync(path, processed.Stream, resource, ct);
@@ -60,28 +62,31 @@ public class ResourceService(
         }
     }
 
-    public async Task<(ResourceMetadata[] Items, int TotalCount)> FindResourcesAsync(Guid userId, ResourceFilterData data, CancellationToken ct = default) {
+    public async Task<(ResourceMetadata[] Items, int TotalCount)> FindResourcesAsync(Guid? userId, ResourceFilterData data, CancellationToken ct = default) {
         var effectiveFilter = data with {
             Skip = Math.Max(0, data.Skip),
             Take = Math.Clamp(data.Take, 1, 100),
         };
 
-        if (effectiveFilter.OwnerId.HasValue && effectiveFilter.OwnerId.Value != userId) {
-            effectiveFilter = effectiveFilter with { IsPublic = true };
-        }
-        else if (!effectiveFilter.OwnerId.HasValue) {
-            effectiveFilter = effectiveFilter with { OwnerId = userId };
+        // Internal service calls pass null userId to query all resources without user-scoping
+        if (userId.HasValue) {
+            if (effectiveFilter.OwnerId.HasValue && effectiveFilter.OwnerId.Value != userId.Value) {
+                effectiveFilter = effectiveFilter with { IsPublic = true };
+            }
+            else if (!effectiveFilter.OwnerId.HasValue) {
+                effectiveFilter = effectiveFilter with { OwnerId = userId.Value };
+            }
         }
 
         return await mediaStorage.FilterAsync(effectiveFilter, ct);
     }
 
-    public async Task<Resource?> ServeResourceAsync(Guid userId, Guid id, CancellationToken ct = default) {
+    public async Task<Resource?> ServeResourceAsync(Guid? userId, Guid id, CancellationToken ct = default) {
         var resource = await mediaStorage.FindByIdAsync(id, ct);
         if (resource is null)
             return null;
 
-        if (!CanAccess(resource, userId))
+        if (userId.HasValue && !CanAccess(resource, userId.Value))
             return null;
 
         var download = await blobStorage.GetAsync(resource.Path, ct);
@@ -111,19 +116,21 @@ public class ResourceService(
 
         resource = resource with {
             Description = data.Description.IsSet ? data.Description.Value : resource.Description,
+            Classification = data.Classification.IsSet ? data.Classification.Value : resource.Classification,
             Features = data.Features.IsSet ? data.Features.Value : resource.Features,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : resource.IsPublic,
+            IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : resource.IsPublished,
         };
 
         await mediaStorage.UpdateAsync(resource, ct);
         return Result.Success();
     }
 
-    public async Task<Result> DeleteResourceAsync(Guid userId, Guid id, CancellationToken ct = default) {
+    public async Task<Result> DeleteResourceAsync(Guid? userId, Guid id, CancellationToken ct = default) {
         var resource = await mediaStorage.FindByIdAsync(id, ct);
         if (resource is null)
             return Result.Failure("NotFound");
-        if (resource.OwnerId != userId)
+        if (userId.HasValue && resource.OwnerId != userId.Value)
             return Result.Failure("NotAllowed");
 
         var deleteResult = await blobStorage.RemoveAsync(resource.Path, ct);

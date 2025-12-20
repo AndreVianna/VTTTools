@@ -4,7 +4,7 @@ public static class AuditLogEndpointsMapper {
     public static IEndpointRouteBuilder MapAuditLogEndpoints(this IEndpointRouteBuilder app) {
         var auditGroup = app.MapGroup("/api/admin/audit")
             .RequireAuthorization()
-            .RequireRateLimiting("audit");
+            .RequireRateLimiting("read");
 
         auditGroup.MapGet("", AuditLogHandlers.QueryAuditLogsHandler)
             .WithName("QueryAuditLogs");

@@ -127,8 +127,8 @@ export const LightContextMenu: React.FC<LightContextMenuProps> = ({
         }
     };
 
-    const handleTypeChange = (event: SelectChangeEvent<number>) => {
-        const newType = event.target.value as LightSourceType;
+    const handleTypeChange = (event: SelectChangeEvent<LightSourceType>) => {
+        const newType = event.target.value;
         setTypeValue(newType);
         if (onLightSourceUpdate) {
             onLightSourceUpdate(lightSource.index, { type: newType });
@@ -313,9 +313,9 @@ export const LightContextMenu: React.FC<LightContextMenuProps> = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography sx={{ fontSize: '10px', minWidth: 50 }}>Type:</Typography>
                         <FormControl size="small">
-                            <Select value={typeValue} onChange={handleTypeChange} sx={compactSelectStyle}>
+                            <Select<LightSourceType> value={typeValue} onChange={handleTypeChange} sx={compactSelectStyle}>
                                 {Object.entries(LIGHT_SOURCE_TYPE_LABELS).map(([value, label]) => (
-                                    <MenuItem key={value} value={Number(value)} sx={{ fontSize: '11px' }}>
+                                    <MenuItem key={value} value={value as LightSourceType} sx={{ fontSize: '11px' }}>
                                         {label}
                                     </MenuItem>
                                 ))}

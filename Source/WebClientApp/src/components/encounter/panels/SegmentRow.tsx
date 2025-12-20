@@ -93,8 +93,8 @@ export const SegmentRow: React.FC<SegmentRowProps> = React.memo(({ segment, onPr
     }
   };
 
-  const handleStateChange = (event: SelectChangeEvent<number>) => {
-    onStateChange(segment.index, event.target.value as SegmentState);
+  const handleStateChange = (event: SelectChangeEvent<SegmentState>) => {
+    onStateChange(segment.index, event.target.value);
   };
 
   const compactSelectStyle = {
@@ -145,7 +145,7 @@ export const SegmentRow: React.FC<SegmentRowProps> = React.memo(({ segment, onPr
       </FormControl>
 
       <FormControl size='small' sx={{ flex: 1, minWidth: 0 }}>
-        <Select<number> value={normalizedState} onChange={handleStateChange} sx={compactSelectStyle}>
+        <Select<SegmentState> value={normalizedState} onChange={handleStateChange} sx={compactSelectStyle}>
           {validStates.map((state) => (
             <MenuItem key={state} value={state} sx={{ fontSize: '10px', py: 0.5 }}>
               {isBarrierType ? BARRIER_STATE_LABELS[state] : SEGMENT_STATE_LABELS[state]}

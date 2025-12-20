@@ -4,7 +4,7 @@ public static class ConfigurationEndpointsMapper {
     public static IEndpointRouteBuilder MapConfigurationEndpoints(this IEndpointRouteBuilder app) {
         var group = app.MapGroup("/api/admin/configuration")
             .RequireAuthorization()
-            .RequireRateLimiting("admin");
+            .RequireRateLimiting("read");
 
         group.MapGet("/{serviceName}", ConfigurationHandlers.GetConfigurationHandler)
             .WithName("GetConfiguration")
@@ -13,7 +13,7 @@ public static class ConfigurationEndpointsMapper {
         group.MapPost("/reveal", ConfigurationHandlers.RevealConfigValueHandler)
             .WithName("RevealConfigValue")
             .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-            .RequireRateLimiting("reveal");
+            .RequireRateLimiting("sensitive");
 
         return app;
     }

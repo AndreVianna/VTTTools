@@ -1,4 +1,5 @@
 import { beforeEach } from 'vitest';
+import '@testing-library/jest-dom';
 
 class LocalStorageMock {
     private store: Record<string, string> = {};

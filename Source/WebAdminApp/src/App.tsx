@@ -9,6 +9,7 @@ import { MaintenanceModePage } from '@pages/MaintenanceModePage';
 import { ConfigurationPage } from '@pages/ConfigurationPage';
 import { PublicLibraryPage } from '@pages/PublicLibraryPage';
 import { BulkAssetGenerationPage } from '@pages/BulkAssetGenerationPage';
+import { ResourcesPage } from '@pages/ResourcesPage';
 import {
   WorldEditorPage,
   CampaignEditorPage,
@@ -36,6 +37,7 @@ function App() {
         <Route path="maintenance" element={<MaintenanceModePage />} />
         <Route path="config" element={<ConfigurationPage />} />
         <Route path="library" element={<PublicLibraryPage />} />
+        <Route path="resources" element={<ResourcesPage />} />
         <Route path="ai-generation" element={<BulkAssetGenerationPage />} />
         <Route path="library/worlds/:id" element={<WorldEditorPage />} />
         <Route path="library/campaigns/:id" element={<CampaignEditorPage />} />

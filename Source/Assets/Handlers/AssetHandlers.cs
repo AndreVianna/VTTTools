@@ -162,4 +162,30 @@ internal static class AssetHandlers {
                     ? Results.Forbid()
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
+
+    internal static async Task<IResult> AddTokenHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddTokenRequest request, [FromServices] IAssetService assetService) {
+        var userId = context.User.GetUserId();
+        var data = new AddTokenData { ResourceId = request.ResourceId };
+        var result = await assetService.AddTokenAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(new { error = result.Errors[0].Message });
+    }
+
+    internal static async Task<IResult> RemoveTokenHandler(HttpContext context, [FromRoute] Guid id, [FromBody] RemoveTokenRequest request, [FromServices] IAssetService assetService) {
+        var userId = context.User.GetUserId();
+        var data = new RemoveTokenData { ResourceId = request.ResourceId };
+        var result = await assetService.RemoveTokenAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(new { error = result.Errors[0].Message });
+    }
 }

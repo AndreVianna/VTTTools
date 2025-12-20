@@ -15,9 +15,8 @@ import type {
 import { LabelPosition as LabelPositionEnum, LabelVisibility as LabelVisibilityEnum, RegionType } from '@/types/domain';
 import { generateUniqueId, getDomIdByIndex, setEntityMapping } from './encounterEntityMapping';
 
-function convertRegionTypeToString(type: string | number): string {
-  if (typeof type === 'string') return type;
-  return RegionType[type] ?? 'Elevation';
+function convertRegionTypeToString(type: string): string {
+  return type ?? RegionType.Elevation;
 }
 
 function getAssetLayer(asset: Asset): GroupName {

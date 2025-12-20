@@ -556,13 +556,16 @@ const EncounterEditorPageInternal: React.FC = () => {
     stage,
   });
 
+  // Determine effective background size for centering - use actual backgroundSize, or fallback to stageSize after image loads
+  const effectiveBackgroundSize = backgroundSize ?? (imageDimensionsLoaded ? stageSize : undefined);
+
   const viewportControls = useViewportControls({
     initialViewport,
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
     stageSize,
     encounterId,
     // Pass backgroundSize directly for centering calculation to avoid timing issues with stageSize state
-    backgroundSize: backgroundSize ?? (imageDimensionsLoaded ? stageSize : undefined),
+    ...(effectiveBackgroundSize && { backgroundSize: effectiveBackgroundSize }),
   });
 
   const contextMenus = useContextMenus({
