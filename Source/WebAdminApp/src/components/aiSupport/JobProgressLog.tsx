@@ -1,9 +1,9 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import {
     Paper,
     Typography,
     List,
-    ListItem,
+    ListItemButton,
     ListItemIcon,
     ListItemText,
     Box,
@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import type { JobProgressItem } from '@/types/jobs';
 import { JobItemStatus } from '@/types/jobs';
+import { JobItemDetailsDialog } from './JobItemDetailsDialog';
 
 interface JobProgressLogProps {
     itemUpdates: JobProgressItem[];
@@ -34,14 +35,27 @@ export function JobProgressLog({
     autoScroll = true,
 }: JobProgressLogProps) {
     const listEndRef = useRef<HTMLDivElement>(null);
+    const [selectedItem, setSelectedItem] = useState<JobProgressItem | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    const handleItemClick = useCallback((item: JobProgressItem) => {
+        setSelectedItem(item);
+        setDialogOpen(true);
+    }, []);
+
+    const handleCloseDialog = useCallback(() => {
+        setDialogOpen(false);
+        setSelectedItem(null);
+    }, []);
 
     const stats = useMemo(() => {
         const success = itemUpdates.filter(u => u.status === JobItemStatus.Success).length;
         const failed = itemUpdates.filter(u => u.status === JobItemStatus.Failed).length;
         const inProgress = itemUpdates.filter(u => u.status === JobItemStatus.InProgress).length;
+        const pending = itemUpdates.filter(u => u.status === JobItemStatus.Pending).length;
         const completed = success + failed;
         const progress = totalItems > 0 ? (completed / totalItems) * 100 : 0;
-        return { success, failed, inProgress, completed, progress };
+        return { success, failed, inProgress, pending, completed, progress };
     }, [itemUpdates, totalItems]);
 
     useEffect(() => {
@@ -88,7 +102,7 @@ export function JobProgressLog({
         return (
             <Paper sx={{ p: 3 }}>
                 <Typography variant="body2" color="text.secondary" textAlign="center">
-                    No progress events yet. Events will appear here as the job runs.
+                    No items to display. Start a job to see progress.
                 </Typography>
             </Paper>
         );
@@ -98,10 +112,11 @@ export function JobProgressLog({
         <Paper sx={{ overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="h6">Progress Log</Typography>
-                <Box sx={{ display: 'flex', gap: 2, mt: 1, mb: 1 }}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1, mb: 1, flexWrap: 'wrap' }}>
+                    <Chip label={`${stats.pending} Pending`} color="default" size="small" variant="outlined" />
+                    <Chip label={`${stats.inProgress} In Progress`} color="primary" size="small" variant="outlined" />
                     <Chip label={`${stats.success} Success`} color="success" size="small" variant="outlined" />
                     <Chip label={`${stats.failed} Failed`} color="error" size="small" variant="outlined" />
-                    <Chip label={`${stats.inProgress} In Progress`} color="primary" size="small" variant="outlined" />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <LinearProgress
@@ -118,15 +133,19 @@ export function JobProgressLog({
                 sx={{
                     maxHeight,
                     overflow: 'auto',
-                    '& .MuiListItem-root': {
+                    '& .MuiListItemButton-root': {
                         borderBottom: 1,
                         borderColor: 'divider',
                     },
                 }}
             >
                 {itemUpdates.map((update) => (
-                    <ListItem key={`${update.jobId}-${update.index}`} alignItems="flex-start">
-                        <ListItemIcon sx={{ minWidth: 40, mt: 1 }}>
+                    <ListItemButton
+                        key={`${update.jobId}-${update.index}`}
+                        onClick={() => handleItemClick(update)}
+                        sx={{ py: 1 }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
                             {getStatusIcon(update.status)}
                         </ListItemIcon>
                         <ListItemText
@@ -143,25 +162,17 @@ export function JobProgressLog({
                                     />
                                 </Box>
                             }
-                            secondary={
-                                <Box component="span">
-                                    {update.result && (
-                                        <Typography
-                                            variant="caption"
-                                            color={update.status === JobItemStatus.Failed ? 'error' : 'text.secondary'}
-                                            component="span"
-                                            sx={{ display: 'block' }}
-                                        >
-                                            {update.result}
-                                        </Typography>
-                                    )}
-                                </Box>
-                            }
                         />
-                    </ListItem>
+                    </ListItemButton>
                 ))}
                 <div ref={listEndRef} />
             </List>
+
+            <JobItemDetailsDialog
+                item={selectedItem}
+                open={dialogOpen}
+                onClose={handleCloseDialog}
+            />
         </Paper>
     );
 }

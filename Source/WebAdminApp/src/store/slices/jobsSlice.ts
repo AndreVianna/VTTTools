@@ -263,27 +263,44 @@ const jobsSlice = createSlice({
                 state.isLoading = false;
                 state.currentJob = action.payload;
 
-                // Populate itemUpdates from job items for items that have started processing
                 const jobId = action.payload.jobId;
+                const totalItems = action.payload.totalItems;
                 const existingUpdates = state.itemUpdates[jobId] ?? [];
-                const newUpdates: JobProgressItem[] = action.payload.items
-                    .filter(item => item.status !== JobItemStatus.Pending)
-                    .map(item => ({
-                        jobId: item.jobId,
-                        index: item.index,
-                        status: item.status,
-                        ...(item.result !== undefined && { result: item.result }),
-                        ...(item.startedAt !== undefined && { startedAt: item.startedAt }),
-                        ...(item.completedAt !== undefined && { completedAt: item.completedAt }),
-                    }));
 
-                // Merge: keep existing updates but add any missing items
-                const existingIndices = new Set(existingUpdates.map(u => u.index));
-                const mergedUpdates = [
-                    ...existingUpdates,
-                    ...newUpdates.filter(u => !existingIndices.has(u.index)),
-                ];
-                state.itemUpdates[jobId] = mergedUpdates;
+                // Create a map of existing updates by index
+                const existingMap = new Map(existingUpdates.map(u => [u.index, u]));
+
+                // Build complete list with all items (including pending)
+                const allUpdates: JobProgressItem[] = [];
+                for (let i = 0; i < totalItems; i++) {
+                    // Check if we have an existing update (from SignalR events)
+                    const existing = existingMap.get(i);
+                    // Check if we have item data from the API
+                    const apiItem = action.payload.items.find(item => item.index === i);
+
+                    if (existing) {
+                        // Keep existing update (likely more up-to-date from SignalR)
+                        allUpdates.push(existing);
+                    } else if (apiItem) {
+                        // Use API data
+                        allUpdates.push({
+                            jobId: apiItem.jobId,
+                            index: apiItem.index,
+                            status: apiItem.status,
+                            ...(apiItem.result !== undefined && { result: apiItem.result }),
+                            ...(apiItem.startedAt !== undefined && { startedAt: apiItem.startedAt }),
+                            ...(apiItem.completedAt !== undefined && { completedAt: apiItem.completedAt }),
+                        });
+                    } else {
+                        // Create pending item
+                        allUpdates.push({
+                            jobId,
+                            index: i,
+                            status: JobItemStatus.Pending,
+                        });
+                    }
+                }
+                state.itemUpdates[jobId] = allUpdates;
             })
             .addCase(fetchJobStatus.rejected, (state, action) => {
                 state.isLoading = false;
@@ -299,6 +316,19 @@ const jobsSlice = createSlice({
                 state.currentJob = action.payload;
                 state.jobs = [action.payload, ...(state.jobs ?? [])];
                 state.totalCount += 1;
+
+                // Initialize all items with pending status
+                const jobId = action.payload.jobId;
+                const totalItems = action.payload.totalItems;
+                const pendingItems: JobProgressItem[] = [];
+                for (let i = 0; i < totalItems; i++) {
+                    pendingItems.push({
+                        jobId,
+                        index: i,
+                        status: JobItemStatus.Pending,
+                    });
+                }
+                state.itemUpdates[jobId] = pendingItems;
             })
             .addCase(startBulkGeneration.rejected, (state, action) => {
                 state.isSubmitting = false;

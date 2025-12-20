@@ -176,7 +176,7 @@ export function BulkAssetGenerationPage() {
     const handleSubmit = useCallback(async (request: BulkAssetGenerationRequest) => {
         const result = await dispatch(startBulkGeneration(request));
         if (startBulkGeneration.fulfilled.match(result)) {
-            setTabValue(1);
+            setTabValue(2);
             setSnackbar({
                 open: true,
                 message: 'Job started successfully',
@@ -215,7 +215,7 @@ export function BulkAssetGenerationPage() {
 
     const handleViewJob = useCallback(async (jobId: string) => {
         await dispatch(fetchJobStatus(jobId));
-        setTabValue(1);
+        setTabValue(2);
     }, [dispatch]);
 
     const handleRefresh = useCallback(() => {
@@ -273,13 +273,13 @@ export function BulkAssetGenerationPage() {
                     sx={{ borderBottom: 1, borderColor: 'divider' }}
                 >
                     <Tab label="New Generation" id="ai-support-tab-0" aria-controls="ai-support-tabpanel-0" />
+                    <Tab label="Job History" id="ai-support-tab-1" aria-controls="ai-support-tabpanel-1" />
                     <Tab
-                        label={currentJob ? 'Current Job' : 'Job Details'}
-                        id="ai-support-tab-1"
-                        aria-controls="ai-support-tabpanel-1"
+                        label="Job Details"
+                        id="ai-support-tab-2"
+                        aria-controls="ai-support-tabpanel-2"
                         disabled={!currentJob}
                     />
-                    <Tab label="Job History" id="ai-support-tab-2" aria-controls="ai-support-tabpanel-2" />
                 </Tabs>
 
                 <Box sx={{ p: 3 }}>
@@ -292,6 +292,25 @@ export function BulkAssetGenerationPage() {
                     </TabPanel>
 
                     <TabPanel value={tabValue} index={1}>
+                        <JobHistoryList
+                            jobs={jobs}
+                            totalCount={totalCount}
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            isLoading={isLoading}
+                            error={error}
+                            onPageChange={setPage}
+                            onRowsPerPageChange={(rpp) => {
+                                setRowsPerPage(rpp);
+                                setPage(0);
+                            }}
+                            onViewJob={handleViewJob}
+                            onCancelJob={handleCancelJob}
+                            onRetryJob={handleRetryJob}
+                        />
+                    </TabPanel>
+
+                    <TabPanel value={tabValue} index={2}>
                         {currentJob && (
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12, lg: 5 }}>
@@ -311,25 +330,6 @@ export function BulkAssetGenerationPage() {
                                 </Grid>
                             </Grid>
                         )}
-                    </TabPanel>
-
-                    <TabPanel value={tabValue} index={2}>
-                        <JobHistoryList
-                            jobs={jobs}
-                            totalCount={totalCount}
-                            page={page}
-                            rowsPerPage={rowsPerPage}
-                            isLoading={isLoading}
-                            error={error}
-                            onPageChange={setPage}
-                            onRowsPerPageChange={(rpp) => {
-                                setRowsPerPage(rpp);
-                                setPage(0);
-                            }}
-                            onViewJob={handleViewJob}
-                            onCancelJob={handleCancelJob}
-                            onRetryJob={handleRetryJob}
-                        />
                     </TabPanel>
                 </Box>
             </Paper>
