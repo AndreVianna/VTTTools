@@ -2,8 +2,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind, StatValueType, type Asset } from '@/types/domain';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AssetKind, ResourceRole, StatValueType, type Asset } from '@/types/domain';
 import { AssetCardCompact, type AssetCardCompactProps } from './AssetCardCompact';
 
 vi.mock('@/components/common/ResourceImage', () => ({
@@ -40,20 +40,13 @@ describe('AssetCardCompact', () => {
     tokens: [
       {
         id: 'token-1',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/goblin.png',
         contentType: 'image/png',
         fileName: 'goblin.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 128, height: 128 },
+        fileSize: 1024,
+        dimensions: { width: 128, height: 128 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
     ],
     statBlocks: {
@@ -75,54 +68,33 @@ describe('AssetCardCompact', () => {
     tokens: [
       {
         id: 'token-1',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/dragon1.png',
         contentType: 'image/png',
         fileName: 'dragon1.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 256, height: 256 },
+        fileSize: 1024,
+        dimensions: { width: 256, height: 256 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
       {
         id: 'token-2',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/dragon2.png',
         contentType: 'image/png',
         fileName: 'dragon2.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 256, height: 256 },
+        fileSize: 1024,
+        dimensions: { width: 256, height: 256 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
       {
         id: 'token-3',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/dragon3.png',
         contentType: 'image/png',
         fileName: 'dragon3.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 256, height: 256 },
+        fileSize: 1024,
+        dimensions: { width: 256, height: 256 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
     ],
   };

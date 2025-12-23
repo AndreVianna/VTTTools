@@ -13,7 +13,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
     public OpenAiImageGeneratorTests() {
         _httpClientFactory = Substitute.For<IHttpClientFactory>();
         _config = Substitute.For<IConfiguration>();
-        _mockHandler = new MockHttpMessageHandler();
+        _mockHandler = new();
         _ct = TestContext.Current.CancellationToken;
 
         _config["Providers:OpenAI:BaseUrl"].Returns("https://api.openai.com");
@@ -23,11 +23,11 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         _config["Images:TopDown:Background"].Returns("transparent");
 
         var client = new HttpClient(_mockHandler, disposeHandler: false) {
-            BaseAddress = new Uri("https://api.openai.com")
+            BaseAddress = new("https://api.openai.com")
         };
         _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
-        _generator = new OpenAiImageGenerator(_httpClientFactory, _config);
+        _generator = new(_httpClientFactory, _config);
     }
 
     private bool _isDisposed;

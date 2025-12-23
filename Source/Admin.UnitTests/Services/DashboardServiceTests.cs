@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public class DashboardServiceTests {
     private readonly UserManager<User> _mockUserManager;
@@ -10,7 +10,7 @@ public class DashboardServiceTests {
         _mockUserManager = CreateUserManagerMock();
         _mockAuditLogService = Substitute.For<IAuditLogService>();
         _mockLogger = Substitute.For<ILogger<DashboardService>>();
-        _sut = new DashboardService(_mockUserManager, _mockAuditLogService, _mockLogger);
+        _sut = new(_mockUserManager, _mockAuditLogService, _mockLogger);
     }
 
     [Fact]

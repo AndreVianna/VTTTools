@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public class HealthCheckHandlersTests {
     private sealed class TestHealthCheckService : HealthCheckService {
@@ -19,36 +19,36 @@ public class HealthCheckHandlersTests {
 
     public HealthCheckHandlersTests() {
         _mockAuditLogService = Substitute.For<IAuditLogService>();
-        _testUser = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        ], "Test"));
+        _testUser = new(new ClaimsIdentity([
+                                               new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                                           ], "Test"));
     }
 
     [Fact]
     public async Task GetHealthChecksHandler_ReturnsHealthy_WhenAllChecksPass() {
         var healthReport = new HealthReport(
             new Dictionary<string, HealthReportEntry> {
-                ["Database"] = new HealthReportEntry(
-                    HealthStatus.Healthy,
-                    "Database connection successful",
-                    TimeSpan.FromMilliseconds(50),
-                    null,
-                    new Dictionary<string, object> {
-                        ["connectionTime"] = "50ms",
-                        ["server"] = "localhost",
-                        ["database"] = "VttTools"
-                    }
-                ),
-                ["BlobStorage"] = new HealthReportEntry(
-                    HealthStatus.Healthy,
-                    "Blob storage accessible",
-                    TimeSpan.FromMilliseconds(75),
-                    null,
-                    new Dictionary<string, object> {
-                        ["accessTime"] = "75ms",
-                        ["containerName"] = "assets"
-                    }
-                )
+                ["Database"] = new(
+                                   HealthStatus.Healthy,
+                                   "Database connection successful",
+                                   TimeSpan.FromMilliseconds(50),
+                                   null,
+                                   new Dictionary<string, object> {
+                                       ["connectionTime"] = "50ms",
+                                       ["server"] = "localhost",
+                                       ["database"] = "VttTools"
+                                   }
+                                  ),
+                ["BlobStorage"] = new(
+                                      HealthStatus.Healthy,
+                                      "Blob storage accessible",
+                                      TimeSpan.FromMilliseconds(75),
+                                      null,
+                                      new Dictionary<string, object> {
+                                          ["accessTime"] = "75ms",
+                                          ["containerName"] = "assets"
+                                      }
+                                     )
             },
             TimeSpan.FromMilliseconds(125)
         );
@@ -78,16 +78,16 @@ public class HealthCheckHandlersTests {
     public async Task GetHealthChecksHandler_ReturnsUnhealthy_WhenCheckFails() {
         var healthReport = new HealthReport(
             new Dictionary<string, HealthReportEntry> {
-                ["Database"] = new HealthReportEntry(
-                    HealthStatus.Unhealthy,
-                    "Database connection failed: Timeout expired",
-                    TimeSpan.FromMilliseconds(5000),
-                    new Exception("Connection timeout"),
-                    new Dictionary<string, object> {
-                        ["connectionTime"] = "5000ms",
-                        ["sqlErrorNumber"] = 53
-                    }
-                )
+                ["Database"] = new(
+                                   HealthStatus.Unhealthy,
+                                   "Database connection failed: Timeout expired",
+                                   TimeSpan.FromMilliseconds(5000),
+                                   new("Connection timeout"),
+                                   new Dictionary<string, object> {
+                                       ["connectionTime"] = "5000ms",
+                                       ["sqlErrorNumber"] = 53
+                                   }
+                                  )
             },
             TimeSpan.FromMilliseconds(5000)
         );
@@ -118,25 +118,25 @@ public class HealthCheckHandlersTests {
     public async Task GetHealthChecksHandler_IncludesDetailedMetrics() {
         var healthReport = new HealthReport(
             new Dictionary<string, HealthReportEntry> {
-                ["Database"] = new HealthReportEntry(
-                    HealthStatus.Healthy,
-                    "Database connection successful",
-                    TimeSpan.FromMilliseconds(123.456),
-                    null,
-                    new Dictionary<string, object> {
-                        ["connectionTime"] = "123.45ms",
-                        ["server"] = "sql.example.com",
-                        ["database"] = "VttToolsDb",
-                        ["queryResult"] = "1"
-                    }
-                ),
-                ["BlobStorage"] = new HealthReportEntry(
-                    HealthStatus.Degraded,
-                    "Slow response time",
-                    TimeSpan.FromMilliseconds(987.654),
-                    null,
-                    new Dictionary<string, object>()
-                )
+                ["Database"] = new(
+                                   HealthStatus.Healthy,
+                                   "Database connection successful",
+                                   TimeSpan.FromMilliseconds(123.456),
+                                   null,
+                                   new Dictionary<string, object> {
+                                       ["connectionTime"] = "123.45ms",
+                                       ["server"] = "sql.example.com",
+                                       ["database"] = "VttToolsDb",
+                                       ["queryResult"] = "1"
+                                   }
+                                  ),
+                ["BlobStorage"] = new(
+                                      HealthStatus.Degraded,
+                                      "Slow response time",
+                                      TimeSpan.FromMilliseconds(987.654),
+                                      null,
+                                      new Dictionary<string, object>()
+                                     )
             },
             TimeSpan.FromMilliseconds(1111.11)
         );

@@ -88,8 +88,8 @@ public class PromptTemplateStorage(ApplicationDbContext context)
         }
     }
 
-    public async Task<bool> ExistsAsync(string name, string version, CancellationToken ct = default)
-        => await context.PromptTemplates
-            .AsNoTracking()
-            .AnyAsync(t => t.Name == name && t.Version == version, ct);
+    public Task<bool> ExistsAsync(string name, string version, CancellationToken ct = default)
+        => context.PromptTemplates
+                  .AsNoTracking()
+                  .AnyAsync(t => t.Name == name && t.Version == version, ct);
 }

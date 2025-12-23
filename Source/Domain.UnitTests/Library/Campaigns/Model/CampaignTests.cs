@@ -28,10 +28,9 @@ public class CampaignTests {
         var world = new World { Id = Guid.CreateVersion7() };
         var display = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "assets/campaign-background.png",
             ContentType = "image/png",
-            Size = new Size(1920, 1080),
+            Dimensions = new Size(1920, 1080),
         };
         var adventure = new Adventure {
             Id = Guid.CreateVersion7(),

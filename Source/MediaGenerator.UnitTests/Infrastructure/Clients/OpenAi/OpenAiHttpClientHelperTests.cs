@@ -8,7 +8,7 @@ public class OpenAiHttpClientHelperTests {
     private readonly OpenAiHttpClientHelper _helper;
 
     public OpenAiHttpClientHelperTests() {
-        _helper = new OpenAiHttpClientHelper(_httpClientFactory, _config);
+        _helper = new(_httpClientFactory, _config);
     }
 
     [Fact]

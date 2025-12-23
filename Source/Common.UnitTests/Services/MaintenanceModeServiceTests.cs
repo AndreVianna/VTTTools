@@ -1,5 +1,5 @@
 
-namespace VttTools.Common.UnitTests.Services;
+namespace VttTools.Services;
 
 public class MaintenanceModeServiceTests {
     private readonly IMaintenanceModeStorage _storage;
@@ -9,7 +9,7 @@ public class MaintenanceModeServiceTests {
     public MaintenanceModeServiceTests() {
         _storage = Substitute.For<IMaintenanceModeStorage>();
         _logger = Substitute.For<ILogger<MaintenanceModeService>>();
-        _service = new MaintenanceModeService(_storage, _logger);
+        _service = new(_storage, _logger);
     }
 
     [Fact]
@@ -19,7 +19,7 @@ public class MaintenanceModeServiceTests {
             IsEnabled = true,
             Message = "System maintenance in progress",
             EnabledAt = DateTime.UtcNow,
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(maintenanceMode);
 
@@ -157,7 +157,7 @@ public class MaintenanceModeServiceTests {
             IsEnabled = true,
             Message = "Already in maintenance",
             EnabledAt = DateTime.UtcNow,
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(existing);
 
@@ -194,7 +194,7 @@ public class MaintenanceModeServiceTests {
             IsEnabled = true,
             Message = "Maintenance in progress",
             EnabledAt = DateTime.UtcNow.AddHours(-1),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(current);
         var disabledBy = Guid.NewGuid();
@@ -226,7 +226,7 @@ public class MaintenanceModeServiceTests {
             IsEnabled = true,
             Message = "Old message",
             EnabledAt = DateTime.UtcNow.AddHours(-1),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetByIdAsync(id, TestContext.Current.CancellationToken).Returns(existing);
         const string newMessage = "Updated message";
@@ -336,7 +336,7 @@ public class MaintenanceModeServiceTests {
             IsEnabled = false,
             Message = "Disabled",
             EnabledAt = DateTime.UtcNow.AddHours(-2),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 
@@ -352,7 +352,7 @@ public class MaintenanceModeServiceTests {
             IsEnabled = true,
             Message = "Maintenance active",
             EnabledAt = DateTime.UtcNow.AddHours(-1),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 
@@ -369,7 +369,7 @@ public class MaintenanceModeServiceTests {
             Message = "Scheduled maintenance",
             ScheduledStartTime = DateTime.UtcNow.AddHours(1),
             EnabledAt = DateTime.UtcNow,
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 
@@ -387,7 +387,7 @@ public class MaintenanceModeServiceTests {
             ScheduledStartTime = DateTime.UtcNow.AddHours(-2),
             ScheduledEndTime = DateTime.UtcNow.AddHours(-1),
             EnabledAt = DateTime.UtcNow.AddHours(-3),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 
@@ -405,7 +405,7 @@ public class MaintenanceModeServiceTests {
             ScheduledStartTime = DateTime.UtcNow.AddHours(-1),
             ScheduledEndTime = DateTime.UtcNow.AddHours(1),
             EnabledAt = DateTime.UtcNow.AddHours(-2),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 
@@ -423,7 +423,7 @@ public class MaintenanceModeServiceTests {
             ScheduledStartTime = DateTime.UtcNow.AddMinutes(-5),
             ScheduledEndTime = null,
             EnabledAt = DateTime.UtcNow.AddHours(-1),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 
@@ -441,7 +441,7 @@ public class MaintenanceModeServiceTests {
             ScheduledStartTime = null,
             ScheduledEndTime = DateTime.UtcNow.AddMinutes(5),
             EnabledAt = DateTime.UtcNow.AddHours(-1),
-            EnabledBy = Guid.NewGuid()
+            EnabledBy = Guid.NewGuid(),
         };
         _storage.GetCurrentAsync(TestContext.Current.CancellationToken).Returns(mode);
 

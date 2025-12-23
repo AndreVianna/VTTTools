@@ -12,7 +12,6 @@ global using VttTools.Assets.Storage;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Common.Model;
-global using VttTools.Common.Utilities;
 global using VttTools.Data;
 global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;

@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public class MaintenanceModeServiceTests {
     private readonly IMaintenanceModeStorage _mockStorage;

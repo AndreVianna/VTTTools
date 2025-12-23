@@ -24,24 +24,24 @@ public sealed class StabilityClient(IHttpClientFactory httpClientFactory, IConfi
         }
 
         var imageData = await response.Content.ReadAsByteArrayAsync(ct);
-        return new GenerateImageResponse(imageData, true);
+        return new(imageData, true);
     }
 
     private static void AddFormField(MultipartFormDataContent content, string name, string value) {
         var field = new StringContent(value);
         field.Headers.ContentType = null;
-        field.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data") {
-            Name = $"\"{name}\""
-        };
+        field.Headers.ContentDisposition = new("form-data") {
+                                                                Name = $"\"{name}\""
+                                                            };
         content.Add(field);
     }
 
     private HttpClient CreateClient() {
         var client = httpClientFactory.CreateClient();
         var baseUrl = config["Providers:Stability:BaseUrl"] ?? throw new InvalidOperationException("Stability AI API base url not configured.");
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new(baseUrl);
         var apiKey = config["Providers:Stability:ApiKey"] ?? throw new InvalidOperationException("Stability AI API key is not configured.");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", apiKey);
         client.DefaultRequestHeaders.Add("Accept", "application/json");
         return client;
     }

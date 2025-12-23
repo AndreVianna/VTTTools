@@ -10,24 +10,17 @@
  */
 
 import type { Asset, MediaResource } from '@/types/domain';
-import { AssetKind, ResourceType } from '@/types/domain';
+import { AssetKind, ResourceRole } from '@/types/domain';
 
 export const mockMediaResource = (overrides?: Partial<MediaResource>): MediaResource => ({
   id: 'resource-123',
-  description: null,
-  features: {},
-  resourceType: ResourceType.Token,
-  classification: null,
+  role: ResourceRole.Token,
   path: '/media/test-image.png',
   contentType: 'image/png',
   fileName: 'test-image.png',
-  fileLength: 12345,
-  thumbnailPath: null,
-  size: { width: 256, height: 256 },
+  fileSize: 12345,
+  dimensions: { width: 256, height: 256 },
   duration: '',
-  ownerId: 'test-owner',
-  isPublished: true,
-  isPublic: true,
   ...overrides,
 });
 
@@ -45,6 +38,7 @@ export const mockObjectAsset = (overrides?: Partial<Asset>): Asset => ({
   tokenSize: { width: 1, height: 1 },
   tokens: [mockMediaResource({ id: 'topdown-123' })],
   statBlocks: {},
+  tags: [],
   ownerId: 'user-123',
   isPublished: false,
   isPublic: false,
@@ -65,6 +59,7 @@ export const mockCreatureAsset = (overrides?: Partial<Asset>): Asset => ({
   tokenSize: { width: 1, height: 1 },
   tokens: [mockMediaResource({ id: 'topdown-456' })],
   statBlocks: {},
+  tags: [],
   ownerId: 'user-123',
   isPublished: false,
   isPublic: false,
@@ -87,6 +82,7 @@ export const mockCharacterAsset = (overrides?: Partial<Asset>): Asset => ({
   tokenSize: { width: 1, height: 1 },
   tokens: [mockMediaResource({ id: 'topdown-789' })],
   statBlocks: {},
+  tags: [],
   ownerId: 'user-123',
   isPublished: false,
   isPublic: false,
@@ -102,8 +98,8 @@ export const mockAssetWithPortrait = (overrides?: Partial<Asset>): Asset => {
       path: '/media/test-portrait.png',
       contentType: 'image/png',
       fileName: 'test-portrait.png',
-      fileLength: 15000,
-      size: { width: 512, height: 512 },
+      fileSize: 15000,
+      dimensions: { width: 512, height: 512 },
     }),
   };
 };

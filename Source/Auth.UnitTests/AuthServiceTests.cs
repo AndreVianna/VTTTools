@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests;
+namespace VttTools.Auth;
 
 /// <summary>
 /// Unit tests for AuthService business logic with mocked dependencies.

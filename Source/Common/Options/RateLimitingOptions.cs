@@ -1,4 +1,4 @@
-namespace VttTools.Common.Options;
+namespace VttTools.Options;
 
 public sealed class RateLimitingOptions {
     public const string SectionName = "RateLimiting";
@@ -23,11 +23,4 @@ public sealed class RateLimitingOptions {
         SegmentsPerWindow = 2,
         QueueLimit = 0,
     };
-}
-
-public sealed class RateLimitPolicyOptions {
-    public int PermitLimit { get; set; }
-    public int WindowMinutes { get; set; }
-    public int SegmentsPerWindow { get; set; }
-    public int QueueLimit { get; set; }
 }

@@ -2,7 +2,7 @@
 namespace VttTools.Library.Encounters.Model;
 
 public record EncounterRegion {
-    public uint Index { get; init; }
+    public ushort Index { get; init; }
     [MaxLength(128)]
     public string? Name { get; init; }
 

@@ -11,8 +11,8 @@ public sealed class ShowCommandTests : IDisposable {
         _tempDir = Path.Combine(Path.GetTempPath(), $"TokenManagerTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
-        _imageStore = new HierarchicalFileStore(_tempDir);
-        _command = new ShowCommand(_imageStore);
+        _imageStore = new(_tempDir);
+        _command = new(_imageStore);
     }
 
     public void Dispose() {
@@ -63,7 +63,6 @@ public sealed class ShowCommandTests : IDisposable {
 
         Assert.NotNull(entityInfo);
         Assert.Equal(3, entityInfo.Tokens.Count);
-        Assert.All(entityInfo.Tokens, token => Assert.NotNull(token.Description));
     }
 
     [Fact]

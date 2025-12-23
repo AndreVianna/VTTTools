@@ -2,6 +2,8 @@ using Encounter = VttTools.Data.Library.Entities.Encounter;
 using EncounterAsset = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterLight = VttTools.Data.Library.Entities.EncounterLight;
 using EncounterRegion = VttTools.Data.Library.Entities.EncounterRegion;
+using EncounterRegionVertex = VttTools.Data.Library.Entities.EncounterRegionVertex;
+using EncounterResource = VttTools.Data.Library.Entities.EncounterResource;
 using EncounterSound = VttTools.Data.Library.Entities.EncounterSound;
 using EncounterWall = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterWallSegment = VttTools.Data.Library.Entities.EncounterWallSegment;
@@ -26,12 +28,6 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.AmbientLight).IsRequired().HasConversion<string>().HasDefaultValue(AmbientLight.Default);
             entity.Property(e => e.Weather).IsRequired().HasConversion<string>().HasDefaultValue(Weather.Clear);
             entity.Property(e => e.GroundElevation).IsRequired().HasDefaultValue(0.0f);
-            entity.HasOne(e => e.Background).WithMany()
-                .HasForeignKey(e => e.BackgroundId).IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(e => e.AmbientSound).WithMany()
-                .HasForeignKey(e => e.AmbientSoundId).IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid).HasColumnName("GridType");
@@ -151,18 +147,31 @@ internal static class EncounterSchemaBuilder {
             entity.Property(e => e.Type).IsRequired().HasConversion<string>().HasDefaultValue(RegionType.Elevation);
             entity.Property(e => e.Value).IsRequired();
 
-            entity.OwnsMany(e => e.Vertices, vertices => {
-                vertices.ToJson();
-                vertices.Property(v => v.X).IsRequired();
-                vertices.Property(v => v.Y).IsRequired();
-            });
-
             entity.HasOne(e => e.Encounter)
                 .WithMany(s => s.Regions)
                 .HasForeignKey(e => e.EncounterId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => e.EncounterId);
+        });
+
+        builder.Entity<EncounterRegionVertex>(entity => {
+            entity.ToTable("EncounterRegionVertices");
+            entity.HasKey(e => new { e.EncounterId, e.RegionIndex, e.Index });
+            entity.Property(e => e.EncounterId).IsRequired();
+            entity.Property(e => e.RegionIndex).IsRequired();
+            entity.Property(e => e.Index).IsRequired();
+
+            entity.Property(e => e.X).IsRequired();
+            entity.Property(e => e.Y).IsRequired();
+
+            entity.HasOne(e => e.Region)
+                .WithMany(r => r.Vertices)
+                .HasForeignKey(e => new { e.EncounterId, e.RegionIndex })
+                .HasPrincipalKey(r => new { r.EncounterId, r.Index })
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.EncounterId, e.RegionIndex, e.Index });
         });
 
         builder.Entity<EncounterLight>(entity => {
@@ -218,6 +227,22 @@ internal static class EncounterSchemaBuilder {
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => e.EncounterId);
+        });
+
+        builder.Entity<EncounterResource>(entity => {
+            entity.ToTable("EncounterResources");
+            entity.HasKey(e => new { e.EncounterId, e.ResourceId });
+            entity.Property(e => e.Role).IsRequired().HasConversion<string>();
+            entity.Property(e => e.Index).IsRequired();
+            entity.HasIndex(e => new { e.EncounterId, e.Role, e.Index }).IsUnique();
+            entity.HasOne(e => e.Resource)
+                .WithMany()
+                .HasForeignKey(e => e.ResourceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Encounter)
+                .WithMany(e => e.Resources)
+                .HasForeignKey(e => e.EncounterId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

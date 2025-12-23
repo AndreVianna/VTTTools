@@ -8,7 +8,7 @@ public class MediaServiceClient(
 
     private readonly Guid _masterUserId = options.Value.MasterUserId;
 
-    public async Task<Result<Guid>> UploadResourceAsync(byte[] data, string fileName, string contentType, ResourceType resourceType, CancellationToken ct = default) {
+    public async Task<Result<Guid>> UploadResourceAsync(byte[] data, string fileName, string contentType, ResourceRole resourceType, CancellationToken ct = default) {
         using var content = new MultipartFormDataContent();
         using var fileContent = new ByteArrayContent(data);
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
@@ -71,20 +71,10 @@ public class MediaServiceClient(
         var httpClient = httpClientFactory.CreateClient("MediaService");
 
         var queryParams = new List<string>();
-        if (!string.IsNullOrWhiteSpace(request.ResourceType))
-            queryParams.Add($"resourceType={Uri.EscapeDataString(request.ResourceType)}");
-        if (!string.IsNullOrWhiteSpace(request.ContentKind))
-            queryParams.Add($"contentKind={Uri.EscapeDataString(request.ContentKind)}");
-        if (!string.IsNullOrWhiteSpace(request.Category))
-            queryParams.Add($"category={Uri.EscapeDataString(request.Category)}");
+        if (request.Role is not null)
+            queryParams.Add($"role={Uri.EscapeDataString(request.Role.ToString()!)}");
         if (!string.IsNullOrWhiteSpace(request.SearchText))
             queryParams.Add($"searchText={Uri.EscapeDataString(request.SearchText)}");
-        if (request.IsPublished.HasValue)
-            queryParams.Add($"isPublished={request.IsPublished.Value.ToString().ToLowerInvariant()}");
-        else
-            queryParams.Add("isPublished=false"); // Default to unpublished for admin review
-        if (request.IsPublic.HasValue)
-            queryParams.Add($"isPublic={request.IsPublic.Value.ToString().ToLowerInvariant()}");
         queryParams.Add($"skip={request.Skip ?? 0}");
         queryParams.Add($"take={request.Take ?? 50}");
 
@@ -119,15 +109,10 @@ public class MediaServiceClient(
     private static ResourceInfoResponse MapToResourceInfo(ResourceMetadata resource)
         => new() {
             Id = resource.Id,
-            ResourceType = resource.ResourceType.ToString(),
-            Classification = resource.Classification,
-            Description = resource.Description,
+            Path = resource.Path,
             FileName = resource.FileName,
             ContentType = resource.ContentType,
-            FileLength = resource.FileLength,
-            OwnerId = resource.OwnerId,
-            IsPublished = resource.IsPublished,
-            IsPublic = resource.IsPublic,
+            FileSize = resource.FileSize,
         };
 
     private sealed record ResourceUploadResponse(Guid Id);

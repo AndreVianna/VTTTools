@@ -26,17 +26,15 @@ public class EncounterTests {
             Panning = new Point(100, 200),
             Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "path/to/image.png",
                 ContentType = "image/png",
-                Size = new Size(800, 600),
+                Dimensions = new Size(800, 600),
             },
             Light = AmbientLight.Twilight,
             Weather = Weather.Clear,
             Elevation = 20.0f,
             Sound = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.AmbientSound,
                 Path = "path/to/sound.mp3",
                 ContentType = "audio/mpeg",
                 Duration = TimeSpan.FromMinutes(3),

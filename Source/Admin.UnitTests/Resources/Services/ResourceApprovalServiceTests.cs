@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Resources.Services;
+namespace VttTools.Admin.Resources.Services;
 
 public sealed class ResourceApprovalServiceTests {
     private readonly IMediaServiceClient _mockMediaClient;
@@ -19,11 +19,11 @@ public sealed class ResourceApprovalServiceTests {
             MasterUserId = _masterUserId,
         });
 
-        _service = new ResourceApprovalService(
-            _mockMediaClient,
-            _mockAssetsClient,
-            _mockAiClient,
-            _mockOptions);
+        _service = new(
+                       _mockMediaClient,
+                       _mockAssetsClient,
+                       _mockAiClient,
+                       _mockOptions);
     }
 
     #region ApproveAsync Tests - New Asset Creation
@@ -60,7 +60,7 @@ public sealed class ResourceApprovalServiceTests {
 
         await _mockMediaClient.Received(1).UpdateResourceAsync(
             resourceId,
-            Arg.Is<UpdateResourceRequest>(r => r.IsPublished == true),
+            Arg.Any<UpdateResourceRequest>(),
             Arg.Any<CancellationToken>());
 
         await _mockAssetsClient.Received(1).CreateAssetAsync(
@@ -289,7 +289,7 @@ public sealed class ResourceApprovalServiceTests {
                 Arg.Any<byte[]>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<ResourceType>(),
+                Arg.Any<ResourceRole>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Success(newResourceId));
 
@@ -313,7 +313,7 @@ public sealed class ResourceApprovalServiceTests {
             generatedImage,
             "Dragon_portrait.png",
             "image/png",
-            ResourceType.Portrait,
+            ResourceRole.Portrait,
             Arg.Any<CancellationToken>());
 
         await _mockMediaClient.Received(1).DeleteResourceAsync(
@@ -344,7 +344,7 @@ public sealed class ResourceApprovalServiceTests {
                 Arg.Any<byte[]>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<ResourceType>(),
+                Arg.Any<ResourceRole>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Success(newResourceId));
 
@@ -365,7 +365,7 @@ public sealed class ResourceApprovalServiceTests {
             generatedImage,
             "Dragon_token.png",
             "image/png",
-            ResourceType.Token,
+            ResourceRole.Token,
             Arg.Any<CancellationToken>());
     }
 
@@ -391,7 +391,7 @@ public sealed class ResourceApprovalServiceTests {
                 Arg.Any<byte[]>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<ResourceType>(),
+                Arg.Any<ResourceRole>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Success(Guid.CreateVersion7()));
 
@@ -434,7 +434,7 @@ public sealed class ResourceApprovalServiceTests {
             Arg.Any<byte[]>(),
             Arg.Any<string>(),
             Arg.Any<string>(),
-            Arg.Any<ResourceType>(),
+            Arg.Any<ResourceRole>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -457,7 +457,7 @@ public sealed class ResourceApprovalServiceTests {
                 Arg.Any<byte[]>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<ResourceType>(),
+                Arg.Any<ResourceRole>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Upload failed").WithNo<Guid>());
 
@@ -491,7 +491,7 @@ public sealed class ResourceApprovalServiceTests {
                 Arg.Any<byte[]>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<ResourceType>(),
+                Arg.Any<ResourceRole>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Success(newResourceId));
 
@@ -507,7 +507,7 @@ public sealed class ResourceApprovalServiceTests {
                 Arg.Any<byte[]>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<ResourceType>(),
+                Arg.Any<ResourceRole>(),
                 Arg.Any<CancellationToken>());
             await _mockMediaClient.DeleteResourceAsync(oldResourceId, Arg.Any<CancellationToken>());
         });

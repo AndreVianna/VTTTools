@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Configuration;
 
 using VttTools.Admin.Configuration.Model;
-using VttTools.Common.Services;
-using VttTools.Common.Utilities;
+using VttTools.Utilities;
 
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public class ConfigurationServiceTests {
     private readonly IConfigurationRoot _configuration;
@@ -16,7 +15,7 @@ public class ConfigurationServiceTests {
 
     public ConfigurationServiceTests() {
         _configuration = CreateConfiguration();
-        _sourceDetector = new ConfigurationSourceDetector(_configuration);
+        _sourceDetector = new(_configuration);
         _mockFrontendService = Substitute.For<FrontendConfigurationService>(Substitute.For<ILogger<FrontendConfigurationService>>());
         _mockUserManager = CreateMockUserManager();
         _mockLogger = Substitute.For<ILogger<ConfigurationService>>();
@@ -55,7 +54,7 @@ public class ConfigurationServiceTests {
 
     [Fact]
     public async Task GetServiceConfigurationAsync_WithUnsupportedService_ThrowsNotSupportedException() {
-        var act = async () => await _sut.GetServiceConfigurationAsync("Auth", TestContext.Current.CancellationToken);
+        var act = () => _sut.GetServiceConfigurationAsync("Auth", TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<NotSupportedException>()
             .WithMessage("*is not supported by Admin API*");

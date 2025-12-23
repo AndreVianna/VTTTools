@@ -19,7 +19,6 @@ global using NSubstitute;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
 global using VttTools.Common.Model;
-global using VttTools.Common.Utilities;
 global using VttTools.Data;
 global using VttTools.Data.Library;
 global using VttTools.Extensions;

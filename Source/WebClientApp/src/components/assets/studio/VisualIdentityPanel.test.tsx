@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VisualIdentityPanel } from './VisualIdentityPanel';
-import type { MediaResource } from '@/types/domain';
+import { ResourceRole, type MediaResource } from '@/types/domain';
 
 vi.mock('@/components/common/ResourceImage', () => ({
   ResourceImage: ({ resourceId, alt }: { resourceId: string; alt: string }) => (
@@ -21,56 +21,35 @@ TestWrapper.displayName = 'TestWrapper';
 describe('VisualIdentityPanel', () => {
   const mockPortrait: MediaResource = {
     id: 'portrait-123',
-    description: 'Test portrait',
-    features: {},
-    resourceType: 'Image' as any,
-    classification: null,
+    role: ResourceRole.Portrait,
     path: '/path/to/portrait.png',
     contentType: 'image/png',
     fileName: 'portrait.png',
-    fileLength: 1024,
-    thumbnailPath: null,
-    size: { width: 512, height: 512 },
+    fileSize: 1024,
+    dimensions: { width: 512, height: 512 },
     duration: '',
-    ownerId: 'user-123',
-    isPublished: true,
-    isPublic: true,
   };
 
   const mockTokens: MediaResource[] = [
     {
       id: 'token-1',
-      description: 'Token 1',
-      features: {},
-      resourceType: 'Image' as any,
-      classification: null,
+      role: ResourceRole.Token,
       path: '/path/to/token1.png',
       contentType: 'image/png',
       fileName: 'token1.png',
-      fileLength: 512,
-      thumbnailPath: null,
-      size: { width: 256, height: 256 },
+      fileSize: 512,
+      dimensions: { width: 256, height: 256 },
       duration: '',
-      ownerId: 'user-123',
-      isPublished: true,
-      isPublic: true,
     },
     {
       id: 'token-2',
-      description: 'Token 2',
-      features: {},
-      resourceType: 'Image' as any,
-      classification: null,
+      role: ResourceRole.Token,
       path: '/path/to/token2.png',
       contentType: 'image/png',
       fileName: 'token2.png',
-      fileLength: 512,
-      thumbnailPath: null,
-      size: { width: 256, height: 256 },
+      fileSize: 512,
+      dimensions: { width: 256, height: 256 },
       duration: '',
-      ownerId: 'user-123',
-      isPublished: true,
-      isPublic: true,
     },
   ];
 

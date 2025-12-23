@@ -15,7 +15,7 @@ import type {
   RegisterResponse,
   User,
 } from '@/types/domain';
-import { AssetKind, ContentType, ResourceType } from '@/types/domain';
+import { AssetKind, ContentType, ResourceRole } from '@/types/domain';
 
 // Delay to simulate network latency in development
 const MOCK_DELAY = 500;
@@ -110,22 +110,15 @@ export class MockApiService {
     devUtils.log('Mock get assets called');
     await delay(MOCK_DELAY);
 
-    const createMockMediaResource = (name: string, resourceType: ResourceType = ResourceType.Token): MediaResource => ({
+    const createMockMediaResource = (name: string, role: ResourceRole = ResourceRole.Token): MediaResource => ({
       id: crypto.randomUUID(),
-      description: null,
-      features: {},
-      resourceType,
-      classification: null,
+      role,
       path: `/mock/${name.toLowerCase().replace(/\s+/g, '-')}.png`,
       contentType: 'image/png',
       fileName: `${name.toLowerCase().replace(/\s+/g, '-')}.png`,
-      fileLength: Math.floor(Math.random() * 50000) + 10000,
-      thumbnailPath: null,
-      size: { width: 256, height: 256 },
+      fileSize: Math.floor(Math.random() * 50000) + 10000,
+      dimensions: { width: 256, height: 256 },
       duration: '',
-      ownerId: 'mock-owner',
-      isPublished: true,
-      isPublic: true,
     });
 
     const assets: Asset[] = [
@@ -139,13 +132,14 @@ export class MockApiService {
         },
         name: 'Hero Character',
         description: 'A playable hero character with portrait',
-        portrait: createMockMediaResource('hero-portrait', ResourceType.Portrait),
+        portrait: createMockMediaResource('hero-portrait', ResourceRole.Portrait),
         tokenSize: { width: 1, height: 1 },
         tokens: [
           createMockMediaResource('hero-topdown'),
           createMockMediaResource('hero-miniature'),
         ],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -167,6 +161,7 @@ export class MockApiService {
           createMockMediaResource('goblin-miniature'),
         ],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -181,7 +176,7 @@ export class MockApiService {
         },
         name: 'Ogre',
         description: 'Large monster with multiple image types',
-        portrait: createMockMediaResource('ogre-portrait', ResourceType.Portrait),
+        portrait: createMockMediaResource('ogre-portrait', ResourceRole.Portrait),
         tokenSize: { width: 2, height: 2 },
         tokens: [
           createMockMediaResource('ogre-topdown'),
@@ -189,6 +184,7 @@ export class MockApiService {
           createMockMediaResource('ogre-photo'),
         ],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -210,6 +206,7 @@ export class MockApiService {
           createMockMediaResource('dragon-photo'),
         ],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -228,6 +225,7 @@ export class MockApiService {
         tokenSize: { width: 1, height: 1 },
         tokens: [],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: false,
@@ -246,6 +244,7 @@ export class MockApiService {
         tokenSize: { width: 1, height: 1 },
         tokens: [createMockMediaResource('crate-topdown')],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -267,6 +266,7 @@ export class MockApiService {
           createMockMediaResource('chest-miniature'),
         ],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -285,6 +285,7 @@ export class MockApiService {
         tokenSize: { width: 1, height: 1 },
         tokens: [createMockMediaResource('wall-topdown')],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -303,6 +304,7 @@ export class MockApiService {
         tokenSize: { width: 1, height: 1 },
         tokens: [createMockMediaResource('door-topdown')],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -321,6 +323,7 @@ export class MockApiService {
         tokenSize: { width: 3, height: 3 },
         tokens: [createMockMediaResource('boulder-topdown')],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: true,
         isPublic: true,
@@ -339,6 +342,7 @@ export class MockApiService {
         tokenSize: { width: 1, height: 1 },
         tokens: [],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: false,
         isPublic: false,
@@ -360,6 +364,7 @@ export class MockApiService {
           createMockMediaResource('fallback-photo'),
         ],
         statBlocks: {},
+        tags: [],
         ownerId: 'mock-owner',
         isPublished: false,
         isPublic: false,

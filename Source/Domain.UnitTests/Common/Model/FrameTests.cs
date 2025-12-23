@@ -1,4 +1,4 @@
-namespace VttTools.Library.Encounters.Model;
+namespace VttTools.Common.Model;
 
 public class FrameTests {
     [Fact]

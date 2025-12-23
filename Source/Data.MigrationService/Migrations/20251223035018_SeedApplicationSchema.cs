@@ -10,56 +10,77 @@ public partial class SeedApplicationSchema : Migration {
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(
             table: "Resources",
-            columns: ["Id", "ContentType", "Description", "Duration", "FileLength", "FileName", "IsPublic", "IsPublished", "OwnerId", "Path", "ResourceType", "Category", "Kind", "Subtype", "Type", "Height", "Width"],
+            columns: ["Id", "ContentType", "Duration", "FileSize", "FileName", "Path", "Height", "Width"],
             values: new object[,]
             {
-                {new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), @"image/png", null, new TimeSpan(0L), 1170, @"wooden-crate.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"image/1f66/019a50f8f3e5702b89d333d694391f66", @"Token", @"Container", @"Object", null, @"Storage", 200, 200 },
-                {new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"image/png", null, new TimeSpan(0L), 8193, @"goblin.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"image/8985/019a50ce4b0473788e6e372bdf798985", @"Token", @"Monster", @"Creature", @"Goblinoid", @"Fey", 200, 200 },
-                {new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"image/png", null, new TimeSpan(0L), 1394149, @"The_Nesti.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"image/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", @"Background", @"Encounter", @"Map", @"Interior", @"House", 1026, 972 },
-                {new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"image/png", null, new TimeSpan(0L), 6821, @"hero-character.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"image/dd71/019a50f8394b79d296609b803391dd71", @"Token", @"Elf", @"Character", null, @"Paladin", 200, 200 },
-                {new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), @"image/png", null, new TimeSpan(0L), 2286, @"treasure-chest.png", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"image/fa86/019a50f8af0e7edebbabc1aa0775fa86", @"Token", @"Container", @"Object", null, @"Storage", 200, 200 },
-                {new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995"), @"audio/ogg", null, new TimeSpan(420080000L), 399753, @"file_example_MP3_700KB.ogg", false, false, new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"audio/1995/019b0192ca877ae69e0bfb23c2c71995", @"AmbientSound", @"", @"", null, @"", 0, 0 }
+                {new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), @"image/png", new TimeSpan(0L), 1170, @"wooden-crate.png", @"image/1f66/019a50f8f3e5702b89d333d694391f66", 200, 200 },
+                {new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"image/png", new TimeSpan(0L), 8193, @"goblin.png", @"image/8985/019a50ce4b0473788e6e372bdf798985", 200, 200 },
+                {new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"image/png", new TimeSpan(0L), 1394149, @"The_Nesti.png", @"image/bfe1/019ace1d5b9172d18d9f70640d3dbfe1", 1026, 972 },
+                {new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"image/png", new TimeSpan(0L), 6821, @"hero-character.png", @"image/dd71/019a50f8394b79d296609b803391dd71", 200, 200 },
+                {new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), @"image/png", new TimeSpan(0L), 2286, @"treasure-chest.png", @"image/fa86/019a50f8af0e7edebbabc1aa0775fa86", 200, 200 },
+                {new Guid("019b0192-ca87-7ae6-9e0b-fb23c2c71995"), @"audio/ogg", new TimeSpan(420080000L), 399753, @"file_example_MP3_700KB.ogg", @"audio/1995/019b0192ca877ae69e0bfb23c2c71995", 0, 0 }
             });
 
         migrationBuilder.InsertData(
             table: "Assets",
-            columns: ["Id", "Category", "Description", "IsDeleted", "IsPublic", "IsPublished", "Kind", "Name", "OwnerId", "PortraitId", "Subtype", "Tags", "Type", "Height", "Width"],
+            columns: ["Id", "Category", "Description", "IsDeleted", "IsPublic", "IsPublished", "Kind", "Name", "OwnerId", "Subtype", "Tags", "Type", "Height", "Width"],
             values: new object[,]
             {
-                {new Guid("019a07e4-ecbc-7f23-b6c9-26a7d72ac421"), @"Container", @"", false, false, false, @"Object", @"Create, Small", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, @"[]", @"Storage", 0.5d, 0.5d },
-                {new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), @"Monster", @"", false, true, true, @"Creature", @"Goblin Warrior", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), @"Goblinoid", @"[]", @"Fey", 1d, 1d },
-                {new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), @"Container", @"", false, false, false, @"Object", @"Chest, Wide", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), null, @"[]", @"Storage", 1d, 2d },
-                {new Guid("019a07e5-5550-7993-9b0b-84244f1543df"), @"Container", @"", false, false, false, @"Object", @"Create, Large", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, @"[]", @"Storage", 2d, 2d },
-                {new Guid("019a0363-9294-749d-9323-b759664a5436"), @"Container", @"", false, false, false, @"Object", @"Create", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), null, @"[]", @"Storage", 1d, 1d },
-                {new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), @"Elf", @"", false, true, true, @"Character", @"Sir Pelotas", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), @"Squire", @"[]", @"Paladin", 1d, 1d }
+                {new Guid("019a07e4-ecbc-7f23-b6c9-26a7d72ac421"), @"Container", @"", false, false, false, @"Object", @"Create, Small", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), null, @"[]", @"Storage", 0.5d, 0.5d },
+                {new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), @"Monster", @"", false, true, true, @"Creature", @"Goblin Warrior", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"Goblinoid", @"[]", @"Fey", 1d, 1d },
+                {new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), @"Container", @"", false, false, false, @"Object", @"Chest, Wide", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), null, @"[]", @"Storage", 1d, 2d },
+                {new Guid("019a07e5-5550-7993-9b0b-84244f1543df"), @"Container", @"", false, false, false, @"Object", @"Create, Large", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), null, @"[]", @"Storage", 2d, 2d },
+                {new Guid("019a0363-9294-749d-9323-b759664a5436"), @"Container", @"", false, false, false, @"Object", @"Create", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), null, @"[]", @"Storage", 1d, 1d },
+                {new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), @"Elf", @"", false, true, true, @"Character", @"Sir Pelotas", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"Squire", @"[]", @"Paladin", 1d, 1d }
+            });
+
+        migrationBuilder.InsertData(
+            table: "AssetResources",
+            columns: ["AssetId", "ResourceId", "Role", "Index"],
+            values: new object[,]
+            {
+                {new Guid("019a07e4-ecbc-7f23-b6c9-26a7d72ac421"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), "Portrait", 0 },
+                {new Guid("019a0363-e277-7fa4-9a78-654f24400b79"), new Guid("019a50ce-4b04-7378-8e6e-372bdf798985"), "Portrait", 0 },
+                {new Guid("019a07e6-82a2-7286-acab-7ccb6cf652bd"), new Guid("019a50f8-af0e-7ede-bbab-c1aa0775fa86"), "Portrait", 0 },
+                {new Guid("019a07e5-5550-7993-9b0b-84244f1543df"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), "Portrait", 0 },
+                {new Guid("019a0363-9294-749d-9323-b759664a5436"), new Guid("019a50f8-f3e5-702b-89d3-33d694391f66"), "Portrait", 0 },
+                {new Guid("019a2b1b-25cf-74a7-b1c3-c9f46cbfb9fa"), new Guid("019a50f8-394b-79d2-9660-9b803391dd71"), "Portrait", 0 }
             });
 
         migrationBuilder.InsertData(
             table: "Worlds",
-            columns: ["Id", "BackgroundId", "Description", "IsPublic", "IsPublished", "Name", "OwnerId"],
-            values: new object[] { new Guid("019a1480-d106-7627-8394-1f2a607ab656"), null, @"A new world.", false, false, @"Untitled World", new Guid("019639ea-c7de-7a01-8548-41edfccde206") });
+            columns: ["Id", "Description", "IsPublic", "IsPublished", "Name", "OwnerId"],
+            values: new object[] { new Guid("019a1480-d106-7627-8394-1f2a607ab656"), @"A new world.", false, false, @"Untitled World", new Guid("019639ea-c7de-7a01-8548-41edfccde206") });
 
         migrationBuilder.InsertData(
             table: "Campaigns",
-            columns: ["Id", "BackgroundId", "Description", "IsPublic", "IsPublished", "Name", "OwnerId", "WorldId"],
-            values: new object[] { new Guid("019a1480-d107-7627-8394-1f2a607ab656"), null, @"A new campaign.", false, false, @"Untitled Campaign", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), null });
+            columns: ["Id", "Description", "IsPublic", "IsPublished", "Name", "OwnerId", "WorldId"],
+            values: new object[] { new Guid("019a1480-d107-7627-8394-1f2a607ab656"), @"A new campaign.", false, false, @"Untitled Campaign", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), null });
 
         migrationBuilder.InsertData(
             table: "Adventures",
-            columns: ["Id", "BackgroundId", "CampaignId", "Description", "IsOneShot", "IsPublic", "IsPublished", "Name", "OwnerId", "Style", "WorldId"],
+            columns: ["Id", "CampaignId", "Description", "IsOneShot", "IsPublic", "IsPublished", "Name", "OwnerId", "Style", "WorldId"],
             values: new object[,]
             {
-                {new Guid("019a1480-d108-7627-8394-1f2a607ab656"), null, null, @"My new adventure.", true, false, false, @"My Adventure", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"OpenWorld", null },
-                {new Guid("019a1488-d51d-7b45-a579-fa2d31f118b3"), null, null, @"A new adventure.", false, false, false, @"Untitled Adventure", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"Generic", null }
+                {new Guid("019a1480-d108-7627-8394-1f2a607ab656"), null, @"My new adventure.", true, false, false, @"My Adventure", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"OpenWorld", null },
+                {new Guid("019a1488-d51d-7b45-a579-fa2d31f118b3"), null, @"A new adventure.", false, false, false, @"Untitled Adventure", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), @"Generic", null }
             });
 
         migrationBuilder.InsertData(
             table: "Encounters",
-            columns: ["Id", "AdventureId", "AmbientLight", "AmbientSoundId", "BackgroundId", "Description", "GroundElevation", "IsPublished", "Name", "Weather", "ZoomLevel", "GridScale", "GridType", "GridCellHeight", "GridCellWidth", "GridOffsetLeft", "GridOffsetTop", "PanningX", "PanningY"],
+            columns: ["Id", "AdventureId", "AmbientLight", "Description", "GroundElevation", "IsPublished", "Name", "Weather", "ZoomLevel", "GridScale", "GridType", "GridCellHeight", "GridCellWidth", "GridOffsetLeft", "GridOffsetTop", "PanningX", "PanningY"],
             values: new object[,]
             {
-                {new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", null, null, @"Hello", 0f, false, @"The Tavern", @"Clear", 1f, 5d, @"Square", 50d, 50d, 0d, 0d, 0d, 0d },
-                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", null, new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), @"", 0f, false, @"The Nesti", @"Clear", 1f, 5d, @"Square", 53.75d, 53.75d, 1d, 3d, 0d, 0d }
+                {new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", @"Hello", 0f, false, @"The Tavern", @"Clear", 1f, 5d, @"Square", 50d, 50d, 0d, 0d, 0d, 0d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), new Guid("019a1480-d108-7627-8394-1f2a607ab656"), @"Default", @"", 0f, false, @"The Nesti", @"Clear", 1f, 5d, @"Square", 53.75d, 53.75d, 1d, 3d, 0d, 0d }
+            });
+
+        migrationBuilder.InsertData(
+            table: "EncounterResources",
+            columns: ["EncounterId", "ResourceId", "Role", "Index"],
+            values: new object[,]
+            {
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), new Guid("019ace1d-5b91-72d1-8d9f-70640d3dbfe1"), "Background", 0 },
             });
 
         migrationBuilder.InsertData(
@@ -81,13 +102,38 @@ public partial class SeedApplicationSchema : Migration {
 
         migrationBuilder.Sql(
             """
-            INSERT INTO [EncounterRegions] ([EncounterId], [Index], [Name], [Type], [Value], [Vertices])
+            INSERT INTO [EncounterRegions] ([EncounterId], [Index], [Name], [Type], [Value])
             VALUES
-            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, 'Region 1', 'Elevation', 0, '[{"X":22,"Y":15},{"X":25,"Y":19.5},{"X":31.5,"Y":19.5},{"X":33,"Y":14}]'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 'Region 1', 'Elevation', 10, '[{"X":4,"Y":11},{"X":4,"Y":13},{"X":3.5,"Y":13},{"X":3.5,"Y":15},{"X":5,"Y":15},{"X":5,"Y":16},{"X":7,"Y":16},{"X":7,"Y":11}]'),
-            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1, 'Region 2', 'Elevation', 20, '[{"X":11.5,"Y":14},{"X":11.5,"Y":15},{"X":12.5,"Y":15},{"X":12.5,"Y":16},{"X":13.5,"Y":16},{"X":13.5,"Y":14}]');
+            ('019A26C8-0DF8-7BED-A5D5-12C035B72F91', 0, 'Region 1', 'Elevation', 0),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 0, 'Region 1', 'Elevation', 10),
+            ('019ACE1D-3C6A-7FEA-84DC-62CC6C4CBB4C', 1, 'Region 2', 'Elevation', 20);
             """
         );
+
+        migrationBuilder.InsertData(
+            table: "EncounterRegionVertices",
+            columns: ["EncounterId", "RegionIndex", "Index", "X", "Y"],
+            values: new object[,]
+            {
+                {new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 0, 22d, 15d },
+                {new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 1, 25d, 19.5d },
+                {new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 2, 31.5d, 19.5d },
+                {new Guid("019a26c8-0df8-7bed-a5d5-12c035b72f91"), 0, 3, 33d, 14d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 0, 4d, 11d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 1, 4d, 13d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 2, 3.5d, 13d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 3, 3.5d, 15d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 4, 5d, 15d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 5, 5d, 16d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 6, 7d, 16d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 0, 7, 7d, 11d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 0, 11.5d, 14d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 1, 11.5d, 15d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 2, 12.5d, 15d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 3, 12.5d, 1d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 4, 13.5d, 16d },
+                {new Guid("019ace1d-3c6a-7fea-84dc-62cc6c4cbb4c"), 1, 5, 13.5d, 14d }
+            });
 
         migrationBuilder.InsertData(
             table: "EncounterSounds",

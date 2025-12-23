@@ -2,37 +2,20 @@ namespace VttTools.Data.Media;
 
 public class MediaStorage(ApplicationDbContext context)
     : IMediaStorage {
+    // With junction tables architecture, Resources are pure media metadata without Role.
+    // To filter by Role, query through parent entities (Asset, Campaign, etc.) or junction tables.
     public async Task<(ResourceMetadata[] Items, int TotalCount)> FilterAsync(
         ResourceFilterData filter,
         CancellationToken ct = default) {
-        var query = context.Resources
-            .AsNoTracking();
+        var query = context.Resources.AsNoTracking();
 
-        if (filter.ResourceType.HasValue)
-            query = query.Where(r => r.ResourceType == filter.ResourceType.Value);
-
-        if (!string.IsNullOrWhiteSpace(filter.ContentKind))
-            query = query.Where(r => r.Classification != null && r.Classification.Kind == filter.ContentKind);
-
-        if (!string.IsNullOrWhiteSpace(filter.Category))
-            query = query.Where(r => r.Classification != null && r.Classification.Category == filter.Category);
+        // Note: Role filtering is no longer available at Resource level.
+        // Role is stored in junction tables (AssetResources, CampaignResources, etc.)
 
         if (!string.IsNullOrWhiteSpace(filter.SearchText)) {
             var search = $"%{filter.SearchText}%";
-            query = query.Where(r =>
-                EF.Functions.Like(r.FileName, search) ||
-                (r.Description != null && EF.Functions.Like(r.Description, search)) ||
-                (r.Classification != null && EF.Functions.Like(r.Classification.Type, search)));
+            query = query.Where(r => EF.Functions.Like(r.FileName, search));
         }
-
-        if (filter.OwnerId.HasValue)
-            query = query.Where(r => r.OwnerId == filter.OwnerId.Value);
-
-        if (filter.IsPublic.HasValue)
-            query = query.Where(r => r.IsPublic == filter.IsPublic.Value);
-
-        if (filter.IsPublished.HasValue)
-            query = query.Where(r => r.IsPublished == filter.IsPublished.Value);
 
         var totalCount = await query.CountAsync(ct);
 
@@ -48,7 +31,6 @@ public class MediaStorage(ApplicationDbContext context)
 
     public async Task<ResourceMetadata?> FindByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Resources
-            .Include(r => r.Features)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
         return entity.ToModel();
@@ -62,13 +44,11 @@ public class MediaStorage(ApplicationDbContext context)
 
     public async Task<bool> UpdateAsync(ResourceMetadata resource, CancellationToken ct = default) {
         var entity = await context.Resources
-            .Include(r => r.Features)
             .FirstOrDefaultAsync(e => e.Id == resource.Id, ct);
 
         if (entity is null)
             return false;
 
-        entity.Features.Clear();
         entity.UpdateFrom(resource);
 
         var result = await context.SaveChangesAsync(ct);

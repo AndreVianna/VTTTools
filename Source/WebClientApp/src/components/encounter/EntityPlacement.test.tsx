@@ -58,6 +58,7 @@ const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asse
   portrait: null,
   tokenSize: { width: 1, height: 1 },
   statBlocks: {},
+  tags: [],
 });
 
 const createMockCharacterAsset = (id: string): Asset => createMockAsset(id, AssetKind.Character);

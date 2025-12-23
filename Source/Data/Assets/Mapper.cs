@@ -1,7 +1,11 @@
 using Asset = VttTools.Assets.Model.Asset;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
-using AssetTokenEntity = VttTools.Data.Assets.Entities.AssetToken;
+using AssetResourceEntity = VttTools.Data.Assets.Entities.AssetResource;
 using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
+using StatEntry = VttTools.Assets.Model.StatEntry;
+using StatEntryType = VttTools.Assets.Model.StatEntryType;
+using StatModifier = VttTools.Assets.Model.StatModifier;
 
 namespace VttTools.Data.Assets;
 
@@ -14,17 +18,36 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             TokenSize = entity.TokenSize,
-            StatBlocks = entity.StatBlock.GroupBy(stv => stv.Level)
+            StatBlocks = entity.StatEntries.GroupBy(stv => stv.Level)
                 .ToDictionary(g => g.Key, g => new Map<StatBlockValue>(g.ToDictionary(k => k.Key, v => new StatBlockValue(
-                    v.Type == AssetStatBlockValueType.Text ? v.Value : null,
-                    v.Type == AssetStatBlockValueType.Number ? decimal.Parse(v.Value!) : null,
-                    v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
+                    v.Type == AssetStatEntryType.Text ? v.Value : null,
+                    v.Type == AssetStatEntryType.Number ? decimal.Parse(v.Value!) : null,
+                    v.Type == AssetStatEntryType.Flag ? bool.Parse(v.Value!) : null)))),
+            StatEntries = entity.StatEntries.GroupBy(e => e.GameSystemId)
+                .ToDictionary(
+                    gs => gs.Key,
+                    gs => gs.GroupBy(e => e.Level)
+                        .ToDictionary(
+                            lvl => lvl.Key,
+                            lvl => new Map<StatEntry>(lvl.ToDictionary(
+                                e => e.Key,
+                                e => new StatEntry {
+                                    AssetId = entity.Id,
+                                    GameSystemId = e.GameSystemId,
+                                    GameSystemCode = e.GameSystem.Code,
+                                    Level = e.Level,
+                                    Key = e.Key,
+                                    Value = e.Value,
+                                    Type = (StatEntryType)e.Type,
+                                    Description = e.Description,
+                                    Modifiers = e.Modifiers != null ? JsonSerializer.Deserialize<StatModifier[]>(e.Modifiers) : null,
+                                })))),
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             IsDeleted = entity.IsDeleted,
             Tags = entity.Tags,
-            Portrait = entity.Portrait != null ? entity.Portrait.ToModel() : null,
-            Tokens = entity.AssetTokens.AsQueryable().OrderBy(a => a.Index).Select(AsToken!).ToList(),
+            Portrait = entity.Resources.AsQueryable().Where(r => r.Role == ResourceRole.Portrait).Select(AsResourceToken!).FirstOrDefault(),
+            Tokens = entity.Resources.AsQueryable().Where(r => r.Role == ResourceRole.Token).OrderBy(r => r.Index).Select(AsResourceToken!).ToList(),
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -42,17 +65,59 @@ internal static class Mapper {
                IsDeleted = entity.IsDeleted,
                Tags = entity.Tags,
                TokenSize = entity.TokenSize,
-               StatBlocks = entity.StatBlock.GroupBy(stv => stv.Level)
+               StatBlocks = entity.StatEntries.GroupBy(stv => stv.Level)
                     .ToDictionary(g => g.Key, g => new Map<StatBlockValue>(g.ToDictionary(k => k.Key, v => new StatBlockValue(
-                        v.Type == AssetStatBlockValueType.Text ? v.Value : null,
-                        v.Type == AssetStatBlockValueType.Number ? decimal.Parse(v.Value!) : null,
-                        v.Type == AssetStatBlockValueType.Flag ? bool.Parse(v.Value!) : null)))),
-               Portrait = entity.Portrait?.ToModel(),
-               Tokens = [.. entity.AssetTokens.Select(v => v.Token.ToModel())],
+                        v.Type == AssetStatEntryType.Text ? v.Value : null,
+                        v.Type == AssetStatEntryType.Number ? decimal.Parse(v.Value!) : null,
+                        v.Type == AssetStatEntryType.Flag ? bool.Parse(v.Value!) : null)))),
+               StatEntries = entity.StatEntries.GroupBy(e => e.GameSystemId)
+                    .ToDictionary(
+                        gs => gs.Key,
+                        gs => gs.GroupBy(e => e.Level)
+                            .ToDictionary(
+                                lvl => lvl.Key,
+                                lvl => new Map<StatEntry>(lvl.ToDictionary(
+                                    e => e.Key,
+                                    e => new StatEntry {
+                                        AssetId = entity.Id,
+                                        GameSystemId = e.GameSystemId,
+                                        GameSystemCode = e.GameSystem.Code,
+                                        Level = e.Level,
+                                        Key = e.Key,
+                                        Value = e.Value,
+                                        Type = (StatEntryType)e.Type,
+                                        Description = e.Description,
+                                        Modifiers = DeserializeModifiers(e.Modifiers),
+                                    })))),
+               Portrait = entity.Resources.FirstOrDefault(r => r.Role == ResourceRole.Portrait)?.Resource.ToModel(),
+               Tokens = [.. entity.Resources.Where(r => r.Role == ResourceRole.Token).OrderBy(r => r.Index).Select(r => r.Resource.ToModel())],
            };
 
-    public static AssetEntity ToEntity(this Asset model)
-        => new() {
+    public static AssetEntity ToEntity(this Asset model) {
+        // Use StatEntries if available, otherwise fall back to StatBlocks for backward compatibility
+        var statEntries = model.StatEntries.Count > 0
+            ? model.StatEntries.SelectMany(gs => gs.Value.SelectMany(lvl => lvl.Value.Select(entry => new AssetStatEntry {
+                AssetId = model.Id,
+                GameSystemId = entry.Value.GameSystemId,
+                Level = entry.Value.Level,
+                Key = entry.Value.Key,
+                Type = (AssetStatEntryType)entry.Value.Type,
+                Value = entry.Value.Value,
+                Description = entry.Value.Description,
+                Modifiers = SerializeModifiers(entry.Value.Modifiers),
+            })))
+            : model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatEntry {
+                AssetId = model.Id,
+                GameSystemId = Guid.Empty, // Will need to be set by caller for legacy data
+                Key = g.Key,
+                Level = f.Key,
+                Type = g.Value.IsFlag ? AssetStatEntryType.Flag
+                        : g.Value.IsNumber ? AssetStatEntryType.Number
+                        : AssetStatEntryType.Text,
+                Value = g.Value.Value is null ? null : $"{g.Value.Value}",
+            }));
+
+        var entity = new AssetEntity {
             Id = model.Id,
             OwnerId = model.OwnerId,
             Kind = model.Classification.Kind,
@@ -66,18 +131,29 @@ internal static class Mapper {
             IsDeleted = model.IsDeleted,
             Tags = model.Tags,
             TokenSize = model.TokenSize,
-            StatBlock = [..model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatBlockValue{
-                AssetId = model.Id,
-                Key = g.Key,
-                Level = f.Key,
-                Type = g.Value.IsFlag ? AssetStatBlockValueType.Flag
-                        : g.Value.IsNumber ? AssetStatBlockValueType.Number
-                        : AssetStatBlockValueType.Text,
-                Value = g.Value.Value is null ? null : $"{g.Value.Value}",
-            }))],
-            PortraitId = model.Portrait?.Id,
-            AssetTokens = [.. model.Tokens.Select((t, i) => t.ToEntity(model.Id, i))],
+            StatEntries = [.. statEntries],
         };
+
+        var resources = new List<AssetResourceEntity>();
+        if (model.Portrait is not null) {
+            resources.Add(new() {
+                AssetId = model.Id,
+                ResourceId = model.Portrait.Id,
+                Role = ResourceRole.Portrait,
+                Index = 0,
+            });
+        }
+
+        resources.AddRange(model.Tokens.Select((t, i) => new AssetResourceEntity {
+            AssetId = model.Id,
+            ResourceId = t.Id,
+            Role = ResourceRole.Token,
+            Index = i,
+        }));
+
+        entity.Resources = resources;
+        return entity;
+    }
 
     public static void UpdateFrom(this AssetEntity entity, Asset model) {
         entity.Kind = model.Classification.Kind;
@@ -90,65 +166,77 @@ internal static class Mapper {
         entity.IsPublished = model.IsPublished;
         entity.Tags = model.Tags;
         entity.TokenSize = model.TokenSize;
-        entity.StatBlock = [..model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatBlockValue{
-            AssetId = model.Id,
-            Key = g.Key,
-            Level = f.Key,
-            Type = g.Value.IsFlag ? AssetStatBlockValueType.Flag
-                    : g.Value.IsNumber ? AssetStatBlockValueType.Number
-                    : AssetStatBlockValueType.Text,
-            Value = g.Value.Value is null ? null : $"{g.Value.Value}",
-        }))];
-        entity.PortraitId = model.Portrait?.Id;
+
+        // Use StatEntries if available, otherwise fall back to StatBlocks for backward compatibility
+        var statEntries = model.StatEntries.Count > 0
+            ? model.StatEntries.SelectMany(gs => gs.Value.SelectMany(lvl => lvl.Value.Select(entry => new AssetStatEntry {
+                AssetId = model.Id,
+                GameSystemId = entry.Value.GameSystemId,
+                Level = entry.Value.Level,
+                Key = entry.Value.Key,
+                Type = (AssetStatEntryType)entry.Value.Type,
+                Value = entry.Value.Value,
+                Description = entry.Value.Description,
+                Modifiers = SerializeModifiers(entry.Value.Modifiers),
+            })))
+            : model.StatBlocks.SelectMany(f => f.Value.Select(g => new AssetStatEntry {
+                AssetId = model.Id,
+                GameSystemId = Guid.Empty, // Will need to be set by caller for legacy data
+                Key = g.Key,
+                Level = f.Key,
+                Type = g.Value.IsFlag ? AssetStatEntryType.Flag
+                        : g.Value.IsNumber ? AssetStatEntryType.Number
+                        : AssetStatEntryType.Text,
+                Value = g.Value.Value is null ? null : $"{g.Value.Value}",
+            }));
+
+        entity.StatEntries = [.. statEntries];
+
+        // Update Resources collection
+        entity.Resources.Clear();
+
+        if (model.Portrait is not null) {
+            entity.Resources.Add(new() {
+                AssetId = model.Id,
+                ResourceId = model.Portrait.Id,
+                Role = ResourceRole.Portrait,
+                Index = 0,
+            });
+        }
+
+        foreach (var (token, index) in model.Tokens.Select((t, i) => (t, i))) {
+            entity.Resources.Add(new() {
+                AssetId = model.Id,
+                ResourceId = token.Id,
+                Role = ResourceRole.Token,
+                Index = index,
+            });
+        }
     }
 
-    public static Expression<Func<AssetTokenEntity, ResourceMetadata>> AsToken = entity
-        => new ResourceMetadata {
-            Id = entity.TokenId,
-            OwnerId = entity.Token.OwnerId,
-            Description = entity.Token.Description,
-            IsPublished = entity.Token.IsPublished,
-            IsPublic = entity.Token.IsPublic,
-            Path = entity.Token.Path,
-            ResourceType = entity.Token.ResourceType,
-            Features = new(entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())),
-            ContentType = entity.Token.ContentType,
-            FileName = entity.Token.FileName,
-            FileLength = entity.Token.FileLength,
-            Size = entity.Token.Size,
-            Duration = entity.Token.Duration,
-        };
-
-    [return: NotNullIfNotNull(nameof(entity))]
-    public static ResourceMetadata? ToModel(this AssetTokenEntity? entity)
-        => entity is null
-           ? null
-           : new ResourceMetadata {
-               Id = entity.TokenId,
-               OwnerId = entity.Token.OwnerId,
-               Description = entity.Token.Description,
-               IsPublished = entity.Token.IsPublished,
-               IsPublic = entity.Token.IsPublic,
-               Path = entity.Token.Path,
-               ResourceType = entity.Token.ResourceType,
-               Features = [.. entity.Token.Features.GroupBy(f => f.Key, f => f.Value).ToDictionary(g => g.Key, g => g.ToHashSet())],
-               ContentType = entity.Token.ContentType,
-               FileName = entity.Token.FileName,
-               FileLength = entity.Token.FileLength,
-               Size = entity.Token.Size,
-               Duration = entity.Token.Duration,
-           };
-
-    public static AssetTokenEntity ToEntity(this ResourceMetadata model, Guid assetId, int index)
+    public static Expression<Func<AssetResourceEntity, ResourceMetadata>> AsResourceToken = entity
         => new() {
-            TokenId = model.Id,
-            AssetId = assetId,
-            Index = index,
+            Id = entity.ResourceId,
+            Path = entity.Resource.Path,
+            ContentType = entity.Resource.ContentType,
+            FileName = entity.Resource.FileName,
+            FileSize = entity.Resource.FileSize,
+            Dimensions = entity.Resource.Dimensions,
+            Duration = entity.Resource.Duration,
         };
 
-    public static void UpdateFrom(this AssetTokenEntity entity, Guid resourceId, Guid assetId, int index) {
-        entity.TokenId = resourceId;
-        entity.AssetId = assetId;
-        entity.Index = index;
+    private static StatModifier[]? DeserializeModifiers(string? json) {
+        if (string.IsNullOrWhiteSpace(json)) {
+            return null;
+        }
+
+        try {
+            return JsonSerializer.Deserialize<StatModifier[]>(json);
+        }
+        catch (JsonException) {
+            return null;
+        }
     }
+
+    private static string? SerializeModifiers(StatModifier[]? modifiers) => modifiers is null || modifiers.Length == 0 ? null : JsonSerializer.Serialize(modifiers);
 }

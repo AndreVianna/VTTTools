@@ -81,8 +81,7 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
             }
             ConsoleOutput.WriteLine($"Asset cost: ${finalCost:0.0000}");
 
-            var index = 1;
-            foreach (var token in asset.Tokens) {
+            for (var index = 1; index <= asset.Tokens.Count; index++) {
                 if (replace is AllowOverwriteResult.Cancel) {
                     skipCount = totalFiles - (processedCount + skipCount);
                     break;
@@ -94,7 +93,7 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
                 }
 
                 var imageTypes = ImageTypeFor(asset.Classification.Kind, true);
-                ConsoleOutput.WriteLine($"Generating images for {asset.Name} {token.Description}... ");
+                ConsoleOutput.WriteLine($"Generating images for {asset.Name} {asset.Description}... ");
 
                 var entryCost = 0.0;
                 foreach (var imageType in imageTypes) {

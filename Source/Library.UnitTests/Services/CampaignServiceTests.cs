@@ -99,7 +99,6 @@ public class CampaignServiceTests {
         var backgroundId = Guid.CreateVersion7();
         var background = new ResourceMetadata {
             Id = backgroundId,
-            ResourceType = ResourceType.Background,
             Path = "test/background.jpg",
             FileName = "background.jpg",
             ContentType = "image/jpeg",
@@ -187,10 +186,9 @@ public class CampaignServiceTests {
             IsPublic = false,
             Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "campaigns/background.jpg",
                 ContentType = "image/jpeg",
-                Size = new Size(1920, 1080),
+                Dimensions = new Size(1920, 1080),
             },
         };
         var allCampaigns = new Campaign[] { campaign };
@@ -318,7 +316,6 @@ public class CampaignServiceTests {
             Description = "Old description",
             Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "test/background",
                 FileName = "background.png",
                 ContentType = "image/png",
@@ -359,10 +356,9 @@ public class CampaignServiceTests {
             Description = "Old description",
             Background = new() {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "test/campaign-background.jpg",
                 ContentType = "image/jpeg",
-                Size = new Size(1920, 1080),
+                Dimensions = new Size(1920, 1080),
             },
         };
         var request = new UpdatedCampaignData {
@@ -400,7 +396,6 @@ public class CampaignServiceTests {
         };
         var newBackground = new ResourceMetadata {
             Id = newBackgroundId,
-            ResourceType = ResourceType.Background,
             Path = "test/new-background.jpg",
             ContentType = "image/jpeg",
         };

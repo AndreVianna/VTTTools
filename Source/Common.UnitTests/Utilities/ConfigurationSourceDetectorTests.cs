@@ -1,13 +1,12 @@
-
-namespace VttTools.Common.UnitTests.Utilities;
+namespace VttTools.Utilities;
 
 public class ConfigurationSourceDetectorTests {
     [Fact]
     public void DetectSource_WithJsonConfigurationProvider_ReturnsJsonFile() {
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
-            { "TestKey", "TestValue" }
-        });
+            { "TestKey", "TestValue" },
+                                                                            });
         var configRoot = configBuilder.Build();
         var detector = new ConfigurationSourceDetector(configRoot);
 
@@ -39,8 +38,8 @@ public class ConfigurationSourceDetectorTests {
     public void DetectSource_WithInMemoryProvider_ReturnsInMemory() {
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
-            { "InMemoryKey", "InMemoryValue" }
-        });
+            { "InMemoryKey", "InMemoryValue" },
+                                                                            });
         var configRoot = configBuilder.Build();
         var detector = new ConfigurationSourceDetector(configRoot);
 
@@ -161,11 +160,11 @@ public class ConfigurationSourceDetectorTests {
     public void DetectSource_ProcessesProvidersInReverseOrder() {
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
-            { "SharedKey", "InMemoryValue" }
-        });
+            { "SharedKey", "InMemoryValue" },
+                                                                            });
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
-            { "SharedKey", "SecondInMemoryValue" }
-        });
+            { "SharedKey", "SecondInMemoryValue" },
+                                                                            });
         var configRoot = configBuilder.Build();
         var detector = new ConfigurationSourceDetector(configRoot);
 

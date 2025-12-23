@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind, ResourceType } from '@/types/domain';
+import { AssetKind, ResourceRole } from '@/types/domain';
 import { mockApi } from './mockApi';
 
 describe('MockApiService', () => {
@@ -46,13 +46,13 @@ describe('MockApiService', () => {
         expect(Array.isArray(asset.tokens)).toBe(true);
         asset.tokens.forEach((token) => {
           expect(token).toHaveProperty('id');
-          expect(token).toHaveProperty('resourceType');
+          expect(token).toHaveProperty('role');
           expect(token).toHaveProperty('path');
           expect(token).toHaveProperty('contentType');
           expect(token).toHaveProperty('fileName');
-          expect(token).toHaveProperty('fileLength');
-          expect(token).toHaveProperty('size');
-          expect(token.resourceType).toBe(ResourceType.Token);
+          expect(token).toHaveProperty('fileSize');
+          expect(token).toHaveProperty('dimensions');
+          expect(token.role).toBe(ResourceRole.Token);
         });
       });
     });
@@ -65,11 +65,11 @@ describe('MockApiService', () => {
 
       assetsWithPortrait.forEach((asset) => {
         expect(asset.portrait).toHaveProperty('id');
-        expect(asset.portrait).toHaveProperty('resourceType');
+        expect(asset.portrait).toHaveProperty('role');
         expect(asset.portrait).toHaveProperty('path');
         expect(asset.portrait).toHaveProperty('contentType');
         expect(asset.portrait).toHaveProperty('fileName');
-        expect(asset.portrait?.resourceType).toBe(ResourceType.Portrait);
+        expect(asset.portrait?.role).toBe(ResourceRole.Portrait);
       });
     });
 
@@ -163,10 +163,10 @@ describe('MockApiService', () => {
 
         expect(token.contentType).toBe('image/png');
         expect(token.fileName).toMatch(/\.png$/);
-        expect(token.fileLength).toBeGreaterThan(0);
-        expect(token.size).toBeDefined();
-        expect(token.size?.width).toBe(256);
-        expect(token.size?.height).toBe(256);
+        expect(token.fileSize).toBeGreaterThan(0);
+        expect(token.dimensions).toBeDefined();
+        expect(token.dimensions?.width).toBe(256);
+        expect(token.dimensions?.height).toBe(256);
       });
     });
 

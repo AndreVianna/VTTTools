@@ -21,7 +21,6 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task FilterResourcesHandler_WithValidRequest_CallsService() {
         var request = new ResourceFilterRequest {
-            ResourceType = ResourceType.Background,
             SearchText = "test",
             Skip = 0,
             Take = 10,
@@ -82,10 +81,10 @@ public class ResourcesHandlersTests {
             FileName = "test.png",
         };
 
-        _resourceService.ServeResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+        _resourceService.ServeResourceAsync(id, Arg.Any<CancellationToken>())
             .Returns(resource);
 
-        var result = await ResourcesHandlers.ServeResourceHandler(_httpContext, id, _resourceService, _ct);
+        var result = await ResourcesHandlers.ServeResourceHandler(id, _resourceService, _ct);
 
         result.Should().BeOfType<FileStreamHttpResult>();
     }
@@ -93,10 +92,10 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task ServeResourceHandler_WithNotFound_ReturnsNotFound() {
         var id = Guid.CreateVersion7();
-        _resourceService.ServeResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+        _resourceService.ServeResourceAsync(id, Arg.Any<CancellationToken>())
             .Returns((Resource?)null);
 
-        var result = await ResourcesHandlers.ServeResourceHandler(_httpContext, id, _resourceService, _ct);
+        var result = await ResourcesHandlers.ServeResourceHandler(id, _resourceService, _ct);
 
         result.Should().BeOfType<NotFound>();
     }
@@ -133,10 +132,7 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task UpdateResourceHandler_WithValidData_ReturnsNoContent() {
         var id = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            Description = "Updated description",
-            IsPublic = true,
-        };
+        var request = new UpdateResourceRequest();
 
         _resourceService.UpdateResourceAsync(Arg.Any<Guid>(), id, Arg.Any<UpdateResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -149,9 +145,7 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task UpdateResourceHandler_WithNotFound_ReturnsNotFound() {
         var id = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            Description = "Updated description",
-        };
+        var request = new UpdateResourceRequest();
 
         _resourceService.UpdateResourceAsync(Arg.Any<Guid>(), id, Arg.Any<UpdateResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("NotFound"));
@@ -164,9 +158,7 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task UpdateResourceHandler_WithNonOwner_ReturnsForbid() {
         var id = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            Description = "Updated description",
-        };
+        var request = new UpdateResourceRequest();
 
         _resourceService.UpdateResourceAsync(Arg.Any<Guid>(), id, Arg.Any<UpdateResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("NotAllowed"));
@@ -188,14 +180,14 @@ public class ResourcesHandlersTests {
             Id = Guid.CreateVersion7(),
             ContentType = "image/png",
             FileName = "test.png",
-            FileLength = 100,
-            Size = new Common.Model.Size(256, 256),
+            FileSize = 100,
+            Dimensions = new(256, 256),
         };
 
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success(resourceMetadata));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
 
         var okResult = result.Should().BeOfType<Ok<ResourceMetadata>>().Subject;
         okResult.Value.Should().BeEquivalentTo(resourceMetadata);
@@ -209,7 +201,7 @@ public class ResourcesHandlersTests {
         file.FileName.Returns("");
         file.OpenReadStream().Returns(stream);
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
 
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
     }
@@ -225,7 +217,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "Invalid file format: corrupted image"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -243,7 +235,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "File size (55.00 MB) exceeds maximum (50.00 MB) for resourceType 'Background'"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -261,7 +253,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "Failed to save blob to storage"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, null, null, null, null, null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "Background", null, _resourceService, _ct);
 
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
@@ -269,7 +261,7 @@ public class ResourcesHandlersTests {
     }
 
     [Fact]
-    public async Task UploadResourceHandler_WithInvalidResourceType_ParsesAsUndefined() {
+    public async Task UploadResourceHandler_WithInvalidRole_ParsesAsUndefined() {
         var file = Substitute.For<IFormFile>();
         var stream = new MemoryStream("test content"u8.ToArray());
         file.ContentType.Returns("image/png");
@@ -279,7 +271,7 @@ public class ResourcesHandlersTests {
         _resourceService.UploadResourceAsync(Arg.Any<Guid>(), Arg.Any<UploadResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<ResourceMetadata>(null!, "Invalid resource type"));
 
-        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "InvalidType", null, null, null, null, null, null, _resourceService, _ct);
+        var result = await ResourcesHandlers.UploadResourceHandler(_httpContext, file, "InvalidType", null, _resourceService, _ct);
 
         result.Should().BeAssignableTo<Microsoft.AspNetCore.Http.IResult>();
     }
@@ -287,7 +279,6 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task FilterResourcesHandler_WithInvalidFilter_ReturnsBadRequest() {
         var request = new ResourceFilterRequest {
-            ResourceType = ResourceType.Background,
             Skip = -1,
             Take = 1000,
         };
@@ -307,10 +298,10 @@ public class ResourcesHandlersTests {
             FileName = "test.mp4",
         };
 
-        _resourceService.ServeResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+        _resourceService.ServeResourceAsync(id, Arg.Any<CancellationToken>())
             .Returns(resource);
 
-        var result = await ResourcesHandlers.ServeResourceHandler(_httpContext, id, _resourceService, _ct);
+        var result = await ResourcesHandlers.ServeResourceHandler(id, _resourceService, _ct);
 
         result.Should().BeOfType<FileStreamHttpResult>();
         var fileResult = (FileStreamHttpResult)result;
@@ -327,10 +318,10 @@ public class ResourcesHandlersTests {
             FileName = "test.png",
         };
 
-        _resourceService.ServeResourceAsync(Arg.Any<Guid>(), id, Arg.Any<CancellationToken>())
+        _resourceService.ServeResourceAsync(id, Arg.Any<CancellationToken>())
             .Returns(resource);
 
-        var result = await ResourcesHandlers.ServeResourceHandler(_httpContext, id, _resourceService, _ct);
+        var result = await ResourcesHandlers.ServeResourceHandler(id, _resourceService, _ct);
 
         result.Should().BeOfType<FileStreamHttpResult>();
         var fileResult = (FileStreamHttpResult)result;
@@ -353,9 +344,7 @@ public class ResourcesHandlersTests {
     [Fact]
     public async Task UpdateResourceHandler_WithUnknownError_ReturnsProblem() {
         var id = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            Description = "Updated",
-        };
+        var request = new UpdateResourceRequest();
 
         _resourceService.UpdateResourceAsync(Arg.Any<Guid>(), id, Arg.Any<UpdateResourceData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("UnexpectedError"));

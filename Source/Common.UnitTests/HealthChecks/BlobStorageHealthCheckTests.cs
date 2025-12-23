@@ -200,7 +200,7 @@ public class BlobStorageHealthCheckTests {
         var cancellationToken = new CancellationToken(true);
 
         // Act & Assert
-        var action = async () => await healthCheck.CheckHealthAsync(context, cancellationToken);
+        var action = () => healthCheck.CheckHealthAsync(context, cancellationToken);
         await action.Should().ThrowExactlyAsync<OperationCanceledException>();
     }
 
@@ -315,7 +315,7 @@ public class BlobStorageHealthCheckTests {
                     "AccountNotFound" => "Blob storage account not found",
                     "ContainerNotFound" => "Blob storage container not found",
                     "InvalidUri" => "Invalid blob storage URI",
-                    _ => $"Blob storage access failed: {ex.Message}"
+                    _ => $"Blob storage access failed: {ex.Message}",
                 };
 
                 return HealthCheckResult.Unhealthy(message, ex, data);

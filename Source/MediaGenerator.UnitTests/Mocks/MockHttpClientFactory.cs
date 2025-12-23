@@ -10,7 +10,7 @@ public sealed class MockHttpClientFactory
     public IReadOnlyList<CapturedRequest> ReceivedRequests => _receivedRequests;
 
     public MockHttpClientFactory() {
-        _handler = new MockHttpMessageHandler(this);
+        _handler = new(this);
     }
 
     public void Dispose() {
@@ -19,7 +19,7 @@ public sealed class MockHttpClientFactory
     }
 
     public HttpClient CreateClient(string name) => new(_handler) {
-        BaseAddress = new Uri("https://mock.example.com")
+        BaseAddress = new("https://mock.example.com")
     };
 
     public void EnqueueFakeImage() {
@@ -44,19 +44,19 @@ public sealed class MockHttpClientFactory
 
             if (factory._jsonResponses.Count > 0) {
                 var jsonContent = factory._jsonResponses.Dequeue();
-                return new HttpResponseMessage(HttpStatusCode.OK) {
+                return new(HttpStatusCode.OK) {
                     Content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json")
                 };
             }
 
             if (factory._imageResponses.Count > 0) {
                 var imageData = factory._imageResponses.Dequeue();
-                return new HttpResponseMessage(HttpStatusCode.OK) {
+                return new(HttpStatusCode.OK) {
                     Content = new ByteArrayContent(imageData)
                 };
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK) {
+            return new(HttpStatusCode.OK) {
                 Content = new ByteArrayContent([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
             };
         }

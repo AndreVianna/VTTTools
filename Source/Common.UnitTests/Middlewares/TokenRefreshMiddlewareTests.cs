@@ -1,4 +1,4 @@
-namespace VttTools.Common.UnitTests.Middlewares;
+namespace VttTools.Middlewares;
 
 public class TokenRefreshMiddlewareTests {
     private readonly IJwtTokenService _jwtTokenService;
@@ -15,8 +15,8 @@ public class TokenRefreshMiddlewareTests {
             null, null, null, null, null, null, null, null);
         _logger = Substitute.For<ILogger<TokenRefreshMiddleware>>();
         _next = Substitute.For<RequestDelegate>();
-        _middleware = new TokenRefreshMiddleware(_next, _logger);
-        _httpContext = new DefaultHttpContext();
+        _middleware = new(_next, _logger);
+        _httpContext = new();
     }
 
     [Fact]
@@ -25,16 +25,16 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testuser",
         };
         var roles = new List<string> { "User" };
         const string newToken = "new.jwt.token";
 
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                   ], "test"));
 
         _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
@@ -52,16 +52,16 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testuser",
         };
         var roles = new List<string>();
         const string newToken = "new.jwt.token";
 
         _httpContext.Response.StatusCode = 204;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                   ], "test"));
 
         _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
@@ -76,9 +76,9 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithFailureStatusCode_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 400;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                                                   ], "test"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -109,9 +109,9 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithAuditPath_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/admin/audit/logs";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                                                   ], "test"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -122,9 +122,9 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithAuditPathCaseInsensitive_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/API/ADMIN/AUDIT/summary";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                                                   ], "test"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -135,7 +135,7 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithUnauthenticatedUser_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
+        _httpContext.User = new(new ClaimsIdentity());
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -146,7 +146,7 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithNullIdentity_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal();
+        _httpContext.User = new();
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -157,9 +157,9 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithMissingUserIdClaim_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.Email, "test@example.com")
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.Email, "test@example.com"),
+                                                   ], "test"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -170,9 +170,9 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithEmptyUserIdClaim_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, string.Empty)
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, string.Empty),
+                                                   ], "test"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -183,9 +183,9 @@ public class TokenRefreshMiddlewareTests {
     public async Task InvokeAsync_WithInvalidGuidFormat_DoesNotRefreshToken() {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, "not-a-guid")
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, "not-a-guid"),
+                                                   ], "test"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -197,9 +197,9 @@ public class TokenRefreshMiddlewareTests {
         var userId = Guid.NewGuid();
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                   ], "test"));
 
         _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult<User>(null!));
 
@@ -213,11 +213,11 @@ public class TokenRefreshMiddlewareTests {
         var userId = Guid.NewGuid();
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                   ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns<User>(_ => throw new Exception("Database error"));
+        _userManager.FindByIdAsync(userId.ToString())!.Returns<User>(_ => throw new("Database error"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -230,16 +230,16 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testuser",
         };
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                   ], "test"));
 
         _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
-        _userManager.GetRolesAsync(user).Returns<IList<string>>(_ => throw new Exception("Role error"));
+        _userManager.GetRolesAsync(user).Returns<IList<string>>(_ => throw new("Role error"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 
@@ -252,18 +252,18 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testuser",
         };
         var roles = new List<string> { "User" };
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ], "test"));
+        _httpContext.User = new(new ClaimsIdentity([
+                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                   ], "test"));
 
         _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
         _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
-        _jwtTokenService.GenerateToken(user, roles, false).Returns<string>(_ => throw new Exception("Token error"));
+        _jwtTokenService.GenerateToken(user, roles, false).Returns<string>(_ => throw new("Token error"));
 
         await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
 

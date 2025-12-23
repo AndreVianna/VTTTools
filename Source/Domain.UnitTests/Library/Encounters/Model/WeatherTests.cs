@@ -1,4 +1,4 @@
-namespace VttTools;
+namespace VttTools.Library.Encounters.Model;
 
 public class WeatherTests {
     [Fact]

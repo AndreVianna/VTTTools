@@ -1,5 +1,5 @@
 
-namespace VttTools.Common.UnitTests.Services;
+namespace VttTools.Services;
 
 public class InternalConfigurationServiceTests {
     private readonly IConfiguration _configuration;
@@ -13,11 +13,11 @@ public class InternalConfigurationServiceTests {
             { "ApplicationVersion", "TestValue2" },
             { "Password", "SecretPassword" },
             { "ApiKey", "SecretApiKey" },
-            { "ConnectionStrings:Default", "Server=localhost" }
-        });
+            { "ConnectionStrings:Default", "Server=localhost" },
+                                                                            });
         _configuration = configBuilder.Build();
-        _sourceDetector = new ConfigurationSourceDetector((IConfigurationRoot)_configuration);
-        _service = new InternalConfigurationService(_configuration, _sourceDetector);
+        _sourceDetector = new((IConfigurationRoot)_configuration);
+        _service = new(_configuration, _sourceDetector);
     }
 
     [Fact]
@@ -175,8 +175,8 @@ public class InternalConfigurationServiceTests {
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
             { "ClientSecret", "VerySecretValue" },
-            { "RegularKey", "RegularValue" }
-        });
+            { "RegularKey", "RegularValue" },
+                                                                            });
         var config = configBuilder.Build();
         var detector = new ConfigurationSourceDetector(config);
         var service = new InternalConfigurationService(config, detector);
@@ -198,8 +198,8 @@ public class InternalConfigurationServiceTests {
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?> {
             { "BearerToken", "TokenValue" },
-            { "RegularKey", "RegularValue" }
-        });
+            { "RegularKey", "RegularValue" },
+                                                                            });
         var config = configBuilder.Build();
         var detector = new ConfigurationSourceDetector(config);
         var service = new InternalConfigurationService(config, detector);

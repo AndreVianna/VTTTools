@@ -21,7 +21,7 @@ import {
     useTheme,
 } from '@mui/material';
 import { useFilterResourcesQuery, useUploadFileMutation } from '@/services/mediaApi';
-import { ResourceType } from '@/types/domain';
+import { ResourceRole } from '@/types/domain';
 import { AudioPreviewPlayer } from './AudioPreviewPlayer';
 
 export interface SoundPickerDialogProps {
@@ -29,7 +29,7 @@ export interface SoundPickerDialogProps {
     onClose: () => void;
     onSelect: (resourceId: string) => void;
     currentResourceId?: string;
-    defaultResourceType?: ResourceType.SoundEffect | ResourceType.AmbientSound;
+    defaultResourceType?: ResourceRole.SoundEffect | ResourceRole.AmbientSound;
 }
 
 export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
@@ -37,18 +37,18 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     onClose,
     onSelect,
     currentResourceId,
-    defaultResourceType = ResourceType.AmbientSound,
+    defaultResourceType = ResourceRole.AmbientSound,
 }) => {
     const theme = useTheme();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'all'>('mine');
-    const [soundTypeFilter, setSoundTypeFilter] = useState<ResourceType.SoundEffect | ResourceType.AmbientSound>(defaultResourceType);
+    const [soundTypeFilter, setSoundTypeFilter] = useState<ResourceRole.SoundEffect | ResourceRole.AmbientSound>(defaultResourceType);
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
     const { data, isLoading, refetch } = useFilterResourcesQuery({
-        resourceType: soundTypeFilter,
+        role: soundTypeFilter,
         ...(searchQuery && { searchText: searchQuery }),
         take: 50,
     }, { skip: !open });
@@ -90,7 +90,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
         try {
             const result = await uploadFile({
                 file,
-                resourceType: ResourceType[soundTypeFilter],
+                resourceType: ResourceRole[soundTypeFilter],
             }).unwrap();
             await refetch();
             setSelectedResourceId(result.id);
@@ -225,8 +225,8 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                                 },
                             }}
                         >
-                            <ToggleButton value={ResourceType.AmbientSound}>Ambient</ToggleButton>
-                            <ToggleButton value={ResourceType.SoundEffect}>Effect</ToggleButton>
+                            <ToggleButton value={ResourceRole.AmbientSound}>Ambient</ToggleButton>
+                            <ToggleButton value={ResourceRole.SoundEffect}>Effect</ToggleButton>
                         </ToggleButtonGroup>
                     </Box>
 
@@ -287,7 +287,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                                 py: 0.75,
                             }}
                         >
-                            {isUploading ? 'Uploading...' : `Upload ${soundTypeFilter === ResourceType.SoundEffect ? 'Effect' : 'Ambient'}`}
+                            {isUploading ? 'Uploading...' : `Upload ${soundTypeFilter === ResourceRole.SoundEffect ? 'Effect' : 'Ambient'}`}
                             <input
                                 type="file"
                                 hidden
@@ -509,7 +509,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
                                         FILE SIZE
                                     </Typography>
                                     <Typography sx={{ fontSize: '0.75rem' }}>
-                                        {formatFileSize(selectedResource.fileLength)}
+                                        {formatFileSize(selectedResource.fileSize)}
                                     </Typography>
                                 </Box>
 

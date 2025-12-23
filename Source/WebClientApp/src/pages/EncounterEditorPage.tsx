@@ -219,7 +219,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
   const [stageSize, setStageSize] = useState({ width: DEFAULT_STAGE_WIDTH, height: DEFAULT_STAGE_HEIGHT });
 
-  const backgroundSize = encounter?.stage?.background?.size;
+  const backgroundSize = encounter?.stage?.background?.dimensions;
 
   useEffect(() => {
     const hasValidBackgroundSize = backgroundSize && backgroundSize.width > 0 && backgroundSize.height > 0;

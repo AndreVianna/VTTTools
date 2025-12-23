@@ -1,3 +1,7 @@
+using AssetResourceEntity = VttTools.Data.Assets.Entities.AssetResource;
+using GameSystemEntity = VttTools.Data.Common.Entities.GameSystem;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
+
 namespace VttTools.Data.Assets;
 
 public class AssetsMapperTests {
@@ -7,36 +11,37 @@ public class AssetsMapperTests {
         var portraitId = Guid.CreateVersion7();
         var tokenId = Guid.CreateVersion7();
 
+        var assetId = Guid.CreateVersion7();
+        var gameSystemId = Guid.CreateVersion7();
+
+        var gameSystem = new GameSystemEntity {
+            Id = gameSystemId,
+            Code = "generic",
+            Name = "Generic System",
+        };
+
         var portrait = new Media.Entities.Resource {
             Id = portraitId,
-            ResourceType = ResourceType.Portrait,
             Path = "assets/portraits/dragon.png",
             ContentType = "image/png",
             FileName = "dragon.png",
-            FileLength = 100000,
-            Size = new(512, 512),
+            FileSize = 100000,
+            Dimensions = new(512, 512),
             Duration = TimeSpan.Zero,
-            OwnerId = ownerId,
-            IsPublished = true,
-            IsPublic = false,
         };
 
         var token = new Media.Entities.Resource {
             Id = tokenId,
-            ResourceType = ResourceType.Token,
             Path = "assets/tokens/dragon.png",
             ContentType = "image/png",
             FileName = "dragon_token.png",
-            FileLength = 50000,
-            Size = new(256, 256),
+            FileSize = 50000,
+            Dimensions = new(256, 256),
             Duration = TimeSpan.Zero,
-            OwnerId = ownerId,
-            IsPublished = true,
-            IsPublic = false,
         };
 
         var entity = new Entities.Asset {
-            Id = Guid.CreateVersion7(),
+            Id = assetId,
             OwnerId = ownerId,
             Kind = AssetKind.Creature,
             Category = "dragon",
@@ -45,26 +50,32 @@ public class AssetsMapperTests {
             Name = "Ancient Red Dragon",
             Description = "A powerful ancient dragon",
             TokenSize = new(2, 2),
-            StatBlock = [
-                new Entities.AssetStatBlockValue {
-                    AssetId = Guid.CreateVersion7(),
+            StatEntries = [
+                new Entities.AssetStatEntry {
+                    AssetId = assetId,
+                    GameSystemId = gameSystemId,
+                    GameSystem = gameSystem,
                     Level = 1,
                     Key = "HP",
-                    Type = Entities.AssetStatBlockValueType.Number,
+                    Type = Entities.AssetStatEntryType.Number,
                     Value = "450",
                 },
-                new Entities.AssetStatBlockValue {
-                    AssetId = Guid.CreateVersion7(),
+                new Entities.AssetStatEntry {
+                    AssetId = assetId,
+                    GameSystemId = gameSystemId,
+                    GameSystem = gameSystem,
                     Level = 1,
                     Key = "AC",
-                    Type = Entities.AssetStatBlockValueType.Number,
+                    Type = Entities.AssetStatEntryType.Number,
                     Value = "22",
                 },
-                new Entities.AssetStatBlockValue {
-                    AssetId = Guid.CreateVersion7(),
+                new Entities.AssetStatEntry {
+                    AssetId = assetId,
+                    GameSystemId = gameSystemId,
+                    GameSystem = gameSystem,
                     Level = 1,
                     Key = "Legendary",
-                    Type = Entities.AssetStatBlockValueType.Flag,
+                    Type = Entities.AssetStatEntryType.Flag,
                     Value = "True",
                 },
             ],
@@ -72,14 +83,20 @@ public class AssetsMapperTests {
             IsPublished = true,
             IsDeleted = false,
             Tags = ["boss", "flying"],
-            PortraitId = portraitId,
-            Portrait = portrait,
-            AssetTokens = [
-                new Entities.AssetToken {
-                    AssetId = Guid.CreateVersion7(),
-                    TokenId = tokenId,
+            Resources = [
+                new AssetResourceEntity {
+                    AssetId = assetId,
+                    ResourceId = portraitId,
+                    Resource = portrait,
+                    Role = ResourceRole.Portrait,
                     Index = 0,
-                    Token = token,
+                },
+                new AssetResourceEntity {
+                    AssetId = assetId,
+                    ResourceId = tokenId,
+                    Resource = token,
+                    Role = ResourceRole.Token,
+                    Index = 0,
                 },
             ],
         };
@@ -133,14 +150,12 @@ public class AssetsMapperTests {
             Name = "Simple Sword",
             Description = "A basic sword",
             TokenSize = new(1, 1),
-            StatBlock = [],
+            StatEntries = [],
             IsPublic = true,
             IsPublished = true,
             IsDeleted = false,
             Tags = [],
-            PortraitId = null,
-            Portrait = null,
-            AssetTokens = [],
+            Resources = [],
         };
 
         var result = entity.ToModel();
@@ -181,23 +196,21 @@ public class AssetsMapperTests {
             Tags = ["enemy", "humanoid"],
             Portrait = new ResourceMetadata {
                 Id = portraitId,
-                ResourceType = ResourceType.Portrait,
                 Path = "assets/portraits/goblin.png",
                 ContentType = "image/png",
                 FileName = "goblin.png",
-                FileLength = 50000,
-                Size = new(256, 256),
+                FileSize = 50000,
+                Dimensions = new(256, 256),
                 Duration = TimeSpan.Zero,
             },
             Tokens = [
                 new ResourceMetadata {
                     Id = tokenId,
-                    ResourceType = ResourceType.Token,
                     Path = "assets/tokens/goblin.png",
                     ContentType = "image/png",
                     FileName = "goblin_token.png",
-                    FileLength = 25000,
-                    Size = new(128, 128),
+                    FileSize = 25000,
+                    Dimensions = new(128, 128),
                     Duration = TimeSpan.Zero,
                 },
             ],
@@ -215,28 +228,44 @@ public class AssetsMapperTests {
         result.Name.Should().Be("Goblin Warrior");
         result.Description.Should().Be("A fierce goblin");
         result.TokenSize.Should().BeEquivalentTo(new NamedSize(1, 1));
-        var statBlock = result.StatBlock.ToList();
-        statBlock.Should().HaveCount(4);
-        statBlock.Should().Contain(sb => sb.Key == "HP" && sb.Level == 1 && sb.Value == "15");
-        statBlock.Should().Contain(sb => sb.Key == "AC" && sb.Level == 1 && sb.Value == "13");
-        statBlock.Should().Contain(sb => sb.Key == "HasShield" && sb.Level == 1 && sb.Value == "True");
-        statBlock.Should().Contain(sb => sb.Key == "Weapon" && sb.Level == 1 && sb.Value == "Scimitar");
+        var statEntries = result.StatEntries.ToList();
+        statEntries.Should().HaveCount(4);
+        statEntries.Should().Contain(sb => sb.Key == "HP" && sb.Level == 1 && sb.Value == "15");
+        statEntries.Should().Contain(sb => sb.Key == "AC" && sb.Level == 1 && sb.Value == "13");
+        statEntries.Should().Contain(sb => sb.Key == "HasShield" && sb.Level == 1 && sb.Value == "True");
+        statEntries.Should().Contain(sb => sb.Key == "Weapon" && sb.Level == 1 && sb.Value == "Scimitar");
         result.IsPublic.Should().BeTrue();
         result.IsPublished.Should().BeTrue();
         result.IsDeleted.Should().BeFalse();
         result.Tags.Should().BeEquivalentTo(["enemy", "humanoid"]);
-        result.PortraitId.Should().Be(portraitId);
-        var assetTokens = result.AssetTokens.ToList();
-        assetTokens.Should().HaveCount(1);
-        assetTokens[0].TokenId.Should().Be(tokenId);
-        assetTokens[0].AssetId.Should().Be(model.Id);
-        assetTokens[0].Index.Should().Be(0);
+        var resources = result.Resources.ToList();
+        resources.Should().HaveCount(2);
+        var portraitResource = resources.FirstOrDefault(r => r.Role == ResourceRole.Portrait);
+        portraitResource.Should().NotBeNull();
+        portraitResource!.ResourceId.Should().Be(portraitId);
+        portraitResource.AssetId.Should().Be(model.Id);
+        portraitResource.Index.Should().Be(0);
+        var tokenResource = resources.FirstOrDefault(r => r.Role == ResourceRole.Token);
+        tokenResource.Should().NotBeNull();
+        tokenResource!.ResourceId.Should().Be(tokenId);
+        tokenResource.AssetId.Should().Be(model.Id);
+        tokenResource.Index.Should().Be(0);
     }
 
     [Fact]
     public void UpdateFrom_UpdatesAllProperties() {
+        var entityId = Guid.CreateVersion7();
+        var oldResourceId = Guid.CreateVersion7();
+        var gameSystemId = Guid.CreateVersion7();
+
+        var gameSystem = new GameSystemEntity {
+            Id = gameSystemId,
+            Code = "generic",
+            Name = "Generic System",
+        };
+
         var entity = new Entities.Asset {
-            Id = Guid.CreateVersion7(),
+            Id = entityId,
             OwnerId = Guid.CreateVersion7(),
             Kind = AssetKind.Object,
             Category = "old_category",
@@ -245,19 +274,28 @@ public class AssetsMapperTests {
             Name = "Old Name",
             Description = "Old Description",
             TokenSize = new(1, 1),
-            StatBlock = [
-                new Entities.AssetStatBlockValue {
-                    AssetId = Guid.CreateVersion7(),
+            StatEntries = [
+                new Entities.AssetStatEntry {
+                    AssetId = entityId,
+                    GameSystemId = gameSystemId,
+                    GameSystem = gameSystem,
                     Level = 1,
                     Key = "OldStat",
-                    Type = Entities.AssetStatBlockValueType.Text,
+                    Type = Entities.AssetStatEntryType.Text,
                     Value = "OldValue",
                 },
             ],
             IsPublic = false,
             IsPublished = false,
             Tags = ["old_tag"],
-            PortraitId = Guid.CreateVersion7(),
+            Resources = [
+                new AssetResourceEntity {
+                    AssetId = entityId,
+                    ResourceId = oldResourceId,
+                    Role = ResourceRole.Portrait,
+                    Index = 0,
+                },
+            ],
         };
 
         var newPortraitId = Guid.CreateVersion7();
@@ -281,12 +319,11 @@ public class AssetsMapperTests {
             Tags = ["new_tag"],
             Portrait = new ResourceMetadata {
                 Id = newPortraitId,
-                ResourceType = ResourceType.Portrait,
                 Path = "test/path",
                 ContentType = "image/png",
                 FileName = "test.png",
-                FileLength = 1000,
-                Size = new(100, 100),
+                FileSize = 1000,
+                Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
             },
             Tokens = [],
@@ -301,14 +338,18 @@ public class AssetsMapperTests {
         entity.Name.Should().Be("New Name");
         entity.Description.Should().Be("New Description");
         entity.TokenSize.Should().BeEquivalentTo(new NamedSize(2, 2));
-        var statBlock = entity.StatBlock.ToList();
-        statBlock.Should().HaveCount(1);
-        statBlock[0].Key.Should().Be("NewStat");
-        statBlock[0].Value.Should().Be("NewValue");
+        var statEntries = entity.StatEntries.ToList();
+        statEntries.Should().HaveCount(1);
+        statEntries[0].Key.Should().Be("NewStat");
+        statEntries[0].Value.Should().Be("NewValue");
         entity.IsPublic.Should().BeTrue();
         entity.IsPublished.Should().BeTrue();
         entity.Tags.Should().BeEquivalentTo(["new_tag"]);
-        entity.PortraitId.Should().Be(newPortraitId);
+        var resources = entity.Resources.ToList();
+        resources.Should().HaveCount(1);
+        var portraitResource = resources.FirstOrDefault(r => r.Role == ResourceRole.Portrait);
+        portraitResource.Should().NotBeNull();
+        portraitResource!.ResourceId.Should().Be(newPortraitId);
     }
 
     [Fact]
@@ -347,10 +388,10 @@ public class AssetsMapperTests {
 
         var result = model.ToEntity();
 
-        var statBlock = result.StatBlock.ToList();
-        statBlock.Should().HaveCount(3);
-        statBlock.Should().Contain(sb => sb.Level == 1 && sb.Key == "HP" && sb.Value == "15");
-        statBlock.Should().Contain(sb => sb.Level == 5 && sb.Key == "HP" && sb.Value == "30");
-        statBlock.Should().Contain(sb => sb.Level == 10 && sb.Key == "HP" && sb.Value == "50");
+        var statEntries = result.StatEntries.ToList();
+        statEntries.Should().HaveCount(3);
+        statEntries.Should().Contain(sb => sb.Level == 1 && sb.Key == "HP" && sb.Value == "15");
+        statEntries.Should().Contain(sb => sb.Level == 5 && sb.Key == "HP" && sb.Value == "30");
+        statEntries.Should().Contain(sb => sb.Level == 10 && sb.Key == "HP" && sb.Value == "50");
     }
 }

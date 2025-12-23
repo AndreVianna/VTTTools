@@ -117,11 +117,10 @@ public class AuditLoggingMiddlewareTests {
 
         var serviceProvider = CreateServiceProvider(auditLogService);
         var options = CreateAuditLoggingOptions();
-        var middleware = new AuditLoggingMiddleware(
-            async context => await context.Response.WriteAsync(responseBody),
-            serviceProvider,
-            options,
-            logger);
+        var middleware = new AuditLoggingMiddleware(context => context.Response.WriteAsync(responseBody),
+                                                    serviceProvider,
+                                                    options,
+                                                    logger);
 
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Method = "GET";
@@ -163,13 +162,13 @@ public class AuditLoggingMiddlewareTests {
         var userId = Guid.NewGuid();
         var claims = new List<Claim> {
             new(ClaimTypes.NameIdentifier, userId.ToString()),
-            new(ClaimTypes.Email, "test@example.com")
-        };
+            new(ClaimTypes.Email, "test@example.com"),
+                                     };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
 
         var httpContext = new DefaultHttpContext {
-            User = principal
+            User = principal,
         };
         httpContext.Request.Method = "GET";
         httpContext.Request.Path = "/api/test";
@@ -323,7 +322,7 @@ public class AuditLoggingMiddlewareTests {
         auditLogService.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
             .Returns(_ => throw new InvalidOperationException("Database error"));
 
-        var act = async () => await middleware.InvokeAsync(httpContext);
+        var act = () => middleware.InvokeAsync(httpContext);
 
         await act.Should().NotThrowAsync();
     }
@@ -343,7 +342,7 @@ public class AuditLoggingMiddlewareTests {
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Method = "GET";
         httpContext.Request.Path = "/api/test";
-        httpContext.Request.QueryString = new QueryString("?token=abc123&user=john");
+        httpContext.Request.QueryString = new("?token=abc123&user=john");
 
         AuditLog? capturedLog = null;
         auditLogService.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
@@ -557,11 +556,10 @@ public class AuditLoggingMiddlewareTests {
         var auditLogService = Substitute.For<IAuditLogService>();
         var serviceProvider = CreateServiceProvider(auditLogService);
         var options = CreateAuditLoggingOptions();
-        var middleware = new AuditLoggingMiddleware(
-            async _ => await Task.Delay(50, TestContext.Current.CancellationToken),
-            serviceProvider,
-            options,
-            logger);
+        var middleware = new AuditLoggingMiddleware(_ => Task.Delay(50, TestContext.Current.CancellationToken),
+                                                    serviceProvider,
+                                                    options,
+                                                    logger);
 
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Method = "GET";
@@ -595,7 +593,7 @@ public class AuditLoggingMiddlewareTests {
         var options = Substitute.For<IOptions<AuditLoggingOptions>>();
         options.Value.Returns(new AuditLoggingOptions {
             Enabled = enabled,
-            ExcludedPaths = excludedPaths ?? []
+            ExcludedPaths = excludedPaths ?? [],
         });
         return options;
     }

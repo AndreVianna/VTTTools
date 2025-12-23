@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Resources.Handlers;
+namespace VttTools.Admin.Resources.Handlers;
 
 public sealed class ResourceApprovalHandlersTests {
     private readonly IMediaServiceClient _mockMediaClient;
@@ -27,7 +27,6 @@ public sealed class ResourceApprovalHandlersTests {
         var request = new VttTools.Admin.Resources.ApiContracts.ResourceFilterRequest {
             Skip = 0,
             Take = 10,
-            IsPublished = false,
         };
         var response = new ResourceListResponse {
             Items = [],
@@ -57,11 +56,8 @@ public sealed class ResourceApprovalHandlersTests {
         var request = new VttTools.Admin.Resources.ApiContracts.ResourceFilterRequest {
             Skip = 10,
             Take = 20,
-            ResourceType = "Portrait",
-            ContentKind = "Character",
-            Category = "Fantasy",
+            Role = ResourceRole.Portrait,
             SearchText = "dragon",
-            IsPublished = false,
         };
         var response = new ResourceListResponse {
             Items = [],
@@ -83,9 +79,6 @@ public sealed class ResourceApprovalHandlersTests {
         result.Should().BeOfType<Ok<ResourceListResponse>>();
         await _mockMediaClient.Received(1).ListUnpublishedResourcesAsync(
             Arg.Is<VttTools.Admin.Resources.ApiContracts.ResourceFilterRequest>(r =>
-                r.ResourceType == "Portrait" &&
-                r.ContentKind == "Character" &&
-                r.Category == "Fantasy" &&
                 r.SearchText == "dragon"),
             Arg.Any<CancellationToken>());
     }

@@ -5,7 +5,7 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VttTools</RootNamespace>
+    <RootNamespace>VttTools.Admin</RootNamespace>
     <Configurations>Debug;Release</Configurations>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>

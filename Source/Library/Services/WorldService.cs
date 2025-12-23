@@ -128,7 +128,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
             World = world,
         };
         var updatedWorld = world with {
-            Campaigns = [.. world.Campaigns, campaign]
+            Campaigns = [.. world.Campaigns, campaign],
         };
         await worldStorage.UpdateAsync(updatedWorld, ct);
         return campaign;
@@ -158,7 +158,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
 
         var clone = original.Clone(userId, cloneName) with { World = world };
         var updatedWorld = world with {
-            Campaigns = [.. world.Campaigns, clone]
+            Campaigns = [.. world.Campaigns, clone],
         };
         await worldStorage.UpdateAsync(updatedWorld, ct);
         return clone;
@@ -177,7 +177,7 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
             return Result.Failure("NotFound");
 
         var updatedWorld = world with {
-            Campaigns = [.. world.Campaigns.Where(c => c.Id != campaignId)]
+            Campaigns = [.. world.Campaigns.Where(c => c.Id != campaignId)],
         };
         await worldStorage.UpdateAsync(updatedWorld, ct);
         return Result.Success();

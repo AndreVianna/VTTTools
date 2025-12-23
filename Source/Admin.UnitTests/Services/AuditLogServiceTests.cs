@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public class AuditLogServiceTests {
     private readonly IAuditLogStorage _mockStorage;
@@ -42,8 +42,7 @@ public class AuditLogServiceTests {
 
     [Fact]
     public async Task AddAsync_WithNullAuditLog_ThrowsArgumentNullException() {
-        await Assert.ThrowsAsync<ArgumentNullException>(
-            async () => await _sut.AddAsync(null!, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.AddAsync(null!, TestContext.Current.CancellationToken));
 
         await _mockStorage.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
     }

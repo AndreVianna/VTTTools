@@ -6,12 +6,10 @@ const RESOURCES_ADMIN_API = '/api/admin/resources';
 function buildFilterParams(params: ResourceFilterParams): URLSearchParams {
     const searchParams = new URLSearchParams();
 
-    if (params.resourceType) searchParams.append('resourceType', params.resourceType);
-    if (params.contentKind) searchParams.append('contentKind', params.contentKind);
-    if (params.category) searchParams.append('category', params.category);
+    // With junction tables architecture, Resources are pure media metadata
+    // filtered only by role and search text
+    if (params.role) searchParams.append('role', params.role);
     if (params.searchText) searchParams.append('searchText', params.searchText);
-    if (params.isPublished !== undefined) searchParams.append('isPublished', params.isPublished.toString());
-    if (params.isPublic !== undefined) searchParams.append('isPublic', params.isPublic.toString());
     if (params.skip !== undefined) searchParams.append('skip', params.skip.toString());
     if (params.take !== undefined) searchParams.append('take', params.take.toString());
 
@@ -62,20 +60,5 @@ export const resourcesAdminService = {
 
     async rejectResource(resourceId: string): Promise<void> {
         await apiClient.post(`${RESOURCES_ADMIN_API}/reject`, { resourceId });
-    },
-
-    async updateResource(
-        resourceId: string,
-        update: {
-            description?: string | null;
-            classification?: {
-                kind: string;
-                category: string;
-                type: string;
-                subtype?: string | null;
-            };
-        }
-    ): Promise<void> {
-        await apiClient.patch(`${RESOURCES_ADMIN_API}/${resourceId}`, update);
     },
 };

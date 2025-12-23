@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MediaResource } from '@/types/domain';
+import { ResourceRole, type MediaResource } from '@/types/domain';
 import { AssetResourceManager, type AssetResourceManagerProps } from './AssetResourceManager';
 
 vi.mock('@/hooks/useFileUpload', () => ({
@@ -338,9 +338,11 @@ describe('AssetResourceManager', () => {
         id: 'new-portrait-id',
         fileName: 'portrait.png',
         contentType: 'image/png',
-        size: 1024,
-        uploadedAt: '2024-01-01T00:00:00Z',
-        url: '/api/resources/new-portrait-id',
+        fileSize: 1024,
+        role: ResourceRole.Portrait,
+        path: 'new-portrait-id',
+        dimensions: { width: 256, height: 256 },
+        duration: '',
       };
 
       let onSuccessCallback: ((resource: MediaResource) => void) | undefined;

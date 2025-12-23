@@ -7,11 +7,9 @@ public class MediaStorageTests
     private readonly MediaStorage _storage;
     private readonly ApplicationDbContext _context;
     private readonly CancellationToken _ct;
-    private readonly Guid _ownerId;
 
     public MediaStorageTests() {
-        _ownerId = Guid.CreateVersion7();
-        _context = DbContextHelper.CreateInMemoryContext(_ownerId);
+        _context = DbContextHelper.CreateInMemoryContext(Guid.CreateVersion7());
         _storage = new(_context);
         _ct = TestContext.Current.CancellationToken;
     }
@@ -30,7 +28,8 @@ public class MediaStorageTests
 
     [Fact]
     public async Task FindByIdAsync_WithExistingId_ReturnsResource() {
-        var entity = await _context.Resources.FirstAsync(_ct);
+        _context.ChangeTracker.Clear();
+        var entity = await _context.Resources.AsNoTracking().FirstAsync(_ct);
 
         var result = await _storage.FindByIdAsync(entity.Id, _ct);
 
@@ -51,16 +50,12 @@ public class MediaStorageTests
     public async Task AddAsync_WithValidResource_AddsToDatabase() {
         var resource = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Portrait,
             Path = "test/new-resource",
             FileName = "new-resource.png",
             ContentType = "image/png",
-            FileLength = 5000,
-            Size = new(200, 200),
+            FileSize = 5000,
+            Dimensions = new(200, 200),
             Duration = TimeSpan.Zero,
-            OwnerId = _ownerId,
-            IsPublic = true,
-            IsPublished = false,
         };
 
         await _storage.AddAsync(resource, _ct);
@@ -68,7 +63,6 @@ public class MediaStorageTests
         var dbResource = await _context.Resources.FindAsync([resource.Id], _ct);
         dbResource.Should().NotBeNull();
         dbResource.Id.Should().Be(resource.Id);
-        dbResource.ResourceType.Should().Be(resource.ResourceType);
         dbResource.FileName.Should().Be(resource.FileName);
     }
 
@@ -80,16 +74,12 @@ public class MediaStorageTests
 
         var resource = new ResourceMetadata {
             Id = entity.Id,
-            ResourceType = entity.ResourceType,
             Path = entity.Path,
             FileName = "updated-filename.png",
             ContentType = entity.ContentType,
-            FileLength = entity.FileLength,
-            Size = new(entity.Size.Width, entity.Size.Height),
+            FileSize = entity.FileSize,
+            Dimensions = new(entity.Dimensions.Width, entity.Dimensions.Height),
             Duration = entity.Duration,
-            OwnerId = entity.OwnerId,
-            IsPublic = true,
-            IsPublished = true,
         };
 
         _context.ChangeTracker.Clear();
@@ -124,21 +114,14 @@ public class MediaStorageTests
         result.Should().BeFalse();
     }
 
-    private static ResourceEntity CreateTestResource(
-        ResourceType? type = null,
-        Guid? ownerId = null,
-        bool isPublic = false,
-        bool isPublished = false) => new() {
+    private static ResourceEntity CreateTestResource()
+        => new() {
             Id = Guid.CreateVersion7(),
-            ResourceType = type ?? ResourceType.Background,
             Path = "test/path",
             FileName = $"test-file-{Guid.CreateVersion7():N}.png",
             ContentType = "image/png",
-            FileLength = 1000,
-            Size = new(100, 100),
+            FileSize = 1000,
+            Dimensions = new(100, 100),
             Duration = TimeSpan.Zero,
-            OwnerId = ownerId ?? Guid.CreateVersion7(),
-            IsPublic = isPublic,
-            IsPublished = isPublished,
         };
 }

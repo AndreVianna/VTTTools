@@ -57,22 +57,22 @@ public class AuditLogStorage(ApplicationDbContext context)
         return (items, totalCount);
     }
 
-    public async Task<int> GetCountAsync(CancellationToken ct = default)
-        => await context.AuditLogs.CountAsync(ct);
+    public Task<int> GetCountAsync(CancellationToken ct = default)
+        => context.AuditLogs.CountAsync(ct);
 
-    public async Task<int> GetDistinctActiveUsersCountAsync(DateTime startDate, CancellationToken ct = default)
-        => await context.AuditLogs
-            .AsNoTracking()
-            .Where(a => a.Timestamp >= startDate && a.UserId != null)
-            .Select(a => a.UserId!.Value)
-            .Distinct()
-            .CountAsync(ct);
+    public Task<int> GetDistinctActiveUsersCountAsync(DateTime startDate, CancellationToken ct = default)
+        => context.AuditLogs
+                  .AsNoTracking()
+                  .Where(a => a.Timestamp >= startDate && a.UserId != null)
+                  .Select(a => a.UserId!.Value)
+                  .Distinct()
+                  .CountAsync(ct);
 
-    public async Task<int> GetCountInPeriodAsync(DateTime startDate, CancellationToken ct = default)
-        => await context.AuditLogs
-            .AsNoTracking()
-            .Where(a => a.Timestamp >= startDate)
-            .CountAsync(ct);
+    public Task<int> GetCountInPeriodAsync(DateTime startDate, CancellationToken ct = default)
+        => context.AuditLogs
+                  .AsNoTracking()
+                  .Where(a => a.Timestamp >= startDate)
+                  .CountAsync(ct);
 
     public async Task<double> GetAverageResponseTimeAsync(DateTime startDate, CancellationToken ct = default) {
         // Only HTTP audit logs have durationMs in their payload
@@ -131,17 +131,17 @@ public class AuditLogStorage(ApplicationDbContext context)
         return createdDate ?? DateTime.MinValue;
     }
 
-    public async Task<DateTime?> GetUserLastLoginDateAsync(Guid userId, CancellationToken ct = default)
-        => await context.AuditLogs
-            .AsNoTracking()
-            .Where(a => a.UserId == userId && a.Action == "User:LoggedIn")
-            .MaxAsync(a => (DateTime?)a.Timestamp, ct);
+    public Task<DateTime?> GetUserLastLoginDateAsync(Guid userId, CancellationToken ct = default)
+        => context.AuditLogs
+                  .AsNoTracking()
+                  .Where(a => a.UserId == userId && a.Action == "User:LoggedIn")
+                  .MaxAsync(a => (DateTime?)a.Timestamp, ct);
 
-    public async Task<DateTime?> GetUserLastModifiedDateAsync(Guid userId, CancellationToken ct = default)
-        => await context.AuditLogs
-            .AsNoTracking()
-            .Where(a => a.UserId == userId)
-            .MaxAsync(a => (DateTime?)a.Timestamp, ct);
+    public Task<DateTime?> GetUserLastModifiedDateAsync(Guid userId, CancellationToken ct = default)
+        => context.AuditLogs
+                  .AsNoTracking()
+                  .Where(a => a.UserId == userId)
+                  .MaxAsync(a => (DateTime?)a.Timestamp, ct);
 
     private static double ExtractDurationMs(string payload) {
         try {

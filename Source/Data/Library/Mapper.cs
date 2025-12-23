@@ -5,9 +5,11 @@ using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using EncounterLightSourceEntity = VttTools.Data.Library.Entities.EncounterLight;
 using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
+using EncounterRegionVertexEntity = VttTools.Data.Library.Entities.EncounterRegionVertex;
 using EncounterSoundSourceEntity = VttTools.Data.Library.Entities.EncounterSound;
 using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 using EncounterWallSegmentEntity = VttTools.Data.Library.Entities.EncounterWallSegment;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
 using WorldEntity = VttTools.Data.Library.Entities.World;
 
 namespace VttTools.Data.Library;
@@ -19,7 +21,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Campaigns = entity.Campaigns.AsQueryable().Select(AsChildCampaign!).ToList(),
@@ -33,7 +35,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Adventures = entity.Adventures.AsQueryable().Select(AsChildAdventure!).ToList(),
@@ -45,7 +47,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Adventures = entity.Adventures.AsQueryable().Select(AsAdventure!).ToList(),
@@ -58,7 +60,7 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Style = entity.Style,
-            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
@@ -74,7 +76,7 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Style = entity.Style,
-            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
@@ -87,13 +89,13 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Stage = new() {
-                Background = entity.Background != null ? entity.Background.ToModel() : null,
+                Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
                 Light = entity.AmbientLight,
                 Weather = entity.Weather,
                 Elevation = entity.GroundElevation,
-                Sound = entity.AmbientSound != null ? entity.AmbientSound.ToModel() : null,
+                Sound = entity.Resources.Where(r => r.Role == ResourceRole.AmbientSound).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             },
             Grid = entity.Grid,
             Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
@@ -110,13 +112,13 @@ internal static class Mapper {
             Description = entity.Description,
             Adventure = entity.Adventure.ToModel(),
             Stage = new() {
-                Background = entity.Background != null ? entity.Background.ToModel() : null,
+                Background = entity.Resources.Where(r => r.Role == ResourceRole.Background).Select(r => r.Resource.ToModel()).FirstOrDefault(),
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
                 Light = entity.AmbientLight,
                 Weather = entity.Weather,
                 Elevation = entity.GroundElevation,
-                Sound = entity.AmbientSound != null ? entity.AmbientSound.ToModel() : null,
+                Sound = entity.Resources.Where(r => r.Role == ResourceRole.AmbientSound).Select(r => r.Resource.ToModel()).FirstOrDefault(),
             },
             Grid = entity.Grid,
             Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
@@ -149,36 +151,54 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background?.ToModel()!,
+            Background = entity.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background)?.Resource.ToModel(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Campaigns = entity.Campaigns.Select(ToModel).ToList()!,
             Adventures = entity.Adventures.Select(ToModel).ToList()!,
         };
 
-    internal static WorldEntity ToEntity(this World model)
-        => new() {
+    internal static WorldEntity ToEntity(this World model) {
+        var entity = new WorldEntity {
             OwnerId = model.OwnerId,
             Id = model.Id,
             Name = model.Name,
             Description = model.Description,
-            BackgroundId = model.Background?.Id,
             IsPublished = model.IsPublished,
             IsPublic = model.IsPublic,
             Campaigns = model.Campaigns.ConvertAll(c => c.ToEntity()),
             Adventures = model.Adventures.ConvertAll(c => c.ToEntity()),
         };
+        if (model.Background is not null) {
+            entity.Resources.Add(new() {
+                WorldId = model.Id,
+                ResourceId = model.Background.Id,
+                Role = ResourceRole.Background,
+                Index = 0,
+            });
+        }
+        return entity;
+    }
 
     internal static void UpdateFrom(this WorldEntity entity, World model) {
         entity.OwnerId = model.OwnerId;
         entity.Id = model.Id;
         entity.Name = model.Name;
         entity.Description = model.Description;
-        entity.BackgroundId = model.Background?.Id;
         entity.IsPublished = model.IsPublished;
         entity.IsPublic = model.IsPublic;
         entity.Campaigns = model.Campaigns.ConvertAll(a => a.ToEntity());
         entity.Adventures = model.Adventures.ConvertAll(a => a.ToEntity());
+
+        entity.Resources.Clear();
+        if (model.Background is not null) {
+            entity.Resources.Add(new() {
+                WorldId = model.Id,
+                ResourceId = model.Background.Id,
+                Role = ResourceRole.Background,
+                Index = 0,
+            });
+        }
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -189,24 +209,33 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Background = entity.Background?.ToModel()!,
+            Background = entity.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background)?.Resource.ToModel(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Adventures = entity.Adventures.Select(ToModel).ToList()!,
         };
 
-    internal static CampaignEntity ToEntity(this Campaign model)
-        => new() {
+    internal static CampaignEntity ToEntity(this Campaign model) {
+        var entity = new CampaignEntity {
             OwnerId = model.OwnerId,
             WorldId = model.World?.Id,
             Id = model.Id,
             Name = model.Name,
             Description = model.Description,
-            BackgroundId = model.Background?.Id,
             IsPublished = model.IsPublished,
             IsPublic = model.IsPublic,
             Adventures = model.Adventures.ConvertAll(a => a.ToEntity()),
         };
+        if (model.Background is not null) {
+            entity.Resources.Add(new() {
+                CampaignId = model.Id,
+                ResourceId = model.Background.Id,
+                Role = ResourceRole.Background,
+                Index = 0,
+            });
+        }
+        return entity;
+    }
 
     internal static void UpdateFrom(this CampaignEntity entity, Campaign model) {
         entity.OwnerId = model.OwnerId;
@@ -214,10 +243,19 @@ internal static class Mapper {
         entity.Id = model.Id;
         entity.Name = model.Name;
         entity.Description = model.Description;
-        entity.BackgroundId = model.Background?.Id;
         entity.IsPublished = model.IsPublished;
         entity.IsPublic = model.IsPublic;
         entity.Adventures = model.Adventures.ConvertAll(a => a.ToEntity());
+
+        entity.Resources.Clear();
+        if (model.Background is not null) {
+            entity.Resources.Add(new() {
+                CampaignId = model.Id,
+                ResourceId = model.Background.Id,
+                Role = ResourceRole.Background,
+                Index = 0,
+            });
+        }
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -230,15 +268,15 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Style = entity.Style,
-            Background = entity.Background?.ToModel(),
+            Background = entity.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background)?.Resource.ToModel(),
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             Encounters = entity.Encounters.Select(ToModel).ToList()!,
         };
 
-    internal static AdventureEntity ToEntity(this Adventure model)
-        => new() {
+    internal static AdventureEntity ToEntity(this Adventure model) {
+        var entity = new AdventureEntity {
             OwnerId = model.OwnerId,
             WorldId = model.World?.Id,
             CampaignId = model.Campaign?.Id,
@@ -246,12 +284,21 @@ internal static class Mapper {
             Name = model.Name,
             Description = model.Description,
             Style = model.Style,
-            BackgroundId = model.Background?.Id,
             IsOneShot = model.IsOneShot,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
             Encounters = model.Encounters.ConvertAll(s => s.ToEntity(model.Id)),
         };
+        if (model.Background is not null) {
+            entity.Resources.Add(new() {
+                AdventureId = model.Id,
+                ResourceId = model.Background.Id,
+                Role = ResourceRole.Background,
+                Index = 0,
+            });
+        }
+        return entity;
+    }
 
     internal static void UpdateFrom(this AdventureEntity entity, Adventure model) {
         entity.OwnerId = model.OwnerId;
@@ -261,13 +308,22 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.Style = model.Style;
-        entity.BackgroundId = model.Background?.Id;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
         entity.IsOneShot = model.IsOneShot;
         var existingEncounters = entity.Encounters.Join(model.Encounters, se => se.Id, sm => sm.Id, UpdateFrom);
         var newEncounters = model.Encounters.Where(sm => entity.Encounters.All(se => se.Id != sm.Id)).Select(s => s.ToEntity(model.Id));
         entity.Encounters = [.. existingEncounters.Union(newEncounters)];
+
+        entity.Resources.Clear();
+        if (model.Background is not null) {
+            entity.Resources.Add(new() {
+                AdventureId = model.Id,
+                ResourceId = model.Background.Id,
+                Role = ResourceRole.Background,
+                Index = 0,
+            });
+        }
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -277,144 +333,163 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             IsPublished = entity.IsPublished,
-            Adventure = entity.Adventure != null ? new Adventure {
+            Adventure = new() {
                 Id = entity.Adventure.Id,
                 OwnerId = entity.Adventure.OwnerId,
                 Name = entity.Adventure.Name,
                 Description = entity.Adventure.Description,
                 Style = entity.Adventure.Style,
-                Background = entity.Adventure.Background?.ToModel(),
+                Background = entity.Adventure.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background)?.Resource.ToModel(),
                 IsOneShot = entity.Adventure.IsOneShot,
                 IsPublic = entity.Adventure.IsPublic,
                 IsPublished = entity.Adventure.IsPublished,
                 Encounters = [],
-            } : null!,
+            },
             Stage = new() {
-                Background = entity.Background?.ToModel(),
+                Background = entity.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background)?.Resource.ToModel(),
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
                 Light = entity.AmbientLight,
                 Weather = entity.Weather,
                 Elevation = entity.GroundElevation,
-                Sound = entity.AmbientSound?.ToModel(),
+                Sound = entity.Resources.FirstOrDefault(r => r.Role == ResourceRole.AmbientSound)?.Resource.ToModel(),
             },
             Grid = entity.Grid,
-            Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel(entity.Grid)!)],
-            Walls = [.. entity.Walls.Select(sb => sb.ToModel(entity.Grid)!)],
-            Regions = [.. entity.Regions.Select(sr => sr.ToModel(entity.Grid)!)],
-            LightSources = [.. entity.LightSources.Select(ss => ss.ToModel(entity.Grid)!)],
-            SoundSources = [.. entity.SoundSources.Select(ss => ss.ToModel(entity.Grid)!)],
+            Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel(entity.Grid))],
+            Walls = [.. entity.Walls.Select(sb => sb.ToModel(entity.Grid))],
+            Regions = [.. entity.Regions.Select(sr => sr.ToModel(entity.Grid))],
+            LightSources = [.. entity.LightSources.Select(ss => ss.ToModel(entity.Grid))],
+            SoundSources = [.. entity.SoundSources.Select(ss => ss.ToModel(entity.Grid))],
         };
 
-    internal static EncounterEntity ToEntity(this Encounter model, Guid adventureId)
-        => new() {
+    internal static EncounterEntity ToEntity(this Encounter model, Guid adventureId) {
+        var entity = new EncounterEntity {
             Id = model.Id,
             AdventureId = adventureId,
             Name = model.Name,
             Description = model.Description,
             IsPublished = model.IsPublished,
-            BackgroundId = model.Stage.Background?.Id,
             ZoomLevel = model.Stage.ZoomLevel,
             Panning = model.Stage.Panning,
             AmbientLight = model.Stage.Light,
             Weather = model.Stage.Weather,
             GroundElevation = model.Stage.Elevation,
-            AmbientSoundId = model.Stage.Sound?.Id,
             Grid = model.Grid,
-            EncounterAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id, model.Grid)) ?? [],
-            Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id, model.Grid)) ?? [],
-            Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id, model.Grid)) ?? [],
-            LightSources = model.LightSources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
-            SoundSources = model.SoundSources?.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)) ?? [],
+            EncounterAssets = model.Assets.ConvertAll(sa => ToEntity(sa, model.Id, model.Grid)),
+            Walls = model.Walls.ConvertAll(sw => ToEntity(sw, model.Id, model.Grid)),
+            Regions = model.Regions.ConvertAll(sr => ToEntity(sr, model.Id, model.Grid)),
+            LightSources = model.LightSources.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)),
+            SoundSources = model.SoundSources.ConvertAll(ss => ToEntity(ss, model.Id, model.Grid)),
         };
+        ushort index = 0;
+        if (model.Stage.Background is not null) {
+            entity.Resources.Add(new() {
+                EncounterId = model.Id,
+                ResourceId = model.Stage.Background.Id,
+                Role = ResourceRole.Background,
+                Index = index++,
+            });
+        }
+        if (model.Stage.Sound is not null) {
+            entity.Resources.Add(new() {
+                EncounterId = model.Id,
+                ResourceId = model.Stage.Sound.Id,
+                Role = ResourceRole.AmbientSound,
+                Index = index,
+            });
+        }
+        return entity;
+    }
 
     internal static EncounterEntity UpdateFrom(this EncounterEntity entity, Encounter model) {
         entity.Id = model.Id;
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.IsPublished = model.IsPublished;
-        entity.BackgroundId = model.Stage.Background?.Id;
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
         entity.AmbientLight = model.Stage.Light;
         entity.Weather = model.Stage.Weather;
         entity.GroundElevation = model.Stage.Elevation;
-        entity.AmbientSoundId = model.Stage.Sound?.Id;
         entity.Grid = model.Grid;
+
+        entity.Resources.Clear();
+        ushort index = 0;
+        if (model.Stage.Background is not null) {
+            entity.Resources.Add(new() {
+                EncounterId = model.Id,
+                ResourceId = model.Stage.Background.Id,
+                Role = ResourceRole.Background,
+                Index = index++,
+            });
+        }
+        if (model.Stage.Sound is not null) {
+            entity.Resources.Add(new() {
+                EncounterId = model.Id,
+                ResourceId = model.Stage.Sound.Id,
+                Role = ResourceRole.AmbientSound,
+                Index = index,
+            });
+        }
 
         // Update EncounterAssets
         var assetIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
-        foreach (var assetToRemove in entity.EncounterAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList()) {
+        foreach (var assetToRemove in entity.EncounterAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList())
             entity.EncounterAssets.Remove(assetToRemove);
-        }
         foreach (var modelAsset in model.Assets) {
             var existingAsset = entity.EncounterAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
-            if (existingAsset != null) {
+            if (existingAsset != null)
                 UpdateFrom(existingAsset, entity.Id, modelAsset, model.Grid);
-            }
-            else {
+            else
                 entity.EncounterAssets.Add(ToEntity(modelAsset, entity.Id, model.Grid));
-            }
         }
 
         // Update Walls
         var wallIndices = model.Walls.Select(sw => sw.Index).ToHashSet();
-        foreach (var wallToRemove in entity.Walls.Where(ew => !wallIndices.Contains(ew.Index)).ToList()) {
+        foreach (var wallToRemove in entity.Walls.Where(ew => !wallIndices.Contains(ew.Index)).ToList())
             entity.Walls.Remove(wallToRemove);
-        }
         foreach (var modelWall in model.Walls) {
             var existingWall = entity.Walls.FirstOrDefault(ew => ew.Index == modelWall.Index);
-            if (existingWall != null) {
+            if (existingWall != null)
                 UpdateFrom(existingWall, entity.Id, modelWall, model.Grid);
-            }
-            else {
+            else
                 entity.Walls.Add(ToEntity(modelWall, entity.Id, model.Grid));
-            }
         }
 
         // Update Regions
         var regionIndices = model.Regions.Select(sr => sr.Index).ToHashSet();
-        foreach (var regionToRemove in entity.Regions.Where(er => !regionIndices.Contains(er.Index)).ToList()) {
+        foreach (var regionToRemove in entity.Regions.Where(er => !regionIndices.Contains(er.Index)).ToList())
             entity.Regions.Remove(regionToRemove);
-        }
         foreach (var modelRegion in model.Regions) {
             var existingRegion = entity.Regions.FirstOrDefault(er => er.Index == modelRegion.Index);
-            if (existingRegion != null) {
+            if (existingRegion != null)
                 UpdateFrom(existingRegion, entity.Id, modelRegion, model.Grid);
-            }
-            else {
+            else
                 entity.Regions.Add(ToEntity(modelRegion, entity.Id, model.Grid));
-            }
         }
 
         // Update Light Sources
         var lightSourceIndices = model.LightSources.Select(ss => ss.Index).ToHashSet();
-        foreach (var lightSourceToRemove in entity.LightSources.Where(es => !lightSourceIndices.Contains(es.Index)).ToList()) {
+        foreach (var lightSourceToRemove in entity.LightSources.Where(es => !lightSourceIndices.Contains(es.Index)).ToList())
             entity.LightSources.Remove(lightSourceToRemove);
-        }
         foreach (var modelLightSource in model.LightSources) {
             var existingLightSource = entity.LightSources.FirstOrDefault(es => es.Index == modelLightSource.Index);
-            if (existingLightSource != null) {
+            if (existingLightSource != null)
                 UpdateFrom(existingLightSource, entity.Id, modelLightSource, model.Grid);
-            }
-            else {
+            else
                 entity.LightSources.Add(ToEntity(modelLightSource, entity.Id, model.Grid));
-            }
         }
 
         // Update Sound Sources
         var soundSourceIndices = model.SoundSources.Select(ss => ss.Index).ToHashSet();
-        foreach (var soundSourceToRemove in entity.SoundSources.Where(es => !soundSourceIndices.Contains(es.Index)).ToList()) {
+        foreach (var soundSourceToRemove in entity.SoundSources.Where(es => !soundSourceIndices.Contains(es.Index)).ToList())
             entity.SoundSources.Remove(soundSourceToRemove);
-        }
         foreach (var modelSoundSource in model.SoundSources) {
             var existingSoundSource = entity.SoundSources.FirstOrDefault(es => es.Index == modelSoundSource.Index);
-            if (existingSoundSource != null) {
+            if (existingSoundSource != null)
                 UpdateFrom(existingSoundSource, entity.Id, modelSoundSource, model.Grid);
-            }
-            else {
+            else
                 entity.SoundSources.Add(ToEntity(modelSoundSource, entity.Id, model.Grid));
-            }
         }
 
         return entity;
@@ -474,7 +549,7 @@ internal static class Mapper {
     internal static Expression<Func<EncounterWallEntity, EncounterWall>> AsEncounterWall = entity
         => new() {
             Index = entity.Index,
-            Segments = entity.Segments.AsQueryable().Select(s => s.ToModel()!).ToList(),
+            Segments = entity.Segments.AsQueryable().Select(s => s.ToModel()).ToList(),
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -530,7 +605,7 @@ internal static class Mapper {
             State = entity.State,
         };
 
-    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, uint wallIndex, Grid grid)
+    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, ushort wallIndex, Grid grid)
         => new() {
             EncounterId = encounterId,
             WallIndex = wallIndex,
@@ -542,7 +617,7 @@ internal static class Mapper {
             State = model.State,
         };
 
-    internal static EncounterWallSegmentEntity UpdateFrom(this EncounterWallSegmentEntity entity, Guid encounterId, uint wallIndex, EncounterWallSegment model, Grid grid) {
+    internal static EncounterWallSegmentEntity UpdateFrom(this EncounterWallSegmentEntity entity, Guid encounterId, ushort wallIndex, EncounterWallSegment model, Grid grid) {
         entity.EncounterId = encounterId;
         entity.WallIndex = wallIndex;
         entity.Index = model.Index;
@@ -566,7 +641,7 @@ internal static class Mapper {
             State = entity.State,
         };
 
-    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, uint wallIndex)
+    internal static EncounterWallSegmentEntity ToEntity(this EncounterWallSegment model, Guid encounterId, ushort wallIndex)
         => new() {
             EncounterId = encounterId,
             WallIndex = wallIndex,
@@ -584,7 +659,7 @@ internal static class Mapper {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
-            Vertices = entity.Vertices,
+            Vertices = entity.Vertices.OrderBy(v => v.Index).Select(v => new Point(v.X, v.Y)).ToList(),
             Value = entity.Value,
         };
 
@@ -594,7 +669,10 @@ internal static class Mapper {
             Index = entity.Index,
             Name = entity.Name,
             Type = entity.Type,
-            Vertices = entity.Vertices.ConvertAll(v => GridConverter.PointToPixel(v, grid)),
+            Vertices = entity.Vertices
+                .OrderBy(v => v.Index)
+                .Select(v => GridConverter.PointToPixel(new(v.X, v.Y), grid))
+                .ToList(),
             Value = entity.Value,
         };
 
@@ -604,7 +682,17 @@ internal static class Mapper {
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
-            Vertices = [.. model.Vertices.Select(v => GridConverter.PointToGrid(v, grid))],
+            Vertices = [.. model.Vertices
+                .Select((vertex, index) => {
+                    var gridPoint = GridConverter.PointToGrid(vertex, grid);
+                    return new EncounterRegionVertexEntity {
+                        EncounterId = encounterId,
+                        RegionIndex = model.Index,
+                        Index = (ushort)index,
+                        X = gridPoint.X,
+                        Y = gridPoint.Y,
+                    };
+                })],
             Value = model.Value,
         };
 
@@ -613,7 +701,17 @@ internal static class Mapper {
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
-        entity.Vertices = [.. model.Vertices.Select(v => GridConverter.PointToGrid(v, grid))];
+        entity.Vertices = [.. model.Vertices
+            .Select((vertex, index) => {
+                var gridPoint = GridConverter.PointToGrid(vertex, grid);
+                return new EncounterRegionVertexEntity {
+                    EncounterId = encounterId,
+                    RegionIndex = model.Index,
+                    Index = (ushort)index,
+                    X = gridPoint.X,
+                    Y = gridPoint.Y,
+                };
+            })];
         entity.Value = model.Value;
         return entity;
     }

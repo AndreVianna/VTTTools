@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public sealed class WorldAdminServiceTests {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
@@ -17,7 +17,7 @@ public sealed class WorldAdminServiceTests {
         _mockCampaignStorage = Substitute.For<ICampaignStorage>();
         _mockUserManager = CreateUserManagerMock();
         _mockLogger = Substitute.For<ILogger<WorldAdminService>>();
-        _sut = new WorldAdminService(_mockOptions, _mockWorldStorage, _mockCampaignStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockWorldStorage, _mockCampaignStorage, _mockUserManager, _mockLogger);
     }
 
     [Fact]

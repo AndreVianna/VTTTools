@@ -74,7 +74,9 @@ internal static class EncounterHandlers {
 
     internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var result = await encounterService.CloneAssetAsync(userId, id, index);
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
+        var result = await encounterService.CloneAssetAsync(userId, id, (ushort)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -85,6 +87,8 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterAssetUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
         var data = new UpdateAssetData {
             Name = request.Name,
@@ -96,7 +100,7 @@ internal static class EncounterHandlers {
             IsLocked = request.IsLocked,
             ControlledBy = request.ControlledBy,
         };
-        var result = await encounterService.UpdateAssetAsync(userId, id, index, data);
+        var result = await encounterService.UpdateAssetAsync(userId, id, (ushort)index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -115,7 +119,7 @@ internal static class EncounterHandlers {
                 Size = u.Size,
                 Rotation = u.Rotation,
                 Elevation = u.Elevation,
-            })]
+            })],
         };
         var result = await encounterService.BulkUpdateAssetsAsync(userId, id, data);
         return result.IsSuccessful
@@ -155,7 +159,7 @@ internal static class EncounterHandlers {
         var userId = context.User.GetUserId();
         var assetsToAdd = request.Assets.ConvertAll(a => new AssetToAdd(
             a.Id,
-            new EncounterAssetAddData {
+            new() {
                 Name = a.Name,
                 IsVisible = a.IsVisible,
                 ImageId = a.ImageId,
@@ -163,7 +167,7 @@ internal static class EncounterHandlers {
                 Size = a.Size,
                 Frame = a.Frame,
                 Rotation = a.Rotation,
-                Elevation = a.Elevation
+                Elevation = a.Elevation,
             }
         ));
         var result = await encounterService.BulkAddAssetsAsync(userId, id, assetsToAdd);
@@ -177,8 +181,10 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveAssetAsync(userId, id, index);
+        var result = await encounterService.RemoveAssetAsync(userId, id, (ushort)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -219,11 +225,13 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterWallUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
         var data = new EncounterWallUpdateData {
             Segments = request.Segments,
         };
-        var result = await encounterService.UpdateWallAsync(userId, id, (uint)index, data);
+        var result = await encounterService.UpdateWallAsync(userId, id, (ushort)index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -234,8 +242,10 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> RemoveWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveWallAsync(userId, id, (uint)index);
+        var result = await encounterService.RemoveWallAsync(userId, id, (ushort)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -270,6 +280,8 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterRegionUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
         var data = new EncounterRegionUpdateData {
             Name = request.Name,
@@ -277,7 +289,7 @@ internal static class EncounterHandlers {
             Vertices = request.Vertices,
             Value = request.Value,
         };
-        var result = await encounterService.UpdateRegionAsync(userId, id, (uint)index, data);
+        var result = await encounterService.UpdateRegionAsync(userId, id, (ushort)index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -288,8 +300,10 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> RemoveRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveRegionAsync(userId, id, (uint)index);
+        var result = await encounterService.RemoveRegionAsync(userId, id, (ushort)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -332,6 +346,8 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> UpdateLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterLightUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
         var data = new EncounterLightUpdateData {
             Name = request.Name,
@@ -343,7 +359,7 @@ internal static class EncounterHandlers {
             Color = request.Color,
             IsOn = request.IsOn,
         };
-        var result = await encounterService.UpdateLightSourceAsync(userId, id, (uint)index, data);
+        var result = await encounterService.UpdateLightSourceAsync(userId, id, (ushort)index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -354,8 +370,10 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> RemoveLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveLightSourceAsync(userId, id, (uint)index);
+        var result = await encounterService.RemoveLightSourceAsync(userId, id, (ushort)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -394,6 +412,8 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> UpdateSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterSoundUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
         var data = new EncounterSoundUpdateData {
             Name = request.Name,
@@ -403,7 +423,7 @@ internal static class EncounterHandlers {
             IsPlaying = request.IsPlaying,
             Loop = request.Loop,
         };
-        var result = await encounterService.UpdateSoundSourceAsync(userId, id, (uint)index, data);
+        var result = await encounterService.UpdateSoundSourceAsync(userId, id, (ushort)index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -414,8 +434,10 @@ internal static class EncounterHandlers {
     }
 
     internal static async Task<IResult> RemoveSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        if (index is < ushort.MinValue or > ushort.MaxValue)
+            return Results.NotFound();
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveSoundSourceAsync(userId, id, (uint)index);
+        var result = await encounterService.RemoveSoundSourceAsync(userId, id, (ushort)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind, StatValueType, type Asset } from '@/types/domain';
+import { AssetKind, ResourceRole, StatValueType, type Asset } from '@/types/domain';
 import { AssetInspectorPanel, type AssetInspectorPanelProps } from './AssetInspectorPanel';
 
 vi.mock('@/components/common/ResourceImage', () => ({
@@ -39,39 +39,25 @@ describe('AssetInspectorPanel', () => {
     },
     portrait: {
       id: 'portrait-1',
-      description: null,
-      features: {},
-      resourceType: 'Image',
-      classification: null,
+      role: ResourceRole.Portrait,
       path: '/portraits/goblin.png',
       contentType: 'image/png',
       fileName: 'goblin.png',
-      fileLength: 2048,
-      thumbnailPath: null,
-      size: { width: 512, height: 512 },
+      fileSize: 2048,
+      dimensions: { width: 512, height: 512 },
       duration: '0',
-      ownerId: 'user-1',
-      isPublished: true,
-      isPublic: false,
     },
     tokenSize: { width: 1, height: 1 },
     tokens: [
       {
         id: 'token-1',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/goblin.png',
         contentType: 'image/png',
         fileName: 'goblin.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 128, height: 128 },
+        fileSize: 1024,
+        dimensions: { width: 128, height: 128 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
     ],
     statBlocks: {

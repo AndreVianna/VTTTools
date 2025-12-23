@@ -1,9 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ResourceType, type MediaResource, type ResourceFilterData } from '@/types/domain';
+import { ResourceRole, type MediaResource, type ResourceFilterData } from '@/types/domain';
 import type { ViewMode, SortField, SortDirection } from '@/components/assets/browser/BrowserToolbar';
 
 export interface MediaBrowserState {
-  selectedCategory: ResourceType;
+  selectedCategory: ResourceRole;
   searchQuery: string;
   ownershipFilter: 'mine' | 'others' | 'all';
   statusFilter: 'all' | 'published' | 'draft';
@@ -19,7 +19,7 @@ export interface MediaBrowserState {
 }
 
 const initialState: MediaBrowserState = {
-  selectedCategory: ResourceType.Undefined,
+  selectedCategory: ResourceRole.Undefined,
   searchQuery: '',
   ownershipFilter: 'all',
   statusFilter: 'all',
@@ -37,7 +37,7 @@ const initialState: MediaBrowserState = {
 export function useMediaBrowser() {
   const [state, setState] = useState<MediaBrowserState>(initialState);
 
-  const setSelectedCategory = useCallback((category: ResourceType) => {
+  const setSelectedCategory = useCallback((category: ResourceRole) => {
     setState((prev) => ({ ...prev, selectedCategory: category, skip: 0 }));
   }, []);
 
@@ -96,7 +96,7 @@ export function useMediaBrowser() {
   const resetFilters = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      selectedCategory: ResourceType.Undefined,
+      selectedCategory: ResourceRole.Undefined,
       searchQuery: '',
       ownershipFilter: 'all',
       statusFilter: 'all',
@@ -110,38 +110,20 @@ export function useMediaBrowser() {
       take: state.take,
     };
 
-    if (state.selectedCategory !== ResourceType.Undefined) {
-      params.resourceType = state.selectedCategory;
+    if (state.selectedCategory !== ResourceRole.Undefined) {
+      params.role = state.selectedCategory;
     }
 
     if (state.searchQuery) {
       params.searchText = state.searchQuery;
     }
 
-    if (state.ownershipFilter === 'mine') {
-      params.isPublic = false;
-    } else if (state.ownershipFilter === 'others') {
-      params.isPublic = true;
-    }
-
-    if (state.statusFilter === 'published') {
-      params.isPublished = true;
-    } else if (state.statusFilter === 'draft') {
-      params.isPublished = false;
-    }
-
     return params;
-  }, [state.selectedCategory, state.searchQuery, state.ownershipFilter, state.statusFilter, state.skip, state.take]);
+  }, [state.selectedCategory, state.searchQuery, state.skip, state.take]);
 
   const filterMedia = useCallback(
     (media: MediaResource[]): MediaResource[] => {
       let filtered = [...media];
-
-      if (state.statusFilter === 'published') {
-        filtered = filtered.filter((m) => m.isPublished);
-      } else if (state.statusFilter === 'draft') {
-        filtered = filtered.filter((m) => !m.isPublished);
-      }
 
       filtered.sort((a, b) => {
         let comparison = 0;
@@ -150,14 +132,8 @@ export function useMediaBrowser() {
             comparison = a.fileName.localeCompare(b.fileName);
             break;
           case 'category':
-            comparison = (a.classification?.category || '').localeCompare(
-              b.classification?.category || ''
-            );
-            break;
           case 'type':
-            comparison = (a.classification?.type || '').localeCompare(
-              b.classification?.type || ''
-            );
+            comparison = a.role.localeCompare(b.role);
             break;
         }
         return state.sortDirection === 'asc' ? comparison : -comparison;
@@ -165,7 +141,7 @@ export function useMediaBrowser() {
 
       return filtered;
     },
-    [state.statusFilter, state.sortField, state.sortDirection]
+    [state.sortField, state.sortDirection]
   );
 
   const inspectorOpen = state.selectedMediaId !== null;

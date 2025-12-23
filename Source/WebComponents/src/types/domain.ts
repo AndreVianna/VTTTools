@@ -448,7 +448,7 @@ export interface UploadRequest {
 export interface AddResourceRequest {
   name: string;
   description: string;
-  resourceType: ResourceType;
+  role: ResourceRole;
   filePath: string;
   fileSize: number;
   mimeType: string;
@@ -461,27 +461,30 @@ export interface UpdateResourceRequest {
   tags?: string[];
 }
 
-export enum ResourceType {
-  Image = 'Image',
-  Audio = 'Audio',
-  Video = 'Video',
-  Document = 'Document',
+export enum ResourceRole {
+  Undefined = 'Undefined',
+  Background = 'Background',
+  Token = 'Token',
+  Portrait = 'Portrait',
+  Overlay = 'Overlay',
+  Illustration = 'Illustration',
+  SoundEffect = 'SoundEffect',
+  AmbientSound = 'AmbientSound',
+  CutScene = 'CutScene',
+  UserAvatar = 'UserAvatar',
 }
 
+// MediaResource - Pure media metadata (no business properties)
+// Business properties (ownerId, isPublished, isPublic) are inherited from parent entities
 export interface MediaResource {
   id: string;
-  description: string | null;
-  features: Record<string, string[]>;
-  type: ResourceType;
+  role: ResourceRole;
   path: string;
   contentType: string;
   fileName: string;
-  fileLength: number;
-  size: { width: number; height: number };
+  fileSize: number;
+  dimensions: { width: number; height: number };
   duration: string;
-  ownerId: string;
-  isPublished: boolean;
-  isPublic: boolean;
 }
 
 export interface LoginRequest {

@@ -7,12 +7,11 @@ public class AiMapperTests {
     public void ToModel_WithValidEntity_ReturnsCorrectModel() {
         var referenceImage = new Media.Entities.Resource {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "test/reference",
             FileName = "reference.png",
             ContentType = "image/png",
-            FileLength = 1000,
-            Size = new(100, 100),
+            FileSize = 1000,
+            Dimensions = new(100, 100),
             Duration = TimeSpan.Zero,
         };
 
@@ -76,12 +75,11 @@ public class AiMapperTests {
     public void ToEntity_WithValidModel_ReturnsCorrectEntity() {
         var referenceImage = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "test/reference",
             FileName = "reference.png",
             ContentType = "image/png",
-            FileLength = 1000,
-            Size = new(100, 100),
+            FileSize = 1000,
+            Dimensions = new(100, 100),
             Duration = TimeSpan.Zero,
         };
 
@@ -153,12 +151,11 @@ public class AiMapperTests {
             NegativePromptTemplate = "New negative",
             ReferenceImage = new ResourceMetadata {
                 Id = newReferenceImageId,
-                ResourceType = ResourceType.Background,
                 Path = "test/path",
                 FileName = "test.png",
                 ContentType = "image/png",
-                FileLength = 1000,
-                Size = new(100, 100),
+                FileSize = 1000,
+                Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
             },
         };

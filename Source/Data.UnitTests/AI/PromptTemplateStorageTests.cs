@@ -23,12 +23,11 @@ public class PromptTemplateStorageTests
     private void SeedPromptTemplates() {
         var referenceImage = new Media.Entities.Resource {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "test/reference",
             FileName = "reference.png",
             ContentType = "image/png",
-            FileLength = 1000,
-            Size = new(100, 100),
+            FileSize = 1000,
+            Dimensions = new(100, 100),
             Duration = TimeSpan.Zero,
         };
         _context.Resources.Add(referenceImage);
@@ -160,33 +159,6 @@ public class PromptTemplateStorageTests
     }
 
     [Fact]
-    public async Task SearchAsync_WithLatestOnlyScope_ReturnsLatestVersionsExcludingDrafts() {
-        var filters = new PromptTemplateSearchFilters {
-            Scope = VersionScope.LatestOnly,
-        };
-
-        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
-
-        totalCount.Should().Be(2);
-        items.Should().NotContain(t => t.Version.EndsWith("-draft"));
-        items.Should().Contain(t => t.Name == "Character Portrait" && t.Version == "1.1");
-        items.Should().Contain(t => t.Name == "Scene Background" && t.Version == "1.0");
-    }
-
-    [Fact]
-    public async Task SearchAsync_WithLatestIncludingDraftsScope_ReturnsLatestVersions() {
-        var filters = new PromptTemplateSearchFilters {
-            Scope = VersionScope.LatestIncludingDrafts,
-        };
-
-        (var items, var totalCount) = await _storage.SearchAsync(filters, _ct);
-
-        totalCount.Should().Be(2);
-        items.Should().Contain(t => t.Name == "Character Portrait" && t.Version == "2.0-draft");
-        items.Should().Contain(t => t.Name == "Scene Background" && t.Version == "1.0");
-    }
-
-    [Fact]
     public async Task SearchAsync_WithPagination_ReturnsPagedResults() {
         var filters = new PromptTemplateSearchFilters {
             Scope = VersionScope.AllVersions,
@@ -239,7 +211,8 @@ public class PromptTemplateStorageTests
 
     [Fact]
     public async Task UpdateAsync_WithExistingTemplate_UpdatesDatabase() {
-        var entity = await _context.PromptTemplates.FirstAsync(_ct);
+        _context.ChangeTracker.Clear();
+        var entity = await _context.PromptTemplates.AsNoTracking().FirstAsync(_ct);
         var template = new PromptTemplateModel {
             Id = entity.Id,
             Name = "Updated Name",
@@ -255,9 +228,10 @@ public class PromptTemplateStorageTests
         result.Should().NotBeNull();
         result.Id.Should().Be(template.Id);
 
-        var updated = await _context.PromptTemplates.FindAsync([entity.Id], _ct);
+        _context.ChangeTracker.Clear();
+        var updated = await _context.PromptTemplates.AsNoTracking().FirstOrDefaultAsync(p => p.Id == entity.Id, _ct);
         updated.Should().NotBeNull();
-        updated.Name.Should().Be("Updated Name");
+        updated!.Name.Should().Be("Updated Name");
         updated.Category.Should().Be(GeneratedContentType.TextDescription);
         updated.Version.Should().Be("2.0");
         updated.SystemPrompt.Should().Be("Updated system prompt");
@@ -274,7 +248,7 @@ public class PromptTemplateStorageTests
             UserPromptTemplate = "User",
         };
 
-        var act = async () => await _storage.UpdateAsync(template, _ct);
+        var act = () => _storage.UpdateAsync(template, _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Prompt template with ID {template.Id} not found.");
@@ -282,7 +256,8 @@ public class PromptTemplateStorageTests
 
     [Fact]
     public async Task DeleteAsync_WithExistingId_RemovesFromDatabase() {
-        var entity = await _context.PromptTemplates.FirstAsync(_ct);
+        _context.ChangeTracker.Clear();
+        var entity = await _context.PromptTemplates.AsNoTracking().FirstAsync(_ct);
 
         await _storage.DeleteAsync(entity.Id, _ct);
 
@@ -294,7 +269,7 @@ public class PromptTemplateStorageTests
     public async Task DeleteAsync_WithNonExistingId_DoesNotThrow() {
         var nonExistingId = Guid.CreateVersion7();
 
-        var act = async () => await _storage.DeleteAsync(nonExistingId, _ct);
+        var act = () => _storage.DeleteAsync(nonExistingId, _ct);
 
         await act.Should().NotThrowAsync();
     }

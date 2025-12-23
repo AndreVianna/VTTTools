@@ -30,8 +30,6 @@ public sealed class ShowCommand(IFileStore store) {
         ConsoleOutput.WriteBlankLine();
         ConsoleOutput.WriteLine($"Total Tokens: {entityInfo.Tokens.Count}");
         ConsoleOutput.WriteBlankLine();
-
-        for (var i = 0; i < entityInfo.Tokens.Count; i++)
-            ConsoleOutput.WriteLine($"Token {i + 1}: {entityInfo.Tokens[i].Description}");
+        ConsoleOutput.WriteLine($"Description: {entityInfo.Description}");
     }
 }

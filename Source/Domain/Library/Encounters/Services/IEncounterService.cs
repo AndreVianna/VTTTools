@@ -21,27 +21,27 @@ public interface IEncounterService {
 
     Task<EncounterAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
     Task<Result<EncounterAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddAssetData data, CancellationToken ct = default);
-    Task<Result<EncounterAsset>> CloneAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
-    Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateAssetData data, CancellationToken ct = default);
+    Task<Result<EncounterAsset>> CloneAssetAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
+    Task<Result> UpdateAssetAsync(Guid userId, Guid id, ushort index, UpdateAssetData data, CancellationToken ct = default);
     Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateAssetsData data, CancellationToken ct = default);
-    Task<Result> BulkCloneAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
-    Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
+    Task<Result> BulkCloneAssetsAsync(Guid userId, Guid id, List<ushort> assetIndices, CancellationToken ct = default);
+    Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<ushort> assetIndices, CancellationToken ct = default);
     Task<Result> BulkAddAssetsAsync(Guid userId, Guid id, List<AssetToAdd> assetsToAdd, CancellationToken ct = default);
-    Task<Result> RemoveAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
+    Task<Result> RemoveAssetAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
 
     Task<Result<EncounterWall>> AddWallAsync(Guid userId, Guid id, AddWallData data, CancellationToken ct = default);
-    Task<Result> UpdateWallAsync(Guid userId, Guid id, uint index, UpdateWallData data, CancellationToken ct = default);
-    Task<Result> RemoveWallAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
+    Task<Result> UpdateWallAsync(Guid userId, Guid id, ushort index, UpdateWallData data, CancellationToken ct = default);
+    Task<Result> RemoveWallAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
 
     Task<Result<EncounterRegion>> AddRegionAsync(Guid userId, Guid id, AddRegionData data, CancellationToken ct = default);
-    Task<Result> UpdateRegionAsync(Guid userId, Guid id, uint index, UpdateRegionData data, CancellationToken ct = default);
-    Task<Result> RemoveRegionAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
+    Task<Result> UpdateRegionAsync(Guid userId, Guid id, ushort index, UpdateRegionData data, CancellationToken ct = default);
+    Task<Result> RemoveRegionAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
 
     Task<Result<EncounterLight>> AddLightSourceAsync(Guid userId, Guid id, AddLightSourceData data, CancellationToken ct = default);
-    Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, uint index, UpdateLightSourceData data, CancellationToken ct = default);
-    Task<Result> RemoveLightSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
+    Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, ushort index, UpdateLightSourceData data, CancellationToken ct = default);
+    Task<Result> RemoveLightSourceAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
 
     Task<Result<EncounterSound>> AddSoundSourceAsync(Guid userId, Guid id, AddSoundSourceData data, CancellationToken ct = default);
-    Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, uint index, UpdateSoundSourceData data, CancellationToken ct = default);
-    Task<Result> RemoveSoundSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
+    Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, ushort index, UpdateSoundSourceData data, CancellationToken ct = default);
+    Task<Result> RemoveSoundSourceAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
 }

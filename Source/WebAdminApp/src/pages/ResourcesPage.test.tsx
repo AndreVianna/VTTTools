@@ -87,51 +87,24 @@ describe('ResourcesPage', () => {
     const mockResources: ResourceInfo[] = [
         {
             id: 'resource-1',
-            resourceType: 'Portrait',
-            classification: {
-                kind: 'Character',
-                category: 'Humanoid',
-                type: 'Warrior',
-                subtype: 'Knight',
-            },
-            description: 'A brave knight',
+            role: 'Portrait',
             fileName: 'knight-portrait.png',
             contentType: 'image/png',
-            fileLength: 1024,
-            ownerId: 'user-1',
-            isPublished: false,
-            isPublic: false,
+            fileSize: 1024,
         },
         {
             id: 'resource-2',
-            resourceType: 'Token',
-            classification: {
-                kind: 'Creature',
-                category: 'Dragon',
-                type: 'Red Dragon',
-            },
-            description: 'A fearsome red dragon',
+            role: 'Token',
             fileName: 'dragon-token.png',
             contentType: 'image/png',
-            fileLength: 2048,
-            ownerId: 'user-1',
-            isPublished: false,
-            isPublic: false,
+            fileSize: 2048,
         },
         {
             id: 'resource-3',
-            resourceType: 'Portrait',
-            classification: {
-                kind: 'Effect',
-                category: 'Magical',
-                type: 'Fire',
-            },
+            role: 'Portrait',
             fileName: 'fire-effect.png',
             contentType: 'image/png',
-            fileLength: 512,
-            ownerId: 'user-1',
-            isPublished: false,
-            isPublic: false,
+            fileSize: 512,
         },
     ];
 
@@ -323,12 +296,12 @@ describe('ResourcesPage', () => {
             });
 
             // Act
-            const resourceTypeSelect = screen.getByLabelText(/resource type/i);
-            await user.click(resourceTypeSelect);
+            const roleSelect = screen.getByLabelText(/resource type/i);
+            await user.click(roleSelect);
             await user.click(screen.getByRole('option', { name: 'Portrait' }));
 
             // Assert
-            expect(resourceTypeSelect).toHaveTextContent('Portrait');
+            expect(roleSelect).toHaveTextContent('Portrait');
         });
 
         it('should update kind when selecting from dropdown', async () => {
@@ -426,7 +399,7 @@ describe('ResourcesPage', () => {
                     take: 50,
                     skip: 0,
                     searchText: 'warrior',
-                    resourceType: 'Portrait',
+                    role: 'Portrait',
                     contentKind: 'Character',
                 });
             });

@@ -26,7 +26,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Small green humanoid"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -55,7 +55,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Zombie",
-                Classification = new AssetClassification(AssetKind.Creature, "Undead", "Corporeal", null),
+                Classification = new(AssetKind.Creature, "Undead", "Corporeal", null),
                 Description = "Undead humanoid"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -80,7 +80,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "../../../etc", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "../../../etc", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -108,7 +108,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "../../../passwd",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -136,7 +136,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -169,7 +169,7 @@ public class HierarchicalFileStoreTests {
         var store = new HierarchicalFileStore("C:\\VTTAssets");
         var entity = new Asset {
             Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "", "ResourceType", null),
+            Classification = new(AssetKind.Creature, "", "Role", null),
             Description = "Test"
         };
         var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -185,7 +185,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -210,7 +210,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -243,7 +243,7 @@ public class HierarchicalFileStoreTests {
         var store = new HierarchicalFileStore("C:\\VTTAssets");
         var entity = new Asset {
             Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
             Description = "Test"
         };
 
@@ -258,7 +258,7 @@ public class HierarchicalFileStoreTests {
         var store = new HierarchicalFileStore("C:\\VTTAssets");
         var entity = new Asset {
             Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
             Description = "Test"
         };
         var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -277,7 +277,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             const string prompt = "A goblin warrior from top-down view";
@@ -304,7 +304,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
@@ -330,7 +330,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
 
@@ -371,7 +371,7 @@ public class HierarchicalFileStoreTests {
             var store = new HierarchicalFileStore(tempDir);
             var entity = new Asset {
                 Name = "Goblin",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };

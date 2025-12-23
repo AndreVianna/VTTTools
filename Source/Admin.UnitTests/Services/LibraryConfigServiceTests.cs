@@ -1,4 +1,6 @@
-namespace VttTools.Admin.UnitTests.Services;
+using MsOptions = Microsoft.Extensions.Options.Options;
+
+namespace VttTools.Admin.Services;
 
 public sealed class LibraryConfigServiceTests {
     private readonly ILogger<LibraryConfigService> _mockLogger;
@@ -7,9 +9,9 @@ public sealed class LibraryConfigServiceTests {
 
     public LibraryConfigServiceTests() {
         _masterUserId = Guid.CreateVersion7();
-        var options = Options.Create(new PublicLibraryOptions { MasterUserId = _masterUserId });
+        var options = MsOptions.Create(new PublicLibraryOptions { MasterUserId = _masterUserId });
         _mockLogger = Substitute.For<ILogger<LibraryConfigService>>();
-        _sut = new LibraryConfigService(options, _mockLogger);
+        _sut = new(options, _mockLogger);
     }
 
     #region GetConfigAsync Tests

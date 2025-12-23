@@ -1,6 +1,6 @@
 using VttTools.Admin.Configuration.Model;
 
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public class ConfigurationHandlersTests {
     private readonly IConfigurationService _mockConfigService;
@@ -231,7 +231,7 @@ public class ConfigurationHandlersTests {
         var claims = new[] {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         };
-        return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+        return new(new ClaimsIdentity(claims, "TestAuth"));
     }
 
     private static ConfigurationResponse CreateTestConfigurationResponse(string serviceName) => new() {
@@ -240,18 +240,18 @@ public class ConfigurationHandlersTests {
             new() {
                 Key = "JwtSecret",
                 Value = "***REDACTED***",
-                Source = new ConfigurationSource {
-                    Type = ConfigurationSourceType.EnvironmentVariable
-                },
+                Source = new() {
+                                   Type = ConfigurationSourceType.EnvironmentVariable
+                               },
                 Category = "Security"
             },
             new() {
                 Key = "DatabaseConnection",
                 Value = "***REDACTED***",
-                Source = new ConfigurationSource {
-                    Type = ConfigurationSourceType.JsonFile,
-                    Path = "appsettings.json"
-                },
+                Source = new() {
+                                   Type = ConfigurationSourceType.JsonFile,
+                                   Path = "appsettings.json"
+                               },
                 Category = "Database"
             }
         ]

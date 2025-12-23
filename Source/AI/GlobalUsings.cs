@@ -46,7 +46,6 @@ global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Common.Model;
-global using VttTools.Common.Utilities;
 global using VttTools.Configuration;
 global using VttTools.Data;
 global using VttTools.Http;

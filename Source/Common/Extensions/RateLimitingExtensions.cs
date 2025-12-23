@@ -1,3 +1,5 @@
+using VttTools.Options;
+
 namespace VttTools.Extensions;
 
 public static class RateLimitingExtensions {

@@ -1,5 +1,5 @@
 
-namespace VttTools.Common.UnitTests.Services;
+namespace VttTools.Services;
 
 public class FrontendConfigurationServiceTests {
     private readonly ILogger<FrontendConfigurationService> _logger;
@@ -8,7 +8,7 @@ public class FrontendConfigurationServiceTests {
 
     public FrontendConfigurationServiceTests() {
         _logger = Substitute.For<ILogger<FrontendConfigurationService>>();
-        _service = new FrontendConfigurationService(_logger);
+        _service = new(_logger);
         _testDirectory = Path.Combine(Path.GetTempPath(), $"VttToolsTest_{Guid.CreateVersion7():N}");
         Directory.CreateDirectory(_testDirectory);
     }

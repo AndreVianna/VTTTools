@@ -1,5 +1,6 @@
+using MsOptions = Microsoft.Extensions.Options.Options;
 
-namespace VttTools.Auth.UnitTests;
+namespace VttTools.Auth;
 
 /// <summary>
 /// Unit tests for AuthHandlers endpoint logic with mocked dependencies.
@@ -470,7 +471,7 @@ public class AuthHandlersTests {
     public async Task ValidateResetTokenHandler_WithValidToken_RedirectsToResetPage() {
         const string email = "user@example.com";
         const string token = "valid-reset-token";
-        var frontendOptions = Options.Create(new FrontendOptions {
+        var frontendOptions = MsOptions.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
 
@@ -493,7 +494,7 @@ public class AuthHandlersTests {
     public async Task ValidateResetTokenHandler_WithInvalidToken_RedirectsToErrorPage() {
         const string email = "user@example.com";
         const string token = "invalid-token";
-        var frontendOptions = Options.Create(new FrontendOptions {
+        var frontendOptions = MsOptions.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
 
@@ -627,7 +628,7 @@ public class AuthHandlersTests {
     public async Task ConfirmEmailHandler_WithValidToken_RedirectsToLogin() {
         const string email = "user@example.com";
         const string token = "confirmation-token";
-        var frontendOptions = Options.Create(new FrontendOptions {
+        var frontendOptions = MsOptions.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
 
@@ -650,7 +651,7 @@ public class AuthHandlersTests {
     public async Task ConfirmEmailHandler_WithInvalidToken_RedirectsToErrorPage() {
         const string email = "user@example.com";
         const string token = "invalid-token";
-        var frontendOptions = Options.Create(new FrontendOptions {
+        var frontendOptions = MsOptions.Create(new FrontendOptions {
             BaseUrl = "http://localhost:3000"
         });
 

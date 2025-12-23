@@ -40,7 +40,7 @@ public sealed class StabilityImageProvider(
 
             stopwatch.Stop();
             logger.LogInformation(
-                "Stability AI image generation completed in {Duration}ms - Size: {Size} bytes",
+                "Stability AI image generation completed in {Duration}ms - Dimensions: {Dimensions} bytes",
                 stopwatch.ElapsedMilliseconds,
                 imageData.Length);
 

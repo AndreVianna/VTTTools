@@ -21,8 +21,8 @@ public static class MediaConstraints {
         "video/ogg",
     ];
 
-    public static readonly Dictionary<ResourceType, TypeConstraints> For = new() {
-        [ResourceType.Background] = new() {
+    public static readonly Dictionary<ResourceRole, TypeConstraints> For = new() {
+        [ResourceRole.Background] = new() {
             AllowedContentTypes = [.. _safeImageTypes, .. _safeVideoTypes],
             MaxWidth = 4096,
             MaxHeight = 4096,
@@ -32,7 +32,7 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "backgrounds",
         },
-        [ResourceType.Token] = new() {
+        [ResourceRole.Token] = new() {
             AllowedContentTypes = [.. _safeImageTypes],
             MaxWidth = 1024,
             MaxHeight = 1024,
@@ -42,7 +42,7 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "tokens",
         },
-        [ResourceType.Portrait] = new() {
+        [ResourceRole.Portrait] = new() {
             AllowedContentTypes = [.. _safeImageTypes, .. _safeVideoTypes],
             MaxWidth = 1024,
             MaxHeight = 1024,
@@ -52,7 +52,7 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "portraits",
         },
-        [ResourceType.Overlay] = new() {
+        [ResourceRole.Overlay] = new() {
             AllowedContentTypes = [.. _safeImageTypes, .. _safeVideoTypes],
             MaxWidth = 4096,
             MaxHeight = 4096,
@@ -62,7 +62,7 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "overlays",
         },
-        [ResourceType.Illustration] = new() {
+        [ResourceRole.Illustration] = new() {
             AllowedContentTypes = [.. _safeImageTypes],
             MaxWidth = 1024,
             MaxHeight = 1024,
@@ -72,7 +72,7 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "illustrations",
         },
-        [ResourceType.SoundEffect] = new() {
+        [ResourceRole.SoundEffect] = new() {
             AllowedContentTypes = [.. _safeAudioTypes],
             MaxWidth = 0,
             MaxHeight = 0,
@@ -82,7 +82,7 @@ public static class MediaConstraints {
             GenerateThumbnail = false,
             StorageFolder = "sound-effects",
         },
-        [ResourceType.AmbientSound] = new() {
+        [ResourceRole.AmbientSound] = new() {
             AllowedContentTypes = [.. _safeAudioTypes],
             MaxWidth = 0,
             MaxHeight = 0,
@@ -92,7 +92,7 @@ public static class MediaConstraints {
             GenerateThumbnail = false,
             StorageFolder = "ambient-sounds",
         },
-        [ResourceType.CutScene] = new() {
+        [ResourceRole.CutScene] = new() {
             AllowedContentTypes = [.. _safeVideoTypes],
             MaxWidth = 1920,
             MaxHeight = 1080,
@@ -102,7 +102,7 @@ public static class MediaConstraints {
             GenerateThumbnail = true,
             StorageFolder = "cutscenes",
         },
-        [ResourceType.UserAvatar] = new() {
+        [ResourceRole.UserAvatar] = new() {
             AllowedContentTypes = [.. _safeImageTypes],
             MaxWidth = 256,
             MaxHeight = 256,
@@ -114,8 +114,8 @@ public static class MediaConstraints {
         },
     };
 
-    public static bool IsValidContentType(ResourceType type, string contentType)
-        => For.TryGetValue(type, out var constraints) && constraints.AllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+    public static bool IsValidContentType(ResourceRole role, string contentType)
+        => For.TryGetValue(role, out var constraints) && constraints.AllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
 
     public static string GetMediaCategory(string contentType) {
         var normalizedType = contentType.ToLowerInvariant();

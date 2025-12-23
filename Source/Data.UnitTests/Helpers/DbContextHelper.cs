@@ -1,8 +1,12 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
+using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
+using AssetResourceEntity = VttTools.Data.Assets.Entities.AssetResource;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
+using EncounterResourceEntity = VttTools.Data.Library.Entities.EncounterResource;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
 
 namespace VttTools.Data.Helpers;
 
@@ -113,42 +117,81 @@ internal static class DbContextHelper {
         context.SaveChanges();
     }
 
-    public static AdventureEntity CreateTestAdventureEntity(Guid id, string name, bool isOneShot = false, bool isPublished = false, bool isPublic = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null) => new() {
-        Id = id,
-        Name = name,
-        Description = $"Description for {name}",
-        Style = style,
-        IsOneShot = isOneShot,
-        IsPublished = isPublished,
-        IsPublic = isPublic,
-        OwnerId = ownerId ?? Guid.CreateVersion7(),
-        BackgroundId = backgroundId,
-    };
+    public static AdventureEntity CreateTestAdventureEntity(Guid id, string name, bool isOneShot = false, bool isPublished = false, bool isPublic = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null) {
+        var entity = new AdventureEntity {
+            Id = id,
+            Name = name,
+            Description = $"Description for {name}",
+            Style = style,
+            IsOneShot = isOneShot,
+            IsPublished = isPublished,
+            IsPublic = isPublic,
+            OwnerId = ownerId ?? Guid.CreateVersion7(),
+            Resources = []
+        };
+
+        if (backgroundId is not null) {
+            entity.Resources = [
+                new AdventureResourceEntity {
+                    AdventureId = id,
+                    ResourceId = backgroundId.Value,
+                    Role = ResourceRole.Background,
+                    Index = 0
+                }
+            ];
+        }
+
+        return entity;
+    }
 
     public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, bool isOneShot = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null)
-        => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isPublished, isPublic, isOneShot, style, ownerId, backgroundId);
+        => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isOneShot, isPublished, isPublic, style, ownerId, backgroundId);
 
-    public static EncounterEntity CreateTestEncounterEntity(Guid adventureId, string name, Guid? stageId = null, Guid? soundId = null)
-        => new() {
+    public static EncounterEntity CreateTestEncounterEntity(Guid adventureId, string name, Guid? stageId = null, Guid? soundId = null) {
+        var encounterId = Guid.CreateVersion7();
+        var entity = new EncounterEntity {
+            Id = encounterId,
             AdventureId = adventureId,
             Name = name,
             Description = $"Description for {name}",
             ZoomLevel = 1.0f,
             Panning = new(0, 0),
-            BackgroundId = stageId ?? Guid.CreateVersion7(),
-            AmbientSoundId = soundId ?? Guid.CreateVersion7(),
             AmbientLight = AmbientLight.Nighttime,
             Weather = Weather.Fog,
             GroundElevation = 20.0f,
             Grid = new() {
                 Type = GridType.Square,
+                Scale = 5.0,
                 CellSize = new(1, 1),
                 Offset = new(0, 0),
             },
+            Resources = []
         };
 
-    public static AssetEntity CreateTestAssetEntity(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
-        => new() {
+        var resources = new List<EncounterResourceEntity>();
+        if (stageId is not null) {
+            resources.Add(new EncounterResourceEntity {
+                EncounterId = encounterId,
+                ResourceId = stageId.Value,
+                Role = ResourceRole.Background,
+                Index = 0
+            });
+        }
+        if (soundId is not null) {
+            resources.Add(new EncounterResourceEntity {
+                EncounterId = encounterId,
+                ResourceId = soundId.Value,
+                Role = ResourceRole.AmbientSound,
+                Index = 0
+            });
+        }
+        entity.Resources = resources;
+
+        return entity;
+    }
+
+    public static AssetEntity CreateTestAssetEntity(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
+        var entity = new AssetEntity {
             Id = id,
             Name = name,
             Kind = AssetKind.Creature,
@@ -159,8 +202,22 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
-            PortraitId = displayId,
+            Resources = [],
         };
+
+        if (displayId is not null) {
+            entity.Resources = [
+                new AssetResourceEntity {
+                    AssetId = id,
+                    ResourceId = displayId.Value,
+                    Role = ResourceRole.Portrait,
+                    Index = 0,
+                },
+            ];
+        }
+
+        return entity;
+    }
 
     public static AssetEntity CreateTestAssetEntity(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => CreateTestAssetEntity(Guid.CreateVersion7(), name, isPublished, isPublic, ownerId, displayId);
@@ -180,12 +237,11 @@ internal static class DbContextHelper {
     public static ResourceEntity CreateTestResourceEntity(string fileName)
         => new() {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "test/path",
             FileName = fileName,
             ContentType = "image/png",
-            FileLength = 1000,
-            Size = new(100, 100),
+            FileSize = 1000,
+            Dimensions = new(100, 100),
             Duration = TimeSpan.Zero,
         };
 
@@ -199,12 +255,11 @@ internal static class DbContextHelper {
         OwnerId = ownerId ?? Guid.CreateVersion7(),
         Background = new() {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "test/adventure-background.jpg",
             FileName = $"{name}_background.jpg",
             ContentType = "image/jpeg",
-            FileLength = 2000,
-            Size = new(1920, 1080),
+            FileSize = 2000,
+            Dimensions = new(1920, 1080),
             Duration = TimeSpan.Zero,
         },
         Encounters = [],
@@ -221,25 +276,23 @@ internal static class DbContextHelper {
             Stage = new() {
                 Background = new() {
                     Id = Guid.CreateVersion7(),
-                    ResourceType = ResourceType.Background,
                     Path = "asset/1234",
                     FileName = "some_file.png",
-                    Size = new(10, 20),
+                    Dimensions = new(10, 20),
                     ContentType = "image/png",
                     Duration = TimeSpan.Zero,
-                    FileLength = 2000,
+                    FileSize = 2000,
                 },
                 ZoomLevel = 1,
                 Panning = new(0, 0),
                 Sound = new() {
                     Id = Guid.CreateVersion7(),
-                    ResourceType = ResourceType.AmbientSound,
                     Path = "asset/5678",
                     FileName = "some_file.mp3",
-                    Size = new(0, 0),
+                    Dimensions = new(0, 0),
                     ContentType = "audio/mpeg",
                     Duration = TimeSpan.FromMinutes(2),
-                    FileLength = 2000,
+                    FileSize = 2000,
                 },
                 Light = AmbientLight.Nighttime,
                 Weather = Weather.Fog,
@@ -247,6 +300,7 @@ internal static class DbContextHelper {
             },
             Grid = new() {
                 Type = GridType.Square,
+                Scale = 5.0,
                 CellSize = new(1, 1),
                 Offset = new(0, 0),
             },
@@ -264,23 +318,21 @@ internal static class DbContextHelper {
             OwnerId = ownerId ?? Guid.CreateVersion7(),
             Portrait = new() {
                 Id = imageId,
-                ResourceType = ResourceType.Background,
                 Path = "test/path",
                 FileName = $"{name}_portrait.png",
                 ContentType = "image/png",
-                FileLength = 1000,
-                Size = new(100, 100),
+                FileSize = 1000,
+                Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
             },
             Tokens = [
                 new() {
                     Id = Guid.CreateVersion7(),
-                    ResourceType = ResourceType.Background,
                     Path = "test/path",
                     FileName = $"{name}_topdown.png",
                     ContentType = "image/png",
-                    FileLength = 1000,
-                    Size = new(100, 100),
+                    FileSize = 1000,
+                    Dimensions = new(100, 100),
                     Duration = TimeSpan.Zero,
                 }
             ],

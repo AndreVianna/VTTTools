@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public class DashboardHandlersTests {
     private readonly IDashboardService _mockDashboardService;
@@ -8,9 +8,9 @@ public class DashboardHandlersTests {
     public DashboardHandlersTests() {
         _mockDashboardService = Substitute.For<IDashboardService>();
         _mockAuditLogService = Substitute.For<IAuditLogService>();
-        _testUser = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        ], "Test"));
+        _testUser = new(new ClaimsIdentity([
+                                               new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                                           ], "Test"));
     }
 
     [Fact]
@@ -58,8 +58,8 @@ public class DashboardHandlersTests {
             AverageResponseTimeMs = 125.5,
             RequestsPerMinute = 50,
             ResponseTimeHistory = [
-                new TimeSeriesDataPoint { Timestamp = DateTime.UtcNow.AddHours(-1), Value = 120 },
-                new TimeSeriesDataPoint { Timestamp = DateTime.UtcNow, Value = 130 }
+                new() { Timestamp = DateTime.UtcNow.AddHours(-1), Value = 120 },
+                new() { Timestamp = DateTime.UtcNow, Value = 130 }
             ]
         };
 

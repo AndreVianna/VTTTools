@@ -13,7 +13,7 @@ public sealed class StabilityClientTests : IDisposable {
     public StabilityClientTests() {
         _httpClientFactory = Substitute.For<IHttpClientFactory>();
         _config = Substitute.For<IConfiguration>();
-        _mockHandler = new MockHttpMessageHandler();
+        _mockHandler = new();
         _ct = TestContext.Current.CancellationToken;
 
         _config["Providers:Stability:BaseUrl"].Returns("https://api.stability.ai");
@@ -23,11 +23,11 @@ public sealed class StabilityClientTests : IDisposable {
         _config["Images:TopDown:OtherNegativePromptFor"].Returns("extra negative");
 
         var httpClient = new HttpClient(_mockHandler, disposeHandler: false) {
-            BaseAddress = new Uri("https://api.stability.ai")
+            BaseAddress = new("https://api.stability.ai")
         };
         _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
 
-        _client = new StabilityClient(_httpClientFactory, _config);
+        _client = new(_httpClientFactory, _config);
     }
 
     private bool _isDisposed;
@@ -55,7 +55,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task GenerateImageFileAsync_WithErrorResponse_ThrowsException() {
         _mockHandler.SetResponse(HttpStatusCode.BadRequest, "{\"error\":\"Invalid prompt\"}");
 
-        var act = async () => await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Stability API error*");
@@ -159,7 +159,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task Constructor_WithMissingBaseUrl_ThrowsWhenCreatingClient() {
         _config["Providers:Stability:BaseUrl"].Returns((string?)null);
 
-        var act = async () => await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*base url not configured*");
@@ -169,7 +169,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task Constructor_WithMissingApiKey_ThrowsWhenCreatingClient() {
         _config["Providers:Stability:ApiKey"].Returns((string?)null);
 
-        var act = async () => await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*API key is not configured*");
@@ -179,7 +179,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task GenerateImageFileAsync_WithMissingEndpoint_ThrowsException() {
         _config["Providers:Stability:unknown-model"].Returns((string?)null);
 
-        var act = async () => await _client.GenerateImageFileAsync("unknown-model", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("unknown-model", "TopDown", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*endpoint is not configured*");

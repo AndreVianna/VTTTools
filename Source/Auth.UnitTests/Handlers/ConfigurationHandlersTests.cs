@@ -1,4 +1,6 @@
-namespace VttTools.Auth.UnitTests.Handlers;
+using VttTools.Utilities;
+
+namespace VttTools.Auth.Handlers;
 
 public class ConfigurationHandlersTests {
     [Fact]

@@ -265,8 +265,8 @@ public class HierarchicalFileStoreEnumerationTests {
 
             Assert.NotNull(asset);
             Assert.Equal(2, asset.Tokens.Count);
-            Assert.Equal("Token 1", asset.Tokens[0].Description);
-            Assert.Equal("Token 2", asset.Tokens[1].Description);
+            Assert.Equal("Token 1", asset.Description);
+            Assert.Equal("Token 2", asset.Description);
         }
         finally {
             Directory.Delete(tempDir, recursive: true);

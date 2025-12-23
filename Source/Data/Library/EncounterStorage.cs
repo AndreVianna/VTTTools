@@ -36,7 +36,8 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Encounter[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Encounters
-                  .Include(e => e.Background)
+                  .Include(e => e.Resources)
+                      .ThenInclude(r => r.Resource)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .Select(Mapper.AsEncounter);
@@ -47,7 +48,8 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Encounter[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default) {
         var query = context.Encounters
-                  .Include(e => e.Background)
+                  .Include(e => e.Resources)
+                      .ThenInclude(r => r.Resource)
                   .Where(e => e.AdventureId == adventureId)
                   .AsSplitQuery()
                   .AsNoTracking()
@@ -59,8 +61,8 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Encounter?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Encounters
-                  .Include(e => e.Background)
-                  .Include(e => e.AmbientSound)
+                  .Include(e => e.Resources)
+                      .ThenInclude(r => r.Resource)
                   .Include(e => e.EncounterAssets)
                     .ThenInclude(s => s.Image)
                   .Include(e => e.EncounterAssets)
@@ -68,6 +70,7 @@ public class EncounterStorage(ApplicationDbContext context)
                   .Include(e => e.Walls)
                     .ThenInclude(w => w.Segments)
                   .Include(e => e.Regions)
+                    .ThenInclude(r => r.Vertices)
                   .Include(e => e.LightSources)
                   .Include(e => e.SoundSources)
                     .ThenInclude(s => s.Resource)
@@ -110,6 +113,7 @@ public class EncounterStorage(ApplicationDbContext context)
             .Include(s => s.Walls)
                 .ThenInclude(w => w.Segments)
             .Include(s => s.Regions)
+                .ThenInclude(r => r.Vertices)
             .Include(s => s.LightSources)
             .Include(s => s.SoundSources)
                 .ThenInclude(s => s.Resource)
@@ -200,6 +204,7 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<EncounterRegion?> GetRegionByKeyAsync(Guid id, uint index, CancellationToken ct = default) {
         var entity = await context.Set<EncounterRegionEntity>()
+            .Include(sr => sr.Vertices)
             .Include(sr => sr.Encounter)
             .AsNoTracking()
             .FirstOrDefaultAsync(sr => sr.EncounterId == id && sr.Index == index, ct);
@@ -220,6 +225,7 @@ public class EncounterStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> UpdateRegionAsync(Guid id, EncounterRegion encounterRegion, CancellationToken ct = default) {
         var entity = await context.Set<EncounterRegionEntity>()
+            .Include(r => r.Vertices)
             .Include(r => r.Encounter)
             .FirstOrDefaultAsync(sr => sr.EncounterId == id && sr.Index == encounterRegion.Index, ct);
         if (entity == null)

@@ -1,5 +1,4 @@
 using VttTools.Audit.Model.Payloads;
-using VttTools.Json;
 
 namespace VttTools.Jobs.Services;
 
@@ -188,14 +187,17 @@ public class JobService(
         var canceledCount = items.Count(i => i.Status == JobItemStatus.Canceled);
 
         var parts = new List<string>();
-        if (successCount > 0) parts.Add($"{successCount} succeeded");
-        if (failedCount > 0) parts.Add($"{failedCount} failed");
-        if (canceledCount > 0) parts.Add($"{canceledCount} canceled");
+        if (successCount > 0)
+            parts.Add($"{successCount} succeeded");
+        if (failedCount > 0)
+            parts.Add($"{failedCount} failed");
+        if (canceledCount > 0)
+            parts.Add($"{canceledCount} canceled");
 
         return parts.Count > 0 ? string.Join(", ", parts) : "No items processed";
     }
 
-    private async Task LogJobCreatedAsync(Job job, CancellationToken ct) {
+    private Task LogJobCreatedAsync(Job job, CancellationToken ct) {
         var payload = new JobCreatedPayload {
             Type = job.Type,
             TotalItems = job.Items.Count,
@@ -208,10 +210,10 @@ public class JobService(
             EntityId = job.Id.ToString(),
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 
-    private async Task LogJobItemStartedAsync(Job job, JobItem item, CancellationToken ct) {
+    private Task LogJobItemStartedAsync(Job job, JobItem item, CancellationToken ct) {
         var payload = new JobItemStartedPayload {
             Index = item.Index,
             StartedAt = item.StartedAt ?? DateTime.UtcNow,
@@ -223,10 +225,10 @@ public class JobService(
             EntityId = $"{job.Id}:{item.Index}",
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 
-    private async Task LogJobItemCompletedAsync(Job job, JobItem item, CancellationToken ct) {
+    private Task LogJobItemCompletedAsync(Job job, JobItem item, CancellationToken ct) {
         var payload = new JobItemCompletedPayload {
             Index = item.Index,
             Status = item.Status.ToString(),
@@ -240,10 +242,10 @@ public class JobService(
             ErrorMessage = item.Status == JobItemStatus.Failed ? item.Result : null,
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 
-    private async Task LogJobCompletedAsync(Job job, CancellationToken ct) {
+    private Task LogJobCompletedAsync(Job job, CancellationToken ct) {
         var successCount = job.Items.Count(i => i.Status == JobItemStatus.Success);
         var failedCount = job.Items.Count(i => i.Status == JobItemStatus.Failed);
         var payload = new JobCompletedPayload {
@@ -259,26 +261,26 @@ public class JobService(
             ErrorMessage = failedCount > 0 ? $"{failedCount} items failed" : null,
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 
-    private async Task LogJobCanceledAsync(Job job, CancellationToken ct) {
+    private Task LogJobCanceledAsync(Job job, CancellationToken ct) {
         var auditLog = new AuditLog {
             UserId = job.OwnerId,
             Action = "Job:Canceled",
             EntityType = "Job",
             EntityId = job.Id.ToString(),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 
-    private async Task LogJobRetriedAsync(Job job, CancellationToken ct) {
+    private Task LogJobRetriedAsync(Job job, CancellationToken ct) {
         var auditLog = new AuditLog {
             UserId = job.OwnerId,
             Action = "Job:Retried",
             EntityType = "Job",
             EntityId = job.Id.ToString(),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 }

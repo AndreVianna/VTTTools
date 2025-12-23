@@ -235,7 +235,7 @@ public sealed class ProviderHealthCheckTests {
         var mockFactory = Substitute.For<IHttpClientFactory>();
         mockFactory.CreateClient(Arg.Any<string>()).Returns(_ => {
             var handler = new MockHttpMessageHandler(statusCode, throwTimeout, throwException);
-            return new HttpClient(handler);
+            return new(handler);
         });
 
         return mockFactory;

@@ -151,7 +151,6 @@ public class AdventureServiceTests {
             Description = "Old description",
             Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "test/background",
                 FileName = "background.png",
                 ContentType = "image/png",
@@ -204,10 +203,9 @@ public class AdventureServiceTests {
             Campaign = new Campaign { Id = Guid.CreateVersion7() },
             Background = new() {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "test/adventure-background.jpg",
                 ContentType = "image/jpeg",
-                Size = new Size(1920, 1080),
+                Dimensions = new Size(1920, 1080),
             },
         };
         var request = new UpdatedAdventureData {
@@ -353,10 +351,9 @@ public class AdventureServiceTests {
             Campaign = new Campaign { Id = Guid.CreateVersion7() },
             Background = new ResourceMetadata {
                 Id = Guid.CreateVersion7(),
-                ResourceType = ResourceType.Background,
                 Path = "adventures/background.jpg",
                 ContentType = "image/jpeg",
-                Size = new Size(1920, 1080),
+                Dimensions = new Size(1920, 1080),
             },
         };
         var encounters = new[] {
@@ -369,16 +366,14 @@ public class AdventureServiceTests {
                     Panning = new(10, 20),
                     Background = new() {
                         Id = Guid.CreateVersion7(),
-                        ResourceType = ResourceType.Background,
                         Path = "path/to/image.png",
-                        Size = new Size(100, 200),
+                        Dimensions = new Size(100, 200),
                     },
                     Light = AmbientLight.Twilight,
                     Weather = Weather.Clear,
                     Elevation = 20.0f,
                     Sound = new ResourceMetadata {
                         Id = Guid.CreateVersion7(),
-                        ResourceType = ResourceType.AmbientSound,
                         Path = "path/to/sound.mp3",
                         ContentType = "audio/mpeg",
                         Duration = TimeSpan.FromMinutes(3),

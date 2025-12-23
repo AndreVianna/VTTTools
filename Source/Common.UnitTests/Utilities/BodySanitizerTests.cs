@@ -17,8 +17,8 @@ public class BodySanitizerTests {
         var testCases = new[] {
             "{\"Password\":\"secret\"}",
             "{\"PASSWORD\":\"secret\"}",
-            "{\"PaSsWoRd\":\"secret\"}"
-        };
+            "{\"PaSsWoRd\":\"secret\"}",
+                              };
 
         foreach (var body in testCases) {
             var result = BodySanitizer.SanitizeRequestBody(body);

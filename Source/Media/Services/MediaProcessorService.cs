@@ -7,23 +7,23 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
     : IMediaProcessorService {
 
     public async Task<Result<ProcessedMedia>> ProcessAsync(
-        ResourceType resourceType,
+        ResourceRole role,
         string contentType,
         string fileName,
         Stream stream,
         CancellationToken ct = default) {
-        if (!MediaConstraints.For.TryGetValue(resourceType, out var constraints))
-            return Result.Failure($"Invalid resource type: '{resourceType}'. Please specify a valid resource type.");
+        if (!MediaConstraints.For.TryGetValue(role, out var constraints))
+            return Result.Failure($"Invalid resource role: '{role}'. Please specify a valid resource role.");
 
-        if (!MediaConstraints.IsValidContentType(resourceType, contentType)) {
+        if (!MediaConstraints.IsValidContentType(role, contentType)) {
             var allowedTypes = string.Join(", ", constraints.AllowedContentTypes);
-            return Result.Failure($"Content type '{contentType}' is not allowed for resource type '{resourceType}'. Allowed types: {allowedTypes}");
+            return Result.Failure($"Content type '{contentType}' is not allowed for resource role '{role}'. Allowed types: {allowedTypes}");
         }
 
         if (stream.Length > constraints.MaxFileSize) {
             var maxSizeMb = constraints.MaxFileSize / 1024.0 / 1024.0;
             var actualSizeMb = stream.Length / 1024.0 / 1024.0;
-            return Result.Failure($"File size ({actualSizeMb:F2} MB) exceeds maximum ({maxSizeMb:F2} MB) for resourceType '{resourceType}'");
+            return Result.Failure($"File size ({actualSizeMb:F2} MB) exceeds maximum ({maxSizeMb:F2} MB) for role '{role}'");
         }
 
         var category = MediaConstraints.GetMediaCategory(contentType);
@@ -69,7 +69,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
             }
 
             var outputStream = new MemoryStream();
-            await image.SaveAsPngAsync(outputStream, new PngEncoder {
+            await image.SaveAsPngAsync(outputStream, new() {
                 CompressionLevel = PngCompressionLevel.BestCompression,
                 TransparentColorMode = PngTransparentColorMode.Preserve
             }, ct);
@@ -87,8 +87,8 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                 Stream = outputStream,
                 ContentType = "image/png",
                 FileName = newFileName,
-                FileLength = (ulong)outputStream.Length,
-                Size = new Size(image.Width, image.Height),
+                FileSize = (ulong)outputStream.Length,
+                Dimensions = new(image.Width, image.Height),
                 Duration = TimeSpan.Zero,
                 Thumbnail = thumbnail,
             });
@@ -139,8 +139,8 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                     Stream = outputStream,
                     ContentType = "audio/ogg",
                     FileName = newFileName,
-                    FileLength = (ulong)outputStream.Length,
-                    Size = Size.Zero,
+                    FileSize = (ulong)outputStream.Length,
+                    Dimensions = Size.Zero,
                     Duration = duration,
                     Thumbnail = null,
                 });
@@ -226,8 +226,8 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
                     Stream = outputStream,
                     ContentType = "video/mp4",
                     FileName = newFileName,
-                    FileLength = (ulong)outputStream.Length,
-                    Size = new Size(newWidth, newHeight),
+                    FileSize = (ulong)outputStream.Length,
+                    Dimensions = new(newWidth, newHeight),
                     Duration = duration,
                     Thumbnail = thumbnail,
                 });
@@ -258,7 +258,7 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
             }
 
             await using var outputStream = new MemoryStream();
-            await image.SaveAsJpegAsync(outputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder {
+            await image.SaveAsJpegAsync(outputStream, new() {
                 Quality = 75
             }, ct);
 

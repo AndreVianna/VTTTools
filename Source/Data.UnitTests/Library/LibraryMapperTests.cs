@@ -1,33 +1,46 @@
+using WorldResourceEntity = VttTools.Data.Library.Entities.WorldResource;
+using CampaignResourceEntity = VttTools.Data.Library.Entities.CampaignResource;
+using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
+using EncounterResourceEntity = VttTools.Data.Library.Entities.EncounterResource;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
+
 namespace VttTools.Data.Library;
 
 public class LibraryMapperTests {
     [Fact]
     public void ToModel_World_WithValidEntity_ReturnsCorrectModel() {
         var ownerId = Guid.CreateVersion7();
+        var worldId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
         var background = new Media.Entities.Resource {
             Id = backgroundId,
-            ResourceType = ResourceType.Background,
             Path = "worlds/fantasy.jpg",
             ContentType = "image/jpeg",
             FileName = "fantasy.jpg",
-            FileLength = 200000,
-            Size = new(1920, 1080),
+            FileSize = 200000,
+            Dimensions = new(1920, 1080),
             Duration = TimeSpan.Zero,
         };
 
         var entity = new Entities.World {
-            Id = Guid.CreateVersion7(),
+            Id = worldId,
             OwnerId = ownerId,
             Name = "Fantasy World",
             Description = "A magical realm",
-            BackgroundId = backgroundId,
-            Background = background,
             IsPublished = true,
             IsPublic = false,
             Campaigns = [],
             Adventures = [],
+            Resources = [
+                new WorldResourceEntity {
+                    WorldId = worldId,
+                    ResourceId = background.Id,
+                    Resource = background,
+                    Role = ResourceRole.Background,
+                    Index = 0
+                }
+            ]
         };
 
         var result = entity.ToModel();
@@ -66,12 +79,11 @@ public class LibraryMapperTests {
             Description = "A futuristic setting",
             Background = new ResourceMetadata {
                 Id = backgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "worlds/scifi.jpg",
                 ContentType = "image/jpeg",
                 FileName = "scifi.jpg",
-                FileLength = 250000,
-                Size = new(2560, 1440),
+                FileSize = 250000,
+                Dimensions = new(2560, 1440),
                 Duration = TimeSpan.Zero,
             },
             IsPublished = false,
@@ -87,21 +99,21 @@ public class LibraryMapperTests {
         result.OwnerId.Should().Be(ownerId);
         result.Name.Should().Be("Sci-Fi World");
         result.Description.Should().Be("A futuristic setting");
-        result.BackgroundId.Should().Be(backgroundId);
         result.IsPublished.Should().BeFalse();
         result.IsPublic.Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFrom_World_UpdatesAllProperties() {
+        var worldId = Guid.CreateVersion7();
         var entity = new Entities.World {
-            Id = Guid.CreateVersion7(),
+            Id = worldId,
             OwnerId = Guid.CreateVersion7(),
             Name = "Old World",
             Description = "Old Description",
-            BackgroundId = Guid.CreateVersion7(),
             IsPublished = false,
             IsPublic = false,
+            Resources = []
         };
 
         var newBackgroundId = Guid.CreateVersion7();
@@ -112,12 +124,11 @@ public class LibraryMapperTests {
             Description = "New Description",
             Background = new ResourceMetadata {
                 Id = newBackgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "test/path",
                 ContentType = "image/png",
                 FileName = "test.png",
-                FileLength = 1000,
-                Size = new(100, 100),
+                FileSize = 1000,
+                Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
             },
             IsPublished = true,
@@ -130,7 +141,6 @@ public class LibraryMapperTests {
 
         entity.Name.Should().Be("New World");
         entity.Description.Should().Be("New Description");
-        entity.BackgroundId.Should().Be(newBackgroundId);
         entity.IsPublished.Should().BeTrue();
         entity.IsPublic.Should().BeTrue();
     }
@@ -138,31 +148,38 @@ public class LibraryMapperTests {
     [Fact]
     public void ToModel_Campaign_WithValidEntity_ReturnsCorrectModel() {
         var ownerId = Guid.CreateVersion7();
+        var campaignId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
         var background = new Media.Entities.Resource {
             Id = backgroundId,
-            ResourceType = ResourceType.Background,
             Path = "campaigns/epic.jpg",
             ContentType = "image/jpeg",
             FileName = "epic.jpg",
-            FileLength = 150000,
-            Size = new(1920, 1080),
+            FileSize = 150000,
+            Dimensions = new(1920, 1080),
             Duration = TimeSpan.Zero,
         };
 
         var entity = new Entities.Campaign {
-            Id = Guid.CreateVersion7(),
+            Id = campaignId,
             OwnerId = ownerId,
             Name = "Epic Campaign",
             Description = "An epic story",
-            BackgroundId = backgroundId,
-            Background = background,
             IsPublished = true,
             IsPublic = false,
             WorldId = null,
             World = null,
             Adventures = [],
+            Resources = [
+                new CampaignResourceEntity {
+                    CampaignId = campaignId,
+                    ResourceId = background.Id,
+                    Resource = background,
+                    Role = ResourceRole.Background,
+                    Index = 0
+                }
+            ]
         };
 
         var result = entity.ToModel();
@@ -193,12 +210,11 @@ public class LibraryMapperTests {
             Description = "A new adventure",
             Background = new ResourceMetadata {
                 Id = backgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "campaigns/new.jpg",
                 ContentType = "image/jpeg",
                 FileName = "new.jpg",
-                FileLength = 100000,
-                Size = new(1920, 1080),
+                FileSize = 100000,
+                Dimensions = new(1920, 1080),
                 Duration = TimeSpan.Zero,
             },
             IsPublished = false,
@@ -215,22 +231,22 @@ public class LibraryMapperTests {
         result.WorldId.Should().BeNull();
         result.Name.Should().Be("New Campaign");
         result.Description.Should().Be("A new adventure");
-        result.BackgroundId.Should().Be(backgroundId);
         result.IsPublished.Should().BeFalse();
         result.IsPublic.Should().BeFalse();
     }
 
     [Fact]
     public void UpdateFrom_Campaign_UpdatesAllProperties() {
+        var campaignId = Guid.CreateVersion7();
         var entity = new Entities.Campaign {
-            Id = Guid.CreateVersion7(),
+            Id = campaignId,
             OwnerId = Guid.CreateVersion7(),
             WorldId = Guid.CreateVersion7(),
             Name = "Old Campaign",
             Description = "Old Description",
-            BackgroundId = Guid.CreateVersion7(),
             IsPublished = false,
             IsPublic = false,
+            Resources = []
         };
 
         var newBackgroundId = Guid.CreateVersion7();
@@ -241,12 +257,11 @@ public class LibraryMapperTests {
             Description = "Updated Description",
             Background = new ResourceMetadata {
                 Id = newBackgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "test/path",
                 ContentType = "image/png",
                 FileName = "test.png",
-                FileLength = 1000,
-                Size = new(100, 100),
+                FileSize = 1000,
+                Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
             },
             IsPublished = true,
@@ -259,7 +274,6 @@ public class LibraryMapperTests {
 
         entity.Name.Should().Be("Updated Campaign");
         entity.Description.Should().Be("Updated Description");
-        entity.BackgroundId.Should().Be(newBackgroundId);
         entity.IsPublished.Should().BeTrue();
         entity.IsPublic.Should().BeTrue();
     }
@@ -267,27 +281,25 @@ public class LibraryMapperTests {
     [Fact]
     public void ToModel_Adventure_WithValidEntity_ReturnsCorrectModel() {
         var ownerId = Guid.CreateVersion7();
+        var adventureId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
         var background = new Media.Entities.Resource {
             Id = backgroundId,
-            ResourceType = ResourceType.Background,
             Path = "adventures/dungeon.jpg",
             ContentType = "image/jpeg",
             FileName = "dungeon.jpg",
-            FileLength = 180000,
-            Size = new(1920, 1080),
+            FileSize = 180000,
+            Dimensions = new(1920, 1080),
             Duration = TimeSpan.Zero,
         };
 
         var entity = new Entities.Adventure {
-            Id = Guid.CreateVersion7(),
+            Id = adventureId,
             OwnerId = ownerId,
             Name = "Dungeon Crawl",
             Description = "Explore the depths",
             Style = AdventureStyle.DungeonCrawl,
-            BackgroundId = backgroundId,
-            Background = background,
             IsOneShot = false,
             IsPublished = true,
             IsPublic = false,
@@ -296,6 +308,15 @@ public class LibraryMapperTests {
             CampaignId = null,
             Campaign = null,
             Encounters = [],
+            Resources = [
+                new AdventureResourceEntity {
+                    AdventureId = adventureId,
+                    ResourceId = background.Id,
+                    Resource = background,
+                    Role = ResourceRole.Background,
+                    Index = 0
+                }
+            ]
         };
 
         var result = entity.ToModel();
@@ -330,12 +351,11 @@ public class LibraryMapperTests {
             Style = AdventureStyle.OpenWorld,
             Background = new ResourceMetadata {
                 Id = backgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "adventures/oneshot.jpg",
                 ContentType = "image/jpeg",
                 FileName = "oneshot.jpg",
-                FileLength = 120000,
-                Size = new(1920, 1080),
+                FileSize = 120000,
+                Dimensions = new(1920, 1080),
                 Duration = TimeSpan.Zero,
             },
             IsOneShot = true,
@@ -355,7 +375,6 @@ public class LibraryMapperTests {
         result.Name.Should().Be("One Shot Adventure");
         result.Description.Should().Be("A quick adventure");
         result.Style.Should().Be(AdventureStyle.OpenWorld);
-        result.BackgroundId.Should().Be(backgroundId);
         result.IsOneShot.Should().BeTrue();
         result.IsPublished.Should().BeFalse();
         result.IsPublic.Should().BeTrue();
@@ -363,18 +382,19 @@ public class LibraryMapperTests {
 
     [Fact]
     public void UpdateFrom_Adventure_UpdatesAllProperties() {
+        var adventureId = Guid.CreateVersion7();
         var entity = new Entities.Adventure {
-            Id = Guid.CreateVersion7(),
+            Id = adventureId,
             OwnerId = Guid.CreateVersion7(),
             WorldId = Guid.CreateVersion7(),
             CampaignId = null,
             Name = "Old Adventure",
             Description = "Old Description",
             Style = AdventureStyle.OpenWorld,
-            BackgroundId = Guid.CreateVersion7(),
             IsOneShot = false,
             IsPublished = false,
             IsPublic = false,
+            Resources = []
         };
 
         var newBackgroundId = Guid.CreateVersion7();
@@ -386,12 +406,11 @@ public class LibraryMapperTests {
             Style = AdventureStyle.OpenWorld,
             Background = new ResourceMetadata {
                 Id = newBackgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "test/path",
                 ContentType = "image/png",
                 FileName = "test.png",
-                FileLength = 1000,
-                Size = new(100, 100),
+                FileSize = 1000,
+                Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
             },
             IsOneShot = true,
@@ -407,7 +426,6 @@ public class LibraryMapperTests {
         entity.Name.Should().Be("Updated Adventure");
         entity.Description.Should().Be("Updated Description");
         entity.Style.Should().Be(AdventureStyle.OpenWorld);
-        entity.BackgroundId.Should().Be(newBackgroundId);
         entity.IsOneShot.Should().BeTrue();
         entity.IsPublished.Should().BeTrue();
         entity.IsPublic.Should().BeTrue();

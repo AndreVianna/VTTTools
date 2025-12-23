@@ -1,4 +1,4 @@
-namespace VttTools.Common.Utilities;
+namespace VttTools.Utilities;
 
 public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
     public ConfigurationSource DetectSource(string key) {

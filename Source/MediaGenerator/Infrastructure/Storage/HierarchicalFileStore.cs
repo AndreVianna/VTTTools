@@ -222,20 +222,25 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         var tokenFiles = Directory.Exists(assetPathWindows)
             ? Directory.EnumerateFiles(assetPathWindows, "topdown_*.png")
                 .Concat(Directory.EnumerateFiles(assetPathWindows, "token_*.png"))
-                .Select(f => Path.GetFileNameWithoutExtension(f))
+                .Select(Path.GetFileNameWithoutExtension)
                 .Select(f => {
-                    var parts = f.Split('_');
+                    var parts = f!.Split('_');
                     return parts.Length == 2 && int.TryParse(parts[1], out var idx) ? idx : -1;
                 })
                 .Where(idx => idx > 0)
                 .Distinct()
                 .Order()
-                .Select(idx => new ResourceMetadata { Description = $"Token {idx}" })
+                .Select(idx => new ResourceMetadata {
+                    Path = Path.Combine(assetPathWindows),
+                    FileName = $"token_{idx}.png",
+                    ContentType = "image/png",
+                    FileSize = (ulong)new FileInfo(Path.Combine(assetPathWindows, $"token_{idx}.png")).Length,
+                })
                 .ToList()
             : [];
 
-        return new Asset {
-            Classification = new AssetClassification(kind, category, type, subtype),
+        return new() {
+            Classification = new(kind, category, type, subtype),
             Name = name,
             Tokens = tokenFiles
         };
@@ -248,10 +253,10 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         if (!Directory.Exists(rootImagesPath))
             return null;
 
-        var paths = Directory.EnumerateDirectories(rootImagesPath, assetFolder, new EnumerationOptions { RecurseSubdirectories = true });
-        if (!paths.Any())
+        var paths = Directory.EnumerateDirectories(rootImagesPath, assetFolder, new EnumerationOptions { RecurseSubdirectories = true }).ToArray();
+        if (paths.Length == 0)
             return null;
-        var assetPath = paths.First();
+        var assetPath = paths[0];
 
         var relativePath = Path.GetRelativePath(rootImagesPath, assetPath);
         var pathParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -301,7 +306,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         return MultipleHyphens().Replace(normalized, "-").Trim('-');
     }
 
-    private async Task SaveAssetMetadataAsync(Asset asset, CancellationToken ct = default) {
+    private Task SaveAssetMetadataAsync(Asset asset, CancellationToken ct = default) {
         var assetPath = BuildAssetPath(asset);
         Directory.CreateDirectory(assetPath);
         var metadataPath = Path.Combine(assetPath, _metadataFileName);
@@ -309,7 +314,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
 
         var metadata = new { asset.Name };
         var json = JsonSerializer.Serialize(metadata, _jsonOptions);
-        await File.WriteAllTextAsync(metadataPath, json, ct);
+        return File.WriteAllTextAsync(metadataPath, json, ct);
     }
 
     private static string? LoadAssetName(string assetPath) {
@@ -320,17 +325,9 @@ public sealed partial class HierarchicalFileStore(string rootPath)
             return Path.GetFileName(assetPath);
         }
 
-        try {
-            var json = File.ReadAllText(metadataPath);
-            var metadata = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonOptions);
-            if (metadata != null && metadata.TryGetValue("Name", out var nameElement)) {
-                return nameElement.GetString();
-            }
-        }
-        catch {
-        }
-
-        return Path.GetFileName(assetPath);
+        var json = File.ReadAllText(metadataPath);
+        var metadata = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonOptions);
+        return metadata != null && metadata.TryGetValue("Name", out var nameElement) ? nameElement.GetString() : Path.GetFileName(assetPath);
     }
 
     private string BuildAssetPath(Asset asset)
@@ -342,12 +339,12 @@ public sealed partial class HierarchicalFileStore(string rootPath)
             NormalizeFolderName(asset.Classification.Subtype, string.Empty),
             NormalizeFolderName(asset.Name));
 
-    [GeneratedRegex(@"[^a-z0-9+-]")]
+    [GeneratedRegex("[^a-z0-9+-]")]
     private static partial Regex SafeFileNameChars();
 
-    [GeneratedRegex(@"[^a-z0-9_]")]
+    [GeneratedRegex("[^a-z0-9_]")]
     private static partial Regex SafeFolderNameChars();
 
-    [GeneratedRegex(@"-{2,}")]
+    [GeneratedRegex("-{2,}")]
     private static partial Regex MultipleHyphens();
 }

@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Services;
+namespace VttTools.Auth.Services;
 
 public sealed class ConsoleEmailServiceTests
     : IDisposable {
@@ -13,7 +13,8 @@ public sealed class ConsoleEmailServiceTests
     }
 
     public void Dispose() {
-        if (_disposedValue) return;
+        if (_disposedValue)
+            return;
         _consoleOutput.Dispose();
         GC.SuppressFinalize(this);
         _disposedValue = true;
@@ -63,7 +64,7 @@ public sealed class ConsoleEmailServiceTests
         const string toEmail = "test@example.com";
         const string resetLink = "https://example.com/reset?token=abc123";
 
-        Func<Task> act = async () => await _sut.SendPasswordResetEmailAsync(toEmail, resetLink);
+        Func<Task> act = () => _sut.SendPasswordResetEmailAsync(toEmail, resetLink);
 
         await act.Should().NotThrowAsync();
     }
@@ -114,7 +115,7 @@ public sealed class ConsoleEmailServiceTests
         const string toEmail = "test@example.com";
         const string confirmationLink = "https://example.com/confirm?token=def456";
 
-        Func<Task> act = async () => await _sut.SendEmailConfirmationAsync(toEmail, confirmationLink);
+        Func<Task> act = () => _sut.SendEmailConfirmationAsync(toEmail, confirmationLink);
 
         await act.Should().NotThrowAsync();
     }

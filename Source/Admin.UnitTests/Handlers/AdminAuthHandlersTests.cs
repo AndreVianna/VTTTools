@@ -1,6 +1,6 @@
 using VttTools.Admin.Auth.Model;
 
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public sealed class AdminAuthHandlersTests {
     private readonly IAdminAuthService _mockAuthService;

@@ -14,6 +14,12 @@ public record Asset {
 
     public Dictionary<int, Map<StatBlockValue>> StatBlocks { get; init; } = [];
 
+    /// <summary>
+    /// Stat entries organized by GameSystem, Level, and StatKey.
+    /// Structure: GameSystemId → Level → StatKey → StatEntry
+    /// </summary>
+    public Dictionary<Guid, Dictionary<int, Map<StatEntry>>> StatEntries { get; init; } = [];
+
     public string[] Tags { get; init; } = [];
 
     public Guid OwnerId { get; init; }

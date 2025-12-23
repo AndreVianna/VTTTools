@@ -95,7 +95,7 @@ public class DetailedHealthCheckResponseWriterTests {
         var data = new Dictionary<string, object> {
             ["connectionTime"] = "50ms",
             ["server"] = "localhost",
-            ["database"] = "testdb"
+            ["database"] = "testdb",
         };
         var report = CreateHealthReport(HealthStatus.Healthy, "Test with data", TimeSpan.FromMilliseconds(100), data: data);
 
@@ -143,7 +143,7 @@ public class DetailedHealthCheckResponseWriterTests {
         var entries = new Dictionary<string, HealthReportEntry> {
             ["Database"] = CreateHealthReportEntry(HealthStatus.Healthy, "Database connection successful", TimeSpan.FromMilliseconds(75)),
             ["BlobStorage"] = CreateHealthReportEntry(HealthStatus.Degraded, "Container not found", TimeSpan.FromMilliseconds(125)),
-            ["ExternalApi"] = CreateHealthReportEntry(HealthStatus.Unhealthy, "API timeout", TimeSpan.FromMilliseconds(5000), new TimeoutException("Request timeout"))
+            ["ExternalApi"] = CreateHealthReportEntry(HealthStatus.Unhealthy, "API timeout", TimeSpan.FromMilliseconds(5000), new TimeoutException("Request timeout")),
         };
         var report = new HealthReport(entries, TimeSpan.FromMilliseconds(300));
 
@@ -198,7 +198,7 @@ public class DetailedHealthCheckResponseWriterTests {
             ["special_chars"] = "Test with \"quotes\" and \n newlines",
             ["unicode"] = "Test with unicode: 🎲 ⚔️ 🐉",
             ["numbers"] = 42.5,
-            ["boolean"] = true
+            ["boolean"] = true,
         };
         var report = CreateHealthReport(HealthStatus.Healthy, "JSON validation test", TimeSpan.FromMilliseconds(100), data: data);
 
@@ -228,7 +228,7 @@ public class DetailedHealthCheckResponseWriterTests {
     private static HealthReport CreateHealthReport(HealthStatus status, string description, TimeSpan duration, Exception? exception = null, Dictionary<string, object>? data = null, string[]? tags = null) {
         var entry = CreateHealthReportEntry(status, description, duration, exception, data, tags);
         var entries = new Dictionary<string, HealthReportEntry> { ["TestCheck"] = entry };
-        return new HealthReport(entries, duration);
+        return new(entries, duration);
     }
 
     private static HealthReportEntry CreateHealthReportEntry(HealthStatus status, string description, TimeSpan duration, Exception? exception = null, Dictionary<string, object>? data = null, string[]? tags = null)

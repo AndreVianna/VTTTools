@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Services;
+namespace VttTools.Auth.Services;
 
 public class TwoFactorAuthenticationServiceTests {
     private readonly UserManager<User> _mockUserManager;

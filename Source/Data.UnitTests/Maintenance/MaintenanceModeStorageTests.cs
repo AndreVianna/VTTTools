@@ -70,7 +70,8 @@ public class MaintenanceModeStorageTests
 
     [Fact]
     public async Task GetByIdAsync_WithExistingId_ReturnsMaintenanceMode() {
-        var entity = await _context.MaintenanceMode.FirstAsync(_ct);
+        _context.ChangeTracker.Clear();
+        var entity = await _context.MaintenanceMode.AsNoTracking().FirstAsync(_ct);
 
         var result = await _storage.GetByIdAsync(entity.Id, _ct);
 
@@ -114,7 +115,8 @@ public class MaintenanceModeStorageTests
 
     [Fact]
     public async Task SaveAsync_WithExistingMaintenanceMode_UpdatesDatabase() {
-        var entity = await _context.MaintenanceMode.FirstAsync(_ct);
+        _context.ChangeTracker.Clear();
+        var entity = await _context.MaintenanceMode.AsNoTracking().FirstAsync(_ct);
         var updatedMode = new VttTools.Maintenance.Model.MaintenanceMode {
             Id = entity.Id,
             IsEnabled = false,
@@ -130,9 +132,10 @@ public class MaintenanceModeStorageTests
         result.Should().NotBeNull();
         result.Id.Should().Be(updatedMode.Id);
 
-        var updated = await _context.MaintenanceMode.FindAsync([entity.Id], _ct);
+        _context.ChangeTracker.Clear();
+        var updated = await _context.MaintenanceMode.AsNoTracking().FirstOrDefaultAsync(m => m.Id == entity.Id, _ct);
         updated.Should().NotBeNull();
-        updated.IsEnabled.Should().BeFalse();
+        updated!.IsEnabled.Should().BeFalse();
         updated.Message.Should().Be("Updated message");
         updated.DisabledAt.Should().NotBeNull();
         updated.DisabledBy.Should().Be(_adminId);

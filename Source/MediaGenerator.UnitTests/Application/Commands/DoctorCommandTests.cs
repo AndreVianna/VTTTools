@@ -10,7 +10,7 @@ public sealed class DoctorCommandTests : IDisposable {
         Directory.CreateDirectory(_tempDir);
 
         _originalConsoleOut = Console.Out;
-        _consoleOutput = new StringWriter();
+        _consoleOutput = new();
         Console.SetOut(_consoleOutput);
 
         CreateAppsettingsFile();
@@ -303,7 +303,7 @@ public sealed class DoctorCommandTests : IDisposable {
         var mockFactory = Substitute.For<IHttpClientFactory>();
         mockFactory.CreateClient(Arg.Any<string>()).Returns(_ => {
             var handler = new MockHttpMessageHandler(statusCode);
-            return new HttpClient(handler);
+            return new(handler);
         });
 
         return mockFactory;

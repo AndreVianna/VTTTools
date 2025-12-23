@@ -12,14 +12,14 @@ public sealed class FilesystemHealthCheck(string outputDirectory) : IHealthCheck
             Directory.CreateDirectory(outputDirectory);
         }
         catch (Exception ex) {
-            return new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Fail,
-                "Cannot create output directory",
-                $"Path: {outputDirectory}, Error: {ex.Message}",
-                "Check directory permissions and path validity",
-                sw.Elapsed
-            );
+            return new(
+                       Name,
+                       HealthCheckStatus.Fail,
+                       "Cannot create output directory",
+                       $"Path: {outputDirectory}, Error: {ex.Message}",
+                       "Check directory permissions and path validity",
+                       sw.Elapsed
+                      );
         }
 
         var testFile = Path.Combine(outputDirectory, $".health_check_{Guid.NewGuid():N}.tmp");
@@ -28,14 +28,14 @@ public sealed class FilesystemHealthCheck(string outputDirectory) : IHealthCheck
             File.Delete(testFile);
         }
         catch (Exception ex) {
-            return new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Fail,
-                "Output directory not writable",
-                $"Path: {outputDirectory}, Error: {ex.Message}",
-                "Check directory write permissions",
-                sw.Elapsed
-            );
+            return new(
+                       Name,
+                       HealthCheckStatus.Fail,
+                       "Output directory not writable",
+                       $"Path: {outputDirectory}, Error: {ex.Message}",
+                       "Check directory write permissions",
+                       sw.Elapsed
+                      );
         }
 
         if (OperatingSystem.IsWindows()) {
@@ -44,14 +44,14 @@ public sealed class FilesystemHealthCheck(string outputDirectory) : IHealthCheck
                 var longPathsEnabled = key?.GetValue("LongPathsEnabled") as int?;
 
                 if (longPathsEnabled != 1) {
-                    return new HealthCheckResult(
-                        Name,
-                        HealthCheckStatus.Warning,
-                        "Windows long path support not enabled",
-                        "LongPathsEnabled registry value is not set to 1",
-                        "Enable long paths: Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -Name 'LongPathsEnabled' -Value 1",
-                        sw.Elapsed
-                    );
+                    return new(
+                               Name,
+                               HealthCheckStatus.Warning,
+                               "Windows long path support not enabled",
+                               "LongPathsEnabled registry value is not set to 1",
+                               "Enable long paths: Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -Name 'LongPathsEnabled' -Value 1",
+                               sw.Elapsed
+                              );
                 }
             }
             catch {
@@ -63,23 +63,23 @@ public sealed class FilesystemHealthCheck(string outputDirectory) : IHealthCheck
             var availableSpaceGB = drive.AvailableFreeSpace / (1024.0 * 1024.0 * 1024.0);
 
             return availableSpaceGB < 0.1
-                ? new HealthCheckResult(
-                    Name,
-                    HealthCheckStatus.Fail,
-                    "Insufficient disk space",
-                    $"Available: {availableSpaceGB:F2} GB (minimum: 0.1 GB)",
-                    "Free up disk space before generating tokens",
-                    sw.Elapsed
-                )
+                ? new(
+                      Name,
+                      HealthCheckStatus.Fail,
+                      "Insufficient disk space",
+                      $"Available: {availableSpaceGB:F2} GB (minimum: 0.1 GB)",
+                      "Free up disk space before generating tokens",
+                      sw.Elapsed
+                     )
                 : availableSpaceGB < 1.0
-                ? new HealthCheckResult(
-                    Name,
-                    HealthCheckStatus.Warning,
-                    "Low disk space",
-                    $"Available: {availableSpaceGB:F2} GB (recommended: 1 GB)",
-                    "Consider freeing up disk space",
-                    sw.Elapsed
-                )
+                ? new(
+                      Name,
+                      HealthCheckStatus.Warning,
+                      "Low disk space",
+                      $"Available: {availableSpaceGB:F2} GB (recommended: 1 GB)",
+                      "Consider freeing up disk space",
+                      sw.Elapsed
+                     )
                 : new HealthCheckResult(
                 Name,
                 HealthCheckStatus.Pass,
@@ -90,14 +90,14 @@ public sealed class FilesystemHealthCheck(string outputDirectory) : IHealthCheck
             );
         }
         catch (Exception ex) {
-            return new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Warning,
-                "Could not check disk space",
-                ex.Message,
-                null,
-                sw.Elapsed
-            );
+            return new(
+                       Name,
+                       HealthCheckStatus.Warning,
+                       "Could not check disk space",
+                       ex.Message,
+                       null,
+                       sw.Elapsed
+                      );
         }
     }
 }

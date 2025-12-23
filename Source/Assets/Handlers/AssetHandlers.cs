@@ -69,10 +69,10 @@ internal static class AssetHandlers {
         if (asset == null)
             return Results.NotFound();
 
-        if (asset.OwnerId != userId && !(asset.IsPublic && asset.IsPublished))
+        if (asset.OwnerId != userId && asset is not { IsPublic: true, IsPublished: true })
             return Results.Forbid();
 
-        asset = asset with { Tokens = [.. asset.Tokens.Where(v => v.OwnerId == userId || (v.IsPublic && v.IsPublished))] };
+        asset = asset with { Tokens = [.. asset.Tokens] };
 
         return Results.Ok(asset);
     }
@@ -83,8 +83,6 @@ internal static class AssetHandlers {
         [FromServices] IAssetService assetService) {
         Guid userId;
         if (context.IsInternalService()) {
-            // Internal service calls must provide OwnerId
-            // Trust the calling service - user was already validated when original request was made
             if (!request.OwnerId.HasValue)
                 return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
 

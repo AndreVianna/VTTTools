@@ -3,7 +3,7 @@ import { Box, Checkbox, List, ListItem, Typography, useTheme } from '@mui/materi
 import React from 'react';
 
 import { AudioPreviewPlayer } from '@/components/sounds/AudioPreviewPlayer';
-import { type MediaResource, ResourceType } from '@/types/domain';
+import { type MediaResource, ResourceRole } from '@/types/domain';
 
 interface MediaListProps {
     items: MediaResource[];
@@ -131,7 +131,7 @@ export const MediaList: React.FC<MediaListProps> = ({
                                 backgroundColor: theme.palette.action.hover,
                             }}
                         >
-                            {media.resourceType === ResourceType.AmbientSound ? (
+                            {media.role === ResourceRole.AmbientSound ? (
                                 <MusicNote
                                     sx={{
                                         fontSize: 24,
@@ -187,7 +187,7 @@ export const MediaList: React.FC<MediaListProps> = ({
                                 color: theme.palette.text.secondary,
                             }}
                         >
-                            {formatFileSize(media.fileLength)}
+                            {formatFileSize(media.fileSize)}
                         </Typography>
 
                         <Box

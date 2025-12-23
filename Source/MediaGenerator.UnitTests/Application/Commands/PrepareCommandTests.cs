@@ -18,17 +18,17 @@ public sealed class PrepareCommandTests : IDisposable {
         Directory.CreateDirectory(_tempDir);
         Directory.CreateDirectory(_outputDir);
 
-        _mockPromptService = new MockPromptEnhancementService();
+        _mockPromptService = new();
 
         _mockConfiguration = Substitute.For<IConfiguration>();
         _mockConfiguration["PromptEnhancer:Provider"].Returns("OPENAI");
         _mockConfiguration["PromptEnhancer:Model"].Returns("gpt-5-mini");
 
-        _realFileStore = new HierarchicalFileStore(_outputDir);
+        _realFileStore = new(_outputDir);
         _mockFileStore = Substitute.For<IFileStore>();
         SetupFileStoreDelegation();
 
-        _command = new PrepareCommand(_mockPromptService, _mockFileStore, _mockConfiguration);
+        _command = new(_mockPromptService, _mockFileStore, _mockConfiguration);
     }
 
     private void SetupFileStoreDelegation() {
@@ -214,45 +214,41 @@ public sealed class PrepareCommandTests : IDisposable {
         Id = Guid.NewGuid(),
         Name = name,
         Description = description,
-        Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
+        Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
         TokenSize = NamedSize.Default,
         StatBlocks = [],
         Tokens = [
-            new ResourceMetadata {
-                Id = Guid.NewGuid(),
-                Description = "base",
-                ResourceType = ResourceType.Background,
-                Path = string.Empty,
-                ContentType = "image/png",
-                FileName = $"{name.ToLowerInvariant()}.png",
-                FileLength = 1024,
-                Size = VttTools.Common.Model.Size.Zero,
-                Duration = TimeSpan.Zero
-            }
+            new() {
+                      Id = Guid.NewGuid(),
+                      Path = string.Empty,
+                      ContentType = "image/png",
+                      FileName = $"{name.ToLowerInvariant()}.png",
+                      FileSize = 1024,
+                      Dimensions = VttTools.Common.Model.Size.Zero,
+                      Duration = TimeSpan.Zero
+                  }
         ]
     };
 
     private static Asset CreateAssetWithTokens(string name, string description, int tokenCount) {
         var tokens = new List<ResourceMetadata>();
         for (var i = 0; i < tokenCount; i++) {
-            tokens.Add(new ResourceMetadata {
+            tokens.Add(new() {
                 Id = Guid.NewGuid(),
-                Description = $"variant-{i}",
-                ResourceType = ResourceType.Background,
                 Path = string.Empty,
                 ContentType = "image/png",
                 FileName = $"{name.ToLowerInvariant()}-{i}.png",
-                FileLength = 1024,
-                Size = VttTools.Common.Model.Size.Zero,
+                FileSize = 1024,
+                Dimensions = VttTools.Common.Model.Size.Zero,
                 Duration = TimeSpan.Zero
             });
         }
 
-        return new Asset {
+        return new() {
             Id = Guid.NewGuid(),
             Name = name,
             Description = description,
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Test", "Common"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Test", "Common"),
             TokenSize = NamedSize.Default,
             StatBlocks = [],
             Tokens = tokens

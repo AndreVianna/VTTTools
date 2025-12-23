@@ -10,7 +10,7 @@ import type {
 } from '@/services/encounterApi';
 import type { AppDispatch } from '@/store';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
-import { AssetKind, LabelPosition, LabelVisibility, ResourceType, Weather } from '@/types/domain';
+import { AssetKind, LabelPosition, LabelVisibility, ResourceRole, Weather } from '@/types/domain';
 import type { Command } from '@/utils/commands';
 import {
   clearEncounterMappings,
@@ -74,20 +74,13 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       tokens: [
         {
           id: 'token-123',
-          description: null,
-          features: {},
-          resourceType: ResourceType.Token,
-          classification: null,
+          role: ResourceRole.Token,
           path: '/test-image.png',
           contentType: 'image/png',
           fileName: 'test-image.png',
-          fileLength: 1024,
-          thumbnailPath: null,
-          size: { width: 100, height: 100 },
+          fileSize: 1024,
+          dimensions: { width: 100, height: 100 },
           duration: '',
-          ownerId: 'owner-123',
-          isPublished: true,
-          isPublic: true,
         },
       ],
       portrait: null,
@@ -96,6 +89,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
         height: 100,
       },
       statBlocks: {},
+      tags: [],
     };
 
     mockPlacedAsset = {

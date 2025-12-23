@@ -1,5 +1,5 @@
 
-namespace VttTools.Common.UnitTests.Extensions;
+namespace VttTools.Extensions;
 
 public class TokenRefreshExtensionsTests {
     [Fact]

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind, StatValueType, type Asset } from '@/types/domain';
+import { AssetKind, ResourceRole, StatValueType, type Asset } from '@/types/domain';
 import { AssetTableView, type AssetTableViewProps } from './AssetTableView';
 
 vi.mock('@mui/x-data-grid/esm/index.css', () => ({}));
@@ -68,37 +68,23 @@ describe('AssetTableView', () => {
     tokens: [
       {
         id: 'token-1',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/dragon.png',
         contentType: 'image/png',
         fileName: 'dragon.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 256, height: 256 },
+        fileSize: 1024,
+        dimensions: { width: 256, height: 256 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
       {
         id: 'token-2',
-        description: null,
-        features: {},
-        resourceType: 'Image',
-        classification: null,
+        role: ResourceRole.Token,
         path: '/tokens/dragon2.png',
         contentType: 'image/png',
         fileName: 'dragon2.png',
-        fileLength: 1024,
-        thumbnailPath: null,
-        size: { width: 256, height: 256 },
+        fileSize: 1024,
+        dimensions: { width: 256, height: 256 },
         duration: '0',
-        ownerId: 'user-1',
-        isPublished: true,
-        isPublic: false,
       },
     ],
     statBlocks: {

@@ -1,8 +1,7 @@
-using AssetClassification = VttTools.Assets.Model.AssetClassification;
 using AssetKind = VttTools.Assets.Model.AssetKind;
 using AssetModel = VttTools.Assets.Model.Asset;
 
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public sealed class AssetAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
@@ -19,7 +18,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
         _mockAssetStorage = Substitute.For<IAssetStorage>();
         _mockUserManager = CreateUserManagerMock();
         _mockLogger = Substitute.For<ILogger<AssetAdminService>>();
-        _sut = new AssetAdminService(_mockOptions, _mockAssetStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockAssetStorage, _mockUserManager, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -460,7 +459,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             OwnerId = ownerId ?? _masterUserId,
             Name = name,
             Description = description,
-            Classification = new AssetClassification(kind, category ?? string.Empty, type ?? string.Empty, subtype),
+            Classification = new(kind, category ?? string.Empty, type ?? string.Empty, subtype),
             IsPublished = isPublished,
             IsPublic = isPublic
         };

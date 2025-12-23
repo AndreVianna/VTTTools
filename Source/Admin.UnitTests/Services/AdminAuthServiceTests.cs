@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public class AdminAuthServiceTests {
     private readonly UserManager<User> _mockUserManager;
@@ -12,7 +12,7 @@ public class AdminAuthServiceTests {
         _mockSignInManager = CreateSignInManagerMock(_mockUserManager);
         _mockJwtTokenService = Substitute.For<IJwtTokenService>();
         _mockLogger = Substitute.For<ILogger<AdminAuthService>>();
-        _sut = new AdminAuthService(_mockUserManager, _mockSignInManager, _mockJwtTokenService, _mockLogger);
+        _sut = new(_mockUserManager, _mockSignInManager, _mockJwtTokenService, _mockLogger);
     }
 
     #region LoginAsync Tests

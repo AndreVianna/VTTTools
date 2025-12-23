@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Handlers;
+namespace VttTools.Auth.Handlers;
 
 public class TwoFactorHandlersTests {
     private readonly ITwoFactorService _mockTwoFactorService;
@@ -54,7 +54,7 @@ public class TwoFactorHandlersTests {
     public async Task InitiateSetupHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var act = async () => await TwoFactorHandlers.InitiateSetupHandler(_mockHttpContext, _mockTwoFactorService, TestContext.Current.CancellationToken);
+        var act = () => TwoFactorHandlers.InitiateSetupHandler(_mockHttpContext, _mockTwoFactorService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 
@@ -145,7 +145,7 @@ public class TwoFactorHandlersTests {
             Code = "123456"
         };
 
-        var act = async () => await TwoFactorHandlers.VerifySetupHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
+        var act = () => TwoFactorHandlers.VerifySetupHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 
@@ -240,7 +240,7 @@ public class TwoFactorHandlersTests {
             Password = "ValidPassword123!"
         };
 
-        var act = async () => await TwoFactorHandlers.DisableTwoFactorHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
+        var act = () => TwoFactorHandlers.DisableTwoFactorHandler(_mockHttpContext, request, _mockTwoFactorService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 

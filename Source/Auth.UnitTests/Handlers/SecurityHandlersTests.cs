@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Handlers;
+namespace VttTools.Auth.Handlers;
 
 public class SecurityHandlersTests {
     private readonly ISecurityService _mockSecurityService;
@@ -54,7 +54,7 @@ public class SecurityHandlersTests {
     public async Task GetSecuritySettingsHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var act = async () => await SecurityHandlers.GetSecuritySettingsHandler(_mockHttpContext, _mockSecurityService, TestContext.Current.CancellationToken);
+        var act = () => SecurityHandlers.GetSecuritySettingsHandler(_mockHttpContext, _mockSecurityService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 

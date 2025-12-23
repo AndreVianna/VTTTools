@@ -4,7 +4,7 @@ namespace VttTools.AppHost;
 internal static class AppHost {
     private static readonly bool _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-    public static async Task Main(string[] args) {
+    public static Task Main(string[] args) {
         var builder = DistributedApplication.CreateBuilder(args);
 
         var isDevelopment = builder.Environment.IsDevelopment();
@@ -115,6 +115,6 @@ internal static class AppHost {
                                  });
 
         var app = builder.Build();
-        await app.RunAsync();
+        return app.RunAsync();
     }
 }

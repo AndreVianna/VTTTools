@@ -53,11 +53,11 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
             outputCost,
             content.UsageMetadata.TotalTokenCount,
             totalCost);
-        return new GenerateImageResponse(
-            Convert.FromBase64String(imageData),
-            true,
-            TotalTokens: content.UsageMetadata.TotalTokenCount,
-            TotalCost: totalCost);
+        return new(
+                   Convert.FromBase64String(imageData),
+                   true,
+                   TotalTokens: content.UsageMetadata.TotalTokenCount,
+                   TotalCost: totalCost);
     }
 
     private sealed class ImageResponse {
@@ -92,7 +92,7 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
     private HttpClient CreateClient() {
         var client = httpClientFactory.CreateClient();
         var baseUrl = config["Providers:Google:BaseUrl"] ?? throw new InvalidOperationException("Google AI API base url not configured.");
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new(baseUrl);
         var apiKey = config["Providers:Google:ApiKey"] ?? throw new InvalidOperationException("Google AI API key is not configured.");
         client.DefaultRequestHeaders.Add("x-goog-api-key", apiKey);
         client.DefaultRequestHeaders.Add("Accept", "application/json");

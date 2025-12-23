@@ -7,10 +7,6 @@ import {
     Paper,
     Button,
     TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Pagination,
     CircularProgress,
     Tabs,
@@ -40,7 +36,6 @@ const RESOURCE_TYPE_TABS: Omit<ResourceTypeTab, 'count'>[] = [
     { value: 'CutScene', label: 'Cut Scenes' },
 ];
 
-const TABS_WITH_KIND_FILTER = ['Portrait', 'Token'];
 
 function getMediaType(contentType: string): MediaType {
     if (contentType.startsWith('audio/')) return 'audio';
@@ -49,18 +44,20 @@ function getMediaType(contentType: string): MediaType {
 }
 
 function mapResourceInfoToGeneratedResource(resource: ResourceInfo): GeneratedResource {
+    // With junction tables architecture, Resources are pure media metadata.
+    // Classification, description, and visibility are set when approving (attaching to an Asset).
     return {
         resourceId: resource.id,
         assetName: resource.fileName.replace(/\.[^/.]+$/, ''),
-        generationType: resource.resourceType === 'Token' ? 'Token' : 'Portrait',
-        kind: resource.classification.kind || '',
-        category: resource.classification.category || undefined,
-        type: resource.classification.type || undefined,
-        subtype: resource.classification.subtype || undefined,
-        description: resource.description,
+        generationType: resource.role === 'Token' ? 'Token' : 'Portrait',
+        kind: '', // Admin will select when approving
+        category: undefined,
+        type: undefined,
+        subtype: undefined,
+        description: '', // Admin will provide when approving
         tags: [],
         imageUrl: resourcesAdminService.getResourceImageUrl(resource.id),
-        status: resource.isPublished ? 'approved' : 'pending',
+        status: 'pending', // Unapproved resources are always pending
         mediaType: getMediaType(resource.contentType),
         contentType: resource.contentType,
     };
@@ -68,7 +65,7 @@ function mapResourceInfoToGeneratedResource(resource: ResourceInfo): GeneratedRe
 
 export function ResourcesPage() {
     const [resources, setResources] = useState<GeneratedResource[]>([]);
-    const [filters, setFilters] = useState<ResourceFilterParams>({ take: 50, skip: 0, resourceType: 'Portrait' });
+    const [filters, setFilters] = useState<ResourceFilterParams>({ take: 50, skip: 0, role: 'Portrait' });
     const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingResourceIds, setLoadingResourceIds] = useState<Set<string>>(new Set());
@@ -81,7 +78,6 @@ export function ResourcesPage() {
     });
 
     const [searchText, setSearchText] = useState('');
-    const [contentKind, setContentKind] = useState<string>('');
     const [tabCounts, setTabCounts] = useState<Record<string, number>>({});
     const [isLoadingCounts, setIsLoadingCounts] = useState(false);
 
@@ -102,7 +98,7 @@ export function ResourcesPage() {
             await Promise.all(
                 RESOURCE_TYPE_TABS.map(async (tab) => {
                     const response = await resourcesAdminService.listUnpublished({
-                        resourceType: tab.value,
+                        role: tab.value,
                         take: 1,
                         skip: 0,
                     });
@@ -127,7 +123,7 @@ export function ResourcesPage() {
             setTotalCount(response.totalCount);
             setTabCounts((prev) => ({
                 ...prev,
-                [params.resourceType ?? '']: response.totalCount,
+                [params.role ?? '']: response.totalCount,
             }));
         } catch (err) {
             if (signal?.aborted) return;
@@ -155,30 +151,24 @@ export function ResourcesPage() {
     }, [loadResources, loadTabCounts]);
 
     const handleTabChange = useCallback((_: React.SyntheticEvent, newValue: string) => {
-        const supportsKindFilter = TABS_WITH_KIND_FILTER.includes(newValue);
-        if (!supportsKindFilter) {
-            setContentKind('');
-        }
         const newFilters: ResourceFilterParams = {
             take: 50,
             skip: 0,
-            resourceType: newValue,
-            contentKind: supportsKindFilter ? (contentKind || undefined) : undefined,
+            role: newValue,
             searchText: searchText || undefined,
         };
         setFilters(newFilters);
-    }, [contentKind, searchText]);
+    }, [searchText]);
 
     const handleSearch = useCallback(() => {
         const newFilters: ResourceFilterParams = {
             ...filters,
             skip: 0,
             searchText: searchText || undefined,
-            contentKind: contentKind || undefined,
         };
         setFilters(newFilters);
         loadResources(newFilters);
-    }, [filters, searchText, contentKind, loadResources]);
+    }, [filters, searchText, loadResources]);
 
     const handlePageChange = useCallback((_: React.ChangeEvent<unknown>, page: number) => {
         const newFilters = { ...filters, skip: (page - 1) * (filters.take ?? 50) };
@@ -307,7 +297,7 @@ export function ResourcesPage() {
             setTotalCount((prev) => prev - 1);
             setTabCounts((prev) => ({
                 ...prev,
-                [filters.resourceType ?? '']: Math.max(0, (prev[filters.resourceType ?? ''] ?? 0) - 1),
+                [filters.role ?? '']: Math.max(0, (prev[filters.role ?? ''] ?? 0) - 1),
             }));
 
             setSnackbar({
@@ -329,7 +319,7 @@ export function ResourcesPage() {
                 return next;
             });
         }
-    }, [filters.resourceType]);
+    }, [filters.role]);
 
     const handleApproveAllResources = useCallback(async () => {
         const pendingResources = resources.filter((r) => r.status === 'pending');
@@ -361,7 +351,7 @@ export function ResourcesPage() {
     const pendingCount = resources.filter((r) => r.status === 'pending').length;
     const totalPages = Math.ceil(totalCount / (filters.take ?? 50));
     const currentPage = Math.floor((filters.skip ?? 0) / (filters.take ?? 50)) + 1;
-    const currentTab = filters.resourceType ?? 'Portrait';
+    const currentTab = filters.role ?? 'Portrait';
 
     return (
         <Box>
@@ -424,22 +414,6 @@ export function ResourcesPage() {
                             size="small"
                             sx={{ minWidth: 200 }}
                         />
-                        <FormControl size="small" sx={{ minWidth: 150 }}>
-                            <InputLabel id="filter-kind-label">Kind</InputLabel>
-                            <Select
-                                labelId="filter-kind-label"
-                                id="filter-kind"
-                                value={contentKind}
-                                label="Kind"
-                                onChange={(e) => setContentKind(e.target.value)}
-                            >
-                                <MenuItem value="">All</MenuItem>
-                                <MenuItem value="Character">Character</MenuItem>
-                                <MenuItem value="Creature">Creature</MenuItem>
-                                <MenuItem value="Object">Object</MenuItem>
-                                <MenuItem value="Effect">Effect</MenuItem>
-                            </Select>
-                        </FormControl>
                         <Button
                             id="btn-search"
                             variant="contained"

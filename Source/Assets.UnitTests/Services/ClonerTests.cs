@@ -9,7 +9,7 @@ public class ClonerTests {
             Id = originalId,
             Name = "Original Asset",
             Description = "Original Description",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = ownerId,
             IsPublic = true,
             IsPublished = true,
@@ -36,7 +36,7 @@ public class ClonerTests {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Original Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = originalOwnerId
         };
 
@@ -51,22 +51,16 @@ public class ClonerTests {
         var portraitId = Guid.CreateVersion7();
         var portrait = new ResourceMetadata {
             Id = portraitId,
-            Description = "Portrait Description",
             Path = "/path/to/portrait.jpg",
-            ResourceType = ResourceType.Portrait,
             ContentType = "image/jpeg",
             FileName = "portrait.jpg",
-            FileLength = 1024,
-            Size = new Size(256, 256),
-            OwnerId = Guid.CreateVersion7(),
-            IsPublic = true,
-            IsPublished = true,
-            Features = new Map<HashSet<string>> { { "feature1", [] }, { "feature2", [] } }
+            FileSize = 1024,
+            Dimensions = new(256, 256),
         };
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Asset with Portrait",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             Portrait = portrait,
             OwnerId = Guid.CreateVersion7()
         };
@@ -75,17 +69,11 @@ public class ClonerTests {
 
         clone.Portrait.Should().NotBeNull();
         clone.Portrait!.Id.Should().Be(portrait.Id);
-        clone.Portrait.Description.Should().Be(portrait.Description);
         clone.Portrait.Path.Should().Be(portrait.Path);
-        clone.Portrait.ResourceType.Should().Be(portrait.ResourceType);
         clone.Portrait.ContentType.Should().Be(portrait.ContentType);
         clone.Portrait.FileName.Should().Be(portrait.FileName);
-        clone.Portrait.FileLength.Should().Be(portrait.FileLength);
-        clone.Portrait.Size.Should().Be(portrait.Size);
-        clone.Portrait.OwnerId.Should().Be(portrait.OwnerId);
-        clone.Portrait.IsPublic.Should().Be(portrait.IsPublic);
-        clone.Portrait.IsPublished.Should().Be(portrait.IsPublished);
-        clone.Portrait.Features.Should().BeEquivalentTo(portrait.Features);
+        clone.Portrait.FileSize.Should().Be(portrait.FileSize);
+        clone.Portrait.Dimensions.Should().Be(portrait.Dimensions);
     }
 
     [Fact]
@@ -93,7 +81,7 @@ public class ClonerTests {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Asset without Portrait",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             Portrait = null,
             OwnerId = Guid.CreateVersion7()
         };
@@ -110,12 +98,12 @@ public class ClonerTests {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Asset with Tokens",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = Guid.CreateVersion7(),
             Tokens = [
-                new ResourceMetadata { Id = token1Id, Path = "/token1.png", ResourceType = ResourceType.Token, ContentType = "image/png", FileName = "token1.png", FileLength = 1024, OwnerId = Guid.CreateVersion7(), IsPublic = true, IsPublished = true },
-                new ResourceMetadata { Id = token2Id, Path = "/token2.png", ResourceType = ResourceType.Token, ContentType = "image/png", FileName = "token2.png", FileLength = 2048, OwnerId = Guid.CreateVersion7(), IsPublic = false, IsPublished = false }
-            ]
+                new() { Id = token1Id, Path = "/token1.png", ContentType = "image/png", FileName = "token1.png", FileSize = 1024 },
+                new() { Id = token2Id, Path = "/token2.png", ContentType = "image/png", FileName = "token2.png", FileSize = 2048 },
+            ],
         };
 
         var clone = original.Clone();
@@ -132,12 +120,12 @@ public class ClonerTests {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Asset with StatBlocks",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = Guid.CreateVersion7(),
-            StatBlocks = new Dictionary<int, Map<StatBlockValue>> {
-                { 0, statBlock1 },
-                { 1, statBlock2 }
-            }
+            StatBlocks = new() {
+                                   { 0, statBlock1 },
+                                   { 1, statBlock2 }
+                               }
         };
 
         var clone = original.Clone();
@@ -154,9 +142,9 @@ public class ClonerTests {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Asset with TokenSize",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = Guid.CreateVersion7(),
-            TokenSize = new NamedSize(SizeName.Large)
+            TokenSize = new(SizeName.Large)
         };
 
         var clone = original.Clone();
@@ -169,7 +157,7 @@ public class ClonerTests {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
             Name = "Asset without Tags",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = Guid.CreateVersion7(),
             Tags = []
         };
@@ -185,36 +173,24 @@ public class ClonerTests {
         var ownerId = Guid.CreateVersion7();
         var original = new ResourceMetadata {
             Id = originalId,
-            Description = "Resource Description",
             Path = "/path/to/resource.jpg",
-            ResourceType = ResourceType.Illustration,
             ContentType = "image/jpeg",
             FileName = "resource.jpg",
-            FileLength = 2048,
-            Size = new Size(512, 512),
+            FileSize = 2048,
+            Dimensions = new(512, 512),
             Duration = TimeSpan.FromSeconds(10),
-            Features = new Map<HashSet<string>> { { "feature1", [] }, { "feature2", [] } },
-            OwnerId = ownerId,
-            IsPublic = true,
-            IsPublished = true
         };
 
         var clone = original.Clone();
 
         clone.Should().NotBeNull();
         clone.Id.Should().Be(originalId);
-        clone.Description.Should().Be(original.Description);
         clone.Path.Should().Be(original.Path);
-        clone.ResourceType.Should().Be(original.ResourceType);
         clone.ContentType.Should().Be(original.ContentType);
         clone.FileName.Should().Be(original.FileName);
-        clone.FileLength.Should().Be(original.FileLength);
-        clone.Size.Should().Be(original.Size);
+        clone.FileSize.Should().Be(original.FileSize);
+        clone.Dimensions.Should().Be(original.Dimensions);
         clone.Duration.Should().Be(original.Duration);
-        clone.Features.Should().BeEquivalentTo(original.Features);
-        clone.OwnerId.Should().Be(original.OwnerId);
-        clone.IsPublic.Should().Be(original.IsPublic);
-        clone.IsPublished.Should().Be(original.IsPublished);
     }
 
     [Fact]
@@ -222,12 +198,10 @@ public class ClonerTests {
         var original = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
             Path = "/path/to/resource.jpg",
-            ResourceType = ResourceType.Illustration,
             ContentType = "image/jpeg",
             FileName = "resource.jpg",
-            FileLength = 1024,
+            FileSize = 1024,
             Duration = TimeSpan.Zero,
-            OwnerId = Guid.CreateVersion7()
         };
 
         var clone = original.Clone();
@@ -236,20 +210,129 @@ public class ClonerTests {
     }
 
     [Fact]
-    public void Clone_ResourceMetadata_WithEmptyFeatures_ClonesEmptyFeatures() {
-        var original = new ResourceMetadata {
-            Id = Guid.CreateVersion7(),
-            Path = "/path/to/resource.jpg",
-            ResourceType = ResourceType.Illustration,
-            ContentType = "image/jpeg",
-            FileName = "resource.jpg",
-            FileLength = 1024,
-            Features = [],
-            OwnerId = Guid.CreateVersion7()
+    public void Clone_WithStatEntries_DeepClonesAllLevels() {
+        var gameSystemId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var modifiers = new StatModifier[] {
+            new() { Condition = "vs undead", Source = "Holy Weapon", Bonus = 2.0m },
+            new() { Condition = "while raging", Source = "Barbarian Rage", Bonus = 3.0m },
+        };
+        var statEntry = new StatEntry {
+            AssetId = assetId,
+            GameSystemId = gameSystemId,
+            GameSystemCode = "dnd5e",
+            Level = 1,
+            Key = "STR",
+            Value = "16",
+            Type = StatEntryType.Number,
+            Description = "Strength score",
+            Modifiers = modifiers,
+        };
+        var statEntries = new Dictionary<Guid, Dictionary<int, Map<StatEntry>>> {
+            {
+                gameSystemId,
+                new Dictionary<int, Map<StatEntry>> {
+                    { 1, new Map<StatEntry> { { "STR", statEntry } } }
+                }
+            }
+        };
+        var original = new Asset {
+            Id = assetId,
+            Name = "Asset with StatEntries",
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            OwnerId = Guid.CreateVersion7(),
+            StatEntries = statEntries,
         };
 
         var clone = original.Clone();
 
-        clone.Features.Should().BeEmpty();
+        clone.StatEntries.Should().HaveCount(1);
+        clone.StatEntries.Should().ContainKey(gameSystemId);
+        clone.StatEntries[gameSystemId].Should().HaveCount(1);
+        clone.StatEntries[gameSystemId].Should().ContainKey(1);
+        clone.StatEntries[gameSystemId][1].Should().HaveCount(1);
+        clone.StatEntries[gameSystemId][1].Should().ContainKey("STR");
+
+        var clonedEntry = clone.StatEntries[gameSystemId][1]["STR"];
+        clonedEntry.AssetId.Should().Be(assetId);
+        clonedEntry.GameSystemId.Should().Be(gameSystemId);
+        clonedEntry.GameSystemCode.Should().Be("dnd5e");
+        clonedEntry.Level.Should().Be(1);
+        clonedEntry.Key.Should().Be("STR");
+        clonedEntry.Value.Should().Be("16");
+        clonedEntry.Type.Should().Be(StatEntryType.Number);
+        clonedEntry.Description.Should().Be("Strength score");
+
+        clonedEntry.Modifiers.Should().NotBeNull();
+        clonedEntry.Modifiers.Should().HaveCount(2);
+        clonedEntry.Modifiers![0].Condition.Should().Be("vs undead");
+        clonedEntry.Modifiers[0].Source.Should().Be("Holy Weapon");
+        clonedEntry.Modifiers[0].Bonus.Should().Be(2.0m);
+        clonedEntry.Modifiers[1].Condition.Should().Be("while raging");
+        clonedEntry.Modifiers[1].Source.Should().Be("Barbarian Rage");
+        clonedEntry.Modifiers[1].Bonus.Should().Be(3.0m);
+
+        // Verify deep clone by checking modifiers are not the same reference
+        clonedEntry.Modifiers.Should().NotBeSameAs(modifiers);
+    }
+
+    [Fact]
+    public void Clone_StatEntry_WithModifiers_DeepClonesModifiers() {
+        var modifiers = new StatModifier[] {
+            new() { Condition = "test condition", Source = "test source", Bonus = 5.0m },
+        };
+        var original = new StatEntry {
+            AssetId = Guid.CreateVersion7(),
+            GameSystemId = Guid.CreateVersion7(),
+            GameSystemCode = "test",
+            Level = 1,
+            Key = "TEST",
+            Value = "10",
+            Type = StatEntryType.Number,
+            Description = "Test stat",
+            Modifiers = modifiers,
+        };
+
+        var clone = original.Clone();
+
+        clone.Modifiers.Should().NotBeNull();
+        clone.Modifiers.Should().HaveCount(1);
+        clone.Modifiers![0].Condition.Should().Be("test condition");
+        clone.Modifiers[0].Source.Should().Be("test source");
+        clone.Modifiers[0].Bonus.Should().Be(5.0m);
+        clone.Modifiers.Should().NotBeSameAs(modifiers);
+    }
+
+    [Fact]
+    public void Clone_StatEntry_WithNullModifiers_ClonesWithNullModifiers() {
+        var original = new StatEntry {
+            AssetId = Guid.CreateVersion7(),
+            GameSystemId = Guid.CreateVersion7(),
+            GameSystemCode = "test",
+            Level = 1,
+            Key = "TEST",
+            Value = "10",
+            Type = StatEntryType.Number,
+            Modifiers = null,
+        };
+
+        var clone = original.Clone();
+
+        clone.Modifiers.Should().BeNull();
+    }
+
+    [Fact]
+    public void Clone_StatModifier_CopiesAllProperties() {
+        var original = new StatModifier {
+            Condition = "when flanking",
+            Source = "Tactical Advantage",
+            Bonus = 2.5m,
+        };
+
+        var clone = original.Clone();
+
+        clone.Condition.Should().Be("when flanking");
+        clone.Source.Should().Be("Tactical Advantage");
+        clone.Bonus.Should().Be(2.5m);
     }
 }

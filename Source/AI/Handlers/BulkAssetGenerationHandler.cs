@@ -26,7 +26,7 @@ public sealed class BulkAssetGenerationHandler(
             // Generate single image based on GenerationType (atomic operation)
             var isPortrait = generationType.Equals("Portrait", StringComparison.OrdinalIgnoreCase);
             var imageType = isPortrait ? "portrait" : "token";
-            var resourceType = isPortrait ? ResourceType.Portrait : ResourceType.Token;
+            var role = isPortrait ? ResourceRole.Portrait : ResourceRole.Token;
 
             logger.LogDebug("Generating {GenerationType} for {AssetName}", generationType, itemName);
             var imageResult = await GenerateImageAsync(prompt, imageType, ct);
@@ -37,20 +37,12 @@ public sealed class BulkAssetGenerationHandler(
                 return Result.Failure($"{generationType} generation failed: {string.Join(", ", imageResult.Errors)}").WithNo<GeneratedResourceResult>();
             }
 
-            var classification = new ResourceClassification(
-                Kind: (itemData?.Kind ?? AssetKind.Character).ToString(),
-                Category: itemData?.Category ?? string.Empty,
-                Type: itemData?.Type ?? string.Empty,
-                Subtype: itemData?.Subtype);
-
             var resourceId = await resourceClient.UploadImageAsync(
                 ownerId,
                 imageResult.Value.ImageData,
                 $"{itemName}_{imageType}.png",
                 imageResult.Value.ContentType,
-                resourceType,
-                classification,
-                itemData?.Description,
+                role,
                 ct);
 
             if (!resourceId.HasValue) {
@@ -114,18 +106,18 @@ public sealed class BulkAssetGenerationHandler(
             : basePrompt;
     }
 
-    private async Task LogResourceGeneratedAsync(
+    private Task LogResourceGeneratedAsync(
         Guid ownerId,
         Guid jobId,
         int jobItemIndex,
         Guid resourceId,
-        string resourceType,
+        string role,
         CancellationToken ct) {
 
         var payload = new ResourceGeneratedPayload {
             JobId = jobId.ToString(),
             JobItemIndex = jobItemIndex,
-            ResourceType = resourceType,
+            ResourceType = role,
         };
         var auditLog = new AuditLog {
             UserId = ownerId,
@@ -134,6 +126,6 @@ public sealed class BulkAssetGenerationHandler(
             EntityId = resourceId.ToString(),
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };
-        await auditLogService.AddAsync(auditLog, ct);
+        return auditLogService.AddAsync(auditLog, ct);
     }
 }

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 
-namespace VttTools.Admin.UnitTests.Resources.Clients;
+namespace VttTools.Admin.Resources.Clients;
 
 public sealed class MediaServiceClientTests {
     private readonly IHttpClientFactory _mockHttpClientFactory;
@@ -30,16 +30,11 @@ public sealed class MediaServiceClientTests {
             Items = new[] {
                 new {
                     Id = resourceId,
-                    ResourceType = ResourceType.Portrait,
-                    Classification = new ResourceClassification("Character", "Fantasy", "Human", null),
-                    Description = "Test resource",
+                    Role = ResourceRole.Portrait,
                     FileName = "test.png",
                     ContentType = "image/png",
-                    FileLength = 1024UL,
-                    OwnerId = _masterUserId,
-                    IsPublished = false,
-                    IsPublic = true,
-                }
+                    FileSize = 1024UL,
+                },
             },
             TotalCount = 1,
             Skip = 0,
@@ -53,7 +48,6 @@ public sealed class MediaServiceClientTests {
         var request = new ResourceFilterRequest {
             Skip = 0,
             Take = 50,
-            IsPublished = false,
         };
 
         // Act
@@ -64,8 +58,6 @@ public sealed class MediaServiceClientTests {
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().HaveCount(1);
         result.Value.Items[0].Id.Should().Be(resourceId);
-        result.Value.Items[0].ResourceType.Should().Be("Portrait");
-        result.Value.Items[0].IsPublished.Should().BeFalse();
         result.Value.TotalCount.Should().Be(1);
     }
 
@@ -84,12 +76,8 @@ public sealed class MediaServiceClientTests {
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
         var request = new ResourceFilterRequest {
-            ResourceType = "Portrait",
-            ContentKind = "Character",
-            Category = "Fantasy",
+            Role = ResourceRole.Portrait,
             SearchText = "dragon",
-            IsPublished = false,
-            IsPublic = true,
             Skip = 10,
             Take = 20,
         };
@@ -152,7 +140,6 @@ public sealed class MediaServiceClientTests {
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
         var request = new ResourceFilterRequest {
             SearchText = "dragon & knight",
-            Category = "Fantasy/Medieval",
         };
 
         // Act
@@ -183,7 +170,7 @@ public sealed class MediaServiceClientTests {
     [Fact]
     public async Task ListUnpublishedResourcesAsync_WhenResponseIsNull_ReturnsFailure() {
         // Arrange
-        var httpClient = CreateHttpClient(HttpStatusCode.OK, (object?)null);
+        var httpClient = CreateHttpClient(HttpStatusCode.OK, null);
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
@@ -218,7 +205,7 @@ public sealed class MediaServiceClientTests {
             data,
             "test.png",
             "image/png",
-            ResourceType.Portrait,
+            ResourceRole.Portrait,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -240,7 +227,7 @@ public sealed class MediaServiceClientTests {
             data,
             "test.png",
             "image/png",
-            ResourceType.Portrait,
+            ResourceRole.Portrait,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -251,7 +238,7 @@ public sealed class MediaServiceClientTests {
     [Fact]
     public async Task UploadResourceAsync_WhenResponseIsNull_ReturnsFailure() {
         // Arrange
-        var httpClient = CreateHttpClient(HttpStatusCode.OK, (object?)null);
+        var httpClient = CreateHttpClient(HttpStatusCode.OK, null);
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
@@ -262,7 +249,7 @@ public sealed class MediaServiceClientTests {
             data,
             "test.png",
             "image/png",
-            ResourceType.Portrait,
+            ResourceRole.Portrait,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -282,9 +269,7 @@ public sealed class MediaServiceClientTests {
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
         var resourceId = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            IsPublished = true,
-        };
+        var request = new UpdateResourceRequest();
 
         // Act
         var result = await client.UpdateResourceAsync(resourceId, request, TestContext.Current.CancellationToken);
@@ -302,9 +287,7 @@ public sealed class MediaServiceClientTests {
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
         var resourceId = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            IsPublished = true,
-        };
+        var request = new UpdateResourceRequest();
 
         // Act
         await client.UpdateResourceAsync(resourceId, request, TestContext.Current.CancellationToken);
@@ -322,9 +305,7 @@ public sealed class MediaServiceClientTests {
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
         var resourceId = Guid.CreateVersion7();
-        var request = new UpdateResourceRequest {
-            IsPublished = true,
-        };
+        var request = new UpdateResourceRequest();
 
         // Act
         var result = await client.UpdateResourceAsync(resourceId, request, TestContext.Current.CancellationToken);
@@ -341,7 +322,7 @@ public sealed class MediaServiceClientTests {
     [Fact]
     public async Task DeleteResourceAsync_WithValidId_ReturnsSuccess() {
         // Arrange
-        var httpClient = CreateHttpClient(HttpStatusCode.NoContent, (object?)null);
+        var httpClient = CreateHttpClient(HttpStatusCode.NoContent, null);
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
@@ -358,7 +339,7 @@ public sealed class MediaServiceClientTests {
     [Fact]
     public async Task DeleteResourceAsync_AddsUserIdHeader() {
         // Arrange
-        var httpClient = CreateHttpClient(HttpStatusCode.NoContent, (object?)null);
+        var httpClient = CreateHttpClient(HttpStatusCode.NoContent, null);
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
@@ -403,7 +384,7 @@ public sealed class MediaServiceClientTests {
 
         public TestHttpClient(HttpStatusCode statusCode, object? responseContent)
             : base(new TestMessageHandler(statusCode, responseContent)) {
-            BaseAddress = new Uri("http://localhost");
+            BaseAddress = new("http://localhost");
         }
 
         public new Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken) {
@@ -431,11 +412,9 @@ public sealed class MediaServiceClientTests {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
             var response = new HttpResponseMessage(statusCode);
             if (responseContent is not null) {
-                if (responseContent is string stringContent) {
-                    response.Content = new StringContent(stringContent);
-                } else {
-                    response.Content = JsonContent.Create(responseContent, options: JsonDefaults.Options);
-                }
+                response.Content = responseContent is string stringContent
+                    ? new StringContent(stringContent)
+                    : JsonContent.Create(responseContent, options: JsonDefaults.Options);
             }
             return Task.FromResult(response);
         }

@@ -1,4 +1,4 @@
-namespace VttTools.Common.UnitTests.Services;
+namespace VttTools.Services;
 
 public class AuditLogServiceTests {
     private readonly IAuditLogStorage _storage;
@@ -8,7 +8,7 @@ public class AuditLogServiceTests {
     public AuditLogServiceTests() {
         _storage = Substitute.For<IAuditLogStorage>();
         _logger = Substitute.For<ILogger<AuditLogService>>();
-        _service = new AuditLogService(_storage, _logger);
+        _service = new(_storage, _logger);
     }
 
     [Fact]
@@ -19,8 +19,8 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Timestamp = DateTime.UtcNow
-        };
+            Timestamp = DateTime.UtcNow,
+                                    };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -31,7 +31,7 @@ public class AuditLogServiceTests {
 
     [Fact]
     public Task AddAsync_WithNullAuditLog_ThrowsArgumentNullException()
-        => Assert.ThrowsAsync<ArgumentNullException>(async () => await _service.AddAsync(null!, TestContext.Current.CancellationToken));
+        => Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddAsync(null!, TestContext.Current.CancellationToken));
 
     [Fact]
     public async Task AddAsync_WithValidAuditLog_NoValidationError() {
@@ -41,8 +41,8 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Timestamp = DateTime.UtcNow
-        };
+            Timestamp = DateTime.UtcNow,
+                                    };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -57,8 +57,8 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Timestamp = default
-        };
+            Timestamp = default,
+                                    };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -76,8 +76,8 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Timestamp = timestamp
-        };
+            Timestamp = timestamp,
+                                    };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -95,8 +95,8 @@ public class AuditLogServiceTests {
             Action = "Create",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
-            Timestamp = DateTime.UtcNow
-        };
+            Timestamp = DateTime.UtcNow,
+                                    };
         _storage.GetByIdAsync(id, TestContext.Current.CancellationToken).Returns(auditLog);
 
         var result = await _service.GetByIdAsync(id, TestContext.Current.CancellationToken);
@@ -124,9 +124,9 @@ public class AuditLogServiceTests {
                 Action = "Create",
                 EntityType = "User",
                 EntityId = Guid.NewGuid().ToString(),
-                Timestamp = DateTime.UtcNow
-            }
-        };
+                Timestamp = DateTime.UtcNow,
+                  },
+                                       };
         _storage.QueryAsync(
             Arg.Any<DateTime?>(),
             Arg.Any<DateTime?>(),
@@ -281,8 +281,8 @@ public class AuditLogServiceTests {
         var startDate = DateTime.UtcNow.AddDays(-1);
         var dataPoints = new List<TimeSeriesDataPoint> {
             new() { Timestamp = DateTime.UtcNow.AddHours(-2), Value = 100 },
-            new() { Timestamp = DateTime.UtcNow.AddHours(-1), Value = 150 }
-        };
+            new() { Timestamp = DateTime.UtcNow.AddHours(-1), Value = 150 },
+                                                       };
         _storage.GetHourlyAverageResponseTimesAsync(startDate, TestContext.Current.CancellationToken).Returns(dataPoints);
 
         var result = await _service.GetHourlyAverageResponseTimesAsync(startDate, TestContext.Current.CancellationToken);

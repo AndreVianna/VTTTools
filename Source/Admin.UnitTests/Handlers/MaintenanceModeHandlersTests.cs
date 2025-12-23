@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public class MaintenanceModeHandlersTests {
     private readonly IMaintenanceModeService _mockService;
@@ -110,7 +110,7 @@ public class MaintenanceModeHandlersTests {
             new(ClaimTypes.NameIdentifier, "invalid-guid")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
-        context.User = new ClaimsPrincipal(identity);
+        context.User = new(identity);
 
         var result = await MaintenanceModeHandlers.EnableMaintenanceModeHandler(
             request,
@@ -363,7 +363,7 @@ public class MaintenanceModeHandlersTests {
             new(ClaimTypes.NameIdentifier, userId.ToString())
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
-        context.User = new ClaimsPrincipal(identity);
+        context.User = new(identity);
         return context;
     }
 

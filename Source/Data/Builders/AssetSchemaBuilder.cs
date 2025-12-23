@@ -1,6 +1,6 @@
 using Asset = VttTools.Data.Assets.Entities.Asset;
-using AssetStatBlockValue = VttTools.Data.Assets.Entities.AssetStatBlockValue;
-using AssetToken = VttTools.Data.Assets.Entities.AssetToken;
+using AssetResource = VttTools.Data.Assets.Entities.AssetResource;
+using AssetStatEntry = VttTools.Data.Assets.Entities.AssetStatEntry;
 
 namespace VttTools.Data.Builders;
 
@@ -19,10 +19,6 @@ internal static class AssetSchemaBuilder {
                 sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0).HasColumnName(nameof(Size.Width));
                 sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0).HasColumnName(nameof(Size.Height));
             });
-            entity.HasMany(e => e.StatBlock)
-                .WithOne(e => e.Asset)
-                .HasForeignKey(e => e.AssetId)
-                .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.OwnerId).IsRequired();
             entity.Property(e => e.IsPublished).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.IsPublic).IsRequired().HasDefaultValue(false);
@@ -33,37 +29,56 @@ internal static class AssetSchemaBuilder {
                     v => JsonSerializer.Deserialize<string[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<string>())
                 .HasColumnType("nvarchar(max)");
             entity.HasQueryFilter(e => !e.IsDeleted);
-            entity.HasOne(e => e.Portrait)
-                .WithMany()
-                .HasForeignKey(e => e.PortraitId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(e => e.OwnerId).HasDatabaseName("IX_Assets_OwnerId");
             entity.HasIndex(e => new { e.IsPublic, e.IsPublished }).HasDatabaseName("IX_Assets_IsPublic_IsPublished");
             entity.HasIndex(e => new { e.Kind, e.Category, e.Type }).HasDatabaseName("IX_Assets_Taxonomy");
         });
 
-        builder.Entity<AssetStatBlockValue>(entity => {
-            entity.ToTable("AssetStatBlockValues");
-            entity.HasKey(e => new { e.AssetId, e.Level, e.Key });
-            entity.Property(e => e.Level).IsRequired();
-            entity.Property(e => e.Key).IsRequired().HasMaxLength(32);
-            entity.Property(e => e.Value).IsRequired(false).HasMaxLength(4096);
-            entity.Property(e => e.Type).IsRequired().HasConversion<string>();
-        });
-
-        builder.Entity<AssetToken>(entity => {
-            entity.ToTable("AssetTokens");
-            entity.HasKey(e => new { e.AssetId, e.TokenId });
-            entity.HasIndex(e => new { e.AssetId, e.Index }).IsUnique();
-            entity.HasOne(e => e.Token)
+        builder.Entity<AssetResource>(entity => {
+            entity.ToTable("AssetResources");
+            entity.HasKey(e => new { e.AssetId, e.ResourceId });
+            entity.Property(e => e.Role).IsRequired().HasConversion<string>();
+            entity.Property(e => e.Index).IsRequired();
+            entity.HasIndex(e => new { e.AssetId, e.Role, e.Index }).IsUnique();
+            entity.HasOne(e => e.Resource)
                 .WithMany()
-                .HasForeignKey(e => e.TokenId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(e => e.ResourceId)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Asset)
-                .WithMany(e => e.AssetTokens)
+                .WithMany(e => e.Resources)
                 .HasForeignKey(e => e.AssetId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AssetStatEntry>(entity => {
+            entity.ToTable("AssetStatEntries");
+
+            // 4-column composite primary key
+            entity.HasKey(e => new { e.AssetId, e.GameSystemId, e.Level, e.Key });
+
+            entity.Property(e => e.Level).IsRequired();
+            entity.Property(e => e.Key).IsRequired().HasMaxLength(64);
+            entity.Property(e => e.Type).IsRequired().HasConversion<string>();
+            entity.Property(e => e.Value).HasMaxLength(8192);
+            entity.Property(e => e.Description).HasMaxLength(2048);
+            entity.Property(e => e.Modifiers).HasMaxLength(1024);
+
+            // FK to Asset (Cascade)
+            entity.HasOne(e => e.Asset)
+                  .WithMany(a => a.StatEntries)
+                  .HasForeignKey(e => e.AssetId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // FK to GameSystem (Restrict - don't delete game systems with stats)
+            entity.HasOne(e => e.GameSystem)
+                  .WithMany()
+                  .HasForeignKey(e => e.GameSystemId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Indexes
+            entity.HasIndex(e => e.GameSystemId);
+            entity.HasIndex(e => new { e.AssetId, e.GameSystemId });
         });
     }
 }

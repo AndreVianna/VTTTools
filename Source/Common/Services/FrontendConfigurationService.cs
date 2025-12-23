@@ -1,4 +1,4 @@
-namespace VttTools.Common.Services;
+namespace VttTools.Services;
 
 public class FrontendConfigurationService(ILogger<FrontendConfigurationService> logger) {
     private static readonly HashSet<string> _sensitiveKeywords = [

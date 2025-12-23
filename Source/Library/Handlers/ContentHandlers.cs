@@ -36,7 +36,7 @@ internal static class ContentHandlers {
             "adventure" => ContentType.Adventure,
             "campaign" => ContentType.Campaign,
             "world" => ContentType.World,
-            _ => (ContentType?)null
+            _ => (ContentType?)null,
         };
 
         if (contentType != null && parsedType == null) {
@@ -54,7 +54,7 @@ internal static class ContentHandlers {
             Owner = owner,
             IsOneShot = isOneShot,
             MinEncounterCount = minEncounterCount,
-            MaxEncounterCount = maxEncounterCount
+            MaxEncounterCount = maxEncounterCount,
         };
 
         var result = await contentService.GetContentAsync(userId, filters, ct);

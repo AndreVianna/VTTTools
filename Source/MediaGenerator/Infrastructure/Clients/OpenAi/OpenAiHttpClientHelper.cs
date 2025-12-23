@@ -3,18 +3,18 @@ namespace VttTools.MediaGenerator.Infrastructure.Clients.OpenAi;
 public sealed class OpenAiHttpClientHelper(IHttpClientFactory httpClientFactory, IConfiguration config) {
     private static readonly JsonSerializerOptions _jsonOptions = new() {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     public HttpClient CreateAuthenticatedClient() {
         var client = httpClientFactory.CreateClient();
         var baseUrl = config["Providers:OpenAI:BaseUrl"]
             ?? throw new InvalidOperationException("OpenAI API base url not configured.");
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new(baseUrl);
 
         var apiKey = config["Providers:OpenAI:ApiKey"]
             ?? throw new InvalidOperationException("OpenAI API key is not configured.");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", apiKey);
         client.DefaultRequestHeaders.Add("Accept", "application/json");
 
         return client;
@@ -50,7 +50,7 @@ public sealed class OpenAiHttpClientHelper(IHttpClientFactory httpClientFactory,
             _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")
         };
 
-        return new OpenAiPricingCalculator(inputCost, outputCost);
+        return new(inputCost, outputCost);
     }
 
     public static OpenAiPricingCalculator GetImagePricingCalculator(string model) {
@@ -60,7 +60,7 @@ public sealed class OpenAiHttpClientHelper(IHttpClientFactory httpClientFactory,
             _ => throw new InvalidOperationException($"Unknown model {model} for pricing.")
         };
 
-        return new OpenAiPricingCalculator(inputCost, outputCost);
+        return new(inputCost, outputCost);
     }
 }
 
@@ -71,7 +71,7 @@ public sealed record OpenAiPricingCalculator(double InputCostPerM, double Output
         var totalCost = inputCost + outputCost;
         var totalTokens = inputTokens + outputTokens;
 
-        return new CostCalculation(inputTokens, inputCost, outputTokens, outputCost, totalTokens, totalCost);
+        return new(inputTokens, inputCost, outputTokens, outputCost, totalTokens, totalCost);
     }
 }
 

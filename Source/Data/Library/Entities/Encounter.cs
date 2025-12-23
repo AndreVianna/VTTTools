@@ -11,19 +11,16 @@ public class Encounter {
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
     public bool IsPublished { get; set; }
-    public Guid? BackgroundId { get; set; }
-    public Resource? Background { get; set; }
     public float ZoomLevel { get; set; } = 1;
     public Point Panning { get; set; } = Point.Zero;
     public Grid Grid { get; set; } = new();
     public float GroundElevation { get; set; }
     public Weather Weather { get; set; }
     public AmbientLight AmbientLight { get; set; }
-    public Guid? AmbientSoundId { get; set; }
-    public Resource? AmbientSound { get; set; }
     public ICollection<EncounterAsset> EncounterAssets { get; set; } = [];
     public ICollection<EncounterWall> Walls { get; set; } = [];
     public ICollection<EncounterRegion> Regions { get; set; } = [];
     public ICollection<EncounterLight> LightSources { get; set; } = [];
     public ICollection<EncounterSound> SoundSources { get; set; } = [];
+    public ICollection<EncounterResource> Resources { get; set; } = [];
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MediaResource } from '@/types/domain';
+import { ResourceRole } from '@/types/domain';
 import { uploadFileWithProgress, type UploadOptions, type UploadProgressEvent } from './uploadWithProgress';
 
 describe('uploadWithProgress', () => {
@@ -11,9 +12,11 @@ describe('uploadWithProgress', () => {
     id: 'resource-123',
     fileName: 'test.png',
     contentType: 'image/png',
-    size: 1024,
-    uploadedAt: '2024-01-01T00:00:00Z',
-    url: '/api/resources/resource-123',
+    fileSize: 1024,
+    role: ResourceRole.Token,
+    path: 'resource-123',
+    dimensions: { width: 256, height: 256 },
+    duration: '',
   };
 
   beforeEach(() => {

@@ -25,22 +25,22 @@ import { MediaGrid } from '@/components/media/MediaGrid';
 import { MediaList } from '@/components/media/MediaList';
 import { useMediaBrowser } from '@/hooks/useMediaBrowser';
 import { useFilterResourcesQuery, useDeleteResourceMutation } from '@/services/mediaApi';
-import { ResourceType, type MediaResource } from '@/types/domain';
+import { ResourceRole, type MediaResource } from '@/types/domain';
 
 const categoryTabs = [
-    { value: ResourceType.Undefined, label: 'All' },
-    { value: ResourceType.Background, label: 'Background' },
-    { value: ResourceType.Token, label: 'Token' },
-    { value: ResourceType.Portrait, label: 'Portrait' },
-    { value: ResourceType.Overlay, label: 'Overlay' },
-    { value: ResourceType.Illustration, label: 'Illustration' },
-    { value: ResourceType.SoundEffect, label: 'Sound Effect' },
-    { value: ResourceType.AmbientSound, label: 'Ambient Sound' },
-    { value: ResourceType.CutScene, label: 'Cut Scene' },
+    { value: ResourceRole.Undefined, label: 'All' },
+    { value: ResourceRole.Background, label: 'Background' },
+    { value: ResourceRole.Token, label: 'Token' },
+    { value: ResourceRole.Portrait, label: 'Portrait' },
+    { value: ResourceRole.Overlay, label: 'Overlay' },
+    { value: ResourceRole.Illustration, label: 'Illustration' },
+    { value: ResourceRole.SoundEffect, label: 'Sound Effect' },
+    { value: ResourceRole.AmbientSound, label: 'Ambient Sound' },
+    { value: ResourceRole.CutScene, label: 'Cut Scene' },
 ];
 
-const isAudioCategory = (category: ResourceType): boolean => {
-    return category === ResourceType.SoundEffect || category === ResourceType.AmbientSound;
+const isAudioCategory = (category: ResourceRole): boolean => {
+    return category === ResourceRole.SoundEffect || category === ResourceRole.AmbientSound;
 };
 
 export const MediaLibraryPage: React.FC = () => {
@@ -91,7 +91,7 @@ export const MediaLibraryPage: React.FC = () => {
     }, [browser, deleteResource]);
 
     const hasActiveFilters =
-        browser.selectedCategory !== ResourceType.Undefined ||
+        browser.selectedCategory !== ResourceRole.Undefined ||
         browser.searchQuery !== '' ||
         browser.ownershipFilter !== 'all' ||
         browser.statusFilter !== 'all';
@@ -333,16 +333,11 @@ export const MediaLibraryPage: React.FC = () => {
                 {selectedMedia.fileName}
             </Typography>
             <Typography variant="caption" display="block" gutterBottom>
-                Type: {selectedMedia.resourceType}
+                Type: {selectedMedia.role}
             </Typography>
             <Typography variant="caption" display="block" gutterBottom>
-                Size: {(selectedMedia.fileLength / 1024).toFixed(2)} KB
+                Size: {(selectedMedia.fileSize / 1024).toFixed(2)} KB
             </Typography>
-            {selectedMedia.classification && (
-                <Typography variant="caption" display="block" gutterBottom>
-                    Category: {selectedMedia.classification.category}
-                </Typography>
-            )}
             <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                 <Button
                     id="media-btn-delete-selected"

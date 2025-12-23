@@ -70,13 +70,11 @@ public static class Cloner {
     internal static ResourceMetadata Clone(this ResourceMetadata original)
         => new() {
             Id = original.Id,
-            ResourceType = original.ResourceType,
             Path = original.Path,
             ContentType = original.ContentType,
             FileName = original.FileName,
-            FileLength = original.FileLength,
-            Size = original.Size,
+            FileSize = original.FileSize,
+            Dimensions = original.Dimensions,
             Duration = original.Duration,
-            Features = [.. original.Features],
         };
 }

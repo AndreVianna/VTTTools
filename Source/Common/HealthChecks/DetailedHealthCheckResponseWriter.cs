@@ -16,7 +16,7 @@ public static class DetailedHealthCheckResponseWriter {
     /// <param name="context">The HTTP context to write the response to.</param>
     /// <param name="report">The health report containing check results.</param>
     /// <returns>A task representing the asynchronous write operation.</returns>
-    public static async Task WriteResponse(HttpContext context, HealthReport report) {
+    public static Task WriteResponse(HttpContext context, HealthReport report) {
         context.Response.ContentType = "application/json; charset=utf-8";
 
         var response = new {
@@ -32,6 +32,6 @@ public static class DetailedHealthCheckResponseWriter {
                 tags = entry.Value.Tags.Any() ? entry.Value.Tags : null
             }).ToList()
         };
-        await JsonSerializer.SerializeAsync(context.Response.Body, response, _options);
+        return JsonSerializer.SerializeAsync(context.Response.Body, response, _options);
     }
 }

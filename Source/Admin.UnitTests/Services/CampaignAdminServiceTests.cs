@@ -1,7 +1,7 @@
 using AdventureModel = VttTools.Library.Adventures.Model.Adventure;
 using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public sealed class CampaignAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
@@ -20,7 +20,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
         _mockAdventureStorage = Substitute.For<IAdventureStorage>();
         _mockUserManager = CreateUserManagerMock();
         _mockLogger = Substitute.For<ILogger<CampaignAdminService>>();
-        _sut = new CampaignAdminService(_mockOptions, _mockCampaignStorage, _mockAdventureStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockCampaignStorage, _mockAdventureStorage, _mockUserManager, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;

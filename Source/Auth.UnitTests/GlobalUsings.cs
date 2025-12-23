@@ -8,6 +8,7 @@ global using AwesomeAssertions;
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
+global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.AspNetCore.Identity;
@@ -28,6 +29,5 @@ global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;
 global using VttTools.Services;
-global using VttTools.Common.Utilities;
 
 global using Xunit;

@@ -31,6 +31,26 @@ public partial class CreateApplicationSchema : Migration {
             constraints: table => table.PrimaryKey("PK_AiProviderConfigs", x => x.Id));
 
         migrationBuilder.CreateTable(
+            name: "Assets",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Kind = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Category = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                Type = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                Subtype = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
+                Width = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Height = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
+                Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                IsPublic = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+            },
+            constraints: table => table.PrimaryKey("PK_Assets", x => x.Id));
+
+        migrationBuilder.CreateTable(
             name: "AuditLogs",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -55,6 +75,17 @@ public partial class CreateApplicationSchema : Migration {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
             },
             constraints: table => table.PrimaryKey("PK_GameSessions", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "GameSystems",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Code = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
+                IconUrl = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_GameSystems", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "Jobs",
@@ -89,22 +120,13 @@ public partial class CreateApplicationSchema : Migration {
             name: "Resources",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Description = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
-                ResourceType = table.Column<string>(type: "nvarchar(450)", nullable: false, defaultValue: "Undefined"),
-                Kind = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                Category = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                Type = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                Subtype = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                 ContentType = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                 Path = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                 FileName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                FileLength = table.Column<decimal>(type: "decimal(20,0)", nullable: false, defaultValue: 0m),
+                FileSize = table.Column<decimal>(type: "decimal(20,0)", nullable: false, defaultValue: 0m),
                 Width = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                 Height = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                Duration = table.Column<TimeSpan>(type: "time", nullable: false, defaultValue: new TimeSpan(0, 0, 0, 0, 0)),
-                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                IsPublished = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                IsPublic = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                Duration = table.Column<TimeSpan>(type: "time", nullable: false, defaultValue: new TimeSpan(0, 0, 0, 0, 0))
             },
             constraints: table => table.PrimaryKey("PK_Resources", x => x.Id));
 
@@ -133,6 +155,18 @@ public partial class CreateApplicationSchema : Migration {
                 CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
             },
             constraints: table => table.PrimaryKey("PK_StatBlocks", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Worlds",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false),
+                IsPublic = table.Column<bool>(type: "bit", nullable: false)
+            },
+            constraints: table => table.PrimaryKey("PK_Worlds", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "AiProviderModels",
@@ -211,6 +245,34 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
+            name: "AssetStatEntries",
+            columns: table => new {
+                AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                GameSystemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Level = table.Column<int>(type: "int", nullable: false),
+                Key = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                Value = table.Column<string>(type: "nvarchar(max)", maxLength: 8192, nullable: true),
+                Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                Description = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
+                Modifiers = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AssetStatEntries", x => new { x.AssetId, x.GameSystemId, x.Level, x.Key });
+                table.ForeignKey(
+                    name: "FK_AssetStatEntries_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_AssetStatEntries_GameSystems_GameSystemId",
+                    column: x => x.GameSystemId,
+                    principalTable: "GameSystems",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
             name: "JobItems",
             columns: table => new {
                 JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -232,29 +294,24 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
-            name: "Assets",
+            name: "AssetResources",
             columns: table => new {
-                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Kind = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                Category = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                Type = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                Subtype = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
-                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
-                PortraitId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                Width = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Height = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0),
-                Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                IsPublished = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                IsPublic = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Role = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false)
             },
             constraints: table => {
-                table.PrimaryKey("PK_Assets", x => x.Id);
+                table.PrimaryKey("PK_AssetResources", x => new { x.AssetId, x.ResourceId });
                 table.ForeignKey(
-                    name: "FK_Assets_Resources_PortraitId",
-                    column: x => x.PortraitId,
+                    name: "FK_AssetResources_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_AssetResources_Resources_ResourceId",
+                    column: x => x.ResourceId,
                     principalTable: "Resources",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -283,45 +340,6 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
-            name: "ResourceFeatures",
-            columns: table => new {
-                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Key = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                Index = table.Column<int>(type: "int", nullable: false),
-                Value = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
-            },
-            constraints: table => {
-                table.PrimaryKey("PK_ResourceFeatures", x => new { x.ResourceId, x.Key, x.Index });
-                table.ForeignKey(
-                    name: "FK_ResourceFeatures_Resources_ResourceId",
-                    column: x => x.ResourceId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-
-        migrationBuilder.CreateTable(
-            name: "Worlds",
-            columns: table => new {
-                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
-                BackgroundId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                IsPublished = table.Column<bool>(type: "bit", nullable: false),
-                IsPublic = table.Column<bool>(type: "bit", nullable: false)
-            },
-            constraints: table => {
-                table.PrimaryKey("PK_Worlds", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_Worlds_Resources_BackgroundId",
-                    column: x => x.BackgroundId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-            });
-
-        migrationBuilder.CreateTable(
             name: "Participants",
             columns: table => new {
                 UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -340,48 +358,6 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
-            name: "AssetStatBlockValues",
-            columns: table => new {
-                AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Level = table.Column<int>(type: "int", nullable: false),
-                Key = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                Value = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
-                Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
-            },
-            constraints: table => {
-                table.PrimaryKey("PK_AssetStatBlockValues", x => new { x.AssetId, x.Level, x.Key });
-                table.ForeignKey(
-                    name: "FK_AssetStatBlockValues_Assets_AssetId",
-                    column: x => x.AssetId,
-                    principalTable: "Assets",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-
-        migrationBuilder.CreateTable(
-            name: "AssetTokens",
-            columns: table => new {
-                AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                TokenId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<int>(type: "int", nullable: false)
-            },
-            constraints: table => {
-                table.PrimaryKey("PK_AssetTokens", x => new { x.AssetId, x.TokenId });
-                table.ForeignKey(
-                    name: "FK_AssetTokens_Assets_AssetId",
-                    column: x => x.AssetId,
-                    principalTable: "Assets",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-                table.ForeignKey(
-                    name: "FK_AssetTokens_Resources_TokenId",
-                    column: x => x.TokenId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-
-        migrationBuilder.CreateTable(
             name: "Campaigns",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -389,24 +365,41 @@ public partial class CreateApplicationSchema : Migration {
                 OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
-                BackgroundId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false)
             },
             constraints: table => {
                 table.PrimaryKey("PK_Campaigns", x => x.Id);
                 table.ForeignKey(
-                    name: "FK_Campaigns_Resources_BackgroundId",
-                    column: x => x.BackgroundId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-                table.ForeignKey(
                     name: "FK_Campaigns_Worlds_WorldId",
                     column: x => x.WorldId,
                     principalTable: "Worlds",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "WorldResources",
+            columns: table => new {
+                WorldId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Role = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_WorldResources", x => new { x.WorldId, x.ResourceId });
+                table.ForeignKey(
+                    name: "FK_WorldResources_Resources_ResourceId",
+                    column: x => x.ResourceId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_WorldResources_Worlds_WorldId",
+                    column: x => x.WorldId,
+                    principalTable: "Worlds",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
             });
 
         migrationBuilder.CreateTable(
@@ -419,7 +412,6 @@ public partial class CreateApplicationSchema : Migration {
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Style = table.Column<string>(type: "nvarchar(max)", nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
-                BackgroundId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 IsOneShot = table.Column<bool>(type: "bit", nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false)
@@ -433,15 +425,57 @@ public partial class CreateApplicationSchema : Migration {
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
-                    name: "FK_Adventures_Resources_BackgroundId",
-                    column: x => x.BackgroundId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-                table.ForeignKey(
                     name: "FK_Adventures_Worlds_WorldId",
                     column: x => x.WorldId,
                     principalTable: "Worlds",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "CampaignResources",
+            columns: table => new {
+                CampaignId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Role = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_CampaignResources", x => new { x.CampaignId, x.ResourceId });
+                table.ForeignKey(
+                    name: "FK_CampaignResources_Campaigns_CampaignId",
+                    column: x => x.CampaignId,
+                    principalTable: "Campaigns",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_CampaignResources_Resources_ResourceId",
+                    column: x => x.ResourceId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "AdventureResources",
+            columns: table => new {
+                AdventureId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Role = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AdventureResources", x => new { x.AdventureId, x.ResourceId });
+                table.ForeignKey(
+                    name: "FK_AdventureResources_Adventures_AdventureId",
+                    column: x => x.AdventureId,
+                    principalTable: "Adventures",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_AdventureResources_Resources_ResourceId",
+                    column: x => x.ResourceId,
+                    principalTable: "Resources",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
             });
@@ -454,12 +488,10 @@ public partial class CreateApplicationSchema : Migration {
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),
-                BackgroundId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 ZoomLevel = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
                 GroundElevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
                 Weather = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Clear"),
                 AmbientLight = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Default"),
-                AmbientSoundId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 GridScale = table.Column<double>(type: "float", nullable: false, defaultValue: 5.0),
                 GridType = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NoGrid"),
                 GridCellHeight = table.Column<double>(type: "float", nullable: false, defaultValue: 64.0),
@@ -477,25 +509,13 @@ public partial class CreateApplicationSchema : Migration {
                     principalTable: "Adventures",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
-                table.ForeignKey(
-                    name: "FK_Encounters_Resources_AmbientSoundId",
-                    column: x => x.AmbientSoundId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-                table.ForeignKey(
-                    name: "FK_Encounters_Resources_BackgroundId",
-                    column: x => x.BackgroundId,
-                    principalTable: "Resources",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
             });
 
         migrationBuilder.CreateTable(
             name: "EncounterAssets",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
                 AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                 IsLocked = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
@@ -540,7 +560,7 @@ public partial class CreateApplicationSchema : Migration {
             name: "EncounterLights",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                 Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Natural"),
                 Range = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
@@ -565,11 +585,10 @@ public partial class CreateApplicationSchema : Migration {
             name: "EncounterRegions",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                 Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Elevation"),
-                Value = table.Column<int>(type: "int", nullable: false),
-                Vertices = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                Value = table.Column<int>(type: "int", nullable: false)
             },
             constraints: table => {
                 table.PrimaryKey("PK_EncounterRegions", x => new { x.EncounterId, x.Index });
@@ -582,10 +601,34 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
+            name: "EncounterResources",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                ResourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                Role = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterResources", x => new { x.EncounterId, x.ResourceId });
+                table.ForeignKey(
+                    name: "FK_EncounterResources_Encounters_EncounterId",
+                    column: x => x.EncounterId,
+                    principalTable: "Encounters",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_EncounterResources_Resources_ResourceId",
+                    column: x => x.ResourceId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
             name: "EncounterSounds",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                 Range = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
                 IsPlaying = table.Column<bool>(type: "bit", nullable: false),
@@ -614,7 +657,7 @@ public partial class CreateApplicationSchema : Migration {
             name: "EncounterWalls",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false)
+                Index = table.Column<int>(type: "int", nullable: false)
             },
             constraints: table => {
                 table.PrimaryKey("PK_EncounterWalls", x => new { x.EncounterId, x.Index });
@@ -627,11 +670,30 @@ public partial class CreateApplicationSchema : Migration {
             });
 
         migrationBuilder.CreateTable(
+            name: "EncounterRegionVertices",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                RegionIndex = table.Column<int>(type: "int", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
+                X = table.Column<double>(type: "float", nullable: false),
+                Y = table.Column<double>(type: "float", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterRegionVertices", x => new { x.EncounterId, x.RegionIndex, x.Index });
+                table.ForeignKey(
+                    name: "FK_EncounterRegionVertices_EncounterRegions_EncounterId_RegionIndex",
+                    columns: x => new { x.EncounterId, x.RegionIndex },
+                    principalTable: "EncounterRegions",
+                    principalColumns: ["EncounterId", "Index"],
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
             name: "EncounterWallSegments",
             columns: table => new {
                 EncounterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                WallIndex = table.Column<long>(type: "bigint", nullable: false),
-                Index = table.Column<long>(type: "bigint", nullable: false),
+                WallIndex = table.Column<int>(type: "int", nullable: false),
+                Index = table.Column<int>(type: "int", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                 Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Wall"),
                 IsOpaque = table.Column<bool>(type: "bit", nullable: false),
@@ -661,9 +723,15 @@ public partial class CreateApplicationSchema : Migration {
             values: [null, 0]);
 
         migrationBuilder.CreateIndex(
-            name: "IX_Adventures_BackgroundId",
-            table: "Adventures",
-            column: "BackgroundId");
+            name: "IX_AdventureResources_AdventureId_Role_Index",
+            table: "AdventureResources",
+            columns: ["AdventureId", "Role", "Index"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AdventureResources_ResourceId",
+            table: "AdventureResources",
+            column: "ResourceId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Adventures_CampaignId",
@@ -697,6 +765,17 @@ public partial class CreateApplicationSchema : Migration {
             column: "ProviderId");
 
         migrationBuilder.CreateIndex(
+            name: "IX_AssetResources_AssetId_Role_Index",
+            table: "AssetResources",
+            columns: ["AssetId", "Role", "Index"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AssetResources_ResourceId",
+            table: "AssetResources",
+            column: "ResourceId");
+
+        migrationBuilder.CreateIndex(
             name: "IX_Assets_IsPublic_IsPublished",
             table: "Assets",
             columns: ["IsPublic", "IsPublished"]);
@@ -707,25 +786,19 @@ public partial class CreateApplicationSchema : Migration {
             column: "OwnerId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Assets_PortraitId",
-            table: "Assets",
-            column: "PortraitId");
-
-        migrationBuilder.CreateIndex(
             name: "IX_Assets_Taxonomy",
             table: "Assets",
             columns: ["Kind", "Category", "Type"]);
 
         migrationBuilder.CreateIndex(
-            name: "IX_AssetTokens_AssetId_Index",
-            table: "AssetTokens",
-            columns: ["AssetId", "Index"],
-            unique: true);
+            name: "IX_AssetStatEntries_AssetId_GameSystemId",
+            table: "AssetStatEntries",
+            columns: ["AssetId", "GameSystemId"]);
 
         migrationBuilder.CreateIndex(
-            name: "IX_AssetTokens_TokenId",
-            table: "AssetTokens",
-            column: "TokenId");
+            name: "IX_AssetStatEntries_GameSystemId",
+            table: "AssetStatEntries",
+            column: "GameSystemId");
 
         migrationBuilder.CreateIndex(
             name: "IX_AuditLogs_Action",
@@ -755,9 +828,15 @@ public partial class CreateApplicationSchema : Migration {
             column: "UserId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Campaigns_BackgroundId",
-            table: "Campaigns",
-            column: "BackgroundId");
+            name: "IX_CampaignResources_CampaignId_Role_Index",
+            table: "CampaignResources",
+            columns: ["CampaignId", "Role", "Index"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_CampaignResources_ResourceId",
+            table: "CampaignResources",
+            column: "ResourceId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Campaigns_WorldId",
@@ -785,19 +864,25 @@ public partial class CreateApplicationSchema : Migration {
             column: "EncounterId");
 
         migrationBuilder.CreateIndex(
+            name: "IX_EncounterRegionVertices_EncounterId_RegionIndex_Index",
+            table: "EncounterRegionVertices",
+            columns: ["EncounterId", "RegionIndex", "Index"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterResources_EncounterId_Role_Index",
+            table: "EncounterResources",
+            columns: ["EncounterId", "Role", "Index"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterResources_ResourceId",
+            table: "EncounterResources",
+            column: "ResourceId");
+
+        migrationBuilder.CreateIndex(
             name: "IX_Encounters_AdventureId",
             table: "Encounters",
             column: "AdventureId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Encounters_AmbientSoundId",
-            table: "Encounters",
-            column: "AmbientSoundId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Encounters_BackgroundId",
-            table: "Encounters",
-            column: "BackgroundId");
 
         migrationBuilder.CreateIndex(
             name: "IX_EncounterSounds_EncounterId",
@@ -818,6 +903,12 @@ public partial class CreateApplicationSchema : Migration {
             name: "IX_EncounterWallSegments_EncounterId",
             table: "EncounterWallSegments",
             column: "EncounterId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_GameSystems_Code",
+            table: "GameSystems",
+            column: "Code",
+            unique: true);
 
         migrationBuilder.CreateIndex(
             name: "IX_JobItems_Status",
@@ -881,49 +972,41 @@ public partial class CreateApplicationSchema : Migration {
             column: "ReferenceImageId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Resources_IsPublic_IsPublished",
-            table: "Resources",
-            columns: ["IsPublic", "IsPublished"]);
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Resources_OwnerId",
-            table: "Resources",
-            column: "OwnerId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Resources_OwnerId_ResourceType",
-            table: "Resources",
-            columns: ["OwnerId", "ResourceType"]);
-
-        migrationBuilder.CreateIndex(
             name: "IX_Resources_Path_FileName",
             table: "Resources",
             columns: ["Path", "FileName"]);
 
         migrationBuilder.CreateIndex(
-            name: "IX_Resources_ResourceType",
-            table: "Resources",
-            column: "ResourceType");
+            name: "IX_WorldResources_ResourceId",
+            table: "WorldResources",
+            column: "ResourceId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Worlds_BackgroundId",
-            table: "Worlds",
-            column: "BackgroundId");
+            name: "IX_WorldResources_WorldId_Role_Index",
+            table: "WorldResources",
+            columns: ["WorldId", "Role", "Index"],
+            unique: true);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder) {
         migrationBuilder.DropTable(
+            name: "AdventureResources");
+
+        migrationBuilder.DropTable(
             name: "AiProviderModels");
 
         migrationBuilder.DropTable(
-            name: "AssetStatBlockValues");
+            name: "AssetResources");
 
         migrationBuilder.DropTable(
-            name: "AssetTokens");
+            name: "AssetStatEntries");
 
         migrationBuilder.DropTable(
             name: "AuditLogs");
+
+        migrationBuilder.DropTable(
+            name: "CampaignResources");
 
         migrationBuilder.DropTable(
             name: "EncounterAssets");
@@ -932,7 +1015,10 @@ public partial class CreateApplicationSchema : Migration {
             name: "EncounterLights");
 
         migrationBuilder.DropTable(
-            name: "EncounterRegions");
+            name: "EncounterRegionVertices");
+
+        migrationBuilder.DropTable(
+            name: "EncounterResources");
 
         migrationBuilder.DropTable(
             name: "EncounterSounds");
@@ -962,16 +1048,22 @@ public partial class CreateApplicationSchema : Migration {
             name: "PromptTemplates");
 
         migrationBuilder.DropTable(
-            name: "ResourceFeatures");
+            name: "StatBlocks");
 
         migrationBuilder.DropTable(
-            name: "StatBlocks");
+            name: "WorldResources");
 
         migrationBuilder.DropTable(
             name: "AiProviderConfigs");
 
         migrationBuilder.DropTable(
+            name: "GameSystems");
+
+        migrationBuilder.DropTable(
             name: "Assets");
+
+        migrationBuilder.DropTable(
+            name: "EncounterRegions");
 
         migrationBuilder.DropTable(
             name: "EncounterWalls");
@@ -986,6 +1078,9 @@ public partial class CreateApplicationSchema : Migration {
             name: "GameSessions");
 
         migrationBuilder.DropTable(
+            name: "Resources");
+
+        migrationBuilder.DropTable(
             name: "Encounters");
 
         migrationBuilder.DropTable(
@@ -996,9 +1091,6 @@ public partial class CreateApplicationSchema : Migration {
 
         migrationBuilder.DropTable(
             name: "Worlds");
-
-        migrationBuilder.DropTable(
-            name: "Resources");
 
         migrationBuilder.DropColumn(
             name: "AvatarId",

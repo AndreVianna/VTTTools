@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Handlers;
+namespace VttTools.Auth.Handlers;
 
 public class ProfileHandlersTests {
     private readonly IProfileService _mockProfileService;
@@ -57,7 +57,7 @@ public class ProfileHandlersTests {
     public async Task GetProfileHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var act = async () => await ProfileHandlers.GetProfileHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
+        var act = () => ProfileHandlers.GetProfileHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 
@@ -129,7 +129,7 @@ public class ProfileHandlersTests {
             DisplayName = "UpdatedUser"
         };
 
-        var act = async () => await ProfileHandlers.UpdateProfileHandler(_mockHttpContext, request, _mockProfileService, TestContext.Current.CancellationToken);
+        var act = () => ProfileHandlers.UpdateProfileHandler(_mockHttpContext, request, _mockProfileService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 
@@ -261,7 +261,7 @@ public class ProfileHandlersTests {
         mockFile.Length.Returns(1024);
         mockFile.ContentType.Returns("image/png");
 
-        var act = async () => await ProfileHandlers.UpdateAvatarHandler(_mockHttpContext, mockFile, _mockProfileService, _mockResourceService, TestContext.Current.CancellationToken);
+        var act = () => ProfileHandlers.UpdateAvatarHandler(_mockHttpContext, mockFile, _mockProfileService, _mockResourceService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 
@@ -378,7 +378,7 @@ public class ProfileHandlersTests {
     public async Task RemoveAvatarHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var act = async () => await ProfileHandlers.RemoveAvatarHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
+        var act = () => ProfileHandlers.RemoveAvatarHandler(_mockHttpContext, _mockProfileService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 

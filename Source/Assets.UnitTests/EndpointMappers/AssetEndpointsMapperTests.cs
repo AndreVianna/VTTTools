@@ -19,12 +19,14 @@ public class AssetEndpointsMapperTests {
         _app.Received(1).MapGroup("/api/assets");
         _app.DataSources.Should().HaveCount(1);
         var groupDataSource = _app.DataSources.First();
-        groupDataSource.Endpoints.Should().HaveCount(6);
+        groupDataSource.Endpoints.Should().HaveCount(8);
         groupDataSource.Endpoints[0].DisplayName.Should().Be("HTTP: GET /api/assets/ => GetAssetsHandler");
         groupDataSource.Endpoints[1].DisplayName.Should().Be("HTTP: GET /api/assets/{id:guid} => GetAssetByIdHandler");
         groupDataSource.Endpoints[2].DisplayName.Should().Be("HTTP: POST /api/assets/ => CreateAssetHandler");
         groupDataSource.Endpoints[3].DisplayName.Should().Be("HTTP: POST /api/assets/{id:guid}/clone => CloneAssetHandler");
         groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: PATCH /api/assets/{id:guid} => UpdateAssetHandler");
         groupDataSource.Endpoints[5].DisplayName.Should().Be("HTTP: DELETE /api/assets/{id:guid} => DeleteAssetHandler");
+        groupDataSource.Endpoints[6].DisplayName.Should().Be("HTTP: POST /api/assets/{id:guid}/tokens => AddTokenHandler");
+        groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: DELETE /api/assets/{id:guid}/tokens => RemoveTokenHandler");
     }
 }

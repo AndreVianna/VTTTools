@@ -1,10 +1,13 @@
 using Adventure = VttTools.Data.Library.Entities.Adventure;
 using AiModel = VttTools.Data.AI.Entities.AiModel;
 using Asset = VttTools.Data.Assets.Entities.Asset;
+using AssetStatEntry = VttTools.Data.Assets.Entities.AssetStatEntry;
 using AuditLog = VttTools.Data.Audit.Entities.AuditLog;
 using Campaign = VttTools.Data.Library.Entities.Campaign;
 using Encounter = VttTools.Data.Library.Entities.Encounter;
+using EncounterRegionVertex = VttTools.Data.Library.Entities.EncounterRegionVertex;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
+using GameSystem = VttTools.Data.Common.Entities.GameSystem;
 using Job = VttTools.Data.Jobs.Entities.Job;
 using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
 using PromptTemplate = VttTools.Data.AI.Entities.PromptTemplate;
@@ -20,11 +23,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     : IdentityDbContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>(options) {
     public DbSet<Resource> Resources { get; set; }
     public DbSet<Asset> Assets { get; set; }
+    public DbSet<AssetStatEntry> AssetStatEntries { get; set; }
     public DbSet<World> Worlds { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
     public DbSet<Encounter> Encounters { get; set; }
+    public DbSet<EncounterRegionVertex> EncounterRegionVertices { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
+    public DbSet<GameSystem> GameSystems { get; set; }
     public DbSet<Schedule> Schedule { get; set; }
     public DbSet<StatBlock> StatBlocks { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
@@ -49,6 +55,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         EncounterSchemaBuilder.ConfigureModel(builder);
         ScheduleSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
+        GameSystemSchemaBuilder.ConfigureModel(builder);
         AuditLogSchemaBuilder.ConfigureModel(builder);
         MaintenanceModeSchemaBuilder.ConfigureModel(builder);
         PromptTemplateSchemaBuilder.ConfigureModel(builder);

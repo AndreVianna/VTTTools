@@ -16,8 +16,8 @@ public sealed class ListCommandTests : IDisposable {
         _tempDir = Path.Combine(Path.GetTempPath(), $"TokenManagerTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
-        _imageStore = new HierarchicalFileStore(_tempDir);
-        _command = new ListCommand(_imageStore);
+        _imageStore = new(_tempDir);
+        _command = new(_imageStore);
     }
 
     public void Dispose() {
@@ -227,12 +227,12 @@ public sealed class ListCommandTests : IDisposable {
     }
 
     [Fact]
-    public async Task Should_HandleMissingFile_When_ImportPathInvalid() {
+    public Task Should_HandleMissingFile_When_ImportPathInvalid() {
         var options = new ListTokensOptions(
-            KindFilter: null,
-            Name: null,
-            ImportPath: Path.Combine(_tempDir, "missing.json"));
+                                            KindFilter: null,
+                                            Name: null,
+                                            ImportPath: Path.Combine(_tempDir, "missing.json"));
 
-        await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
+        return _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
     }
 }

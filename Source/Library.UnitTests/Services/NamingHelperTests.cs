@@ -1,4 +1,4 @@
-namespace VttTools.Library.UnitTests.Services;
+namespace VttTools.Library.Services;
 
 public class NamingHelperTests {
     [Fact]

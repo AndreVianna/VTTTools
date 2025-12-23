@@ -1,8 +1,9 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
+using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
 using AdventureStyle = VttTools.Library.Adventures.Model.AdventureStyle;
 using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using ResourceType = VttTools.Media.Model.ResourceType;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
 
 namespace VttTools.Library.Services;
 
@@ -266,17 +267,17 @@ public class ContentQueryServiceTests : IDisposable {
         bool isPublished = false,
         bool isPublic = false) {
         var owner = ownerId ?? _userId;
+        var adventureId = Guid.CreateVersion7();
         var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = $"backgrounds/{name}.jpg",
             ContentType = "image/jpeg",
             FileName = $"{name}.jpg",
-            FileLength = 1024,
+            FileSize = 1024,
         };
 
         var adventure = new AdventureEntity {
-            Id = Guid.CreateVersion7(),
+            Id = adventureId,
             Name = name,
             OwnerId = owner,
             IsOneShot = isOneShot,
@@ -284,7 +285,14 @@ public class ContentQueryServiceTests : IDisposable {
             IsPublished = isPublished,
             IsPublic = isPublic,
             Description = $"Description for {name}",
-            Background = background
+            Resources = [
+                new AdventureResourceEntity {
+                    AdventureId = adventureId,
+                    ResourceId = background.Id,
+                    Resource = background,
+                    Index = 0
+                }
+            ]
         };
 
         _context.Adventures.Add(adventure);
@@ -292,23 +300,30 @@ public class ContentQueryServiceTests : IDisposable {
     }
 
     private async Task SeedAdventureWithEncounters(string name, int encounterCount) {
+        var adventureId = Guid.CreateVersion7();
         var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = $"backgrounds/{name}.jpg",
             ContentType = "image/jpeg",
             FileName = $"{name}.jpg",
-            FileLength = 1024,
+            FileSize = 1024,
         };
 
         var adventure = new AdventureEntity {
-            Id = Guid.CreateVersion7(),
+            Id = adventureId,
             Name = name,
             OwnerId = _userId,
             IsPublished = true,
             IsPublic = false,
             Description = $"Description for {name}",
-            Background = background
+            Resources = [
+                new AdventureResourceEntity {
+                    AdventureId = adventureId,
+                    ResourceId = background.Id,
+                    Resource = background,
+                    Index = 0
+                }
+            ]
         };
 
         for (var i = 0; i < encounterCount; i++) {

@@ -14,11 +14,10 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
                 Metadata = new Dictionary<string, string> {
                     ["GeneratedContentType"] = metadata.ContentType,
                     ["FileName"] = metadata.FileName,
-                    ["FileLength"] = metadata.FileLength.ToString(),
-                    ["Width"] = metadata.Size.Width.ToString(),
-                    ["Height"] = metadata.Size.Height.ToString(),
+                    ["FileSize"] = metadata.FileSize.ToString(),
+                    ["Width"] = metadata.Dimensions.Width.ToString(),
+                    ["Height"] = metadata.Dimensions.Height.ToString(),
                     ["Duration"] = metadata.Duration.ToString(),
-                    ["OwnerId"] = metadata.OwnerId.ToString(),
                 },
                 HttpHeaders = new() {
                     ContentType = metadata.ContentType,

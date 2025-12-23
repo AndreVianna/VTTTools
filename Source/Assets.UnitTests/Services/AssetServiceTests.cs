@@ -23,12 +23,12 @@ public class AssetServiceTests {
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Test Asset 1",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
             },
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Test Asset 2",
-                Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null)
+                Classification = new(AssetKind.Object, "Furniture", "Container", null)
             },
         };
         _assetStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(assets);
@@ -47,7 +47,7 @@ public class AssetServiceTests {
             Id = assetId,
             Name = "Test Asset",
             Description = "Test Description",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId
         };
         _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
@@ -70,7 +70,7 @@ public class AssetServiceTests {
             Type = "Goblinoid",
             Subtype = "Goblin",
             PortraitId = portraitId,
-            TokenSize = new NamedSize(SizeName.Medium),
+            TokenSize = new(SizeName.Medium),
             Tags = ["hostile"]
         };
         _assetStorage.SearchAsync(_userId, search: data.Name, ct: Arg.Any<CancellationToken>())
@@ -98,7 +98,7 @@ public class AssetServiceTests {
             Id = assetId,
             Name = "Old Name",
             Description = "Old Description",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
         };
 
@@ -132,7 +132,7 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = _userId,
         };
 
@@ -157,7 +157,7 @@ public class AssetServiceTests {
             Id = assetId,
             Name = "Original Name",
             Description = "Original Description",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
         };
 
@@ -184,7 +184,7 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = _userId,
         };
 
@@ -204,7 +204,7 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = _userId,
         };
 
@@ -255,7 +255,7 @@ public class AssetServiceTests {
             Id = templateId,
             Name = "Original Asset",
             Description = "Original Description",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             Tags = ["tag1", "tag2"],
         };
@@ -283,7 +283,7 @@ public class AssetServiceTests {
             Id = templateId,
             Name = "Public Asset",
             Description = "Public Description",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = ownerId,
             IsPublic = true,
             IsPublished = true,
@@ -308,7 +308,7 @@ public class AssetServiceTests {
         var privateAsset = new Asset {
             Id = templateId,
             Name = "Private Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = ownerId,
             IsPublic = false,
             IsPublished = false,
@@ -331,7 +331,7 @@ public class AssetServiceTests {
         var unpublishedAsset = new Asset {
             Id = templateId,
             Name = "Unpublished Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = ownerId,
             IsPublic = true,
             IsPublished = false,
@@ -366,7 +366,7 @@ public class AssetServiceTests {
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Search Result",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
             }
         };
         const Availability availability = Availability.Public;
@@ -404,7 +404,7 @@ public class AssetServiceTests {
         var existingAsset = new Asset {
             Id = Guid.CreateVersion7(),
             Name = data.Name,
-            Classification = new AssetClassification(data.Kind, data.Category, data.Type, null),
+            Classification = new(data.Kind, data.Category, data.Type, null),
             OwnerId = _userId
         };
         _assetStorage.SearchAsync(_userId, search: data.Name, ct: Arg.Any<CancellationToken>())
@@ -444,7 +444,6 @@ public class AssetServiceTests {
         var portrait = new ResourceMetadata {
             Id = portraitId,
             Path = "/path/to/portrait.jpg",
-            ResourceType = ResourceType.Portrait,
             ContentType = "image/jpeg"
         };
         var data = new CreateAssetData {
@@ -499,7 +498,7 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Original Name",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId
         };
         var data = new UpdateAssetData {
@@ -523,13 +522,12 @@ public class AssetServiceTests {
         var portrait = new ResourceMetadata {
             Id = portraitId,
             Path = "/path/to/portrait.jpg",
-            ResourceType = ResourceType.Portrait,
             ContentType = "image/jpeg"
         };
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             Portrait = null
         };
@@ -556,13 +554,12 @@ public class AssetServiceTests {
         var existingPortrait = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
             Path = "/path/to/portrait.jpg",
-            ResourceType = ResourceType.Portrait,
             ContentType = "image/jpeg"
         };
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             Portrait = existingPortrait
         };
@@ -587,13 +584,12 @@ public class AssetServiceTests {
         var existingPortrait = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
             Path = "/path/to/portrait.jpg",
-            ResourceType = ResourceType.Portrait,
             ContentType = "image/jpeg"
         };
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             Portrait = existingPortrait
         };
@@ -618,7 +614,7 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId
         };
         var data = new UpdateAssetData {
@@ -647,7 +643,7 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             Tags = ["old-tag"]
         };

@@ -1,4 +1,4 @@
-namespace VttTools.Common.UnitTests.Configuration;
+namespace VttTools.Configuration;
 
 public class JwtOptionsTests {
     #region SecretKey Validation Tests
@@ -8,7 +8,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         };
 
         Assert.Equal("valid-secret-key-with-minimum-32-characters-required", options.SecretKey);
@@ -19,7 +19,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "12345678901234567890123456789012",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         };
 
         Assert.Equal("12345678901234567890123456789012", options.SecretKey);
@@ -31,7 +31,7 @@ public class JwtOptionsTests {
         var exception = Assert.Throws<ArgumentException>(() => new JwtOptions {
             SecretKey = "short-key",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         });
 
         Assert.Contains("must be at least 32 characters long", exception.Message);
@@ -43,7 +43,7 @@ public class JwtOptionsTests {
         var exception = Assert.Throws<ArgumentException>(() => new JwtOptions {
             SecretKey = "1234567890123456789012345678901",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         });
 
         Assert.Contains("must be at least 32 characters long", exception.Message);
@@ -54,7 +54,7 @@ public class JwtOptionsTests {
         var exception = Assert.Throws<ArgumentException>(() => new JwtOptions {
             SecretKey = "",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         });
 
         Assert.Contains("cannot be empty", exception.Message);
@@ -66,7 +66,7 @@ public class JwtOptionsTests {
         var exception = Assert.Throws<ArgumentException>(() => new JwtOptions {
             SecretKey = "   ",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         });
 
         Assert.Contains("cannot be empty", exception.Message);
@@ -78,7 +78,7 @@ public class JwtOptionsTests {
         var exception = Assert.Throws<ArgumentException>(() => new JwtOptions {
             SecretKey = null!,
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         });
 
         Assert.Contains("cannot be empty", exception.Message);
@@ -94,7 +94,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "production-secure-random-key-min-32-chars-x1y2z3a4b5c6",
             Issuer = "VttTools.Auth",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         var exception = Record.Exception(options.ValidateForProduction);
@@ -107,7 +107,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "development-secret-key-min-32-characters-long-change-in-production-vtttools",
             Issuer = "VttTools.Auth",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         var exception = Assert.Throws<InvalidOperationException>(options.ValidateForProduction);
@@ -121,7 +121,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "DEVELOPMENT-secret-key-min-32-characters-long-change-in-production",
             Issuer = "VttTools.Auth",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         var exception = Assert.Throws<InvalidOperationException>(options.ValidateForProduction);
@@ -134,7 +134,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "please-change-this-secret-key-to-something-secure-minimum-32-chars",
             Issuer = "VttTools.Auth",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         var exception = Assert.Throws<InvalidOperationException>(options.ValidateForProduction);
@@ -147,7 +147,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "temporary-key-change-in-production-min-32-characters-required-here",
             Issuer = "VttTools.Auth",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         var exception = Assert.Throws<InvalidOperationException>(options.ValidateForProduction);
@@ -160,7 +160,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "temporary-key-ChAnGe-In-PrOdUcTiOn-min-32-characters-required",
             Issuer = "VttTools.Auth",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         var exception = Assert.Throws<InvalidOperationException>(options.ValidateForProduction);
@@ -177,7 +177,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         };
 
         Assert.Equal(60, options.ExpirationMinutes);
@@ -188,7 +188,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "TestIssuer",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         };
 
         Assert.Equal(43200, options.RememberMeExpirationMinutes);
@@ -200,7 +200,7 @@ public class JwtOptionsTests {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "TestIssuer",
             Audience = "TestAudience",
-            ExpirationMinutes = 15
+            ExpirationMinutes = 15,
         };
 
         Assert.Equal(15, options.ExpirationMinutes);
@@ -212,7 +212,7 @@ public class JwtOptionsTests {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "TestIssuer",
             Audience = "TestAudience",
-            RememberMeExpirationMinutes = 1440
+            RememberMeExpirationMinutes = 1440,
         };
 
         Assert.Equal(1440, options.RememberMeExpirationMinutes);
@@ -227,7 +227,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "VttTools.Auth",
-            Audience = "TestAudience"
+            Audience = "TestAudience",
         };
 
         Assert.Equal("VttTools.Auth", options.Issuer);
@@ -238,7 +238,7 @@ public class JwtOptionsTests {
         var options = new JwtOptions {
             SecretKey = "valid-secret-key-with-minimum-32-characters-required",
             Issuer = "TestIssuer",
-            Audience = "VttTools.Services"
+            Audience = "VttTools.Services",
         };
 
         Assert.Equal("VttTools.Services", options.Audience);

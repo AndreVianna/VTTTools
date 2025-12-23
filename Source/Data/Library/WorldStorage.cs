@@ -30,7 +30,8 @@ public class WorldStorage(ApplicationDbContext context)
     public async Task<World[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Worlds
             .Include(e => e.Campaigns)
-            .Include(e => e.Background)
+            .Include(e => e.Resources)
+                .ThenInclude(r => r.Resource)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.Select(Mapper.AsWorld).ToArrayAsync(ct);
@@ -41,7 +42,8 @@ public class WorldStorage(ApplicationDbContext context)
     public async Task<World[]> SearchAsync(string filterDefinition, CancellationToken ct = default) {
         var query = context.Worlds
             .Include(e => e.Campaigns)
-            .Include(e => e.Background)
+            .Include(e => e.Resources)
+                .ThenInclude(r => r.Resource)
             .AsSplitQuery()
             .AsNoTracking();
 
@@ -66,7 +68,8 @@ public class WorldStorage(ApplicationDbContext context)
         var query = context.Worlds
             .Include(e => e.Campaigns)
                 .ThenInclude(c => c.Adventures)
-            .Include(e => e.Background)
+            .Include(e => e.Resources)
+                .ThenInclude(r => r.Resource)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(e => e.Id == id, ct);

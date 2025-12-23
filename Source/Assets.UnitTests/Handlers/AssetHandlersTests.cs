@@ -15,7 +15,7 @@ public class AssetHandlersTests {
         var claims = new List<Claim> {
             new(ClaimTypes.NameIdentifier, _userId.ToString())
         };
-        context.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+        context.User = new(new ClaimsIdentity(claims, "TestAuth"));
         return context;
     }
 
@@ -26,12 +26,12 @@ public class AssetHandlersTests {
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Asset 1",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
             },
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Asset 2",
-                Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null)
+                Classification = new(AssetKind.Object, "Furniture", "Container", null)
             }
         };
         _assetService.SearchAssetsAsync(_userId, null, null, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>())
@@ -56,7 +56,7 @@ public class AssetHandlersTests {
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Creature Asset",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
             }
         };
         _assetService.SearchAssetsAsync(_userId, null, AssetKind.Creature, null, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>())
@@ -82,7 +82,7 @@ public class AssetHandlersTests {
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Humanoid Asset",
-                Classification = new AssetClassification(AssetKind.Creature, category, "Goblinoid", "Goblin")
+                Classification = new(AssetKind.Creature, category, "Goblinoid", "Goblin")
             }
         };
         _assetService.SearchAssetsAsync(_userId, null, null, category, null, null, null, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>())
@@ -108,7 +108,7 @@ public class AssetHandlersTests {
             new() {
                 Id = Guid.CreateVersion7(),
                 Name = "Goblin Warrior",
-                Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
+                Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin")
             }
         };
         _assetService.SearchAssetsAsync(_userId, null, null, null, null, null, searchTerm, null, Arg.Any<ICollection<AdvancedSearchFilter>>(), null, null, null, Arg.Any<CancellationToken>())
@@ -174,7 +174,7 @@ public class AssetHandlersTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Test Asset",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             IsPublic = false,
             IsPublished = false
@@ -206,7 +206,7 @@ public class AssetHandlersTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Private Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = Guid.CreateVersion7(),
             IsPublic = false,
             IsPublished = false
@@ -225,7 +225,7 @@ public class AssetHandlersTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Public Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = Guid.CreateVersion7(),
             IsPublic = true,
             IsPublished = true
@@ -252,7 +252,7 @@ public class AssetHandlersTests {
             Id = Guid.CreateVersion7(),
             Name = request.Name,
             Description = request.Description,
-            Classification = new AssetClassification(request.Kind, request.Category, request.Type, request.Subtype),
+            Classification = new(request.Kind, request.Category, request.Type, request.Subtype),
             OwnerId = _userId
         };
         _assetService.CreateAssetAsync(_userId, Arg.Any<CreateAssetData>(), Arg.Any<CancellationToken>())
@@ -325,7 +325,7 @@ public class AssetHandlersTests {
             Id = assetId,
             Name = request.Name.Value,
             Description = request.Description.Value,
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId
         };
         _assetService.UpdateAssetAsync(_userId, assetId, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
@@ -430,7 +430,7 @@ public class AssetHandlersTests {
             Id = Guid.CreateVersion7(),
             Name = "Cloned Asset",
             Description = "Cloned Description",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId
         };
         _assetService.CloneAssetAsync(_userId, templateId, Arg.Any<CancellationToken>())
@@ -476,7 +476,7 @@ public class AssetHandlersTests {
             Id = Guid.CreateVersion7(),
             Name = "Cloned Public Asset",
             Description = "Cloned from public template",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = _userId
         };
         _assetService.CloneAssetAsync(_userId, templateId, Arg.Any<CancellationToken>())
@@ -700,21 +700,21 @@ public class AssetHandlersTests {
     }
 
     [Fact]
-    public async Task GetAssetByIdHandler_WithAssetContainingTokens_FiltersTokensByOwnership() {
+    public async Task GetAssetByIdHandler_WithAssetContainingTokens_ReturnsAllTokens() {
         var context = CreateHttpContext();
         var assetId = Guid.CreateVersion7();
-        var ownedTokenId = Guid.CreateVersion7();
-        var publicTokenId = Guid.CreateVersion7();
-        var privateTokenId = Guid.CreateVersion7();
+        var token1Id = Guid.CreateVersion7();
+        var token2Id = Guid.CreateVersion7();
+        var token3Id = Guid.CreateVersion7();
         var asset = new Asset {
             Id = assetId,
             Name = "Asset with Tokens",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
+            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = _userId,
             Tokens = [
-                new ResourceMetadata { Id = ownedTokenId, Path = "/token1.png", ResourceType = ResourceType.Token, ContentType = "image/png", FileName = "token1.png", FileLength = 1024, OwnerId = _userId, IsPublic = false, IsPublished = false },
-                new ResourceMetadata { Id = publicTokenId, Path = "/token2.png", ResourceType = ResourceType.Token, ContentType = "image/png", FileName = "token2.png", FileLength = 2048, OwnerId = Guid.CreateVersion7(), IsPublic = true, IsPublished = true },
-                new ResourceMetadata { Id = privateTokenId, Path = "/token3.png", ResourceType = ResourceType.Token, ContentType = "image/png", FileName = "token3.png", FileLength = 3072, OwnerId = Guid.CreateVersion7(), IsPublic = false, IsPublished = false }
+                new() { Id = token1Id, Path = "/token1.png", ContentType = "image/png", FileName = "token1.png", FileSize = 1024 },
+                new() { Id = token2Id, Path = "/token2.png", ContentType = "image/png", FileName = "token2.png", FileSize = 2048 },
+                new() { Id = token3Id, Path = "/token3.png", ContentType = "image/png", FileName = "token3.png", FileSize = 3072 },
             ]
         };
         _assetService.GetAssetByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
@@ -723,10 +723,10 @@ public class AssetHandlersTests {
 
         result.Should().BeOfType<Ok<Asset>>();
         var okResult = (Ok<Asset>)result;
-        okResult.Value!.Tokens.Should().HaveCount(2);
-        okResult.Value!.Tokens.Should().Contain(t => t.Id == ownedTokenId);
-        okResult.Value!.Tokens.Should().Contain(t => t.Id == publicTokenId);
-        okResult.Value!.Tokens.Should().NotContain(t => t.Id == privateTokenId);
+        okResult.Value!.Tokens.Should().HaveCount(3);
+        okResult.Value!.Tokens.Should().Contain(t => t.Id == token1Id);
+        okResult.Value!.Tokens.Should().Contain(t => t.Id == token2Id);
+        okResult.Value!.Tokens.Should().Contain(t => t.Id == token3Id);
     }
 
     [Fact]
@@ -736,7 +736,7 @@ public class AssetHandlersTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Unpublished Public Asset",
-            Classification = new AssetClassification(AssetKind.Object, "Furniture", "Container", null),
+            Classification = new(AssetKind.Object, "Furniture", "Container", null),
             OwnerId = Guid.CreateVersion7(),
             IsPublic = true,
             IsPublished = false
@@ -764,9 +764,9 @@ public class AssetHandlersTests {
             Id = Guid.CreateVersion7(),
             Name = request.Name,
             Description = request.Description,
-            Classification = new AssetClassification(request.Kind, request.Category, request.Type, null),
+            Classification = new(request.Kind, request.Category, request.Type, null),
             OwnerId = _userId,
-            Portrait = new ResourceMetadata { Id = portraitId, Path = "/path/to/portrait.jpg", ResourceType = ResourceType.Portrait, ContentType = "image/jpeg" }
+            Portrait = new() { Id = portraitId, Path = "/path/to/portrait.jpg", ContentType = "image/jpeg" }
         };
         _assetService.CreateAssetAsync(_userId, Arg.Is<CreateAssetData>(d => d.PortraitId == portraitId), Arg.Any<CancellationToken>())
             .Returns(Result.Success(createdAsset));

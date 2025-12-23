@@ -172,13 +172,13 @@ internal static class CommandFactory {
             skipApiOption
         };
 
-        doctorCommand.SetAction(async parseResult => {
+        doctorCommand.SetAction(parseResult => {
             var verbose = parseResult.GetValue(verboseOption);
             var skipApi = parseResult.GetValue(skipApiOption);
 
             var cmd = new DoctorCommand(config, httpClientFactory, outputDir.FullName);
             var options = new DoctorOptions(verbose, skipApi);
-            return await cmd.ExecuteAsync(options);
+            return cmd.ExecuteAsync(options);
         });
 
         return doctorCommand;

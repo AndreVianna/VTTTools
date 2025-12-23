@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public sealed class LibraryAdminHandlersTests {
     private readonly ILibraryConfigService _mockService;

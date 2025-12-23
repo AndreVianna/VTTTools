@@ -9,7 +9,7 @@ public static class ConfigurationHandlers {
 
         return Results.Ok(new {
             ServiceName = "Library",
-            Entries = entries
+            Entries = entries,
         });
     }
 }

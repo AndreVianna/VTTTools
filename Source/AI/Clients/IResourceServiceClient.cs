@@ -6,8 +6,6 @@ public interface IResourceServiceClient {
         byte[] imageData,
         string fileName,
         string contentType,
-        ResourceType resourceType,
-        ResourceClassification? classification = null,
-        string? description = null,
+        ResourceRole role,
         CancellationToken ct = default);
 }

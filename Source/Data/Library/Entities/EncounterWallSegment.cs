@@ -2,9 +2,9 @@ namespace VttTools.Data.Library.Entities;
 
 public class EncounterWallSegment {
     public Guid EncounterId { get; set; }
-    public uint WallIndex { get; set; }
+    public ushort WallIndex { get; set; }
     public EncounterWall Wall { get; set; } = null!;
-    public uint Index { get; set; }
+    public ushort Index { get; set; }
 
     [MaxLength(128)]
     public string? Name { get; set; }

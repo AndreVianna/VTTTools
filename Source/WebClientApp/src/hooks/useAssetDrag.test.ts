@@ -26,6 +26,7 @@ const createMockAsset = (id: string): Asset => ({
   portrait: null,
   tokenSize: { width: 1, height: 1 },
   statBlocks: {},
+  tags: [],
 });
 
 describe('useAssetDrag', () => {

@@ -1,13 +1,13 @@
 
-namespace VttTools.Common.UnitTests.Extensions;
+namespace VttTools.Extensions;
 
 public class ClaimsPrincipalExtensionsTests {
     [Fact]
     public void GetUserId_WithValidUserId_ReturnsGuid() {
         var userId = Guid.NewGuid();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        ]));
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+                                                               ]));
 
         var result = principal.GetUserId();
 
@@ -18,8 +18,8 @@ public class ClaimsPrincipalExtensionsTests {
     public void GetUserId_WithValidUserIdInDifferentFormat_ReturnsGuid() {
         var userId = Guid.NewGuid();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString("N"))
-        ]));
+            new(ClaimTypes.NameIdentifier, userId.ToString("N")),
+                                                               ]));
 
         var result = principal.GetUserId();
 
@@ -29,8 +29,8 @@ public class ClaimsPrincipalExtensionsTests {
     [Fact]
     public void GetUserId_WithMissingClaim_ThrowsUnauthorizedAccessException() {
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.Email, "test@example.com")
-        ]));
+            new(ClaimTypes.Email, "test@example.com"),
+                                                               ]));
 
         var act = principal.GetUserId;
 
@@ -41,8 +41,8 @@ public class ClaimsPrincipalExtensionsTests {
     [Fact]
     public void GetUserId_WithEmptyClaim_ThrowsUnauthorizedAccessException() {
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, string.Empty)
-        ]));
+            new(ClaimTypes.NameIdentifier, string.Empty),
+                                                               ]));
 
         var act = principal.GetUserId;
 
@@ -63,8 +63,8 @@ public class ClaimsPrincipalExtensionsTests {
     [Fact]
     public void GetUserId_WithInvalidGuidFormat_ThrowsUnauthorizedAccessException() {
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, "not-a-guid")
-        ]));
+            new(ClaimTypes.NameIdentifier, "not-a-guid"),
+                                                               ]));
 
         var act = principal.GetUserId;
 
@@ -75,8 +75,8 @@ public class ClaimsPrincipalExtensionsTests {
     [Fact]
     public void GetUserId_WithWhitespaceClaim_ThrowsUnauthorizedAccessException() {
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, "   ")
-        ]));
+            new(ClaimTypes.NameIdentifier, "   "),
+                                                               ]));
 
         var act = principal.GetUserId;
 
@@ -88,9 +88,9 @@ public class ClaimsPrincipalExtensionsTests {
     public void GetUserId_WithMultipleNameIdentifierClaims_ReturnsFirstValidGuid() {
         var userId = Guid.NewGuid();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        ]));
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                                                               ]));
 
         var result = principal.GetUserId();
 
@@ -111,9 +111,9 @@ public class ClaimsPrincipalExtensionsTests {
     public void GetUserId_WithDifferentClaimTypes_ThrowsUnauthorizedAccessException() {
         var userId = Guid.NewGuid();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.Name, userId.ToString()),
-            new Claim(ClaimTypes.Email, "test@example.com")
-        ]));
+            new(ClaimTypes.Name, userId.ToString()),
+            new(ClaimTypes.Email, "test@example.com"),
+                                                               ]));
 
         var act = principal.GetUserId;
 
@@ -125,8 +125,8 @@ public class ClaimsPrincipalExtensionsTests {
     public void GetUserId_WithUpperCaseGuid_ReturnsGuid() {
         var userId = Guid.NewGuid();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString().ToUpperInvariant())
-        ]));
+            new(ClaimTypes.NameIdentifier, userId.ToString().ToUpperInvariant()),
+                                                               ]));
 
         var result = principal.GetUserId();
 
@@ -137,8 +137,8 @@ public class ClaimsPrincipalExtensionsTests {
     public void GetUserId_WithBracedGuid_ReturnsGuid() {
         var userId = Guid.NewGuid();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString("B"))
-        ]));
+            new(ClaimTypes.NameIdentifier, userId.ToString("B")),
+                                                               ]));
 
         var result = principal.GetUserId();
 

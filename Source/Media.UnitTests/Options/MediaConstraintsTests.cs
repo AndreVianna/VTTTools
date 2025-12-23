@@ -2,17 +2,17 @@ namespace VttTools.Media.Options;
 
 public class MediaConstraintsTests {
     [Theory]
-    [InlineData(ResourceType.Background, "image/png", true)]
-    [InlineData(ResourceType.Background, "image/jpeg", true)]
-    [InlineData(ResourceType.Background, "video/mp4", true)]
-    [InlineData(ResourceType.Background, "audio/mpeg", false)]
-    [InlineData(ResourceType.Token, "image/png", true)]
-    [InlineData(ResourceType.Token, "video/mp4", false)]
-    [InlineData(ResourceType.SoundEffect, "audio/mpeg", true)]
-    [InlineData(ResourceType.SoundEffect, "image/png", false)]
-    [InlineData(ResourceType.CutScene, "video/mp4", true)]
-    [InlineData(ResourceType.CutScene, "image/png", false)]
-    public void IsValidContentType_WithVariousTypes_ReturnsExpected(ResourceType type, string contentType, bool expected) {
+    [InlineData(ResourceRole.Background, "image/png", true)]
+    [InlineData(ResourceRole.Background, "image/jpeg", true)]
+    [InlineData(ResourceRole.Background, "video/mp4", true)]
+    [InlineData(ResourceRole.Background, "audio/mpeg", false)]
+    [InlineData(ResourceRole.Token, "image/png", true)]
+    [InlineData(ResourceRole.Token, "video/mp4", false)]
+    [InlineData(ResourceRole.SoundEffect, "audio/mpeg", true)]
+    [InlineData(ResourceRole.SoundEffect, "image/png", false)]
+    [InlineData(ResourceRole.CutScene, "video/mp4", true)]
+    [InlineData(ResourceRole.CutScene, "image/png", false)]
+    public void IsValidContentType_WithVariousTypes_ReturnsExpected(ResourceRole type, string contentType, bool expected) {
         var result = MediaConstraints.IsValidContentType(type, contentType);
 
         result.Should().Be(expected);
@@ -37,21 +37,21 @@ public class MediaConstraintsTests {
     }
 
     [Fact]
-    public void For_ContainsAllResourceTypes() {
-        MediaConstraints.For.Should().ContainKey(ResourceType.Background);
-        MediaConstraints.For.Should().ContainKey(ResourceType.Token);
-        MediaConstraints.For.Should().ContainKey(ResourceType.Portrait);
-        MediaConstraints.For.Should().ContainKey(ResourceType.Overlay);
-        MediaConstraints.For.Should().ContainKey(ResourceType.Illustration);
-        MediaConstraints.For.Should().ContainKey(ResourceType.SoundEffect);
-        MediaConstraints.For.Should().ContainKey(ResourceType.AmbientSound);
-        MediaConstraints.For.Should().ContainKey(ResourceType.CutScene);
-        MediaConstraints.For.Should().ContainKey(ResourceType.UserAvatar);
+    public void For_ContainsAllRoles() {
+        MediaConstraints.For.Should().ContainKey(ResourceRole.Background);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.Token);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.Portrait);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.Overlay);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.Illustration);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.SoundEffect);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.AmbientSound);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.CutScene);
+        MediaConstraints.For.Should().ContainKey(ResourceRole.UserAvatar);
     }
 
     [Fact]
     public void For_Background_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.Background];
+        var constraints = MediaConstraints.For[ResourceRole.Background];
 
         constraints.MaxWidth.Should().Be(4096);
         constraints.MaxHeight.Should().Be(4096);
@@ -63,7 +63,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_Token_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.Token];
+        var constraints = MediaConstraints.For[ResourceRole.Token];
 
         constraints.MaxWidth.Should().Be(256);
         constraints.MaxHeight.Should().Be(256);
@@ -75,7 +75,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_Portrait_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.Portrait];
+        var constraints = MediaConstraints.For[ResourceRole.Portrait];
 
         constraints.MaxWidth.Should().Be(512);
         constraints.MaxHeight.Should().Be(512);
@@ -87,7 +87,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_Overlay_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.Overlay];
+        var constraints = MediaConstraints.For[ResourceRole.Overlay];
 
         constraints.MaxWidth.Should().Be(4096);
         constraints.MaxHeight.Should().Be(4096);
@@ -100,7 +100,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_Illustration_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.Illustration];
+        var constraints = MediaConstraints.For[ResourceRole.Illustration];
 
         constraints.MaxWidth.Should().Be(1024);
         constraints.MaxHeight.Should().Be(1024);
@@ -112,7 +112,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_SoundEffect_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.SoundEffect];
+        var constraints = MediaConstraints.For[ResourceRole.SoundEffect];
 
         constraints.MaxWidth.Should().Be(0);
         constraints.MaxHeight.Should().Be(0);
@@ -124,7 +124,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_AmbientSound_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.AmbientSound];
+        var constraints = MediaConstraints.For[ResourceRole.AmbientSound];
 
         constraints.MaxWidth.Should().Be(0);
         constraints.MaxHeight.Should().Be(0);
@@ -136,7 +136,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_CutScene_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.CutScene];
+        var constraints = MediaConstraints.For[ResourceRole.CutScene];
 
         constraints.MaxWidth.Should().Be(1920);
         constraints.MaxHeight.Should().Be(1080);
@@ -148,7 +148,7 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void For_UserAvatar_HasCorrectConstraints() {
-        var constraints = MediaConstraints.For[ResourceType.UserAvatar];
+        var constraints = MediaConstraints.For[ResourceRole.UserAvatar];
 
         constraints.MaxWidth.Should().Be(256);
         constraints.MaxHeight.Should().Be(256);
@@ -159,12 +159,12 @@ public class MediaConstraintsTests {
     }
 
     [Theory]
-    [InlineData(ResourceType.Background)]
-    [InlineData(ResourceType.Token)]
-    [InlineData(ResourceType.Portrait)]
-    [InlineData(ResourceType.Overlay)]
-    [InlineData(ResourceType.Illustration)]
-    public void For_ImageTypes_AllowImageContentTypes(ResourceType type) {
+    [InlineData(ResourceRole.Background)]
+    [InlineData(ResourceRole.Token)]
+    [InlineData(ResourceRole.Portrait)]
+    [InlineData(ResourceRole.Overlay)]
+    [InlineData(ResourceRole.Illustration)]
+    public void For_ImageTypes_AllowImageContentTypes(ResourceRole type) {
         var constraints = MediaConstraints.For[type];
 
         constraints.AllowedContentTypes.Should().Contain("image/png");
@@ -174,9 +174,9 @@ public class MediaConstraintsTests {
     }
 
     [Theory]
-    [InlineData(ResourceType.SoundEffect)]
-    [InlineData(ResourceType.AmbientSound)]
-    public void For_AudioTypes_AllowAudioContentTypes(ResourceType type) {
+    [InlineData(ResourceRole.SoundEffect)]
+    [InlineData(ResourceRole.AmbientSound)]
+    public void For_AudioTypes_AllowAudioContentTypes(ResourceRole type) {
         var constraints = MediaConstraints.For[type];
 
         constraints.AllowedContentTypes.Should().Contain("audio/mpeg");
@@ -186,10 +186,10 @@ public class MediaConstraintsTests {
     }
 
     [Theory]
-    [InlineData(ResourceType.Background)]
-    [InlineData(ResourceType.Portrait)]
-    [InlineData(ResourceType.Overlay)]
-    public void For_VideoSupportTypes_AllowVideoContentTypes(ResourceType type) {
+    [InlineData(ResourceRole.Background)]
+    [InlineData(ResourceRole.Portrait)]
+    [InlineData(ResourceRole.Overlay)]
+    public void For_VideoSupportTypes_AllowVideoContentTypes(ResourceRole type) {
         var constraints = MediaConstraints.For[type];
 
         constraints.AllowedContentTypes.Should().Contain("video/mp4");
@@ -199,14 +199,14 @@ public class MediaConstraintsTests {
 
     [Fact]
     public void IsValidContentType_WithCaseInsensitiveMatch_ReturnsTrue() {
-        var result = MediaConstraints.IsValidContentType(ResourceType.Background, "IMAGE/PNG");
+        var result = MediaConstraints.IsValidContentType(ResourceRole.Background, "IMAGE/PNG");
 
         result.Should().BeTrue();
     }
 
     [Fact]
-    public void IsValidContentType_WithInvalidResourceType_ReturnsFalse() {
-        var result = MediaConstraints.IsValidContentType(ResourceType.Undefined, "image/png");
+    public void IsValidContentType_WithInvalidRole_ReturnsFalse() {
+        var result = MediaConstraints.IsValidContentType(ResourceRole.Undefined, "image/png");
 
         result.Should().BeFalse();
     }

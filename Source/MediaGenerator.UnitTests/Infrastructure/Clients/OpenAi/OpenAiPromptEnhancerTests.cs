@@ -13,7 +13,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
     public OpenAiPromptEnhancerTests() {
         _httpClientFactory = Substitute.For<IHttpClientFactory>();
         _config = Substitute.For<IConfiguration>();
-        _mockHandler = new MockHttpMessageHandler();
+        _mockHandler = new();
         _ct = TestContext.Current.CancellationToken;
 
         _config["Providers:OpenAI:BaseUrl"].Returns("https://api.openai.com");
@@ -22,11 +22,11 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _config["Providers:OpenAI:gpt-5"].Returns("/v1/chat/completions");
 
         var client = new HttpClient(_mockHandler, disposeHandler: false) {
-            BaseAddress = new Uri("https://api.openai.com")
+            BaseAddress = new("https://api.openai.com")
         };
         _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
-        _enhancer = new OpenAiPromptEnhancer(_httpClientFactory, _config);
+        _enhancer = new(_httpClientFactory, _config);
     }
 
     private bool _isDisposed;
@@ -259,7 +259,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _config["PromptEnhancer:Model"].Returns((string?)null);
 
         var asset = CreateTestAsset();
-        var act = async () => await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var act = () => _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*not configured*");
@@ -271,12 +271,12 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset() with {
-            Classification = new AssetClassification(
-                AssetKind.Creature,
-                "Fantasy",
-                "Dragon",
-                "Ancient"
-            )
+            Classification = new(
+                                 AssetKind.Creature,
+                                 "Fantasy",
+                                 "Dragon",
+                                 "Ancient"
+                                )
         };
         await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
 
@@ -301,20 +301,15 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         Id = Guid.CreateVersion7(),
         Name = "Red Dragon",
         Description = "A powerful ancient dragon",
-        Classification = new AssetClassification(
-            AssetKind.Creature,
-            "Fantasy",
-            "Dragon",
-            null
-        ),
-        Portrait = new ResourceMetadata {
-            Description = "Majestic pose with wings spread"
+        Classification = new(
+                             AssetKind.Creature,
+                             "Fantasy",
+                             "Dragon",
+                             null
+                            ),
+        Portrait = new() {
         },
-        Tokens = [
-            new ResourceMetadata {
-                Description = "Breathing fire"
-            }
-        ]
+        Tokens = [new() { }],
     };
 
     private static string CreateSuccessResponse(string text) => $$"""

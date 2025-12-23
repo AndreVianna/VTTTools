@@ -31,10 +31,9 @@ public class AdventureTests {
         const AdventureStyle style = AdventureStyle.DungeonCrawl;
         var display = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "assets/adventure-background.png",
             ContentType = "image/png",
-            Size = new Size(1920, 1080),
+            Dimensions = new Size(1920, 1080),
         };
         const bool isVisible = true;
         const bool isPublic = true;

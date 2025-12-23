@@ -14,8 +14,8 @@ public sealed class GenerateCommandTests : IDisposable {
         _tempDir = Path.Combine(Directory.GetCurrentDirectory(), $"TokenManagerTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
-        _mockImageService = new MockImageGenerationService();
-        _realFileStore = new HierarchicalFileStore(_tempDir);
+        _mockImageService = new();
+        _realFileStore = new(_tempDir);
         _mockFileStore = Substitute.For<IFileStore>();
         _mockConfiguration = Substitute.For<IConfiguration>();
 
@@ -34,10 +34,10 @@ public sealed class GenerateCommandTests : IDisposable {
         _mockConfiguration["Images:Portrait:NegativePrompt"].Returns("border, frame");
         _mockConfiguration["Images:Portrait:AspectRatio"].Returns("1:1");
 
-        _command = new GenerateCommand(
-            _mockImageService,
-            _mockFileStore,
-            _mockConfiguration);
+        _command = new(
+                       _mockImageService,
+                       _mockFileStore,
+                       _mockConfiguration);
     }
 
     private void SetupFileStoreDelegation() {
@@ -378,45 +378,41 @@ public sealed class GenerateCommandTests : IDisposable {
         => new() {
             Id = Guid.NewGuid(),
             Name = name,
-            Classification = new AssetClassification(kind, category, type, subtype),
+            Classification = new(kind, category, type, subtype),
             Description = $"Test {name}",
             TokenSize = NamedSize.Default,
             StatBlocks = [],
             Tokens = [
-                new ResourceMetadata {
-                    Id = Guid.NewGuid(),
-                    Description = "base",
-                    ResourceType = ResourceType.Background,
-                    Path = string.Empty,
-                    ContentType = "image/png",
-                    FileName = $"{name.ToLowerInvariant()}.png",
-                    FileLength = 1024,
-                    Size = VttTools.Common.Model.Size.Zero,
-                    Duration = TimeSpan.Zero
-                }
+                new() {
+                          Id = Guid.NewGuid(),
+                          Path = string.Empty,
+                          ContentType = "image/png",
+                          FileName = $"{name.ToLowerInvariant()}.png",
+                          FileSize = 1024,
+                          Dimensions = Common.Model.Size.Zero,
+                          Duration = TimeSpan.Zero
+                      }
             ]
         };
 
     private static Asset CreateAssetWithSimpleTokens(string name, AssetKind kind, string category, string type, string? subtype, int tokenCount) {
         var tokens = new List<ResourceMetadata>();
         for (var i = 0; i < tokenCount; i++) {
-            tokens.Add(new ResourceMetadata {
+            tokens.Add(new() {
                 Id = Guid.NewGuid(),
-                Description = $"variant-{i}",
-                ResourceType = ResourceType.Background,
                 Path = string.Empty,
                 ContentType = "image/png",
                 FileName = $"{name.ToLowerInvariant()}-{i}.png",
-                FileLength = 1024,
-                Size = VttTools.Common.Model.Size.Zero,
+                FileSize = 1024,
+                Dimensions = VttTools.Common.Model.Size.Zero,
                 Duration = TimeSpan.Zero
             });
         }
 
-        return new Asset {
+        return new() {
             Id = Guid.NewGuid(),
             Name = name,
-            Classification = new AssetClassification(kind, category, type, subtype),
+            Classification = new(kind, category, type, subtype),
             Description = $"Test {name}",
             TokenSize = NamedSize.Default,
             StatBlocks = [],

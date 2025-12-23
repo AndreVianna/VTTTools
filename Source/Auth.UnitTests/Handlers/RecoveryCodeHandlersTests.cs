@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Handlers;
+namespace VttTools.Auth.Handlers;
 
 public class RecoveryCodeHandlersTests {
     private readonly IRecoveryCodeService _mockRecoveryCodeService;
@@ -85,7 +85,7 @@ public class RecoveryCodeHandlersTests {
             Password = "ValidPassword123!"
         };
 
-        var act = async () => await RecoveryCodeHandlers.GenerateNewCodesHandler(_mockHttpContext, request, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
+        var act = () => RecoveryCodeHandlers.GenerateNewCodesHandler(_mockHttpContext, request, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 
@@ -148,7 +148,7 @@ public class RecoveryCodeHandlersTests {
     public async Task GetStatusHandler_WithUnauthenticatedUser_ReturnsUnauthorized() {
         SetupUnauthenticatedUser();
 
-        var act = async () => await RecoveryCodeHandlers.GetStatusHandler(_mockHttpContext, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
+        var act = () => RecoveryCodeHandlers.GetStatusHandler(_mockHttpContext, _mockRecoveryCodeService, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
 

@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MediaResource } from '@/types/domain';
+import { ResourceRole } from '@/types/domain';
 import { useFileUpload, type UseFileUploadOptions } from './useFileUpload';
 
 vi.mock('@/utils/uploadWithProgress', () => ({
@@ -14,9 +15,11 @@ describe('useFileUpload', () => {
     id: 'resource-123',
     fileName: 'test.png',
     contentType: 'image/png',
-    size: 1024,
-    uploadedAt: '2024-01-01T00:00:00Z',
-    url: '/api/resources/resource-123',
+    fileSize: 1024,
+    role: ResourceRole.Token,
+    path: 'resource-123',
+    dimensions: { width: 256, height: 256 },
+    duration: '',
   };
 
   beforeEach(async () => {

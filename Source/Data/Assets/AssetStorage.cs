@@ -7,11 +7,10 @@ public class AssetStorage(ApplicationDbContext context)
     : IAssetStorage {
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
         var entities = await context.Assets
-                    .Include(a => a.Portrait)
-                        .ThenInclude(p => p!.Features)
-                    .Include(a => a.AssetTokens)
-                        .ThenInclude(a => a.Token)
-                            .ThenInclude(t => t.Features)
+                    .Include(a => a.Resources)
+                        .ThenInclude(r => r.Resource)
+                    .Include(a => a.StatEntries)
+                        .ThenInclude(se => se.GameSystem)
                     .AsSplitQuery()
                     .AsNoTracking()
                     .ToArrayAsync(ct);
@@ -34,11 +33,10 @@ public class AssetStorage(ApplicationDbContext context)
         CancellationToken ct = default) {
 
         var query = context.Assets
-            .Include(a => a.Portrait)
-                .ThenInclude(p => p!.Features)
-            .Include(a => a.AssetTokens.Where(at => at.Token.OwnerId == userId || (at.Token.IsPublic && at.Token.IsPublished)))
-                .ThenInclude(a => a.Token)
-                    .ThenInclude(t => t.Features)
+            .Include(a => a.Resources)
+                .ThenInclude(r => r.Resource)
+            .Include(a => a.StatEntries)
+                .ThenInclude(se => se.GameSystem)
             .AsNoTracking()
             .AsSplitQuery()
             .AsQueryable();
@@ -80,7 +78,7 @@ public class AssetStorage(ApplicationDbContext context)
             query = query.Skip(pagination.Index * pagination.Size).Take(pagination.Size);
 
         var entities = await query.ToArrayAsync(ct);
-        var assets = entities.Select(e => e.ToModel()).OfType<Asset>().ToArray();
+        var assets = entities.Select(e => e.ToModel()).ToArray();
 
         return (assets, totalCount);
     }
@@ -113,20 +111,10 @@ public class AssetStorage(ApplicationDbContext context)
         foreach (var filter in advancedSearch) {
             switch (filter.Operator) {
                 case FilterOperator.GreaterThan:
-                    query = query.Where(a => a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsNumber > filter.AsNumber));
+                    query = query.Where(a => a.StatEntries.Any(sb => sb.Key == filter.Key && sb.AsNumber > filter.AsNumber));
                     break;
                 case FilterOperator.LessThan:
-                    query = query.Where(a => a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsNumber < filter.AsNumber));
-                    break;
-                case FilterOperator.Contains:
-                    query = query.Where(a =>
-                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.AsText.Contains(filter.AsText)) ||
-                        a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Contains(filter.AsText))));
-                    break;
-                case FilterOperator.Equals:
-                    query = query.Where(a =>
-                        a.StatBlock.Any(sb => sb.Key == filter.Key && sb.Value != null && sb.Value.Equals(filter.AsText, StringComparison.Ordinal)) ||
-                        a.AssetTokens.Any(at => at.Token.Features.Any(f => f.Key == filter.Key && f.Value.Equals(filter.AsText, StringComparison.Ordinal))));
+                    query = query.Where(a => a.StatEntries.Any(sb => sb.Key == filter.Key && sb.AsNumber < filter.AsNumber));
                     break;
             }
         }
@@ -136,11 +124,10 @@ public class AssetStorage(ApplicationDbContext context)
 
     public async Task<Asset?> FindByIdAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Portrait)
-                        .ThenInclude(p => p!.Features)
-                    .Include(a => a.AssetTokens.Where(at => at.Token.OwnerId == userId || (at.Token.IsPublic && at.Token.IsPublished)))
-                        .ThenInclude(a => a.Token)
-                            .ThenInclude(t => t.Features)
+                    .Include(a => a.Resources)
+                        .ThenInclude(r => r.Resource)
+                    .Include(a => a.StatEntries)
+                        .ThenInclude(se => se.GameSystem)
                     .Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished))
                     .AsSplitQuery()
                     .AsNoTracking()
@@ -156,11 +143,10 @@ public class AssetStorage(ApplicationDbContext context)
 
     public async Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Portrait)
-                        .ThenInclude(p => p!.Features)
-                    .Include(a => a.AssetTokens)
-                        .ThenInclude(a => a.Token)
-                            .ThenInclude(t => t.Features)
+                    .Include(a => a.Resources)
+                        .ThenInclude(r => r.Resource)
+                    .Include(a => a.StatEntries)
+                        .ThenInclude(se => se.GameSystem)
                     .AsSplitQuery()
                     .FirstOrDefaultAsync(a => a.Id == asset.Id, ct);
         if (entity == null)

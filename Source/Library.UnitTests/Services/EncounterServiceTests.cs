@@ -225,7 +225,6 @@ public class EncounterServiceTests {
                 Style = AdventureStyle.OpenWorld,
                 Background = new ResourceMetadata {
                     Id = Guid.CreateVersion7(),
-                    ResourceType = ResourceType.Background,
                 },
                 IsOneShot = false,
                 IsPublished = false,
@@ -264,7 +263,6 @@ public class EncounterServiceTests {
             Classification = new AssetClassification(AssetKind.Character, "Player", "Hero", null),
             Portrait = new ResourceMetadata {
                 Id = portraitId,
-                ResourceType = ResourceType.Background,
                 Path = "test/asset-portrait.png",
                 ContentType = "image/png",
             },
@@ -375,7 +373,6 @@ public class EncounterServiceTests {
                 Style = AdventureStyle.OpenWorld,
                 Background = new ResourceMetadata {
                     Id = Guid.CreateVersion7(),
-                    ResourceType = ResourceType.Background,
                 },
                 IsOneShot = false,
                 IsPublished = false,
@@ -550,7 +547,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -565,7 +562,6 @@ public class EncounterServiceTests {
             Tokens = [
                 new ResourceMetadata {
                     Id = resourceId,
-                    ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
                     ContentType = "image/png",
                 }
@@ -604,7 +600,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -619,7 +615,6 @@ public class EncounterServiceTests {
             Tokens = [
                 new ResourceMetadata {
                     Id = resourceId,
-                    ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
                     ContentType = "image/png",
                 }
@@ -661,7 +656,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -676,7 +671,6 @@ public class EncounterServiceTests {
             Tokens = [
                 new ResourceMetadata {
                     Id = resourceId,
-                    ResourceType = ResourceType.Background,
                     Path = "test/chest-topdown.png",
                     ContentType = "image/png",
                 }
@@ -718,7 +712,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -733,7 +727,6 @@ public class EncounterServiceTests {
             Tokens = [
                 new ResourceMetadata {
                     Id = resourceId,
-                    ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
                     ContentType = "image/png",
                 }
@@ -774,7 +767,7 @@ public class EncounterServiceTests {
                 Name = "Test Adventure",
                 Description = "Test description",
                 Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7(), ResourceType = ResourceType.Background },
+                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
                 IsOneShot = false,
                 IsPublished = false,
                 IsPublic = false,
@@ -789,7 +782,6 @@ public class EncounterServiceTests {
             Tokens = [
                 new ResourceMetadata {
                     Id = resourceId1,
-                    ResourceType = ResourceType.Background,
                     Path = "test/goblin-topdown.png",
                     ContentType = "image/png",
                 }
@@ -803,7 +795,6 @@ public class EncounterServiceTests {
             Tokens = [
                 new ResourceMetadata {
                     Id = resourceId2,
-                    ResourceType = ResourceType.Background,
                     Path = "test/orc-topdown.png",
                     ContentType = "image/png",
                 }

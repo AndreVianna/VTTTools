@@ -109,7 +109,7 @@ public class AuditLoggingMiddleware(
         return BodySanitizer.SanitizeResponseBody(body);
     }
 
-    private static async Task CreateAuditLogAsync(
+    private static Task CreateAuditLogAsync(
         Guid? userId,
         string? userEmail,
         string httpMethod,
@@ -149,7 +149,7 @@ public class AuditLoggingMiddleware(
             Payload = JsonSerializer.Serialize(httpPayload, JsonDefaults.Options),
         };
 
-        await auditLogService.AddAsync(auditLog);
+        return auditLogService.AddAsync(auditLog);
     }
 
     private static (string Action, string? EntityType, string? EntityId) DeriveActionAndEntity(

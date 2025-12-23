@@ -6,7 +6,7 @@ namespace VttTools.Data.Library.Entities;
 public class EncounterAsset {
     public Guid EncounterId { get; set; }
     public Encounter Encounter { get; set; } = null!;
-    public uint Index { get; set; }
+    public ushort Index { get; set; }
     public Guid AssetId { get; set; }
     public Asset Asset { get; set; } = null!;
 
@@ -16,7 +16,7 @@ public class EncounterAsset {
     public bool IsLocked { get; set; }
     public bool IsVisible { get; set; } = true;
 
-    public Frame Frame { get; set; } = new Frame();
+    public Frame Frame { get; set; } = new();
     public Guid? ImageId { get; set; }
     public Resource? Image { get; set; }
 

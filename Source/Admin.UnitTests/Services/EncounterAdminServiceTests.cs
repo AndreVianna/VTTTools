@@ -1,7 +1,7 @@
 using AdventureModel = VttTools.Library.Adventures.Model.Adventure;
 using EncounterModel = VttTools.Library.Encounters.Model.Encounter;
 
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public sealed class EncounterAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
@@ -20,7 +20,7 @@ public sealed class EncounterAdminServiceTests : IAsyncLifetime {
         _mockAdventureStorage = Substitute.For<IAdventureStorage>();
         _mockUserManager = CreateUserManagerMock();
         _mockLogger = Substitute.For<ILogger<EncounterAdminService>>();
-        _sut = new EncounterAdminService(_mockOptions, _mockEncounterStorage, _mockAdventureStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockEncounterStorage, _mockAdventureStorage, _mockUserManager, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;

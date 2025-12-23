@@ -372,8 +372,8 @@ public class MaintenanceModeMiddlewareTests {
             ScheduledStartTime = scheduledStart,
             ScheduledEndTime = scheduledEnd,
             EnabledAt = isEnabled ? DateTime.UtcNow : null,
-            EnabledBy = isEnabled ? Guid.CreateVersion7() : null
-        };
+            EnabledBy = isEnabled ? Guid.CreateVersion7() : null,
+                                                };
 
     private static DefaultHttpContext CreateHttpContext(string path, bool isAdmin = false) {
         var context = new DefaultHttpContext();
@@ -383,10 +383,10 @@ public class MaintenanceModeMiddlewareTests {
         if (isAdmin) {
             var claims = new List<Claim> {
                 new(ClaimTypes.NameIdentifier, Guid.CreateVersion7().ToString()),
-                new(ClaimTypes.Role, "Admin")
-            };
+                new(ClaimTypes.Role, "Admin"),
+                                         };
             var identity = new ClaimsIdentity(claims, "TestAuth");
-            context.User = new ClaimsPrincipal(identity);
+            context.User = new(identity);
         }
 
         return context;

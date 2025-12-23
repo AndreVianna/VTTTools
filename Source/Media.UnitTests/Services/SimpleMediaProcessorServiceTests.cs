@@ -8,15 +8,15 @@ public class SimpleMediaProcessorServiceTests {
     private readonly CancellationToken _ct;
 
     public SimpleMediaProcessorServiceTests() {
-        _service = new MediaProcessorService(_logger);
+        _service = new(_logger);
         _ct = TestContext.Current.CancellationToken;
     }
 
     [Fact]
-    public async Task ProcessAsync_WithInvalidResourceType_ReturnsFailure() {
+    public async Task ProcessAsync_WithInvalidRole_ReturnsFailure() {
         var input = new MemoryStream("test"u8.ToArray());
 
-        var result = await _service.ProcessAsync(ResourceType.Undefined, "image/png", "test.png", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Undefined, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("Invalid resource type");
@@ -26,7 +26,7 @@ public class SimpleMediaProcessorServiceTests {
     public async Task ProcessAsync_WithInvalidContentType_ReturnsFailure() {
         var input = new MemoryStream("test"u8.ToArray());
 
-        var result = await _service.ProcessAsync(ResourceType.Background, "application/pdf", "test.pdf", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Background, "application/pdf", "test.pdf", input, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("not allowed");
@@ -37,7 +37,7 @@ public class SimpleMediaProcessorServiceTests {
         var largeContent = new byte[51 * 1024 * 1024];
         var input = new MemoryStream(largeContent);
 
-        var result = await _service.ProcessAsync(ResourceType.Background, "image/png", "test.png", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Background, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("exceeds maximum");
@@ -48,12 +48,12 @@ public class SimpleMediaProcessorServiceTests {
         var imageBytes = CreateValidPngImage(100, 100);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceType.Token, "image/png", "test.png", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.ContentType.Should().Be("image/png");
-        result.Value.Size.Width.Should().BeLessThanOrEqualTo(256);
-        result.Value.Size.Height.Should().BeLessThanOrEqualTo(256);
+        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(256);
+        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(256);
     }
 
     [Fact]
@@ -61,11 +61,11 @@ public class SimpleMediaProcessorServiceTests {
         var imageBytes = CreateValidPngImage(512, 512);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceType.Token, "image/png", "test.png", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Size.Width.Should().BeLessThanOrEqualTo(256);
-        result.Value.Size.Height.Should().BeLessThanOrEqualTo(256);
+        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(256);
+        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(256);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class SimpleMediaProcessorServiceTests {
         var imageBytes = CreateValidPngImage(256, 256);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceType.Token, "image/png", "test.png", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.Thumbnail.Should().NotBeNull();
@@ -84,7 +84,7 @@ public class SimpleMediaProcessorServiceTests {
     public async Task ProcessAsync_WithInvalidImageData_ReturnsFailure() {
         var input = new MemoryStream("not an image"u8.ToArray());
 
-        var result = await _service.ProcessAsync(ResourceType.Background, "image/png", "test.png", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Background, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("Failed to process image");
@@ -133,7 +133,7 @@ public class SimpleMediaProcessorServiceTests {
         var imageBytes = CreateValidJpegImage(256, 256);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceType.Token, "image/jpeg", "test.jpg", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Token, "image/jpeg", "test.jpg", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.ContentType.Should().Be("image/png");
@@ -145,7 +145,7 @@ public class SimpleMediaProcessorServiceTests {
         var imageBytes = CreateValidGifImage(128, 128);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceType.Token, "image/gif", "test.gif", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Token, "image/gif", "test.gif", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.ContentType.Should().Be("image/png");
@@ -156,25 +156,25 @@ public class SimpleMediaProcessorServiceTests {
         var imageBytes = CreateValidWebPImage(200, 200);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceType.Illustration, "image/webp", "test.webp", input, _ct);
+        var result = await _service.ProcessAsync(ResourceRole.Illustration, "image/webp", "test.webp", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.ContentType.Should().Be("image/png");
     }
 
     [Theory]
-    [InlineData(ResourceType.Token, 256, 256)]
-    [InlineData(ResourceType.Portrait, 512, 512)]
-    [InlineData(ResourceType.Illustration, 1024, 1024)]
-    public async Task ProcessAsync_RespectsResourceTypeConstraints(ResourceType resourceType, int maxWidth, int maxHeight) {
+    [InlineData(ResourceRole.Token, 256, 256)]
+    [InlineData(ResourceRole.Portrait, 512, 512)]
+    [InlineData(ResourceRole.Illustration, 1024, 1024)]
+    public async Task ProcessAsync_RespectsRoleConstraints(ResourceRole resourceType, int maxWidth, int maxHeight) {
         var imageBytes = CreateValidPngImage(maxWidth * 2, maxHeight * 2);
         var input = new MemoryStream(imageBytes);
 
         var result = await _service.ProcessAsync(resourceType, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Size.Width.Should().BeLessThanOrEqualTo(maxWidth);
-        result.Value.Size.Height.Should().BeLessThanOrEqualTo(maxHeight);
+        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(maxWidth);
+        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(maxHeight);
     }
 
     private static byte[] CreateValidPngImage(int width, int height) {

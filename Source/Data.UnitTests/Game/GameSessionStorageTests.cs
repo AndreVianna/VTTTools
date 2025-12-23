@@ -33,7 +33,8 @@ public class GameSessionStorageTests
     [Fact]
     public async Task GetByIdAsync_WithExistingId_ReturnsGameSession() {
         // Arrange
-        var sessionId = _context.GameSessions.First().Id;
+        _context.ChangeTracker.Clear();
+        var sessionId = _context.GameSessions.AsNoTracking().First().Id;
 
         // Act
         var result = await _storage.GetByIdAsync(sessionId, _ct);
@@ -70,7 +71,8 @@ public class GameSessionStorageTests
     [Fact]
     public async Task GetByUserIdAsync_WhenUserIsPlayer_ReturnsGameSessions() {
         // Arrange
-        var session = _context.GameSessions.First(p => p.Title == "Session 1");
+        _context.ChangeTracker.Clear();
+        var session = _context.GameSessions.Include(s => s.Players).AsNoTracking().First(p => p.Title == "Session 1");
         var playerId = session.Players.First(p => p.Type == PlayerType.Player).UserId;
 
         // Act
@@ -116,6 +118,7 @@ public class GameSessionStorageTests
 
         await _context.GameSessions.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
+        _context.ChangeTracker.Clear();
 
         // Modify the game session
         var session = new GameSession {
@@ -135,7 +138,8 @@ public class GameSessionStorageTests
 
         // Assert
         result.Should().BeEquivalentTo(session);
-        var dbGameSession = await _context.GameSessions.FindAsync([session.Id], _ct);
+        _context.ChangeTracker.Clear();
+        var dbGameSession = await _context.GameSessions.AsNoTracking().FirstOrDefaultAsync(s => s.Id == session.Id, _ct);
         dbGameSession.Should().BeEquivalentTo(session);
     }
 

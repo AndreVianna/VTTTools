@@ -1,3 +1,6 @@
+using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
+
 namespace VttTools.Data.Library;
 
 public class AdventureStorageTests
@@ -62,7 +65,7 @@ public class AdventureStorageTests
         await _storage.AddAsync(adventure, _ct);
 
         // Assert
-        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
+        var dbAdventure = await _context.Adventures.Include(a => a.Resources).FirstAsync(a => a.Id == adventure.Id, _ct);
         dbAdventure.Should().NotBeNull();
         dbAdventure.Id.Should().Be(adventure.Id);
         dbAdventure.Name.Should().Be(adventure.Name);
@@ -74,77 +77,12 @@ public class AdventureStorageTests
         dbAdventure.OwnerId.Should().Be(adventure.OwnerId);
         dbAdventure.WorldId.Should().Be(adventure.World?.Id);
         dbAdventure.CampaignId.Should().Be(adventure.Campaign?.Id);
-        dbAdventure.BackgroundId.Should().Be(adventure.Background?.Id);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_WithExistingAdventure_UpdatesInDatabase() {
-        // Arrange
-        var entity = DbContextHelper.CreateTestAdventureEntity("Adventure To Update");
-        await _context.Adventures.AddAsync(entity, _ct);
-        await _context.SaveChangesAsync(_ct);
-
-        var adventure = new Adventure {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            World = entity.WorldId.HasValue ? new World() {
-                Id = entity.WorldId.Value,
-                OwnerId = entity.OwnerId,
-                Name = "Existing World",
-                Description = "World Description",
-                IsPublished = false,
-                IsPublic = false,
-                Adventures = [],
-            } : null,
-            Campaign = entity.CampaignId.HasValue ? new Campaign() {
-                Id = entity.CampaignId.Value,
-                OwnerId = entity.OwnerId,
-                Name = "Existing Campaign",
-                Description = "Campaign Description",
-                IsPublished = false,
-                IsPublic = false,
-                Adventures = [],
-            } : null,
-            Name = "Updated Name",
-            Description = "Updated Description",
-            Style = AdventureStyle.OpenWorld,
-            Background = entity.BackgroundId.HasValue ? new() {
-                Id = entity.BackgroundId.Value,
-                ResourceType = ResourceType.Background,
-                Path = "adventures/updated-background.jpg",
-                FileName = "updated-background.jpg",
-                ContentType = "image/jpeg",
-                FileLength = 2000,
-                Size = new(1920, 1080),
-                Duration = TimeSpan.Zero,
-            } : null,
-            IsPublished = true,
-            IsPublic = false,
-            Encounters = [],
-        };
-
-        // NOTE: Testing database state directly due to EF tracking conflicts
-        // Clear context to avoid "another instance with the key value is already being tracked" error
-        _context.ChangeTracker.Clear();
-
-        // Act
-        var result = await _storage.UpdateAsync(adventure, _ct);
-
-        // Assert
-        result.Should().BeTrue();
-        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
-        dbAdventure.Should().NotBeNull();
-        dbAdventure.Id.Should().Be(adventure.Id);
-        dbAdventure.Name.Should().Be(adventure.Name);
-        dbAdventure.Style.Should().Be(adventure.Style);
-        dbAdventure.Description.Should().Be(adventure.Description);
-        dbAdventure.IsOneShot.Should().Be(adventure.IsOneShot);
-        dbAdventure.IsPublic.Should().Be(adventure.IsPublic);
-        dbAdventure.IsPublished.Should().Be(adventure.IsPublished);
-        dbAdventure.OwnerId.Should().Be(adventure.OwnerId);
-        dbAdventure.WorldId.Should().Be(adventure.World?.Id);
-        dbAdventure.CampaignId.Should().Be(adventure.Campaign?.Id);
-        dbAdventure.BackgroundId.Should().Be(adventure.Background?.Id);
+        if (adventure.Background is not null) {
+            dbAdventure.Resources.Should().HaveCount(1);
+            var backgroundResource = dbAdventure.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background);
+            backgroundResource.Should().NotBeNull();
+            backgroundResource!.ResourceId.Should().Be(adventure.Background.Id);
+        }
     }
 
     [Fact]

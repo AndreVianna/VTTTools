@@ -11,18 +11,18 @@ public sealed class MockPromptEnhancer : IPromptEnhancer {
     public void EnqueueResponse(PromptEnhancerResponse response) => _responses.Enqueue(response);
 
     public void EnqueueSuccess(string prompt)
-        => _responses.Enqueue(new PromptEnhancerResponse(
-            Prompt: prompt,
-            IsSuccess: true,
-            ErrorMessage: null,
-            TotalTokens: 100));
+        => _responses.Enqueue(new(
+                                  Prompt: prompt,
+                                  IsSuccess: true,
+                                  ErrorMessage: null,
+                                  TotalTokens: 100));
 
     public void EnqueueFailure(string errorMessage)
-        => _responses.Enqueue(new PromptEnhancerResponse(
-            Prompt: string.Empty,
-            IsSuccess: false,
-            ErrorMessage: errorMessage,
-            TotalTokens: 0));
+        => _responses.Enqueue(new(
+                                  Prompt: string.Empty,
+                                  IsSuccess: false,
+                                  ErrorMessage: errorMessage,
+                                  TotalTokens: 0));
 
     public Task<PromptEnhancerResponse> EnhancePromptAsync(
         string imageType,

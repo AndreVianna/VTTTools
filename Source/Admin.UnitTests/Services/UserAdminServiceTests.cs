@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Services;
+namespace VttTools.Admin.Services;
 
 public class UserAdminServiceTests
     : IAsyncLifetime {
@@ -13,7 +13,7 @@ public class UserAdminServiceTests
         _mockRoleManager = CreateRoleManagerMock();
         _mockAuditLogService = Substitute.For<IAuditLogService>();
         _mockLogger = Substitute.For<ILogger<UserAdminService>>();
-        _sut = new UserAdminService(_mockUserManager, _mockRoleManager, _mockAuditLogService, _mockLogger);
+        _sut = new(_mockUserManager, _mockRoleManager, _mockAuditLogService, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;

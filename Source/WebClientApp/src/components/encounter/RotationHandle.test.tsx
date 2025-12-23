@@ -16,6 +16,7 @@ const mockBaseAsset: Asset = {
   portrait: null,
   tokenSize: { width: 2, height: 2 },
   statBlocks: {},
+  tags: [],
 };
 
 const mockAsset: PlacedAsset = {

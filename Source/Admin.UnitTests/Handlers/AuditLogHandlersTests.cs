@@ -1,4 +1,4 @@
-namespace VttTools.Admin.UnitTests.Handlers;
+namespace VttTools.Admin.Handlers;
 
 public class AuditLogHandlersTests {
     private readonly IAuditLogService _mockService;

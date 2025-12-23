@@ -1,5 +1,3 @@
-using VttTools.Common.Utilities;
-
 namespace VttTools.Assets.Handlers;
 
 public class ConfigurationHandlersTests {
@@ -13,7 +11,7 @@ public class ConfigurationHandlersTests {
         });
         var configuration = configBuilder.Build();
         var sourceDetector = new ConfigurationSourceDetector(configuration);
-        _configService = new InternalConfigurationService(configuration, sourceDetector);
+        _configService = new(configuration, sourceDetector);
     }
 
     [Fact]

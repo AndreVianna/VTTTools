@@ -3,8 +3,8 @@ namespace VttTools.Admin.Audit.Hubs;
 [Authorize(Roles = "Administrator")]
 public class AuditLogHub
     : Hub {
-    public async Task SubscribeToAuditLogs()
-        => await Groups.AddToGroupAsync(Context.ConnectionId, "all");
+    public Task SubscribeToAuditLogs()
+        => Groups.AddToGroupAsync(Context.ConnectionId, "all");
 
     public async Task UnsubscribeFromAuditLogs() {
         foreach (var group in new[] { "all" }) {
@@ -14,6 +14,6 @@ public class AuditLogHub
 }
 
 public static class AuditLogHubExtensions {
-    public static async Task BroadcastAuditLogAsync(this IHubContext<AuditLogHub> hubContext, AuditLog auditLog)
-        => await hubContext.Clients.Group("all").SendAsync("ReceiveAuditLog", auditLog);
+    public static Task BroadcastAuditLogAsync(this IHubContext<AuditLogHub> hubContext, AuditLog auditLog)
+        => hubContext.Clients.Group("all").SendAsync("ReceiveAuditLog", auditLog);
 }

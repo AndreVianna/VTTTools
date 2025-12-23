@@ -1,4 +1,4 @@
-namespace VttTools.Common.UnitTests.Utilities;
+namespace VttTools.Utilities;
 
 /// <summary>
 /// C# test to generate expected base64url values for frontend GUID encoding tests.
@@ -12,7 +12,7 @@ public class GuidEncodingVerification {
             new Guid("019639ea-c7de-7a01-8548-41edfccde206"),  // User ID
             new Guid("0199bf66-76d7-7e4a-9398-8022839c7d80"),  // Asset ID
             new Guid("00000000-0000-0000-0000-000000000000"),  // Empty GUID
-            new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff")   // Max GUID
+            new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"), // Max GUID
         };
 
         foreach (var guid in testCases) {

@@ -5,7 +5,7 @@ namespace VttTools.Data.Library.Entities;
 public class EncounterSound {
     public Guid EncounterId { get; set; }
     public Encounter Encounter { get; set; } = null!;
-    public uint Index { get; set; }
+    public ushort Index { get; set; }
 
     [MaxLength(128)]
     public string? Name { get; set; }

@@ -136,7 +136,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             Campaign = campaign,
         };
         var updatedCampaign = campaign with {
-            Adventures = [.. campaign.Adventures, adventure]
+            Adventures = [.. campaign.Adventures, adventure],
         };
         await campaignStorage.UpdateAsync(updatedCampaign, ct);
         return adventure;
@@ -166,7 +166,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
 
         var clone = original.Clone(userId, cloneName) with { Campaign = campaign };
         var updatedCampaign = campaign with {
-            Adventures = [.. campaign.Adventures, clone]
+            Adventures = [.. campaign.Adventures, clone],
         };
         await campaignStorage.UpdateAsync(updatedCampaign, ct);
         return clone;
@@ -185,7 +185,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             return Result.Failure("NotFound");
 
         var updatedCampaign = campaign with {
-            Adventures = [.. campaign.Adventures.Where(a => a.Id != adventureId)]
+            Adventures = [.. campaign.Adventures.Where(a => a.Id != adventureId)],
         };
         await campaignStorage.UpdateAsync(updatedCampaign, ct);
         return Result.Success();

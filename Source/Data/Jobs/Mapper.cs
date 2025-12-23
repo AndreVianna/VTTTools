@@ -50,7 +50,7 @@ internal static class Mapper {
         => entity is null
            ? null
            : new JobItem {
-               Job = new Job { Id = entity.JobId },
+               Job = new() { Id = entity.JobId },
                Index = entity.Index,
                Status = entity.Status,
                Data = entity.Data,

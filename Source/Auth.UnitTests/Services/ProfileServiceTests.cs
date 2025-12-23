@@ -1,4 +1,4 @@
-namespace VttTools.Auth.UnitTests.Services;
+namespace VttTools.Auth.Services;
 
 public class ProfileServiceTests {
     private readonly UserManager<User> _mockUserManager;

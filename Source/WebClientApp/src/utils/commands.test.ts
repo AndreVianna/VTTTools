@@ -28,6 +28,7 @@ const createMockPlacedAsset = (id: string): PlacedAsset => ({
     portrait: null,
     tokenSize: { width: 1, height: 1 },
     statBlocks: {},
+    tags: [],
   },
   position: { x: 100, y: 100 },
   size: { width: 50, height: 50 },

@@ -11,28 +11,28 @@ public sealed class ConfigurationHealthCheck(IConfiguration configuration)
 
         var appsettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
         if (!File.Exists(appsettingsPath)) {
-            return new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Warning,
-                "appsettings.json not found",
-                $"Checked path: {appsettingsPath}",
-                "Create appsettings.json with required configuration",
-                sw.Elapsed
-            );
+            return new(
+                       Name,
+                       HealthCheckStatus.Warning,
+                       "appsettings.json not found",
+                       $"Checked path: {appsettingsPath}",
+                       "Create appsettings.json with required configuration",
+                       sw.Elapsed
+                      );
         }
 
         var providersSection = configuration.GetSection("Providers");
         var providers = providersSection.GetChildren().Select(p => p.Key).ToList();
 
         if (providers.Count == 0) {
-            return new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Fail,
-                "No providers configured",
-                "Providers section is missing or empty",
-                "Add at least one provider configuration in appsettings.json",
-                sw.Elapsed
-            );
+            return new(
+                       Name,
+                       HealthCheckStatus.Fail,
+                       "No providers configured",
+                       "Providers section is missing or empty",
+                       "Add at least one provider configuration in appsettings.json",
+                       sw.Elapsed
+                      );
         }
 
         var missingKeys = new List<string>();
@@ -48,20 +48,20 @@ public sealed class ConfigurationHealthCheck(IConfiguration configuration)
             }
         }
 
-        return missingKeys.Count == providers.Count ? new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Fail,
-                "All provider API keys missing",
-                $"Missing keys for: {string.Join(", ", missingKeys)}",
-                "Set provider API keys in appsettings.json or user secrets",
-                sw.Elapsed)
-            : missingKeys.Count > 0 ? new HealthCheckResult(
-                Name,
-                HealthCheckStatus.Fail,
-                $"Missing API keys for {missingKeys.Count} provider(s)",
-                $"Missing: {string.Join(", ", missingKeys)}",
-                "Set missing API keys in appsettings.json or user secrets",
-                sw.Elapsed)
+        return missingKeys.Count == providers.Count ? new(
+                                                          Name,
+                                                          HealthCheckStatus.Fail,
+                                                          "All provider API keys missing",
+                                                          $"Missing keys for: {string.Join(", ", missingKeys)}",
+                                                          "Set provider API keys in appsettings.json or user secrets",
+                                                          sw.Elapsed)
+            : missingKeys.Count > 0 ? new(
+                                          Name,
+                                          HealthCheckStatus.Fail,
+                                          $"Missing API keys for {missingKeys.Count} provider(s)",
+                                          $"Missing: {string.Join(", ", missingKeys)}",
+                                          "Set missing API keys in appsettings.json or user secrets",
+                                          sw.Elapsed)
             : new HealthCheckResult(
                 Name,
                 HealthCheckStatus.Pass,

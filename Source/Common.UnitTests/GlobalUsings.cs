@@ -32,8 +32,6 @@ global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
 global using VttTools.Common.Model;
-global using VttTools.Common.Services;
-global using VttTools.Common.Utilities;
 global using VttTools.Configuration;
 global using VttTools.Extensions;
 global using VttTools.Identity.Model;

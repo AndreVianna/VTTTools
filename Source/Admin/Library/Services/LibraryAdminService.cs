@@ -15,13 +15,13 @@ public abstract class LibraryAdminService(
         return user?.DisplayName;
     }
 
-    protected async Task<Dictionary<Guid, string?>> GetOwnerDictionaryAsync(
+    protected Task<Dictionary<Guid, string?>> GetOwnerDictionaryAsync(
         IEnumerable<Guid> ownerIds,
         CancellationToken ct = default) {
         var distinctOwnerIds = ownerIds.Distinct().ToList();
-        return await UserManager.Users
-            .Where(u => distinctOwnerIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.UserName, ct);
+        return UserManager.Users
+                          .Where(u => distinctOwnerIds.Contains(u.Id))
+                          .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.UserName, ct);
     }
 
     protected static IQueryable<T> ApplySearchFilters<T>(

@@ -35,25 +35,24 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         }
     }
 
-    private async Task<int> GeneratePromptsAsync(List<Asset> assets, CancellationToken ct) {
+    private async Task GeneratePromptsAsync(IReadOnlyCollection<Asset> assets, CancellationToken ct) {
         ConsoleOutput.WriteBlankLine();
         ConsoleOutput.WriteLine("Generating prompt files...");
         ConsoleOutput.WriteBlankLine();
 
         var totalFiles = assets.Sum(i =>
             i.Tokens.Count > 0
-                ? ImageTypeFor(i.Classification.Kind, false).Count + ((i.Tokens.Count - 1) * ImageTypeFor(i.Classification.Kind, true).Count)
-                : ImageTypeFor(i.Classification.Kind, false).Count);
+                ? ImageTypeFor(i.Classification.Kind).Count + ((i.Tokens.Count - 1) * ImageTypeFor(i.Classification.Kind, true).Count)
+                : ImageTypeFor(i.Classification.Kind).Count);
 
         var replace = AllowOverwriteResult.Overwrite;
         var finalCost = 0.0;
         var processedCount = 0;
         var skipCount = 0;
         var previousAssetIndex = -1;
-        foreach ((var assetIndex, var asset, var tokenIndex, var token) in assets.SelectMany((e, i) =>
-                                                                                                 e.Tokens.Count > 0
-                                                                                                     ? e.Tokens.Select((v, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1, token: (ResourceMetadata?)v))
-                                                                                                     : [(assetIndex: i, entity: e, tokenIndex: 0, token: null)])) {
+        foreach ((var assetIndex, var asset, var tokenIndex) in assets.SelectMany((e, i) => e.Tokens.Count > 0
+                 ? e.Tokens.Select((_, vi) => (assetIndex: i, entity: e, tokenIndex: vi + 1))
+                 : [(assetIndex: i, entity: e, tokenIndex: 0)])) {
             ct.ThrowIfCancellationRequested();
             if (replace is AllowOverwriteResult.Cancel) {
                 skipCount = totalFiles - (processedCount + skipCount);
@@ -85,16 +84,10 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         }
 
         ConsoleOutput.WriteBlankLine();
-        if (replace is not AllowOverwriteResult.Cancel) {
-            ConsoleOutput.WriteSuccess("✓ Preparation complete.");
-        }
-        else {
-            ConsoleOutput.WriteWarning("⚠ Preparation cancelled.");
-        }
+        if (replace is not AllowOverwriteResult.Cancel) ConsoleOutput.WriteSuccess("✓ Preparation complete.");
+        else ConsoleOutput.WriteWarning("⚠ Preparation cancelled.");
         ConsoleOutput.WriteLine($" Total Entries: {assets.Count}; Expected Files: {totalFiles}; Processed: {processedCount}; Skipped: {skipCount}.");
         ConsoleOutput.WriteLine($"Total cost: ${finalCost:0.0000}");
-
-        return 0;
     }
 
     private async Task<(AllowOverwriteResult, double)> GeneratePromptAsync(string imageType, Asset entity, int tokenIndex, AllowOverwriteResult skipOrOverwriteState, CancellationToken ct) {
@@ -116,7 +109,7 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         var providerName = config["PromptEnhancer:Provider"] ?? throw new InvalidOperationException("Prompt enhancer provider not configured.");
         var model = config["PromptEnhancer:Model"] ?? throw new InvalidOperationException("Prompt enhancer model not configured.");
 
-        var request = BuildPromptData(imageType, entity, tokenIndex, providerName, model);
+        var request = BuildPromptData(imageType, entity, providerName, model);
 
         var result = await promptEnhancementService.GenerateAsync(request, ct);
         if (result.IsSuccessful) {
@@ -134,18 +127,17 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
     private static PromptEnhancementData BuildPromptData(
         string imageType,
         Asset asset,
-        int tokenIndex,
         string provider,
         string model) {
-        var userPrompt = BuildUserPrompt(imageType, asset, tokenIndex);
+        var userPrompt = BuildUserPrompt(asset);
         var systemPrompt = BuildSystemPrompt(imageType, asset);
 
-        return new PromptEnhancementData {
-            Prompt = userPrompt,
-            Context = systemPrompt,
-            Provider = provider,
-            Model = model
-        };
+        return new() {
+                         Prompt = userPrompt,
+                         Context = systemPrompt,
+                         Provider = provider,
+                         Model = model
+                     };
     }
 
     private static string BuildSystemPrompt(string imageType, Asset asset)
@@ -173,31 +165,16 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         _ => $"{asset.Classification.Kind}",
     };
 
-    private static string BuildUserPrompt(string imageType, Asset asset, int tokenIndex) {
+    private static string BuildUserPrompt(Asset asset) {
         var sb = new StringBuilder();
         sb.AppendLine($"{asset.Name}; {BuildType(asset)}.");
         AppendAssetDescription(sb, asset);
-        AppendImageDescription(sb, imageType, asset, tokenIndex);
         return sb.ToString();
     }
 
     private static void AppendAssetDescription(StringBuilder sb, Asset asset) {
         if (!string.IsNullOrWhiteSpace(asset.Description))
             sb.AppendLine($"The subject is described as {asset.Description}. ");
-    }
-
-    private static void AppendImageDescription(
-        StringBuilder sb,
-        string imageType,
-        Asset asset,
-        int tokenIndex) {
-        if (imageType.Equals("Portrait", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(asset.Portrait?.Description)) {
-            sb.AppendLine(asset.Portrait.Description);
-            return;
-        }
-
-        if (tokenIndex >= 0 && tokenIndex < asset.Tokens.Count)
-            sb.AppendLine(asset.Tokens[tokenIndex].Description);
     }
 
     private static string BuildType(Asset entity)

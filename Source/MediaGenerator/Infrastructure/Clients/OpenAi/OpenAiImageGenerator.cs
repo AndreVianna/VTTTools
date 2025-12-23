@@ -64,12 +64,12 @@ public sealed class OpenAiImageGenerator(
 
         CostCalculation.LogCost(cost);
 
-        return new GenerateImageResponse(
-            Data: imageData,
-            IsSuccess: true,
-            TotalTokens: cost.TotalTokens,
-            TotalCost: cost.TotalCost,
-            Duration: duration);
+        return new(
+                   Data: imageData,
+                   IsSuccess: true,
+                   TotalTokens: cost.TotalTokens,
+                   TotalCost: cost.TotalCost,
+                   Duration: duration);
     }
 
     private static GenerateImageResponse CreateErrorResponse(string errorMessage, TimeSpan duration)

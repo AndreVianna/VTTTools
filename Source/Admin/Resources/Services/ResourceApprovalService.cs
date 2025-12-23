@@ -12,13 +12,8 @@ public class ResourceApprovalService(
     public async Task<Result<Guid>> ApproveAsync(ApproveResourceData data, CancellationToken ct = default) {
         var isPortrait = data.GenerationType.Equals("Portrait", StringComparison.OrdinalIgnoreCase);
 
-        // Mark resource as published
-        var updateRequest = new UpdateResourceRequest {
-            IsPublished = true,
-        };
-        var updateResult = await mediaClient.UpdateResourceAsync(data.ResourceId, updateRequest, ct);
-        if (!updateResult.IsSuccessful)
-            return Result.Failure(updateResult.Errors).WithNo<Guid>();
+        // With junction tables architecture, resources inherit visibility from their parent Asset.
+        // No need to update resource directly - just create/update the Asset with the resource linked.
 
         if (data.AssetId is null) {
             // Create new asset with the resource
@@ -61,7 +56,7 @@ public class ResourceApprovalService(
         var contentType = isPortrait
             ? GeneratedContentType.ImagePortrait
             : GeneratedContentType.ImageToken;
-        var resourceType = isPortrait ? ResourceType.Portrait : ResourceType.Token;
+        var resourceType = isPortrait ? ResourceRole.Portrait : ResourceRole.Token;
 
         // Build prompt
         var prompt = BuildPrompt(data);
@@ -76,7 +71,7 @@ public class ResourceApprovalService(
             return Result.Failure(generateResult.Errors).WithNo<Guid>();
 
         // Upload as new resource
-        var fileName = $"{data.AssetName}_{data.GenerationType.ToLower()}.png";
+        var fileName = $"{data.AssetName}_{data.GenerationType.ToLowerInvariant()}.png";
         var uploadResult = await mediaClient.UploadResourceAsync(
             generateResult.Value,
             fileName,
@@ -88,15 +83,13 @@ public class ResourceApprovalService(
 
         // Delete old resource
         var deleteResult = await mediaClient.DeleteResourceAsync(data.ResourceId, ct);
-        if (!deleteResult.IsSuccessful)
-            return Result.Failure(deleteResult.Errors).WithNo<Guid>();
-
-        return uploadResult.Value;
+        return !deleteResult.IsSuccessful
+                   ? Result.Failure(deleteResult.Errors).WithNo<Guid>()
+                   : uploadResult.Value;
     }
 
-    public async Task<Result> RejectAsync(RejectResourceData data, CancellationToken ct = default) {
-        return await mediaClient.DeleteResourceAsync(data.ResourceId, ct);
-    }
+    public Task<Result> RejectAsync(RejectResourceData data, CancellationToken ct = default)
+        => mediaClient.DeleteResourceAsync(data.ResourceId, ct);
 
     private static string BuildPrompt(RegenerateResourceData data) {
         var basePrompt = $"A {data.Category ?? "fantasy"} {data.Type ?? "character"} named {data.AssetName}";

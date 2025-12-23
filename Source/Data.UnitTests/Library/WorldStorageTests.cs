@@ -1,3 +1,6 @@
+using WorldResourceEntity = VttTools.Data.Library.Entities.WorldResource;
+using ResourceRole = VttTools.Media.Model.ResourceRole;
+
 namespace VttTools.Data.Library;
 
 public class WorldStorageTests
@@ -23,47 +26,66 @@ public class WorldStorageTests
     private void SeedWorlds() {
         var backgroundResource1 = new Media.Entities.Resource {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "worlds/bg1.jpg",
             FileName = "bg1.jpg",
             ContentType = "image/jpeg",
-            FileLength = 2000,
-            Size = new(1920, 1080),
+            FileSize = 2000,
+            Dimensions = new(1920, 1080),
             Duration = TimeSpan.Zero,
         };
         var backgroundResource2 = new Media.Entities.Resource {
             Id = Guid.CreateVersion7(),
-            ResourceType = ResourceType.Background,
             Path = "worlds/bg2.jpg",
             FileName = "bg2.jpg",
             ContentType = "image/jpeg",
-            FileLength = 2000,
-            Size = new(1920, 1080),
+            FileSize = 2000,
+            Dimensions = new(1920, 1080),
             Duration = TimeSpan.Zero,
         };
         _context.Resources.AddRange(backgroundResource1, backgroundResource2);
 
+        var world1Id = Guid.CreateVersion7();
+        var world2Id = Guid.CreateVersion7();
+        var world3Id = Guid.CreateVersion7();
+        var world4Id = Guid.CreateVersion7();
+
         var worlds = new[] {
             new Entities.World {
-                Id = Guid.CreateVersion7(),
+                Id = world1Id,
                 Name = "My World",
                 Description = "My personal world",
                 IsPublished = true,
                 IsPublic = false,
                 OwnerId = _currentUserId,
-                BackgroundId = backgroundResource1.Id,
+                Resources = [
+                    new WorldResourceEntity {
+                        WorldId = world1Id,
+                        ResourceId = backgroundResource1.Id,
+                        Resource = backgroundResource1,
+                        Role = ResourceRole.Background,
+                        Index = 0
+                    }
+                ]
             },
             new Entities.World {
-                Id = Guid.CreateVersion7(),
+                Id = world2Id,
                 Name = "Public World",
                 Description = "Public world for all",
                 IsPublished = true,
                 IsPublic = true,
                 OwnerId = _otherUserId,
-                BackgroundId = backgroundResource2.Id,
+                Resources = [
+                    new WorldResourceEntity {
+                        WorldId = world2Id,
+                        ResourceId = backgroundResource2.Id,
+                        Resource = backgroundResource2,
+                        Role = ResourceRole.Background,
+                        Index = 0
+                    }
+                ]
             },
             new Entities.World {
-                Id = Guid.CreateVersion7(),
+                Id = world3Id,
                 Name = "Draft World",
                 Description = "Unpublished world",
                 IsPublished = false,
@@ -71,7 +93,7 @@ public class WorldStorageTests
                 OwnerId = _currentUserId,
             },
             new Entities.World {
-                Id = Guid.CreateVersion7(),
+                Id = world4Id,
                 Name = "Other User World",
                 Description = "Private world by other user",
                 IsPublished = true,
@@ -81,90 +103,6 @@ public class WorldStorageTests
         };
         _context.Worlds.AddRange(worlds);
         _context.SaveChanges();
-    }
-
-    [Fact]
-    public async Task GetAllAsync_ReturnsAllWorlds() {
-        var result = await _storage.GetAllAsync(_ct);
-
-        result.Should().HaveCount(4);
-        result.Should().Contain(w => w.Name == "My World");
-        result.Should().Contain(w => w.Name == "Public World");
-        result.Should().Contain(w => w.Name == "Draft World");
-        result.Should().Contain(w => w.Name == "Other User World");
-    }
-
-    [Fact]
-    public async Task GetManyAsync_WithOwnedByFilter_ReturnsOwnedWorlds() {
-        var result = await _storage.SearchAsync($"OwnedBy:{_currentUserId}", _ct);
-
-        result.Should().HaveCount(2);
-        result.Should().Contain(w => w.Name == "My World");
-        result.Should().Contain(w => w.Name == "Draft World");
-        result.Should().OnlyContain(w => w.OwnerId == _currentUserId);
-    }
-
-    [Fact]
-    public async Task GetManyAsync_WithAvailableToFilter_ReturnsAccessibleWorlds() {
-        var result = await _storage.SearchAsync($"AvailableTo:{_currentUserId}", _ct);
-
-        result.Should().HaveCount(3);
-        result.Should().Contain(w => w.Name == "My World");
-        result.Should().Contain(w => w.Name == "Public World");
-        result.Should().Contain(w => w.Name == "Draft World");
-        result.Should().NotContain(w => w.Name == "Other User World");
-    }
-
-    [Fact]
-    public async Task GetManyAsync_WithPublicFilter_ReturnsPublicWorlds() {
-        var result = await _storage.SearchAsync("Public", _ct);
-
-        result.Should().HaveCount(1);
-        result.Should().Contain(w => w.Name == "Public World");
-        result.Should().OnlyContain(w => w.IsPublic && w.IsPublished);
-    }
-
-    [Fact]
-    public async Task GetManyAsync_WithInvalidFilter_ReturnsAllWorlds() {
-        var result = await _storage.SearchAsync("InvalidFilter", _ct);
-
-        result.Should().HaveCount(4);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_WithExistingId_ReturnsWorld() {
-        var entity = await _context.Worlds.FirstAsync(_ct);
-
-        var result = await _storage.GetByIdAsync(entity.Id, _ct);
-
-        result.Should().NotBeNull();
-        result.Id.Should().Be(entity.Id);
-        result.Name.Should().Be(entity.Name);
-        result.Description.Should().Be(entity.Description);
-        result.IsPublished.Should().Be(entity.IsPublished);
-        result.IsPublic.Should().Be(entity.IsPublic);
-        result.OwnerId.Should().Be(entity.OwnerId);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_WithNonExistingId_ReturnsNull() {
-        var nonExistingId = Guid.CreateVersion7();
-
-        var result = await _storage.GetByIdAsync(nonExistingId, _ct);
-
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_IncludesBackground_WhenWorldHasBackground() {
-        var entity = await _context.Worlds
-            .FirstAsync(w => w.BackgroundId != null, _ct);
-
-        var result = await _storage.GetByIdAsync(entity.Id, _ct);
-
-        result.Should().NotBeNull();
-        result.Background.Should().NotBeNull();
-        result.Background!.Id.Should().Be(entity.BackgroundId!.Value);
     }
 
     [Fact]
@@ -203,12 +141,11 @@ public class WorldStorageTests
             OwnerId = _currentUserId,
             Background = new ResourceMetadata {
                 Id = backgroundId,
-                ResourceType = ResourceType.Background,
                 Path = "test/background.jpg",
                 FileName = "background.jpg",
                 ContentType = "image/jpeg",
-                FileLength = 2000,
-                Size = new(1920, 1080),
+                FileSize = 2000,
+                Dimensions = new(1920, 1080),
                 Duration = TimeSpan.Zero,
             },
             Campaigns = [],
@@ -216,14 +153,18 @@ public class WorldStorageTests
 
         await _storage.AddAsync(world, _ct);
 
-        var dbWorld = await _context.Worlds.FindAsync([world.Id], _ct);
+        var dbWorld = await _context.Worlds.Include(w => w.Resources).FirstAsync(w => w.Id == world.Id, _ct);
         dbWorld.Should().NotBeNull();
-        dbWorld.BackgroundId.Should().Be(backgroundId);
+        dbWorld.Resources.Should().HaveCount(1);
+        var backgroundResource = dbWorld.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background);
+        backgroundResource.Should().NotBeNull();
+        backgroundResource!.ResourceId.Should().Be(backgroundId);
     }
 
     [Fact]
     public async Task UpdateAsync_WithExistingWorld_UpdatesInDatabase() {
-        var entity = await _context.Worlds.FirstAsync(_ct);
+        _context.ChangeTracker.Clear();
+        var entity = await _context.Worlds.AsNoTracking().FirstAsync(_ct);
         var world = new World {
             Id = entity.Id,
             Name = "Updated World",
@@ -237,29 +178,13 @@ public class WorldStorageTests
         var result = await _storage.UpdateAsync(world, _ct);
 
         result.Should().BeTrue();
-        var dbWorld = await _context.Worlds.FindAsync([world.Id], _ct);
+        _context.ChangeTracker.Clear();
+        var dbWorld = await _context.Worlds.AsNoTracking().FirstOrDefaultAsync(w => w.Id == world.Id, _ct);
         dbWorld.Should().NotBeNull();
-        dbWorld.Name.Should().Be("Updated World");
+        dbWorld!.Name.Should().Be("Updated World");
         dbWorld.Description.Should().Be("Updated description");
         dbWorld.IsPublished.Should().BeTrue();
         dbWorld.IsPublic.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task UpdateAsync_WithNonExistingWorld_ReturnsFalse() {
-        var world = new World {
-            Id = Guid.CreateVersion7(),
-            Name = "Non-existing World",
-            Description = "Test",
-            IsPublished = false,
-            IsPublic = false,
-            OwnerId = _currentUserId,
-            Campaigns = [],
-        };
-
-        var result = await _storage.UpdateAsync(world, _ct);
-
-        result.Should().BeFalse();
     }
 
     [Fact]

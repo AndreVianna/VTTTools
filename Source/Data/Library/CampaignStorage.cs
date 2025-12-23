@@ -39,7 +39,8 @@ public class CampaignStorage(ApplicationDbContext context)
     public async Task<Campaign[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Campaigns
             .Include(c => c.Adventures)
-            .Include(c => c.Background)
+            .Include(c => c.Resources)
+                .ThenInclude(r => r.Resource)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.Select(Mapper.AsCampaign).ToArrayAsync(ct);
@@ -50,7 +51,8 @@ public class CampaignStorage(ApplicationDbContext context)
     public async Task<Campaign[]> GetManyAsync(string filterDefinition, CancellationToken ct = default) {
         var query = context.Campaigns
             .Include(c => c.Adventures)
-            .Include(c => c.Background)
+            .Include(c => c.Resources)
+                .ThenInclude(r => r.Resource)
             .AsSplitQuery()
             .AsNoTracking();
 
@@ -75,7 +77,8 @@ public class CampaignStorage(ApplicationDbContext context)
         var query = context.Campaigns
             .Include(c => c.Adventures)
                 .ThenInclude(a => a.Encounters)
-            .Include(c => c.Background)
+            .Include(c => c.Resources)
+                .ThenInclude(r => r.Resource)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(c => c.Id == id, ct);

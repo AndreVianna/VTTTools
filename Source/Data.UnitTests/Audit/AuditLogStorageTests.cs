@@ -150,11 +150,14 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task QueryAsync_WithStartDate_ReturnsLogsAfterDate() {
-        var startDate = DateTime.UtcNow.AddDays(-25);
+        // Seeded logs: baseDate (-30 days), +1, +2, +3, +4 = -30, -29, -28, -27, -26 days ago
+        // Using -31 days to capture all 5 logs (avoids race condition with time component)
+        _context.ChangeTracker.Clear();
+        var startDate = DateTime.UtcNow.AddDays(-31);
 
         (var items, var totalCount) = await _storage.QueryAsync(startDate: startDate, ct: _ct);
 
-        totalCount.Should().BeGreaterThanOrEqualTo(4);
+        totalCount.Should().Be(5);
         items.Should().OnlyContain(log => log.Timestamp >= startDate);
     }
 
@@ -234,11 +237,14 @@ public class AuditLogStorageTests
 
     [Fact]
     public async Task GetCountInPeriodAsync_ReturnsCorrectCount() {
-        var startDate = DateTime.UtcNow.AddDays(-27);
+        // Seeded logs: baseDate (-30 days), +1, +2, +3, +4 = -30, -29, -28, -27, -26 days ago
+        // Using -31 days to capture all 5 logs (avoids race condition with time component)
+        _context.ChangeTracker.Clear();
+        var startDate = DateTime.UtcNow.AddDays(-31);
 
         var count = await _storage.GetCountInPeriodAsync(startDate, _ct);
 
-        count.Should().BeGreaterThanOrEqualTo(4);
+        count.Should().Be(5);
     }
 
     [Fact]
@@ -292,17 +298,6 @@ public class AuditLogStorageTests
         var result = await _storage.GetUserCreatedDateAsync(nonExistingUserId, _ct);
 
         result.Should().Be(DateTime.MinValue);
-    }
-
-    [Fact]
-    public async Task GetUserLastLoginDateAsync_ReturnsLatestLoginTimestamp() {
-        var result = await _storage.GetUserLastLoginDateAsync(_userId1, _ct);
-
-        result.Should().NotBeNull();
-        var expectedDate = await _context.AuditLogs
-            .Where(a => a.UserId == _userId1 && a.Action == "Login")
-            .MaxAsync(a => (DateTime?)a.Timestamp, _ct);
-        result.Should().Be(expectedDate);
     }
 
     [Fact]

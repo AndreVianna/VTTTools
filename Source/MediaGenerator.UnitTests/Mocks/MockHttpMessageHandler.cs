@@ -40,7 +40,7 @@ public sealed class MockHttpMessageHandler : HttpMessageHandler {
 
         if (_responseBytes != null) {
             response.Content = new ByteArrayContent(_responseBytes);
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(_contentType);
+            response.Content.Headers.ContentType = new(_contentType);
         }
         else if (_responseContent != null) {
             response.Content = new StringContent(_responseContent, System.Text.Encoding.UTF8, _contentType);

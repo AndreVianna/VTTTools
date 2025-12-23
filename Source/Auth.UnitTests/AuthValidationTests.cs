@@ -1,5 +1,5 @@
 
-namespace VttTools.Auth.UnitTests;
+namespace VttTools.Auth;
 
 /// <summary>
 /// Unit tests for Auth request validation logic in isolation.

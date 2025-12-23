@@ -1,4 +1,6 @@
-namespace VttTools.Auth.UnitTests.Services;
+using MsOptions = Microsoft.Extensions.Options.Options;
+
+namespace VttTools.Auth.Services;
 
 public class JwtTokenServiceTests {
     private readonly JwtOptions _jwtOptions;
@@ -14,7 +16,7 @@ public class JwtTokenServiceTests {
             RememberMeExpirationMinutes = 43200
         };
 
-        var options = Options.Create(_jwtOptions);
+        var options = MsOptions.Create(_jwtOptions);
         _mockLogger = Substitute.For<ILogger<JwtTokenService>>();
         _jwtTokenService = new JwtTokenService(options, _mockLogger);
     }
@@ -241,7 +243,7 @@ public class JwtTokenServiceTests {
         };
 
         var mockLogger = Substitute.For<ILogger<JwtTokenService>>();
-        var wrongIssuerService = new JwtTokenService(Options.Create(wrongIssuerOptions), mockLogger);
+        var wrongIssuerService = new JwtTokenService(MsOptions.Create(wrongIssuerOptions), mockLogger);
         var user = CreateTestUser("test@example.com", "Test User");
         var roles = new List<string> { "User" };
         var token = wrongIssuerService.GenerateToken(user, roles, rememberMe: false);
@@ -262,7 +264,7 @@ public class JwtTokenServiceTests {
         };
 
         var mockLogger = Substitute.For<ILogger<JwtTokenService>>();
-        var wrongAudienceService = new JwtTokenService(Options.Create(wrongAudienceOptions), mockLogger);
+        var wrongAudienceService = new JwtTokenService(MsOptions.Create(wrongAudienceOptions), mockLogger);
         var user = CreateTestUser("test@example.com", "Test User");
         var roles = new List<string> { "User" };
         var token = wrongAudienceService.GenerateToken(user, roles, rememberMe: false);
@@ -283,7 +285,7 @@ public class JwtTokenServiceTests {
         };
 
         var mockLogger = Substitute.For<ILogger<JwtTokenService>>();
-        var wrongKeyService = new JwtTokenService(Options.Create(wrongKeyOptions), mockLogger);
+        var wrongKeyService = new JwtTokenService(MsOptions.Create(wrongKeyOptions), mockLogger);
         var user = CreateTestUser("test@example.com", "Test User");
         var roles = new List<string> { "User" };
         var token = wrongKeyService.GenerateToken(user, roles, rememberMe: false);

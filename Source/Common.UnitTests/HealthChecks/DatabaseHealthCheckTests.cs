@@ -130,7 +130,7 @@ public class DatabaseHealthCheckTests {
         var cancellationToken = new CancellationToken(true);
 
         // Act & Assert
-        var action = async () => await healthCheck.CheckHealthAsync(context, cancellationToken);
+        var action = () => healthCheck.CheckHealthAsync(context, cancellationToken);
         await action.Should().ThrowExactlyAsync<OperationCanceledException>();
     }
 

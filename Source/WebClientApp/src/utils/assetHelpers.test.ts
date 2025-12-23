@@ -1,24 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { AssetKind, ResourceType } from '@/types/domain';
+import { AssetKind, ResourceRole } from '@/types/domain';
 import type { Asset, MediaResource } from '@/types/domain';
 import { getDefaultAssetImage, getResourceUrl } from './assetHelpers';
 
-const createMockResource = (id: string, resourceType: ResourceType = ResourceType.Token): MediaResource => ({
+const createMockResource = (id: string, role: ResourceRole = ResourceRole.Token): MediaResource => ({
   id,
-  description: null,
-  features: {},
-  resourceType,
-  classification: null,
+  role,
   path: `/media/${id}`,
   contentType: 'image/png',
   fileName: `${id}.png`,
-  fileLength: 1024,
-  thumbnailPath: null,
-  size: { width: 100, height: 100 },
+  fileSize: 1024,
+  dimensions: { width: 100, height: 100 },
   duration: '',
-  ownerId: 'owner-1',
-  isPublished: false,
-  isPublic: false,
 });
 
 const createMockAsset = (overrides?: Partial<Asset>): Asset => ({
@@ -33,6 +26,7 @@ const createMockAsset = (overrides?: Partial<Asset>): Asset => ({
   tokens: [],
   portrait: null,
   statBlocks: {},
+  tags: [],
   ...overrides,
 });
 
@@ -40,8 +34,8 @@ describe('assetHelpers', () => {
   describe('getDefaultAssetImage', () => {
     it('should return topDown when available', () => {
       const asset = createMockAsset({
-        tokens: [createMockResource('topdown-1', ResourceType.Token)],
-        portrait: createMockResource('portrait-1', ResourceType.Portrait),
+        tokens: [createMockResource('topdown-1', ResourceRole.Token)],
+        portrait: createMockResource('portrait-1', ResourceRole.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);
@@ -52,7 +46,7 @@ describe('assetHelpers', () => {
     it('should fallback to portrait when tokens are missing', () => {
       const asset = createMockAsset({
         tokens: [],
-        portrait: createMockResource('portrait-1', ResourceType.Portrait),
+        portrait: createMockResource('portrait-1', ResourceRole.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);
@@ -63,7 +57,7 @@ describe('assetHelpers', () => {
     it('should return portrait when available', () => {
       const asset = createMockAsset({
         tokens: [],
-        portrait: createMockResource('portrait-1', ResourceType.Portrait),
+        portrait: createMockResource('portrait-1', ResourceRole.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);

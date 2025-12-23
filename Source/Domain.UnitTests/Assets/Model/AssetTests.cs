@@ -29,21 +29,17 @@ public class AssetTests {
         var portraitId = Guid.CreateVersion7();
         var portrait = new ResourceMetadata {
             Id = portraitId,
-            ResourceType = ResourceType.Background,
             Path = "assets/table-portrait.png",
             ContentType = "image/png",
-            Size = size,
-            OwnerId = ownerId,
+            Dimensions = size,
         };
 
         var tokenId = Guid.CreateVersion7();
         var token = new ResourceMetadata {
             Id = tokenId,
-            ResourceType = ResourceType.Background,
             Path = "assets/table-token.png",
             ContentType = "image/png",
-            Size = size,
-            OwnerId = ownerId,
+            Dimensions = size,
         };
 
         var classification = new AssetClassification(

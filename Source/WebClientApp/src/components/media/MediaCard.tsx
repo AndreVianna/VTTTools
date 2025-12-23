@@ -39,10 +39,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     const isVideo = media.contentType.startsWith('video/');
     const isAudio = media.contentType.startsWith('audio/');
 
-    const thumbnailResourceUrl = media.thumbnailPath
-        ? `/api/resources/${media.thumbnailPath}`
-        : `/api/resources/${media.path}`;
-
+    const thumbnailResourceUrl = `/api/resources/${media.path}`;
     const videoResourceUrl = `/api/resources/${media.path}`;
 
     const { blobUrl: thumbnailBlobUrl, isLoading: isThumbnailLoading } = useAuthenticatedImageUrl(
@@ -232,9 +229,9 @@ export const MediaCard: React.FC<MediaCardProps> = ({
                 />
             )}
 
-            {media.resourceType && (
+            {media.role && (
                 <Chip
-                    label={media.resourceType}
+                    label={media.role}
                     size="small"
                     sx={{
                         position: 'absolute',

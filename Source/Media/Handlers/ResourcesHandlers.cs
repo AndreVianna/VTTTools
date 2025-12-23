@@ -14,13 +14,8 @@ internal static class ResourcesHandlers {
         var userId = isInternalService ? (Guid?)null : context.User.GetUserId();
 
         var filter = new ResourceFilterData {
-            ResourceType = request.ResourceType,
-            ContentKind = request.ContentKind,
-            Category = request.Category,
+            Role = request.Role,
             SearchText = request.SearchText,
-            OwnerId = isInternalService ? null : userId,
-            IsPublic = request.IsPublic,
-            IsPublished = request.IsPublished,
             Skip = request.Skip ?? 0,
             Take = request.Take ?? 50,
         };
@@ -36,13 +31,8 @@ internal static class ResourcesHandlers {
     internal static async Task<IResult> UploadResourceHandler(
         HttpContext context,
         [FromForm] IFormFile file,
-        [FromForm] string? resourceType,
+        [FromForm] string? role,
         [FromForm] string? ownerId,
-        [FromForm] string? kind,
-        [FromForm] string? category,
-        [FromForm] string? type,
-        [FromForm] string? subtype,
-        [FromForm] string? description,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
         Guid userId;
@@ -58,27 +48,15 @@ internal static class ResourcesHandlers {
             userId = context.User.GetUserId();
         }
 
-        var parsedResourceType = Enum.TryParse<ResourceType>(resourceType, ignoreCase: true, out var rt)
-            ? rt
-            : ResourceType.Undefined;
-
-        // Build classification if any field is provided
-        ResourceClassification? classification = null;
-        if (!string.IsNullOrWhiteSpace(kind) || !string.IsNullOrWhiteSpace(category) || !string.IsNullOrWhiteSpace(type)) {
-            classification = new ResourceClassification(
-                kind ?? string.Empty,
-                category ?? string.Empty,
-                type ?? string.Empty,
-                subtype);
-        }
+        var parsedRole = Enum.TryParse<ResourceRole>(role, ignoreCase: true, out var r)
+            ? r
+            : ResourceRole.Undefined;
 
         var data = new UploadResourceData {
+            Role = parsedRole,
             ContentType = file.ContentType,
             FileName = file.FileName,
             Stream = file.OpenReadStream(),
-            ResourceType = parsedResourceType,
-            Classification = classification,
-            Description = description,
         };
 
         var validationResult = data.Validate();
@@ -119,8 +97,15 @@ internal static class ResourcesHandlers {
         [FromRoute] Guid id,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
-        var isInternalService = context.IsInternalService();
-        var userId = isInternalService ? (Guid?)null : context.User.GetUserId();
+        Guid userId;
+        if (context.IsInternalService()) {
+            // Internal service calls must provide X-User-Id header
+            if (!context.Request.Headers.TryGetValue("X-User-Id", out var userIdHeader) || !Guid.TryParse(userIdHeader, out userId))
+                return Results.BadRequest(new { error = "X-User-Id header is required for internal service calls." });
+        }
+        else {
+            userId = context.User.GetUserId();
+        }
 
         var result = await resourceService.DeleteResourceAsync(userId, id, ct);
         return !result.IsSuccessful
@@ -135,15 +120,10 @@ internal static class ResourcesHandlers {
     }
 
     internal static async Task<IResult> ServeResourceHandler(
-        HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
-        // Internal services can serve any resource (for admin proxy)
-        var isInternalService = context.IsInternalService();
-        var userId = isInternalService ? (Guid?)null : context.User.GetUserId();
-
-        var download = await resourceService.ServeResourceAsync(userId, id, ct);
+        var download = await resourceService.ServeResourceAsync(id, ct);
         if (download == null)
             return Results.NotFound();
 
@@ -175,9 +155,7 @@ internal static class ResourcesHandlers {
         var userId = context.User.GetUserId();
 
         var data = new UpdateResourceData {
-            Description = request.Description,
-            Features = request.Features,
-            IsPublic = request.IsPublic,
+            Role = request.Role,
         };
 
         var validationResult = data.Validate();

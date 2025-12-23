@@ -1,8 +1,8 @@
+using MsOptions = Microsoft.Extensions.Options.Options;
 
-namespace VttTools.Common.UnitTests.Services;
+namespace VttTools.Services;
 
 public class JwtTokenServiceTests {
-    private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly ILogger<JwtTokenService> _logger;
     private readonly JwtTokenService _service;
 
@@ -12,11 +12,11 @@ public class JwtTokenServiceTests {
             Issuer = "VttTools.Test",
             Audience = "VttTools.Test.Audience",
             ExpirationMinutes = 60,
-            RememberMeExpirationMinutes = 10080
+            RememberMeExpirationMinutes = 10080,
         };
-        _jwtOptions = Options.Create(options);
+        var jwtOptions = MsOptions.Create(options);
         _logger = Substitute.For<ILogger<JwtTokenService>>();
-        _service = new JwtTokenService(_jwtOptions, _logger);
+        _service = new(jwtOptions, _logger);
     }
 
     [Fact]
@@ -24,8 +24,8 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser",
-            DisplayName = "Test User"
+            UserName = "testUser",
+            DisplayName = "Test User",
         };
         var roles = new List<string> { "User" };
 
@@ -39,7 +39,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var roles = new List<string>();
 
@@ -56,7 +56,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var roles = new List<string> { "User", "Admin", "Moderator" };
 
@@ -70,7 +70,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var roles = new List<string>();
 
@@ -84,7 +84,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = null
+            UserName = null,
         };
         var roles = new List<string>();
 
@@ -98,8 +98,8 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser",
-            DisplayName = null
+            UserName = "testUser",
+            DisplayName = null,
         };
         var roles = new List<string>();
 
@@ -113,7 +113,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var roles = new List<string> { "User" };
         var token = _service.GenerateToken(user, roles);
@@ -165,13 +165,13 @@ public class JwtTokenServiceTests {
             Issuer = "VttTools.Test",
             Audience = "VttTools.Test.Audience",
             ExpirationMinutes = 60,
-            RememberMeExpirationMinutes = 10080
+            RememberMeExpirationMinutes = 10080,
         };
-        var otherService = new JwtTokenService(Options.Create(otherOptions), _logger);
+        var otherService = new JwtTokenService(MsOptions.Create(otherOptions), _logger);
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var token = otherService.GenerateToken(user, []);
 
@@ -187,13 +187,13 @@ public class JwtTokenServiceTests {
             Issuer = "WrongIssuer",
             Audience = "VttTools.Test.Audience",
             ExpirationMinutes = 60,
-            RememberMeExpirationMinutes = 10080
+            RememberMeExpirationMinutes = 10080,
         };
-        var wrongIssuerService = new JwtTokenService(Options.Create(wrongIssuerOptions), _logger);
+        var wrongIssuerService = new JwtTokenService(MsOptions.Create(wrongIssuerOptions), _logger);
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var token = wrongIssuerService.GenerateToken(user, []);
 
@@ -209,13 +209,13 @@ public class JwtTokenServiceTests {
             Issuer = "VttTools.Test",
             Audience = "WrongAudience",
             ExpirationMinutes = 60,
-            RememberMeExpirationMinutes = 10080
+            RememberMeExpirationMinutes = 10080,
         };
-        var wrongAudienceService = new JwtTokenService(Options.Create(wrongAudienceOptions), _logger);
+        var wrongAudienceService = new JwtTokenService(MsOptions.Create(wrongAudienceOptions), _logger);
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var token = wrongAudienceService.GenerateToken(user, []);
 
@@ -231,13 +231,13 @@ public class JwtTokenServiceTests {
             Issuer = "VttTools.Test",
             Audience = "VttTools.Test.Audience",
             ExpirationMinutes = 60,
-            RememberMeExpirationMinutes = 10080
+            RememberMeExpirationMinutes = 10080,
         };
-        var wrongKeyService = new JwtTokenService(Options.Create(wrongKeyOptions), _logger);
+        var wrongKeyService = new JwtTokenService(MsOptions.Create(wrongKeyOptions), _logger);
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var token = wrongKeyService.GenerateToken(user, []);
 
@@ -252,7 +252,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var roles = new List<string> { "User" };
         var token = _service.GenerateToken(user, roles);
@@ -297,13 +297,13 @@ public class JwtTokenServiceTests {
             Issuer = "VttTools.Test",
             Audience = "VttTools.Test.Audience",
             ExpirationMinutes = 60,
-            RememberMeExpirationMinutes = 10080
+            RememberMeExpirationMinutes = 10080,
         };
-        var otherService = new JwtTokenService(Options.Create(otherOptions), _logger);
+        var otherService = new JwtTokenService(MsOptions.Create(otherOptions), _logger);
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testuser"
+            UserName = "testUser",
         };
         var token = otherService.GenerateToken(user, []);
 

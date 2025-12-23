@@ -1,6 +1,6 @@
 namespace VttTools.Media.Model;
 
 public record Resource
-    : ResourceFile {
+    : ResourceMetadata {
     public Stream Stream { get; init; } = null!;
 }
