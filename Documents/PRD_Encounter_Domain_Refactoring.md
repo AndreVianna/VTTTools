@@ -803,3 +803,450 @@ public record Encounter {
    - Same data loading patterns
 
 ---
+
+## 4. BACKEND IMPACT ANALYSIS
+
+### 4.1 Overview
+
+**Total Files Affected:** ~216 files
+**Database Tables:** 6 new tables, 2 tables dropped
+**API Endpoints:** ~30 new endpoints
+**Estimated Effort:** 200-250 hours
+
+### 4.2 Domain Layer Changes
+
+#### 4.2.1 New Domain Entities Required
+
+| Entity | File Location | Description |
+|--------|--------------|-------------|
+| `EncounterElement` | `/Source/Domain/Library/Encounters/Model/EncounterElement.cs` | Base abstraction (NEW) |
+| `EncounterActor` | `/Source/Domain/Library/Encounters/Model/EncounterActor.cs` | Replaces EncounterAsset for Characters/Creatures |
+| `EncounterProp` | `/Source/Domain/Library/Encounters/Model/EncounterProp.cs` | Interactive objects (NEW) |
+| `EncounterDecoration` | `/Source/Domain/Library/Encounters/Model/EncounterDecoration.cs` | Environmental objects (NEW) |
+| `EncounterAudio` | `/Source/Domain/Library/Encounters/Model/EncounterAudio.cs` | Spatial audio (replaces EncounterSound) |
+| `EncounterVideo` | `/Source/Domain/Library/Encounters/Model/EncounterVideo.cs` | Video overlays (NEW) |
+| `EncounterSprite` | `/Source/Domain/Library/Encounters/Model/EncounterSprite.cs` | Animated sprites (NEW) |
+| `EncounterTrap` | `/Source/Domain/Library/Encounters/Model/EncounterTrap.cs` | Triggered hazards (NEW) |
+| `EncounterEffect` | `/Source/Domain/Library/Encounters/Model/EncounterEffect.cs` | Active zones (NEW) |
+
+#### 4.2.2 API Contracts - Breaking Changes
+
+**Current Structure:**
+```
+EncounterAssetAddRequest
+EncounterAssetUpdateRequest
+EncounterAssetBulkAddRequest
+EncounterSoundAddRequest
+EncounterSoundUpdateRequest
+```
+
+**New Structure (split by type):**
+```
+EncounterActorAddRequest / UpdateRequest
+EncounterPropAddRequest / UpdateRequest
+EncounterDecorationAddRequest / UpdateRequest
+EncounterAudioAddRequest / UpdateRequest
+EncounterVideoAddRequest / UpdateRequest
+EncounterSpriteAddRequest / UpdateRequest
+EncounterTrapAddRequest / UpdateRequest
+EncounterEffectAddRequest / UpdateRequest
+```
+
+**Total New Contracts:** ~24 request/response classes
+
+#### 4.2.3 Service Interface Changes
+
+**File:** `/Source/Domain/Library/Encounters/Services/IEncounterService.cs`
+
+**Current Methods Being Split:**
+- `GetAssetsAsync()` → `GetActorsAsync()`, `GetPropsAsync()`, `GetDecorationsAsync()`
+- `AddAssetAsync()` → `AddActorAsync()`, `AddPropAsync()`, `AddDecorationAsync()`
+- `UpdateAssetAsync()` → type-specific methods (×3)
+- `BulkAddAssetsAsync()` → type-specific methods (×3)
+- `BulkUpdateAssetsAsync()` → type-specific methods (×3)
+- `RemoveAssetAsync()` → type-specific methods (×3)
+- `AddSoundSourceAsync()` → `AddAudioAsync()`, `AddVideoAsync()`, `AddSpriteAsync()`
+- Plus new methods for Traps and Effects
+
+**Estimated:** ~40 method signature changes
+
+### 4.3 Data Layer Changes
+
+#### 4.3.1 Database Schema Changes
+
+**Tables to Drop:**
+- `EncounterAssets`
+- `EncounterSounds`
+
+**Tables to Create:**
+```sql
+-- GameElements
+CREATE TABLE EncounterActors (...)
+CREATE TABLE EncounterProps (...)
+CREATE TABLE EncounterDecorations (...)
+
+-- MediaElements
+CREATE TABLE EncounterAudios (...)
+CREATE TABLE EncounterVideos (...)
+CREATE TABLE EncounterSprites (...)
+
+-- InteractiveElements
+CREATE TABLE EncounterTraps (...)
+CREATE TABLE EncounterEffects (...)
+```
+
+#### 4.3.2 EF Core Configuration
+
+**File:** `/Source/Data/Builders/EncounterSchemaBuilder.cs`
+
+**Changes Required:**
+- Remove EncounterAsset entity configuration
+- Add 6 new entity configurations (Actor, Prop, Decoration, Audio, Video, Sprite)
+- Add 2 new entity configurations (Trap, Effect)
+- Update foreign key relationships
+- Configure inheritance if using TPH (Table Per Hierarchy)
+
+#### 4.3.3 Data Mappers
+
+**File:** `/Source/Data/Library/Mapper.cs`
+
+**Breaking Changes:**
+- Remove `AsEncounterAsset` expression
+- Add 3 new asset mapper expressions (Actor, Prop, Decoration)
+- Remove `AsEncounterSoundSource` expression
+- Add 3 new sound mapper expressions (Audio, Video, Sprite)
+- Update `AsEncounter` mapper to use new collection names
+- Add mappers for Trap and Effect
+
+**Estimated Lines Changed:** 200-300 lines
+
+### 4.4 Application Layer Changes
+
+#### 4.4.1 Handlers
+
+**File:** `/Source/Library/Handlers/EncounterHandlers.cs`
+
+**Current Handlers Being Split:**
+```csharp
+GetAssetsHandler → GetActorsHandler, GetPropsHandler, GetDecorationsHandler
+AddAssetHandler → AddActorHandler, AddPropHandler, AddDecorationHandler
+UpdateAssetHandler → 3 type-specific handlers
+BulkAddAssetsHandler → 3 type-specific handlers
+BulkUpdateAssetsHandler → 3 type-specific handlers
+RemoveAssetHandler → 3 type-specific handlers
+AddSoundSourceHandler → AddAudioHandler, AddVideoHandler, AddSpriteHandler
+// Plus new: AddTrapHandler, AddEffectHandler, etc.
+```
+
+**Total New Handlers:** ~30
+
+#### 4.4.2 API Endpoints
+
+**File:** `/Source/Library/EndpointMappers/EncounterEndpointsMapper.cs`
+
+**Current Routes:**
+```
+GET    /api/encounters/{id}/assets
+POST   /api/encounters/{id}/assets
+PUT    /api/encounters/{id}/assets/{index}
+DELETE /api/encounters/{id}/assets/{index}
+
+GET    /api/encounters/{id}/sounds
+POST   /api/encounters/{id}/sounds
+// etc.
+```
+
+**New Routes (3x assets + 3x media + 2x interactive):**
+```
+GET    /api/encounters/{id}/actors
+POST   /api/encounters/{id}/actors
+PUT    /api/encounters/{id}/actors/{index}
+DELETE /api/encounters/{id}/actors/{index}
+
+GET    /api/encounters/{id}/props
+POST   /api/encounters/{id}/props
+// ... same for decorations
+
+GET    /api/encounters/{id}/audio
+POST   /api/encounters/{id}/audio
+// ... same for video, sprites
+
+GET    /api/encounters/{id}/traps
+POST   /api/encounters/{id}/traps
+// ... same for effects
+```
+
+**Total New Routes:** ~40-50 endpoints
+
+### 4.5 Critical Files List
+
+**Highest Priority (Must Change):**
+1. `/Source/Domain/Assets/Model/AssetKind.cs` - Enum update
+2. `/Source/Domain/Library/Encounters/Model/Encounter.cs` - Aggregate update
+3. `/Source/Domain/Library/Encounters/Services/IEncounterService.cs` - Interface refactoring
+4. `/Source/Data/Builders/EncounterSchemaBuilder.cs` - Schema configuration
+5. `/Source/Data/Library/Mapper.cs` - Data mapping
+6. `/Source/Library/Handlers/EncounterHandlers.cs` - Request handlers
+7. `/Source/Library/EndpointMappers/EncounterEndpointsMapper.cs` - Routing
+
+**High Priority (Significant Changes):**
+8. All API contract files in `/Source/Domain/Library/Encounters/ApiContracts/`
+9. All service contract files in `/Source/Domain/Library/Encounters/ServiceContracts/`
+10. `/Source/Data/Library/EncounterStorage.cs` - Storage implementation
+11. `/Source/Library/Services/EncounterService.cs` - Service implementation
+12. `/Source/Library/Services/Cloner.cs` - Cloning logic
+
+### 4.6 Testing Impact
+
+**Test Files Requiring Updates:**
+- Domain model tests: ~15 files
+- API contract tests: ~12 files
+- Service tests: ~8 files
+- Integration tests: ~30 test methods
+- Total estimated test updates: ~200 test cases
+
+---
+
+## 5. FRONTEND IMPACT ANALYSIS
+
+### 5.1 Overview
+
+**Total Components Affected:** ~40 components
+**TypeScript Type Files:** ~12 files
+**API Integration:** ~20 methods
+**Estimated Effort:** 150-200 hours
+
+### 5.2 TypeScript Type Definitions
+
+#### 5.2.1 Domain Types
+
+**File:** `/Source/WebClientApp/src/types/domain.ts`
+
+**Changes Required:**
+```typescript
+// BEFORE
+enum AssetKind {
+  Character = 'Character',
+  Creature = 'Creature',
+  Effect = 'Effect',      // REMOVE
+  Object = 'Object',      // REMOVE
+}
+
+interface EncounterAsset {
+  // Generic asset type
+}
+
+interface EncounterSoundSource {
+  // Generic sound type
+}
+
+// AFTER
+enum AssetKind {
+  Character = 'Character',
+  Creature = 'Creature',
+  Prop = 'Prop',          // NEW
+  Decoration = 'Decoration' // NEW
+}
+
+interface EncounterActor extends EncounterElement {
+  assetId: string;
+  controlledBy?: string;
+  frame: Frame;
+  // ...
+}
+
+interface EncounterProp extends EncounterElement {
+  assetId: string;
+  state: ObjectState;
+  openState?: ObjectOpenState;
+  // NO frame property
+}
+
+interface EncounterDecoration extends EncounterElement {
+  assetId: string;
+  // Minimal properties
+}
+
+interface EncounterAudio extends EncounterElement {
+  resourceId: string;
+  range?: number;
+  // ...
+}
+
+interface EncounterVideo extends EncounterElement {
+  resourceId: string;
+  displaySize: Size;
+  // ...
+}
+
+interface EncounterSprite extends EncounterElement {
+  resourceId: string;
+  animationSpeed: number;
+  // ...
+}
+
+interface EncounterTrap extends EncounterElement {
+  triggerArea: Geometry;
+  detectionDC?: number;
+  // ...
+}
+
+interface EncounterEffect extends EncounterElement {
+  affectedArea: Geometry;
+  duration: EffectDuration;
+  // ...
+}
+```
+
+### 5.3 Component Changes
+
+#### 5.3.1 Left Toolbar Panels
+
+**Current Panels:**
+- ObjectsPanel.tsx
+- CharactersPanel.tsx
+- MonstersPanel.tsx
+- SoundsPanel.tsx
+
+**New/Modified Panels:**
+- ActorsPanel.tsx or keep CharactersPanel + MonstersPanel (combine Actors)
+- PropsPanel.tsx (NEW - interactive objects)
+- DecorationsPanel.tsx (NEW - environmental objects)
+- AudioPanel.tsx (split from SoundsPanel)
+- VideoPanel.tsx (NEW)
+- SpritesPanel.tsx (NEW)
+- TrapsPanel.tsx (NEW)
+- EffectsPanel.tsx (NEW)
+
+**Total Panel Changes:** 5 existing modified + 6 new panels
+
+#### 5.3.2 Rendering Components
+
+**Files to Update:**
+- `PlacedEntity.tsx` - Update rendering logic for Actors vs Props vs Decorations
+- `SoundSourceRenderer.tsx` - Split into AudioRenderer, VideoRenderer, SpriteRenderer
+- New: `TrapRenderer.tsx`, `EffectRenderer.tsx`
+
+**Key Change:** Remove Frame rendering from Props and Decorations
+
+```typescript
+// PlacedEntity.tsx
+const shouldShowFrame = element.type === 'actor'; // Only actors have frames
+
+// Rendering logic
+{shouldShowFrame && <Frame {...element.frame} />}
+<Image src={element.image} />
+```
+
+#### 5.3.3 Asset Browser & Selection
+
+**File:** `/Source/WebClientApp/src/components/assets/AssetFilterPanel.tsx`
+
+**Changes:**
+- Update kind filter tabs: Remove "Effect" and "Object"
+- Add "Prop" and "Decoration" tabs
+- Update filter logic
+
+**File:** `/Source/WebClientApp/src/components/encounter/asset-selection/AssetSelectionDialog.tsx`
+
+**Changes:**
+- Support new asset kinds in selection
+- Add type-specific placement options
+
+### 5.4 API Integration
+
+**File:** `/Source/WebClientApp/src/services/encounterApi.ts`
+
+**Current Methods:**
+```typescript
+addEncounterAsset(encounterId, asset)
+updateEncounterAsset(encounterId, index, asset)
+removeEncounterAsset(encounterId, index)
+bulkAddEncounterAssets(encounterId, assets)
+
+addEncounterSound(encounterId, sound)
+updateEncounterSound(encounterId, index, sound)
+```
+
+**New Methods (type-specific):**
+```typescript
+// GameElements
+addEncounterActor(encounterId, actor)
+addEncounterProp(encounterId, prop)
+addEncounterDecoration(encounterId, decoration)
+updateEncounterActor/Prop/Decoration(...)
+removeEncounterActor/Prop/Decoration(...)
+
+// MediaElements
+addEncounterAudio(encounterId, audio)
+addEncounterVideo(encounterId, video)
+addEncounterSprite(encounterId, sprite)
+updateEncounterAudio/Video/Sprite(...)
+
+// InteractiveElements
+addEncounterTrap(encounterId, trap)
+addEncounterEffect(encounterId, effect)
+updateEncounterTrap/Effect(...)
+```
+
+**Total New Methods:** ~30
+
+### 5.5 State Management & Hooks
+
+**File:** `/Source/WebClientApp/src/pages/EncounterEditor/hooks/useAssetManagement.ts`
+
+**Changes Required:**
+- Split asset management into type-specific handlers
+- Maintain separate state for Actors, Props, Decorations
+- Type discrimination logic
+
+**Estimated Changes:** 100-150 lines
+
+### 5.6 UI Organization Changes
+
+**Encounter Editor Left Toolbar:**
+
+```
+BEFORE:
+├─ Characters Panel
+├─ Monsters Panel
+├─ Objects Panel
+├─ Sounds Panel
+├─ Walls Panel
+├─ Regions Panel
+├─ Lights Panel
+└─ Fog of War Panel
+
+AFTER:
+├─ Actors Panel (or keep Characters + Monsters separate)
+├─ Props Panel (NEW)
+├─ Decorations Panel (NEW)
+├─ Audio Panel
+├─ Video Panel (NEW)
+├─ Sprites Panel (NEW)
+├─ Traps Panel (NEW)
+├─ Effects Panel (NEW)
+├─ Walls Panel
+├─ Regions Panel
+├─ Lights Panel
+└─ Fog of War Panel
+```
+
+**Design Decision:** Consider grouping panels with tabs/accordions to avoid overwhelming the UI.
+
+### 5.7 Critical Frontend Files
+
+**Highest Priority:**
+1. `/src/types/domain.ts` - Type definitions
+2. `/src/services/encounterApi.ts` - API integration
+3. `/src/components/encounter/LeftToolBar.tsx` - Panel organization
+4. `/src/components/encounter/PlacedEntity.tsx` - Rendering logic
+5. `/src/utils/encounterMappers.ts` - Data hydration
+
+**High Priority:**
+6. All panel components in `/src/components/encounter/panels/`
+7. `/src/components/encounter/rendering/` - Renderer components
+8. `/src/pages/EncounterEditorPage.tsx` - Main editor page
+9. `/src/components/assets/AssetFilterPanel.tsx` - Asset browser
+
+---
