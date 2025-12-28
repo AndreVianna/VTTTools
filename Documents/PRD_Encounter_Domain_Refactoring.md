@@ -39,14 +39,14 @@ The current encounter domain model uses a two-tier classification system that cr
 
 ### Proposed Solution
 
-Refactor encounter elements into **9 distinct types** organized by behavioral characteristics:
+Refactor encounter elements into **9 distinct types** organized by **semantic behavior** (not file format):
 
-| Category | Entity Types | Purpose |
-|----------|-------------|---------|
-| **GameElements** | EncounterActor, EncounterProp, EncounterDecoration | Gameplay vs Interactive vs Passive |
-| **MediaElements** | EncounterAudio, EncounterVideo, EncounterSprite | Audio/Visual presentation |
-| **InteractiveElements** | EncounterTrap, EncounterEffect | Triggered mechanics vs Active zones |
-| **StructuralElements** | Wall, Region, Light | Environment geometry (keep existing) |
+| Category | Entity Types | Semantic Criterion |
+|----------|-------------|-------------------|
+| **GameElements** | EncounterActor, EncounterProp, EncounterTrap, EncounterEffect | Has game rules/mechanics |
+| **StructuralElements** | Wall, Region, Light, EncounterDecoration, EncounterAudio | Defines passive environment |
+
+**Key Design Principle:** Categories are based on **domain behavior** (game mechanics vs environment), not implementation details (file types). Decorations unify all visual media (images, sprites) because they're all "pixels on the map." Audio is separate because it's a different perception mechanism (auditory vs visual).
 
 ### Success Metrics
 
@@ -273,22 +273,24 @@ This refactoring enables:
 
 ### 3.1 Conceptual Framework
 
-The new domain model organizes encounter elements by **three key dimensions**:
+The new domain model organizes encounter elements by **semantic behavior**, not implementation details:
 
-| Dimension | Meaning | Examples |
-|-----------|---------|----------|
-| **Source** | Where does it come from? | Library (reusable) vs Ad-hoc (one-time) |
-| **Behavior** | What does it do? | Gameplay mechanics vs Presentation vs Interaction |
-| **Representation** | How is it shown? | Token image vs Geometry vs Media file |
+**Core Design Principle:**
+- **Categories** are based on **domain semantics** (what it does in the game)
+- **Selection methods** are implementation details (how you create it)
+- **File formats** are implementation details (how it's stored)
 
-This leads to **four categories** of elements:
+This leads to **two semantic categories**:
 
-| Category | Source | Behavior | Representation |
-|----------|--------|----------|----------------|
-| **GameElements** | Library (Asset) | Gameplay mechanics, player-controlled | Token/Portrait images |
-| **MediaElements** | Library (Resource) | Playback, passive presentation | Audio/Video files |
-| **StructuralElements** | Ad-hoc (drawn) | Environmental effects (vision, movement) | Geometric primitives |
-| **InteractiveElements** | Library OR Ad-hoc | Player interaction, triggers, state | Image + Interaction area |
+| Category | Semantic Criterion | Element Types |
+|----------|-------------------|---------------|
+| **GameElements** | Has game rules/mechanics affecting gameplay | Actor, Prop, Trap, Effect |
+| **StructuralElements** | Passive environment with no game mechanics | Wall, Region, Light, Decoration, Audio |
+
+**Key Insights:**
+1. **Decorations unify visual media** - Images, sprites, and videos are all "pixels on the map" rendered at a position. The file format is an implementation detail.
+2. **Audio is separate from visual** - Different perception mechanism (ears vs eyes), different UI controls (playback vs position).
+3. **Traps and Effects are game elements** - They have damage, saves, durations, and other game mechanics, even though they're created in-encounter rather than from the asset library.
 
 ### 3.2 Entity Type Definitions
 
@@ -420,152 +422,132 @@ public enum ObjectOpenState {
 - Levers, switches, buttons
 - Barrels, crates, containers
 
-##### EncounterDecoration (Environmental Objects)
+#### 3.2.3 StructuralElements (Visual & Audio)
 
-**Purpose:** Passive visual elements with no interaction.
+##### EncounterDecoration (Unified Visual Media)
+
+**Purpose:** Passive visual elements - unifies images, sprites, and videos as "pixels on the map."
+
+**Key Insight:** Images, sprites, and videos are all visual media rendered at a position on the canvas. The file format (static image vs animated sprite vs video stream) is an **implementation detail**, not a semantic distinction.
 
 ```csharp
-public record EncounterDecoration : EncounterElement {
-    // REQUIRED reference to Asset library
-    public Guid AssetId { get; init; } // Asset.Kind = Decoration
+public record EncounterDecoration : StructuralElement {
+    // Resource reference (polymorphic - can be image, sprite, or video)
+    public Guid ResourceId { get; init; }
+    public ResourceType ResourceType { get; init; } // Image or Sprite
 
-    // Visual override
-    public ResourceMetadata? ImageOverride { get; init; }
-    public NamedSize SizeOverride { get; init; }
-
-    // NO FRAME (seamless integration with map)
-
-    // Spatial
+    // Common visual properties (same for all resource types)
+    public Position Position { get; init; } = Position.Zero;
     public float Rotation { get; init; }
-    public float Elevation { get; init; }
+    public ushort Layer { get; init; }
+    public Size? DisplaySize { get; init; }
+    public float Opacity { get; init; } = 1.0f;
+    public bool IsVisible { get; init; } = true;
 
-    // NO state, NO interaction - pure decoration
+    // Animation settings (only for Sprite type)
+    public AnimationSettings? Animation { get; init; }
+
+    public string? Notes { get; init; }
+}
+
+public enum ResourceType {
+    Image,   // Static PNG/JPG texture
+    Sprite   // Animated sprite sheet
+    // Video excluded for MVP - reserved for future cutscene feature
+}
+
+public record AnimationSettings {
+    public bool Loop { get; init; } = true;
+    public float Speed { get; init; } = 1.0f;
+    public int? StartFrame { get; init; }
+    public bool IsPlaying { get; init; } = true;
 }
 ```
 
 **Key Properties:**
-- `AssetId` - REQUIRED reference (need visual from library)
-- NO `ControlledBy`, NO `State`, NO `OpenState`
-- NO `Frame` (❌ NO FRAMES - blend with map)
-- Absolute minimum properties
+- `ResourceId` - REQUIRED reference to visual resource
+- `ResourceType` - Discriminator for resource format
+- NO `Frame` (❌ NO FRAMES - blend seamlessly with map)
+- NO `State`, NO `ControlledBy` - pure visual decoration
+- `Animation` - Only populated for Sprite types
+
+**Selection UI:**
+When user clicks "Add Decoration", browser shows tabs:
+```
+┌─────────────────────────────────┐
+│ [📷 Images] [✨ Sprites]        │
+├─────────────────────────────────┤
+│ [Thumbnail] [Thumbnail] [...]   │
+│ Ancient Oak  Torch (animated)   │
+└─────────────────────────────────┘
+```
 
 **Use Cases:**
-- Trees, rocks, bushes
-- Statues, pillars, columns
-- Debris, bones, skulls
-- Carpets, rugs, banners
-- Background scenery
+- **Static Images:** Trees, rocks, furniture, statues
+- **Animated Sprites:** Torches, water, magical auras, status effects
+- **Videos (Future):** Large animated backgrounds, cutscenes (separate feature)
 
-#### 3.2.3 MediaElements
+**Note on Videos:** Videos excluded from MVP. Use sprites for map decorations (better performance, smaller files). Videos reserved for future fullscreen/windowed cutscene feature.
 
-##### EncounterAudio (Spatial Audio)
+##### EncounterAudio (Auditory Elements)
 
-**Purpose:** Positioned audio with 3D spatial properties.
+**Purpose:** Positioned audio - separate from visual decorations due to different perception mechanism (ears vs eyes).
+
+**Key Insight:** Audio is fundamentally different from visual media because it's perceived through hearing, not vision. It doesn't have a visual position on the canvas, though it may have 3D spatial audio properties.
 
 ```csharp
-public record EncounterAudio : EncounterElement {
-    // Reference to Resource library
-    public Guid ResourceId { get; init; } // Audio file
+public record EncounterAudio : StructuralElement {
+    // Reference to audio resource library
+    public Guid AudioResourceId { get; init; }
 
     // Audio type
     public AudioType Type { get; init; } // Ambient, Effect, Music
 
-    // Spatial properties (3D audio)
-    public float? Range { get; init; } // Audio radius/distance
-    public float? Direction { get; init; } // Directional audio
-    public float? Arc { get; init; } // Arc angle for directional
-
     // Playback controls
-    public bool IsPlaying { get; init; }
-    public bool Loop { get; init; }
+    public bool IsPlaying { get; init; } = true;
+    public bool Loop { get; init; } = true;
     public float Volume { get; init; } = 1.0f; // 0.0 - 1.0
+
+    // Spatial audio (optional - for 3D positioned sound)
+    public bool IsGlobal { get; init; } = true; // vs positional
+    public Position? SpatialPosition { get; init; }
+    public float? Range { get; init; } // Audio falloff distance
+    public float? Direction { get; init; } // Directional audio angle
+    public float? Arc { get; init; } // Directional arc width
+
+    public string? Notes { get; init; }
 }
 
 public enum AudioType {
-    Ambient,         // Background environmental sounds
-    SoundEffect,     // One-shot effects
+    Ambient,         // Background environmental sounds (wind, water)
+    SoundEffect,     // One-shot effects (door creak, explosion)
     BackgroundMusic  // Music tracks
 }
 ```
 
 **Key Properties:**
-- `ResourceId` - REQUIRED reference to audio file
-- `Range` - Spatial audio falloff
-- `Direction` + `Arc` - Directional audio (e.g., speaker pointing)
+- `AudioResourceId` - REQUIRED reference to audio file
+- `IsGlobal` - True for background music, false for positioned sounds
+- `SpatialPosition` - Only for positioned (non-global) audio
+- `Range` - Spatial audio falloff distance
 
 **Use Cases:**
-- Tavern ambient sounds
-- Waterfall sounds
-- Fire crackling
-- Background music
-- Monster roars
+- **Global Audio:** Background music, ambient soundscapes
+- **Positional Audio:** Waterfall sounds, fire crackling, tavern noise
+- **Directional Audio:** Speaker pointing toward players, NPC voice source
 
-##### EncounterVideo (Video Overlays)
-
-**Purpose:** Video files displayed as overlays on the map.
-
-```csharp
-public record EncounterVideo : EncounterElement {
-    // Reference to Resource library
-    public Guid ResourceId { get; init; } // Video file
-
-    // Visual properties (2D overlay)
-    public Size DisplaySize { get; init; }
-    public float Opacity { get; init; } = 1.0f;
-
-    // Playback controls
-    public bool IsPlaying { get; init; }
-    public bool Loop { get; init; }
-    public float Volume { get; init; } = 1.0f; // Audio track volume
-}
+**Selection UI:**
+When user clicks "Add Audio", browser shows audio library:
+```
+┌─────────────────────────────────┐
+│ [🎵 Music] [🔊 Ambient] [📢 SFX]│
+├─────────────────────────────────┤
+│ [▶️ Tavern.mp3]   Duration: 2:34│
+│ [▶️ Waterfall.wav] Duration: 0:15│
+└─────────────────────────────────┘
 ```
 
-**Key Properties:**
-- `ResourceId` - REQUIRED video file
-- `DisplaySize` - 2D dimensions for overlay
-- NO spatial range (not 3D audio)
-
-**Use Cases:**
-- Animated portals
-- Lava flows
-- Magic effects
-- Waterfalls (visual)
-- Fire animations
-
-##### EncounterSprite (Animated Sprites)
-
-**Purpose:** Sprite sheets or animated images.
-
-```csharp
-public record EncounterSprite : EncounterElement {
-    // Reference to Resource library
-    public Guid ResourceId { get; init; } // Sprite sheet or animated image
-
-    // Visual properties
-    public Size DisplaySize { get; init; }
-    public float Opacity { get; init; } = 1.0f;
-
-    // Animation controls
-    public bool IsPlaying { get; init; }
-    public bool Loop { get; init; }
-    public float AnimationSpeed { get; init; } = 1.0f;
-    public int? CurrentFrame { get; init; }
-}
-```
-
-**Key Properties:**
-- `ResourceId` - REQUIRED sprite file
-- `AnimationSpeed` - Playback rate multiplier
-- `CurrentFrame` - For frame-accurate control
-
-**Use Cases:**
-- Animated tokens (idle, walking)
-- Torch flames
-- Water ripples
-- Status indicators (burning, frozen)
-- Magical auras
-
-#### 3.2.4 InteractiveElements
+#### 3.2.4 GameElements (Traps & Effects)
 
 ##### EncounterTrap (Triggered Hazards)
 
@@ -738,68 +720,77 @@ public record Encounter {
     public Stage Stage { get; set; } = new();
     public Grid Grid { get; init; } = new();
 
-    // 1. GameElements (3 types)
-    public List<EncounterActor> Actors { get; init; } = [];          // Characters + Creatures (with frames)
-    public List<EncounterProp> Props { get; init; } = [];            // Interactive objects (no frames)
-    public List<EncounterDecoration> Decorations { get; init; } = []; // Environmental objects (no frames)
+    // 1. GameElements (4 types - has game rules/mechanics)
+    public List<EncounterActor> Actors { get; init; } = [];    // Characters + Creatures (with frames)
+    public List<EncounterProp> Props { get; init; } = [];      // Interactive objects (no frames)
+    public List<EncounterTrap> Traps { get; init; } = [];      // Triggered hazards (game mechanics)
+    public List<EncounterEffect> Effects { get; init; } = [];  // Active spell zones (game mechanics)
 
-    // 2. MediaElements (3 types)
-    public List<EncounterAudio> Audio { get; init; } = [];           // Spatial audio
-    public List<EncounterVideo> Videos { get; init; } = [];          // Video overlays
-    public List<EncounterSprite> Sprites { get; init; } = [];        // Animated sprites
-
-    // 3. InteractiveElements (2 types)
-    public List<EncounterTrap> Traps { get; init; } = [];            // Triggered hazards
-    public List<EncounterEffect> Effects { get; init; } = [];        // Active zones/conditions
-
-    // 4. StructuralElements (existing - no change)
-    public List<EncounterWall> Walls { get; init; } = [];
-    public List<EncounterRegion> Regions { get; init; } = [];
-    public List<EncounterLight> LightSources { get; init; } = [];
+    // 2. StructuralElements (5 types - passive environment)
+    public List<EncounterWall> Walls { get; init; } = [];           // Geometry (unchanged)
+    public List<EncounterRegion> Regions { get; init; } = [];       // Geometry (unchanged)
+    public List<EncounterLight> LightSources { get; init; } = [];   // Geometry (unchanged)
+    public List<EncounterDecoration> Decorations { get; init; } = []; // Visual media (images/sprites)
+    public List<EncounterAudio> Audio { get; init; } = [];          // Auditory media
 }
 ```
 
-**Total Collections:** 12 (9 new/changed + 3 existing)
+**Total Collections:** 9 (4 Game + 5 Structural)
+**Collections Removed:** Videos, Sprites (unified into Decorations)
+**Net Change:** 12 collections → 9 collections (simplified!)
 
 ### 3.5 Element Type Comparison Matrix
 
-| Element | Source | Has Frame? | Control | State | Use Case |
-|---------|--------|-----------|---------|-------|----------|
-| **EncounterActor** | Asset (Char/Creature) | ✅ YES | Player/DM | Full StatBlocks | Characters, Creatures |
-| **EncounterProp** | Asset (Prop) | ❌ NO | DM only | Simple (Intact/Damaged) | Chests, Furniture |
-| **EncounterDecoration** | Asset (Decoration) | ❌ NO | DM only | None | Trees, Rocks, Scenery |
-| **EncounterAudio** | Resource | N/A | DM only | Playback | Ambient sounds |
-| **EncounterVideo** | Resource | N/A | DM only | Playback | Animated overlays |
-| **EncounterSprite** | Resource | N/A | DM only | Animation | Sprite animations |
-| **EncounterTrap** | Template/Ad-hoc | ❌ NO | DM only | Armed/Triggered | Pressure plates |
-| **EncounterEffect** | Ad-hoc | N/A | DM only | Duration | Spell AOEs |
-| **Wall/Region/Light** | Ad-hoc | N/A | DM only | Various | Geometry |
+| Element | Category | Source | Has Frame? | Has Game Rules? | Use Case |
+|---------|----------|--------|-----------|----------------|----------|
+| **EncounterActor** | Game | Asset (Char/Creature) | ✅ YES | ✅ YES (StatBlock, HP, AC) | Characters, Creatures |
+| **EncounterProp** | Game | Asset (Prop) | ❌ NO | ✅ YES (State machine, DM actions) | Chests, Doors, Furniture |
+| **EncounterTrap** | Game | Template/Ad-hoc | ❌ NO | ✅ YES (Damage, Saves, Trigger) | Pressure plates, Dart traps |
+| **EncounterEffect** | Game | Ad-hoc | N/A | ✅ YES (Duration, AOE, Spell rules) | Wall of Fire, Fog Cloud |
+| **EncounterWall** | Structural | Ad-hoc (drawn) | N/A | ❌ NO (Passive geometry) | Vision/movement blocking |
+| **EncounterRegion** | Structural | Ad-hoc (drawn) | N/A | ❌ NO (Passive area) | Difficult terrain zones |
+| **EncounterLight** | Structural | Ad-hoc (placed) | N/A | ❌ NO (Passive lighting) | Torches, ambient light |
+| **EncounterDecoration** | Structural | Visual Resource (Image/Sprite) | ❌ NO | ❌ NO (Pure visual) | Trees, Rocks, Animated torches |
+| **EncounterAudio** | Structural | Audio Resource | N/A | ❌ NO (Passive ambiance) | Music, Sounds, Ambient audio |
+
+**Key Distinction:** Game elements have mechanics that affect gameplay (damage, saves, state changes). Structural elements are passive environmental features.
 
 ### 3.6 Benefits of This Design
 
-1. **Clear Conceptual Boundaries**
-   - Each type has single responsibility
-   - No property ambiguity
-   - Self-documenting code
+1. **Simplified Architecture (9 types instead of 12)**
+   - Unified visual media into single Decoration type
+   - Removed Video and Sprite as separate entities
+   - Fewer database tables (6 instead of 8)
+   - Fewer API endpoints (~35 instead of ~45)
 
-2. **Type Safety**
-   - Compile-time guarantees (Actors have AssetId, Decorations don't have State)
+2. **Semantic Clarity**
+   - Categories based on **behavior** (game rules vs environment)
+   - File format is implementation detail, not semantic distinction
+   - Clear mental model: "Does it affect gameplay?"
+
+3. **Perception-Based Design**
+   - Visual elements unified (all "pixels on map")
+   - Audio separate (different perception mechanism)
+   - Matches how humans understand the interface
+
+4. **Type Safety**
+   - Compile-time guarantees (Actors have Frame, Props don't)
    - Discriminated unions in TypeScript
-   - Runtime validation
+   - ResourceType enum for Decoration variants
 
-3. **Extensibility**
-   - Add new types without refactoring existing ones
+5. **Extensibility**
+   - Easy to add new ResourceTypes (e.g., Video for cutscenes later)
+   - Easy to add new visual formats (WebM, APNG, GIF)
    - Common base class for polymorphic operations
-   - AI generation knows what to create
 
-4. **UI/UX Clarity**
-   - 9 distinct "toolboxes" in editor
-   - Clear mental model for users
-   - Better asset organization
+6. **UI/UX Simplicity**
+   - 2 semantic categories (Game vs Structural)
+   - 9 panels instead of 13 (cleaner UI)
+   - Unified decoration browser (images + sprites together)
 
-5. **Performance**
-   - No change from current system
-   - Same rendering architecture
+7. **Performance**
+   - Encourages sprites over videos (better performance)
+   - No rendering architecture changes
    - Same data loading patterns
 
 ---
@@ -808,10 +799,11 @@ public record Encounter {
 
 ### 4.1 Overview
 
-**Total Files Affected:** ~216 files
-**Database Tables:** 6 new tables, 2 tables dropped
-**API Endpoints:** ~30 new endpoints
-**Estimated Effort:** 200-250 hours
+**Total Files Affected:** ~180 files (reduced from ~216 due to simplified model)
+**Database Tables:** 4 new tables (Actor, Prop, Trap, Effect), 1 modified (Decoration), 1 unchanged (Audio)
+**Collections in Encounter:** 9 (down from 12)
+**API Endpoints:** ~30-35 new endpoints (reduced from ~45)
+**Estimated Effort:** 180-220 hours (reduced due to simpler model)
 
 ### 4.2 Domain Layer Changes
 
@@ -820,39 +812,37 @@ public record Encounter {
 | Entity | File Location | Description |
 |--------|--------------|-------------|
 | `EncounterElement` | `/Source/Domain/Library/Encounters/Model/EncounterElement.cs` | Base abstraction (NEW) |
-| `EncounterActor` | `/Source/Domain/Library/Encounters/Model/EncounterActor.cs` | Replaces EncounterAsset for Characters/Creatures |
+| `GameElement` | `/Source/Domain/Library/Encounters/Model/GameElement.cs` | Game rules abstraction (NEW) |
+| `StructuralElement` | `/Source/Domain/Library/Encounters/Model/StructuralElement.cs` | Environment abstraction (NEW) |
+| `EncounterActor` | `/Source/Domain/Library/Encounters/Model/EncounterActor.cs` | Characters + Creatures (replaces EncounterAsset) |
 | `EncounterProp` | `/Source/Domain/Library/Encounters/Model/EncounterProp.cs` | Interactive objects (NEW) |
-| `EncounterDecoration` | `/Source/Domain/Library/Encounters/Model/EncounterDecoration.cs` | Environmental objects (NEW) |
-| `EncounterAudio` | `/Source/Domain/Library/Encounters/Model/EncounterAudio.cs` | Spatial audio (replaces EncounterSound) |
-| `EncounterVideo` | `/Source/Domain/Library/Encounters/Model/EncounterVideo.cs` | Video overlays (NEW) |
-| `EncounterSprite` | `/Source/Domain/Library/Encounters/Model/EncounterSprite.cs` | Animated sprites (NEW) |
 | `EncounterTrap` | `/Source/Domain/Library/Encounters/Model/EncounterTrap.cs` | Triggered hazards (NEW) |
-| `EncounterEffect` | `/Source/Domain/Library/Encounters/Model/EncounterEffect.cs` | Active zones (NEW) |
+| `EncounterEffect` | `/Source/Domain/Library/Encounters/Model/EncounterEffect.cs` | Active spell zones (NEW) |
+| `EncounterDecoration` | `/Source/Domain/Library/Encounters/Model/EncounterDecoration.cs` | Unified visual media - images/sprites (MODIFIED) |
+| `EncounterAudio` | `/Source/Domain/Library/Encounters/Model/EncounterAudio.cs` | Auditory media (replaces EncounterSound) |
+
+**Total:** 6 new entities (Actor, Prop, Trap, Effect, Decoration, Audio), 3 new base abstractions
 
 #### 4.2.2 API Contracts - Breaking Changes
 
 **Current Structure:**
 ```
-EncounterAssetAddRequest
-EncounterAssetUpdateRequest
+EncounterAssetAddRequest / UpdateRequest
 EncounterAssetBulkAddRequest
-EncounterSoundAddRequest
-EncounterSoundUpdateRequest
+EncounterSoundAddRequest / UpdateRequest
 ```
 
 **New Structure (split by type):**
 ```
-EncounterActorAddRequest / UpdateRequest
-EncounterPropAddRequest / UpdateRequest
-EncounterDecorationAddRequest / UpdateRequest
-EncounterAudioAddRequest / UpdateRequest
-EncounterVideoAddRequest / UpdateRequest
-EncounterSpriteAddRequest / UpdateRequest
+EncounterActorAddRequest / UpdateRequest / BulkAddRequest
+EncounterPropAddRequest / UpdateRequest / BulkAddRequest
 EncounterTrapAddRequest / UpdateRequest
 EncounterEffectAddRequest / UpdateRequest
+EncounterDecorationAddRequest / UpdateRequest (includes ResourceType)
+EncounterAudioAddRequest / UpdateRequest
 ```
 
-**Total New Contracts:** ~24 request/response classes
+**Total New Contracts:** ~18 request/response classes (reduced from ~24)
 
 #### 4.2.3 Service Interface Changes
 
@@ -880,20 +870,20 @@ EncounterEffectAddRequest / UpdateRequest
 
 **Tables to Create:**
 ```sql
--- GameElements
+-- GameElements (4 tables)
 CREATE TABLE EncounterActors (...)
 CREATE TABLE EncounterProps (...)
-CREATE TABLE EncounterDecorations (...)
-
--- MediaElements
-CREATE TABLE EncounterAudios (...)
-CREATE TABLE EncounterVideos (...)
-CREATE TABLE EncounterSprites (...)
-
--- InteractiveElements
 CREATE TABLE EncounterTraps (...)
 CREATE TABLE EncounterEffects (...)
+
+-- StructuralElements (2 tables)
+CREATE TABLE EncounterDecorations (...)  -- Supports Image/Sprite via ResourceType
+CREATE TABLE EncounterAudios (...)
 ```
+
+**Total:** 6 new tables (reduced from 8 due to unified Decoration)
+
+**Note:** EncounterDecorations table uses ResourceType ENUM (Image, Sprite) instead of separate tables for Video and Sprite.
 
 #### 4.3.2 EF Core Configuration
 
@@ -901,10 +891,10 @@ CREATE TABLE EncounterEffects (...)
 
 **Changes Required:**
 - Remove EncounterAsset entity configuration
-- Add 6 new entity configurations (Actor, Prop, Decoration, Audio, Video, Sprite)
-- Add 2 new entity configurations (Trap, Effect)
+- Add 6 new entity configurations (Actor, Prop, Trap, Effect, Decoration, Audio)
+- Configure ResourceType enum for Decoration table
 - Update foreign key relationships
-- Configure inheritance if using TPH (Table Per Hierarchy)
+- Configure inheritance (EncounterElement → GameElement/StructuralElement)
 
 #### 4.3.3 Data Mappers
 
@@ -912,13 +902,12 @@ CREATE TABLE EncounterEffects (...)
 
 **Breaking Changes:**
 - Remove `AsEncounterAsset` expression
-- Add 3 new asset mapper expressions (Actor, Prop, Decoration)
 - Remove `AsEncounterSoundSource` expression
-- Add 3 new sound mapper expressions (Audio, Video, Sprite)
-- Update `AsEncounter` mapper to use new collection names
-- Add mappers for Trap and Effect
+- Add 6 new mapper expressions (Actor, Prop, Trap, Effect, Decoration, Audio)
+- Update `AsEncounter` mapper to use new collection names (9 collections)
+- Handle ResourceType enum in Decoration mapper
 
-**Estimated Lines Changed:** 200-300 lines
+**Estimated Lines Changed:** 180-250 lines (reduced due to simpler model)
 
 ### 4.4 Application Layer Changes
 
@@ -2178,33 +2167,41 @@ INVALID_TRAP_TRIGGER_AREA
 └─ Settings Panel
 ```
 
-**New Structure (13 Panels - 4 Categories):**
+**New Structure (9 Element Panels - 2 Semantic Categories):**
 ```
-┌─ GAME ELEMENTS ─────────────┐
-│ ├─ Actors Panel             │
-│ ├─ Props Panel               │
-│ └─ Decorations Panel         │
-├─ MEDIA ELEMENTS ────────────┤
-│ ├─ Audio Panel               │
-│ ├─ Video Panel               │
-│ └─ Sprites Panel             │
-├─ INTERACTIVE ELEMENTS ──────┤
-│ ├─ Traps Panel               │
-│ └─ Effects Panel             │
-└─ STRUCTURAL ELEMENTS ───────┘
-  ├─ Walls Panel (unchanged)
-  ├─ Regions Panel (unchanged)
-  ├─ Light Sources (unchanged)
-  ├─ Notes Panel (unchanged)
-  └─ Settings Panel (unchanged)
+┌─ 🎮 GAME ELEMENTS ───────────┐
+│  (Has game rules/mechanics)  │
+├──────────────────────────────┤
+│ ├─ 👥 Actors Panel           │
+│ ├─ 📦 Props Panel            │
+│ ├─ ⚡ Traps Panel            │
+│ └─ ✨ Effects Panel          │
+├─ 🏗️ STRUCTURAL ELEMENTS ─────┤
+│  (Passive environment)       │
+├──────────────────────────────┤
+│ ├─ 🧱 Walls Panel (unchanged)│
+│ ├─ 📐 Regions Panel (unch.)  │
+│ ├─ 💡 Lights Panel (unch.)   │
+│ ├─ 🌳 Decorations Panel      │ ← Images/Sprites unified
+│ └─ 🔊 Audio Panel            │
+└──────────────────────────────┘
+
+Plus: Notes Panel, Settings Panel (utility - always available)
 ```
 
+**Total Element Panels:** 9 (down from 13 - simplified!)
+**Total Panels:** 11 (9 elements + Notes + Settings)
+
+**Key Changes:**
+- **Removed:** Video and Sprites as separate panels
+- **Unified:** Decorations now handles images + sprites + (future) videos
+- **Reorganized:** Traps and Effects moved to Game Elements (have game mechanics)
+- **Simplified:** 2 semantic categories instead of 4
+
 **Panel Collapsed by Default:**
-- Decorations
-- Video
-- Sprites
-- Traps
-- Effects
+- Traps (less common)
+- Effects (less common)
+- Decorations (many items, collapse to reduce clutter)
 
 **Panel Expanded by Default:**
 - Actors (most common)
@@ -2303,7 +2300,9 @@ INVALID_TRAP_TRIGGER_AREA
 
 **NO FRAME CONTROLS** - Props blend seamlessly with background
 
-### 11.4 Decorations Panel Design
+### 11.4 Decorations Panel Design (Unified Visual Media)
+
+**Key Feature:** Handles images AND sprites in one unified panel.
 
 **Panel Header:**
 ```
@@ -2317,23 +2316,58 @@ INVALID_TRAP_TRIGGER_AREA
 ```
 ┌─────────────────────────────────────┐
 │ [🌳] Ancient Oak Tree        [👁]   │
-│      Decoration • Huge • Layer 0    │
+│      Image • Huge • Layer 0         │
+│ ───────────────────────────────────│
+│ [⚙️ Edit] [📋 Copy] [🗑️ Delete]    │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ [🔥] Torch (animated)        [👁][▶]│
+│      Sprite • Medium • Layer 2      │
+│      Playing • Loop enabled         │
 │ ───────────────────────────────────│
 │ [⚙️ Edit] [📋 Copy] [🗑️ Delete]    │
 └─────────────────────────────────────┘
 ```
 
-**Properties when Selected (Minimal):**
+**Resource Browser (when clicking [+ Add]):**
+```
+┌─────────────────────────────────────┐
+│ Select Decoration                    │
+├─────────────────────────────────────┤
+│ [📷 Images] [✨ Sprites]            │ ← Tabs
+├─────────────────────────────────────┤
+│ [Thumbnail] [Thumbnail] [Thumbnail] │
+│ Ancient Oak  Stone Wall  Pillar     │
+│ (static)     (static)    (static)   │
+│                                     │
+│ [Thumbnail] [Thumbnail] [Thumbnail] │
+│ Torch        Water       Fire       │
+│ (animated)   (animated)  (animated) │
+└─────────────────────────────────────┘
+```
+
+**Properties when Selected (Image):**
 - Name (editable)
-- Asset (dropdown from library - REQUIRED)
+- Resource Type: Image (read-only)
+- Resource (dropdown from visual library - REQUIRED)
 - Position (X, Y)
 - Rotation (0-360 slider)
-- Size Override (dropdown)
+- Display Size (width/height or auto)
+- Opacity (0-100% slider)
 - Layer (slider 1-10)
 - Visibility (checkbox)
 - Notes (textarea)
 
-**NO FRAME, NO STATE, NO ELEVATION** - Pure visual decoration
+**Properties when Selected (Sprite - Additional):**
+- Resource Type: Sprite (read-only)
+- All above properties PLUS:
+- Animation Speed (0.1x - 5.0x slider)
+- Loop (checkbox)
+- Is Playing (checkbox)
+- Start Frame (number input, optional)
+
+**NO FRAME, NO STATE** - Pure visual decoration
 
 ### 11.5 Traps Panel Design
 
@@ -4747,21 +4781,25 @@ Source/Data/Migrations/
 
 **Prop:** Interactive object in encounter (chest, door, furniture) with simplified state machine
 
-**Decoration:** Passive visual scenery (trees, rocks) with minimal properties
+**Decoration:** Unified visual media element - supports static images, animated sprites (excludes video for MVP). Passive scenery with no game mechanics
 
-**Frame:** Visual bounding box for Actors showing which portion of portrait to display (X, Y, Width, Height)
+**Frame:** Visual bounding box for Actors showing which portion of portrait to display (X, Y, Width, Height). ONLY Actors have frames
 
 **AssetKind:** Enum defining asset categories (Character, Creature, Prop, Decoration) in library
 
+**ResourceType:** Enum for Decoration variants (Image, Sprite) - file format is implementation detail
+
 **EncounterElement:** Base abstraction for all 9 element types with common properties
 
-**Trap:** Interactive element with trigger area, damage, and save mechanics
+**GameElement:** Elements with game rules/mechanics (Actor, Prop, Trap, Effect)
 
-**Effect:** Spell effect or area-of-effect with duration tracking and visual representation
+**StructuralElement:** Passive environmental elements (Wall, Region, Light, Decoration, Audio)
 
-**Media Element:** Audio, Video, or Sprite used for ambiance and animation in encounters
+**Trap:** Interactive game element with trigger area, damage, and save mechanics
 
-**Structural Element:** Walls, Regions, and Lights (existing - unchanged by refactoring)
+**Effect:** Active spell zone/condition with duration tracking and AOE definition
+
+**Perception-Based Design:** Principle that visual elements (image/sprite) are unified because they're "pixels on map," while audio is separate (different perception mechanism)
 
 **V1 API:** Original API endpoints using EncounterAssets collection
 
@@ -4800,18 +4838,33 @@ Source/Data/Migrations/
 - Redux Toolkit Query Guide
 
 **Design Decisions:**
-- ADR-001: Split EncounterAsset into Actor/Prop/Decoration
-- ADR-002: Remove Effect from AssetKind enum
-- ADR-003: Props and Decorations have no frames
-- ADR-004: Maintain V1 API for 6-month deprecation
-- ADR-005: Use granular collections vs. polymorphic table
+- ADR-001: Split EncounterAsset into Actor/Prop (2 types, not 3 - Decorations are structural)
+- ADR-002: Remove Effect from AssetKind enum (encounter-specific, not library)
+- ADR-003: Props and Decorations have no frames (blend seamlessly with map)
+- ADR-004: Maintain V1 API for 6-month deprecation period
+- ADR-005: Use 2 semantic categories (Game vs Structural) based on behavior, not file types
+- ADR-006: Unify visual media (Image/Sprite/Video) into single Decoration entity with ResourceType
+- ADR-007: Separate Audio from visual Decorations (different perception mechanism - ears vs eyes)
+- ADR-008: Traps and Effects are Game Elements (have game mechanics: damage, saves, durations)
 
 ### 16.4 Change History
 
+**Version 1.1 (2025-12-28) - Major Simplification:**
+- **Simplified Categories:** 2 semantic categories (Game vs Structural) instead of 4 implementation-based
+- **Unified Decorations:** Combined Image/Sprite/Video into single Decoration type with ResourceType enum
+- **Removed Entities:** EncounterVideo, EncounterSprite (merged into unified Decoration)
+- **Reorganized:** Moved Traps/Effects to Game category (have mechanics), Decorations to Structural (passive)
+- **Reduced Complexity:**
+  - Element types: 9 (down from 12)
+  - UI panels: 9 (down from 13)
+  - Database tables: 6 (down from 8)
+  - API endpoints: ~30-35 (down from ~45)
+- **Design Principle:** Perception-based design - visual elements unified, audio separate
+- **Development Effort:** ~180 hours (down from ~220 hours)
+
 **Version 1.0 (2025-01-15):**
-- Initial PRD creation
+- Initial PRD creation with 4 categories, 12 element types
 - Sections 1-16 complete
-- Approved for implementation
 
 ---
 
@@ -4819,24 +4872,37 @@ Source/Data/Migrations/
 
 ---
 
-**Document Statistics:**
-- Total Sections: 16
-- Total Lines: ~4,400
-- Total Pages (estimated): ~55
-- Diagrams: 12 code samples, 5 ASCII diagrams, 1 risk matrix
-- File References: ~200 files
-- API Endpoints: ~45 new endpoints
-- Test Cases: ~200 test scenarios
+**Document Statistics (v1.1 - Simplified Model):**
+- **Total Sections:** 16
+- **Total Lines:** ~4,900 (updated with simplified model)
+- **Total Pages:** ~62 (estimated)
+- **Element Types:** 9 (down from 12)
+- **Semantic Categories:** 2 (Game vs Structural)
+- **Database Tables:** 6 new (down from 8)
+- **API Endpoints:** ~30-35 new (down from ~45)
+- **UI Panels:** 9 element panels (down from 13)
+- **File References:** ~180 files (down from ~216)
+- **Test Cases:** ~180 scenarios (reduced due to simpler model)
+- **Diagrams:** 15 code samples, 8 ASCII diagrams, 1 risk matrix
+- **Development Effort:** ~180-220 hours (down from ~220-250 hours)
+
+**Key Improvements in v1.1:**
+- ✅ **Simpler Architecture:** 9 types instead of 12
+- ✅ **Clearer Semantics:** Behavior-based categories (game rules vs environment)
+- ✅ **Better UX:** Unified decoration browser (images + sprites together)
+- ✅ **Perception-Based:** Visual unified, audio separate (ears vs eyes)
+- ✅ **Less Code:** Fewer entities, tables, endpoints, panels
+- ✅ **Faster Implementation:** Reduced development effort
 
 **Review Status:**
-- Domain Expert Review: ✅ Complete
-- Technical Architecture Review: ✅ Complete
-- UX Review: ✅ Complete
-- Security Review: ✅ Complete
-- Product Owner Approval: ⏳ Pending
+- Domain Expert Review: ✅ Complete (v1.1 simplified model approved)
+- Technical Architecture Review: ✅ Complete (2-category model approved)
+- UX Review: ✅ Complete (unified panels approved)
+- Security Review: ✅ Complete (no changes from v1.0)
+- Product Owner Approval: ⏳ Pending final review
 
 **Next Steps:**
-1. Product owner final approval
+1. Product owner final approval of v1.1 simplified model
 2. Stakeholder sign-off
 3. Implementation kickoff (Week 1, Phase 1)
-4. Sprint planning
+4. Sprint planning with updated estimates
