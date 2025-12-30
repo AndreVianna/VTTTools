@@ -21,7 +21,7 @@ public class CampaignStorage(ApplicationDbContext context)
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var items = entities.Select(e => e.ToModel()!).ToArray();
+        var items = entities.Select(e => e.ToModel(includeParent: true)!).ToArray();
         return (items, totalCount);
     }
 
@@ -31,7 +31,7 @@ public class CampaignStorage(ApplicationDbContext context)
             .Where(c => c.WorldId == worldId)
             .AsNoTracking()
             .ToListAsync(ct);
-        return [.. entities.Select(e => e.ToModel()!)];
+        return [.. entities.Select(e => e.ToModel(includeParent: true)!)];
     }
 
     /// <inheritdoc />
@@ -78,7 +78,7 @@ public class CampaignStorage(ApplicationDbContext context)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(c => c.Id == id, ct);
-        return result.ToModel();
+        return result.ToModel(includeParent: true);
     }
 
     /// <inheritdoc />

@@ -20,7 +20,7 @@ public class AdventureStorage(ApplicationDbContext context)
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var items = entities.Select(e => e.ToModel()!).ToArray();
+        var items = entities.Select(e => e.ToModel(includeParent: true)!).ToArray();
         return (items, totalCount);
     }
 
@@ -29,7 +29,7 @@ public class AdventureStorage(ApplicationDbContext context)
             .Where(a => a.CampaignId == campaignId)
             .AsNoTracking()
             .ToListAsync(ct);
-        return [.. entities.Select(e => e.ToModel()!)];
+        return [.. entities.Select(e => e.ToModel(includeParent: true)!)];
     }
 
     public async Task<Adventure[]> GetAllAsync(CancellationToken ct = default) {
@@ -70,19 +70,21 @@ public class AdventureStorage(ApplicationDbContext context)
     public async Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var query = context.Adventures
             .Include(a => a.Encounters)
-                .ThenInclude(s => s.Actors)
-                    .ThenInclude(sa => sa.Asset)
+                .ThenInclude(e => e.Stage)
             .Include(a => a.Encounters)
-                .ThenInclude(s => s.Objects)
-                    .ThenInclude(sa => sa.Asset)
+                .ThenInclude(e => e.Actors)
+                    .ThenInclude(a => a.Asset)
             .Include(a => a.Encounters)
-                .ThenInclude(s => s.Effects)
+                .ThenInclude(e => e.Objects)
+                    .ThenInclude(o => o.Asset)
+            .Include(a => a.Encounters)
+                .ThenInclude(e => e.Effects)
             .Include(a => a.Background)
             .Include(a => a.Campaign)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(a => a.Id == id, ct);
-        return result.ToModel();
+        return result.ToModel(includeParent: true);
     }
 
     public async Task AddAsync(Adventure adventure, CancellationToken ct = default) {
