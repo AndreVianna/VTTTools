@@ -27,7 +27,7 @@ internal static class AssetSchemaBuilder {
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<string[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<string>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("jsonb");
 
             entity.HasOne(e => e.Thumbnail)
                 .WithMany().IsRequired()

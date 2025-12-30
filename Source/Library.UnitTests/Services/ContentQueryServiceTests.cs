@@ -1,232 +1,112 @@
-using AdventureEntity = VttTools.Data.Library.Adventures.Entities.Adventure;
-using AdventureStyle = VttTools.Library.Adventures.Model.AdventureStyle;
-using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using StageEntity = VttTools.Data.Library.Stages.Entities.Stage;
+using VttTools.Library.Content.ApiContracts;
+using VttTools.Library.Content.ServiceContracts;
+using VttTools.Library.Content.Storage;
 
 namespace VttTools.Library.Services;
 
-public class ContentQueryServiceTests : IDisposable {
-    private readonly ApplicationDbContext _context;
+public class ContentQueryServiceTests {
+    private readonly IContentQueryStorage _storage;
     private readonly ContentQueryService _service;
     private readonly Guid _userId = Guid.CreateVersion7();
-    private readonly Guid _otherUserId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public ContentQueryServiceTests() {
-        var databaseName = $"VttToolsTests_{Guid.NewGuid():N}";
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={databaseName};Trusted_Connection=true;TrustServerCertificate=true")
-            .Options;
-        _context = new(options);
-        _context.Database.EnsureCreated();
-        _service = new(_context);
+        _storage = Substitute.For<IContentQueryStorage>();
+        _service = new(_storage);
         _ct = TestContext.Current.CancellationToken;
     }
 
-    public void Dispose() {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
-        GC.SuppressFinalize(this);
-    }
-
     [Fact]
-    public async Task GetContentAsync_WithNullFilters_ReturnsDefaultPage() {
+    public async Task GetContentAsync_WhenStorageReturnsMoreThanLimit_SetsHasMoreTrue() {
         // Arrange
-        await SeedAdventures(25);
-        var filters = new ContentFilters();
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(11); // More than limit
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
-        result.Data.Should().HaveCount(20);
         result.HasMore.Should().BeTrue();
-        result.NextCursor.Should().NotBeNull();
-        result.Data.Should().OnlyHaveUniqueItems(x => x.Id);
     }
 
     [Fact]
-    public async Task GetContentAsync_WithAfterCursor_ReturnsNextPage() {
+    public async Task GetContentAsync_WhenStorageReturnsExactlyLimit_SetsHasMoreFalse() {
         // Arrange
-        await SeedAdventures(30);
-        var firstPageFilters = new ContentFilters { Limit = 10 };
-        var firstPage = await _service.GetContentAsync(_userId, firstPageFilters, _ct);
-
-        var secondPageFilters = new ContentFilters {
-            Limit = 10,
-            After = firstPage.NextCursor
-        };
-
-        // Act
-        var secondPage = await _service.GetContentAsync(_userId, secondPageFilters, _ct);
-
-        // Assert
-        secondPage.Data.Should().HaveCount(10);
-        secondPage.HasMore.Should().BeTrue();
-        var firstPageIds = firstPage.Data.Select(x => x.Id).ToHashSet();
-        secondPage.Data.Should().NotContain(x => firstPageIds.Contains(x.Id));
-        secondPage.Data.Should().OnlyHaveUniqueItems(x => x.Id);
-    }
-
-    [Fact]
-    public async Task GetContentAsync_WithIsOneShotTrue_OnlyReturnsOneShotAdventures() {
-        // Arrange
-        await SeedAdventures(5, isOneShot: true);
-        await SeedAdventures(5, isOneShot: false);
-
-        var filters = new ContentFilters { IsOneShot = true };
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(10); // Exactly limit
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
-        result.Data.Should().HaveCount(5);
-        result.Data.Should().OnlyContain(x => x.IsOneShot == true);
+        result.HasMore.Should().BeFalse();
     }
 
     [Fact]
-    public async Task GetContentAsync_WithMinEncounterCount_FiltersCorrectly() {
+    public async Task GetContentAsync_WhenStorageReturnsLessThanLimit_SetsHasMoreFalse() {
         // Arrange
-        await SeedAdventureWithEncounters("Adventure 1", 1);
-        await SeedAdventureWithEncounters("Adventure 2", 2);
-        await SeedAdventureWithEncounters("Adventure 3", 3);
-
-        var filters = new ContentFilters { MinEncounterCount = 2 };
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(5); // Less than limit
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
-        result.Data.Should().HaveCount(2);
-        result.Data.Should().OnlyContain(x => x.EncounterCount >= 2);
+        result.HasMore.Should().BeFalse();
     }
 
     [Fact]
-    public async Task GetContentAsync_WithMaxEncounterCount_FiltersCorrectly() {
+    public async Task GetContentAsync_WhenStorageReturnsMoreThanLimit_ReturnsOnlyLimitItems() {
         // Arrange
-        await SeedAdventureWithEncounters("Adventure 1", 1);
-        await SeedAdventureWithEncounters("Adventure 2", 2);
-        await SeedAdventureWithEncounters("Adventure 3", 3);
-
-        var filters = new ContentFilters { MaxEncounterCount = 1 };
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(15);
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
-        result.Data.Should().HaveCount(1);
-        result.Data.Should().OnlyContain(x => x.EncounterCount <= 1);
+        result.Data.Should().HaveCount(10);
+        result.Data.Should().OnlyContain(item => items.Take(10).Contains(item));
     }
 
     [Fact]
-    public async Task GetContentAsync_WithStyleFilter_OnlyReturnsMatchingStyle() {
+    public async Task GetContentAsync_WhenStorageReturnsData_SetsNextCursorToLastItemId() {
         // Arrange
-        await SeedAdventures(3, style: AdventureStyle.Survival);
-        await SeedAdventures(3, style: AdventureStyle.DungeonCrawl);
-
-        var filters = new ContentFilters { Style = AdventureStyle.Survival };
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(10);
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
-        result.Data.Should().HaveCount(3);
-        result.Data.Should().OnlyContain(x => x.Style == AdventureStyle.Survival);
+        result.NextCursor.Should().Be(items[^1].Id);
     }
 
     [Fact]
-    public async Task GetContentAsync_WithIsPublishedTrue_OnlyReturnsPublished() {
+    public async Task GetContentAsync_WhenStorageReturnsMoreThanLimit_SetsNextCursorToLimitItemId() {
         // Arrange
-        await SeedAdventures(5, isPublished: true);
-        await SeedAdventures(5, isPublished: false);
-
-        var filters = new ContentFilters { IsPublished = true };
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(15);
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
-        result.Data.Should().HaveCount(5);
-        result.Data.Should().OnlyContain(x => x.IsPublished);
+        result.NextCursor.Should().Be(items[9].Id); // 10th item (index 9)
     }
 
     [Fact]
-    public async Task GetContentAsync_WithOwnerMine_OnlyReturnsUserAdventures() {
+    public async Task GetContentAsync_WhenStorageReturnsEmpty_SetsHasMoreFalseAndNullCursor() {
         // Arrange
-        await SeedAdventures(5, ownerId: _userId);
-        await SeedAdventures(5, ownerId: _otherUserId, isPublished: true, isPublic: true);
-
-        var filters = new ContentFilters { Owner = "mine" };
-
-        // Act
-        var result = await _service.GetContentAsync(_userId, filters, _ct);
-
-        // Assert
-        result.Data.Should().HaveCount(5);
-        result.Data.Should().OnlyContain(x => x.OwnerId == _userId);
-    }
-
-    [Fact]
-    public async Task GetContentAsync_WithOwnerPublic_OnlyReturnsPublicAdventures() {
-        // Arrange
-        await SeedAdventures(5, ownerId: _userId, isPublic: false);
-        await SeedAdventures(5, ownerId: _otherUserId, isPublished: true, isPublic: true);
-
-        var filters = new ContentFilters { Owner = "public" };
-
-        // Act
-        var result = await _service.GetContentAsync(_userId, filters, _ct);
-
-        // Assert
-        result.Data.Should().HaveCount(5);
-        result.Data.Should().OnlyContain(x => x.IsPublished);
-        result.Data.Should().OnlyContain(x => x.OwnerId == _otherUserId);
-    }
-
-    [Fact]
-    public async Task GetContentAsync_WithSearchQuery_FiltersName() {
-        // Arrange
-        await SeedAdventure("Dragon Quest");
-        await SeedAdventure("Dragon Slayer");
-        await SeedAdventure("Knight Adventure");
-
-        var filters = new ContentFilters { Search = "Dragon" };
-
-        // Act
-        var result = await _service.GetContentAsync(_userId, filters, _ct);
-
-        // Assert
-        result.Data.Should().HaveCount(2);
-        result.Data.Should().OnlyContain(x => x.Name.Contains("Dragon"));
-    }
-
-    [Fact]
-    public async Task GetContentAsync_WithMultipleFilters_AppliesAllFilters() {
-        // Arrange
-        await SeedAdventure("Dragon Quest", isOneShot: true, style: AdventureStyle.Survival, isPublished: true);
-        await SeedAdventure("Dragon Slayer", isOneShot: true, style: AdventureStyle.DungeonCrawl, isPublished: true);
-        await SeedAdventure("Knight Adventure", isOneShot: false, style: AdventureStyle.Survival, isPublished: true);
-
-        var filters = new ContentFilters {
-            Search = "Dragon",
-            IsOneShot = true,
-            Style = AdventureStyle.Survival,
-            IsPublished = true
-        };
-
-        // Act
-        var result = await _service.GetContentAsync(_userId, filters, _ct);
-
-        // Assert
-        result.Data.Should().HaveCount(1);
-        result.Data[0].Name.Should().Be("Dragon Quest");
-    }
-
-    [Fact]
-    public async Task GetContentAsync_WithEmptyResult_ReturnsEmptyArray() {
-        // Arrange
-        await SeedAdventures(5);
-        var filters = new ContentFilters { Search = "NonExistent" };
+        var filters = new ContentFilters { Limit = 10 };
+        ContentListItem[] items = [];
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
@@ -237,109 +117,103 @@ public class ContentQueryServiceTests : IDisposable {
         result.NextCursor.Should().BeNull();
     }
 
-    private async Task SeedAdventures(
-        int count,
-        Guid? ownerId = null,
-        bool isOneShot = false,
-        AdventureStyle style = AdventureStyle.Survival,
-        bool isPublished = false,
-        bool isPublic = false) {
-        var owner = ownerId ?? _userId;
-        for (var i = 0; i < count; i++) {
-            await SeedAdventure(
-                $"Adventure {i}",
-                owner,
-                isOneShot,
-                style,
-                isPublished,
-                isPublic);
-            await Task.Delay(TimeSpan.FromMilliseconds(5));
-        }
+    [Fact]
+    public async Task GetContentAsync_UsesDefaultLimitWhenNotSpecified() {
+        // Arrange
+        var filters = new ContentFilters(); // Default limit is 20
+        var items = CreateTestItems(21);
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
+
+        // Act
+        var result = await _service.GetContentAsync(_userId, filters, _ct);
+
+        // Assert
+        result.Data.Should().HaveCount(20);
+        result.HasMore.Should().BeTrue();
     }
 
-    private async Task SeedAdventure(
-        string name,
-        Guid? ownerId = null,
-        bool isOneShot = false,
-        AdventureStyle style = AdventureStyle.Survival,
-        bool isPublished = false,
-        bool isPublic = false) {
-        var owner = ownerId ?? _userId;
-        var adventureId = Guid.CreateVersion7();
-        var background = new ResourceEntity {
-            Id = Guid.CreateVersion7(),
-            Path = $"backgrounds/{name}.jpg",
-            ContentType = "image/jpeg",
-            FileName = $"{name}.jpg",
-            FileSize = 1024,
-        };
-
-        var adventure = new AdventureEntity {
-            Id = adventureId,
-            Name = name,
-            OwnerId = owner,
-            IsOneShot = isOneShot,
-            Style = style,
-            IsPublished = isPublished,
-            IsPublic = isPublic,
-            Description = $"Description for {name}",
-            BackgroundId = background.Id,
-            Background = background,
-        };
-
-        _context.Adventures.Add(adventure);
-        await _context.SaveChangesAsync(_ct);
-    }
-
-    private async Task SeedAdventureWithEncounters(string name, int encounterCount) {
-        var adventureId = Guid.CreateVersion7();
-        var background = new ResourceEntity {
-            Id = Guid.CreateVersion7(),
-            Path = $"backgrounds/{name}.jpg",
-            ContentType = "image/jpeg",
-            FileName = $"{name}.jpg",
-            FileSize = 1024,
-        };
-
-        var adventure = new AdventureEntity {
-            Id = adventureId,
-            Name = name,
-            OwnerId = _userId,
+    [Fact]
+    public async Task GetContentAsync_PassesFiltersToStorage() {
+        // Arrange
+        var filters = new ContentFilters {
+            Limit = 15,
+            After = Guid.CreateVersion7(),
+            IsOneShot = true,
+            Style = AdventureStyle.Survival,
             IsPublished = true,
-            IsPublic = false,
-            Description = $"Description for {name}",
-            BackgroundId = background.Id,
-            Background = background,
+            Search = "Dragon",
+            Owner = "mine"
         };
+        var items = CreateTestItems(10);
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
 
-        for (var i = 0; i < encounterCount; i++) {
-            // Create a Stage for each Encounter (Stage is now a first-class entity with FK constraint)
-            var stageBackground = new ResourceEntity {
-                Id = Guid.CreateVersion7(),
-                Path = $"stages/{name}-{i}.jpg",
-                ContentType = "image/jpeg",
-                FileName = $"{name}-stage-{i}.jpg",
-                FileSize = 1024,
-            };
-            var stage = new StageEntity {
-                Id = Guid.CreateVersion7(),
-                Name = $"Stage for {name} Encounter {i + 1}",
-                Description = "Test stage",
-                OwnerId = _userId,
-                MainBackgroundId = stageBackground.Id,
-                MainBackground = stageBackground,
-            };
-            _context.Stages.Add(stage);
+        // Act
+        await _service.GetContentAsync(_userId, filters, _ct);
 
-            adventure.Encounters.Add(new() {
+        // Assert
+        await _storage.Received(1).QueryContentAsync(_userId, filters, _ct);
+    }
+
+    [Fact]
+    public async Task GetContentAsync_PassesUserIdToStorage() {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(5);
+        _storage.QueryContentAsync(userId, filters, _ct).Returns(items);
+
+        // Act
+        await _service.GetContentAsync(userId, filters, _ct);
+
+        // Assert
+        await _storage.Received(1).QueryContentAsync(userId, filters, _ct);
+    }
+
+    [Fact]
+    public async Task GetContentAsync_WithSingleItem_SetsNextCursorCorrectly() {
+        // Arrange
+        var filters = new ContentFilters { Limit = 10 };
+        var items = CreateTestItems(1);
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
+
+        // Act
+        var result = await _service.GetContentAsync(_userId, filters, _ct);
+
+        // Assert
+        result.Data.Should().HaveCount(1);
+        result.HasMore.Should().BeFalse();
+        result.NextCursor.Should().Be(items[0].Id);
+    }
+
+    [Fact]
+    public async Task GetContentAsync_WithLimitPlusOne_TruncatesCorrectly() {
+        // Arrange
+        var filters = new ContentFilters { Limit = 20 };
+        var items = CreateTestItems(21); // Exactly limit + 1
+        _storage.QueryContentAsync(_userId, filters, _ct).Returns(items);
+
+        // Act
+        var result = await _service.GetContentAsync(_userId, filters, _ct);
+
+        // Assert
+        result.Data.Should().HaveCount(20);
+        result.HasMore.Should().BeTrue();
+        result.NextCursor.Should().Be(items[19].Id);
+        result.Data.Should().NotContain(items[20]); // Last item should be excluded
+    }
+
+    private static ContentListItem[] CreateTestItems(int count) {
+        var items = new ContentListItem[count];
+        for (var i = 0; i < count; i++) {
+            items[i] = new ContentListItem {
                 Id = Guid.CreateVersion7(),
-                Name = $"Encounter {i + 1}",
-                Description = "Encounter description",
-                StageId = stage.Id,
-            });
+                Type = ContentType.Adventure,
+                Name = $"Test Item {i}",
+                Description = $"Description {i}",
+                IsPublished = true,
+                OwnerId = Guid.CreateVersion7()
+            };
         }
-
-        _context.Adventures.Add(adventure);
-        await _context.SaveChangesAsync(_ct);
+        return items;
     }
 }

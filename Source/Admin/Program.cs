@@ -32,7 +32,7 @@ internal static class Program {
     }
 
     internal static void AddStorage(this IHostApplicationBuilder builder) {
-        builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
+        builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
         var configuration = builder.Configuration;
         var healthChecksBuilder = builder.Services.AddHealthChecks();

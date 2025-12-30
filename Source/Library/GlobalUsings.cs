@@ -29,6 +29,7 @@ global using VttTools.Library.Content.ApiContracts;
 global using VttTools.Library.Content.Model;
 global using VttTools.Library.Content.ServiceContracts;
 global using VttTools.Library.Content.Services;
+global using VttTools.Library.Content.Storage;
 global using VttTools.Library.Encounters.ApiContracts;
 global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.ServiceContracts;

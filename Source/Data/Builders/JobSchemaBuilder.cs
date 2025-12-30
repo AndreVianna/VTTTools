@@ -17,7 +17,7 @@ internal static class JobSchemaBuilder {
         entity.Property(e => e.Type).IsRequired().HasMaxLength(100);
         entity.Property(e => e.Status).IsRequired().HasConversion<string>();
         entity.Property(e => e.EstimatedDuration);
-        entity.Property(e => e.Result).HasColumnType("nvarchar(max)");
+        entity.Property(e => e.Result).HasColumnType("text");
         entity.Property(e => e.StartedAt);
         entity.Property(e => e.CompletedAt);
 
@@ -37,8 +37,8 @@ internal static class JobSchemaBuilder {
         entity.Property(e => e.JobId).IsRequired();
         entity.Property(e => e.Index).IsRequired();
         entity.Property(e => e.Status).IsRequired().HasConversion<string>();
-        entity.Property(e => e.Data).IsRequired().HasColumnType("nvarchar(max)");
-        entity.Property(e => e.Result).HasColumnType("nvarchar(max)");
+        entity.Property(e => e.Data).IsRequired().HasColumnType("text");
+        entity.Property(e => e.Result).HasColumnType("text");
         entity.Property(e => e.StartedAt);
         entity.Property(e => e.CompletedAt);
 

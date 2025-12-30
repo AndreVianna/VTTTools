@@ -37,6 +37,7 @@ global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Campaigns.Storage;
 global using VttTools.Library.Common;
+global using VttTools.Library.Content.Storage;
 global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.Storage;
 global using VttTools.Library.Worlds.Model;

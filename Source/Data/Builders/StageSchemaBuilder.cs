@@ -55,11 +55,11 @@ internal static class StageSchemaBuilder {
         });
 
         entity.HasOne(e => e.MainBackground).WithMany().IsRequired(false)
-              .HasForeignKey(e => e.MainBackgroundId).OnDelete(DeleteBehavior.Restrict);
+              .HasForeignKey(e => e.MainBackgroundId).OnDelete(DeleteBehavior.SetNull);
         entity.HasOne(e => e.AlternateBackground).WithMany().IsRequired(false)
-              .HasForeignKey(e => e.AlternateBackgroundId).OnDelete(DeleteBehavior.Restrict);
+              .HasForeignKey(e => e.AlternateBackgroundId).OnDelete(DeleteBehavior.SetNull);
         entity.HasOne(e => e.AmbientSound).WithMany().IsRequired(false)
-              .HasForeignKey(e => e.AmbientSoundId).OnDelete(DeleteBehavior.Restrict);
+              .HasForeignKey(e => e.AmbientSoundId).OnDelete(DeleteBehavior.SetNull);
     });
 
     private static void ConfigureStageWalls(ModelBuilder builder) {
