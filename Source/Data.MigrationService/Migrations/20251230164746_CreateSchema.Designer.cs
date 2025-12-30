@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VttTools.Data;
 
 #nullable disable
@@ -13,8 +13,8 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251230021916_CreateApplicationSchema")]
-    partial class CreateApplicationSchema
+    [Migration("20251230164746_CreateSchema")]
+    partial class CreateSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,42 +22,42 @@ namespace VttTools.Data.MigrationService.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "10.0.1")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("VttTools.Data.AI.Entities.AiModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ContentType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Endpoint")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("IsDefault")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsEnabled")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("ProviderId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -74,39 +74,39 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("NegativePromptTemplate")
                         .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<Guid?>("ReferenceImageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("SystemPrompt")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<string>("UserPromptTemplate")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<string>("Version")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)")
+                        .HasColumnType("character varying(16)")
                         .HasDefaultValue("1.0-draft");
 
                     b.HasKey("Id");
@@ -127,27 +127,27 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("BaseUrl")
                         .IsRequired()
                         .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("HealthEndpoint")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("IsEnabled")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
 
@@ -161,63 +161,63 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublic")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Kind")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("PortraitId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Subtype")
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Tags")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ThumbnailId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
 
@@ -240,33 +240,33 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetStatEntry", b =>
                 {
                     b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("GameSystemId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Level")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Key")
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("Modifiers")
                         .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
+                        .HasColumnType("character varying(1024)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
                         .HasMaxLength(8192)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(8192)");
 
                     b.HasKey("AssetId", "GameSystemId", "Level", "Key");
 
@@ -280,13 +280,13 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetToken", b =>
                 {
                     b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("TokenId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("AssetId", "TokenId");
 
@@ -302,37 +302,37 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Action")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("EntityId")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("EntityType")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                        .HasColumnType("character varying(4000)");
 
                     b.Property<string>("Payload")
                         .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(8000)");
 
                     b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserEmail")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -355,25 +355,25 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("IconUrl")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("Id");
 
@@ -387,7 +387,7 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Arc")
                         .ValueGeneratedOnAdd()
@@ -407,7 +407,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("Preset")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Circle");
 
                     b.Property<float>("Radius")
@@ -418,7 +418,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("Tags")
                         .IsRequired()
                         .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
+                        .HasColumnType("character varying(512)");
 
                     b.Property<float>("Width")
                         .ValueGeneratedOnAdd()
@@ -433,16 +433,16 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Common.Entities.ShapeVertex", b =>
                 {
                     b.Property<Guid>("ShapeId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<double>("X")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<double>("Y")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.HasKey("ShapeId", "Index");
 
@@ -455,21 +455,21 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("EncounterId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
@@ -480,19 +480,19 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                        .HasColumnType("interval");
 
                     b.Property<Guid>("EventId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("Start")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Recurrence", "VttTools.Data.Game.Entities.Schedule.Recurrence#Recurrence", b1 =>
                         {
@@ -500,31 +500,31 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<int>("Count")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
+                                .HasColumnType("integer")
                                 .HasDefaultValue(1);
 
-                            b1.PrimitiveCollection<string>("Days")
+                            b1.PrimitiveCollection<List<int>>("Days")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("[]");
+                                .HasColumnType("integer[]")
+                                .HasDefaultValue(new List<int>());
 
                             b1.Property<string>("Frequency")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
+                                .HasColumnType("text")
                                 .HasDefaultValue("Daily");
 
                             b1.Property<int>("Interval")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
+                                .HasColumnType("integer")
                                 .HasDefaultValue(1);
 
                             b1.Property<DateTimeOffset?>("Until")
-                                .HasColumnType("datetimeoffset");
+                                .HasColumnType("timestamp with time zone");
 
                             b1.Property<bool>("UseWeekdays")
-                                .HasColumnType("bit");
+                                .HasColumnType("boolean");
                         });
 
                     b.HasKey("Id");
@@ -536,15 +536,15 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("Id");
 
@@ -555,33 +555,33 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<TimeSpan>("EstimatedDuration")
-                        .HasColumnType("time");
+                        .HasColumnType("interval");
 
                     b.Property<Guid>("OwnerId")
                         .HasMaxLength(100)
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Result")
                         .HasMaxLength(8192)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
@@ -595,29 +595,29 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Jobs.Entities.JobItem", b =>
                 {
                     b.Property<Guid>("JobId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasMaxLength(8192)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Result")
                         .HasMaxLength(8192)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("JobId", "Index");
 
@@ -630,42 +630,42 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("BackgroundId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("CampaignId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<bool>("IsOneShot")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Style")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("WorldId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -682,32 +682,32 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("BackgroundId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("WorldId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -722,34 +722,34 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AdventureId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<bool>("IsPublic")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -763,19 +763,19 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Encounters.Entities.EncounterActor", b =>
                 {
                     b.Property<Guid>("EncounterId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("ControlledBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Elevation")
                         .ValueGeneratedOnAdd()
@@ -784,18 +784,18 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<bool>("IsHidden")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<bool>("IsLocked")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<float>("Rotation")
                         .ValueGeneratedOnAdd()
@@ -809,27 +809,27 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<string>("Background")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
+                                .HasColumnType("text")
                                 .HasDefaultValue("")
                                 .HasColumnName("FrameBackground");
 
                             b1.Property<string>("BorderColor")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
+                                .HasColumnType("text")
                                 .HasDefaultValue("white")
                                 .HasColumnName("FrameBorderColor");
 
                             b1.Property<int>("BorderThickness")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
+                                .HasColumnType("integer")
                                 .HasDefaultValue(1)
                                 .HasColumnName("FrameBorderThickness");
 
                             b1.Property<string>("Shape")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
+                                .HasColumnType("text")
                                 .HasDefaultValue("Square")
                                 .HasColumnName("FrameShape");
                         });
@@ -840,13 +840,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Y");
                         });
@@ -857,13 +857,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("Height")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(1.0)
                                 .HasColumnName("Height");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(1.0)
                                 .HasColumnName("Width");
                         });
@@ -882,35 +882,35 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Encounters.Entities.EncounterEffect", b =>
                 {
                     b.Property<Guid>("EncounterId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DisabledDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("EnabledDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsHidden")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid?>("OnTriggerDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Rotation")
                         .ValueGeneratedOnAdd()
@@ -920,14 +920,14 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("State")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Enabled");
 
                     b.Property<Guid?>("TriggerShapeId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("TriggeredDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Encounters.Entities.EncounterEffect.Position#Position", b1 =>
                         {
@@ -935,13 +935,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Y");
                         });
@@ -968,22 +968,22 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Encounters.Entities.EncounterObject", b =>
                 {
                     b.Property<Guid>("EncounterId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("ClosedDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DestroyedDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Elevation")
                         .ValueGeneratedOnAdd()
@@ -992,21 +992,21 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<bool>("IsHidden")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsLocked")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid?>("OpenedDisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Rotation")
                         .ValueGeneratedOnAdd()
@@ -1016,7 +1016,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("State")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Closed");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Encounters.Entities.EncounterObject.Position#Position", b1 =>
@@ -1025,13 +1025,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Y");
                         });
@@ -1042,13 +1042,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("Height")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(1.0)
                                 .HasColumnName("Height");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(1.0)
                                 .HasColumnName("Width");
                         });
@@ -1074,28 +1074,28 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("AlternateBackgroundId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AmbientLight")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Default");
 
                     b.Property<Guid?>("AmbientSoundId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("AmbientSoundIsPlaying")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("AmbientSoundLoop")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<float>("AmbientSoundVolume")
@@ -1106,46 +1106,46 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<double>("GridScale")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("float")
+                        .HasColumnType("double precision")
                         .HasDefaultValue(5.0)
                         .HasColumnName("GridScale");
 
                     b.Property<string>("GridType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("NoGrid")
                         .HasColumnName("GridType");
 
                     b.Property<bool>("IsPublic")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<Guid?>("MainBackgroundId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Weather")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Clear");
 
                     b.Property<float>("ZoomLevel")
@@ -1159,13 +1159,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("Height")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(50.0)
                                 .HasColumnName("GridCellHeight");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(50.0)
                                 .HasColumnName("GridCellWidth");
                         });
@@ -1176,13 +1176,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("Left")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("GridOffsetLeft");
 
                             b1.Property<double>("Top")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("GridOffsetTop");
                         });
@@ -1193,13 +1193,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("PanningX");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("PanningY");
                         });
@@ -1218,13 +1218,13 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageElement", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("DisplayId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Elevation")
                         .ValueGeneratedOnAdd()
@@ -1233,7 +1233,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<float>("Opacity")
                         .ValueGeneratedOnAdd()
@@ -1251,13 +1251,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("Height")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(1.0)
                                 .HasColumnName("Height");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(1.0)
                                 .HasColumnName("Width");
                         });
@@ -1268,13 +1268,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Y");
                         });
@@ -1291,29 +1291,29 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageLight", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<float?>("Arc")
                         .HasColumnType("real");
 
                     b.Property<string>("Color")
                         .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
+                        .HasColumnType("character varying(16)");
 
                     b.Property<float?>("Direction")
                         .HasColumnType("real");
 
                     b.Property<bool>("IsOn")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<float>("Range")
                         .ValueGeneratedOnAdd()
@@ -1323,7 +1323,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("Type")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Natural");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "VttTools.Data.Library.Stages.Entities.StageLight.Position#Point", b1 =>
@@ -1332,13 +1332,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Y");
                         });
@@ -1353,23 +1353,23 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageRegion", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Elevation");
 
                     b.Property<int>("Value")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("StageId", "Index");
 
@@ -1381,19 +1381,19 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageRegionVertex", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("RegionIndex")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<double>("X")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<double>("Y")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.HasKey("StageId", "RegionIndex", "Index");
 
@@ -1405,27 +1405,27 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageSound", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsPlaying")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("Loop")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<Guid>("MediaId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<float>("Radius")
                         .ValueGeneratedOnAdd()
@@ -1443,13 +1443,13 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("X");
 
                             b1.Property<double>("Y")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Y");
                         });
@@ -1466,10 +1466,10 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageWall", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("StageId", "Index");
 
@@ -1481,33 +1481,33 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Stages.Entities.StageWallSegment", b =>
                 {
                     b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("WallIndex")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Index")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsOpaque")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("State")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Open");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasDefaultValue("Wall");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "EndPole", "VttTools.Data.Library.Stages.Entities.StageWallSegment.EndPole#Pole", b1 =>
@@ -1515,15 +1515,15 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.IsRequired();
 
                             b1.Property<double>("H")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("EndH");
 
                             b1.Property<double>("X")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("EndX");
 
                             b1.Property<double>("Y")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("EndY");
                         });
 
@@ -1532,15 +1532,15 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.IsRequired();
 
                             b1.Property<double>("H")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("StartH");
 
                             b1.Property<double>("X")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("StartX");
 
                             b1.Property<double>("Y")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("StartY");
                         });
 
@@ -1555,29 +1555,29 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("BackgroundId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -1590,35 +1590,35 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DisabledAt")
-                        .HasColumnType("DATETIME2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("DisabledBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("EnabledAt")
-                        .HasColumnType("DATETIME2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("EnabledBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsEnabled")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("BIT")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime?>("ScheduledEndTime")
-                        .HasColumnType("DATETIME2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("ScheduledStartTime")
-                        .HasColumnType("DATETIME2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -1639,32 +1639,32 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<TimeSpan>("Duration")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("time")
+                        .HasColumnType("interval")
                         .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
 
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<decimal>("FileSize")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(20,0)")
+                        .HasColumnType("numeric(20,0)")
                         .HasDefaultValue(0m);
 
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
+                        .HasColumnType("character varying(512)");
 
                     b.HasKey("Id");
 
@@ -1677,62 +1677,45 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
+                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("Roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("019639ea-c7de-7e6f-b549-baf14386ad2f"),
-                            ConcurrencyStamp = "b62e16a3-1d3a-4ae3-8c30-9bc628231f7a",
-                            Name = "Administrator",
-                            NormalizedName = "ADMINISTRATOR"
-                        },
-                        new
-                        {
-                            Id = new Guid("019639ea-c7de-786f-9f95-b397ca9509df"),
-                            ConcurrencyStamp = "11d8a8d1-3a54-4464-890f-5e8c71b46c0b",
-                            Name = "User",
-                            NormalizedName = "USER"
-                        });
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.RoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -1745,71 +1728,71 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("AvatarId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("UnitSystem")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
@@ -1818,49 +1801,27 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("Users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("019639ea-c7de-7a01-8548-41edfccde206"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "54c61fbd-4b9f-4a08-a6ce-c46443f8afb8",
-                            DisplayName = "Master",
-                            Email = "master@host.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            Name = "Master",
-                            NormalizedEmail = "MASTER@HOST.COM",
-                            NormalizedUserName = "MASTER@HOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGCIPOjKQsg/WIuLEYnhnyHOsif13MaeUlO0J2ZVkMe41HuVFCqudWtLqGMKQXNBNA==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "QAZB7SA3GUP4I2DQCDEDORPB5Q5ICUQG",
-                            TwoFactorEnabled = false,
-                            UnitSystem = 0,
-                            UserName = "master@host.com"
-                        });
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.UserClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -1872,16 +1833,16 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Identity.Model.UserLogin", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -1893,38 +1854,31 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Identity.Model.UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("019639ea-c7de-7a01-8548-41edfccde206"),
-                            RoleId = new Guid("019639ea-c7de-7e6f-b549-baf14386ad2f")
-                        });
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.UserToken", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -1968,17 +1922,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.OwnsOne("VttTools.Common.Model.NamedSize", "Size", b1 =>
                         {
                             b1.Property<Guid>("AssetId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("Height")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Height");
 
                             b1.Property<double>("Width")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasDefaultValue(0.0)
                                 .HasColumnName("Width");
 
@@ -2052,17 +2006,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.OwnsMany("VttTools.Data.Game.Entities.Participant", "Players", b1 =>
                         {
                             b1.Property<Guid>("GameSessionId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<Guid>("UserId")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<bool>("IsRequired")
-                                .HasColumnType("bit");
+                                .HasColumnType("boolean");
 
                             b1.Property<int>("Type")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("GameSessionId", "UserId");
 
@@ -2075,15 +2029,15 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.OwnsMany("VttTools.Data.Game.Entities.GameSessionEvent", "Events", b1 =>
                         {
                             b1.Property<Guid>("GameSessionId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<DateTimeOffset>("Timestamp")
-                                .HasColumnType("datetimeoffset");
+                                .HasColumnType("timestamp with time zone");
 
                             b1.Property<string>("Description")
                                 .IsRequired()
                                 .HasMaxLength(1024)
-                                .HasColumnType("nvarchar(1024)");
+                                .HasColumnType("character varying(1024)");
 
                             b1.HasKey("GameSessionId", "Timestamp");
 
@@ -2096,24 +2050,24 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.OwnsMany("VttTools.Data.Game.Entities.GameSessionMessage", "Messages", b1 =>
                         {
                             b1.Property<Guid>("GameSessionId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<DateTimeOffset>("SentAt")
-                                .HasColumnType("datetimeoffset");
+                                .HasColumnType("timestamp with time zone");
 
                             b1.Property<string>("Content")
                                 .IsRequired()
                                 .HasMaxLength(4096)
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("character varying(4096)");
 
                             b1.Property<Guid>("SentBy")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
-                            b1.PrimitiveCollection<string>("SentTo")
-                                .HasColumnType("nvarchar(max)");
+                            b1.PrimitiveCollection<Guid[]>("SentTo")
+                                .HasColumnType("uuid[]");
 
                             b1.Property<int>("Type")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("GameSessionId", "SentAt");
 
@@ -2135,17 +2089,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.OwnsMany("VttTools.Data.Game.Entities.Participant", "Participants", b1 =>
                         {
                             b1.Property<Guid>("ScheduleId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<Guid>("UserId")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<bool>("IsRequired")
-                                .HasColumnType("bit");
+                                .HasColumnType("boolean");
 
                             b1.Property<int>("Type")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("ScheduleId", "UserId");
 
@@ -2360,17 +2314,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "AlternateBackground")
                         .WithMany()
                         .HasForeignKey("AlternateBackgroundId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "AmbientSound")
                         .WithMany()
                         .HasForeignKey("AmbientSoundId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "MainBackground")
                         .WithMany()
                         .HasForeignKey("MainBackgroundId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("AlternateBackground");
 
@@ -2487,17 +2441,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.OwnsOne("VttTools.Common.Model.Size", "Dimensions", b1 =>
                         {
                             b1.Property<Guid>("ResourceId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<int>("Height")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
+                                .HasColumnType("integer")
                                 .HasDefaultValue(0)
                                 .HasColumnName("Height");
 
                             b1.Property<int>("Width")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
+                                .HasColumnType("integer")
                                 .HasDefaultValue(0)
                                 .HasColumnName("Width");
 

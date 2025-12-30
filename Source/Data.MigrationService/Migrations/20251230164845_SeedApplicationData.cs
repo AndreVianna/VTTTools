@@ -2,7 +2,7 @@
 
 namespace VttTools.Data.MigrationService.Migrations;
 
-public partial class SeedApplicationSchema : Migration {
+public partial class SeedApplicationData : Migration {
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(
             table: "Resources",

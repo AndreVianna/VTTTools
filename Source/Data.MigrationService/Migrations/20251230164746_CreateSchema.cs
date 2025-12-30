@@ -1,0 +1,1535 @@
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
+
+namespace VttTools.Data.MigrationService.Migrations;
+
+/// <inheritdoc />
+public partial class CreateSchema : Migration {
+    /// <inheritdoc />
+    protected override void Up(MigrationBuilder migrationBuilder) {
+        migrationBuilder.CreateTable(
+            name: "AiProviderConfigs",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                BaseUrl = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                HealthEndpoint = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                IsEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+            },
+            constraints: table => table.PrimaryKey("PK_AiProviderConfigs", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "AuditLogs",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                UserId = table.Column<Guid>(type: "uuid", nullable: true),
+                UserEmail = table.Column<string>(type: "text", nullable: true),
+                Action = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                ErrorMessage = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
+                EntityType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                EntityId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                Payload = table.Column<string>(type: "character varying(8000)", maxLength: 8000, nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_AuditLogs", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "GameSessions",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                Status = table.Column<int>(type: "integer", nullable: false),
+                EncounterId = table.Column<Guid>(type: "uuid", nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_GameSessions", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "GameSystems",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Code = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
+                IconUrl = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_GameSystems", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Jobs",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
+                Type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                Status = table.Column<string>(type: "text", nullable: false),
+                EstimatedDuration = table.Column<TimeSpan>(type: "interval", nullable: false),
+                Result = table.Column<string>(type: "text", maxLength: 8192, nullable: true),
+                StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_Jobs", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "MaintenanceMode",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                IsEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                Message = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                ScheduledStartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                ScheduledEndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                EnabledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                EnabledBy = table.Column<Guid>(type: "uuid", nullable: true),
+                DisabledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                DisabledBy = table.Column<Guid>(type: "uuid", nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_MaintenanceMode", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Resources",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ContentType = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                Path = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                FileName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                FileSize = table.Column<decimal>(type: "numeric(20,0)", nullable: false, defaultValue: 0m),
+                Width = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                Height = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                Duration = table.Column<TimeSpan>(type: "interval", nullable: false, defaultValue: new TimeSpan(0, 0, 0, 0, 0))
+            },
+            constraints: table => table.PrimaryKey("PK_Resources", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Roles",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
+            },
+            constraints: table => table.PrimaryKey("PK_Roles", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Schedule",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                EventId = table.Column<Guid>(type: "uuid", nullable: false),
+                Start = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                Duration = table.Column<TimeSpan>(type: "interval", nullable: false),
+                Recurrence_Count = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                Recurrence_Days = table.Column<List<int>>(type: "integer[]", nullable: false, defaultValue: Array.Empty<int>()),
+                Recurrence_Frequency = table.Column<string>(type: "text", nullable: false, defaultValue: "Daily"),
+                Recurrence_Interval = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                Recurrence_Until = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                Recurrence_UseWeekdays = table.Column<bool>(type: "boolean", nullable: false)
+            },
+            constraints: table => table.PrimaryKey("PK_Schedule", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Shapes",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Tags = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                Preset = table.Column<string>(type: "text", nullable: false, defaultValue: "Circle"),
+                Radius = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                Width = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Length = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Arc = table.Column<float>(type: "real", nullable: false, defaultValue: 53f),
+                Direction = table.Column<float>(type: "real", nullable: false, defaultValue: 0f)
+            },
+            constraints: table => table.PrimaryKey("PK_Shapes", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "StatBlocks",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+            },
+            constraints: table => table.PrimaryKey("PK_StatBlocks", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "Users",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                DisplayName = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                AvatarId = table.Column<Guid>(type: "uuid", nullable: true),
+                UnitSystem = table.Column<int>(type: "integer", nullable: false),
+                UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                PasswordHash = table.Column<string>(type: "text", nullable: true),
+                SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+            },
+            constraints: table => table.PrimaryKey("PK_Users", x => x.Id));
+
+        migrationBuilder.CreateTable(
+            name: "AiProviderModels",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ProviderId = table.Column<Guid>(type: "uuid", nullable: false),
+                ContentType = table.Column<string>(type: "text", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Endpoint = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                IsDefault = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                IsEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AiProviderModels", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_AiProviderModels_AiProviderConfigs_ProviderId",
+                    column: x => x.ProviderId,
+                    principalTable: "AiProviderConfigs",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Events",
+            columns: table => new {
+                Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                GameSessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                Description = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Events", x => new { x.GameSessionId, x.Timestamp });
+                table.ForeignKey(
+                    name: "FK_Events_GameSessions_GameSessionId",
+                    column: x => x.GameSessionId,
+                    principalTable: "GameSessions",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Messages",
+            columns: table => new {
+                SentAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                GameSessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                SentBy = table.Column<Guid>(type: "uuid", nullable: false),
+                SentTo = table.Column<Guid[]>(type: "uuid[]", nullable: true),
+                Type = table.Column<int>(type: "integer", nullable: false),
+                Content = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Messages", x => new { x.GameSessionId, x.SentAt });
+                table.ForeignKey(
+                    name: "FK_Messages_GameSessions_GameSessionId",
+                    column: x => x.GameSessionId,
+                    principalTable: "GameSessions",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Players",
+            columns: table => new {
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                GameSessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                IsRequired = table.Column<bool>(type: "boolean", nullable: false),
+                Type = table.Column<int>(type: "integer", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Players", x => new { x.GameSessionId, x.UserId });
+                table.ForeignKey(
+                    name: "FK_Players_GameSessions_GameSessionId",
+                    column: x => x.GameSessionId,
+                    principalTable: "GameSessions",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "JobItems",
+            columns: table => new {
+                JobId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Status = table.Column<string>(type: "text", nullable: false),
+                Data = table.Column<string>(type: "text", maxLength: 8192, nullable: false),
+                Result = table.Column<string>(type: "text", maxLength: 8192, nullable: true),
+                StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_JobItems", x => new { x.JobId, x.Index });
+                table.ForeignKey(
+                    name: "FK_JobItems_Jobs_JobId",
+                    column: x => x.JobId,
+                    principalTable: "Jobs",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Assets",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Kind = table.Column<string>(type: "text", nullable: false),
+                Category = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                Type = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                Subtype = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                Width = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Height = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Tags = table.Column<string>(type: "jsonb", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                IsPublished = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                IsPublic = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                ThumbnailId = table.Column<Guid>(type: "uuid", nullable: false),
+                PortraitId = table.Column<Guid>(type: "uuid", nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Assets", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Assets_Resources_PortraitId",
+                    column: x => x.PortraitId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Assets_Resources_ThumbnailId",
+                    column: x => x.ThumbnailId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "PromptTemplates",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Category = table.Column<string>(type: "text", nullable: false),
+                Version = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false, defaultValue: "1.0-draft"),
+                SystemPrompt = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                UserPromptTemplate = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                NegativePromptTemplate = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
+                ReferenceImageId = table.Column<Guid>(type: "uuid", nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_PromptTemplates", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_PromptTemplates_Resources_ReferenceImageId",
+                    column: x => x.ReferenceImageId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Stages",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                IsPublished = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                IsPublic = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                ZoomLevel = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                MainBackgroundId = table.Column<Guid>(type: "uuid", nullable: true),
+                AlternateBackgroundId = table.Column<Guid>(type: "uuid", nullable: true),
+                AmbientLight = table.Column<string>(type: "text", nullable: false, defaultValue: "Default"),
+                AmbientSoundId = table.Column<Guid>(type: "uuid", nullable: true),
+                AmbientSoundVolume = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                AmbientSoundLoop = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                AmbientSoundIsPlaying = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                Weather = table.Column<string>(type: "text", nullable: false, defaultValue: "Clear"),
+                GridType = table.Column<string>(type: "text", nullable: false, defaultValue: "NoGrid"),
+                GridScale = table.Column<double>(type: "double precision", nullable: false, defaultValue: 5.0),
+                GridCellHeight = table.Column<double>(type: "double precision", nullable: false, defaultValue: 50.0),
+                GridCellWidth = table.Column<double>(type: "double precision", nullable: false, defaultValue: 50.0),
+                GridOffsetLeft = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                GridOffsetTop = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                PanningX = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                PanningY = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Stages", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Stages_Resources_AlternateBackgroundId",
+                    column: x => x.AlternateBackgroundId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+                table.ForeignKey(
+                    name: "FK_Stages_Resources_AmbientSoundId",
+                    column: x => x.AmbientSoundId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+                table.ForeignKey(
+                    name: "FK_Stages_Resources_MainBackgroundId",
+                    column: x => x.MainBackgroundId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Worlds",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                BackgroundId = table.Column<Guid>(type: "uuid", nullable: true),
+                IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                IsPublic = table.Column<bool>(type: "boolean", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Worlds", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Worlds_Resources_BackgroundId",
+                    column: x => x.BackgroundId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "RoleClaims",
+            columns: table => new {
+                Id = table.Column<int>(type: "integer", nullable: false)
+                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                ClaimType = table.Column<string>(type: "text", nullable: true),
+                ClaimValue = table.Column<string>(type: "text", nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_RoleClaims", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_RoleClaims_Roles_RoleId",
+                    column: x => x.RoleId,
+                    principalTable: "Roles",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Participants",
+            columns: table => new {
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                ScheduleId = table.Column<Guid>(type: "uuid", nullable: false),
+                IsRequired = table.Column<bool>(type: "boolean", nullable: false),
+                Type = table.Column<int>(type: "integer", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Participants", x => new { x.ScheduleId, x.UserId });
+                table.ForeignKey(
+                    name: "FK_Participants_Schedule_ScheduleId",
+                    column: x => x.ScheduleId,
+                    principalTable: "Schedule",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "ShapeVertices",
+            columns: table => new {
+                ShapeId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                X = table.Column<double>(type: "double precision", nullable: false),
+                Y = table.Column<double>(type: "double precision", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_ShapeVertices", x => new { x.ShapeId, x.Index });
+                table.ForeignKey(
+                    name: "FK_ShapeVertices_Shapes_ShapeId",
+                    column: x => x.ShapeId,
+                    principalTable: "Shapes",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "UserClaims",
+            columns: table => new {
+                Id = table.Column<int>(type: "integer", nullable: false)
+                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                ClaimType = table.Column<string>(type: "text", nullable: true),
+                ClaimValue = table.Column<string>(type: "text", nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_UserClaims", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_UserClaims_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "UserLogins",
+            columns: table => new {
+                LoginProvider = table.Column<string>(type: "text", nullable: false),
+                ProviderKey = table.Column<string>(type: "text", nullable: false),
+                ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                UserId = table.Column<Guid>(type: "uuid", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_UserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                table.ForeignKey(
+                    name: "FK_UserLogins_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "UserRoles",
+            columns: table => new {
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                RoleId = table.Column<Guid>(type: "uuid", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_UserRoles", x => new { x.UserId, x.RoleId });
+                table.ForeignKey(
+                    name: "FK_UserRoles_Roles_RoleId",
+                    column: x => x.RoleId,
+                    principalTable: "Roles",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_UserRoles_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "UserTokens",
+            columns: table => new {
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                LoginProvider = table.Column<string>(type: "text", nullable: false),
+                Name = table.Column<string>(type: "text", nullable: false),
+                Value = table.Column<string>(type: "text", nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_UserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                table.ForeignKey(
+                    name: "FK_UserTokens_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "AssetStatEntries",
+            columns: table => new {
+                AssetId = table.Column<Guid>(type: "uuid", nullable: false),
+                GameSystemId = table.Column<Guid>(type: "uuid", nullable: false),
+                Level = table.Column<int>(type: "integer", nullable: false),
+                Key = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                Value = table.Column<string>(type: "character varying(8192)", maxLength: 8192, nullable: true),
+                Type = table.Column<string>(type: "text", nullable: false),
+                Description = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
+                Modifiers = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AssetStatEntries", x => new { x.AssetId, x.GameSystemId, x.Level, x.Key });
+                table.ForeignKey(
+                    name: "FK_AssetStatEntries_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_AssetStatEntries_GameSystems_GameSystemId",
+                    column: x => x.GameSystemId,
+                    principalTable: "GameSystems",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "AssetTokens",
+            columns: table => new {
+                AssetId = table.Column<Guid>(type: "uuid", nullable: false),
+                TokenId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_AssetTokens", x => new { x.AssetId, x.TokenId });
+                table.ForeignKey(
+                    name: "FK_AssetTokens_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_AssetTokens_Resources_TokenId",
+                    column: x => x.TokenId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageElements",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                DisplayId = table.Column<Guid>(type: "uuid", nullable: false),
+                Rotation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Elevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Opacity = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                Height = table.Column<double>(type: "double precision", nullable: false, defaultValue: 1.0),
+                Width = table.Column<double>(type: "double precision", nullable: false, defaultValue: 1.0),
+                X = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageElements", x => new { x.StageId, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageElements_Resources_DisplayId",
+                    column: x => x.DisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_StageElements_Stages_StageId",
+                    column: x => x.StageId,
+                    principalTable: "Stages",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageLights",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                Type = table.Column<string>(type: "text", nullable: false, defaultValue: "Natural"),
+                Range = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Direction = table.Column<float>(type: "real", nullable: true),
+                Arc = table.Column<float>(type: "real", nullable: true),
+                IsOn = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                Color = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: true),
+                X = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageLights", x => new { x.StageId, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageLights_Stages_StageId",
+                    column: x => x.StageId,
+                    principalTable: "Stages",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageRegions",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                Type = table.Column<string>(type: "text", nullable: false, defaultValue: "Elevation"),
+                Value = table.Column<int>(type: "integer", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageRegions", x => new { x.StageId, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageRegions_Stages_StageId",
+                    column: x => x.StageId,
+                    principalTable: "Stages",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageSounds",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                Radius = table.Column<float>(type: "real", nullable: false, defaultValue: 10f),
+                Volume = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                Loop = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                IsPlaying = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                MediaId = table.Column<Guid>(type: "uuid", nullable: false),
+                X = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageSounds", x => new { x.StageId, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageSounds_Resources_MediaId",
+                    column: x => x.MediaId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_StageSounds_Stages_StageId",
+                    column: x => x.StageId,
+                    principalTable: "Stages",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageWalls",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageWalls", x => new { x.StageId, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageWalls_Stages_StageId",
+                    column: x => x.StageId,
+                    principalTable: "Stages",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Campaigns",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                WorldId = table.Column<Guid>(type: "uuid", nullable: true),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Description = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                BackgroundId = table.Column<Guid>(type: "uuid", nullable: true),
+                IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                IsPublic = table.Column<bool>(type: "boolean", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Campaigns", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Campaigns_Resources_BackgroundId",
+                    column: x => x.BackgroundId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+                table.ForeignKey(
+                    name: "FK_Campaigns_Worlds_WorldId",
+                    column: x => x.WorldId,
+                    principalTable: "Worlds",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageRegionVertices",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                RegionIndex = table.Column<int>(type: "integer", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                X = table.Column<double>(type: "double precision", nullable: false),
+                Y = table.Column<double>(type: "double precision", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageRegionVertices", x => new { x.StageId, x.RegionIndex, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageRegionVertices_StageRegions_StageId_RegionIndex",
+                    columns: x => new { x.StageId, x.RegionIndex },
+                    principalTable: "StageRegions",
+                    principalColumns: ["StageId", "Index"],
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "StageWallSegments",
+            columns: table => new {
+                StageId = table.Column<Guid>(type: "uuid", nullable: false),
+                WallIndex = table.Column<int>(type: "integer", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                Type = table.Column<string>(type: "text", nullable: false, defaultValue: "Wall"),
+                IsOpaque = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                State = table.Column<string>(type: "text", nullable: false, defaultValue: "Open"),
+                EndH = table.Column<double>(type: "double precision", nullable: false),
+                EndX = table.Column<double>(type: "double precision", nullable: false),
+                EndY = table.Column<double>(type: "double precision", nullable: false),
+                StartH = table.Column<double>(type: "double precision", nullable: false),
+                StartX = table.Column<double>(type: "double precision", nullable: false),
+                StartY = table.Column<double>(type: "double precision", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_StageWallSegments", x => new { x.StageId, x.WallIndex, x.Index });
+                table.ForeignKey(
+                    name: "FK_StageWallSegments_StageWalls_StageId_WallIndex",
+                    columns: x => new { x.StageId, x.WallIndex },
+                    principalTable: "StageWalls",
+                    principalColumns: ["StageId", "Index"],
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Adventures",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                WorldId = table.Column<Guid>(type: "uuid", nullable: true),
+                CampaignId = table.Column<Guid>(type: "uuid", nullable: true),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Style = table.Column<string>(type: "text", nullable: false),
+                Description = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: false),
+                IsOneShot = table.Column<bool>(type: "boolean", nullable: false),
+                BackgroundId = table.Column<Guid>(type: "uuid", nullable: true),
+                IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                IsPublic = table.Column<bool>(type: "boolean", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Adventures", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Adventures_Campaigns_CampaignId",
+                    column: x => x.CampaignId,
+                    principalTable: "Campaigns",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Adventures_Resources_BackgroundId",
+                    column: x => x.BackgroundId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+                table.ForeignKey(
+                    name: "FK_Adventures_Worlds_WorldId",
+                    column: x => x.WorldId,
+                    principalTable: "Worlds",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Encounters",
+            columns: table => new {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                AdventureId = table.Column<Guid>(type: "uuid", nullable: false),
+                OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                Description = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: true),
+                IsPublished = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                IsPublic = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                StageId = table.Column<Guid>(type: "uuid", nullable: false)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_Encounters", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Encounters_Adventures_AdventureId",
+                    column: x => x.AdventureId,
+                    principalTable: "Adventures",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_Encounters_Stages_StageId",
+                    column: x => x.StageId,
+                    principalTable: "Stages",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "EncounterActors",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                AssetId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Rotation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Elevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                DisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                ControlledBy = table.Column<Guid>(type: "uuid", nullable: true),
+                IsHidden = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                IsLocked = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                FrameBackground = table.Column<string>(type: "text", nullable: false, defaultValue: ""),
+                FrameBorderColor = table.Column<string>(type: "text", nullable: false, defaultValue: "white"),
+                FrameBorderThickness = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                FrameShape = table.Column<string>(type: "text", nullable: false, defaultValue: "Square"),
+                X = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Height = table.Column<double>(type: "double precision", nullable: false, defaultValue: 1.0),
+                Width = table.Column<double>(type: "double precision", nullable: false, defaultValue: 1.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterActors", x => new { x.EncounterId, x.Index });
+                table.ForeignKey(
+                    name: "FK_EncounterActors_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_EncounterActors_Encounters_EncounterId",
+                    column: x => x.EncounterId,
+                    principalTable: "Encounters",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_EncounterActors_Resources_DisplayId",
+                    column: x => x.DisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "EncounterEffects",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Rotation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                AssetId = table.Column<Guid>(type: "uuid", nullable: false),
+                DisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                EnabledDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                DisabledDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                OnTriggerDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                TriggeredDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                State = table.Column<string>(type: "text", nullable: false, defaultValue: "Enabled"),
+                IsHidden = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                TriggerShapeId = table.Column<Guid>(type: "uuid", nullable: true),
+                X = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterEffects", x => new { x.EncounterId, x.Index });
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Encounters_EncounterId",
+                    column: x => x.EncounterId,
+                    principalTable: "Encounters",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Resources_DisabledDisplayId",
+                    column: x => x.DisabledDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Resources_DisplayId",
+                    column: x => x.DisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Resources_EnabledDisplayId",
+                    column: x => x.EnabledDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Resources_OnTriggerDisplayId",
+                    column: x => x.OnTriggerDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Resources_TriggeredDisplayId",
+                    column: x => x.TriggeredDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterEffects_Shapes_TriggerShapeId",
+                    column: x => x.TriggerShapeId,
+                    principalTable: "Shapes",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "EncounterObjects",
+            columns: table => new {
+                EncounterId = table.Column<Guid>(type: "uuid", nullable: false),
+                Index = table.Column<int>(type: "integer", nullable: false),
+                AssetId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Rotation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Elevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                DisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                ClosedDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                OpenedDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                DestroyedDisplayId = table.Column<Guid>(type: "uuid", nullable: true),
+                State = table.Column<string>(type: "text", nullable: false, defaultValue: "Closed"),
+                IsHidden = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                IsLocked = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                X = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Y = table.Column<double>(type: "double precision", nullable: false, defaultValue: 0.0),
+                Height = table.Column<double>(type: "double precision", nullable: false, defaultValue: 1.0),
+                Width = table.Column<double>(type: "double precision", nullable: false, defaultValue: 1.0)
+            },
+            constraints: table => {
+                table.PrimaryKey("PK_EncounterObjects", x => new { x.EncounterId, x.Index });
+                table.ForeignKey(
+                    name: "FK_EncounterObjects_Assets_AssetId",
+                    column: x => x.AssetId,
+                    principalTable: "Assets",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_EncounterObjects_Encounters_EncounterId",
+                    column: x => x.EncounterId,
+                    principalTable: "Encounters",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_EncounterObjects_Resources_ClosedDisplayId",
+                    column: x => x.ClosedDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterObjects_Resources_DestroyedDisplayId",
+                    column: x => x.DestroyedDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterObjects_Resources_DisplayId",
+                    column: x => x.DisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_EncounterObjects_Resources_OpenedDisplayId",
+                    column: x => x.OpenedDisplayId,
+                    principalTable: "Resources",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Adventures_BackgroundId",
+            table: "Adventures",
+            column: "BackgroundId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Adventures_CampaignId",
+            table: "Adventures",
+            column: "CampaignId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Adventures_WorldId",
+            table: "Adventures",
+            column: "WorldId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AiProviderConfigs_Name",
+            table: "AiProviderConfigs",
+            column: "Name",
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AiProviderModels_ContentType",
+            table: "AiProviderModels",
+            column: "ContentType");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AiProviderModels_ContentType_IsDefault",
+            table: "AiProviderModels",
+            columns: ["ContentType", "IsDefault"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AiProviderModels_ProviderId",
+            table: "AiProviderModels",
+            column: "ProviderId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Assets_IsPublic_IsPublished",
+            table: "Assets",
+            columns: ["IsPublic", "IsPublished"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Assets_OwnerId",
+            table: "Assets",
+            column: "OwnerId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Assets_PortraitId",
+            table: "Assets",
+            column: "PortraitId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Assets_Taxonomy",
+            table: "Assets",
+            columns: ["Kind", "Category", "Type"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Assets_ThumbnailId",
+            table: "Assets",
+            column: "ThumbnailId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AssetStatEntries_AssetId_GameSystemId",
+            table: "AssetStatEntries",
+            columns: ["AssetId", "GameSystemId"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AssetStatEntries_GameSystemId",
+            table: "AssetStatEntries",
+            column: "GameSystemId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AssetTokens_AssetId_Index",
+            table: "AssetTokens",
+            columns: ["AssetId", "Index"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AssetTokens_TokenId",
+            table: "AssetTokens",
+            column: "TokenId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AuditLogs_Action",
+            table: "AuditLogs",
+            column: "Action");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AuditLogs_EntityType",
+            table: "AuditLogs",
+            column: "EntityType");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AuditLogs_Timestamp",
+            table: "AuditLogs",
+            column: "Timestamp",
+            descending: []);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AuditLogs_Timestamp_UserId",
+            table: "AuditLogs",
+            columns: ["Timestamp", "UserId"],
+            descending: [true, false]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_AuditLogs_UserId",
+            table: "AuditLogs",
+            column: "UserId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Campaigns_BackgroundId",
+            table: "Campaigns",
+            column: "BackgroundId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Campaigns_WorldId",
+            table: "Campaigns",
+            column: "WorldId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterActors_AssetId",
+            table: "EncounterActors",
+            column: "AssetId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterActors_DisplayId",
+            table: "EncounterActors",
+            column: "DisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterActors_EncounterId",
+            table: "EncounterActors",
+            column: "EncounterId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_DisabledDisplayId",
+            table: "EncounterEffects",
+            column: "DisabledDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_DisplayId",
+            table: "EncounterEffects",
+            column: "DisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_EnabledDisplayId",
+            table: "EncounterEffects",
+            column: "EnabledDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_EncounterId",
+            table: "EncounterEffects",
+            column: "EncounterId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_OnTriggerDisplayId",
+            table: "EncounterEffects",
+            column: "OnTriggerDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_TriggeredDisplayId",
+            table: "EncounterEffects",
+            column: "TriggeredDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterEffects_TriggerShapeId",
+            table: "EncounterEffects",
+            column: "TriggerShapeId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterObjects_AssetId",
+            table: "EncounterObjects",
+            column: "AssetId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterObjects_ClosedDisplayId",
+            table: "EncounterObjects",
+            column: "ClosedDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterObjects_DestroyedDisplayId",
+            table: "EncounterObjects",
+            column: "DestroyedDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterObjects_DisplayId",
+            table: "EncounterObjects",
+            column: "DisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterObjects_EncounterId",
+            table: "EncounterObjects",
+            column: "EncounterId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_EncounterObjects_OpenedDisplayId",
+            table: "EncounterObjects",
+            column: "OpenedDisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Encounters_AdventureId",
+            table: "Encounters",
+            column: "AdventureId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Encounters_StageId",
+            table: "Encounters",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_GameSystems_Code",
+            table: "GameSystems",
+            column: "Code",
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_JobItems_Status",
+            table: "JobItems",
+            column: "Status");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Jobs_Status",
+            table: "Jobs",
+            column: "Status");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Jobs_Type",
+            table: "Jobs",
+            column: "Type");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_MaintenanceMode_EnabledBy",
+            table: "MaintenanceMode",
+            column: "EnabledBy");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_MaintenanceMode_IsEnabled",
+            table: "MaintenanceMode",
+            column: "IsEnabled");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_MaintenanceMode_IsEnabled_ScheduledStartTime",
+            table: "MaintenanceMode",
+            columns: ["IsEnabled", "ScheduledStartTime"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_MaintenanceMode_ScheduledEndTime",
+            table: "MaintenanceMode",
+            column: "ScheduledEndTime");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_MaintenanceMode_ScheduledStartTime",
+            table: "MaintenanceMode",
+            column: "ScheduledStartTime");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_PromptTemplates_Category",
+            table: "PromptTemplates",
+            column: "Category");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_PromptTemplates_Name",
+            table: "PromptTemplates",
+            column: "Name");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_PromptTemplates_Name_Version",
+            table: "PromptTemplates",
+            columns: ["Name", "Version"],
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_PromptTemplates_ReferenceImageId",
+            table: "PromptTemplates",
+            column: "ReferenceImageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Resources_Path_FileName",
+            table: "Resources",
+            columns: ["Path", "FileName"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_RoleClaims_RoleId",
+            table: "RoleClaims",
+            column: "RoleId");
+
+        migrationBuilder.CreateIndex(
+            name: "RoleNameIndex",
+            table: "Roles",
+            column: "NormalizedName",
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_ShapeVertices_ShapeId_Index",
+            table: "ShapeVertices",
+            columns: ["ShapeId", "Index"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageElements_DisplayId",
+            table: "StageElements",
+            column: "DisplayId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageElements_StageId",
+            table: "StageElements",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageLights_StageId",
+            table: "StageLights",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageRegions_StageId",
+            table: "StageRegions",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageRegionVertices_StageId_RegionIndex_Index",
+            table: "StageRegionVertices",
+            columns: ["StageId", "RegionIndex", "Index"]);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Stages_AlternateBackgroundId",
+            table: "Stages",
+            column: "AlternateBackgroundId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Stages_AmbientSoundId",
+            table: "Stages",
+            column: "AmbientSoundId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Stages_MainBackgroundId",
+            table: "Stages",
+            column: "MainBackgroundId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageSounds_MediaId",
+            table: "StageSounds",
+            column: "MediaId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageSounds_StageId",
+            table: "StageSounds",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageWalls_StageId",
+            table: "StageWalls",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_StageWallSegments_StageId",
+            table: "StageWallSegments",
+            column: "StageId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_UserClaims_UserId",
+            table: "UserClaims",
+            column: "UserId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_UserLogins_UserId",
+            table: "UserLogins",
+            column: "UserId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_UserRoles_RoleId",
+            table: "UserRoles",
+            column: "RoleId");
+
+        migrationBuilder.CreateIndex(
+            name: "EmailIndex",
+            table: "Users",
+            column: "NormalizedEmail");
+
+        migrationBuilder.CreateIndex(
+            name: "UserNameIndex",
+            table: "Users",
+            column: "NormalizedUserName",
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Worlds_BackgroundId",
+            table: "Worlds",
+            column: "BackgroundId");
+    }
+
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder) {
+        migrationBuilder.DropTable(
+            name: "AiProviderModels");
+
+        migrationBuilder.DropTable(
+            name: "AssetStatEntries");
+
+        migrationBuilder.DropTable(
+            name: "AssetTokens");
+
+        migrationBuilder.DropTable(
+            name: "AuditLogs");
+
+        migrationBuilder.DropTable(
+            name: "EncounterActors");
+
+        migrationBuilder.DropTable(
+            name: "EncounterEffects");
+
+        migrationBuilder.DropTable(
+            name: "EncounterObjects");
+
+        migrationBuilder.DropTable(
+            name: "Events");
+
+        migrationBuilder.DropTable(
+            name: "JobItems");
+
+        migrationBuilder.DropTable(
+            name: "MaintenanceMode");
+
+        migrationBuilder.DropTable(
+            name: "Messages");
+
+        migrationBuilder.DropTable(
+            name: "Participants");
+
+        migrationBuilder.DropTable(
+            name: "Players");
+
+        migrationBuilder.DropTable(
+            name: "PromptTemplates");
+
+        migrationBuilder.DropTable(
+            name: "RoleClaims");
+
+        migrationBuilder.DropTable(
+            name: "ShapeVertices");
+
+        migrationBuilder.DropTable(
+            name: "StageElements");
+
+        migrationBuilder.DropTable(
+            name: "StageLights");
+
+        migrationBuilder.DropTable(
+            name: "StageRegionVertices");
+
+        migrationBuilder.DropTable(
+            name: "StageSounds");
+
+        migrationBuilder.DropTable(
+            name: "StageWallSegments");
+
+        migrationBuilder.DropTable(
+            name: "StatBlocks");
+
+        migrationBuilder.DropTable(
+            name: "UserClaims");
+
+        migrationBuilder.DropTable(
+            name: "UserLogins");
+
+        migrationBuilder.DropTable(
+            name: "UserRoles");
+
+        migrationBuilder.DropTable(
+            name: "UserTokens");
+
+        migrationBuilder.DropTable(
+            name: "AiProviderConfigs");
+
+        migrationBuilder.DropTable(
+            name: "GameSystems");
+
+        migrationBuilder.DropTable(
+            name: "Assets");
+
+        migrationBuilder.DropTable(
+            name: "Encounters");
+
+        migrationBuilder.DropTable(
+            name: "Jobs");
+
+        migrationBuilder.DropTable(
+            name: "Schedule");
+
+        migrationBuilder.DropTable(
+            name: "GameSessions");
+
+        migrationBuilder.DropTable(
+            name: "Shapes");
+
+        migrationBuilder.DropTable(
+            name: "StageRegions");
+
+        migrationBuilder.DropTable(
+            name: "StageWalls");
+
+        migrationBuilder.DropTable(
+            name: "Roles");
+
+        migrationBuilder.DropTable(
+            name: "Users");
+
+        migrationBuilder.DropTable(
+            name: "Adventures");
+
+        migrationBuilder.DropTable(
+            name: "Stages");
+
+        migrationBuilder.DropTable(
+            name: "Campaigns");
+
+        migrationBuilder.DropTable(
+            name: "Worlds");
+
+        migrationBuilder.DropTable(
+            name: "Resources");
+    }
+}

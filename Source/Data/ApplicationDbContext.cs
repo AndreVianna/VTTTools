@@ -66,10 +66,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
-        builder.Ignore<Size>();
-        builder.Ignore<NamedSize>();
         IdentitySchemaBuilder.ConfigureModel(builder);
-        IdentitySchemaSeeder.Seed(builder);
+        //builder.Ignore<CellSize>();
+        //builder.Ignore<Size>();
+        //builder.Ignore<NamedSize>();
         ResourceSchemaBuilder.ConfigureModel(builder);
         AssetSchemaBuilder.ConfigureModel(builder);
         StatBlockSchemaBuilder.ConfigureModel(builder);
@@ -86,6 +86,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         PromptTemplateSchemaBuilder.ConfigureModel(builder);
         AiProviderConfigSchemaBuilder.ConfigureModel(builder);
         JobSchemaBuilder.ConfigureModel(builder);
-        //ApplicationSchemaSeeder.Seed(builder);
+        IdentitySchemaSeeder.Seed(builder);
     }
 }

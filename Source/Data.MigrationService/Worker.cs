@@ -42,7 +42,7 @@ public sealed class Worker(
             logger.LogError("Ensure migrations assembly is correctly configured and migration files are present");
             throw;
         }
-        catch (SqlException ex) {
+        catch (NpgsqlException ex) {
             logger.LogError(ex, "Database connection or execution error during migration: {Error}", ex.Message);
             logger.LogError("Verify database connection string and permissions");
             throw;
