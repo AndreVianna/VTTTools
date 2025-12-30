@@ -6,16 +6,12 @@ global using System.Text.Json.Serialization;
 
 global using AwesomeAssertions;
 
-global using Azure;
-global using Azure.Storage.Blobs.Models;
-
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.Json;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Routing;
-global using Microsoft.Data.SqlClient;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
