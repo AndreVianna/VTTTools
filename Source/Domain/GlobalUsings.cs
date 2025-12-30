@@ -20,6 +20,7 @@ global using VttTools.Assets.ServiceContracts;
 global using VttTools.Assets.Storage;
 global using VttTools.Audit.Model;
 global using VttTools.Common.ApiContracts;
+global using VttTools.Common.Health;
 global using VttTools.Common.Model;
 global using VttTools.Common.ServiceContracts;
 global using VttTools.Game.Sessions.Model;

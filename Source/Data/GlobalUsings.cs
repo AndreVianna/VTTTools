@@ -8,6 +8,8 @@ global using DotNetToolbox;
 
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
+
+global using Npgsql;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 
@@ -16,6 +18,7 @@ global using VttTools.AI.Storage;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
 global using VttTools.Audit.Storage;
+global using VttTools.Common.Health;
 global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
 global using VttTools.Data.Assets.Entities;
