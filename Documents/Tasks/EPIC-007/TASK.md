@@ -3,7 +3,7 @@
 **Target Type**: Epic (Infrastructure)
 **Target Item**: EPIC-007
 **Created**: 2025-12-29
-**Status**: PLANNED
+**Status**: COMPLETED
 **Estimated Effort**: ~8-16 hours (1-2 days)
 **Priority**: High (Unblocks proper FK cascade behavior)
 
@@ -255,6 +255,45 @@ If migration fails:
 
 ---
 
-**Version**: 1.0
-**Last Updated**: 2025-12-29
+**Version**: 1.1
+**Last Updated**: 2025-12-30
 **Author**: Claude (via EPIC-006 analysis)
+
+---
+
+## Implementation Summary (Completed 2025-12-30)
+
+### Changes Made
+
+**Phase 1: Package Updates (12 files)**
+- Replaced `Aspire.Microsoft.EntityFrameworkCore.SqlServer` → `Aspire.Npgsql.EntityFrameworkCore.PostgreSQL` (9 files)
+- Replaced `Microsoft.EntityFrameworkCore.SqlServer` → `Npgsql.EntityFrameworkCore.PostgreSQL` (2 files)
+- Replaced `Aspire.Hosting.SqlServer` → `Aspire.Hosting.PostgreSQL` (1 file)
+
+**Phase 2: Configuration Updates (11 files)**
+- Changed `AddSqlServerDbContext` → `AddNpgsqlDbContext` (9 Program.cs files)
+- Changed `UseSqlServer` → `UseNpgsql` (2 files in Data.MigrationService)
+
+**Phase 3: Schema Builder Updates (4 files)**
+- Reverted StageSchemaBuilder.cs: `DeleteBehavior.Restrict` → `DeleteBehavior.SetNull` (3 FKs)
+- Updated MaintenanceModeSchemaBuilder.cs: Removed SQL Server-specific `boolean` type
+- Updated AssetSchemaBuilder.cs: `nvarchar(max)` → `jsonb`
+- Updated JobSchemaBuilder.cs: `nvarchar(max)` → `text` (3 places)
+
+**Phase 5: Test Updates (1 file)**
+- ContentQueryServiceTests.cs: `UseSqlServer` → `UseInMemoryDatabase`
+
+### Review Grades
+| Phase | Grade | Notes |
+|-------|-------|-------|
+| 1.1 Identification | A- | Complete inventory |
+| 1.2 Package Updates | A | All packages updated correctly |
+| 2.1 Program.cs Updates | B+ | All provider calls updated |
+| 2.2 Schema Builders | A- | PostgreSQL types applied |
+| 2.3 AppHost | A | No changes needed |
+| 3.1 SetNull FK | A | Primary goal achieved |
+| 5.1 Test Updates | A | InMemory database used |
+
+### Discovered Issues
+
+**Architecture Finding**: `ContentQueryService` directly depends on `ApplicationDbContext` instead of a storage interface. This violates VTTTools' DDD pattern and should be refactored in a future task to enable proper unit testing without database behavior.

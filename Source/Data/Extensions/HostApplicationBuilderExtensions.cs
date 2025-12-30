@@ -14,5 +14,6 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.AddScoped<IWorldStorage, WorldStorage>();
         builder.Services.AddScoped<ICampaignStorage, CampaignStorage>();
         builder.Services.AddScoped<IGameSessionStorage, GameSessionStorage>();
+        builder.Services.AddScoped<IContentQueryStorage, ContentQueryStorage>();
     }
 }

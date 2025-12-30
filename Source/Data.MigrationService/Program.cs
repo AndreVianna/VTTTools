@@ -6,10 +6,10 @@ if (args.Length > 0 && args[0].Equals("generate-data", StringComparison.OrdinalI
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Configure SQL Server DbContext using Aspire with explicit migrations assembly
-builder.AddSqlServerDbContext<ApplicationDbContext>(
+// Configure PostgreSQL DbContext using Aspire with explicit migrations assembly
+builder.AddNpgsqlDbContext<ApplicationDbContext>(
     ApplicationDbContextOptions.ConnectionStringName,
-    configureDbContextOptions: options => options.UseSqlServer(connectionString =>
+    configureDbContextOptions: options => options.UseNpgsql(connectionString =>
             connectionString.MigrationsAssembly("VttTools.Data.MigrationService")));
 
 // Register the migration worker
