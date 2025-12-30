@@ -3,11 +3,7 @@ using VttTools.Admin.Configuration.Model;
 namespace VttTools.Admin.Handlers;
 
 public class ConfigurationHandlersTests {
-    private readonly IConfigurationService _mockConfigService;
-
-    public ConfigurationHandlersTests() {
-        _mockConfigService = Substitute.For<IConfigurationService>();
-    }
+    private readonly IConfigurationService _mockConfigService = Substitute.For<IConfigurationService>();
 
     [Fact]
     public async Task GetConfigurationHandler_WithValidService_ReturnsOkWithConfiguration() {

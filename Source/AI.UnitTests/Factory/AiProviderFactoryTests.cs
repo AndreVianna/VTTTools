@@ -12,7 +12,7 @@ public class AiProviderFactoryTests {
     public AiProviderFactoryTests() {
         var aiOptions = new AiOptions {
             Defaults = new Dictionary<string, Dictionary<string, ProviderModelConfig>> {
-                ["Image"] = new() {
+                ["DefaultDisplay"] = new() {
                     ["_default"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-image-1" },
                     ["Portrait"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-image-1" },
                     ["Token"] = new ProviderModelConfig { Provider = "OpenAI", Model = "gpt-image-1" },
@@ -90,7 +90,7 @@ public class AiProviderFactoryTests {
         var action = () => _factory.GetImageProvider("Google");
 
         action.Should().Throw<InvalidOperationException>()
-            .Which.Message.Should().Contain("Image provider 'Google' is not registered");
+            .Which.Message.Should().Contain("DefaultDisplay provider 'Google' is not registered");
     }
 
     [Fact]

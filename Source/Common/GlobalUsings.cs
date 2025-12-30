@@ -1,5 +1,4 @@
 ﻿global using System.Data.Common;
-global using System.Threading.RateLimiting;
 global using System.Diagnostics;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.Security.Claims;
@@ -7,6 +6,7 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using System.Text.Json.Serialization.Metadata;
+global using System.Threading.RateLimiting;
 
 global using Azure;
 global using Azure.Storage.Blobs;

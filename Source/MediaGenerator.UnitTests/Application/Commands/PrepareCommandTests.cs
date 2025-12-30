@@ -119,7 +119,7 @@ public sealed class PrepareCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp"]);
+        VerifyPromptFilesCreated(entity, 1, ["Token"]);
     }
 
     [Fact]
@@ -137,8 +137,8 @@ public sealed class PrepareCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(entity, 1, ["TopDown", "CloseUp"]);
-        VerifyPromptFilesCreated(entity, 2, ["TopDown", "CloseUp"]);
+        VerifyPromptFilesCreated(entity, 1, ["Token"]);
+        VerifyPromptFilesCreated(entity, 2, ["Token"]);
     }
 
     [Fact]
@@ -157,8 +157,8 @@ public sealed class PrepareCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        VerifyPromptFilesCreated(goblin, 1, ["TopDown", "CloseUp"]);
-        VerifyPromptFilesCreated(orc, 1, ["TopDown", "CloseUp"]);
+        VerifyPromptFilesCreated(goblin, 1, ["Token"]);
+        VerifyPromptFilesCreated(orc, 1, ["Token"]);
     }
 
     [Fact]
@@ -215,8 +215,7 @@ public sealed class PrepareCommandTests : IDisposable {
         Name = name,
         Description = description,
         Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Common"),
-        TokenSize = NamedSize.Default,
-        StatBlocks = [],
+        Size = NamedSize.Default,
         Tokens = [
             new() {
                       Id = Guid.NewGuid(),
@@ -249,8 +248,7 @@ public sealed class PrepareCommandTests : IDisposable {
             Name = name,
             Description = description,
             Classification = new(AssetKind.Creature, "Humanoid", "Test", "Common"),
-            TokenSize = NamedSize.Default,
-            StatBlocks = [],
+            Size = NamedSize.Default,
             Tokens = tokens
         };
     }

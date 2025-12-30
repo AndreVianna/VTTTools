@@ -1,8 +1,9 @@
-using WorldResourceEntity = VttTools.Data.Library.Entities.WorldResource;
-using CampaignResourceEntity = VttTools.Data.Library.Entities.CampaignResource;
-using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
-using EncounterResourceEntity = VttTools.Data.Library.Entities.EncounterResource;
-using ResourceRole = VttTools.Media.Model.ResourceRole;
+using AdventureEntity = VttTools.Data.Library.Adventures.Entities.Adventure;
+using AdventureModel = VttTools.Library.Adventures.Model.Adventure;
+using CampaignEntity = VttTools.Data.Library.Campaigns.Entities.Campaign;
+using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
+using WorldEntity = VttTools.Data.Library.Worlds.Entities.World;
+using WorldModel = VttTools.Library.Worlds.Model.World;
 
 namespace VttTools.Data.Library;
 
@@ -23,24 +24,17 @@ public class LibraryMapperTests {
             Duration = TimeSpan.Zero,
         };
 
-        var entity = new Entities.World {
+        var entity = new WorldEntity {
             Id = worldId,
             OwnerId = ownerId,
             Name = "Fantasy World",
             Description = "A magical realm",
             IsPublished = true,
             IsPublic = false,
+            BackgroundId = background.Id,
+            Background = background,
             Campaigns = [],
             Adventures = [],
-            Resources = [
-                new WorldResourceEntity {
-                    WorldId = worldId,
-                    ResourceId = background.Id,
-                    Resource = background,
-                    Role = ResourceRole.Background,
-                    Index = 0
-                }
-            ]
         };
 
         var result = entity.ToModel();
@@ -60,7 +54,7 @@ public class LibraryMapperTests {
 
     [Fact]
     public void ToModel_World_WithNullEntity_ReturnsNull() {
-        Entities.World? entity = null;
+        WorldEntity? entity = null;
 
         var result = entity.ToModel();
 
@@ -72,7 +66,7 @@ public class LibraryMapperTests {
         var ownerId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
-        var model = new World {
+        var model = new WorldModel {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
             Name = "Sci-Fi World",
@@ -106,18 +100,17 @@ public class LibraryMapperTests {
     [Fact]
     public void UpdateFrom_World_UpdatesAllProperties() {
         var worldId = Guid.CreateVersion7();
-        var entity = new Entities.World {
+        var entity = new WorldEntity {
             Id = worldId,
             OwnerId = Guid.CreateVersion7(),
             Name = "Old World",
             Description = "Old Description",
             IsPublished = false,
             IsPublic = false,
-            Resources = []
         };
 
         var newBackgroundId = Guid.CreateVersion7();
-        var model = new World {
+        var model = new WorldModel {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "New World",
@@ -161,7 +154,7 @@ public class LibraryMapperTests {
             Duration = TimeSpan.Zero,
         };
 
-        var entity = new Entities.Campaign {
+        var entity = new CampaignEntity {
             Id = campaignId,
             OwnerId = ownerId,
             Name = "Epic Campaign",
@@ -170,16 +163,9 @@ public class LibraryMapperTests {
             IsPublic = false,
             WorldId = null,
             World = null,
+            BackgroundId = background.Id,
+            Background = background,
             Adventures = [],
-            Resources = [
-                new CampaignResourceEntity {
-                    CampaignId = campaignId,
-                    ResourceId = background.Id,
-                    Resource = background,
-                    Role = ResourceRole.Background,
-                    Index = 0
-                }
-            ]
         };
 
         var result = entity.ToModel();
@@ -200,10 +186,9 @@ public class LibraryMapperTests {
     [Fact]
     public void ToEntity_Campaign_WithValidModel_ReturnsCorrectEntity() {
         var ownerId = Guid.CreateVersion7();
-        var worldId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
-        var model = new Campaign {
+        var model = new CampaignModel {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
             Name = "New Campaign",
@@ -238,7 +223,7 @@ public class LibraryMapperTests {
     [Fact]
     public void UpdateFrom_Campaign_UpdatesAllProperties() {
         var campaignId = Guid.CreateVersion7();
-        var entity = new Entities.Campaign {
+        var entity = new CampaignEntity {
             Id = campaignId,
             OwnerId = Guid.CreateVersion7(),
             WorldId = Guid.CreateVersion7(),
@@ -246,11 +231,10 @@ public class LibraryMapperTests {
             Description = "Old Description",
             IsPublished = false,
             IsPublic = false,
-            Resources = []
         };
 
         var newBackgroundId = Guid.CreateVersion7();
-        var model = new Campaign {
+        var model = new CampaignModel {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Campaign",
@@ -294,7 +278,7 @@ public class LibraryMapperTests {
             Duration = TimeSpan.Zero,
         };
 
-        var entity = new Entities.Adventure {
+        var entity = new AdventureEntity {
             Id = adventureId,
             OwnerId = ownerId,
             Name = "Dungeon Crawl",
@@ -307,16 +291,9 @@ public class LibraryMapperTests {
             World = null,
             CampaignId = null,
             Campaign = null,
+            BackgroundId = background.Id,
+            Background = background,
             Encounters = [],
-            Resources = [
-                new AdventureResourceEntity {
-                    AdventureId = adventureId,
-                    ResourceId = background.Id,
-                    Resource = background,
-                    Role = ResourceRole.Background,
-                    Index = 0
-                }
-            ]
         };
 
         var result = entity.ToModel();
@@ -340,10 +317,9 @@ public class LibraryMapperTests {
     [Fact]
     public void ToEntity_Adventure_WithValidModel_ReturnsCorrectEntity() {
         var ownerId = Guid.CreateVersion7();
-        var campaignId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
-        var model = new Adventure {
+        var model = new AdventureModel {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
             Name = "One Shot Adventure",
@@ -383,7 +359,7 @@ public class LibraryMapperTests {
     [Fact]
     public void UpdateFrom_Adventure_UpdatesAllProperties() {
         var adventureId = Guid.CreateVersion7();
-        var entity = new Entities.Adventure {
+        var entity = new AdventureEntity {
             Id = adventureId,
             OwnerId = Guid.CreateVersion7(),
             WorldId = Guid.CreateVersion7(),
@@ -394,11 +370,10 @@ public class LibraryMapperTests {
             IsOneShot = false,
             IsPublished = false,
             IsPublic = false,
-            Resources = []
         };
 
         var newBackgroundId = Guid.CreateVersion7();
-        var model = new Adventure {
+        var model = new AdventureModel {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Adventure",

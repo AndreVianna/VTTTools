@@ -3,7 +3,6 @@ namespace VttTools.Library.Services;
 public class EncounterServiceTests {
     private readonly IEncounterStorage _encounterStorage;
     private readonly IAssetStorage _assetStorage;
-    private readonly IMediaStorage _mediaStorage;
     private readonly EncounterService _service;
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
@@ -11,8 +10,7 @@ public class EncounterServiceTests {
     public EncounterServiceTests() {
         _encounterStorage = Substitute.For<IEncounterStorage>();
         _assetStorage = Substitute.For<IAssetStorage>();
-        _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new(_encounterStorage, _assetStorage, _mediaStorage);
+        _service = new(_encounterStorage, _assetStorage);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -26,7 +24,7 @@ public class EncounterServiceTests {
         _encounterStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(encounters);
 
         // Act
-        var result = await _service.GetEncountersAsync(_ct);
+        var result = await _service.GetAllAsync(_ct);
 
         // Assert
         result.Should().BeEquivalentTo(encounters);
@@ -41,7 +39,7 @@ public class EncounterServiceTests {
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
 
         // Act
-        var result = await _service.GetEncounterByIdAsync(encounterId, _ct);
+        var result = await _service.GetByIdAsync(encounterId, _ct);
 
         // Assert
         result.Should().BeEquivalentTo(encounter);
@@ -55,7 +53,7 @@ public class EncounterServiceTests {
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns((Encounter?)null);
 
         // Act
-        var result = await _service.GetEncounterByIdAsync(encounterId, _ct);
+        var result = await _service.GetByIdAsync(encounterId, _ct);
 
         // Assert
         result.Should().BeNull();
@@ -86,7 +84,7 @@ public class EncounterServiceTests {
             .Returns(true);
 
         // Act
-        var result = await _service.UpdateEncounterAsync(_userId, encounterId, data, _ct);
+        var result = await _service.UpdateAsync(_userId, encounterId, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -94,37 +92,7 @@ public class EncounterServiceTests {
     }
 
     [Fact]
-    public async Task UpdateEncounterAsync_WithPartialUpdate_OnlyUpdatesSpecifiedFields() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        var encounter = new Encounter {
-            Id = encounterId,
-            Name = "Old Name",
-            Description = "Old Description",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Adventure",
-            },
-        };
-        var data = new EncounterUpdateData {
-            Name = "Updated Name",
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>())
-            .Returns(true);
-
-        // Act
-        var result = await _service.UpdateEncounterAsync(_userId, encounterId, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _encounterStorage.Received(1).UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateEncounterAsync_WithNonOwner_ReturnsNull() {
+    public async Task UpdateEncounterAsync_WithNonOwner_ReturnsForbidden() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
         var nonOwnerId = Guid.CreateVersion7();
@@ -144,7 +112,7 @@ public class EncounterServiceTests {
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
 
         // Act
-        var result = await _service.UpdateEncounterAsync(nonOwnerId, encounterId, data, _ct);
+        var result = await _service.UpdateAsync(nonOwnerId, encounterId, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -153,7 +121,7 @@ public class EncounterServiceTests {
     }
 
     [Fact]
-    public async Task UpdateEncounterAsync_WithNonexistentEncounter_ReturnsNull() {
+    public async Task UpdateEncounterAsync_WhenNotFound_ReturnsNotFound() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
         var data = new EncounterUpdateData {
@@ -163,662 +131,276 @@ public class EncounterServiceTests {
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns((Encounter?)null);
 
         // Act
-        var result = await _service.UpdateEncounterAsync(_userId, encounterId, data, _ct);
+        var result = await _service.UpdateAsync(_userId, encounterId, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().ContainSingle().Which.Message.Should().Be("NotFound");
         await _encounterStorage.DidNotReceive().UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
     }
 
+    // === Actor Tests ===
+
     [Fact]
-    public async Task GetAssetsAsync_CallsStorage() {
+    public async Task GetActorsAsync_ReturnsActorsFromEncounter() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
         var encounter = new Encounter {
             Id = encounterId,
-            Name = "Encounter",
-            Assets = [
-                new() { Index = 1, Name = "Test Asset 1" },
-                new() { Index = 2, Name = "Test Asset 2" },
+            Name = "Test Encounter",
+            Actors = [
+                new() { Index = 0, Name = "Actor 1" },
+                new() { Index = 1, Name = "Actor 2" },
             ],
         };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>())
-                       .Returns(encounter);
+        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
 
         // Act
-        var result = await _service.GetAssetsAsync(encounterId, _ct);
+        var result = await _service.GetActorsAsync(encounterId, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(encounter.Assets);
-        await _encounterStorage.Received(1).GetByIdAsync(encounterId, Arg.Any<CancellationToken>());
+        result.Should().HaveCount(2);
+        result[0].Name.Should().Be("Actor 1");
+        result[1].Name.Should().Be("Actor 2");
     }
 
     [Fact]
-    public async Task GetAssetsAsync_WithNonexistentEncounter_ReturnsEmptyArray() {
+    public async Task GetActorsAsync_WhenEncounterNotFound_ReturnsEmptyArray() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>())
-                       .Returns((Encounter?)null);
+        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns((Encounter?)null);
 
         // Act
-        var result = await _service.GetAssetsAsync(encounterId, _ct);
+        var result = await _service.GetActorsAsync(encounterId, _ct);
 
         // Assert
         result.Should().BeEmpty();
-        await _encounterStorage.Received(1).GetByIdAsync(encounterId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task AddAssetAsync_WithOwner_AddsAssetAndReturnsTrue() {
+    public async Task AddActorAsync_WithOwner_AddsActorAndReturnsSuccess() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
         var encounter = new Encounter {
             Id = encounterId,
-            Name = "Encounter",
+            Name = "Test Encounter",
             Adventure = new() {
                 OwnerId = _userId,
                 Id = Guid.CreateVersion7(),
                 Name = "Adventure",
-                Description = "Adventure description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata {
-                    Id = Guid.CreateVersion7(),
-                },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
             },
-            Assets = [
-                // NOTE: Service uses Assets.Max(sa => sa.Index) and encounter.Assets.Where(sa => sa.AssetId == assetId).Max() which fail on empty collections
-                new EncounterAsset {
-                    AssetId = assetId, // Same assetId to provide baseline for index calculation
-                    Index = 0,
-                    Name = "Existing Asset Instance",
-                    Position = new Position(0, 0),
-                    Size = new NamedSize { Width = 1, Height = 1 }
-                }
-            ],
+            Actors = [],
         };
-        var data = new EncounterAssetAddData {
-            Name = "New Asset",
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
-        };
-
-        var portraitId = Guid.CreateVersion7();
         var asset = new Asset {
             Id = assetId,
             OwnerId = _userId,
-            Name = "Test Asset",
-            Classification = new AssetClassification(AssetKind.Character, "Player", "Hero", null),
-            Portrait = new ResourceMetadata {
-                Id = portraitId,
-                Path = "test/asset-portrait.png",
-                ContentType = "image/png",
-            },
+            Name = "Test Character",
+            Classification = new(AssetKind.Character, "Player", "Hero", null),
+        };
+        var data = new EncounterActorAddData {
+            Name = "Hero Character",
+            Position = new(10, 20),
+            Size = new() { Width = 1, Height = 1 },
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        // NOTE: AddAssetAsync calls assetStorage.GetByIdAsync to validate the asset exists and check ownership
         _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>())
-            .Returns(true);
 
         // Act
-        var result = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
+        var result = await _service.AddActorAsync(_userId, encounterId, assetId, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        encounter.Assets.Should().HaveCount(2);
-        var addedAsset = encounter.Assets[1]; // The new asset should be at index 1
-        addedAsset.Name.Should().Be(data.Name);
-        addedAsset.Position.Should().Be(data.Position);
-        addedAsset.Size.Should().Be(data.Size);
-        addedAsset.Frame.Should().BeEquivalentTo(data.Frame);
-        addedAsset.Elevation.Should().Be(data.Elevation);
-        addedAsset.Rotation.Should().Be(data.Rotation);
-        addedAsset.IsLocked.Should().BeFalse();
-        await _encounterStorage.Received(1).UpdateAsync(encounter, Arg.Any<CancellationToken>());
+        result.Value.Name.Should().Be("Hero Character");
+        result.Value.Asset.Id.Should().Be(assetId);
+        await _encounterStorage.Received(1).AddActorAsync(encounterId, Arg.Any<EncounterActor>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task AddAssetAsync_WithNonOwner_ReturnsFalse() {
+    public async Task UpdateActorAsync_WithOwner_UpdatesActorAndReturnsSuccess() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        var nonOwnerId = Guid.CreateVersion7();
+        const ushort actorIndex = 0;
         var encounter = new Encounter {
             Id = encounterId,
-            Name = "Encounter",
-            Assets = [],
-        };
-        var data = new EncounterAssetAddData {
-            Name = "New Asset",
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-
-        // Act
-        var result = await _service.AddAssetAsync(nonOwnerId, encounterId, assetId, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        encounter.Assets.Should().BeEmpty();
-        await _encounterStorage.DidNotReceive().UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task AddAssetAsync_WithNonexistentEncounter_ReturnsFalse() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        var data = new EncounterAssetAddData {
-            Name = "New Asset",
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns((Encounter?)null);
-
-        // Act
-        var result = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        await _encounterStorage.DidNotReceive().UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithOwner_UpdatesAssetAndReturnsTrue() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        const int index = 1;
-        var encounter = new Encounter {
-            Id = encounterId,
-            Name = "Encounter",
+            Name = "Test Encounter",
             Adventure = new() {
                 OwnerId = _userId,
                 Id = Guid.CreateVersion7(),
                 Name = "Adventure",
-                Description = "Adventure description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata {
-                    Id = Guid.CreateVersion7(),
-                },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
             },
-            Assets = [
-                new() {
-                    Index = index,
-                    Name = "Asset to update",
-                    Position = new(1, 1),
-                },
+            Actors = [
+                new() { Index = actorIndex, Name = "Original Name", Position = new(0, 0) },
             ],
         };
-        var data = new EncounterAssetUpdateData {
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
+        var data = new EncounterActorUpdateData {
+            Name = "Updated Name",
+            Position = new Position(50, 100),
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, encounterId, index, data, _ct);
+        var result = await _service.UpdateActorAsync(_userId, encounterId, actorIndex, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
+        await _encounterStorage.Received(1).UpdateActorAsync(encounterId, Arg.Any<EncounterActor>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateAssetAsync_WithNonOwner_ReturnsFalse() {
+    public async Task UpdateActorAsync_WhenActorNotFound_ReturnsNotFound() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        const int index = 1;
-        var nonOwnerId = Guid.CreateVersion7();
+        const ushort existingIndex = 0;
+        const ushort nonExistentIndex = 99;
         var encounter = new Encounter {
             Id = encounterId,
-            Name = "Encounter",
+            Name = "Test Encounter",
             Adventure = new() {
                 OwnerId = _userId,
                 Id = Guid.CreateVersion7(),
                 Name = "Adventure",
             },
-            Assets = [
-                new() {
-                    Index = index,
-                    Name = "Asset to not update",
-                    Position = new(1, 1),
-                },
+            Actors = [
+                new() { Index = existingIndex, Name = "Existing Actor" },
             ],
         };
-        var data = new EncounterAssetUpdateData {
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
+        var data = new EncounterActorUpdateData {
+            Name = "Updated Name",
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
 
         // Act
-        var result = await _service.UpdateAssetAsync(nonOwnerId, encounterId, index, data, _ct);
+        var result = await _service.UpdateActorAsync(_userId, encounterId, nonExistentIndex, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        var unchangedAsset = encounter.Assets[0];
-        unchangedAsset.Position.X.Should().Be(1);
-        unchangedAsset.Position.Y.Should().Be(1);
-        await _encounterStorage.DidNotReceive().UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
+        result.Errors.Should().ContainSingle().Which.Message.Should().Be("NotFound");
     }
 
     [Fact]
-    public async Task UpdateAssetAsync_WithNonexistentEncounter_ReturnsFalse() {
+    public async Task RemoveActorAsync_WithOwner_RemovesActorAndReturnsSuccess() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        const int index = 1;
-        var data = new EncounterAssetUpdateData {
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns((Encounter?)null);
-
-        // Act
-        var result = await _service.UpdateAssetAsync(_userId, encounterId, index, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        await _encounterStorage.DidNotReceive().UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithNonexistentAsset_ReturnsFalse() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        const int index = 1;
-        var nonexistentAssetId = Guid.CreateVersion7();
+        const ushort actorIndex = 0;
         var encounter = new Encounter {
             Id = encounterId,
-            Name = "Encounter",
+            Name = "Test Encounter",
             Adventure = new() {
                 OwnerId = _userId,
                 Id = Guid.CreateVersion7(),
                 Name = "Adventure",
             },
-            Assets = [
-                new() {
-                    Index = index,
-                    Name = "Existing Asset",
-                    Position = new(1, 1),
-                },
+            Actors = [
+                new() { Index = actorIndex, Name = "Actor to Remove" },
             ],
-        };
-        var data = new EncounterAssetUpdateData {
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 1,
-            Rotation = 45,
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.FindByIdAsync(_userId, nonexistentAssetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, encounterId, 99, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        await _encounterStorage.DidNotReceive().UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task AddAssetAsync_WithCreatureAsset_GeneratesindexedName() {
-        var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        var resourceId = Guid.CreateVersion7();
-        var encounter = new Encounter {
-            Id = encounterId,
-            Name = "Test Encounter",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [],
-        };
-        var asset = new Asset {
-            Id = assetId,
-            OwnerId = _userId,
-            Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            Tokens = [
-                new ResourceMetadata {
-                    Id = resourceId,
-                    Path = "test/goblin-topdown.png",
-                    ContentType = "image/png",
-                }
-            ],
-        };
-        var data = new EncounterAssetAddData {
-            Name = null,
-            Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1 },
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue($"Expected success but got errors: {string.Join(", ", result.Errors)}");
-        result.Value.Name.Should().Be("Goblin #1");
-    }
-
-    [Fact]
-    public async Task AddAssetAsync_WithMultipleCreatures_Incrementsindexs() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        var resourceId = Guid.CreateVersion7();
-        var encounter = new Encounter {
-            Id = encounterId,
-            Name = "Test Encounter",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [],
-        };
-        var asset = new Asset {
-            Id = assetId,
-            OwnerId = _userId,
-            Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            Tokens = [
-                new ResourceMetadata {
-                    Id = resourceId,
-                    Path = "test/goblin-topdown.png",
-                    ContentType = "image/png",
-                }
-            ],
-        };
-        var data = new EncounterAssetAddData {
-            Name = null,
-            Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1 },
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result1 = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
-        var result2 = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
-
-        // Assert
-        result1.IsSuccessful.Should().BeTrue();
-        result1.Value.Name.Should().Be("Goblin #1");
-        result2.IsSuccessful.Should().BeTrue();
-        result2.Value.Name.Should().Be("Goblin #2");
-    }
-
-    [Fact]
-    public async Task AddAssetAsync_WithObjectAsset_UsesBaseName() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        var resourceId = Guid.CreateVersion7();
-        var encounter = new Encounter {
-            Id = encounterId,
-            Name = "Test Encounter",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [],
-        };
-        var asset = new Asset {
-            Id = assetId,
-            OwnerId = _userId,
-            Name = "Treasure Chest",
-            Classification = new AssetClassification(AssetKind.Object, "Container", "Chest", null),
-            Tokens = [
-                new ResourceMetadata {
-                    Id = resourceId,
-                    Path = "test/chest-topdown.png",
-                    ContentType = "image/png",
-                }
-            ],
-        };
-        var data = new EncounterAssetAddData {
-            Name = null,
-            Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1 },
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result1 = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
-        var result2 = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
-
-        // Assert
-        result1.IsSuccessful.Should().BeTrue();
-        result1.Value.Name.Should().Be("Treasure Chest");
-        result2.IsSuccessful.Should().BeTrue();
-        result2.Value.Name.Should().Be("Treasure Chest");
-    }
-
-    [Fact]
-    public async Task AddAssetAsync_WithCustomName_OverridesAutoNaming() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        var assetId = Guid.CreateVersion7();
-        var resourceId = Guid.CreateVersion7();
-        var encounter = new Encounter {
-            Id = encounterId,
-            Name = "Test Encounter",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [],
-        };
-        var asset = new Asset {
-            Id = assetId,
-            OwnerId = _userId,
-            Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            Tokens = [
-                new ResourceMetadata {
-                    Id = resourceId,
-                    Path = "test/goblin-topdown.png",
-                    ContentType = "image/png",
-                }
-            ],
-        };
-        var data = new EncounterAssetAddData {
-            Name = "Boss Goblin",
-            Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1 },
-        };
-
-        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.AddAssetAsync(_userId, encounterId, assetId, data, _ct);
+        var result = await _service.RemoveActorAsync(_userId, encounterId, actorIndex, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Name.Should().Be("Boss Goblin #1");
+        await _encounterStorage.Received(1).DeleteActorAsync(encounterId, actorIndex, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task AddAssetAsync_WithDifferentCreatureTypes_Independentindexing() {
+    public async Task RemoveActorAsync_WhenActorNotFound_ReturnsNotFound() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        var goblinAssetId = Guid.CreateVersion7();
-        var orcAssetId = Guid.CreateVersion7();
-        var resourceId1 = Guid.CreateVersion7();
-        var resourceId2 = Guid.CreateVersion7();
+        const ushort existingIndex = 0;
+        const ushort nonExistentIndex = 99;
         var encounter = new Encounter {
             Id = encounterId,
             Name = "Test Encounter",
             Adventure = new() {
                 OwnerId = _userId,
                 Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new ResourceMetadata { Id = Guid.CreateVersion7() },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
+                Name = "Adventure",
             },
-            Assets = [],
-        };
-        var goblinAsset = new Asset {
-            Id = goblinAssetId,
-            OwnerId = _userId,
-            Name = "Goblin",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            Tokens = [
-                new ResourceMetadata {
-                    Id = resourceId1,
-                    Path = "test/goblin-topdown.png",
-                    ContentType = "image/png",
-                }
+            Actors = [
+                new() { Index = existingIndex, Name = "Existing Actor" },
             ],
-        };
-        var orcAsset = new Asset {
-            Id = orcAssetId,
-            OwnerId = _userId,
-            Name = "Orc",
-            Classification = new AssetClassification(AssetKind.Creature, "Humanoid", "Orc", null),
-            Tokens = [
-                new ResourceMetadata {
-                    Id = resourceId2,
-                    Path = "test/orc-topdown.png",
-                    ContentType = "image/png",
-                }
-            ],
-        };
-        var data = new EncounterAssetAddData {
-            Name = null,
-            Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1 },
         };
 
         _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
-        _assetStorage.FindByIdAsync(_userId, goblinAssetId, Arg.Any<CancellationToken>()).Returns(goblinAsset);
-        _assetStorage.FindByIdAsync(_userId, orcAssetId, Arg.Any<CancellationToken>()).Returns(orcAsset);
-        _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        var goblinResult = await _service.AddAssetAsync(_userId, encounterId, goblinAssetId, data, _ct);
-        var orcResult = await _service.AddAssetAsync(_userId, encounterId, orcAssetId, data, _ct);
+        var result = await _service.RemoveActorAsync(_userId, encounterId, nonExistentIndex, _ct);
 
         // Assert
-        goblinResult.IsSuccessful.Should().BeTrue();
-        goblinResult.Value.Name.Should().Be("Goblin #1");
-        orcResult.IsSuccessful.Should().BeTrue();
-        orcResult.Value.Name.Should().Be("Orc #1");
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().ContainSingle().Which.Message.Should().Be("NotFound");
     }
+
+    // === Effect Tests ===
+
+    [Fact]
+    public async Task GetEffectsAsync_ReturnsEffectsFromEncounter() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        var encounter = new Encounter {
+            Id = encounterId,
+            Name = "Test Encounter",
+            Effects = [
+                new() { Index = 0, Name = "Fireball Zone" },
+                new() { Index = 1, Name = "Web Spell" },
+            ],
+        };
+        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
+
+        // Act
+        var result = await _service.GetEffectsAsync(encounterId, _ct);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result[0].Name.Should().Be("Fireball Zone");
+        result[1].Name.Should().Be("Web Spell");
+    }
+
+    [Fact]
+    public async Task AddEffectAsync_WithOwner_AddsEffectAndReturnsSuccess() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var encounter = new Encounter {
+            Id = encounterId,
+            Name = "Test Encounter",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+            },
+            Effects = [],
+        };
+        var asset = new Asset {
+            Id = assetId,
+            OwnerId = _userId,
+            Name = "Fire Effect",
+            Classification = new(AssetKind.Effect, "Spell", "Fire", null),
+        };
+        var data = new EncounterEffectAddData {
+            Name = "Wall of Fire",
+            Position = new(10, 20),
+            EnabledDisplayId = Guid.CreateVersion7(),
+        };
+
+        _encounterStorage.GetByIdAsync(encounterId, Arg.Any<CancellationToken>()).Returns(encounter);
+        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
+
+        // Act
+        var result = await _service.AddEffectAsync(_userId, encounterId, assetId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be("Wall of Fire");
+        await _encounterStorage.Received(1).AddEffectAsync(encounterId, Arg.Any<EncounterEffect>(), Arg.Any<CancellationToken>());
+    }
+
+    // NOTE: Decoration and Audio tests removed - structural elements are now on Stage
 }

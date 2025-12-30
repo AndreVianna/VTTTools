@@ -1,11 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public sealed class UserAdminHandlersTests {
-    private readonly IUserAdminService _mockService;
-
-    public UserAdminHandlersTests() {
-        _mockService = Substitute.For<IUserAdminService>();
-    }
+    private readonly IUserAdminService _mockService = Substitute.For<IUserAdminService>();
 
     #region SearchUsersHandler Tests
 

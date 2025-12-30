@@ -287,8 +287,6 @@ public sealed class CampaignAdminService(
             Description = campaign.Description,
             IsPublished = campaign.IsPublished,
             IsPublic = campaign.IsPublic,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
         };
 
     private static LibraryContentResponse MapAdventureToContentResponse(AdventureModel adventure, string? ownerName)
@@ -300,7 +298,5 @@ public sealed class CampaignAdminService(
             Description = adventure.Description,
             IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
         };
 }

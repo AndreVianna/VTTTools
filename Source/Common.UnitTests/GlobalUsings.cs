@@ -2,6 +2,7 @@ global using System.Data.Common;
 global using System.Security.Claims;
 global using System.Text;
 global using System.Text.Json;
+global using System.Text.Json.Serialization;
 
 global using AwesomeAssertions;
 
@@ -33,12 +34,9 @@ global using VttTools.Audit.Storage;
 global using VttTools.Auth.Services;
 global using VttTools.Common.Model;
 global using VttTools.Configuration;
-global using VttTools.Extensions;
 global using VttTools.Identity.Model;
 global using VttTools.Json;
 global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;
 global using VttTools.Maintenance.Storage;
-global using VttTools.Middlewares;
-global using VttTools.Services;
 global using VttTools.Utilities;

@@ -84,8 +84,10 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         }
 
         ConsoleOutput.WriteBlankLine();
-        if (replace is not AllowOverwriteResult.Cancel) ConsoleOutput.WriteSuccess("✓ Preparation complete.");
-        else ConsoleOutput.WriteWarning("⚠ Preparation cancelled.");
+        if (replace is not AllowOverwriteResult.Cancel)
+            ConsoleOutput.WriteSuccess("✓ Preparation complete.");
+        else
+            ConsoleOutput.WriteWarning("⚠ Preparation cancelled.");
         ConsoleOutput.WriteLine($" Total Entries: {assets.Count}; Expected Files: {totalFiles}; Processed: {processedCount}; Skipped: {skipCount}.");
         ConsoleOutput.WriteLine($"Total cost: ${finalCost:0.0000}");
     }
@@ -133,11 +135,11 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         var systemPrompt = BuildSystemPrompt(imageType, asset);
 
         return new() {
-                         Prompt = userPrompt,
-                         Context = systemPrompt,
-                         Provider = provider,
-                         Model = model
-                     };
+            Prompt = userPrompt,
+            Context = systemPrompt,
+            Provider = provider,
+            Model = model
+        };
     }
 
     private static string BuildSystemPrompt(string imageType, Asset asset)
@@ -147,16 +149,16 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
         You MUST ensure that the image that the prompt describes is {ImageDescriptionFor(imageType, asset)} in a Virtual Tabletop Web Application.
         You MUST also ensure that the image does not contain any border, frame, text, watermark, signature, blurry, multiple subjects, duplicates, cropped edges, cropped parts, distorted shapes, and incorrect forms, body parts or perspective."
         The image MUST be a realistic color-pencil illustration, with vivid colors, good contrast, with focus on the {asset.Classification.Kind} described below."
-        The output MUST be a simple text that will be immediatelly submitted to an image generator AI."
+        The output MUST be a simple text that will be immediately submitted to an image generator AI."
         It MUST not have any preamble or explanation or the result, only the prompt text tailored for image generation."
         Here is the {asset.Classification.Kind} description:
         """";
 
     private static string ImageDescriptionFor(string imageType, Asset asset)
         => imageType switch {
-            "TopDown" => $"a bird's eye, top-down of the {asset.Classification.Kind}, with a transparent background to be seamless integrated into a virtual battlemap",
-            "CloseUp" => $"a close-up of the main features of the {asset.Classification.Kind}, with a solid neutral background, to be used as a token on a virtual battlemap",
-            _ => $"a portrait of the {asset.Classification.Kind}, displaying it in full view, with an image background that highlights the {BackgroundFor(asset)}, to be used as the {asset.Classification.Kind} display",
+            "Token" => $"a bird's eye, top-down of the {asset.Classification.Kind}, with a transparent background to be seamless integrated into a virtual battlemap",
+            "Portrait" => $"a portrait of the {asset.Classification.Kind}, displaying it in full view, with an image background that highlights the {BackgroundFor(asset)}, to be used as the {asset.Classification.Kind} display",
+            _ => throw new InvalidOperationException($"Unsupported image type: {imageType}"),
         };
 
     private static string BackgroundFor(Asset asset) => asset.Classification.Kind switch {
@@ -184,10 +186,8 @@ public sealed class PrepareCommand(IPromptEnhancementService promptEnhancementSe
 
     private static IReadOnlyList<string> ImageTypeFor(AssetKind kind, bool isToken = false)
         => kind switch {
-            AssetKind.Character when isToken => ["TopDown", "CloseUp"],
-            AssetKind.Creature when isToken => ["TopDown", "CloseUp"],
-            AssetKind.Object when isToken => ["TopDown"],
-            AssetKind.Object => ["TopDown", "Portrait"],
-            _ => ["TopDown", "CloseUp", "Portrait"],
+            AssetKind.Object => ["Token"],
+            _ when isToken => ["Token"],
+            _ => ["Token", "Portrait"],
         };
 }

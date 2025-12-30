@@ -19,12 +19,12 @@ public class ContentHandlersTests {
         // Arrange
         var response = new PagedContentResponse {
             Data = [
-                new ContentListItem {
-                    Id = Guid.CreateVersion7(),
-                    Type = ContentType.Adventure,
-                    Name = "Test Adventure",
-                    OwnerId = _userId
-                }
+                new() {
+                          Id = Guid.CreateVersion7(),
+                          Type = ContentType.Adventure,
+                          Name = "Test Adventure",
+                          OwnerId = _userId
+                      }
             ],
             HasMore = false,
             NextCursor = null

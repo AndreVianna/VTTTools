@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace VttTools.Admin.Resources.Clients;
 
@@ -87,18 +88,14 @@ public sealed class MediaServiceClientTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        httpClient.RequestedUrl.Should().Contain("resourceType=Portrait");
-        httpClient.RequestedUrl.Should().Contain("contentKind=Character");
-        httpClient.RequestedUrl.Should().Contain("category=Fantasy");
+        httpClient.RequestedUrl.Should().Contain("role=Portrait");
         httpClient.RequestedUrl.Should().Contain("searchText=dragon");
-        httpClient.RequestedUrl.Should().Contain("isPublished=false");
-        httpClient.RequestedUrl.Should().Contain("isPublic=true");
         httpClient.RequestedUrl.Should().Contain("skip=10");
         httpClient.RequestedUrl.Should().Contain("take=20");
     }
 
     [Fact]
-    public async Task ListUnpublishedResourcesAsync_WithoutIsPublishedFilter_DefaultsToFalse() {
+    public async Task ListUnpublishedResourcesAsync_WithDefaultPagination_UsesDefaults() {
         // Arrange
         var mediaResponse = new {
             Items = Array.Empty<object>(),
@@ -112,8 +109,8 @@ public sealed class MediaServiceClientTests {
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
         var request = new ResourceFilterRequest {
-            Skip = 0,
-            Take = 50,
+            Skip = null,
+            Take = null,
         };
 
         // Act
@@ -121,7 +118,8 @@ public sealed class MediaServiceClientTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        httpClient.RequestedUrl.Should().Contain("isPublished=false");
+        httpClient.RequestedUrl.Should().Contain("skip=0");
+        httpClient.RequestedUrl.Should().Contain("take=50");
     }
 
     [Fact]
@@ -147,7 +145,10 @@ public sealed class MediaServiceClientTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        httpClient.RequestedUrl.Should().Contain("dragon%20%26%20knight");
+        // The ampersand should be escaped to %26 (spaces may be decoded when converting URI to string)
+        httpClient.RequestedUrl.Should().Contain("%26");
+        httpClient.RequestedUrl.Should().Contain("dragon");
+        httpClient.RequestedUrl.Should().Contain("knight");
     }
 
     [Fact]
@@ -168,7 +169,7 @@ public sealed class MediaServiceClientTests {
     }
 
     [Fact]
-    public async Task ListUnpublishedResourcesAsync_WhenResponseIsNull_ReturnsFailure() {
+    public async Task ListUnpublishedResourcesAsync_WhenResponseIsNull_ThrowsJsonException() {
         // Arrange
         var httpClient = CreateHttpClient(HttpStatusCode.OK, null);
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
@@ -177,11 +178,10 @@ public sealed class MediaServiceClientTests {
         var request = new ResourceFilterRequest();
 
         // Act
-        var result = await client.ListUnpublishedResourcesAsync(request, TestContext.Current.CancellationToken);
+        var act = async () => await client.ListUnpublishedResourcesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Failed to parse response");
+        await act.Should().ThrowAsync<JsonException>();
     }
 
     #endregion
@@ -236,7 +236,7 @@ public sealed class MediaServiceClientTests {
     }
 
     [Fact]
-    public async Task UploadResourceAsync_WhenResponseIsNull_ReturnsFailure() {
+    public async Task UploadResourceAsync_WhenResponseIsNull_ThrowsJsonException() {
         // Arrange
         var httpClient = CreateHttpClient(HttpStatusCode.OK, null);
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
@@ -245,7 +245,7 @@ public sealed class MediaServiceClientTests {
         var data = new byte[] { 1, 2, 3, 4 };
 
         // Act
-        var result = await client.UploadResourceAsync(
+        var act = async () => await client.UploadResourceAsync(
             data,
             "test.png",
             "image/png",
@@ -253,8 +253,7 @@ public sealed class MediaServiceClientTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Failed to parse upload response");
+        await act.Should().ThrowAsync<JsonException>();
     }
 
     #endregion
@@ -300,7 +299,7 @@ public sealed class MediaServiceClientTests {
     [Fact]
     public async Task UpdateResourceAsync_WhenUpdateFails_ReturnsFailure() {
         // Arrange
-        var httpClient = CreateHttpClient(HttpStatusCode.NotFound, "Resource not found");
+        var httpClient = CreateHttpClient(HttpStatusCode.NotFound, "Display not found");
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
@@ -312,7 +311,7 @@ public sealed class MediaServiceClientTests {
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Resource not found");
+        result.Errors.Should().Contain("Display not found");
     }
 
     #endregion
@@ -356,7 +355,7 @@ public sealed class MediaServiceClientTests {
     [Fact]
     public async Task DeleteResourceAsync_WhenDeleteFails_ReturnsFailure() {
         // Arrange
-        var httpClient = CreateHttpClient(HttpStatusCode.NotFound, "Resource not found");
+        var httpClient = CreateHttpClient(HttpStatusCode.NotFound, "Display not found");
         _mockHttpClientFactory.CreateClient("MediaService").Returns(httpClient);
 
         var client = new MediaServiceClient(_mockHttpClientFactory, _mockOptions, _mockLogger);
@@ -367,7 +366,7 @@ public sealed class MediaServiceClientTests {
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Resource not found");
+        result.Errors.Should().Contain("Display not found");
     }
 
     #endregion
@@ -375,41 +374,22 @@ public sealed class MediaServiceClientTests {
     #region Helper Methods
 
     private static TestHttpClient CreateHttpClient(HttpStatusCode statusCode, object? responseContent) {
-        var client = new TestHttpClient(statusCode, responseContent);
+        var handler = new TestMessageHandler(statusCode, responseContent);
+        var client = new TestHttpClient(handler) {
+            BaseAddress = new("http://localhost"),
+        };
         return client;
     }
 
-    private sealed class TestHttpClient : HttpClient {
-        public string? RequestedUrl { get; private set; }
-
-        public TestHttpClient(HttpStatusCode statusCode, object? responseContent)
-            : base(new TestMessageHandler(statusCode, responseContent)) {
-            BaseAddress = new("http://localhost");
-        }
-
-        public new Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken) {
-            RequestedUrl = requestUri;
-            return base.GetAsync(requestUri, cancellationToken);
-        }
-
-        public new Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent content, CancellationToken cancellationToken) {
-            RequestedUrl = requestUri;
-            return base.PostAsync(requestUri, content, cancellationToken);
-        }
-
-        public new Task<HttpResponseMessage> PatchAsync(string requestUri, HttpContent content, CancellationToken cancellationToken) {
-            RequestedUrl = requestUri;
-            return base.PatchAsync(requestUri, content, cancellationToken);
-        }
-
-        public new Task<HttpResponseMessage> DeleteAsync(string requestUri, CancellationToken cancellationToken) {
-            RequestedUrl = requestUri;
-            return base.DeleteAsync(requestUri, cancellationToken);
-        }
+    private sealed class TestHttpClient(TestMessageHandler handler) : HttpClient(handler) {
+        public string? RequestedUrl => handler.RequestedUrl;
     }
 
     private sealed class TestMessageHandler(HttpStatusCode statusCode, object? responseContent) : HttpMessageHandler {
+        public string? RequestedUrl { get; private set; }
+
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
+            RequestedUrl = request.RequestUri?.ToString();
             var response = new HttpResponseMessage(statusCode);
             if (responseContent is not null) {
                 response.Content = responseContent is string stringContent

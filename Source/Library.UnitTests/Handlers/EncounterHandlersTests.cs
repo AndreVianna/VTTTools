@@ -23,7 +23,7 @@ public class EncounterHandlersTests {
             new Encounter { Id = Guid.CreateVersion7(), Name = "Encounter 2" },
         };
 
-        _encounterService.GetEncountersAsync(Arg.Any<CancellationToken>())
+        _encounterService.GetAllAsync(Arg.Any<CancellationToken>())
             .Returns(encounters);
 
         // Act
@@ -40,7 +40,7 @@ public class EncounterHandlersTests {
         var encounterId = Guid.CreateVersion7();
         var encounter = new Encounter { Id = encounterId, Name = "Test Encounter" };
 
-        _encounterService.GetEncounterByIdAsync(encounterId, Arg.Any<CancellationToken>())
+        _encounterService.GetByIdAsync(encounterId, Arg.Any<CancellationToken>())
             .Returns(encounter);
 
         // Act
@@ -56,7 +56,7 @@ public class EncounterHandlersTests {
         // Arrange
         var encounterId = Guid.CreateVersion7();
 
-        _encounterService.GetEncounterByIdAsync(encounterId, Arg.Any<CancellationToken>())
+        _encounterService.GetByIdAsync(encounterId, Arg.Any<CancellationToken>())
             .Returns((Encounter?)null);
 
         // Act
@@ -67,20 +67,18 @@ public class EncounterHandlersTests {
     }
 
     [Fact]
-    public async Task UpdateEncounterHandler_WithValidRequest_ReturnsOkResult() {
+    public async Task UpdateEncounterHandler_WithValidRequest_ReturnsNoContent() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
         var request = new EncounterUpdateRequest { Name = "Updated Encounter" };
-        var encounter = new Encounter { Id = encounterId, Name = "Updated Encounter" };
 
-        _encounterService.UpdateEncounterAsync(_userId, encounterId, Arg.Any<EncounterUpdateData>(), Arg.Any<CancellationToken>())
+        _encounterService.UpdateAsync(_userId, encounterId, Arg.Any<EncounterUpdateData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
         var result = await EncounterHandlers.UpdateEncounterHandler(_httpContext, encounterId, request, _encounterService);
 
         // Assert
-        // NOTE: UpdateEncounterHandler returns NoContent on success, not Ok<Encounter>
         result.Should().BeOfType<NoContent>();
     }
 
@@ -90,7 +88,7 @@ public class EncounterHandlersTests {
         var encounterId = Guid.CreateVersion7();
         var request = new EncounterUpdateRequest { Name = "Updated Encounter" };
 
-        _encounterService.UpdateEncounterAsync(_userId, encounterId, Arg.Any<EncounterUpdateData>(), Arg.Any<CancellationToken>())
+        _encounterService.UpdateAsync(_userId, encounterId, Arg.Any<EncounterUpdateData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("NotFound"));
 
         // Act
@@ -100,113 +98,195 @@ public class EncounterHandlersTests {
         result.Should().BeOfType<NotFound>();
     }
 
+    // === Actor Handler Tests ===
+
     [Fact]
-    public async Task GetAssetsHandler_ReturnsOkResult() {
+    public async Task GetActorsHandler_ReturnsOkResult() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        var assets = new[] {
-            new EncounterAsset { Index = 1, Name = "Asset 1" },
-            new EncounterAsset { Index = 2, Name = "Asset 2" },
+        var actors = new[] {
+            new EncounterActor { Index = 0, Name = "Actor 1" },
+            new EncounterActor { Index = 1, Name = "Actor 2" },
         };
 
-        _encounterService.GetAssetsAsync(encounterId, Arg.Any<CancellationToken>())
-            .Returns(assets);
+        _encounterService.GetActorsAsync(encounterId, Arg.Any<CancellationToken>())
+            .Returns(actors);
 
         // Act
-        var result = await EncounterHandlers.GetAssetsHandler(encounterId, _encounterService);
+        var result = await EncounterHandlers.GetActorsHandler(encounterId, _encounterService);
 
         // Assert
-        var response = result.Should().BeOfType<Ok<EncounterAsset[]>>().Subject;
-        response.Value.Should().BeEquivalentTo(assets);
+        var response = result.Should().BeOfType<Ok<EncounterActor[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(actors);
     }
 
     [Fact]
-    public async Task UpdateAssetHandler_WithValidRequest_ReturnsCreatedResult() {
+    public async Task AddActorHandler_WithValidRequest_ReturnsOkResult() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
-        const int number = 1;
-        var request = new EncounterAssetUpdateRequest {
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 10,
-            Rotation = 45,
+        var request = new EncounterActorAddRequest {
+            Name = "New Actor",
+            Position = new(20, 30),
+        };
+        var actor = new EncounterActor {
+            Asset = new() { Id = assetId },
+            Index = 0,
+            Name = "New Actor",
+            Position = new(20, 30),
         };
 
-        _encounterService.UpdateAssetAsync(_userId, encounterId, number, Arg.Any<EncounterAssetUpdateData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
+        _encounterService.AddActorAsync(_userId, encounterId, assetId, Arg.Any<EncounterActorAddData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(actor));
 
         // Act
-        var result = await EncounterHandlers.UpdateAssetHandler(_httpContext, encounterId, number, request, _encounterService);
+        var result = await EncounterHandlers.AddActorHandler(_httpContext, encounterId, assetId, request, _encounterService);
 
         // Assert
-        result.Should().BeOfType<NoContent>();
+        var response = result.Should().BeOfType<Ok<EncounterActorResponse>>().Subject;
+        response.Value!.Name.Should().Be("New Actor");
     }
 
     [Fact]
-    public async Task UpdateAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
+    public async Task AddActorHandler_WhenNotFound_ReturnsNotFound() {
         // Arrange
         var encounterId = Guid.CreateVersion7();
-        const int number = 1;
-        var request = new EncounterAssetUpdateRequest {
-            Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50 },
-            Frame = new Frame {
-                Shape = FrameShape.Square,
-                BorderThickness = 2,
-                BorderColor = "black",
-                Background = "white",
-            },
-            Elevation = 10,
-            Rotation = 45,
+        var assetId = Guid.CreateVersion7();
+        var request = new EncounterActorAddRequest {
+            Name = "New Actor",
+            Position = new(20, 30),
         };
 
-        _encounterService.UpdateAssetAsync(_userId, encounterId, number, Arg.Any<EncounterAssetUpdateData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Some error."));
+        _encounterService.AddActorAsync(_userId, encounterId, assetId, Arg.Any<EncounterActorAddData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<EncounterActor>(null!, new Error("NotFound")));
 
         // Act
-        var result = await EncounterHandlers.UpdateAssetHandler(_httpContext, encounterId, number, request, _encounterService);
-
-        // Assert
-        // NOTE: Handler returns BadRequest<IReadOnlyList<Error>>, not BadRequest
-        result.Should().BeOfType<ProblemHttpResult>();
-    }
-
-    [Fact]
-    public async Task RemoveAssetHandler_WithValidRequest_ReturnsCreatedResult() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        const int number = 1;
-
-        _encounterService.RemoveAssetAsync(_userId, encounterId, number, Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        // Act
-        var result = await EncounterHandlers.RemoveAssetHandler(_httpContext, encounterId, number, _encounterService);
-
-        // Assert
-        result.Should().BeOfType<NoContent>();
-    }
-
-    [Fact]
-    public async Task RemoveAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
-        // Arrange
-        var encounterId = Guid.CreateVersion7();
-        const int number = 1;
-
-        _encounterService.RemoveAssetAsync(_userId, encounterId, number, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("NotFound"));
-
-        // Act
-        var result = await EncounterHandlers.RemoveAssetHandler(_httpContext, encounterId, number, _encounterService);
+        var result = await EncounterHandlers.AddActorHandler(_httpContext, encounterId, assetId, request, _encounterService);
 
         // Assert
         result.Should().BeOfType<NotFound>();
     }
+
+    [Fact]
+    public async Task UpdateActorHandler_WithValidRequest_ReturnsNoContent() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        const int actorIndex = 0;
+        var request = new EncounterActorUpdateRequest {
+            Name = "Updated Actor",
+            Position = new Position(50, 100),
+        };
+
+        _encounterService.UpdateActorAsync(_userId, encounterId, actorIndex, Arg.Any<EncounterActorUpdateData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await EncounterHandlers.UpdateActorHandler(_httpContext, encounterId, actorIndex, request, _encounterService);
+
+        // Assert
+        result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task UpdateActorHandler_WhenNotFound_ReturnsNotFound() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        const int actorIndex = 0;
+        var request = new EncounterActorUpdateRequest {
+            Name = "Updated Actor",
+        };
+
+        _encounterService.UpdateActorAsync(_userId, encounterId, actorIndex, Arg.Any<EncounterActorUpdateData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("NotFound"));
+
+        // Act
+        var result = await EncounterHandlers.UpdateActorHandler(_httpContext, encounterId, actorIndex, request, _encounterService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task RemoveActorHandler_WithValidRequest_ReturnsNoContent() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        const int actorIndex = 0;
+
+        _encounterService.RemoveActorAsync(_userId, encounterId, actorIndex, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await EncounterHandlers.RemoveActorHandler(_httpContext, encounterId, actorIndex, _encounterService);
+
+        // Assert
+        result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task RemoveActorHandler_WhenNotFound_ReturnsNotFound() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        const int actorIndex = 0;
+
+        _encounterService.RemoveActorAsync(_userId, encounterId, actorIndex, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("NotFound"));
+
+        // Act
+        var result = await EncounterHandlers.RemoveActorHandler(_httpContext, encounterId, actorIndex, _encounterService);
+
+        // Assert
+        result.Should().BeOfType<NotFound>();
+    }
+
+    // === Effect Handler Tests ===
+
+    [Fact]
+    public async Task GetEffectsHandler_ReturnsOkResult() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        var effects = new[] {
+            new EncounterEffect { Index = 0, Name = "Effect 1" },
+            new EncounterEffect { Index = 1, Name = "Effect 2" },
+        };
+
+        _encounterService.GetEffectsAsync(encounterId, Arg.Any<CancellationToken>())
+            .Returns(effects);
+
+        // Act
+        var result = await EncounterHandlers.GetEffectsHandler(encounterId, _encounterService);
+
+        // Assert
+        var response = result.Should().BeOfType<Ok<EncounterEffect[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(effects);
+    }
+
+    [Fact]
+    public async Task AddEffectHandler_WithValidRequest_ReturnsOkResult() {
+        // Arrange
+        var encounterId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var request = new EncounterEffectAddRequest {
+            Name = "Wall of Fire",
+            Position = new(10, 20),
+        };
+        var effect = new EncounterEffect {
+            Asset = new() { Id = assetId },
+            Index = 0,
+            Name = "Wall of Fire",
+            Position = new(10, 20),
+            EnabledDisplay = new() { Id = Guid.CreateVersion7() },
+        };
+
+        _encounterService.AddEffectAsync(_userId, encounterId, assetId, Arg.Any<EncounterEffectAddData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(effect));
+
+        // Act
+        var result = await EncounterHandlers.AddEffectHandler(_httpContext, encounterId, assetId, request, _encounterService);
+
+        // Assert
+        var response = result.Should().BeOfType<Ok<EncounterEffectResponse>>().Subject;
+        response.Value!.Name.Should().Be("Wall of Fire");
+    }
+
+    // NOTE: Decoration and Audio handler tests removed - structural elements are now on Stage
 }

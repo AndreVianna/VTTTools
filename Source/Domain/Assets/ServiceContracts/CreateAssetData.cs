@@ -58,9 +58,9 @@ public record CreateAssetData
         if (string.IsNullOrWhiteSpace(Description))
             result += new Error("The asset description cannot be null or empty.", nameof(Description));
         if (TokenSize.Width <= 0)
-            result += new Error("TokenSize width must be greater than 0.", $"{nameof(TokenSize)}.{nameof(TokenSize.Width)}");
+            result += new Error("Size width must be greater than 0.", $"{nameof(TokenSize)}.{nameof(TokenSize.Width)}");
         if (TokenSize.Height <= 0)
-            result += new Error("TokenSize height must be greater than 0.", $"{nameof(TokenSize)}.{nameof(TokenSize.Height)}");
+            result += new Error("Size height must be greater than 0.", $"{nameof(TokenSize)}.{nameof(TokenSize.Height)}");
 
         return result;
     }

@@ -4,8 +4,8 @@ using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
 namespace VttTools.Data.Media;
 
 internal static class Mapper {
-    // With junction tables architecture, Role is stored in junction tables (AssetResource, etc.)
-    // not in the Resource entity. Resources are pure media metadata.
+    // With junction tables architecture, Role is stored in junction tables (AssetToken, etc.)
+    // not in the Display entity. Resources are pure media metadata.
 
     internal static Expression<Func<ResourceEntity, ResourceMetadata>> AsResource = entity
         => new() {

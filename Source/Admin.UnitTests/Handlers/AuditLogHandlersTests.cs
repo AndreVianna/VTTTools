@@ -1,11 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public class AuditLogHandlersTests {
-    private readonly IAuditLogService _mockService;
-
-    public AuditLogHandlersTests() {
-        _mockService = Substitute.For<IAuditLogService>();
-    }
+    private readonly IAuditLogService _mockService = Substitute.For<IAuditLogService>();
 
     [Fact]
     public async Task QueryAuditLogsHandler_WithValidRequest_ReturnsOkWithPaginatedResults() {

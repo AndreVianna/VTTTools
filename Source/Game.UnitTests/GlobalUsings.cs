@@ -1,4 +1,4 @@
-﻿global using System.Diagnostics.CodeAnalysis;
+global using System.Diagnostics.CodeAnalysis;
 global using System.Security.Claims;
 
 global using AwesomeAssertions;
@@ -24,5 +24,8 @@ global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Game.Sessions.Services;
 global using VttTools.Game.Sessions.Storage;
+global using VttTools.Library.Encounters.Model;
+global using VttTools.Library.Encounters.ServiceContracts;
+global using VttTools.Library.Encounters.Services;
 
 global using Xunit;

@@ -19,9 +19,9 @@ public record UpdatedCampaignData
             result += new Error("When set, the campaign name cannot be null or empty.", nameof(Name));
         if (Description.IsSet && string.IsNullOrWhiteSpace(Description.Value))
             result += new Error("When set, the campaign description cannot be null or empty.", nameof(Description));
-        if (IsPublished.IsSet && IsPublished.Value && IsPublic.IsSet && !IsPublic.Value)
+        if (IsPublished is { IsSet: true, Value: true } && IsPublic is { IsSet: true, Value: false })
             result += new Error("A published campaign must be public.", nameof(IsPublic));
-        if (IsPublic.IsSet && !IsPublic.Value && IsPublished.IsSet && IsPublished.Value)
+        if (IsPublic is { IsSet: true, Value: false } && IsPublished is { IsSet: true, Value: true })
             result += new Error("A published campaign must be public.", nameof(IsPublished));
         return result;
     }

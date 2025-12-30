@@ -1,5 +1,6 @@
-using CampaignResourceEntity = VttTools.Data.Library.Entities.CampaignResource;
-using ResourceRole = VttTools.Media.Model.ResourceRole;
+using VttTools.Data.Library.Campaigns;
+using CampaignEntity = VttTools.Data.Library.Campaigns.Entities.Campaign;
+using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 
 namespace VttTools.Data.Library;
 
@@ -43,6 +44,7 @@ public class CampaignStorageTests
             Duration = TimeSpan.Zero,
         };
         _context.Resources.AddRange(backgroundResource1, backgroundResource2);
+        _context.SaveChanges();
 
         var campaign1Id = Guid.CreateVersion7();
         var campaign2Id = Guid.CreateVersion7();
@@ -50,41 +52,27 @@ public class CampaignStorageTests
         var campaign4Id = Guid.CreateVersion7();
 
         var campaigns = new[] {
-            new Entities.Campaign {
+            new CampaignEntity {
                 Id = campaign1Id,
                 Name = "My Campaign",
                 Description = "My personal campaign",
                 IsPublished = true,
                 IsPublic = false,
                 OwnerId = _currentUserId,
-                Resources = [
-                    new CampaignResourceEntity {
-                        CampaignId = campaign1Id,
-                        ResourceId = backgroundResource1.Id,
-                        Resource = backgroundResource1,
-                        Role = ResourceRole.Background,
-                        Index = 0
-                    }
-                ]
+                BackgroundId = backgroundResource1.Id,
+                Background = backgroundResource1,
             },
-            new Entities.Campaign {
+            new CampaignEntity {
                 Id = campaign2Id,
                 Name = "Public Campaign",
                 Description = "Public campaign for all",
                 IsPublished = true,
                 IsPublic = true,
                 OwnerId = _otherUserId,
-                Resources = [
-                    new CampaignResourceEntity {
-                        CampaignId = campaign2Id,
-                        ResourceId = backgroundResource2.Id,
-                        Resource = backgroundResource2,
-                        Role = ResourceRole.Background,
-                        Index = 0
-                    }
-                ]
+                BackgroundId = backgroundResource2.Id,
+                Background = backgroundResource2,
             },
-            new Entities.Campaign {
+            new CampaignEntity {
                 Id = campaign3Id,
                 Name = "Draft Campaign",
                 Description = "Unpublished campaign",
@@ -92,7 +80,7 @@ public class CampaignStorageTests
                 IsPublic = false,
                 OwnerId = _currentUserId,
             },
-            new Entities.Campaign {
+            new CampaignEntity {
                 Id = campaign4Id,
                 Name = "Other User Campaign",
                 Description = "Private campaign by other user",
@@ -107,7 +95,7 @@ public class CampaignStorageTests
 
     [Fact]
     public async Task AddAsync_WithValidCampaign_AddsToDatabase() {
-        var campaign = new Campaign {
+        var campaign = new CampaignModel {
             Id = Guid.CreateVersion7(),
             Name = "New Campaign",
             Description = "A new campaign",
@@ -132,7 +120,19 @@ public class CampaignStorageTests
     [Fact]
     public async Task AddAsync_WithBackground_SavesBackgroundReference() {
         var backgroundId = Guid.CreateVersion7();
-        var campaign = new Campaign {
+        var background = new Media.Entities.Resource {
+            Id = backgroundId,
+            Path = "test/background.jpg",
+            FileName = "background.jpg",
+            ContentType = "image/jpeg",
+            FileSize = 2000,
+            Dimensions = new(1920, 1080),
+            Duration = TimeSpan.Zero,
+        };
+        _context.Resources.Add(background);
+        _context.SaveChanges();
+
+        var campaign = new CampaignModel {
             Id = Guid.CreateVersion7(),
             Name = "Campaign with Background",
             Description = "Test campaign",
@@ -153,19 +153,16 @@ public class CampaignStorageTests
 
         await _storage.AddAsync(campaign, _ct);
 
-        var dbCampaign = await _context.Campaigns.Include(c => c.Resources).FirstAsync(c => c.Id == campaign.Id, _ct);
+        var dbCampaign = await _context.Campaigns.Include(c => c.Background).FirstAsync(c => c.Id == campaign.Id, _ct);
         dbCampaign.Should().NotBeNull();
-        dbCampaign.Resources.Should().HaveCount(1);
-        var backgroundResource = dbCampaign.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background);
-        backgroundResource.Should().NotBeNull();
-        backgroundResource!.ResourceId.Should().Be(backgroundId);
+        dbCampaign.BackgroundId.Should().Be(backgroundId);
     }
 
     [Fact]
     public async Task UpdateAsync_WithExistingCampaign_UpdatesInDatabase() {
         _context.ChangeTracker.Clear();
         var entity = await _context.Campaigns.AsNoTracking().FirstAsync(_ct);
-        var campaign = new Campaign {
+        var campaign = new CampaignModel {
             Id = entity.Id,
             Name = "Updated Campaign",
             Description = "Updated description",

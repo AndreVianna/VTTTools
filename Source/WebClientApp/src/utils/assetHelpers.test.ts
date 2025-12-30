@@ -32,15 +32,15 @@ const createMockAsset = (overrides?: Partial<Asset>): Asset => ({
 
 describe('assetHelpers', () => {
   describe('getDefaultAssetImage', () => {
-    it('should return topDown when available', () => {
+    it('should return token when available', () => {
       const asset = createMockAsset({
-        tokens: [createMockResource('topdown-1', ResourceRole.Token)],
+        tokens: [createMockResource('token-1', ResourceRole.Token)],
         portrait: createMockResource('portrait-1', ResourceRole.Portrait),
       });
 
       const result = getDefaultAssetImage(asset);
 
-      expect(result?.id).toBe('topdown-1');
+      expect(result?.id).toBe('token-1');
     });
 
     it('should fallback to portrait when tokens are missing', () => {
@@ -76,21 +76,21 @@ describe('assetHelpers', () => {
     it('should work with any asset kind', () => {
       const objectAsset = createMockAsset({
         classification: { kind: AssetKind.Object, category: '', type: '', subtype: null },
-        tokens: [createMockResource('topdown-obj')],
+        tokens: [createMockResource('token-obj')],
       });
-      expect(getDefaultAssetImage(objectAsset)?.id).toBe('topdown-obj');
+      expect(getDefaultAssetImage(objectAsset)?.id).toBe('token-obj');
 
       const creatureAsset = createMockAsset({
         classification: { kind: AssetKind.Creature, category: '', type: '', subtype: null },
-        tokens: [createMockResource('topdown-mon')],
+        tokens: [createMockResource('token-mon')],
       });
-      expect(getDefaultAssetImage(creatureAsset)?.id).toBe('topdown-mon');
+      expect(getDefaultAssetImage(creatureAsset)?.id).toBe('token-mon');
 
       const characterAsset = createMockAsset({
         classification: { kind: AssetKind.Character, category: '', type: '', subtype: null },
-        tokens: [createMockResource('topdown-char')],
+        tokens: [createMockResource('token-char')],
       });
-      expect(getDefaultAssetImage(characterAsset)?.id).toBe('topdown-char');
+      expect(getDefaultAssetImage(characterAsset)?.id).toBe('token-char');
     });
   });
 

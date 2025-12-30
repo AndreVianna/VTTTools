@@ -31,8 +31,8 @@ public sealed class StabilityClient(IHttpClientFactory httpClientFactory, IConfi
         var field = new StringContent(value);
         field.Headers.ContentType = null;
         field.Headers.ContentDisposition = new("form-data") {
-                                                                Name = $"\"{name}\""
-                                                            };
+            Name = $"\"{name}\""
+        };
         content.Add(field);
     }
 

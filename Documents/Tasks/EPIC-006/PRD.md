@@ -1,11 +1,12 @@
 # Product Requirements Document (PRD)
 # VTTTools Encounter Domain Model Refactoring
 
-**Document Version:** 1.0
-**Date:** 2025-12-27
+**Document Version:** 1.2
+**Date:** 2025-12-28
 **Status:** Draft - Ready for Review
 **Author:** AI Analysis & User Collaboration
 **Stakeholders:** Engineering Team, Product Management, UX Design
+**Key Update:** Stage extraction as first-class library entity (ADR-010)
 
 ---
 
@@ -39,12 +40,20 @@ The current encounter domain model uses a two-tier classification system that cr
 
 ### Proposed Solution
 
-Refactor encounter elements into **9 distinct types** organized by **semantic behavior** (not file format):
+Refactor encounter elements into **8 distinct types** organized by **semantic behavior** (not file format), with **Stage extraction** as a first-class library entity:
 
-| Category | Entity Types | Semantic Criterion |
-|----------|-------------|-------------------|
-| **GameElements** | EncounterActor, EncounterProp, EncounterTrap, EncounterEffect | Has game rules/mechanics |
-| **StructuralElements** | Wall, Region, Light, EncounterDecoration, EncounterAudio | Defines passive environment |
+| Category | Location | Entity Types | Semantic Criterion |
+|----------|----------|-------------|-------------------|
+| **GameElements** | Encounter | EncounterActor, EncounterProp, EncounterEffect | Has game rules/mechanics |
+| **StructuralElements** | Stage | StageWall, StageRegion, StageLight, StageDecoration, StageAudio | Defines passive environment |
+
+**Key Architecture Change (v1.2):** Stage is extracted as a first-class library entity (like World, Campaign, Adventure). Structural elements live on Stage, Game elements live on Encounter. Encounters reference a Stage via FK, enabling the same map to be reused across multiple encounters with different game elements.
+
+**Why "Stage" instead of "Map":**
+- Already exists in codebase as embedded value object (renamed to StageSettings)
+- Theater metaphor is consistent: Stage + Actors + Props + Effects
+- No naming collisions (Map clashes with TypeScript `Map<K,V>` and Mapper terminology)
+- Not a verb - unambiguous in code
 
 **Key Design Principle:** Categories are based on **domain behavior** (game mechanics vs environment), not implementation details (file types). Decorations unify all visual media (images, sprites) because they're all "pixels on the map." Audio is separate because it's a different perception mechanism (auditory vs visual).
 
@@ -273,30 +282,100 @@ This refactoring enables:
 
 ### 3.1 Conceptual Framework
 
-The new domain model organizes encounter elements by **semantic behavior**, not implementation details:
+The new domain model organizes encounter elements by **semantic behavior**, not implementation details, with **Stage extraction** as a first-class library entity:
 
 **Core Design Principle:**
 - **Categories** are based on **domain semantics** (what it does in the game)
 - **Selection methods** are implementation details (how you create it)
 - **File formats** are implementation details (how it's stored)
+- **Stage/Encounter separation** - Maps (structural) vs Scenarios (game elements)
 
-This leads to **two semantic categories**:
+This leads to **two semantic categories with distinct locations**:
 
-| Category | Semantic Criterion | Element Types |
-|----------|-------------------|---------------|
-| **GameElements** | Has game rules/mechanics affecting gameplay | Actor, Prop, Trap, Effect |
-| **StructuralElements** | Passive environment with no game mechanics | Wall, Region, Light, Decoration, Audio |
+| Category | Location | Semantic Criterion | Element Types |
+|----------|----------|-------------------|---------------|
+| **GameElements** | Encounter | Has game rules/mechanics affecting gameplay | Actor, Prop, Effect |
+| **StructuralElements** | Stage | Passive environment with no game mechanics | Wall, Region, Light, Decoration, Audio |
+
+**Stage Extraction (ADR-010):**
+- Stage is a first-class library entity (like World, Campaign, Adventure)
+- Encounters reference a Stage via FK (StageId)
+- Same Stage can be reused across multiple Encounters (e.g., "Dungeon Room 3" stage used for both "Goblin Ambush" and "Treasure Discovery" encounters)
+- Current `Stage` value object renamed to `StageSettings` to avoid collision
+
+**Why "Stage" instead of "Map":**
+- Already exists in codebase as embedded value object
+- Theater metaphor is consistent: Stage + Actors + Props + Effects
+- No naming collisions (Map clashes with TypeScript `Map<K,V>` and Mapper terminology)
+- Not a verb - unambiguous in code
 
 **Key Insights:**
 1. **Decorations unify visual media** - Images, sprites, and videos are all "pixels on the map" rendered at a position. The file format is an implementation detail.
 2. **Audio is separate from visual** - Different perception mechanism (ears vs eyes), different UI controls (playback vs position).
-3. **Traps and Effects are game elements** - They have damage, saves, durations, and other game mechanics, even though they're created in-encounter rather than from the asset library.
+3. **Traps merged into Effects** - A trap is just a "hazardous effect" with trigger capabilities. Effect has state machine (Enabled, Disabled, Triggered).
+4. **Stage enables map reuse** - Structural elements define the environment, Game elements define the scenario.
 
 ### 3.2 Entity Type Definitions
 
-#### 3.2.1 Base Abstraction: `EncounterElement`
+#### 3.2.0 First-Class Entity: `Stage`
 
-All placed elements inherit from this base:
+Stage is a library entity that holds structural elements:
+
+```csharp
+public record Stage {
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid OwnerId { get; init; }
+
+    [MaxLength(128)]
+    public string Name { get; init; } = string.Empty;
+
+    public string? Description { get; init; }
+    public bool IsPublished { get; init; }
+    public bool IsPublic { get; init; }
+
+    /// <summary>Renamed from Stage value object to avoid collision</summary>
+    public StageSettings Settings { get; init; } = new();
+    public Grid Grid { get; init; } = new();
+
+    // Structural elements
+    public List<StageWall> Walls { get; init; } = [];
+    public List<StageRegion> Regions { get; init; } = [];
+    public List<StageLight> Lights { get; init; } = [];
+    public List<StageDecoration> Decorations { get; init; } = [];
+    public List<StageAudio> Sounds { get; init; } = [];
+
+    public List<ResourceMetadata> Resources { get; init; } = [];
+}
+```
+
+#### 3.2.1 Base Abstractions
+
+**StageElement** - Base for structural elements on Stage:
+
+```csharp
+public abstract record StageElement {
+    /// <summary>Position in collection (ordering)</summary>
+    public ushort Index { get; init; }
+
+    /// <summary>Optional display name</summary>
+    [MaxLength(128)]
+    public string? Name { get; init; }
+
+    /// <summary>2D position on stage</summary>
+    public Position Position { get; init; } = Position.Zero;
+
+    /// <summary>Rendering layer (z-order). Higher values render on top.</summary>
+    public ushort Layer { get; init; }
+
+    /// <summary>Visibility to players</summary>
+    public bool IsVisible { get; init; } = true;
+
+    /// <summary>GM notes and annotations</summary>
+    public string? Notes { get; init; }
+}
+```
+
+**EncounterElement** - Base for game elements on Encounter:
 
 ```csharp
 public abstract record EncounterElement {

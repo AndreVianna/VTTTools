@@ -22,7 +22,7 @@ public class MediaServiceClient(
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
             logger.LogError(
-                "Resource upload failed with status {StatusCode} for file {FileName}: {ErrorBody}",
+                "Display upload failed with status {StatusCode} for file {FileName}: {ErrorBody}",
                 response.StatusCode,
                 fileName,
                 errorBody);
@@ -41,7 +41,7 @@ public class MediaServiceClient(
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
             logger.LogError(
-                "Resource update failed with status {StatusCode} for resource {ResourceId}: {ErrorBody}",
+                "Display update failed with status {StatusCode} for resource {TokenId}: {ErrorBody}",
                 response.StatusCode,
                 resourceId,
                 errorBody);
@@ -58,7 +58,7 @@ public class MediaServiceClient(
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
             logger.LogError(
-                "Resource deletion failed with status {StatusCode} for resource {ResourceId}: {ErrorBody}",
+                "Display deletion failed with status {StatusCode} for resource {TokenId}: {ErrorBody}",
                 response.StatusCode,
                 resourceId,
                 errorBody);
@@ -123,7 +123,7 @@ public class MediaServiceClient(
         var response = await httpClient.GetAsync($"/api/resources/{resourceId}", ct);
         if (!response.IsSuccessStatusCode) {
             logger.LogError(
-                "Failed to get resource data with status {StatusCode} for resource {ResourceId}",
+                "Failed to get resource data with status {StatusCode} for resource {TokenId}",
                 response.StatusCode,
                 resourceId);
             return Result.Failure($"Failed to get resource: {response.StatusCode}").WithNo<(byte[] Data, string ContentType)>();

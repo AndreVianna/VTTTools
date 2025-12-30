@@ -14,7 +14,6 @@ global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
-global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
 
 global using NSubstitute;

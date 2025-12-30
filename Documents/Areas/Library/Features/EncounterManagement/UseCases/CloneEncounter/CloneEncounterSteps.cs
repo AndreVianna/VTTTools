@@ -57,7 +57,7 @@ public class CloneEncounterSteps {
             OwnerId = _userId,
             Name = "Original Encounter",
             Description = "Original description",
-            Stage = new Stage {
+            Settings = new StageSettings {
                 Background = new Resource {
                     Id = Guid.CreateVersion7(),
                     Type = ResourceType.Image,
@@ -102,7 +102,7 @@ public class CloneEncounterSteps {
             Name = data.Name,
             Description = data.Description,
             IsPublished = data.IsPublished,
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         };
 
@@ -117,7 +117,7 @@ public class CloneEncounterSteps {
     public void GivenMyEncounterHasStageWithBackgroundAndDimensions() {
         if (_originalEncounter is not null) {
             _originalEncounter = _originalEncounter with {
-                Stage = new Stage {
+                Settings = new StageSettings {
                     Background = new Resource {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
@@ -245,7 +245,7 @@ public class CloneEncounterSteps {
             Id = _encounterId,
             OwnerId = otherUserId, // Different owner
             Name = "Other User's Encounter",
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Grid = new Grid()
         };
 
@@ -389,13 +389,13 @@ public class CloneEncounterSteps {
 
     [Then(@"the cloned encounter should have identical stage configuration")]
     public void ThenTheClonedEncounterShouldHaveIdenticalStageConfiguration() {
-        _clonedEncounter!.Stage.Should().BeEquivalentTo(_originalEncounter!.Stage);
+        _clonedEncounter!.Settings.Should().BeEquivalentTo(_originalEncounter!.Settings);
     }
 
     [Then(@"the stage should be a separate instance")]
     public void ThenTheStageShouldBeASeparateInstance() {
         // Record types create new instances, so this is guaranteed
-        _clonedEncounter!.Stage.Should().NotBeSameAs(_originalEncounter!.Stage);
+        _clonedEncounter!.Settings.Should().NotBeSameAs(_originalEncounter!.Settings);
     }
 
     [Then(@"the cloned encounter should have identical grid configuration")]
@@ -444,7 +444,7 @@ public class CloneEncounterSteps {
 
     [Then(@"all configurations should match")]
     public void ThenAllConfigurationsShouldMatch() {
-        _clonedEncounter!.Stage.Should().BeEquivalentTo(_originalEncounter!.Stage);
+        _clonedEncounter!.Settings.Should().BeEquivalentTo(_originalEncounter!.Settings);
         _clonedEncounter!.Grid.Should().BeEquivalentTo(_originalEncounter!.Grid);
     }
 

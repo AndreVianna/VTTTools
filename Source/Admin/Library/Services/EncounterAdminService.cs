@@ -8,7 +8,8 @@ public sealed class EncounterAdminService(
     IAdventureStorage adventureStorage,
     UserManager<User> userManager,
     ILogger<EncounterAdminService> logger)
-    : LibraryAdminService(options, userManager, logger), IEncounterAdminService {
+    : LibraryAdminService(options, userManager, logger),
+      IEncounterAdminService {
 
     public async Task<LibraryContentSearchResponse> SearchEncountersAsync(
         LibrarySearchRequest request,
@@ -24,7 +25,7 @@ public sealed class EncounterAdminService(
                 SortBy = request.SortBy,
                 SortOrder = request.SortOrder,
                 Skip = skip,
-                Take = take + 1
+                Take = take + 1,
             };
 
             (var encounters, var totalCount) = await encounterStorage.SearchAsync(MasterUserId, filter, ct);
@@ -45,10 +46,10 @@ public sealed class EncounterAdminService(
                 "Encounter search completed: {Count} encounters found (Skip: {Skip}, Take: {Take}, Total: {Total})",
                 content.Count, skip, take, totalCount);
 
-            return new LibraryContentSearchResponse {
+            return new() {
                 Content = content.AsReadOnly(),
                 TotalCount = totalCount,
-                HasMore = hasMore
+                HasMore = hasMore,
             };
         }
         catch (Exception ex) {
@@ -77,14 +78,14 @@ public sealed class EncounterAdminService(
         string description,
         CancellationToken ct = default) {
         try {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
             var filter = new LibrarySearchFilter {
                 OwnerId = MasterUserId,
                 SortBy = "name",
                 SortOrder = "asc",
                 Skip = 0,
-                Take = 1
+                Take = 1,
             };
             (var adventures, _) = await adventureStorage.SearchAsync(MasterUserId, filter, ct);
             var defaultAdventure = adventures.FirstOrDefault()
@@ -95,7 +96,7 @@ public sealed class EncounterAdminService(
                 Adventure = defaultAdventure,
                 Name = name,
                 Description = description,
-                IsPublished = false
+                IsPublished = false,
             };
 
             await encounterStorage.AddAsync(encounter, defaultAdventure.Id, ct);
@@ -116,6 +117,7 @@ public sealed class EncounterAdminService(
         string? name,
         string? description,
         bool? isPublished,
+        bool? isPublic,
         CancellationToken ct = default) {
         try {
             var encounter = await encounterStorage.GetByIdAsync(id, ct)
@@ -124,7 +126,8 @@ public sealed class EncounterAdminService(
             var updatedEncounter = encounter with {
                 Name = name ?? encounter.Name,
                 Description = description ?? encounter.Description,
-                IsPublished = isPublished ?? encounter.IsPublished
+                IsPublished = isPublished ?? encounter.IsPublished,
+                IsPublic = isPublic ?? encounter.IsPublic,
             };
 
             await encounterStorage.UpdateAsync(updatedEncounter, ct);
@@ -167,7 +170,7 @@ public sealed class EncounterAdminService(
             var newOwnerId = request.Action.ToLowerInvariant() switch {
                 "take" => MasterUserId,
                 "grant" => request.TargetUserId ?? throw new ArgumentException("TargetUserId is required for 'grant' action"),
-                _ => throw new ArgumentException($"Invalid action: {request.Action}")
+                _ => throw new ArgumentException($"Invalid action: {request.Action}"),
             };
 
             var updatedAdventure = encounter.Adventure with { OwnerId = newOwnerId };
@@ -186,13 +189,11 @@ public sealed class EncounterAdminService(
     private static LibraryContentResponse MapToContentResponse(EncounterModel encounter, string? ownerName)
         => new() {
             Id = encounter.Id,
-            OwnerId = encounter.Adventure.OwnerId,
+            OwnerId = encounter.OwnerId,
             OwnerName = ownerName,
-            Name = encounter.Name,
-            Description = encounter.Description,
+            Name = encounter.Name ?? encounter.Stage.Name,
+            Description = encounter.Description ?? encounter.Stage.Description,
             IsPublished = encounter.IsPublished,
             IsPublic = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
         };
 }

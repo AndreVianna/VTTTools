@@ -1,17 +1,26 @@
-using static VttTools.Utilities.ErrorCollectionExtensions;
-
-using BulkUpdateAssetsData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
 using IResult = Microsoft.AspNetCore.Http.IResult;
-using UpdateAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
 
 namespace VttTools.Library.Handlers;
 
 internal static class EncounterHandlers {
     internal static async Task<IResult> GetEncountersHandler([FromServices] IEncounterService encounterService)
-        => Results.Ok(await encounterService.GetEncountersAsync());
+        => Results.Ok(await encounterService.GetAllAsync());
+
+    internal static async Task<IResult> CreateEncounterHandler(HttpContext context, [FromBody] CreateEncounterRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new CreateEncounterData {
+            Name = request.Name,
+            Description = request.Description,
+            StageId = request.StageId,
+        };
+        var result = await encounterService.CreateAsync(userId, data);
+        return result.IsSuccessful
+            ? Results.Created($"/api/encounters/{result.Value.Id}", result.Value)
+            : ToErrorResult(result);
+    }
 
     internal static async Task<IResult> GetEncounterByIdHandler([FromRoute] Guid id, [FromServices] IEncounterService encounterService)
-        => await encounterService.GetEncounterByIdAsync(id) is { } ep
+        => await encounterService.GetByIdAsync(id) is { } ep
                ? Results.Ok(ep)
                : Results.NotFound();
 
@@ -22,428 +31,229 @@ internal static class EncounterHandlers {
             Name = request.Name,
             Description = request.Description,
             IsPublished = request.IsPublished,
-            Stage = request.Stage.IsSet
-                ? new EncounterUpdateData.StageUpdate {
-                    BackgroundId = request.Stage.Value.BackgroundId,
-                    ZoomLevel = request.Stage.Value.ZoomLevel,
-                    Panning = request.Stage.Value.Panning,
-                }
-                : new(),
-            Grid = request.Grid.IsSet
-                ? new EncounterUpdateData.GridUpdate {
-                    Type = request.Grid.Value.Type,
-                    CellSize = request.Grid.Value.CellSize,
-                    Offset = request.Grid.Value.Offset,
-                }
-                : new(),
+            IsPublic = request.IsPublic,
         };
-        var result = await encounterService.UpdateEncounterAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] IEncounterService encounterService)
-        => Results.Ok(await encounterService.GetAssetsAsync(id));
-
-    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] EncounterAssetAddRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var data = new EncounterAssetAddData {
-            Name = request.Name,
-            IsVisible = request.IsVisible,
-            ImageId = request.ImageId,
-            Position = request.Position,
-            Size = request.Size,
-            Frame = request.Frame,
-            Elevation = request.Elevation,
-            Rotation = request.Rotation,
-        };
-        var result = await encounterService.AddAssetAsync(userId, id, assetId, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var result = await encounterService.CloneAssetAsync(userId, id, (ushort)index);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterAssetUpdateRequest request, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var data = new UpdateAssetData {
-            Name = request.Name,
-            Position = request.Position,
-            Size = request.Size,
-            Frame = request.Frame,
-            Elevation = request.Elevation,
-            Rotation = request.Rotation,
-            IsLocked = request.IsLocked,
-            ControlledBy = request.ControlledBy,
-        };
-        var result = await encounterService.UpdateAssetAsync(userId, id, (ushort)index, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> BulkUpdateAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterAssetBulkUpdateRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var data = new BulkUpdateAssetsData {
-            Updates = [.. request.Updates.Select(u => new EncounterAssetBulkUpdateDataItem {
-                Index = u.Index,
-                Position = u.Position,
-                Size = u.Size,
-                Rotation = u.Rotation,
-                Elevation = u.Elevation,
-            })],
-        };
-        var result = await encounterService.BulkUpdateAssetsAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> BulkCloneAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterAssetBulkCloneRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var result = await encounterService.BulkCloneAssetsAsync(userId, id, request.Indices);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> BulkDeleteAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterAssetBulkDeleteRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var result = await encounterService.BulkDeleteAssetsAsync(userId, id, request.Indices);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> BulkAddAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterAssetBulkAddRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var assetsToAdd = request.Assets.ConvertAll(a => new AssetToAdd(
-            a.Id,
-            new() {
-                Name = a.Name,
-                IsVisible = a.IsVisible,
-                ImageId = a.ImageId,
-                Position = a.Position,
-                Size = a.Size,
-                Frame = a.Frame,
-                Rotation = a.Rotation,
-                Elevation = a.Elevation,
-            }
-        ));
-        var result = await encounterService.BulkAddAssetsAsync(userId, id, assetsToAdd);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveAssetAsync(userId, id, (ushort)index);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+        var result = await encounterService.UpdateAsync(userId, id, data);
+        return ToResult(result);
     }
 
     internal static async Task<IResult> DeleteEncounterHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var result = await encounterService.DeleteEncounterAsync(userId, id);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+        var result = await encounterService.DeleteAsync(userId, id);
+        return ToResult(result);
     }
 
-    internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterWallAddRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var data = new EncounterWallAddData {
-            Segments = request.Segments,
-        };
-        var result = await encounterService.AddWallAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.Ok(new EncounterWallResponse {
-                Index = result.Value.Index,
-                Segments = [.. result.Value.Segments],
-            })
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
+    internal static async Task<IResult> GetActorsHandler([FromRoute] Guid id, [FromServices] IEncounterService encounterService)
+        => Results.Ok(await encounterService.GetActorsAsync(id));
 
-    internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterWallUpdateRequest request, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
+    internal static async Task<IResult> AddActorHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] EncounterActorAddRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterWallUpdateData {
-            Segments = request.Segments,
-        };
-        var result = await encounterService.UpdateWallAsync(userId, id, (ushort)index, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> RemoveWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveWallAsync(userId, id, (ushort)index);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> AddRegionHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterRegionAddRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var data = new EncounterRegionAddData {
-            Name = request.Name,
-            Type = request.Type,
-            Vertices = request.Vertices,
-            Value = request.Value,
-        };
-        var result = await encounterService.AddRegionAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.Ok(new EncounterRegionResponse {
-                Index = result.Value.Index,
-                Name = result.Value.Name,
-                Type = result.Value.Type,
-                Vertices = [.. result.Value.Vertices],
-                Value = result.Value.Value,
-            })
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterRegionUpdateRequest request, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var data = new EncounterRegionUpdateData {
-            Name = request.Name,
-            Type = request.Type,
-            Vertices = request.Vertices,
-            Value = request.Value,
-        };
-        var result = await encounterService.UpdateRegionAsync(userId, id, (ushort)index, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> RemoveRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveRegionAsync(userId, id, (ushort)index);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> AddLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterLightAddRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var data = new EncounterLightAddData {
-            Name = request.Name,
-            Type = request.Type,
-            Position = request.Position,
-            Range = request.Range,
-            Direction = request.Direction,
-            Arc = request.Arc,
-            Color = request.Color,
-            IsOn = request.IsOn,
-        };
-        var result = await encounterService.AddLightSourceAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.Ok(new EncounterLightResponse {
-                Index = result.Value.Index,
-                Name = result.Value.Name,
-                Type = result.Value.Type,
-                Position = result.Value.Position,
-                Range = result.Value.Range,
-                Direction = result.Value.Direction,
-                Arc = result.Value.Arc,
-                Color = result.Value.Color,
-                IsOn = result.Value.IsOn,
-            })
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> UpdateLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterLightUpdateRequest request, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var data = new EncounterLightUpdateData {
-            Name = request.Name,
-            Type = request.Type,
-            Position = request.Position,
-            Range = request.Range,
-            Direction = request.Direction,
-            Arc = request.Arc,
-            Color = request.Color,
-            IsOn = request.IsOn,
-        };
-        var result = await encounterService.UpdateLightSourceAsync(userId, id, (ushort)index, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> RemoveLightSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
-        var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveLightSourceAsync(userId, id, (ushort)index);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
-
-    internal static async Task<IResult> AddSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] EncounterSoundAddRequest request, [FromServices] IEncounterService encounterService) {
-        var userId = context.User.GetUserId();
-        var data = new EncounterSoundAddData {
+        var data = new EncounterActorAddData {
             Name = request.Name,
             Position = request.Position,
-            Range = request.Range,
-            ResourceId = request.ResourceId,
-            IsPlaying = request.IsPlaying,
-            Loop = request.Loop,
+            Rotation = request.Rotation,
+            Elevation = request.Elevation,
+            Size = request.Size,
+            DisplayId = request.DisplayId,
+            Frame = request.Frame,
+            ControlledBy = request.ControlledBy,
+            IsHidden = request.IsHidden,
+            IsLocked = request.IsLocked,
         };
-        var result = await encounterService.AddSoundSourceAsync(userId, id, data);
+        var result = await encounterService.AddActorAsync(userId, id, assetId, data);
         return result.IsSuccessful
-            ? Results.Ok(new EncounterSoundResponse {
-                Index = result.Value.Index,
-                Name = result.Value.Name,
-                Position = result.Value.Position,
-                Range = result.Value.Range,
-                ResourceId = result.Value.Resource?.Id,
-                IsPlaying = result.Value.IsPlaying,
-                Loop = result.Value.Loop,
-            })
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+            ? Results.Ok(ToActorResponse(result.Value))
+            : ToErrorResult(result);
     }
 
-    internal static async Task<IResult> UpdateSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterSoundUpdateRequest request, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
+    internal static async Task<IResult> UpdateActorHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterActorUpdateRequest request, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var data = new EncounterSoundUpdateData {
+        var data = new EncounterActorUpdateData {
             Name = request.Name,
             Position = request.Position,
-            Range = request.Range,
-            ResourceId = request.ResourceId,
-            IsPlaying = request.IsPlaying,
-            Loop = request.Loop,
+            Rotation = request.Rotation,
+            Elevation = request.Elevation,
+            Size = request.Size,
+            DisplayId = request.DisplayId,
+            Frame = request.Frame,
+            ControlledBy = request.ControlledBy,
+            IsHidden = request.IsHidden,
+            IsLocked = request.IsLocked,
         };
-        var result = await encounterService.UpdateSoundSourceAsync(userId, id, (ushort)index, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+        var result = await encounterService.UpdateActorAsync(userId, id, (ushort)index, data);
+        return ToResult(result);
     }
 
-    internal static async Task<IResult> RemoveSoundSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
-        if (index is < ushort.MinValue or > ushort.MaxValue)
-            return Results.NotFound();
+    internal static async Task<IResult> RemoveActorHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
         var userId = context.User.GetUserId();
-        var result = await encounterService.RemoveSoundSourceAsync(userId, id, (ushort)index);
+        var result = await encounterService.RemoveActorAsync(userId, id, (ushort)index);
+        return ToResult(result);
+    }
+
+    internal static async Task<IResult> GetObjectsHandler([FromRoute] Guid id, [FromServices] IEncounterService encounterService)
+        => Results.Ok(await encounterService.GetObjectsAsync(id));
+
+    internal static async Task<IResult> AddObjectHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] EncounterObjectAddRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterObjectAddData {
+            Name = request.Name,
+            Position = request.Position,
+            Rotation = request.Rotation,
+            Elevation = request.Elevation,
+            Size = request.Size,
+            DisplayId = request.DisplayId,
+            ClosedDisplayId = request.ClosedDisplayId,
+            OpenedDisplayId = request.OpenedDisplayId,
+            DestroyedDisplayId = request.DestroyedDisplayId,
+            State = request.State,
+            IsHidden = request.IsHidden,
+            IsLocked = request.IsLocked,
+        };
+        var result = await encounterService.AddObjectAsync(userId, id, assetId, data);
         return result.IsSuccessful
+            ? Results.Ok(ToObjectResponse(result.Value))
+            : ToErrorResult(result);
+    }
+
+    internal static async Task<IResult> UpdateObjectHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterObjectUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterObjectUpdateData {
+            Name = request.Name,
+            Position = request.Position,
+            Rotation = request.Rotation,
+            Elevation = request.Elevation,
+            Size = request.Size,
+            DisplayId = request.DisplayId,
+            ClosedDisplayId = request.ClosedDisplayId,
+            OpenedDisplayId = request.OpenedDisplayId,
+            DestroyedDisplayId = request.DestroyedDisplayId,
+            State = request.State,
+            IsHidden = request.IsHidden,
+            IsLocked = request.IsLocked,
+        };
+        var result = await encounterService.UpdateObjectAsync(userId, id, (ushort)index, data);
+        return ToResult(result);
+    }
+
+    internal static async Task<IResult> RemoveObjectHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var result = await encounterService.RemoveObjectAsync(userId, id, (ushort)index);
+        return ToResult(result);
+    }
+
+    internal static async Task<IResult> GetEffectsHandler([FromRoute] Guid id, [FromServices] IEncounterService encounterService)
+        => Results.Ok(await encounterService.GetEffectsAsync(id));
+
+    internal static async Task<IResult> AddEffectHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] EncounterEffectAddRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterEffectAddData {
+            Name = request.Name,
+            Position = request.Position,
+            Rotation = request.Rotation,
+            State = request.State,
+            IsHidden = request.IsHidden,
+            TriggerRegion = request.TriggerRegion,
+            DisplayId = request.DisplayId,
+            EnabledDisplayId = request.EnabledDisplayId,
+            DisabledDisplayId = request.DisabledDisplayId,
+            OnTriggerDisplayId = request.OnTriggerDisplayId,
+            TriggeredDisplayId = request.TriggeredDisplayId,
+        };
+        var result = await encounterService.AddEffectAsync(userId, id, assetId, data);
+        return result.IsSuccessful
+            ? Results.Ok(ToEffectResponse(result.Value))
+            : ToErrorResult(result);
+    }
+
+    internal static async Task<IResult> UpdateEffectHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] EncounterEffectUpdateRequest request, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var data = new EncounterEffectUpdateData {
+            Name = request.Name,
+            Position = request.Position,
+            Rotation = request.Rotation,
+            State = request.State,
+            IsHidden = request.IsHidden,
+            TriggerRegion = request.TriggerRegion,
+            DisplayId = request.DisplayId,
+            EnabledDisplayId = request.EnabledDisplayId,
+            DisabledDisplayId = request.DisabledDisplayId,
+            OnTriggerDisplayId = request.OnTriggerDisplayId,
+            TriggeredDisplayId = request.TriggeredDisplayId,
+        };
+        var result = await encounterService.UpdateEffectAsync(userId, id, (ushort)index, data);
+        return ToResult(result);
+    }
+
+    internal static async Task<IResult> RemoveEffectHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IEncounterService encounterService) {
+        var userId = context.User.GetUserId();
+        var result = await encounterService.RemoveEffectAsync(userId, id, (ushort)index);
+        return ToResult(result);
+    }
+
+    private static EncounterActorResponse ToActorResponse(EncounterActor actor)
+        => new() {
+            Index = actor.Index,
+            AssetId = actor.Asset.Id,
+            Name = actor.Name,
+            Position = actor.Position,
+            Rotation = actor.Rotation,
+            Elevation = actor.Elevation,
+            Size = actor.Size,
+            Display = actor.Display,
+            Frame = actor.Frame,
+            ControlledBy = actor.ControlledBy,
+            IsHidden = actor.IsHidden,
+            IsLocked = actor.IsLocked,
+        };
+
+    private static EncounterObjectResponse ToObjectResponse(EncounterObject prop)
+        => new() {
+            Index = prop.Index,
+            AssetId = prop.Asset.Id,
+            Name = prop.Name,
+            Position = prop.Position,
+            Rotation = prop.Rotation,
+            Elevation = prop.Elevation,
+            Size = prop.Size,
+            Display = prop.Display,
+            ClosedDisplay = prop.ClosedDisplay,
+            OpenedDisplay = prop.OpenedDisplay,
+            DestroyedDisplay = prop.DestroyedDisplay,
+            State = prop.State,
+            IsHidden = prop.IsHidden,
+            IsLocked = prop.IsLocked,
+        };
+
+    private static EncounterEffectResponse ToEffectResponse(EncounterEffect effect)
+        => new() {
+            Index = effect.Index,
+            Name = effect.Name,
+            Position = effect.Position,
+            Rotation = effect.Rotation,
+            AssetId = effect.Asset.Id,
+            State = effect.State,
+            IsHidden = effect.IsHidden,
+            TriggerRegion = effect.TriggerRegion,
+            Display = effect.Display,
+            EnabledDisplay = effect.EnabledDisplay,
+            DisabledDisplay = effect.DisabledDisplay,
+            OnTriggerDisplay = effect.OnTriggerDisplay,
+            TriggeredDisplay = effect.TriggeredDisplay,
+        };
+
+    private static IResult ToResult(Result result)
+        => result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
-    }
+
+    private static IResult ToErrorResult<T>(Result<T> result)
+        => result.Errors[0].Message == "NotFound"
+            ? Results.NotFound()
+            : result.Errors[0].Message == "NotAllowed"
+                ? Results.Forbid()
+                : Results.ValidationProblem(result.Errors.GroupedBySource());
 }

@@ -149,7 +149,7 @@ public class AdventureServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new ResourceMetadata {
+            Background = new() {
                 Id = Guid.CreateVersion7(),
                 Path = "test/background",
                 FileName = "background.png",
@@ -199,13 +199,13 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Description = "Old description",
             Style = AdventureStyle.Survival,
-            World = new World { Id = Guid.CreateVersion7() },
-            Campaign = new Campaign { Id = Guid.CreateVersion7() },
+            World = new() { Id = Guid.CreateVersion7() },
+            Campaign = new() { Id = Guid.CreateVersion7() },
             Background = new() {
                 Id = Guid.CreateVersion7(),
                 Path = "test/adventure-background.jpg",
                 ContentType = "image/jpeg",
-                Dimensions = new Size(1920, 1080),
+                Dimensions = new(1920, 1080),
             },
         };
         var request = new UpdatedAdventureData {
@@ -347,53 +347,28 @@ public class AdventureServiceTests {
             IsOneShot = false,
             IsPublished = false,
             IsPublic = false,
-            World = new World { Id = Guid.CreateVersion7() },
-            Campaign = new Campaign { Id = Guid.CreateVersion7() },
-            Background = new ResourceMetadata {
+            World = new() { Id = Guid.CreateVersion7() },
+            Campaign = new() { Id = Guid.CreateVersion7() },
+            Background = new() {
                 Id = Guid.CreateVersion7(),
                 Path = "adventures/background.jpg",
                 ContentType = "image/jpeg",
-                Dimensions = new Size(1920, 1080),
+                Dimensions = new(1920, 1080),
             },
         };
         var encounters = new[] {
             new Encounter {
                 Id = Guid.CreateVersion7(),
                 Name = "Encounter 1",
-                Grid = new(),
-                Stage = new() {
-                    ZoomLevel = 1,
-                    Panning = new(10, 20),
-                    Background = new() {
-                        Id = Guid.CreateVersion7(),
-                        Path = "path/to/image.png",
-                        Dimensions = new Size(100, 200),
-                    },
-                    Light = AmbientLight.Twilight,
-                    Weather = Weather.Clear,
-                    Elevation = 20.0f,
-                    Sound = new ResourceMetadata {
-                        Id = Guid.CreateVersion7(),
-                        Path = "path/to/sound.mp3",
-                        ContentType = "audio/mpeg",
-                        Duration = TimeSpan.FromMinutes(3),
-                    },
-                },
-                Assets = [
-                    new EncounterAsset {
-                        Name = "Asset 1",
-                        Position = new(20, 30),
-                        Size = new NamedSize { Width = 40, Height = 50 },
-                        Frame = new() {
-                            Shape = FrameShape.Square,
-                            BorderThickness = 1,
-                            BorderColor = "white",
-                            Background = "transparent",
-                        },
-                        Elevation = 1,
-                        Rotation = 45,
-                        IsLocked = false,
-                    },
+                Stage = new() { Id = Guid.CreateVersion7(), OwnerId = Guid.CreateVersion7(), Name = "Test Stage" },
+                Actors = [
+                    new() {
+                              Index = 0,
+                              Name = "Actor 1",
+                              Position = new(20, 30),
+                              Size = new() { Width = 40, Height = 50 },
+                              IsHidden = true,
+                          },
                 ],
             },
         };
@@ -483,7 +458,7 @@ public class AdventureServiceTests {
             Id = encounterId,
             Name = "Encounter",
             Description = "Encounter description",
-            Stage = new(),
+            Stage = new() { Id = Guid.CreateVersion7(), OwnerId = Guid.CreateVersion7(), Name = "Test Stage" },
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);

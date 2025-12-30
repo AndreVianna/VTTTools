@@ -9,12 +9,10 @@ public static class Cloner {
             Classification = original.Classification,
 
             Portrait = original.Portrait?.Clone(),
-            TokenSize = original.TokenSize,
+            Size = original.Size,
             Tokens = original.Tokens.ConvertAll(v => v.Clone()),
 
-            StatBlocks = original.StatBlocks.ToDictionary(keySelector: k => k.Key, elementSelector: k => k.Value),
-
-            StatEntries = original.StatEntries.ToDictionary(
+            StatBlockEntries = original.StatBlockEntries.ToDictionary(
                 keySelector: gameSystemEntry => gameSystemEntry.Key,
                 elementSelector: gameSystemEntry => gameSystemEntry.Value.ToDictionary(
                     keySelector: levelEntry => levelEntry.Key,

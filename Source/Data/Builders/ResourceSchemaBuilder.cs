@@ -3,8 +3,8 @@ using Resource = VttTools.Data.Media.Entities.Resource;
 namespace VttTools.Data.Builders;
 
 internal static class ResourceSchemaBuilder {
-    // With junction tables architecture, Role is stored in junction tables (AssetResource, etc.)
-    // not in the Resource table. Resources are pure media metadata.
+    // With junction tables architecture, Role is stored in junction tables (AssetToken, etc.)
+    // not in the Display table. Resources are pure media metadata.
     public static void ConfigureModel(ModelBuilder builder)
         => builder.Entity<Resource>(entity => {
             entity.ToTable("Resources");

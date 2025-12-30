@@ -168,7 +168,21 @@ public sealed class ListCommandTests : IDisposable {
 
     private async Task SaveEntityImageAsync(Asset entity, int variantIndex) {
         var fakeImage = new byte[1024];
-        await _imageStore.SaveImageAsync("TopDown", entity, variantIndex, fakeImage);
+        await _imageStore.SaveImageAsync("Token", entity, variantIndex, fakeImage);
+        // CreateAsset expects token_{idx}.png (no leading zero) to exist for each variant index
+        if (variantIndex > 0)
+            await CreateTokenFileAsync(entity, variantIndex, fakeImage);
+    }
+
+    private async Task CreateTokenFileAsync(Asset entity, int variantIndex, byte[] content) {
+        var assetPath = Path.Combine(_tempDir,
+            entity.Classification.Kind.ToString().ToLowerInvariant(),
+            entity.Classification.Category.ToLowerInvariant(),
+            entity.Classification.Type.ToLowerInvariant(),
+            entity.Classification.Subtype?.ToLowerInvariant() ?? string.Empty,
+            entity.Name.ToLowerInvariant().Replace(" ", "_"));
+        Directory.CreateDirectory(assetPath);
+        await File.WriteAllBytesAsync(Path.Combine(assetPath, $"token_{variantIndex}.png"), content);
     }
 
     private async Task CreateSampleHierarchyAsync() {

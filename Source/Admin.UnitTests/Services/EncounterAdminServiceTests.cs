@@ -135,7 +135,7 @@ public sealed class EncounterAdminServiceTests : IAsyncLifetime {
         var users = CreateTestUsers(1);
         _mockUserManager.Users.Returns(users.BuildMock());
 
-        var result = await _sut.UpdateEncounterAsync(encounter.Id, "New Name", "New desc", true, TestContext.Current.CancellationToken);
+        var result = await _sut.UpdateEncounterAsync(encounter.Id, "New Name", "New desc", true, true, TestContext.Current.CancellationToken);
 
         result.Name.Should().Be("New Name");
         result.IsPublished.Should().BeTrue();

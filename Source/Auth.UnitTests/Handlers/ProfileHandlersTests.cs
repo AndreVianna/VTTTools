@@ -1,15 +1,9 @@
 namespace VttTools.Auth.Handlers;
 
 public class ProfileHandlersTests {
-    private readonly IProfileService _mockProfileService;
-    private readonly IResourceService _mockResourceService;
-    private readonly HttpContext _mockHttpContext;
-
-    public ProfileHandlersTests() {
-        _mockProfileService = Substitute.For<IProfileService>();
-        _mockResourceService = Substitute.For<IResourceService>();
-        _mockHttpContext = Substitute.For<HttpContext>();
-    }
+    private readonly IProfileService _mockProfileService = Substitute.For<IProfileService>();
+    private readonly IResourceService _mockResourceService = Substitute.For<IResourceService>();
+    private readonly HttpContext _mockHttpContext = Substitute.For<HttpContext>();
 
     private void SetupAuthenticatedUser(Guid userId) {
         var claims = new List<Claim> {

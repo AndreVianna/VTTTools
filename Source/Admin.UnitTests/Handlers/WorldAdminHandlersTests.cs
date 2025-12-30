@@ -1,11 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public sealed class WorldAdminHandlersTests {
-    private readonly IWorldAdminService _mockService;
-
-    public WorldAdminHandlersTests() {
-        _mockService = Substitute.For<IWorldAdminService>();
-    }
+    private readonly IWorldAdminService _mockService = Substitute.For<IWorldAdminService>();
 
     private static LibraryContentResponse CreateLibraryContentResponse(Guid? id = null, string name = "Test", string description = "Test Description")
         => new() {
@@ -15,7 +11,6 @@ public sealed class WorldAdminHandlersTests {
             Description = description,
             IsPublished = false,
             IsPublic = false,
-            CreatedAt = DateTime.UtcNow
         };
 
     #region SearchHandler Tests

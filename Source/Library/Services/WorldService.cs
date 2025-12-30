@@ -1,11 +1,7 @@
 namespace VttTools.Library.Services;
 
-/// <summary>
-/// Service for managing World templates and their nested Campaigns.
-/// </summary>
 public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignStorage, IMediaStorage mediaStorage, ILogger<WorldService> logger)
     : IWorldService {
-    /// <inheritdoc />
     public async Task<World[]> GetWorldsAsync(CancellationToken ct = default) {
         try {
             return await worldStorage.GetAllAsync(ct);
@@ -16,7 +12,6 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         }
     }
 
-    /// <inheritdoc />
     public async Task<World[]> GetWorldsAsync(string filterDefinition, CancellationToken ct = default) {
         try {
             return await worldStorage.SearchAsync(filterDefinition, ct);
@@ -27,11 +22,9 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         }
     }
 
-    /// <inheritdoc />
     public Task<World?> GetWorldByIdAsync(Guid id, CancellationToken ct = default)
         => worldStorage.GetByIdAsync(id, ct);
 
-    /// <inheritdoc />
     public async Task<Result<World>> CreateWorldAsync(Guid userId, CreateWorldData data, CancellationToken ct = default) {
         var result = data.Validate();
         if (result.HasErrors)
@@ -50,12 +43,11 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         return world;
     }
 
-    /// <inheritdoc />
     public async Task<Result<World>> CloneWorldAsync(Guid userId, Guid templateId, CancellationToken ct = default) {
         var original = await worldStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
-        if (original.OwnerId != userId && !(original is { IsPublic: true, IsPublished: true }))
+        if (original.OwnerId != userId && original is not { IsPublic: true, IsPublished: true })
             return Result.Failure("NotAllowed");
 
         var allWorlds = await GetWorldsAsync($"AvailableTo:{userId}", ct);
@@ -73,7 +65,6 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         return clone;
     }
 
-    /// <inheritdoc />
     public async Task<Result<World>> UpdateWorldAsync(Guid userId, Guid id, UpdatedWorldData data, CancellationToken ct = default) {
         var world = await worldStorage.GetByIdAsync(id, ct);
         if (world is null)
@@ -98,7 +89,6 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         return world;
     }
 
-    /// <inheritdoc />
     public async Task<Result> DeleteWorldAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var world = await worldStorage.GetByIdAsync(id, ct);
         if (world is null)
@@ -109,13 +99,11 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         return Result.Success();
     }
 
-    /// <inheritdoc />
     public async Task<Campaign[]> GetCampaignsAsync(Guid id, CancellationToken ct = default) {
         var world = await worldStorage.GetByIdAsync(id, ct);
         return world?.Campaigns.ToArray() ?? [];
     }
 
-    /// <inheritdoc />
     public async Task<Result<Campaign>> AddNewCampaignAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var world = await worldStorage.GetByIdAsync(id, ct);
         if (world is null)
@@ -134,7 +122,6 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         return campaign;
     }
 
-    /// <inheritdoc />
     public async Task<Result<Campaign>> AddClonedCampaignAsync(Guid userId, Guid id, Guid templateId, CancellationToken ct = default) {
         var world = await worldStorage.GetByIdAsync(id, ct);
         if (world is null)
@@ -164,7 +151,6 @@ public class WorldService(IWorldStorage worldStorage, ICampaignStorage campaignS
         return clone;
     }
 
-    /// <inheritdoc />
     public async Task<Result> RemoveCampaignAsync(Guid userId, Guid id, Guid campaignId, CancellationToken ct = default) {
         var world = await worldStorage.GetByIdAsync(id, ct);
         if (world is null)

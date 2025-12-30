@@ -295,7 +295,5 @@ public sealed class AssetAdminService(
         Description = asset.Description,
         IsPublished = asset.IsPublished,
         IsPublic = asset.IsPublic,
-        CreatedAt = DateTime.UtcNow,
-        UpdatedAt = null
     };
 }

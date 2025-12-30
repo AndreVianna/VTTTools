@@ -1,13 +1,8 @@
 namespace VttTools.Auth.Handlers;
 
 public class SecurityHandlersTests {
-    private readonly ISecurityService _mockSecurityService;
-    private readonly HttpContext _mockHttpContext;
-
-    public SecurityHandlersTests() {
-        _mockSecurityService = Substitute.For<ISecurityService>();
-        _mockHttpContext = Substitute.For<HttpContext>();
-    }
+    private readonly ISecurityService _mockSecurityService = Substitute.For<ISecurityService>();
+    private readonly HttpContext _mockHttpContext = Substitute.For<HttpContext>();
 
     private void SetupAuthenticatedUser(Guid userId) {
         var claims = new List<Claim> {

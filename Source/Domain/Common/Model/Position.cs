@@ -1,15 +1,6 @@
 namespace VttTools.Common.Model;
 
-public record Position {
-    public double X { get; init; }
-
-    public double Y { get; init; }
-
-    public Position(double x, double y) {
-        X = x;
-        Y = y;
-    }
-
+public record Position(double X, double Y) {
     /// <summary>
     /// Origin position at (0, 0)
     /// </summary>

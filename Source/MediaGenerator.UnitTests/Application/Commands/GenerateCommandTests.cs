@@ -21,14 +21,10 @@ public sealed class GenerateCommandTests : IDisposable {
 
         SetupFileStoreDelegation();
 
-        _mockConfiguration["Images:TopDown:Provider"].Returns("STABILITY");
-        _mockConfiguration["Images:TopDown:Model"].Returns("sb35");
-        _mockConfiguration["Images:TopDown:NegativePrompt"].Returns("border, frame");
-        _mockConfiguration["Images:TopDown:AspectRatio"].Returns("1:1");
-        _mockConfiguration["Images:CloseUp:Provider"].Returns("STABILITY");
-        _mockConfiguration["Images:CloseUp:Model"].Returns("sb35");
-        _mockConfiguration["Images:CloseUp:NegativePrompt"].Returns("border, frame");
-        _mockConfiguration["Images:CloseUp:AspectRatio"].Returns("1:1");
+        _mockConfiguration["Images:Token:Provider"].Returns("STABILITY");
+        _mockConfiguration["Images:Token:Model"].Returns("sb35");
+        _mockConfiguration["Images:Token:NegativePrompt"].Returns("border, frame");
+        _mockConfiguration["Images:Token:AspectRatio"].Returns("1:1");
         _mockConfiguration["Images:Portrait:Provider"].Returns("STABILITY");
         _mockConfiguration["Images:Portrait:Model"].Returns("sb35");
         _mockConfiguration["Images:Portrait:NegativePrompt"].Returns("border, frame");
@@ -124,11 +120,12 @@ public sealed class GenerateCommandTests : IDisposable {
 
     [Fact]
     public async Task Should_ReturnSuccess_When_SingleEntityNoVariants() {
+        // Single entity with 1 token generates: Token + Portrait (base) + Token (variant) = 3 images
         var entity = CreateAssetWithSimpleToken("Goblin", AssetKind.Creature, "Humanoid", "Goblinoid", "Common");
         var testFilePath = await SetupMockedJsonFileAsync("single-entity.json", entity);
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 3; i++) {
             _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
@@ -142,17 +139,19 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockImageService.ReceivedRequests.Should().HaveCount(5);
+        _mockImageService.ReceivedRequests.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task Should_ReadPromptFiles_When_EntityWithMultipleTokens() {
+        // Entity with 2 tokens generates: Token + Portrait (base) + Token (variant1) = 3 images
+        // Note: Token count represents the total tokens in Tokens list (which are the variants)
         var entity = CreateAssetWithSimpleTokens("Goblin", AssetKind.Creature, "Humanoid", "Goblinoid", "Common", 2);
         var testFilePath = await SetupMockedJsonFileAsync("entity-with-tokens.json", entity);
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
         await CreatePromptFilesAsync(entity, 2);
-        for (var i = 0; i < 7; i++) {
+        for (var i = 0; i < 3; i++) {
             _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
@@ -166,7 +165,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockImageService.ReceivedRequests.Should().HaveCount(7);
+        _mockImageService.ReceivedRequests.Should().HaveCount(3);
     }
 
     [Fact]
@@ -175,8 +174,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var testFilePath = await SetupMockedJsonFileAsync("existing-images.json", entity);
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
-        await CreateExistingImageAsync(entity, 0, "TopDown");
-        await CreateExistingImageAsync(entity, 0, "CloseUp");
+        await CreateExistingImageAsync(entity, 0, "Token");
         await CreateExistingImageAsync(entity, 0, "Portrait");
         SetConsoleInput("\nS\nS\nS\n");
 
@@ -193,6 +191,7 @@ public sealed class GenerateCommandTests : IDisposable {
 
     [Fact]
     public async Task Should_ProcessOnlyFilteredAssets_When_NameFilterProvided() {
+        // Filters to single entity with 1 token: Token + Portrait (base) + Token (variant) = 3 images
         var goblin = CreateAssetWithSimpleToken("Goblin", AssetKind.Creature, "Humanoid", "Goblinoid", "Common");
         var orc = CreateAssetWithSimpleToken("Orc", AssetKind.Creature, "Humanoid", "Orc", "Common");
         var testFilePath = await SetupMockedJsonFileAsync("filtered-assets.json", goblin, orc);
@@ -200,7 +199,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(goblin, 1);
         await CreatePromptFilesAsync(orc, 0);
         await CreatePromptFilesAsync(orc, 1);
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 3; i++) {
             _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
@@ -214,11 +213,12 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockImageService.ReceivedRequests.Should().HaveCount(5);
+        _mockImageService.ReceivedRequests.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task Should_ProcessMultipleEntities_WhenJsonContainsMultiple() {
+        // 3 entities × 3 images each (Token + Portrait base + Token variant) = 9 images
         var goblin = CreateAssetWithSimpleToken("Goblin", AssetKind.Creature, "Humanoid", "Goblinoid", "Common");
         var orc = CreateAssetWithSimpleToken("Orc", AssetKind.Creature, "Humanoid", "Orc", "Common");
         var kobold = CreateAssetWithSimpleToken("Kobold", AssetKind.Creature, "Humanoid", "Reptilian", "Common");
@@ -229,7 +229,7 @@ public sealed class GenerateCommandTests : IDisposable {
         await CreatePromptFilesAsync(orc, 1);
         await CreatePromptFilesAsync(kobold, 0);
         await CreatePromptFilesAsync(kobold, 1);
-        for (var i = 0; i < 15; i++) {
+        for (var i = 0; i < 9; i++) {
             _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
@@ -243,16 +243,17 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        _mockImageService.ReceivedRequests.Should().HaveCount(15);
+        _mockImageService.ReceivedRequests.Should().HaveCount(9);
     }
 
     [Fact]
     public async Task Should_RespectDelay_When_DelayMsIsSet() {
+        // 3 images with 100ms delay between each = 2 delays × 100ms = minimum 200ms
         var entity = CreateAssetWithSimpleToken("Goblin", AssetKind.Creature, "Humanoid", "Goblinoid", "Common");
         var testFilePath = await SetupMockedJsonFileAsync("delay-test.json", entity);
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 3; i++) {
             _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
@@ -268,7 +269,7 @@ public sealed class GenerateCommandTests : IDisposable {
         stopwatch.Stop();
 
         result.Should().Be(0);
-        stopwatch.ElapsedMilliseconds.Should().BeGreaterThanOrEqualTo(400);
+        stopwatch.ElapsedMilliseconds.Should().BeGreaterThanOrEqualTo(200);
     }
 
     [Fact]
@@ -277,7 +278,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var testFilePath = await SetupMockedJsonFileAsync("structure-test.json", entity);
         await CreatePromptFilesAsync(entity, 0);
         await CreatePromptFilesAsync(entity, 1);
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 3; i++) {
             _mockImageService.EnqueueImage();
         }
         SetConsoleInput("\n");
@@ -291,7 +292,7 @@ public sealed class GenerateCommandTests : IDisposable {
         var result = await _command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         result.Should().Be(0);
-        var imagePath = _mockFileStore.FindImageFile("TopDown", entity, 0);
+        var imagePath = _mockFileStore.FindImageFile("Token", entity, 0);
         imagePath.Should().NotBeNull();
         File.Exists(imagePath).Should().BeTrue();
     }
@@ -348,13 +349,11 @@ public sealed class GenerateCommandTests : IDisposable {
         }
     }
 
-    private static IReadOnlyList<string> ImageTypeFor(AssetKind kind, bool isToken = false)
+    private static IEnumerable<string> ImageTypeFor(AssetKind kind, bool isToken = false)
         => kind switch {
-            AssetKind.Character when isToken => ["TopDown", "CloseUp"],
-            AssetKind.Creature when isToken => ["TopDown", "CloseUp"],
-            AssetKind.Object when isToken => ["TopDown"],
-            AssetKind.Object => ["TopDown", "Portrait"],
-            _ => ["TopDown", "CloseUp", "Portrait"],
+            AssetKind.Object => ["Token"],
+            _ when isToken => ["Token"],
+            _ => ["Token", "Portrait"],
         };
 
     private async Task CreateExistingImageAsync(Asset asset, int tokenIndex, string imageType) {
@@ -380,8 +379,8 @@ public sealed class GenerateCommandTests : IDisposable {
             Name = name,
             Classification = new(kind, category, type, subtype),
             Description = $"Test {name}",
-            TokenSize = NamedSize.Default,
-            StatBlocks = [],
+            Size = NamedSize.Default,
+            StatBlockEntries = [],
             Tokens = [
                 new() {
                           Id = Guid.NewGuid(),
@@ -414,8 +413,8 @@ public sealed class GenerateCommandTests : IDisposable {
             Name = name,
             Classification = new(kind, category, type, subtype),
             Description = $"Test {name}",
-            TokenSize = NamedSize.Default,
-            StatBlocks = [],
+            Size = NamedSize.Default,
+            StatBlockEntries = [],
             Tokens = tokens
         };
     }

@@ -285,8 +285,6 @@ public sealed class WorldAdminService(
             Description = world.Description,
             IsPublished = world.IsPublished,
             IsPublic = world.IsPublic,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
         };
 
     private static LibraryContentResponse MapCampaignToContentResponse(VttTools.Library.Campaigns.Model.Campaign campaign, string? ownerName)
@@ -298,7 +296,5 @@ public sealed class WorldAdminService(
             Description = campaign.Description,
             IsPublished = campaign.IsPublished,
             IsPublic = campaign.IsPublic,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
         };
 }

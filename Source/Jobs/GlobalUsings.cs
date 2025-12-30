@@ -4,26 +4,19 @@ global using System.Text.Json;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Authorization;
-global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.SignalR;
 global using Microsoft.EntityFrameworkCore;
 
-global using VttTools.Identity.Model;
-
-global using VttTools.Configuration;
-global using VttTools.Middlewares;
-
+global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
 global using VttTools.Data;
 global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;
-global using VttTools.Audit.Model;
 global using VttTools.Data.Jobs;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
-global using VttTools.Json;
 global using VttTools.HealthChecks;
 global using VttTools.Jobs.ApiContracts;
 global using VttTools.Jobs.Authorization;
@@ -35,4 +28,5 @@ global using VttTools.Jobs.Model;
 global using VttTools.Jobs.ServiceContracts;
 global using VttTools.Jobs.Services;
 global using VttTools.Jobs.Storage;
+global using VttTools.Json;
 global using VttTools.Services;

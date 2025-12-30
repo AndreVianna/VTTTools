@@ -19,7 +19,7 @@ public class SimpleMediaProcessorServiceTests {
         var result = await _service.ProcessAsync(ResourceRole.Undefined, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("Invalid resource type");
+        result.Errors[0].Message.Should().Contain("Invalid resource role");
     }
 
     [Fact]
@@ -52,20 +52,20 @@ public class SimpleMediaProcessorServiceTests {
 
         result.IsSuccessful.Should().BeTrue();
         result.Value.ContentType.Should().Be("image/png");
-        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(256);
-        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(256);
+        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(1024);
+        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(1024);
     }
 
     [Fact]
     public async Task ProcessAsync_WithOversizedImage_ResizesImage() {
-        var imageBytes = CreateValidPngImage(512, 512);
+        var imageBytes = CreateValidPngImage(2048, 2048);
         var input = new MemoryStream(imageBytes);
 
         var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(256);
-        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(256);
+        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(1024);
+        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(1024);
     }
 
     [Fact]
@@ -163,8 +163,8 @@ public class SimpleMediaProcessorServiceTests {
     }
 
     [Theory]
-    [InlineData(ResourceRole.Token, 256, 256)]
-    [InlineData(ResourceRole.Portrait, 512, 512)]
+    [InlineData(ResourceRole.Token, 1024, 1024)]
+    [InlineData(ResourceRole.Portrait, 1024, 1024)]
     [InlineData(ResourceRole.Illustration, 1024, 1024)]
     public async Task ProcessAsync_RespectsRoleConstraints(ResourceRole resourceType, int maxWidth, int maxHeight) {
         var imageBytes = CreateValidPngImage(maxWidth * 2, maxHeight * 2);

@@ -373,7 +373,7 @@ public class MaintenanceModeMiddlewareTests {
             ScheduledEndTime = scheduledEnd,
             EnabledAt = isEnabled ? DateTime.UtcNow : null,
             EnabledBy = isEnabled ? Guid.CreateVersion7() : null,
-                                                };
+        };
 
     private static DefaultHttpContext CreateHttpContext(string path, bool isAdmin = false) {
         var context = new DefaultHttpContext();

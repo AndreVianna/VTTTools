@@ -1,13 +1,8 @@
 namespace VttTools.Auth.Handlers;
 
 public class TwoFactorHandlersTests {
-    private readonly ITwoFactorService _mockTwoFactorService;
-    private readonly HttpContext _mockHttpContext;
-
-    public TwoFactorHandlersTests() {
-        _mockTwoFactorService = Substitute.For<ITwoFactorService>();
-        _mockHttpContext = Substitute.For<HttpContext>();
-    }
+    private readonly ITwoFactorService _mockTwoFactorService = Substitute.For<ITwoFactorService>();
+    private readonly HttpContext _mockHttpContext = Substitute.For<HttpContext>();
 
     private void SetupAuthenticatedUser(Guid userId) {
         var claims = new List<Claim> {

@@ -1,17 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public class DashboardHandlersTests {
-    private readonly IDashboardService _mockDashboardService;
-    private readonly IAuditLogService _mockAuditLogService;
-    private readonly ClaimsPrincipal _testUser;
-
-    public DashboardHandlersTests() {
-        _mockDashboardService = Substitute.For<IDashboardService>();
-        _mockAuditLogService = Substitute.For<IAuditLogService>();
-        _testUser = new(new ClaimsIdentity([
-                                               new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-                                           ], "Test"));
-    }
+    private readonly IDashboardService _mockDashboardService = Substitute.For<IDashboardService>();
 
     [Fact]
     public async Task GetDashboardStatsHandler_ReturnsStats_WhenServiceSucceeds() {

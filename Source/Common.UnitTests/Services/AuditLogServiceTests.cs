@@ -20,7 +20,7 @@ public class AuditLogServiceTests {
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             Timestamp = DateTime.UtcNow,
-                                    };
+        };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -42,7 +42,7 @@ public class AuditLogServiceTests {
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             Timestamp = DateTime.UtcNow,
-                                    };
+        };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -58,7 +58,7 @@ public class AuditLogServiceTests {
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             Timestamp = default,
-                                    };
+        };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -77,7 +77,7 @@ public class AuditLogServiceTests {
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             Timestamp = timestamp,
-                                    };
+        };
 
         await _service.AddAsync(auditLog, TestContext.Current.CancellationToken);
 
@@ -96,7 +96,7 @@ public class AuditLogServiceTests {
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             Timestamp = DateTime.UtcNow,
-                                    };
+        };
         _storage.GetByIdAsync(id, TestContext.Current.CancellationToken).Returns(auditLog);
 
         var result = await _service.GetByIdAsync(id, TestContext.Current.CancellationToken);

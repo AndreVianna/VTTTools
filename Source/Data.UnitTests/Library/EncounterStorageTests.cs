@@ -1,3 +1,5 @@
+using VttTools.Data.Library.Encounters;
+
 namespace VttTools.Data.Library;
 
 public class EncounterStorageTests

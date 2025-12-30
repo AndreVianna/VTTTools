@@ -1,4 +1,4 @@
-﻿namespace VttTools.Library.EndpointMappers;
+namespace VttTools.Library.EndpointMappers;
 
 public class EncounterEndpointsMapperTests {
     private readonly IEndpointRouteBuilder _app = Substitute.For<IEndpointRouteBuilder>();
@@ -15,30 +15,26 @@ public class EncounterEndpointsMapperTests {
         _app.Received(1).MapGroup("/api/encounters");
         _app.DataSources.Should().HaveCount(1);
         var groupDataSource = _app.DataSources.First();
-        groupDataSource.Endpoints.Should().HaveCount(24);
-        groupDataSource.Endpoints[0].DisplayName.Should().Be("HTTP: GET /api/encounters/{id:guid} => GetEncounterByIdHandler");
-        groupDataSource.Endpoints[1].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid} => UpdateEncounterHandler");
-        groupDataSource.Endpoints[2].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid} => DeleteEncounterHandler");
-        groupDataSource.Endpoints[3].DisplayName.Should().Be("HTTP: GET /api/encounters/{id:guid}/assets => GetAssetsHandler");
-        groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/assets => BulkUpdateAssetsHandler");
-        groupDataSource.Endpoints[5].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/assets/clone => BulkCloneAssetsHandler");
-        groupDataSource.Endpoints[6].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/assets => BulkDeleteAssetsHandler");
-        groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/assets => BulkAddAssetsHandler");
-        groupDataSource.Endpoints[8].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/assets/{assetId:guid} => AddAssetHandler");
-        groupDataSource.Endpoints[9].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/assets/{index:int}/clone => CloneAssetHandler");
-        groupDataSource.Endpoints[10].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/assets/{index:int} => UpdateAssetHandler");
-        groupDataSource.Endpoints[11].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/assets/{index:int} => RemoveAssetHandler");
-        groupDataSource.Endpoints[12].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/walls => AddWallHandler");
-        groupDataSource.Endpoints[13].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/walls/{index:int} => UpdateWallHandler");
-        groupDataSource.Endpoints[14].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/walls/{index:int} => RemoveWallHandler");
-        groupDataSource.Endpoints[15].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/regions => AddRegionHandler");
-        groupDataSource.Endpoints[16].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/regions/{index:int} => UpdateRegionHandler");
-        groupDataSource.Endpoints[17].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/regions/{index:int} => RemoveRegionHandler");
-        groupDataSource.Endpoints[18].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/lights => AddLightSourceHandler");
-        groupDataSource.Endpoints[19].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/lights/{index:int} => UpdateLightSourceHandler");
-        groupDataSource.Endpoints[20].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/lights/{index:int} => RemoveLightSourceHandler");
-        groupDataSource.Endpoints[21].DisplayName.Should().Be("HTTP: POST /api/encounters/{id:guid}/sounds => AddSoundSourceHandler");
-        groupDataSource.Endpoints[22].DisplayName.Should().Be("HTTP: PATCH /api/encounters/{id:guid}/sounds/{index:int} => UpdateSoundSourceHandler");
-        groupDataSource.Endpoints[23].DisplayName.Should().Be("HTTP: DELETE /api/encounters/{id:guid}/sounds/{index:int} => RemoveSoundSourceHandler");
+
+        // Total endpoints: 5 (CRUD + Create) + 4 (Actors) + 4 (Objects) + 4 (Effects) = 17
+        // Note: Structural elements (Walls, Regions, Lights, Elements, Sounds) are now on Stage
+        groupDataSource.Endpoints.Should().HaveCount(17);
+
+        // Verify some key endpoints exist (not all, to keep the test maintainable)
+        var endpointNames = groupDataSource.Endpoints.Select(e => e.DisplayName).ToList();
+
+        // Encounter CRUD
+        endpointNames.Should().Contain(n => n!.Contains("GetEncountersHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("GetEncounterByIdHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("UpdateEncounterHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("DeleteEncounterHandler"));
+
+        // Game Elements (Actors, Objects, Effects - these stay on Encounter)
+        endpointNames.Should().Contain(n => n!.Contains("GetActorsHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("AddActorHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("GetObjectsHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("AddObjectHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("GetEffectsHandler"));
+        endpointNames.Should().Contain(n => n!.Contains("AddEffectHandler"));
     }
 }

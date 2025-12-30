@@ -16,7 +16,7 @@ public class AiServiceClient(
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
             logger.LogError(
-                "Image generation failed with status {StatusCode}: {ErrorBody}",
+                "DefaultDisplay generation failed with status {StatusCode}: {ErrorBody}",
                 response.StatusCode,
                 errorBody);
             return Result.Failure(errorBody).WithNo<byte[]>();

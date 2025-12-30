@@ -19,8 +19,8 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         _config["Providers:OpenAI:BaseUrl"].Returns("https://api.openai.com");
         _config["Providers:OpenAI:ApiKey"].Returns("test-key");
         _config["Providers:OpenAI:gpt-image-1"].Returns("/v1/images/generations");
-        _config["Images:TopDown:AspectRatio"].Returns("1:1");
-        _config["Images:TopDown:Background"].Returns("transparent");
+        _config["Images:Token:AspectRatio"].Returns("1:1");
+        _config["Images:Token:Background"].Returns("transparent");
 
         var client = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new("https://api.openai.com")
@@ -51,7 +51,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "TopDown", "A fantasy dragon", _ct);
+        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeEmpty();
@@ -63,7 +63,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
     public async Task GenerateImageFileAsync_WithNetworkError_ReturnsErrorResponse() {
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
-        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "TopDown", "A fantasy dragon", _ct);
+        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Network error");
@@ -73,7 +73,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
     public async Task GenerateImageFileAsync_WithInvalidJson_ReturnsErrorResponse() {
         _mockHandler.SetResponse(HttpStatusCode.OK, "invalid json");
 
-        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "TopDown", "A fantasy dragon", _ct);
+        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("JSON deserialization error");
@@ -90,7 +90,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "TopDown", "A fantasy dragon", _ct);
+        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("empty response");
@@ -106,7 +106,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "TopDown", "A fantasy dragon", _ct);
+        var result = await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("empty response");
@@ -133,7 +133,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_WithAspectRatio2x3_UsesCorrectSize() {
-        _config["Images:CloseUp:AspectRatio"].Returns("2:3");
+        _config["Images:Token:AspectRatio"].Returns("2:3");
         var imageData = Convert.ToBase64String(CreateTestImageBytes());
         var responseJson = $$"""
         {
@@ -144,7 +144,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        await _generator.GenerateImageFileAsync("gpt-image-1", "CloseUp", "A knight", _ct);
+        await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A knight", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("\"size\":\"1024x1536\"");
@@ -171,7 +171,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_IncludesBackgroundInRequest() {
-        _config["Images:TopDown:Background"].Returns("transparent");
+        _config["Images:Token:Background"].Returns("transparent");
         var imageData = Convert.ToBase64String(CreateTestImageBytes());
         var responseJson = $$"""
         {
@@ -182,7 +182,7 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        await _generator.GenerateImageFileAsync("gpt-image-1", "TopDown", "A dragon", _ct);
+        await _generator.GenerateImageFileAsync("gpt-image-1", "Token", "A dragon", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("\"background\":\"transparent\"");
@@ -190,6 +190,8 @@ public sealed class OpenAiImageGeneratorTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_WithNoBackgroundConfig_UsesAuto() {
+        // Need to configure AspectRatio for Portrait to avoid early failure
+        _config["Images:Portrait:AspectRatio"].Returns("1:1");
         _config["Images:Portrait:Background"].Returns((string?)null);
         var imageData = Convert.ToBase64String(CreateTestImageBytes());
         var responseJson = $$"""

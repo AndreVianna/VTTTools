@@ -24,7 +24,7 @@ public class ResourceServiceClient(IHttpClientFactory httpClientFactory,
         if (!response.IsSuccessStatusCode) {
             var errorBody = await response.Content.ReadAsStringAsync(ct);
             logger.LogError(
-                "Resource upload failed with status {StatusCode} for file {FileName}: {ErrorBody}",
+                "Display upload failed with status {StatusCode} for file {FileName}: {ErrorBody}",
                 response.StatusCode,
                 fileName,
                 errorBody);

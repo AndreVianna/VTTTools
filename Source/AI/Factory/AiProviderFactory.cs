@@ -34,7 +34,7 @@ public sealed class AiProviderFactory(
         var name = providerName ?? GetProviderAndModel(GeneratedContentType.ImagePortrait).Provider;
         return _imageProviders.TryGetValue(name, out var provider)
             ? provider
-            : throw new InvalidOperationException($"Image provider '{name}' is not registered.");
+            : throw new InvalidOperationException($"DefaultDisplay provider '{name}' is not registered.");
     }
 
     public IAudioProvider GetAudioProvider(string? providerName = null) {

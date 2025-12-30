@@ -184,11 +184,11 @@ public class CampaignServiceTests {
             Description = "Campaign description",
             IsPublished = false,
             IsPublic = false,
-            Background = new ResourceMetadata {
+            Background = new() {
                 Id = Guid.CreateVersion7(),
                 Path = "campaigns/background.jpg",
                 ContentType = "image/jpeg",
-                Dimensions = new Size(1920, 1080),
+                Dimensions = new(1920, 1080),
             },
         };
         var allCampaigns = new Campaign[] { campaign };
@@ -314,7 +314,7 @@ public class CampaignServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            Background = new ResourceMetadata {
+            Background = new() {
                 Id = Guid.CreateVersion7(),
                 Path = "test/background",
                 FileName = "background.png",
@@ -358,7 +358,7 @@ public class CampaignServiceTests {
                 Id = Guid.CreateVersion7(),
                 Path = "test/campaign-background.jpg",
                 ContentType = "image/jpeg",
-                Dimensions = new Size(1920, 1080),
+                Dimensions = new(1920, 1080),
             },
         };
         var request = new UpdatedCampaignData {

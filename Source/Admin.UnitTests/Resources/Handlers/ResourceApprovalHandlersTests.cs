@@ -101,7 +101,8 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<BadRequest<object>>();
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(400);
     }
 
     [Fact]
@@ -160,9 +161,8 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<Ok<object>>();
-        var okResult = (Ok<object>)result;
-        okResult.Value.Should().BeEquivalentTo(new { AssetId = assetId });
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(200);
 
         await _mockService.Received(1).ApproveAsync(
             Arg.Is<ApproveResourceData>(d =>
@@ -175,8 +175,8 @@ public sealed class ResourceApprovalHandlersTests {
         await _mockAuditLogService.Received(1).AddAsync(
             Arg.Is<AuditLog>(log =>
                 log.UserId == _userId &&
-                log.Action == "Resource:Approved:ByUser" &&
-                log.EntityType == "Resource" &&
+                log.Action == "Display:Approved:ByUser" &&
+                log.EntityType == "Display" &&
                 log.EntityId == resourceId.ToString()),
             Arg.Any<CancellationToken>());
     }
@@ -206,7 +206,8 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<Ok<object>>();
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(200);
         await _mockService.Received(1).ApproveAsync(
             Arg.Is<ApproveResourceData>(d =>
                 d.AssetId == assetId &&
@@ -236,7 +237,8 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<BadRequest<object>>();
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(400);
         await _mockAuditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
     }
 
@@ -298,15 +300,14 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<Ok<object>>();
-        var okResult = (Ok<object>)result;
-        okResult.Value.Should().BeEquivalentTo(new { ResourceId = newResourceId });
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(200);
 
         await _mockAuditLogService.Received(1).AddAsync(
             Arg.Is<AuditLog>(log =>
                 log.UserId == _userId &&
-                log.Action == "Resource:Regenerated:ByUser" &&
-                log.EntityType == "Resource" &&
+                log.Action == "Display:Regenerated:ByUser" &&
+                log.EntityType == "Display" &&
                 log.EntityId == oldResourceId.ToString()),
             Arg.Any<CancellationToken>());
     }
@@ -333,7 +334,8 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<BadRequest<object>>();
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(400);
         await _mockAuditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
     }
 
@@ -396,8 +398,8 @@ public sealed class ResourceApprovalHandlersTests {
         await _mockAuditLogService.Received(1).AddAsync(
             Arg.Is<AuditLog>(log =>
                 log.UserId == _userId &&
-                log.Action == "Resource:Rejected:ByUser" &&
-                log.EntityType == "Resource" &&
+                log.Action == "Display:Rejected:ByUser" &&
+                log.EntityType == "Display" &&
                 log.EntityId == resourceId.ToString()),
             Arg.Any<CancellationToken>());
     }
@@ -410,7 +412,7 @@ public sealed class ResourceApprovalHandlersTests {
         };
 
         _mockService.RejectAsync(Arg.Any<RejectResourceData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Resource not found"));
+            .Returns(Result.Failure("Display not found"));
 
         // Act
         var result = await ResourceApprovalHandlers.RejectHandler(
@@ -421,7 +423,8 @@ public sealed class ResourceApprovalHandlersTests {
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeOfType<BadRequest<object>>();
+        result.Should().BeAssignableTo<IStatusCodeHttpResult>();
+        ((IStatusCodeHttpResult)result).StatusCode.Should().Be(400);
         await _mockAuditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
     }
 

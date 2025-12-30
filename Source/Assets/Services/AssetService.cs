@@ -40,7 +40,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             Classification = new(data.Kind, data.Category, data.Type, data.Subtype),
             Description = data.Description,
             Portrait = portrait,
-            TokenSize = data.TokenSize,
+            Size = data.TokenSize,
             Tags = data.Tags,
         };
 
@@ -52,7 +52,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         var original = await assetStorage.FindByIdAsync(userId, templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
-        if (original.OwnerId != userId && !(original.IsPublic && original.IsPublished))
+        if (original.OwnerId != userId && !(original is { IsPublic: true, IsPublished: true }))
             return Result.Failure("NotAllowed");
         var clone = original.Clone(userId);
         await assetStorage.AddAsync(clone, ct);
@@ -85,7 +85,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 data.Subtype.IsSet ? data.Subtype.Value : asset.Classification.Subtype
             ),
             Portrait = portrait,
-            TokenSize = data.TokenSize.IsSet ? data.TokenSize.Value : asset.TokenSize,
+            Size = data.TokenSize.IsSet ? data.TokenSize.Value : asset.Size,
             Tags = data.Tags.IsSet ? data.Tags.Value.Apply(asset.Tags) : asset.Tags,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : asset.IsPublished,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : asset.IsPublic,
@@ -114,12 +114,12 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
 
         var resource = await mediaStorage.FindByIdAsync(data.ResourceId, ct);
         if (resource is null)
-            return Result.Failure("Resource not found");
+            return Result.Failure("Display not found");
 
         if (asset.Tokens.Any(t => t.Id == data.ResourceId))
             return Result.Success();
 
-        asset = asset with { Tokens = [..asset.Tokens, resource] };
+        asset = asset with { Tokens = [.. asset.Tokens, resource] };
         await assetStorage.UpdateAsync(asset, ct);
         return Result.Success();
     }
@@ -131,7 +131,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (asset.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        asset = asset with { Tokens = [..asset.Tokens.Where(t => t.Id != data.ResourceId)] };
+        asset = asset with { Tokens = [.. asset.Tokens.Where(t => t.Id != data.ResourceId)] };
         await assetStorage.UpdateAsync(asset, ct);
         return Result.Success();
     }

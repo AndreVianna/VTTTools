@@ -1,11 +1,7 @@
 namespace VttTools.Library.Services;
 
-/// <summary>
-/// Service for managing Campaign templates and their nested Adventures.
-/// </summary>
 public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage adventureStorage, IMediaStorage mediaStorage, ILogger<CampaignService> logger)
     : ICampaignService {
-    /// <inheritdoc />
     public async Task<Campaign[]> GetCampaignsAsync(CancellationToken ct = default) {
         try {
             return await campaignStorage.GetAllAsync(ct);
@@ -16,7 +12,6 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         }
     }
 
-    /// <inheritdoc />
     public async Task<Campaign[]> GetCampaignsAsync(string filterDefinition, CancellationToken ct = default) {
         try {
             return await campaignStorage.GetManyAsync(filterDefinition, ct);
@@ -27,11 +22,9 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         }
     }
 
-    /// <inheritdoc />
     public Task<Campaign?> GetCampaignByIdAsync(Guid id, CancellationToken ct = default)
         => campaignStorage.GetByIdAsync(id, ct);
 
-    /// <inheritdoc />
     public async Task<Result<Campaign>> CreateCampaignAsync(Guid userId, CreateCampaignData data, CancellationToken ct = default) {
         var result = data.Validate();
         if (result.HasErrors)
@@ -53,12 +46,11 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         return campaign;
     }
 
-    /// <inheritdoc />
     public async Task<Result<Campaign>> CloneCampaignAsync(Guid userId, Guid templateId, CancellationToken ct = default) {
         var original = await campaignStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
-        if (original.OwnerId != userId && !(original is { IsPublic: true, IsPublished: true }))
+        if (original.OwnerId != userId && original is not { IsPublic: true, IsPublished: true })
             return Result.Failure("NotAllowed");
 
         var allCampaigns = await GetCampaignsAsync($"AvailableTo:{userId}", ct);
@@ -76,7 +68,6 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         return clone;
     }
 
-    /// <inheritdoc />
     public async Task<Result<Campaign>> UpdateCampaignAsync(Guid userId, Guid id, UpdatedCampaignData data, CancellationToken ct = default) {
         var campaign = await campaignStorage.GetByIdAsync(id, ct);
         if (campaign is null)
@@ -106,7 +97,6 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         return campaign;
     }
 
-    /// <inheritdoc />
     public async Task<Result> DeleteCampaignAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var campaign = await campaignStorage.GetByIdAsync(id, ct);
         if (campaign is null)
@@ -117,13 +107,11 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         return Result.Success();
     }
 
-    /// <inheritdoc />
     public async Task<Adventure[]> GetAdventuresAsync(Guid id, CancellationToken ct = default) {
         var campaign = await campaignStorage.GetByIdAsync(id, ct);
         return campaign?.Adventures.ToArray() ?? [];
     }
 
-    /// <inheritdoc />
     public async Task<Result<Adventure>> AddNewAdventureAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var campaign = await campaignStorage.GetByIdAsync(id, ct);
         if (campaign is null)
@@ -142,7 +130,6 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         return adventure;
     }
 
-    /// <inheritdoc />
     public async Task<Result<Adventure>> AddClonedAdventureAsync(Guid userId, Guid id, Guid templateId, CancellationToken ct = default) {
         var campaign = await campaignStorage.GetByIdAsync(id, ct);
         if (campaign is null)
@@ -172,7 +159,6 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         return clone;
     }
 
-    /// <inheritdoc />
     public async Task<Result> RemoveAdventureAsync(Guid userId, Guid id, Guid adventureId, CancellationToken ct = default) {
         var campaign = await campaignStorage.GetByIdAsync(id, ct);
         if (campaign is null)

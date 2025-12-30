@@ -11,7 +11,7 @@ public static class GridConverter {
             GridType.HexH => pixel,
             GridType.HexV => pixel,
             GridType.Isometric => pixel,
-            _ => pixel
+            _ => pixel,
         };
 
     public static Position PositionToPixel(Position gridPosition, Grid grid)
@@ -24,7 +24,7 @@ public static class GridConverter {
             GridType.HexH => gridPosition,
             GridType.HexV => gridPosition,
             GridType.Isometric => gridPosition,
-            _ => gridPosition
+            _ => gridPosition,
         };
 
     public static Point PointToGrid(Point pixel, Grid grid)
@@ -37,7 +37,33 @@ public static class GridConverter {
             GridType.HexH => pixel,
             GridType.HexV => pixel,
             GridType.Isometric => pixel,
-            _ => pixel
+            _ => pixel,
+        };
+
+    public static Point VertexToGrid(StageRegionVertex pixel, Grid grid)
+        => grid.Type switch {
+            GridType.Square => new(
+                                   (pixel.X - grid.Offset.Left) / grid.CellSize.Width,
+                                   (pixel.Y - grid.Offset.Top) / grid.CellSize.Height
+                                  ),
+            GridType.NoGrid => new(pixel.X, pixel.Y),
+            GridType.HexH => new(pixel.X, pixel.Y),
+            GridType.HexV => new(pixel.X, pixel.Y),
+            GridType.Isometric => new(pixel.X, pixel.Y),
+            _ => new(pixel.X, pixel.Y),
+        };
+
+    public static StageRegionVertex PointToVertex(Point gridPoint, Grid grid)
+        => grid.Type switch {
+            GridType.Square => new(
+                                   (gridPoint.X * grid.CellSize.Width) + grid.Offset.Left,
+                                   (gridPoint.Y * grid.CellSize.Height) + grid.Offset.Top
+                                  ),
+            GridType.NoGrid => new(gridPoint.X, gridPoint.Y),
+            GridType.HexH => new(gridPoint.X, gridPoint.Y),
+            GridType.HexV => new(gridPoint.X, gridPoint.Y),
+            GridType.Isometric => new(gridPoint.X, gridPoint.Y),
+            _ => new(gridPoint.X, gridPoint.Y),
         };
 
     public static Point PointToPixel(Point gridPoint, Grid grid)
@@ -50,7 +76,7 @@ public static class GridConverter {
             GridType.HexH => gridPoint,
             GridType.HexV => gridPoint,
             GridType.Isometric => gridPoint,
-            _ => gridPoint
+            _ => gridPoint,
         };
 
     public static Pole PoleToGrid(Pole pixel, Grid grid)
@@ -64,7 +90,7 @@ public static class GridConverter {
             GridType.HexH => pixel,
             GridType.HexV => pixel,
             GridType.Isometric => pixel,
-            _ => pixel
+            _ => pixel,
         };
 
     public static Pole PoleToPixel(Pole gridPole, Grid grid)
@@ -78,6 +104,6 @@ public static class GridConverter {
             GridType.HexH => gridPole,
             GridType.HexV => gridPole,
             GridType.Isometric => gridPole,
-            _ => gridPole
+            _ => gridPole,
         };
 }

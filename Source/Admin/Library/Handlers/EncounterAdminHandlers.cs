@@ -51,7 +51,7 @@ public static class EncounterAdminHandlers {
         IEncounterAdminService service,
         CancellationToken ct) {
         try {
-            var response = await service.UpdateEncounterAsync(id, request.Name, request.Description, request.IsPublished, ct);
+            var response = await service.UpdateEncounterAsync(id, request.Name, request.Description, request.IsPublished, request.IsPublic, ct);
             return Results.Ok(response);
         }
         catch (KeyNotFoundException) {

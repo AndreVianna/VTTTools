@@ -59,7 +59,7 @@ public class UpdateEncounterSteps {
             Description = "Original Description",
             OwnerId = _userId,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
-            Stage = new Stage { ZoomLevel = 1.0, Panning = new Position(0, 0) },
+            Settings = new StageSettings { ZoomLevel = 1.0, Panning = new Position(0, 0) },
             Assets = []
         };
 
@@ -111,7 +111,7 @@ public class UpdateEncounterSteps {
     public void GivenMyEncounterHasConfiguredStageAndGrid() {
         if (_existingEncounter is not null) {
             _existingEncounter = _existingEncounter with {
-                Stage = new Stage {
+                Settings = new StageSettings {
                     ZoomLevel = 1.5,
                     Panning = new Position(100, 100),
                     Background = new Resource {
@@ -157,7 +157,7 @@ public class UpdateEncounterSteps {
             Description = "Not mine",
             OwnerId = otherUserId, // Different owner
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
-            Stage = new Stage()
+            Settings = new StageSettings()
         };
 
         _encounterStorage.GetByIdAsync(_encounterId, Arg.Any<CancellationToken>())

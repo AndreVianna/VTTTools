@@ -58,7 +58,7 @@ public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
     private static ConfigurationSource CreateJsonSource(IConfigurationProvider provider) {
         var path = "appsettings.json";
 
-        if (provider is JsonConfigurationProvider json && json.Source?.Path is not null) {
+        if (provider is JsonConfigurationProvider { Source.Path: not null } json) {
             path = json.Source.Path;
         }
 

@@ -1,5 +1,3 @@
-using VttTools.Utilities;
-
 namespace VttTools.Library;
 
 [ExcludeFromCodeCoverage]
@@ -40,6 +38,7 @@ internal static class Program {
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IAdventureService, AdventureService>();
         builder.Services.AddScoped<IEncounterService, EncounterService>();
+        builder.Services.AddScoped<IStageService, StageService>();
         builder.Services.AddScoped<IWorldService, WorldService>();
         builder.Services.AddScoped<ICampaignService, CampaignService>();
         builder.Services.AddScoped<IContentQueryService, ContentQueryService>();
@@ -60,6 +59,7 @@ internal static class Program {
         app.MapCampaignEndpoints();
         app.MapAdventureEndpoints();
         app.MapEncounterEndpoints();
+        app.MapStageEndpoints();
         app.MapContentEndpoints();
         app.MapConfigurationEndpoints();
     }

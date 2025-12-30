@@ -1,20 +1,14 @@
 namespace VttTools.Library.Handlers;
 
 public class CampaignHandlersTests {
-    private readonly ICampaignService _campaignService;
+    private readonly ICampaignService _campaignService = Substitute.For<ICampaignService>();
     private readonly Guid _userId = Guid.CreateVersion7();
-    private readonly CancellationToken _ct;
-
-    public CampaignHandlersTests() {
-        _campaignService = Substitute.For<ICampaignService>();
-        _ct = TestContext.Current.CancellationToken;
-    }
 
     private static HttpContext CreateHttpContext(Guid userId) {
         var context = new DefaultHttpContext();
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
         var identity = new ClaimsIdentity(claims, "TestAuthType");
-        context.User = new ClaimsPrincipal(identity);
+        context.User = new(identity);
         return context;
     }
 

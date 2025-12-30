@@ -45,9 +45,6 @@ public sealed class ResourceApprovalServiceTests {
             AssetId = null,
         };
 
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
         _mockAssetsClient.CreateAssetAsync(Arg.Any<CreateAssetRequest>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success(assetId));
 
@@ -57,11 +54,6 @@ public sealed class ResourceApprovalServiceTests {
         // Assert
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().Be(assetId);
-
-        await _mockMediaClient.Received(1).UpdateResourceAsync(
-            resourceId,
-            Arg.Any<UpdateResourceRequest>(),
-            Arg.Any<CancellationToken>());
 
         await _mockAssetsClient.Received(1).CreateAssetAsync(
             Arg.Is<CreateAssetRequest>(r =>
@@ -90,9 +82,6 @@ public sealed class ResourceApprovalServiceTests {
             AssetId = null,
         };
 
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
         _mockAssetsClient.CreateAssetAsync(Arg.Any<CreateAssetRequest>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success(assetId));
 
@@ -111,7 +100,7 @@ public sealed class ResourceApprovalServiceTests {
     }
 
     [Fact]
-    public async Task ApproveAsync_WhenUpdateResourceFails_ReturnsFailure() {
+    public async Task ApproveAsync_WhenCreateAssetFails_ReturnsFailure() {
         // Arrange
         var resourceId = Guid.CreateVersion7();
         var data = new ApproveResourceData {
@@ -119,18 +108,18 @@ public sealed class ResourceApprovalServiceTests {
             AssetName = "Dragon",
             GenerationType = "Portrait",
             Kind = AssetKind.Character,
+            AssetId = null,
         };
 
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Update failed"));
+        _mockAssetsClient.CreateAssetAsync(Arg.Any<CreateAssetRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Create failed").WithNo<Guid>());
 
         // Act
         var result = await _service.ApproveAsync(data, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Update failed");
-        await _mockAssetsClient.DidNotReceive().CreateAssetAsync(Arg.Any<CreateAssetRequest>(), Arg.Any<CancellationToken>());
+        result.Errors.Should().Contain("Create failed");
     }
 
     #endregion
@@ -149,9 +138,6 @@ public sealed class ResourceApprovalServiceTests {
             Kind = AssetKind.Character,
             AssetId = existingAssetId,
         };
-
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
 
         _mockAssetsClient.UpdateAssetAsync(existingAssetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -185,9 +171,6 @@ public sealed class ResourceApprovalServiceTests {
             AssetId = existingAssetId,
         };
 
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
         _mockAssetsClient.AddTokenAsync(existingAssetId, Arg.Any<AddTokenRequest>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
@@ -220,9 +203,6 @@ public sealed class ResourceApprovalServiceTests {
             AssetId = existingAssetId,
         };
 
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
         _mockAssetsClient.UpdateAssetAsync(existingAssetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Asset update failed"));
 
@@ -246,9 +226,6 @@ public sealed class ResourceApprovalServiceTests {
             Kind = AssetKind.Character,
             AssetId = existingAssetId,
         };
-
-        _mockMediaClient.UpdateResourceAsync(resourceId, Arg.Any<UpdateResourceRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
 
         _mockAssetsClient.AddTokenAsync(existingAssetId, Arg.Any<AddTokenRequest>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Add token failed"));
@@ -547,14 +524,14 @@ public sealed class ResourceApprovalServiceTests {
         };
 
         _mockMediaClient.DeleteResourceAsync(resourceId, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Resource not found"));
+            .Returns(Result.Failure("Display not found"));
 
         // Act
         var result = await _service.RejectAsync(data, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Resource not found");
+        result.Errors.Should().Contain("Display not found");
     }
 
     #endregion

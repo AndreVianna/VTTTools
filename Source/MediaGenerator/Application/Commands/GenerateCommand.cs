@@ -196,10 +196,8 @@ public sealed class GenerateCommand(IImageGenerationService imageGenerationServi
 
     private static IReadOnlyList<string> ImageTypeFor(AssetKind kind, bool isToken = false)
         => kind switch {
-            AssetKind.Character when isToken => ["TopDown", "CloseUp"],
-            AssetKind.Creature when isToken => ["TopDown", "CloseUp"],
-            AssetKind.Object when isToken => ["TopDown"],
-            AssetKind.Object => ["TopDown", "Portrait"],
-            _ => ["TopDown", "CloseUp", "Portrait"],
+            AssetKind.Object => ["Token"],
+            _ when isToken => ["Token"],
+            _ => ["Token", "Portrait"],
         };
 }

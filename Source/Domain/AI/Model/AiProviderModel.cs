@@ -16,7 +16,7 @@ public record AiProviderModel {
     public Guid ProviderId { get; init; }
 
     /// <summary>
-    /// Gets the category of content this model generates (e.g., Image, Audio, Text).
+    /// Gets the category of content this model generates (e.g., DefaultDisplay, Audio, Text).
     /// </summary>
     public GeneratedContentType Category { get; init; }
 

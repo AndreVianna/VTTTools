@@ -13,8 +13,8 @@ public class AssetTests {
         asset.Description.Should().BeEmpty();
         asset.Portrait.Should().BeNull();
         asset.Tokens.Should().BeEmpty();
-        asset.TokenSize.Width.Should().Be(1);
-        asset.TokenSize.Height.Should().Be(1);
+        asset.Size.Width.Should().Be(1);
+        asset.Size.Height.Should().Be(1);
         asset.IsPublished.Should().BeFalse();
         asset.IsPublic.Should().BeFalse();
     }
@@ -56,7 +56,7 @@ public class AssetTests {
             Description = description,
             Portrait = portrait,
             Tokens = [token],
-            TokenSize = new NamedSize { Width = 2, Height = 1 },
+            Size = new NamedSize { Width = 2, Height = 1 },
             IsPublished = true,
             IsPublic = false
         };
@@ -73,8 +73,8 @@ public class AssetTests {
         asset.Portrait.Should().BeEquivalentTo(portrait);
         asset.Tokens.Should().HaveCount(1);
         asset.Tokens[0].Should().BeEquivalentTo(token);
-        asset.TokenSize.Width.Should().Be(2);
-        asset.TokenSize.Height.Should().Be(1);
+        asset.Size.Width.Should().Be(2);
+        asset.Size.Height.Should().Be(1);
         asset.IsPublished.Should().BeTrue();
         asset.IsPublic.Should().BeFalse();
     }

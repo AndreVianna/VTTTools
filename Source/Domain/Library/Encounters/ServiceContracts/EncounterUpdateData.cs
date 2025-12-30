@@ -3,37 +3,8 @@ namespace VttTools.Library.Encounters.ServiceContracts;
 public record EncounterUpdateData
     : Data {
     public Optional<Guid> AdventureId { get; init; }
-    public Optional<string> Name { get; init; }
-    public Optional<string> Description { get; init; }
+    public Optional<string?> Name { get; init; }
+    public Optional<string?> Description { get; init; }
     public Optional<bool> IsPublished { get; init; }
-    public Optional<StageUpdate> Stage { get; init; }
-    public Optional<GridUpdate> Grid { get; init; }
-    public Optional<LabelVisibility> DefaultDisplayName { get; init; } = Optional<LabelVisibility>.None;
-    public Optional<LabelPosition> DefaultLabelPosition { get; init; } = Optional<LabelPosition>.None;
-
-    public record StageUpdate {
-        public Optional<Guid?> BackgroundId { get; init; }
-        public Optional<float> ZoomLevel { get; init; }
-        public Optional<Point> Panning { get; init; }
-        public Optional<AmbientLight> Light { get; init; }
-        public Optional<Weather> Weather { get; init; }
-        public Optional<float> Elevation { get; init; }
-        public Optional<Guid?> SoundId { get; init; }
-    }
-
-    public record GridUpdate {
-        public Optional<GridType> Type { get; init; }
-        public Optional<CellSize> CellSize { get; init; }
-        public Optional<Offset> Offset { get; init; }
-        public Optional<double> Scale { get; init; }
-    }
-
-    public override Result Validate(IMap? context = null) {
-        var result = base.Validate(context);
-        if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))
-            result += new Error("When set, the encounter name cannot be null or empty.", nameof(Name));
-        if (Description.IsSet && string.IsNullOrWhiteSpace(Description.Value))
-            result += new Error("When set, the encounter description cannot be null or empty.", nameof(Description));
-        return result;
-    }
+    public Optional<bool> IsPublic { get; init; }
 }

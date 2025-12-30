@@ -1,11 +1,13 @@
-using Adventure = VttTools.Data.Library.Entities.Adventure;
+using Adventure = VttTools.Data.Library.Adventures.Entities.Adventure;
 using AiModel = VttTools.Data.AI.Entities.AiModel;
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using AssetStatEntry = VttTools.Data.Assets.Entities.AssetStatEntry;
 using AuditLog = VttTools.Data.Audit.Entities.AuditLog;
-using Campaign = VttTools.Data.Library.Entities.Campaign;
-using Encounter = VttTools.Data.Library.Entities.Encounter;
-using EncounterRegionVertex = VttTools.Data.Library.Entities.EncounterRegionVertex;
+using Campaign = VttTools.Data.Library.Campaigns.Entities.Campaign;
+using Encounter = VttTools.Data.Library.Encounters.Entities.Encounter;
+using EncounterActor = VttTools.Data.Library.Encounters.Entities.EncounterActor;
+using EncounterEffect = VttTools.Data.Library.Encounters.Entities.EncounterEffect;
+using EncounterObject = VttTools.Data.Library.Encounters.Entities.EncounterObject;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using GameSystem = VttTools.Data.Common.Entities.GameSystem;
 using Job = VttTools.Data.Jobs.Entities.Job;
@@ -14,8 +16,18 @@ using PromptTemplate = VttTools.Data.AI.Entities.PromptTemplate;
 using Provider = VttTools.Data.AI.Entities.Provider;
 using Resource = VttTools.Data.Media.Entities.Resource;
 using Schedule = VttTools.Data.Game.Entities.Schedule;
+using Shape = VttTools.Data.Common.Entities.Shape;
+using ShapeVertex = VttTools.Data.Common.Entities.ShapeVertex;
+using Stage = VttTools.Data.Library.Stages.Entities.Stage;
+using StageElement = VttTools.Data.Library.Stages.Entities.StageElement;
+using StageLight = VttTools.Data.Library.Stages.Entities.StageLight;
+using StageRegion = VttTools.Data.Library.Stages.Entities.StageRegion;
+using StageRegionVertex = VttTools.Data.Library.Stages.Entities.StageRegionVertex;
+using StageSound = VttTools.Data.Library.Stages.Entities.StageSound;
+using StageWall = VttTools.Data.Library.Stages.Entities.StageWall;
+using StageWallSegment = VttTools.Data.Library.Stages.Entities.StageWallSegment;
 using StatBlock = VttTools.Data.Game.Entities.StatBlock;
-using World = VttTools.Data.Library.Entities.World;
+using World = VttTools.Data.Library.Worlds.Entities.World;
 
 namespace VttTools.Data;
 
@@ -28,7 +40,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
     public DbSet<Encounter> Encounters { get; set; }
-    public DbSet<EncounterRegionVertex> EncounterRegionVertices { get; set; }
+    public DbSet<EncounterActor> EncounterActors { get; set; }
+    public DbSet<EncounterObject> EncounterProps { get; set; }
+    public DbSet<EncounterEffect> EncounterEffects { get; set; }
+    public DbSet<Shape> Shapes { get; set; }
+    public DbSet<ShapeVertex> ShapeVertices { get; set; }
+    public DbSet<Stage> Stages { get; set; }
+    public DbSet<StageWall> StageWalls { get; set; }
+    public DbSet<StageWallSegment> StageWallSegments { get; set; }
+    public DbSet<StageRegion> StageRegions { get; set; }
+    public DbSet<StageRegionVertex> StageRegionVertices { get; set; }
+    public DbSet<StageLight> StageLights { get; set; }
+    public DbSet<StageElement> StageElements { get; set; }
+    public DbSet<StageSound> StageSounds { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
     public DbSet<GameSystem> GameSystems { get; set; }
     public DbSet<Schedule> Schedule { get; set; }
@@ -53,6 +77,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         CampaignSchemaBuilder.ConfigureModel(builder);
         AdventureSchemaBuilder.ConfigureModel(builder);
         EncounterSchemaBuilder.ConfigureModel(builder);
+        StageSchemaBuilder.ConfigureModel(builder);
         ScheduleSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
         GameSystemSchemaBuilder.ConfigureModel(builder);

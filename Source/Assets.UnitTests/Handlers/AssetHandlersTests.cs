@@ -1,14 +1,8 @@
 namespace VttTools.Assets.Handlers;
 
 public class AssetHandlersTests {
-    private readonly IAssetService _assetService;
+    private readonly IAssetService _assetService = Substitute.For<IAssetService>();
     private readonly Guid _userId = Guid.CreateVersion7();
-    private readonly CancellationToken _ct;
-
-    public AssetHandlersTests() {
-        _assetService = Substitute.For<IAssetService>();
-        _ct = TestContext.Current.CancellationToken;
-    }
 
     private HttpContext CreateHttpContext() {
         var context = new DefaultHttpContext();

@@ -19,8 +19,10 @@ public class HostApplicationBuilderExtensionsTests {
 
         options.SerializerOptions.PropertyNameCaseInsensitive.Should().BeTrue();
         options.SerializerOptions.PropertyNamingPolicy.Should().Be(JsonNamingPolicy.CamelCase);
-        options.SerializerOptions.Converters.Should().HaveCount(1);
+        // Now includes JsonStringEnumConverter and OptionalConverterFactory
+        options.SerializerOptions.Converters.Should().HaveCount(2);
         options.SerializerOptions.Converters.Should().Contain(x => x is OptionalConverterFactory);
+        options.SerializerOptions.Converters.Should().Contain(x => x is JsonStringEnumConverter);
     }
 
     [Fact]

@@ -31,14 +31,14 @@ public class HierarchicalFileStoreTests {
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             Assert.True(File.Exists(filePath));
             Assert.Contains("creature", filePath.ToLowerInvariant());
             Assert.Contains("humanoid", filePath.ToLowerInvariant());
             Assert.Contains("goblinoid", filePath.ToLowerInvariant());
             Assert.Contains("goblin", filePath.ToLowerInvariant());
-            Assert.Contains("topdown.png", filePath.ToLowerInvariant());
+            Assert.Contains("token.png", filePath.ToLowerInvariant());
         }
         finally {
             if (Directory.Exists(tempDir)) {
@@ -60,7 +60,7 @@ public class HierarchicalFileStoreTests {
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             Assert.Contains("zombie", filePath.ToLowerInvariant());
             Assert.Contains("undead", filePath.ToLowerInvariant());
@@ -85,7 +85,7 @@ public class HierarchicalFileStoreTests {
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             filePath.Should().NotBeNull();
             filePath.Should().Contain(tempDir);
@@ -113,7 +113,7 @@ public class HierarchicalFileStoreTests {
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var filePath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var filePath = await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             filePath.Should().NotBeNull();
             filePath.Should().Contain(tempDir);
@@ -141,9 +141,9 @@ public class HierarchicalFileStoreTests {
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-            var baseVariantPath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
-            var variant1Path = await store.SaveImageAsync("TopDown", entity, 1, imageData, TestContext.Current.CancellationToken);
-            var variant2Path = await store.SaveImageAsync("TopDown", entity, 2, imageData, TestContext.Current.CancellationToken);
+            var baseVariantPath = await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var variant1Path = await store.SaveImageAsync("Token", entity, 1, imageData, TestContext.Current.CancellationToken);
+            var variant2Path = await store.SaveImageAsync("Token", entity, 2, imageData, TestContext.Current.CancellationToken);
 
             File.Exists(baseVariantPath).Should().BeTrue();
             File.Exists(variant1Path).Should().BeTrue();
@@ -153,9 +153,9 @@ public class HierarchicalFileStoreTests {
             baseVariantPath.Should().NotBe(variant2Path);
             variant1Path.Should().NotBe(variant2Path);
 
-            baseVariantPath.Should().EndWith("topdown.png");
-            variant1Path.Should().EndWith("topdown_01.png");
-            variant2Path.Should().EndWith("topdown_02.png");
+            baseVariantPath.Should().EndWith("token.png");
+            variant1Path.Should().EndWith("token_01.png");
+            variant2Path.Should().EndWith("token_02.png");
         }
         finally {
             if (Directory.Exists(tempDir)) {
@@ -174,7 +174,7 @@ public class HierarchicalFileStoreTests {
         };
         var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
-        await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+        await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class HierarchicalFileStoreTests {
         var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
 
         var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            store.SaveImageAsync("TopDown", null!, 0, imageData, TestContext.Current.CancellationToken));
+            store.SaveImageAsync("Token", null!, 0, imageData, TestContext.Current.CancellationToken));
 
         Assert.Equal("asset", exception.ParamName);
     }
@@ -248,7 +248,7 @@ public class HierarchicalFileStoreTests {
         };
 
         var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            store.SaveImageAsync("TopDown", entity, 0, null!, TestContext.Current.CancellationToken));
+            store.SaveImageAsync("Token", entity, 0, null!, TestContext.Current.CancellationToken));
 
         Assert.Equal("content", exception.ParamName);
     }
@@ -282,7 +282,7 @@ public class HierarchicalFileStoreTests {
             };
             const string prompt = "A goblin warrior from top-down view";
 
-            var filePath = await store.SavePromptAsync("TopDown", entity, 0, prompt, TestContext.Current.CancellationToken);
+            var filePath = await store.SavePromptAsync("Token", entity, 0, prompt, TestContext.Current.CancellationToken);
 
             Assert.True(File.Exists(filePath));
             Assert.Contains(".md", filePath);
@@ -308,9 +308,9 @@ public class HierarchicalFileStoreTests {
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
-            var savedPath = await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            var savedPath = await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
 
-            var foundPath = store.FindImageFile("TopDown", entity, 0);
+            var foundPath = store.FindImageFile("Token", entity, 0);
 
             Assert.NotNull(foundPath);
             Assert.Equal(savedPath, foundPath);
@@ -334,7 +334,7 @@ public class HierarchicalFileStoreTests {
                 Description = "Test"
             };
 
-            var foundPath = store.FindImageFile("TopDown", entity, 0);
+            var foundPath = store.FindImageFile("Token", entity, 0);
 
             Assert.Null(foundPath);
         }
@@ -375,7 +375,7 @@ public class HierarchicalFileStoreTests {
                 Description = "Test"
             };
             var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
-            await store.SaveImageAsync("TopDown", entity, 0, imageData, TestContext.Current.CancellationToken);
+            await store.SaveImageAsync("Token", entity, 0, imageData, TestContext.Current.CancellationToken);
 
             var assets = store.GetAssets();
 

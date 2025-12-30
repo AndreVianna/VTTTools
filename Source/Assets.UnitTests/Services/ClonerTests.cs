@@ -114,42 +114,18 @@ public class ClonerTests {
     }
 
     [Fact]
-    public void Clone_WithStatBlocks_ClonesAllStatBlocks() {
-        var statBlock1 = new Map<StatBlockValue> { { "Name", "DnD 5e Goblin" }, { "HP", 7 } };
-        var statBlock2 = new Map<StatBlockValue> { { "Name", "Pathfinder Goblin" }, { "HP", 6 } };
-        var original = new Asset {
-            Id = Guid.CreateVersion7(),
-            Name = "Asset with StatBlocks",
-            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            OwnerId = Guid.CreateVersion7(),
-            StatBlocks = new() {
-                                   { 0, statBlock1 },
-                                   { 1, statBlock2 }
-                               }
-        };
-
-        var clone = original.Clone();
-
-        clone.StatBlocks.Should().HaveCount(2);
-        clone.StatBlocks.Should().ContainKey(0);
-        clone.StatBlocks.Should().ContainKey(1);
-        clone.StatBlocks[0].Should().BeEquivalentTo(statBlock1);
-        clone.StatBlocks[1].Should().BeEquivalentTo(statBlock2);
-    }
-
-    [Fact]
     public void Clone_WithTokenSize_ClonesTokenSize() {
         var original = new Asset {
             Id = Guid.CreateVersion7(),
-            Name = "Asset with TokenSize",
+            Name = "Asset with Size",
             Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = Guid.CreateVersion7(),
-            TokenSize = new(SizeName.Large)
+            Size = new(SizeName.Large)
         };
 
         var clone = original.Clone();
 
-        clone.TokenSize.Should().Be(original.TokenSize);
+        clone.Size.Should().Be(original.Size);
     }
 
     [Fact]
@@ -238,22 +214,22 @@ public class ClonerTests {
         };
         var original = new Asset {
             Id = assetId,
-            Name = "Asset with StatEntries",
+            Name = "Asset with StatBlockEntries",
             Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
             OwnerId = Guid.CreateVersion7(),
-            StatEntries = statEntries,
+            StatBlockEntries = statEntries,
         };
 
         var clone = original.Clone();
 
-        clone.StatEntries.Should().HaveCount(1);
-        clone.StatEntries.Should().ContainKey(gameSystemId);
-        clone.StatEntries[gameSystemId].Should().HaveCount(1);
-        clone.StatEntries[gameSystemId].Should().ContainKey(1);
-        clone.StatEntries[gameSystemId][1].Should().HaveCount(1);
-        clone.StatEntries[gameSystemId][1].Should().ContainKey("STR");
+        clone.StatBlockEntries.Should().HaveCount(1);
+        clone.StatBlockEntries.Should().ContainKey(gameSystemId);
+        clone.StatBlockEntries[gameSystemId].Should().HaveCount(1);
+        clone.StatBlockEntries[gameSystemId].Should().ContainKey(1);
+        clone.StatBlockEntries[gameSystemId][1].Should().HaveCount(1);
+        clone.StatBlockEntries[gameSystemId][1].Should().ContainKey("STR");
 
-        var clonedEntry = clone.StatEntries[gameSystemId][1]["STR"];
+        var clonedEntry = clone.StatBlockEntries[gameSystemId][1]["STR"];
         clonedEntry.AssetId.Should().Be(assetId);
         clonedEntry.GameSystemId.Should().Be(gameSystemId);
         clonedEntry.GameSystemCode.Should().Be("dnd5e");

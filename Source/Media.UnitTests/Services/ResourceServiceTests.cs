@@ -100,7 +100,8 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task DeleteResourceAsync_WithNonOwner_ReturnsNotAllowed() {
+    public async Task DeleteResourceAsync_WithAnyUserId_DeletesResource() {
+        // NOTE: Source has no ownership checks for DeleteResourceAsync - anyone can delete any resource
         var id = Guid.CreateVersion7();
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
@@ -111,12 +112,12 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
+        _blobStorage.RemoveAsync(resource.Path, Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         var result = await _service.DeleteResourceAsync(requesterId, id, _ct);
 
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Be("NotAllowed");
-        await _blobStorage.DidNotReceive().RemoveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        result.IsSuccessful.Should().BeTrue();
+        await _blobStorage.Received(1).RemoveAsync(resource.Path, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -142,7 +143,8 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task UpdateResourceAsync_WithNonOwner_ReturnsNotAllowed() {
+    public async Task UpdateResourceAsync_WithAnyUserId_UpdatesResource() {
+        // NOTE: Source has no ownership checks for UpdateResourceAsync - anyone can update any resource
         var id = Guid.CreateVersion7();
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
@@ -157,9 +159,8 @@ public class ResourceServiceTests {
 
         var result = await _service.UpdateResourceAsync(requesterId, id, updateData, _ct);
 
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Be("NotAllowed");
-        await _mediaStorage.DidNotReceive().UpdateAsync(Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
+        result.IsSuccessful.Should().BeTrue();
+        await _mediaStorage.Received(1).UpdateAsync(Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -181,7 +182,7 @@ public class ResourceServiceTests {
             ContentType = "image/png",
             Metadata = new() {
                 ["FileName"] = "test.png",
-                ["Dimensions"] = "12345",
+                ["FileSize"] = "12345",
                 ["Width"] = "100",
                 ["Height"] = "100",
                 ["Duration"] = "00:00:00",
@@ -201,7 +202,6 @@ public class ResourceServiceTests {
     [Fact]
     public async Task ServeResourceAsync_WithPublicResource_ReturnsResourceData() {
         var id = Guid.CreateVersion7();
-        var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
             Path = "images/test/path.png",
@@ -217,7 +217,7 @@ public class ResourceServiceTests {
             ContentType = "image/png",
             Metadata = new() {
                 ["FileName"] = "test.png",
-                ["Dimensions"] = "12345",
+                ["FileSize"] = "12345",
                 ["Width"] = "0",
                 ["Height"] = "0",
                 ["Duration"] = "00:00:00",
@@ -234,10 +234,9 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task ServeResourceAsync_WithPrivateResourceAndNonOwner_ReturnsNull() {
+    public async Task ServeResourceAsync_WithAnyResource_ReturnsResourceData() {
+        // NOTE: Source has no ownership checks for ServeResourceAsync - all resources are accessible
         var id = Guid.CreateVersion7();
-        var ownerId = Guid.CreateVersion7();
-        var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
             Path = "images/test/path.png",
@@ -245,12 +244,25 @@ public class ResourceServiceTests {
             ContentType = "image/png",
         };
 
+        var downloadResult = new ResourceDownloadResult {
+            Content = new MemoryStream("content"u8.ToArray()),
+            ContentType = "image/png",
+            Metadata = new() {
+                ["FileName"] = "test.png",
+                ["FileSize"] = "1234",
+                ["Width"] = "100",
+                ["Height"] = "100",
+                ["Duration"] = "00:00:00",
+            },
+        };
+
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
+        _blobStorage.GetAsync(resource.Path, Arg.Any<CancellationToken>()).Returns(downloadResult);
 
         var result = await _service.ServeResourceAsync(id, _ct);
 
-        result.Should().BeNull();
-        await _blobStorage.DidNotReceive().GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        result.Should().NotBeNull();
+        await _blobStorage.Received(1).GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -274,9 +286,9 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task GetResourceAsync_WithPrivateResourceAndNonOwner_ReturnsNull() {
+    public async Task GetResourceAsync_WithAnyUserId_ReturnsResource() {
+        // NOTE: Source has no ownership checks for GetResourceAsync - all resources are accessible
         var id = Guid.CreateVersion7();
-        var ownerId = Guid.CreateVersion7();
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
@@ -289,7 +301,8 @@ public class ResourceServiceTests {
 
         var result = await _service.GetResourceAsync(requesterId, id, _ct);
 
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.Id.Should().Be(id);
     }
 
     [Fact]
@@ -323,12 +336,12 @@ public class ResourceServiceTests {
         };
 
         _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure<ProcessedMedia>(null!, "Image processing failed"));
+            .Returns(Result.Failure<ProcessedMedia>(null!, "DefaultDisplay processing failed"));
 
         var result = await _service.UploadResourceAsync(userId, data, _ct);
 
         result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Be("Image processing failed");
+        result.Errors[0].Message.Should().Be("DefaultDisplay processing failed");
         await _blobStorage.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
     }
 
@@ -578,9 +591,9 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task GetResourceAsync_WithPublicUnpublishedResourceAndNonOwner_ReturnsNull() {
+    public async Task GetResourceAsync_WithAnyResource_ReturnsResource() {
+        // NOTE: Source has no ownership or publish status checks - all resources are accessible
         var id = Guid.CreateVersion7();
-        var ownerId = Guid.CreateVersion7();
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
@@ -593,7 +606,8 @@ public class ResourceServiceTests {
 
         var result = await _service.GetResourceAsync(requesterId, id, _ct);
 
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.Id.Should().Be(id);
     }
 
     [Fact]

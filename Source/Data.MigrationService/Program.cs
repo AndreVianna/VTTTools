@@ -41,8 +41,10 @@ static async Task RunDataMigrationGeneratorAsync(string[] args) {
     Console.WriteLine("=== Data Migration Generator ===");
     Console.WriteLine($"Migration Name: {migrationName}");
     Console.WriteLine($"Output Path: {outputPath}");
-    if (includeTables is not null) Console.WriteLine($"Include Tables: {string.Join(", ", includeTables)}");
-    if (excludeTables is not null) Console.WriteLine($"Exclude Tables: {string.Join(", ", excludeTables)}");
+    if (includeTables is not null)
+        Console.WriteLine($"Include Tables: {string.Join(", ", includeTables)}");
+    if (excludeTables is not null)
+        Console.WriteLine($"Exclude Tables: {string.Join(", ", excludeTables)}");
     Console.WriteLine();
 
     // Create DbContext using the design-time factory

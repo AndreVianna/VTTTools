@@ -9,7 +9,9 @@
 
 ## Objective
 
-Create domain entities, base abstractions, and supporting enums for the new 2-category, 9-element-type encounter model
+Create domain entities, base abstractions, and supporting enums for the new 2-category, 8-element-type encounter model
+
+**Note**: Trap has been merged into Effect - a trap is just a "hazardous effect" with trigger capabilities.
 
 ---
 
@@ -24,7 +26,9 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
 ## Deliverables
 
 - **Entity**: EncounterElement (base record)
-  - Description: Base abstraction for all encounter elements (Id, EncounterId, Name, timestamps)
+  - Description: Base abstraction for all encounter elements (EncounterId, Index, Name - NO timestamps)
+  - Note: Uses dependent entity pattern (EncounterId, Index) composite key, not Guid Id
+  - Note: No CreatedAt/UpdatedAt - use AuditLogs for tracking
   - Complexity: Low
   - Agent: backend-developer
   - Dependencies: None
@@ -42,25 +46,23 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
   - Dependencies: EncounterElement
 
 - **Entity**: EncounterActor (record)
-  - Description: Characters + Creatures with frames, StatBlocks, HP tracking
-  - Complexity: High
+  - Description: Characters + Creatures with frames, asset reference
+  - Note: Game-system agnostic - no HitPoints, StatBlocks (game mechanics in Asset.StatBlockEntries)
+  - Complexity: Medium
   - Agent: backend-developer
   - Dependencies: GameElement
 
 - **Entity**: EncounterProp (record)
   - Description: Interactive objects with state machine (no frames)
-  - Complexity: Medium
-  - Agent: backend-developer
-  - Dependencies: GameElement
-
-- **Entity**: EncounterTrap (record)
-  - Description: Triggered hazards with damage, saves, trigger conditions
+  - Note: Game-system agnostic - no LockDC, BreakDC (game mechanics in Asset.StatBlockEntries)
   - Complexity: Medium
   - Agent: backend-developer
   - Dependencies: GameElement
 
 - **Entity**: EncounterEffect (record)
-  - Description: Spell zones with duration, AOE, conditions
+  - Description: Unified effect/trap with 4 visual resources, state machine, optional trigger
+  - Note: Trap merged into Effect - no separate EncounterTrap entity
+  - Note: Game-system agnostic - no damage, saves, duration (game mechanics in Asset.StatBlockEntries)
   - Complexity: Medium
   - Agent: backend-developer
   - Dependencies: GameElement
@@ -89,8 +91,9 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
   - Agent: backend-developer
   - Dependencies: None
 
-- **Enum**: TrapState
-  - Description: Trap states (Armed, Triggered, Disabled, Reset)
+- **Enum**: EffectState
+  - Description: Effect/trap states (Enabled, Disabled, Triggered)
+  - Note: Replaces TrapState - Trap merged into Effect
   - Complexity: Low
   - Agent: backend-developer
   - Dependencies: None
@@ -107,17 +110,10 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
   - Agent: backend-developer
   - Dependencies: None
 
-- **Value Object**: TriggerCondition
-  - Description: Trap trigger conditions (proximity, interaction, timed)
-  - Complexity: Low
-  - Agent: backend-developer
-  - Dependencies: None
-
-- **Value Object**: EffectDuration
-  - Description: Effect duration tracking (rounds, minutes, hours, permanent)
-  - Complexity: Low
-  - Agent: backend-developer
-  - Dependencies: None
+**DELETED Value Objects (moved to game mechanics in Asset.StatBlockEntries):**
+- ~~TriggerCondition~~ - Effect uses Shape? TriggerShape directly
+- ~~EffectDuration~~ - Game duration mechanics belong in Asset.StatBlockEntries
+- ~~VisualSettings~~ - Not needed, Effect has 4 resource references directly
 
 ---
 
@@ -125,11 +121,11 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
 
 1. **Base Abstractions** (Backend) - 4h
    - Create `EncounterElement` base record with common properties
-     - `Guid Id { get; init; }`
-     - `Guid EncounterId { get; init; }`
+     - `Guid EncounterId { get; init; }` (part of composite key)
+     - `ushort Index { get; init; }` (part of composite key, dependent entity pattern)
      - `string Name { get; init; }`
-     - `DateTime CreatedAt { get; init; }`
-     - `DateTime UpdatedAt { get; init; }`
+     - **NO** `Guid Id` - uses composite key (EncounterId, Index)
+     - **NO** `DateTime CreatedAt/UpdatedAt` - use AuditLogs for tracking
    - Create `GameElement` abstract record (extends EncounterElement)
    - Create `StructuralElement` abstract record (extends EncounterElement)
    - Add XML documentation for all properties
@@ -141,30 +137,27 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
      - Asset reference (AssetId)
      - Position, Rotation, Size
      - Frame properties (borderColor, backgroundColor, shadow)
-     - StatBlock reference (optional)
-     - HP tracking (CurrentHP, MaxHP, TempHP)
-     - Visibility settings (IsVisible, VisibleToPlayers)
-     - Notes field
+     - Visibility settings (IsVisible)
+     - **NO** HitPoints, StatBlock - game mechanics in Asset.StatBlockEntries
    - Create `EncounterProp` record (extends GameElement)
      - Asset reference (AssetId)
      - Position, Rotation, Size (NO frames)
      - PropState (Closed, Open, Locked, Broken)
-     - Interactive properties (CanOpen, CanLock, RequiresKey)
-     - Notes field
-   - Create `EncounterTrap` record (extends GameElement)
-     - Position, trigger area (shape: circle/polygon)
-     - TrapState (Armed, Triggered, Disabled, Reset)
-     - Trigger condition (TriggerCondition value object)
-     - Damage (dice formula: "2d6", damage type: "fire")
-     - Save DC (DC value, ability: "Dexterity")
-     - Visibility (IsVisible to GM, VisibleToPlayers)
-     - Notes field
-   - Create `EncounterEffect` record (extends GameElement)
-     - Position, AOE (shape: circle/cone/sphere, radius)
-     - EffectDuration (value object)
-     - Conditions (list of condition names: "Poisoned", "Slowed")
-     - Visual settings (color, opacity)
-     - Notes field
+     - **NO** LockDC, BreakDC, HitPoints - game mechanics in Asset.StatBlockEntries
+   - Create `EncounterEffect` record (extends GameElement) - **UNIFIED EFFECT/TRAP**
+     - Position, Rotation
+     - Asset reference (AssetId)
+     - EffectState (Enabled, Disabled, Triggered)
+     - IsVisible (to players - always visible to DM)
+     - AllowAutomaticTrigger (bool)
+     - TriggerShape (Shape?, optional trigger region)
+     - **4 Visual Resources:**
+       - EnabledResourceId (Guid, Required)
+       - DisabledResourceId (Guid?, Optional)
+       - OnTriggerResourceId (Guid?, Optional - plays during trigger)
+       - TriggeredResourceId (Guid?, Optional - persistent post-trigger visual)
+     - **NO** Damage, SaveDC, Duration, Conditions - game mechanics in Asset.StatBlockEntries
+   - **NO** EncounterTrap - merged into EncounterEffect
    - Add XML documentation for all properties
    - Agent: backend-developer
    - Dependencies: 1.1 complete
@@ -179,7 +172,6 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
      - Opacity (float 0.0-1.0)
      - IsVisible (bool)
      - Animation settings (AnimationSettings value object, only for Sprite type)
-     - Notes field
    - Create `EncounterAudio` record (extends StructuralElement)
      - ResourceId (Guid - references audio file)
      - AudioType (Global, Positional)
@@ -188,7 +180,6 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
      - Volume (float 0.0-1.0)
      - Loop (bool)
      - IsPlaying (bool)
-     - Notes field
    - Update `EncounterWall`, `EncounterRegion`, `EncounterLight` to extend StructuralElement
    - Add XML documentation for all properties
    - Agent: backend-developer
@@ -212,13 +203,12 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
          Broken   // Destroyed/unusable
      }
      ```
-   - Create `TrapState` enum
+   - Create `EffectState` enum (replaces TrapState - Trap merged into Effect)
      ```csharp
-     public enum TrapState {
-         Armed,      // Ready to trigger
-         Triggered,  // Has been triggered
-         Disabled,   // Disarmed by player
-         Reset       // Reset to armed state
+     public enum EffectState {
+         Enabled,    // Ready to trigger (default state)
+         Disabled,   // Manually disabled by DM
+         Triggered   // Has been triggered (Reset returns to Enabled)
      }
      ```
    - Update `AssetKind` enum
@@ -235,6 +225,7 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
          Light        // Light/vision source
      }
      ```
+   - **DELETED**: `TrapState` enum - merged into EffectState
    - Add XML documentation for all enum values
    - Agent: backend-developer
    - Dependencies: None
@@ -251,50 +242,25 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
          public int? EndFrame { get; init; }         // Null = use all frames
      }
      ```
-   - Create `TriggerCondition` record
-     ```csharp
-     public record TriggerCondition {
-         public TriggerType Type { get; init; }      // Proximity, Interaction, Timed
-         public float? Radius { get; init; }         // For proximity triggers
-         public int? DelaySeconds { get; init; }     // For timed triggers
-         public bool ResetAfterTrigger { get; init; } = false;
-     }
-
-     public enum TriggerType {
-         Proximity,      // Trigger when creature enters area
-         Interaction,    // Trigger on explicit interaction
-         Timed          // Trigger after delay
-     }
-     ```
-   - Create `EffectDuration` record
-     ```csharp
-     public record EffectDuration {
-         public DurationType Type { get; init; }
-         public int? Value { get; init; }            // Null for Permanent
-         public DateTime? ExpiresAt { get; init; }   // Calculated expiration time
-     }
-
-     public enum DurationType {
-         Rounds,     // Combat rounds
-         Minutes,
-         Hours,
-         Permanent   // Never expires
-     }
-     ```
-   - Add validation logic (e.g., FrameCount > 0, Radius >= 0)
+   - **DELETED Value Objects** (game mechanics belong in Asset.StatBlockEntries):
+     - ~~TriggerCondition~~ - Effect uses `Shape? TriggerShape` directly
+     - ~~EffectDuration~~ - Game duration mechanics in Asset.StatBlockEntries
+     - ~~VisualSettings~~ - Effect has 4 resource references directly
+     - ~~TriggerType enum~~ - Not needed without TriggerCondition
+     - ~~DurationType enum~~ - Not needed without EffectDuration
+   - Add validation logic (e.g., FrameCount > 0)
    - Add XML documentation
    - Agent: backend-developer
    - Dependencies: 1.4 complete
 
 6. **Unit Tests** (Backend) - 6h
    - Write tests for EncounterElement hierarchy (inheritance, properties)
-   - Write tests for EncounterActor (HP tracking, validation)
+   - Write tests for EncounterActor (validation, frame properties)
    - Write tests for EncounterProp (state transitions)
-   - Write tests for EncounterTrap (trigger conditions, damage calculations)
-   - Write tests for EncounterEffect (duration tracking)
+   - Write tests for EncounterEffect (state transitions, trigger shape, 4 resources)
    - Write tests for EncounterDecoration (ResourceType handling)
    - Write tests for EncounterAudio (positional vs global)
-   - Write tests for value object validation (10+ tests)
+   - Write tests for value object validation (AnimationSettings)
    - Target: ≥80% code coverage
    - Agent: backend-developer
    - Dependencies: 1.1, 1.2, 1.3, 1.4, 1.5 complete
@@ -303,8 +269,11 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
 
 ## Success Criteria
 
-- ✅ All 9 element types compile without errors
+- ✅ All 8 element types compile without errors (Actor, Prop, Effect, Decoration, Audio, Wall, Region, Light)
 - ✅ Base abstractions (EncounterElement, GameElement, StructuralElement) properly inherited
+- ✅ Dependent entity pattern used (EncounterId, Index) composite key - no Guid Id
+- ✅ No timestamps (CreatedAt/UpdatedAt) - use AuditLogs
+- ✅ Game-system agnostic - no game-specific properties in entities
 - ✅ All enums have XML documentation with clear descriptions
 - ✅ Value objects validate input correctly (e.g., FrameCount > 0)
 - ✅ Unit tests pass with ≥80% code coverage (10+ tests)
@@ -339,6 +308,11 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
 
 - [ ] All domain entities use `record` types (immutable by default)
 - [ ] All properties use `{ get; init; }` (immutable after construction)
+- [ ] Dependent entity pattern used (EncounterId, Index) composite key, not Guid Id
+- [ ] No timestamps (CreatedAt/UpdatedAt) in entities
+- [ ] No game-specific properties (HitPoints, SaveDC, Duration, etc.)
+- [ ] EncounterEffect has 4 resource references and state machine
+- [ ] No separate EncounterTrap entity (merged into Effect)
 - [ ] XML documentation includes `<summary>`, `<remarks>` where appropriate
 - [ ] Enums have XML documentation for each value
 - [ ] Value objects validate input (throw exceptions for invalid data)
@@ -356,6 +330,6 @@ Create domain entities, base abstractions, and supporting enums for the new 2-ca
 
 ---
 
-**Version**: 1.0
+**Version**: 1.2
 **Created**: 2025-12-28
 **Last Updated**: 2025-12-28

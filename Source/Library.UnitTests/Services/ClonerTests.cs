@@ -1,4 +1,3 @@
-
 namespace VttTools.Library.Services;
 
 public class ClonerTests {
@@ -14,13 +13,13 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.CreateVersion7(),
-            World = new World { Id = _worldId },
-            Campaign = new Campaign { Id = _campaignId },
+            World = new() { Id = _worldId },
+            Campaign = new() { Id = _campaignId },
             Name = "Original Adventure",
             Background = new() {
                 Path = "path/to/background.png",
                 ContentType = "image/png",
-                Dimensions = new Size(1920, 1080),
+                Dimensions = new(1920, 1080),
             },
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
@@ -31,28 +30,7 @@ public class ClonerTests {
                 new() {
                     Id = encounterId,
                     Name = "Original Encounter",
-                    Stage = new() {
-                        Background = new() {
-                            Path = "path/to/encounter/background.png",
-                            ContentType = "image/png",
-                            Dimensions = new Size(800, 600),
-                        },
-                        ZoomLevel = 1.0f,
-                        Panning = new(0, 0),
-                        Light = AmbientLight.Candlelight,
-                        Weather = Weather.Fog,
-                        Elevation = 10.0f,
-                        Sound = new() {
-                            Path = "path/to/encounter/sound.mp3",
-                            ContentType = "audio/mpeg",
-                            Duration = TimeSpan.FromMinutes(3),
-                        },
-                    },
-                    Grid = new() {
-                        Type = GridType.Square,
-                        CellSize = new CellSize(50, 50),
-                        Offset = new(0, 0),
-                    },
+                    Stage = new() { Id = Guid.CreateVersion7(), OwnerId = Guid.CreateVersion7(), Name = "Test Stage" },
                 },
             ],
         };
@@ -85,13 +63,13 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.CreateVersion7(),
-            World = new World { Id = _worldId },
-            Campaign = new Campaign { Id = _campaignId },
+            World = new() { Id = _worldId },
+            Campaign = new() { Id = _campaignId },
             Name = "Original Adventure",
             Background = new() {
                 Path = "path/to/background.png",
                 ContentType = "image/png",
-                Dimensions = new Size(1920, 1080),
+                Dimensions = new(1920, 1080),
             },
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
@@ -102,12 +80,7 @@ public class ClonerTests {
                 new() {
                     Id = encounterId,
                     Name = "Original Encounter",
-                    Stage = new(),
-                    Grid = new() {
-                        Type = GridType.Square,
-                        CellSize = new CellSize(50, 50),
-                        Offset = new(0, 0),
-                    },
+                    Stage = new() { Id = Guid.CreateVersion7(), OwnerId = Guid.CreateVersion7(), Name = "Test Stage" },
                 },
             ],
         };
@@ -137,47 +110,41 @@ public class ClonerTests {
     public void CloneEncounter_CopiesBasicProperties() {
         // Arrange
         var originalId = Guid.CreateVersion7();
+        var stageId = Guid.CreateVersion7();
         var original = new Encounter {
             Id = originalId,
             Name = "Original Encounter",
             Description = "Original encounter description",
-            Stage = new(),
-            Grid = new() {
-                Type = GridType.Square,
-                CellSize = new CellSize(50, 50),
-                Offset = new(0, 0),
-            },
-            Assets = [
+            Stage = new() { Id = stageId, OwnerId = Guid.CreateVersion7(), Name = "Test Stage" },
+            Actors = [
                 new() {
-                    AssetId = Guid.CreateVersion7(),
-                    Index = 1,
-                    Name = "Asset 1",
-                    IsVisible = true,
-                    Image = new() {
+                    Asset = new() { Id = Guid.CreateVersion7() },
+                    Name = "Actor 1",
+                    IsHidden = true,
+                    Display = new() {
                         Id = Guid.CreateVersion7(),
-                        Path = "assets/asset-1-image.png",
+                        Path = "assets/actor-1-image.png",
                         ContentType = "image/png",
-                        Dimensions = new Size(100, 100),
+                        Dimensions = new(100, 100),
                     },
                     Position = new(20, 30),
-                    Size = new NamedSize { Width = 1, Height = 1 },
+                    Size = new() { Width = 1, Height = 1 },
                     Elevation = 1,
                     Rotation = 45,
                     IsLocked = true,
                     ControlledBy = Guid.CreateVersion7(),
                 },
                 new() {
-                    AssetId = Guid.CreateVersion7(),
-                    Index = 2,
-                    Name = "Asset 2",
-                    Image = new() {
+                    Asset = new() { Id = Guid.CreateVersion7() },
+                    Name = "Actor 2",
+                    Display = new() {
                         Id = Guid.CreateVersion7(),
-                        Path = "assets/asset-2-image.png",
+                        Path = "assets/actor-2-image.png",
                         ContentType = "image/png",
-                        Dimensions = new Size(100, 100),
+                        Dimensions = new(100, 100),
                     },
                     Position = new(5, 10),
-                    Size = new NamedSize { Width = 1, Height = 1 },
+                    Size = new() { Width = 1, Height = 1 },
                     Elevation = 2,
                     Rotation = -45,
                     IsLocked = false,
@@ -194,84 +161,247 @@ public class ClonerTests {
         clone.Id.Should().NotBe(originalId);
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
-        clone.Stage.Should().BeEquivalentTo(original.Stage);
-        // NOTE: Cloned assets should be equivalent to originals (no special transformations in Clone method)
-        clone.Assets.Should().BeEquivalentTo(original.Assets);
+        clone.Stage.Id.Should().Be(original.Stage.Id);
+        // Cloned actors should be equivalent to originals
+        clone.Actors.Should().BeEquivalentTo(original.Actors);
     }
 
     [Fact]
-    public void CloneEncounter_ClonesEncounterAssets() {
+    public void CloneEncounter_ClonesEncounterActors() {
         // Arrange
         var originalId = Guid.CreateVersion7();
         var original = new Encounter {
             Id = originalId,
             Name = "Original Encounter",
-            Assets = [
+            Stage = new() { Id = Guid.CreateVersion7(), OwnerId = Guid.CreateVersion7(), Name = "Test Stage" },
+            Actors = [
                 new() {
-                    AssetId = Guid.CreateVersion7(),
-                    Index = 1,
-                    Name = "Asset 1",
-                    Image = new() {
+                    Asset = new() { Id = Guid.CreateVersion7() },
+                    Name = "Actor 1",
+                    Display = new() {
                         Id = Guid.CreateVersion7(),
-                        Path = "assets/asset-1-image.png",
+                        Path = "assets/actor-1-image.png",
                         ContentType = "image/png",
-                        Dimensions = new Size(100, 100),
+                        Dimensions = new(100, 100),
                     },
                     Position = new(20, 30),
-                    Size = new NamedSize { Width = 1, Height = 1 },
+                    Size = new() { Width = 1, Height = 1 },
                     Elevation = 1f,
                     Rotation = 45f,
                     IsLocked = true,
                     ControlledBy = Guid.CreateVersion7(),
                 },
             ],
-            Stage = new(),
         };
 
         // Act
         var clone = original.Clone(original.Name);
 
         // Assert
-        clone.Assets.Should().HaveCount(1);
-        clone.Assets[0].Name.Should().Be("Asset 1");
-        clone.Assets[0].Position.X.Should().Be(20);
-        clone.Assets[0].Position.Y.Should().Be(30);
-        clone.Assets[0].IsLocked.Should().BeTrue();
+        clone.Actors.Should().HaveCount(1);
+        clone.Actors[0].Name.Should().Be("Actor 1");
+        clone.Actors[0].Position.X.Should().Be(20);
+        clone.Actors[0].Position.Y.Should().Be(30);
+        clone.Actors[0].IsLocked.Should().BeTrue();
     }
 
     [Fact]
-    public void CloneEncounterAsset_CreatesNewAssetWithCorrectProperties() {
+    public void CloneEncounterActor_CreatesNewActorWithCorrectProperties() {
         // Arrange
-        var userId = Guid.CreateVersion7();
         var controlledById = Guid.CreateVersion7();
-        var original = new EncounterAsset {
-            AssetId = Guid.CreateVersion7(),
-            Index = 1,
-            Name = "Original Asset",
-            Image = new() {
+        var original = new EncounterActor {
+            Asset = new() { Id = Guid.CreateVersion7() },
+            Name = "Original Actor",
+            IsHidden = true,
+            Display = new() {
                 Id = Guid.CreateVersion7(),
-                Path = "assets/asset-1-image.png",
+                Path = "assets/actor-1-image.png",
                 ContentType = "image/png",
-                Dimensions = new Size(100, 100),
+                Dimensions = new(100, 100),
             },
             Position = new(20, 30),
-            Size = new NamedSize { Width = 1, Height = 1 },
+            Size = new() { Width = 1, Height = 1 },
             Elevation = 1f,
             Rotation = 45f,
             IsLocked = true,
             ControlledBy = controlledById,
+            Frame = new() {
+                Shape = FrameShape.Circle,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
         };
 
         // Act
         var clone = original.Clone();
 
         // Assert
-        clone.Should().NotBeNull();
-        // NOTE: Cloner copies properties as-is, no special transformations
-        clone.Index.Should().Be(original.Index);
+        clone.Asset.Id.Should().Be(original.Asset.Id);
         clone.Name.Should().Be(original.Name);
-        clone.Position.Should().BeEquivalentTo(original.Position);
+        clone.IsHidden.Should().Be(original.IsHidden);
+        clone.Display.Should().BeEquivalentTo(original.Display);
+        clone.Position.Should().Be(original.Position);
+        clone.Size.Should().Be(original.Size);
+        clone.Elevation.Should().Be(original.Elevation);
+        clone.Rotation.Should().Be(original.Rotation);
         clone.IsLocked.Should().Be(original.IsLocked);
         clone.ControlledBy.Should().Be(original.ControlledBy);
+        clone.Frame.Should().BeEquivalentTo(original.Frame);
+    }
+
+    [Fact]
+    public void CloneEncounterProp_CreatesNewPropWithCorrectProperties() {
+        // Arrange
+        var original = new EncounterObject {
+            Asset = new() { Id = Guid.CreateVersion7() },
+            Name = "Treasure Chest",
+            IsHidden = true,
+            ClosedDisplay = new() {
+                Id = Guid.CreateVersion7(),
+                Path = "assets/chest.png",
+                ContentType = "image/png",
+                Dimensions = new(64, 64),
+            },
+            Position = new(10, 15),
+            Size = new() { Width = 1, Height = 1 },
+            Elevation = 0f,
+            Rotation = 0f,
+            IsLocked = false,
+            State = ObjectState.Closed,
+        };
+
+        // Act
+        var clone = original.Clone();
+
+        // Assert
+        clone.Asset.Id.Should().Be(original.Asset.Id);
+        clone.Name.Should().Be(original.Name);
+        clone.IsHidden.Should().Be(original.IsHidden);
+        clone.Position.Should().Be(original.Position);
+        clone.Size.Should().Be(original.Size);
+        clone.State.Should().Be(original.State);
+    }
+
+    [Fact]
+    public void CloneEncounterEffect_CreatesNewEffectWithCorrectProperties() {
+        // Arrange
+        var assetId = Guid.CreateVersion7();
+        var original = new EncounterEffect {
+            Name = "Fireball",
+            Position = new(20, 20),
+            Rotation = 45f,
+            Asset = new() { Id = assetId },
+            State = EffectState.Enabled,
+            IsHidden = true,
+            TriggerRegion = new() { Type = ShapeType.Circle, Radius = 20 },
+            EnabledDisplay = new() { Id = Guid.CreateVersion7(), Path = "effects/fireball.png", ContentType = "image/png" },
+            DisabledDisplay = new() { Id = Guid.CreateVersion7(), Path = "effects/fireball-off.png", ContentType = "image/png" },
+            OnTriggerDisplay = new() { Id = Guid.CreateVersion7(), Path = "effects/fireball-trigger.png", ContentType = "image/png" },
+            TriggeredDisplay = new() { Id = Guid.CreateVersion7(), Path = "effects/fireball-triggered.png", ContentType = "image/png" },
+        };
+
+        // Act
+        var clone = original.Clone();
+
+        // Assert
+        clone.Name.Should().Be(original.Name);
+        clone.Position.Should().Be(original.Position);
+        clone.Rotation.Should().Be(original.Rotation);
+        clone.Asset.Id.Should().Be(original.Asset.Id);
+        clone.State.Should().Be(original.State);
+        clone.IsHidden.Should().Be(original.IsHidden);
+        clone.TriggerRegion.Should().BeEquivalentTo(original.TriggerRegion);
+        clone.EnabledDisplay.Should().BeEquivalentTo(original.EnabledDisplay);
+        clone.DisabledDisplay.Should().BeEquivalentTo(original.DisabledDisplay);
+        clone.OnTriggerDisplay.Should().BeEquivalentTo(original.OnTriggerDisplay);
+        clone.TriggeredDisplay.Should().BeEquivalentTo(original.TriggeredDisplay);
+    }
+
+    // NOTE: EncounterDecoration and EncounterSound clone tests removed - structural elements are now on Stage
+
+    [Fact]
+    public void CloneWorld_ClonesBasicProperties() {
+        // Arrange
+        var originalId = Guid.CreateVersion7();
+        var ownerId = Guid.CreateVersion7();
+        var original = new World {
+            Id = originalId,
+            OwnerId = ownerId,
+            Name = "Original World",
+            Description = "A test world",
+            Background = new() {
+                Id = Guid.CreateVersion7(),
+                Path = "world/background.png",
+                ContentType = "image/png",
+            },
+        };
+
+        // Act
+        var clone = original.Clone(_userId, original.Name);
+
+        // Assert
+        clone.Id.Should().NotBe(originalId);
+        clone.OwnerId.Should().Be(_userId);
+        clone.Name.Should().Be(original.Name);
+        clone.Description.Should().Be(original.Description);
+        clone.Background.Should().BeEquivalentTo(original.Background);
+    }
+
+    [Fact]
+    public void CloneCampaign_ClonesBasicProperties() {
+        // Arrange
+        var originalId = Guid.CreateVersion7();
+        var ownerId = Guid.CreateVersion7();
+        var world = new World { Id = _worldId };
+        var original = new Campaign {
+            Id = originalId,
+            OwnerId = ownerId,
+            World = world,
+            Name = "Original Campaign",
+            Description = "A test campaign",
+            Background = new() {
+                Id = Guid.CreateVersion7(),
+                Path = "campaign/background.png",
+                ContentType = "image/png",
+            },
+        };
+
+        // Act
+        var clone = original.Clone(_userId, original.Name);
+
+        // Assert
+        clone.Id.Should().NotBe(originalId);
+        clone.OwnerId.Should().Be(_userId);
+        clone.World.Should().BeEquivalentTo(original.World);
+        clone.Name.Should().Be(original.Name);
+        clone.Description.Should().Be(original.Description);
+        clone.Background.Should().BeEquivalentTo(original.Background);
+    }
+
+    [Fact]
+    public void CloneResourceMetadata_ClonesAllProperties() {
+        // Arrange
+        var original = new ResourceMetadata {
+            Id = Guid.CreateVersion7(),
+            Path = "path/to/resource.png",
+            ContentType = "image/png",
+            FileName = "resource.png",
+            FileSize = 12345,
+            Dimensions = new(100, 200),
+            Duration = TimeSpan.FromSeconds(30),
+        };
+
+        // Act
+        var clone = original.Clone();
+
+        // Assert
+        clone.Id.Should().Be(original.Id);
+        clone.Path.Should().Be(original.Path);
+        clone.ContentType.Should().Be(original.ContentType);
+        clone.FileName.Should().Be(original.FileName);
+        clone.FileSize.Should().Be(original.FileSize);
+        clone.Dimensions.Should().Be(original.Dimensions);
+        clone.Duration.Should().Be(original.Duration);
     }
 }

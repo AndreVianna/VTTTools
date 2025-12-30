@@ -1,20 +1,22 @@
-﻿namespace VttTools.Library.Encounters.Model;
+namespace VttTools.Library.Encounters.Model;
 
 public record Encounter {
-    public const string NewEncounterName = "New Encounter";
-
     public Adventure Adventure { get; init; } = null!;
+
     public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid OwnerId { get; set; }
+
     [MaxLength(128)]
-    public string Name { get; init; } = NewEncounterName;
+    public string? Name { get; init; }
+
     [MaxLength(4096)]
-    public string Description { get; init; } = string.Empty;
+    public string? Description { get; init; }
     public bool IsPublished { get; set; }
-    public Stage Stage { get; set; } = new();
-    public Grid Grid { get; init; } = new();
-    public List<EncounterAsset> Assets { get; init; } = [];
-    public List<EncounterWall> Walls { get; init; } = [];
-    public List<EncounterRegion> Regions { get; init; } = [];
-    public List<EncounterLight> LightSources { get; init; } = [];
-    public List<EncounterSound> SoundSources { get; init; } = [];
+    public bool IsPublic { get; set; }
+
+    public Stage Stage { get; init; } = null!;
+
+    public List<EncounterActor> Actors { get; init; } = [];
+    public List<EncounterObject> Objects { get; init; } = [];
+    public List<EncounterEffect> Effects { get; init; } = [];
 }

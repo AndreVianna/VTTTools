@@ -1,5 +1,5 @@
-using Provider = VttTools.Data.AI.Entities.Provider;
 using AiModel = VttTools.Data.AI.Entities.AiModel;
+using Provider = VttTools.Data.AI.Entities.Provider;
 
 namespace VttTools.Data.Builders;
 

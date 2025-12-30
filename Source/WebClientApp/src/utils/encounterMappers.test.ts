@@ -11,7 +11,7 @@ const mockMonsterAssetData: Asset = mockMonsterAsset({
   description: 'A small goblin',
   isPublished: true,
   isPublic: false,
-  tokens: [mockMediaResource({ id: 'asset-1-topdown' })],
+  tokens: [mockMediaResource({ id: 'asset-1-token' })],
   portrait: null,
   tokenSize: { width: 1, height: 1 },
 });
@@ -23,7 +23,7 @@ const mockObjectAssetData: Asset = mockObjectAsset({
   description: 'A wooden chest',
   isPublished: true,
   isPublic: false,
-  tokens: [mockMediaResource({ id: 'asset-2-topdown' })],
+  tokens: [mockMediaResource({ id: 'asset-2-token' })],
   portrait: null,
   tokenSize: { width: 1, height: 1 },
 });

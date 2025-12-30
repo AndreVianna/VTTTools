@@ -1,11 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public class MaintenanceModeHandlersTests {
-    private readonly IMaintenanceModeService _mockService;
-
-    public MaintenanceModeHandlersTests() {
-        _mockService = Substitute.For<IMaintenanceModeService>();
-    }
+    private readonly IMaintenanceModeService _mockService = Substitute.For<IMaintenanceModeService>();
 
     [Fact]
     public async Task GetMaintenanceModeStatusHandler_WithExistingMode_ReturnsStatus() {

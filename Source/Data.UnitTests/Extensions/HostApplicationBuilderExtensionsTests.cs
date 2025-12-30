@@ -1,3 +1,6 @@
+using VttTools.Data.Library.Adventures;
+using VttTools.Data.Library.Encounters;
+
 namespace VttTools.Data.Extensions;
 
 public class HostApplicationBuilderExtensionsTests {

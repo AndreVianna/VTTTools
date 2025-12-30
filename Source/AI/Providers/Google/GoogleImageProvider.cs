@@ -95,7 +95,7 @@ public sealed class GoogleImageProvider(
             }
         },
         GenerationConfig = new {
-            ResponseModalities = new[] { "Image" },
+            ResponseModalities = new[] { "DefaultDisplay" },
             ImageConfig = new {
                 data.AspectRatio,
             }

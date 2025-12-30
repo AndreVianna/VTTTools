@@ -1,47 +1,31 @@
-﻿using AddAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetAddData;
-using AddLightSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterLightAddData;
-using AddRegionData = VttTools.Library.Encounters.ServiceContracts.EncounterRegionAddData;
-using AddSoundSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSoundAddData;
-using AddWallData = VttTools.Library.Encounters.ServiceContracts.EncounterWallAddData;
-using BulkUpdateAssetsData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetBulkUpdateData;
-using UpdateAssetData = VttTools.Library.Encounters.ServiceContracts.EncounterAssetUpdateData;
-using UpdateLightSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterLightUpdateData;
-using UpdateRegionData = VttTools.Library.Encounters.ServiceContracts.EncounterRegionUpdateData;
-using UpdateSoundSourceData = VttTools.Library.Encounters.ServiceContracts.EncounterSoundUpdateData;
-using UpdateWallData = VttTools.Library.Encounters.ServiceContracts.EncounterWallUpdateData;
+using AddActorData = VttTools.Library.Encounters.ServiceContracts.EncounterActorAddData;
+using AddEffectData = VttTools.Library.Encounters.ServiceContracts.EncounterEffectAddData;
+using AddPropData = VttTools.Library.Encounters.ServiceContracts.EncounterObjectAddData;
+using UpdateActorData = VttTools.Library.Encounters.ServiceContracts.EncounterActorUpdateData;
+using UpdateEffectData = VttTools.Library.Encounters.ServiceContracts.EncounterEffectUpdateData;
+using UpdatePropData = VttTools.Library.Encounters.ServiceContracts.EncounterObjectUpdateData;
 
 namespace VttTools.Library.Encounters.Services;
 
 public interface IEncounterService {
-    Task<Encounter[]> GetEncountersAsync(CancellationToken ct = default);
-    Task<Encounter?> GetEncounterByIdAsync(Guid id, CancellationToken ct = default);
-    Task<Result<Encounter>> CreateEncounterAsync(Guid userId, EncounterAddData data, CancellationToken ct = default);
-    Task<Result> UpdateEncounterAsync(Guid userId, Guid id, EncounterUpdateData data, CancellationToken ct = default);
-    Task<Result> DeleteEncounterAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<Encounter[]> GetAllAsync(CancellationToken ct = default);
+    Task<Encounter?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Result<Encounter>> CreateAsync(Guid userId, CreateEncounterData data, CancellationToken ct = default);
+    Task<Result> UpdateAsync(Guid userId, Guid id, EncounterUpdateData data, CancellationToken ct = default);
+    Task<Result> DeleteAsync(Guid userId, Guid id, CancellationToken ct = default);
 
-    Task<EncounterAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
-    Task<Result<EncounterAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddAssetData data, CancellationToken ct = default);
-    Task<Result<EncounterAsset>> CloneAssetAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
-    Task<Result> UpdateAssetAsync(Guid userId, Guid id, ushort index, UpdateAssetData data, CancellationToken ct = default);
-    Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateAssetsData data, CancellationToken ct = default);
-    Task<Result> BulkCloneAssetsAsync(Guid userId, Guid id, List<ushort> assetIndices, CancellationToken ct = default);
-    Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<ushort> assetIndices, CancellationToken ct = default);
-    Task<Result> BulkAddAssetsAsync(Guid userId, Guid id, List<AssetToAdd> assetsToAdd, CancellationToken ct = default);
-    Task<Result> RemoveAssetAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
+    Task<EncounterActor[]> GetActorsAsync(Guid encounterId, CancellationToken ct = default);
+    Task<Result<EncounterActor>> AddActorAsync(Guid userId, Guid encounterId, Guid assetId, AddActorData data, CancellationToken ct = default);
+    Task<Result> UpdateActorAsync(Guid userId, Guid encounterId, ushort index, UpdateActorData data, CancellationToken ct = default);
+    Task<Result> RemoveActorAsync(Guid userId, Guid encounterId, ushort index, CancellationToken ct = default);
 
-    Task<Result<EncounterWall>> AddWallAsync(Guid userId, Guid id, AddWallData data, CancellationToken ct = default);
-    Task<Result> UpdateWallAsync(Guid userId, Guid id, ushort index, UpdateWallData data, CancellationToken ct = default);
-    Task<Result> RemoveWallAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
+    Task<EncounterObject[]> GetObjectsAsync(Guid encounterId, CancellationToken ct = default);
+    Task<Result<EncounterObject>> AddObjectAsync(Guid userId, Guid encounterId, Guid assetId, AddPropData data, CancellationToken ct = default);
+    Task<Result> UpdateObjectAsync(Guid userId, Guid encounterId, ushort index, UpdatePropData data, CancellationToken ct = default);
+    Task<Result> RemoveObjectAsync(Guid userId, Guid encounterId, ushort index, CancellationToken ct = default);
 
-    Task<Result<EncounterRegion>> AddRegionAsync(Guid userId, Guid id, AddRegionData data, CancellationToken ct = default);
-    Task<Result> UpdateRegionAsync(Guid userId, Guid id, ushort index, UpdateRegionData data, CancellationToken ct = default);
-    Task<Result> RemoveRegionAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
-
-    Task<Result<EncounterLight>> AddLightSourceAsync(Guid userId, Guid id, AddLightSourceData data, CancellationToken ct = default);
-    Task<Result> UpdateLightSourceAsync(Guid userId, Guid id, ushort index, UpdateLightSourceData data, CancellationToken ct = default);
-    Task<Result> RemoveLightSourceAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
-
-    Task<Result<EncounterSound>> AddSoundSourceAsync(Guid userId, Guid id, AddSoundSourceData data, CancellationToken ct = default);
-    Task<Result> UpdateSoundSourceAsync(Guid userId, Guid id, ushort index, UpdateSoundSourceData data, CancellationToken ct = default);
-    Task<Result> RemoveSoundSourceAsync(Guid userId, Guid id, ushort index, CancellationToken ct = default);
+    Task<EncounterEffect[]> GetEffectsAsync(Guid encounterId, CancellationToken ct = default);
+    Task<Result<EncounterEffect>> AddEffectAsync(Guid userId, Guid encounterId, Guid assetId, AddEffectData data, CancellationToken ct = default);
+    Task<Result> UpdateEffectAsync(Guid userId, Guid encounterId, ushort index, UpdateEffectData data, CancellationToken ct = default);
+    Task<Result> RemoveEffectAsync(Guid userId, Guid encounterId, ushort index, CancellationToken ct = default);
 }

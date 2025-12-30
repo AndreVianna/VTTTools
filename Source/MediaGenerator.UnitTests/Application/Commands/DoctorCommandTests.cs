@@ -118,7 +118,8 @@ public sealed class DoctorCommandTests : IDisposable {
         var exitCode = await command.ExecuteAsync(options, TestContext.Current.CancellationToken);
 
         if (exitCode == 0) {
-            var output = _consoleOutput.ToString();
+            await _consoleOutput.FlushAsync();
+            var output = _consoleOutput.GetStringBuilder().ToString();
             Assert.True(output.Contains("READY") || output.Contains("DEGRADED"));
         }
     }
@@ -285,13 +286,13 @@ public sealed class DoctorCommandTests : IDisposable {
         if (hasStabilityKey) {
             configData["Providers:Stability:ApiKey"] = "sk-test-stability-key";
             configData["Providers:Stability:Token:Model"] = "SD35";
-            configData["Providers:Stability:Display:Model"] = "CORE";
+            configData["Providers:Stability:DefaultDisplay:Model"] = "CORE";
             configData["Providers:Stability:BaseUrl"] = "https://api.stability.ai";
             configData["Providers:Stability:HealthPath"] = "/v1/user/account";
         }
         else {
             configData["Providers:Stability:Token:Model"] = "SD35";
-            configData["Providers:Stability:Display:Model"] = "CORE";
+            configData["Providers:Stability:DefaultDisplay:Model"] = "CORE";
         }
 
         return new ConfigurationBuilder()

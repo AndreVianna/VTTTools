@@ -59,7 +59,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        var result = await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         result.IsSuccess.Should().BeTrue();
         result.Prompt.Should().Contain("majestic red dragon");
@@ -72,7 +72,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetException(new HttpRequestException("Network failure"));
 
         var asset = CreateTestAsset();
-        var result = await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Network error");
@@ -83,7 +83,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, "invalid json");
 
         var asset = CreateTestAsset();
-        var result = await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("JSON deserialization error");
@@ -103,7 +103,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        var result = await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("empty response");
@@ -122,7 +122,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        var result = await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("empty response");
@@ -147,38 +147,35 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        var result = await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("empty content");
     }
 
     [Fact]
-    public async Task EnhancePromptAsync_ForTopDownImage_IncludesTopDownDescription() {
+    public async Task EnhancePromptAsync_ForTokenImage_IncludesTokenDescription() {
         var responseJson = CreateSuccessResponse("Enhanced prompt");
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
+        // Note: JSON encoding escapes apostrophes as \u0027
         var requestContent = _mockHandler.LastRequestContent;
-        requestContent.Should().Contain("bird's eye");
+        requestContent.Should().Contain("bird\\u0027s eye");
         requestContent.Should().Contain("top-down");
         requestContent.Should().Contain("transparent background");
     }
 
     [Fact]
-    public async Task EnhancePromptAsync_ForCloseUpImage_IncludesCloseUpDescription() {
-        var responseJson = CreateSuccessResponse("Enhanced prompt");
-        _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
-
+    public async Task EnhancePromptAsync_ForUnknownImageType_ReturnsError() {
+        // Source only supports Token and Portrait image types
         var asset = CreateTestAsset();
-        await _enhancer.EnhancePromptAsync("CloseUp", asset, 0, _ct);
+        var result = await _enhancer.EnhancePromptAsync("Unknown", asset, 0, _ct);
 
-        var requestContent = _mockHandler.LastRequestContent;
-        requestContent.Should().Contain("close-up");
-        requestContent.Should().Contain("main features");
-        requestContent.Should().Contain("solid neutral background");
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("Unknown image type");
     }
 
     [Fact]
@@ -200,7 +197,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("Red Dragon");
@@ -212,7 +209,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("Dragon");
@@ -224,30 +221,32 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset();
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("A powerful ancient dragon");
     }
 
     [Fact]
-    public async Task EnhancePromptAsync_IncludesTokenDescription() {
+    public async Task EnhancePromptAsync_IncludesAssetDescriptionInRequest() {
+        // NOTE: Source only includes asset-level Description, not individual token descriptions
         var responseJson = CreateSuccessResponse("Enhanced prompt");
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var asset = CreateTestAsset();
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var asset = CreateTestAsset() with { Description = "Breathing fire" };
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("Breathing fire");
     }
 
     [Fact]
-    public async Task EnhancePromptAsync_ForPortraitWithPortraitDescription_UsesPortraitDescription() {
+    public async Task EnhancePromptAsync_ForPortraitWithPortraitDescription_UsesAssetDescription() {
+        // NOTE: Source uses asset-level Description regardless of image type
         var responseJson = CreateSuccessResponse("Enhanced prompt");
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var asset = CreateTestAsset();
+        var asset = CreateTestAsset() with { Description = "Majestic pose with wings spread" };
         await _enhancer.EnhancePromptAsync("Portrait", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
@@ -259,7 +258,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _config["PromptEnhancer:Model"].Returns((string?)null);
 
         var asset = CreateTestAsset();
-        var act = () => _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        var act = () => _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*not configured*");
@@ -278,7 +277,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
                                  "Ancient"
                                 )
         };
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("Dragon (Ancient)");
@@ -290,7 +289,7 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
         var asset = CreateTestAsset() with { Description = string.Empty };
-        await _enhancer.EnhancePromptAsync("TopDown", asset, 0, _ct);
+        await _enhancer.EnhancePromptAsync("Token", asset, 0, _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("Red Dragon");

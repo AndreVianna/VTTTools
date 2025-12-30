@@ -24,7 +24,7 @@ public sealed class AdminAuthHandlersTests {
     [Fact]
     public async Task LoginHandler_WithSuccessfulLogin_ReturnsOk() {
         var request = new AdminLoginRequest { Email = "admin@example.com", Password = "password" };
-        var response = new AdminLoginResponse { Success = true };
+        var response = new AdminLoginResponse { Success = true, Token = "valid-token" };
 
         _mockAuthService.LoginAsync(request, Arg.Any<CancellationToken>()).Returns(response);
 
@@ -32,7 +32,8 @@ public sealed class AdminAuthHandlersTests {
 
         result.Should().BeOfType<Ok<AdminLoginResponse>>();
         var okResult = (Ok<AdminLoginResponse>)result;
-        okResult.Value.Should().Be(response);
+        okResult.Value!.Success.Should().BeTrue();
+        okResult.Value.Token.Should().BeNull();
     }
 
     [Fact]

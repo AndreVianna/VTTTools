@@ -9,6 +9,7 @@ public interface IEncounterAdminService {
         string? name,
         string? description,
         bool? isPublished,
+        bool? isPublic,
         CancellationToken ct = default);
     Task DeleteEncounterAsync(Guid id, CancellationToken ct = default);
     Task TransferEncounterOwnershipAsync(Guid id, TransferOwnershipRequest request, CancellationToken ct = default);

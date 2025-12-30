@@ -4,7 +4,7 @@ public record UpdateProfileRequest : Request {
     [StringLength(128, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 128 characters")]
     public string? Name { get; init; }
 
-    [StringLength(32, ErrorMessage = "Display name cannot exceed 32 characters")]
+    [StringLength(32, ErrorMessage = "DefaultDisplay name cannot exceed 32 characters")]
     public string? DisplayName { get; init; }
 
     [EmailAddress(ErrorMessage = "Invalid email format")]

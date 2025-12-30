@@ -1,13 +1,7 @@
 namespace VttTools.Common.Model;
 
-public record Dimension {
-    public double Width { get; init; }
-    public double Height { get; init; }
-
-    public Dimension(double width, double height) {
-        Width = width;
-        Height = height;
-    }
+public record Dimension(float Width, float Height) {
+    public Dimension() : this(0, 0) { }
 
     public static Dimension Zero => new(0, 0);
 

@@ -65,10 +65,10 @@ public class MediaConstraintsTests {
     public void For_Token_HasCorrectConstraints() {
         var constraints = MediaConstraints.For[ResourceRole.Token];
 
-        constraints.MaxWidth.Should().Be(256);
-        constraints.MaxHeight.Should().Be(256);
+        constraints.MaxWidth.Should().Be(1024);
+        constraints.MaxHeight.Should().Be(1024);
         constraints.MaxDuration.Should().Be(TimeSpan.Zero);
-        constraints.MaxFileSize.Should().Be(500 * 1024);
+        constraints.MaxFileSize.Should().Be(4 * 1024 * 1024);
         constraints.GenerateThumbnail.Should().BeTrue();
         constraints.StorageFolder.Should().Be("tokens");
     }
@@ -77,10 +77,10 @@ public class MediaConstraintsTests {
     public void For_Portrait_HasCorrectConstraints() {
         var constraints = MediaConstraints.For[ResourceRole.Portrait];
 
-        constraints.MaxWidth.Should().Be(512);
-        constraints.MaxHeight.Should().Be(512);
+        constraints.MaxWidth.Should().Be(1024);
+        constraints.MaxHeight.Should().Be(1024);
         constraints.MaxDuration.Should().Be(TimeSpan.FromSeconds(5));
-        constraints.MaxFileSize.Should().Be(2 * 1024 * 1024);
+        constraints.MaxFileSize.Should().Be(4 * 1024 * 1024);
         constraints.GenerateThumbnail.Should().BeTrue();
         constraints.StorageFolder.Should().Be("portraits");
     }
@@ -92,7 +92,7 @@ public class MediaConstraintsTests {
         constraints.MaxWidth.Should().Be(4096);
         constraints.MaxHeight.Should().Be(4096);
         constraints.MaxDuration.Should().Be(TimeSpan.FromSeconds(30));
-        constraints.MaxFileSize.Should().Be(20 * 1024 * 1024);
+        constraints.MaxFileSize.Should().Be(50 * 1024 * 1024);
         constraints.RequiresTransparency.Should().BeTrue();
         constraints.GenerateThumbnail.Should().BeTrue();
         constraints.StorageFolder.Should().Be("overlays");
@@ -105,7 +105,7 @@ public class MediaConstraintsTests {
         constraints.MaxWidth.Should().Be(1024);
         constraints.MaxHeight.Should().Be(1024);
         constraints.MaxDuration.Should().Be(TimeSpan.Zero);
-        constraints.MaxFileSize.Should().Be(5 * 1024 * 1024);
+        constraints.MaxFileSize.Should().Be(4 * 1024 * 1024);
         constraints.GenerateThumbnail.Should().BeTrue();
         constraints.StorageFolder.Should().Be("illustrations");
     }

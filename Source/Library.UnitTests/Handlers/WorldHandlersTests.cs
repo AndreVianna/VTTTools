@@ -1,20 +1,14 @@
 namespace VttTools.Library.Handlers;
 
 public class WorldHandlersTests {
-    private readonly IWorldService _worldService;
+    private readonly IWorldService _worldService = Substitute.For<IWorldService>();
     private readonly Guid _userId = Guid.CreateVersion7();
-    private readonly CancellationToken _ct;
-
-    public WorldHandlersTests() {
-        _worldService = Substitute.For<IWorldService>();
-        _ct = TestContext.Current.CancellationToken;
-    }
 
     private static HttpContext CreateHttpContext(Guid userId) {
         var context = new DefaultHttpContext();
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
         var identity = new ClaimsIdentity(claims, "TestAuthType");
-        context.User = new ClaimsPrincipal(identity);
+        context.User = new(identity);
         return context;
     }
 

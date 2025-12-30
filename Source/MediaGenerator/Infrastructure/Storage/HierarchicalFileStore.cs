@@ -3,8 +3,8 @@ namespace VttTools.MediaGenerator.Infrastructure.Storage;
 /// <summary>
 /// Stores VTT files (images and prompts) in a hierarchical folder structure.
 /// Hierarchy: files/{genre}/{category}/{type}/{subtype}/{asset}/files
-/// tokenIndex=0 (base): filename.png (e.g., topdown.png, token.png, portrait.png)
-/// tokenIndex>0: filename_NN.png (e.g., topdown_01.png, token_01.png)
+/// tokenIndex=0 (base): filename.png (e.g., token.png, token.png, portrait.png)
+/// tokenIndex>0: filename_NN.png (e.g., token_01.png, token_01.png)
 /// Supports Windows long paths (\\?\ prefix for paths >260 characters).
 /// </summary>
 public sealed partial class HierarchicalFileStore(string rootPath)
@@ -153,8 +153,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
 
     private static string BuildFileName(string imageType, int tokenIndex) {
         var baseName = imageType.ToLowerInvariant() switch {
-            "topdown" => "topdown",
-            "closeup" => "token",
+            "token" => "token",
             "portrait" => "portrait",
             _ => NormalizeFileName(imageType)
         };
@@ -165,9 +164,8 @@ public sealed partial class HierarchicalFileStore(string rootPath)
     }
 
     private static string PreparePathForWindows(string path) {
-        if (!OperatingSystem.IsWindows()) {
+        if (!OperatingSystem.IsWindows())
             return path;
-        }
 
         var fullPath = Path.GetFullPath(path);
 
@@ -184,23 +182,26 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         var rootImagesPath = PreparePathForWindows(_rootPath);
         var assets = new List<Asset>();
 
-        if (!Directory.Exists(rootImagesPath)) {
+        if (!Directory.Exists(rootImagesPath))
             return assets;
-        }
 
-        ListItems(rootImagesPath, kindFilter?.ToString(), kindPath
-            => ListItems(kindPath, categoryFilter, categoryPath
-                => ListItems(categoryPath, typeFilter, typePath
-                    => ListItems(typePath, subtypeFilter, subtypePath
-                        => ListItems(subtypePath, nameFilter, namePath
-                            => {
-                                var kind = Path.GetFileName(kindPath);
-                                var category = Path.GetFileName(categoryPath);
-                                var type = Path.GetFileName(typePath);
-                                var subtype = Path.GetFileName(subtypePath);
-                                assets.Add(CreateAsset(Enum.Parse<AssetKind>(kind, true), category, type, subtype, namePath));
-                            })))));
-
+        ListItems(rootImagesPath,
+                  kindFilter?.ToString(),
+                  kindPath => ListItems(kindPath,
+                                        categoryFilter,
+                                        categoryPath => ListItems(categoryPath,
+                                                                  typeFilter,
+                                                                  typePath => ListItems(typePath,
+                                                                                        subtypeFilter,
+                                                                                        subtypePath => ListItems(subtypePath,
+                                                                                                                 nameFilter,
+                                                                                                                 namePath => {
+                                                                                                                     var kind = Path.GetFileName(kindPath);
+                                                                                                                     var category = Path.GetFileName(categoryPath);
+                                                                                                                     var type = Path.GetFileName(typePath);
+                                                                                                                     var subtype = Path.GetFileName(subtypePath);
+                                                                                                                     assets.Add(CreateAsset(Enum.Parse<AssetKind>(kind, true), category, type, subtype, namePath));
+                                                                                                                 })))));
         return assets;
     }
 
@@ -220,7 +221,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         var assetPathWindows = PreparePathForWindows(assetPath);
 
         var tokenFiles = Directory.Exists(assetPathWindows)
-            ? Directory.EnumerateFiles(assetPathWindows, "topdown_*.png")
+            ? Directory.EnumerateFiles(assetPathWindows, "token_*.png")
                 .Concat(Directory.EnumerateFiles(assetPathWindows, "token_*.png"))
                 .Select(Path.GetFileNameWithoutExtension)
                 .Select(f => {
@@ -242,7 +243,7 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         return new() {
             Classification = new(kind, category, type, subtype),
             Name = name,
-            Tokens = tokenFiles
+            Tokens = tokenFiles,
         };
     }
 
@@ -269,19 +270,17 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         var type = pathParts[2];
 
         string? subtype = null;
-        if (pathParts.Length >= 4 && pathParts[3] != assetFolder) {
+        if (pathParts.Length >= 4 && pathParts[3] != assetFolder)
             subtype = pathParts[3];
-        }
 
         return CreateAsset(kind, category, type, subtype, assetPath);
     }
 
-    private static IReadOnlyList<string> ImageTypeFor(AssetKind kind)
+    private static IEnumerable<string> ImageTypeFor(AssetKind kind)
         => kind switch {
-            AssetKind.Character => ["TopDown", "CloseUp", "Portrait"],
-            AssetKind.Creature => ["TopDown", "CloseUp", "Portrait"],
-            AssetKind.Object => ["TopDown", "Portrait"],
-            _ => []
+            AssetKind.Object => ["Token"],
+            AssetKind.Character or AssetKind.Creature => ["Token", "Portrait"],
+            _ => [],
         };
 
     private static string NormalizeFolderName(string? component, string? defaultValue = null) {
@@ -321,9 +320,8 @@ public sealed partial class HierarchicalFileStore(string rootPath)
         var metadataPath = Path.Combine(assetPath, _metadataFileName);
         metadataPath = PreparePathForWindows(metadataPath);
 
-        if (!File.Exists(metadataPath)) {
+        if (!File.Exists(metadataPath))
             return Path.GetFileName(assetPath);
-        }
 
         var json = File.ReadAllText(metadataPath);
         var metadata = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonOptions);

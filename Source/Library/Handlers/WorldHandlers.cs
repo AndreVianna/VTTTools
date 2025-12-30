@@ -1,5 +1,3 @@
-using static VttTools.Utilities.ErrorCollectionExtensions;
-
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Library.Handlers;
@@ -77,7 +75,7 @@ internal static class WorldHandlers {
         var world = await worldService.GetWorldByIdAsync(id);
         return world is null
             ? Results.NotFound()
-            : world.OwnerId != userId && !(world is { IsPublic: true, IsPublished: true })
+            : world.OwnerId != userId && world is not { IsPublic: true, IsPublished: true }
                 ? Results.Forbid()
                 : Results.Ok(await worldService.GetCampaignsAsync(id));
     }

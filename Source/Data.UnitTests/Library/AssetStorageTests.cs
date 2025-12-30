@@ -1,6 +1,3 @@
-using AssetResourceEntity = VttTools.Data.Assets.Entities.AssetResource;
-using ResourceRole = VttTools.Media.Model.ResourceRole;
-
 namespace VttTools.Data.Library;
 
 public class AssetStorageTests
@@ -75,21 +72,65 @@ public class AssetStorageTests
 
     [Fact]
     public async Task UpdateAsync_WithExistingAsset_UpdatesInDatabase() {
-        var entity = DbContextHelper.CreateTestAssetEntity("Asset To Update");
+        // Create Resources first
+        var originalThumbnailId = Guid.CreateVersion7();
+        var originalThumbnail = new Media.Entities.Resource {
+            Id = originalThumbnailId,
+            Path = "test/original-thumbnail",
+            ContentType = "image/png",
+            FileName = "original_thumbnail.png",
+            FileSize = 500,
+            Dimensions = new(64, 64),
+        };
+        await _context.Resources.AddAsync(originalThumbnail, _ct);
+        await _context.SaveChangesAsync(_ct);
 
+        // Create Asset with proper ThumbnailId
+        var entity = DbContextHelper.CreateTestAssetEntity("Asset To Update", thumbnailId: originalThumbnailId);
         await _context.Assets.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
         _context.ChangeTracker.Clear();
 
-        var portraitId = Guid.CreateVersion7();
+        // Create new Resources for update
+        var newThumbnailId = Guid.CreateVersion7();
+        var newPortraitId = Guid.CreateVersion7();
+        var newThumbnail = new Media.Entities.Resource {
+            Id = newThumbnailId,
+            Path = "assets/updated-thumbnail",
+            ContentType = "image/png",
+            FileName = "updated_thumbnail.png",
+            FileSize = 500,
+            Dimensions = new(64, 64),
+        };
+        var newPortrait = new Media.Entities.Resource {
+            Id = newPortraitId,
+            Path = "assets/updated-portrait",
+            ContentType = "image/png",
+            FileName = "updated_portrait.png",
+            FileSize = 1500,
+            Dimensions = new(100, 100),
+        };
+        await _context.Resources.AddRangeAsync([newThumbnail, newPortrait], _ct);
+        await _context.SaveChangesAsync(_ct);
+        _context.ChangeTracker.Clear();
+
         var asset = new Asset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Classification = new(AssetKind.Creature, "test-category", "test-type", null),
             Name = "Updated Asset",
             Description = "Updated description",
+            Thumbnail = new() {
+                Id = newThumbnailId,
+                Path = "assets/updated-thumbnail",
+                FileName = "updated_thumbnail.png",
+                ContentType = "image/png",
+                FileSize = 500,
+                Dimensions = new(64, 64),
+                Duration = TimeSpan.Zero,
+            },
             Portrait = new() {
-                Id = portraitId,
+                Id = newPortraitId,
                 Path = "assets/updated-portrait",
                 FileName = "updated_portrait.png",
                 ContentType = "image/png",
@@ -119,10 +160,19 @@ public class AssetStorageTests
 
     [Fact]
     public async Task UpdateAsync_WithChangedImages_UpdatesImagesInDatabase() {
+        var thumbnailId = Guid.CreateVersion7();
         var portraitId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
 
-        var resource1 = new Media.Entities.Resource {
+        var thumbnailResource = new Media.Entities.Resource {
+            Id = thumbnailId,
+            Path = "assets/thumbnail",
+            ContentType = "image/png",
+            FileName = "thumbnail.png",
+            FileSize = 500,
+            Dimensions = new(64, 64),
+        };
+        var portraitResource = new Media.Entities.Resource {
             Id = portraitId,
             Path = "assets/portrait",
             ContentType = "image/png",
@@ -130,7 +180,7 @@ public class AssetStorageTests
             FileSize = 1000,
             Dimensions = new(100, 100),
         };
-        await _context.Resources.AddAsync(resource1, _ct);
+        await _context.Resources.AddRangeAsync([thumbnailResource, portraitResource], _ct);
 
         var entity = new Assets.Entities.Asset {
             Id = assetId,
@@ -143,15 +193,12 @@ public class AssetStorageTests
             Description = "Test description",
             IsPublished = false,
             IsPublic = false,
-            TokenSize = new(SizeName.Medium),
-            Resources = [
-                new AssetResourceEntity {
-                    AssetId = assetId,
-                    ResourceId = portraitId,
-                    Role = ResourceRole.Portrait,
-                    Index = 0,
-                },
-            ],
+            Size = new(SizeName.Medium),
+            ThumbnailId = thumbnailId,
+            Thumbnail = thumbnailResource,
+            PortraitId = portraitId,
+            Portrait = portraitResource,
+            Tokens = [],
         };
 
         await _context.Assets.AddAsync(entity, _ct);
@@ -165,6 +212,15 @@ public class AssetStorageTests
             Classification = new(AssetKind.Character, "test-category", "test-type", null),
             Name = entity.Name,
             Description = entity.Description,
+            Thumbnail = new() {
+                Id = thumbnailId,
+                Path = "assets/thumbnail",
+                FileName = "thumbnail.png",
+                ContentType = "image/png",
+                FileSize = 500,
+                Dimensions = new(64, 64),
+                Duration = TimeSpan.Zero,
+            },
             Portrait = new() {
                 Id = newPortraitId,
                 Path = "assets/new-portrait",
@@ -177,7 +233,7 @@ public class AssetStorageTests
             Tokens = [],
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            TokenSize = new(SizeName.Medium),
+            Size = new(SizeName.Medium),
         };
 
         var result = await _storage.UpdateAsync(updatedAsset, _ct);
@@ -185,13 +241,11 @@ public class AssetStorageTests
         result.Should().BeTrue();
         _context.ChangeTracker.Clear();
         var dbAsset = await _context.Assets
-            .Include(a => a.Resources)
+            .Include(a => a.Portrait)
             .AsNoTracking()
             .FirstAsync(a => a.Id == entity.Id, _ct);
         dbAsset.Should().NotBeNull();
-        var portraitResource = dbAsset.Resources.FirstOrDefault(r => r.Role == ResourceRole.Portrait);
-        portraitResource.Should().NotBeNull();
-        portraitResource!.ResourceId.Should().Be(newPortraitId);
+        dbAsset.PortraitId.Should().Be(newPortraitId);
     }
 
     [Fact]

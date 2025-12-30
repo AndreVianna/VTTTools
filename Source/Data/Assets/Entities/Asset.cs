@@ -18,9 +18,9 @@ public class Asset {
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
 
-    public NamedSize TokenSize { get; set; } = NamedSize.Default;
+    public NamedSize Size { get; set; } = NamedSize.Default;
 
-    public ICollection<AssetStatEntry> StatEntries { get; set; } = [];
+    public ICollection<AssetStatEntry> StatBlockEntries { get; set; } = [];
 
     public string[] Tags { get; set; } = [];
 
@@ -29,5 +29,11 @@ public class Asset {
     public bool IsPublic { get; set; }
     public bool IsDeleted { get; set; }
 
-    public ICollection<AssetResource> Resources { get; set; } = [];
+    public Guid? ThumbnailId { get; set; }
+    public Resource? Thumbnail { get; set; }
+
+    public Guid? PortraitId { get; set; }
+    public Resource? Portrait { get; set; }
+
+    public ICollection<AssetToken> Tokens { get; set; } = [];
 }

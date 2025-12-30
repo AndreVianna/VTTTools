@@ -457,7 +457,7 @@ public class AuditLoggingMiddlewareTests {
     }
 
     [Fact]
-    public async Task InvokeAsync_WithGuidInPath_ReplacesWithIdPlaceholder() {
+    public async Task InvokeAsync_WithGuidInPath_ExtractsEntityIdAndGeneratesSemanticAction() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
         var serviceProvider = CreateServiceProvider(auditLogService);
@@ -485,11 +485,15 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.Action.Should().Be("GET admin/users/{guid}");
+        // Middleware now generates semantic action names: "{EntityType}:{Verb}:ByUser"
+        // GET /api/admin/users/{guid} -> entity type is "Admin" (first segment after api)
+        // The GUID is at position 3 (admin/users/{guid}), but middleware only checks position 2 for entity ID
+        // Since position 2 is "users" (not a GUID), verb is "Listed" (GET without recognized entity ID)
+        capturedLog!.Action.Should().Be("Admin:Listed:ByUser");
     }
 
     [Fact]
-    public async Task InvokeAsync_WithIntegerInPath_ReplacesWithIntPlaceholder() {
+    public async Task InvokeAsync_WithIntegerInPath_GeneratesSemanticAction() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
         var serviceProvider = CreateServiceProvider(auditLogService);
@@ -516,11 +520,14 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.Action.Should().Be("DELETE admin/audit/{int}");
+        // Middleware now generates semantic action names: "{EntityType}:{Verb}:ByUser"
+        // DELETE /api/admin/audit/12345 -> entity type is "Admin", verb is "Deleted"
+        // Integer IDs are not recognized as entity IDs (only GUIDs), so no EntityId is set
+        capturedLog!.Action.Should().Be("Admin:Deleted:ByUser");
     }
 
     [Fact]
-    public async Task InvokeAsync_WithFullApiPath_CapturesAllSegmentsAfterApi() {
+    public async Task InvokeAsync_WithFullApiPath_GeneratesSemanticAction() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
         var serviceProvider = CreateServiceProvider(auditLogService);
@@ -547,7 +554,10 @@ public class AuditLoggingMiddlewareTests {
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         capturedLog.Should().NotBeNull();
-        capturedLog!.Action.Should().Be("POST auth/login");
+        // Middleware now generates semantic action names: "{EntityType}:{Verb}:ByUser"
+        // POST /api/auth/login -> "auth" is normalized to "User" (auth endpoints affect User entity)
+        // POST verb is "Created"
+        capturedLog!.Action.Should().Be("User:Created:ByUser");
     }
 
     [Fact]

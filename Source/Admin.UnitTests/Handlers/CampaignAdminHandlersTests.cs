@@ -1,11 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public sealed class CampaignAdminHandlersTests {
-    private readonly ICampaignAdminService _mockService;
-
-    public CampaignAdminHandlersTests() {
-        _mockService = Substitute.For<ICampaignAdminService>();
-    }
+    private readonly ICampaignAdminService _mockService = Substitute.For<ICampaignAdminService>();
 
     private static LibraryContentResponse CreateLibraryContentResponse(Guid? id = null, string name = "Test", string description = "Test Description")
         => new() {
@@ -15,7 +11,6 @@ public sealed class CampaignAdminHandlersTests {
             Description = description,
             IsPublished = false,
             IsPublic = false,
-            CreatedAt = DateTime.UtcNow
         };
 
     #region SearchHandler Tests

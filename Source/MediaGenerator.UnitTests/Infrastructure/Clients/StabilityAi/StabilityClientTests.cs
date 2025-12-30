@@ -19,8 +19,8 @@ public sealed class StabilityClientTests : IDisposable {
         _config["Providers:Stability:BaseUrl"].Returns("https://api.stability.ai");
         _config["Providers:Stability:ApiKey"].Returns("test-key");
         _config["Providers:Stability:sd3"].Returns("/v2beta/stable-image/generate/sd3");
-        _config["Images:TopDown:AspectRatio"].Returns("1:1");
-        _config["Images:TopDown:OtherNegativePromptFor"].Returns("extra negative");
+        _config["Images:Token:AspectRatio"].Returns("1:1");
+        _config["Images:Token:OtherNegativePromptFor"].Returns("extra negative");
 
         var httpClient = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new("https://api.stability.ai")
@@ -44,7 +44,7 @@ public sealed class StabilityClientTests : IDisposable {
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        var result = await _client.GenerateImageFileAsync("sd3", "TopDown", "A fantasy dragon", _ct);
+        var result = await _client.GenerateImageFileAsync("sd3", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeEmpty();
@@ -55,7 +55,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task GenerateImageFileAsync_WithErrorResponse_ThrowsException() {
         _mockHandler.SetResponse(HttpStatusCode.BadRequest, "{\"error\":\"Invalid prompt\"}");
 
-        var act = () => _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Stability API error*");
@@ -66,7 +66,7 @@ public sealed class StabilityClientTests : IDisposable {
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        await _client.GenerateImageFileAsync("sd3", "TopDown", "A magical forest", _ct);
+        await _client.GenerateImageFileAsync("sd3", "Token", "A magical forest", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("A magical forest");
@@ -98,11 +98,11 @@ public sealed class StabilityClientTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_IncludesNegativePromptInRequest() {
-        _config["Images:TopDown:OtherNegativePromptFor"].Returns("extra negative");
+        _config["Images:Token:OtherNegativePromptFor"].Returns("extra negative");
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        await _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("border, frame, text, watermark");
@@ -111,11 +111,11 @@ public sealed class StabilityClientTests : IDisposable {
 
     [Fact]
     public async Task GenerateImageFileAsync_WithNoExtraNegativePrompt_UsesGenericOnly() {
-        _config["Images:CloseUp:OtherNegativePromptFor"].Returns((string?)null);
+        _config["Images:Token:OtherNegativePromptFor"].Returns((string?)null);
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        await _client.GenerateImageFileAsync("sd3", "CloseUp", "A knight", _ct);
+        await _client.GenerateImageFileAsync("sd3", "Token", "A knight", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("border, frame, text, watermark");
@@ -127,7 +127,7 @@ public sealed class StabilityClientTests : IDisposable {
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        await _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("text-to-image");
@@ -138,7 +138,7 @@ public sealed class StabilityClientTests : IDisposable {
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        await _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("png");
@@ -149,7 +149,7 @@ public sealed class StabilityClientTests : IDisposable {
         var imageBytes = CreateTestImageBytes();
         _mockHandler.SetResponse(HttpStatusCode.OK, imageBytes, "image/png");
 
-        await _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        await _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("10");
@@ -159,7 +159,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task Constructor_WithMissingBaseUrl_ThrowsWhenCreatingClient() {
         _config["Providers:Stability:BaseUrl"].Returns((string?)null);
 
-        var act = () => _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*base url not configured*");
@@ -169,7 +169,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task Constructor_WithMissingApiKey_ThrowsWhenCreatingClient() {
         _config["Providers:Stability:ApiKey"].Returns((string?)null);
 
-        var act = () => _client.GenerateImageFileAsync("sd3", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("sd3", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*API key is not configured*");
@@ -179,7 +179,7 @@ public sealed class StabilityClientTests : IDisposable {
     public async Task GenerateImageFileAsync_WithMissingEndpoint_ThrowsException() {
         _config["Providers:Stability:unknown-model"].Returns((string?)null);
 
-        var act = () => _client.GenerateImageFileAsync("unknown-model", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("unknown-model", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*endpoint is not configured*");

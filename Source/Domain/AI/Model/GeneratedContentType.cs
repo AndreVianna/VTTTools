@@ -19,9 +19,9 @@ public enum GeneratedContentType {
 public static class GeneratedContentTypeExtensions {
     public static (string Type, string Subtype) GetTypeAndSubtype(this GeneratedContentType contentType)
         => contentType switch {
-            GeneratedContentType.ImagePortrait => ("Image", "Portrait"),
-            GeneratedContentType.ImageToken => ("Image", "Token"),
-            GeneratedContentType.ImageBackground => ("Image", "Background"),
+            GeneratedContentType.ImagePortrait => ("DefaultDisplay", "Portrait"),
+            GeneratedContentType.ImageToken => ("DefaultDisplay", "Token"),
+            GeneratedContentType.ImageBackground => ("DefaultDisplay", "Background"),
             GeneratedContentType.AudioSoundEffect => ("Audio", "SoundEffect"),
             GeneratedContentType.AudioAmbientSound => ("Audio", "AmbientSound"),
             GeneratedContentType.AudioMusic => ("Audio", "Music"),

@@ -58,7 +58,7 @@ public class GetEncounterByIDSteps {
             OwnerId = _userId,
             Name = "Test Encounter",
             Description = "Test Description",
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         };
 
@@ -85,7 +85,7 @@ public class GetEncounterByIDSteps {
             OwnerId = _userId,
             Name = "Test Encounter",
             Description = "Test Description",
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
             Assets = []
         };
@@ -96,7 +96,7 @@ public class GetEncounterByIDSteps {
 
             if (component == "Stage" && status == "configured") {
                 encounter = encounter with {
-                    Stage = new Stage {
+                    Settings = new StageSettings {
                         Background = new Resource {
                             Id = Guid.CreateVersion7(),
                             Type = ResourceType.Image,
@@ -151,7 +151,7 @@ public class GetEncounterByIDSteps {
             OwnerId = _userId,
             Name = "Test Encounter",
             Description = "Test Description",
-            Stage = new Stage {
+            Settings = new StageSettings {
                 Background = new Resource {
                     Id = Guid.Parse(row["Background"]),
                     Type = ResourceType.Image,
@@ -181,7 +181,7 @@ public class GetEncounterByIDSteps {
             OwnerId = _userId,
             Name = "Test Encounter",
             Description = "Test Description",
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Grid = new Grid {
                 Type = GridType.Square,
                 CellSize = new Size(int.Parse(row["Size"]), int.Parse(row["Size"])),
@@ -204,7 +204,7 @@ public class GetEncounterByIDSteps {
             OwnerId = _userId,
             Name = "Test Encounter",
             Description = "Test Description",
-            Stage = new Stage {
+            Settings = new StageSettings {
                 Background = new Resource {
                     Id = Guid.CreateVersion7(),
                     Type = ResourceType.Image,
@@ -235,7 +235,7 @@ public class GetEncounterByIDSteps {
             OwnerId = _userId,
             Name = "Test Encounter",
             Description = "Test Description",
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Grid = new Grid {
                 Type = type,
                 CellSize = type == GridType.None ? new Size(0, 0) : new Size(50, 50)
@@ -321,7 +321,7 @@ public class GetEncounterByIDSteps {
 
     [Then(@"the stage configuration should be included")]
     public void ThenTheStageConfigurationShouldBeIncluded() {
-        _retrievedEncounter!.Stage.Should().NotBeNull();
+        _retrievedEncounter!.Settings.Should().NotBeNull();
     }
 
     [Then(@"the grid configuration should be included")]
@@ -336,14 +336,14 @@ public class GetEncounterByIDSteps {
 
     [Then(@"I should receive the complete stage configuration")]
     public void ThenIShouldReceiveTheCompleteStageConfiguration() {
-        _retrievedEncounter!.Stage.Should().NotBeNull();
-        _retrievedEncounter!.Stage.Background.Should().NotBeNull();
+        _retrievedEncounter!.Settings.Should().NotBeNull();
+        _retrievedEncounter!.Settings.Background.Should().NotBeNull();
     }
 
     [Then(@"all stage properties should be correct")]
     public void ThenAllStagePropertiesShouldBeCorrect() {
         var expected = _context.Get<Encounter>("ExistingEncounter");
-        _retrievedEncounter!.Stage.Should().BeEquivalentTo(expected.Stage);
+        _retrievedEncounter!.Settings.Should().BeEquivalentTo(expected.Settings);
     }
 
     [Then(@"I should receive the complete grid configuration")]

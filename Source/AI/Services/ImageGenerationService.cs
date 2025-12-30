@@ -66,7 +66,7 @@ public class ImageGenerationService(IAiProviderFactory providerFactory,
             var request = new AddJobRequest {
                 Type = BulkAssetGenerationHandler.JobTypeName,
                 EstimatedDuration = TimeSpan.FromMilliseconds(1500 * expandedItems.Count),
-                Items = [..expandedItems],
+                Items = [.. expandedItems],
             };
 
             var job = await jobsClient.AddAsync(ownerId, request, ct);

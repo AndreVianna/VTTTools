@@ -14,15 +14,10 @@ public class HealthCheckHandlersTests {
     }
 
     private readonly TestHealthCheckService _healthCheckService = new();
-    private readonly IAuditLogService _mockAuditLogService;
-    private readonly ClaimsPrincipal _testUser;
-
-    public HealthCheckHandlersTests() {
-        _mockAuditLogService = Substitute.For<IAuditLogService>();
-        _testUser = new(new ClaimsIdentity([
-                                               new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-                                           ], "Test"));
-    }
+    private readonly IAuditLogService _mockAuditLogService = Substitute.For<IAuditLogService>();
+    private readonly ClaimsPrincipal _testUser = new(new ClaimsIdentity([
+                                                                            new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                                                                        ], "Test"));
 
     [Fact]
     public async Task GetHealthChecksHandler_ReturnsHealthy_WhenAllChecksPass() {

@@ -25,7 +25,7 @@ public sealed class AdventureAdminService(
                 SortBy = request.SortBy,
                 SortOrder = request.SortOrder,
                 Skip = skip,
-                Take = take + 1
+                Take = take + 1,
             };
 
             (var adventures, var totalCount) = await adventureStorage.SearchAsync(MasterUserId, filter, ct);
@@ -46,10 +46,10 @@ public sealed class AdventureAdminService(
                 "Adventure search completed: {Count} adventures found (Skip: {Skip}, Take: {Take}, Total: {Total})",
                 content.Count, skip, take, totalCount);
 
-            return new LibraryContentSearchResponse {
+            return new() {
                 Content = content.AsReadOnly(),
                 TotalCount = totalCount,
-                HasMore = hasMore
+                HasMore = hasMore,
             };
         }
         catch (Exception ex) {
@@ -77,7 +77,7 @@ public sealed class AdventureAdminService(
         string description,
         CancellationToken ct = default) {
         try {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
             var adventure = new AdventureModel {
                 Id = Guid.CreateVersion7(),
@@ -85,7 +85,7 @@ public sealed class AdventureAdminService(
                 Name = name,
                 Description = description,
                 IsPublished = false,
-                IsPublic = false
+                IsPublic = false,
             };
 
             await adventureStorage.AddAsync(adventure, ct);
@@ -181,7 +181,13 @@ public sealed class AdventureAdminService(
         try {
             var encounters = await encounterStorage.GetByParentIdAsync(adventureId, ct);
 
-            var result = encounters.Select(MapEncounterToContentResponse).ToList();
+            var owners = await GetOwnerDictionaryAsync(encounters.Select(a => a.OwnerId), ct);
+
+            var result = new List<LibraryContentResponse>();
+            foreach (var encounter in encounters) {
+                var ownerName = owners.GetValueOrDefault(encounter.OwnerId);
+                result.Add(MapEncounterToContentResponse(encounter, ownerName));
+            }
 
             Logger.LogInformation("Retrieved {Count} encounters for adventure {AdventureId}", result.Count, adventureId);
             return result.AsReadOnly();
@@ -198,24 +204,27 @@ public sealed class AdventureAdminService(
         string description,
         CancellationToken ct = default) {
         try {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
             var adventure = await adventureStorage.GetByIdAsync(adventureId, ct)
                 ?? throw new KeyNotFoundException($"Adventure with ID {adventureId} not found");
 
             var encounter = new EncounterModel {
                 Id = Guid.CreateVersion7(),
+                OwnerId = MasterUserId,
                 Adventure = adventure,
                 Name = name,
                 Description = description,
-                IsPublished = false
+                IsPublished = false,
+                IsPublic = false,
             };
 
             await encounterStorage.AddAsync(encounter, adventureId, ct);
 
             Logger.LogInformation("Created encounter {EncounterId} '{Name}' for adventure {AdventureId}", encounter.Id, name, adventureId);
 
-            return MapEncounterToContentResponse(encounter);
+            var ownerName = await GetOwnerNameAsync(encounter.OwnerId);
+            return MapEncounterToContentResponse(encounter, ownerName);
         }
         catch (Exception ex) {
             Logger.LogError(ex, "Error creating encounter for adventure {AdventureId}", adventureId);
@@ -232,20 +241,22 @@ public sealed class AdventureAdminService(
             var encounter = await encounterStorage.GetByIdAsync(encounterId, ct)
                 ?? throw new KeyNotFoundException($"Encounter {encounterId} not found");
 
-            if (encounter.Adventure?.Id != adventureId)
+            if (encounter.Adventure.Id != adventureId)
                 throw new KeyNotFoundException($"Encounter {encounterId} not found in adventure {adventureId}");
 
             var clonedEncounter = encounter with {
                 Id = Guid.CreateVersion7(),
                 Name = newName ?? $"{encounter.Name} (Copy)",
-                IsPublished = false
+                IsPublished = false,
+                IsPublic = false,
             };
 
             await encounterStorage.AddAsync(clonedEncounter, adventureId, ct);
 
             Logger.LogInformation("Cloned encounter {EncounterId} to {ClonedId} for adventure {AdventureId}", encounterId, clonedEncounter.Id, adventureId);
 
-            return MapEncounterToContentResponse(clonedEncounter);
+            var ownerName = await GetOwnerNameAsync(clonedEncounter.OwnerId);
+            return MapEncounterToContentResponse(clonedEncounter, ownerName);
         }
         catch (Exception ex) {
             Logger.LogError(ex, "Error cloning encounter {EncounterId} in adventure {AdventureId}", encounterId, adventureId);
@@ -261,7 +272,7 @@ public sealed class AdventureAdminService(
             var encounter = await encounterStorage.GetByIdAsync(encounterId, ct)
                 ?? throw new KeyNotFoundException($"Encounter {encounterId} not found");
 
-            if (encounter.Adventure?.Id != adventureId)
+            if (encounter.Adventure.Id != adventureId)
                 throw new KeyNotFoundException($"Encounter {encounterId} not found in adventure {adventureId}");
 
             await encounterStorage.DeleteAsync(encounterId, ct);
@@ -283,20 +294,16 @@ public sealed class AdventureAdminService(
             Description = adventure.Description,
             IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
         };
 
-    private static LibraryContentResponse MapEncounterToContentResponse(EncounterModel encounter)
+    private static LibraryContentResponse MapEncounterToContentResponse(EncounterModel encounter, string? ownerName)
         => new() {
             Id = encounter.Id,
-            OwnerId = encounter.Adventure?.OwnerId ?? Guid.Empty,
-            OwnerName = null,
-            Name = encounter.Name,
-            Description = encounter.Description,
+            OwnerId = encounter.OwnerId,
+            OwnerName = ownerName,
+            Name = encounter.Name ?? encounter.Stage.Name,
+            Description = encounter.Description ?? encounter.Stage.Description,
             IsPublished = encounter.IsPublished,
-            IsPublic = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
+            IsPublic = encounter.IsPublic,
         };
 }

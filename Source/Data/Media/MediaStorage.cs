@@ -9,7 +9,7 @@ public class MediaStorage(ApplicationDbContext context)
         CancellationToken ct = default) {
         var query = context.Resources.AsNoTracking();
 
-        // Note: Role filtering is no longer available at Resource level.
+        // Note: Role filtering is no longer available at Display level.
         // Role is stored in junction tables (AssetResources, CampaignResources, etc.)
 
         if (!string.IsNullOrWhiteSpace(filter.SearchText)) {

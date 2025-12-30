@@ -1,5 +1,3 @@
-using VttTools.Data.Common.Entities;
-
 namespace VttTools.Data.Assets.Entities;
 
 public class AssetStatEntry {

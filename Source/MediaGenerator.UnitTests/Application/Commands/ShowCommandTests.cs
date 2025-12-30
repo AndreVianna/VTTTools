@@ -34,7 +34,7 @@ public sealed class ShowCommandTests : IDisposable {
     [Fact]
     public async Task Should_ShowEntityInfo_When_EntityExists() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
-        await SaveEntityImageAsync(goblin, 1, "TopDown");
+        await SaveEntityImageAsync(goblin, 1, "Token");
 
         var options = new ShowTokenOptions(Name: "Goblin");
 
@@ -50,10 +50,9 @@ public sealed class ShowCommandTests : IDisposable {
     public async Task Should_ShowAllTokens_When_EntityHasMultipleTokens() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
 
-        var fakeImage = new byte[1024];
-        await _imageStore.SaveImageAsync("TopDown", goblin, 1, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("TopDown", goblin, 2, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("TopDown", goblin, 3, fakeImage, TestContext.Current.CancellationToken);
+        await SaveEntityImageAsync(goblin, 1, "Token");
+        await SaveEntityImageAsync(goblin, 2, "Token");
+        await SaveEntityImageAsync(goblin, 3, "Token");
 
         var options = new ShowTokenOptions(Name: "Goblin");
 
@@ -69,10 +68,8 @@ public sealed class ShowCommandTests : IDisposable {
     public async Task Should_ShowAllPoses_When_VariantHasMultiplePoses() {
         var entity = EntityDefinitionFixtures.CreateSimpleGoblin();
 
-        var fakeImage = new byte[1024];
-        await _imageStore.SaveImageAsync("TopDown", entity, 1, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("CloseUp", entity, 1, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("Portrait", entity, 1, fakeImage, TestContext.Current.CancellationToken);
+        await SaveEntityImageAsync(entity, 1, "Token");
+        await SaveEntityImageAsync(entity, 1, "Portrait");
 
         var options = new ShowTokenOptions(Name: "Goblin");
 
@@ -88,12 +85,7 @@ public sealed class ShowCommandTests : IDisposable {
     public async Task Should_ShowCorrectMetadata() {
         var entity = EntityDefinitionFixtures.CreateSimpleGoblin();
 
-        var fakeImage = new byte[2048];
-        for (var i = 0; i < fakeImage.Length; i++) {
-            fakeImage[i] = (byte)(i % 256);
-        }
-
-        await _imageStore.SaveImageAsync("TopDown", entity, 1, fakeImage, TestContext.Current.CancellationToken);
+        await SaveEntityImageAsync(entity, 1, "Token");
 
         var options = new ShowTokenOptions(Name: "Goblin");
 
@@ -108,7 +100,7 @@ public sealed class ShowCommandTests : IDisposable {
     [Fact]
     public async Task Should_HandleCaseInsensitiveNameLookup() {
         var goblin = EntityDefinitionFixtures.CreateSimpleGoblin();
-        await SaveEntityImageAsync(goblin, 1, "TopDown");
+        await SaveEntityImageAsync(goblin, 1, "Token");
 
         var options = new ShowTokenOptions(Name: "GOBLIN");
 
@@ -123,16 +115,11 @@ public sealed class ShowCommandTests : IDisposable {
     public async Task Should_ShowComplexTokenHierarchy_When_EntityHasMultipleTokensWithDifferentPoses() {
         var dragon = EntityDefinitionFixtures.CreateDragonWithComplexVariants();
 
-        var fakeImage = new byte[1024];
-        await _imageStore.SaveImageAsync("TopDown", dragon, 0, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("TopDown", dragon, 1, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("CloseUp", dragon, 1, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("Portrait", dragon, 1, fakeImage, TestContext.Current.CancellationToken);
-
-        await _imageStore.SaveImageAsync("TopDown", dragon, 2, fakeImage, TestContext.Current.CancellationToken);
-        await _imageStore.SaveImageAsync("CloseUp", dragon, 2, fakeImage, TestContext.Current.CancellationToken);
-
-        await _imageStore.SaveImageAsync("TopDown", dragon, 3, fakeImage, TestContext.Current.CancellationToken);
+        // Index 0 is excluded by CreateAsset (line 232: Where(idx => idx > 0))
+        await SaveEntityImageAsync(dragon, 1, "Token");
+        await SaveEntityImageAsync(dragon, 1, "Portrait");
+        await SaveEntityImageAsync(dragon, 2, "Token");
+        await SaveEntityImageAsync(dragon, 3, "Token");
 
         var options = new ShowTokenOptions(Name: "Red Dragon");
 
@@ -148,5 +135,19 @@ public sealed class ShowCommandTests : IDisposable {
     private async Task SaveEntityImageAsync(Asset entity, int variantIndex, string imageType) {
         var fakeImage = new byte[1024];
         await _imageStore.SaveImageAsync(imageType, entity, variantIndex, fakeImage);
+        // CreateAsset expects token_{idx}.png (no leading zero) to exist for each variant index
+        if (variantIndex > 0)
+            await CreateTokenFileAsync(entity, variantIndex, fakeImage);
+    }
+
+    private async Task CreateTokenFileAsync(Asset entity, int variantIndex, byte[] content) {
+        var assetPath = Path.Combine(_tempDir,
+            entity.Classification.Kind.ToString().ToLowerInvariant(),
+            entity.Classification.Category.ToLowerInvariant(),
+            entity.Classification.Type.ToLowerInvariant(),
+            entity.Classification.Subtype?.ToLowerInvariant() ?? string.Empty,
+            entity.Name.ToLowerInvariant().Replace(" ", "_"));
+        Directory.CreateDirectory(assetPath);
+        await File.WriteAllBytesAsync(Path.Combine(assetPath, $"token_{variantIndex}.png"), content);
     }
 }

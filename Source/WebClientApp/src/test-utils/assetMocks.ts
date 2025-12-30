@@ -2,7 +2,7 @@
  * Test Utilities: Asset Mock Factories
  *
  * Provides factory functions to create mock Asset objects with 4-image structure
- * (Portrait, TopDown, Miniature, Photo)
+ * (Portrait, Token, Miniature, Photo)
  *
  * Usage:
  *   const monster = mockMonsterAsset({ name: 'Goblin' });
@@ -36,7 +36,7 @@ export const mockObjectAsset = (overrides?: Partial<Asset>): Asset => ({
   description: 'Test object description',
   portrait: null,
   tokenSize: { width: 1, height: 1 },
-  tokens: [mockMediaResource({ id: 'topdown-123' })],
+  tokens: [mockMediaResource({ id: 'token-123' })],
   statBlocks: {},
   tags: [],
   ownerId: 'user-123',
@@ -57,7 +57,7 @@ export const mockCreatureAsset = (overrides?: Partial<Asset>): Asset => ({
   description: 'Test creature description',
   portrait: null,
   tokenSize: { width: 1, height: 1 },
-  tokens: [mockMediaResource({ id: 'topdown-456' })],
+  tokens: [mockMediaResource({ id: 'token-456' })],
   statBlocks: {},
   tags: [],
   ownerId: 'user-123',
@@ -80,7 +80,7 @@ export const mockCharacterAsset = (overrides?: Partial<Asset>): Asset => ({
   description: 'Test character description',
   portrait: mockMediaResource({ id: 'portrait-789' }),
   tokenSize: { width: 1, height: 1 },
-  tokens: [mockMediaResource({ id: 'topdown-789' })],
+  tokens: [mockMediaResource({ id: 'token-789' })],
   statBlocks: {},
   tags: [],
   ownerId: 'user-123',
@@ -110,7 +110,7 @@ export const mockAssetWithAllImages = (overrides?: Partial<Asset>): Asset => {
     ...asset,
     portrait: mockMediaResource({ id: 'portrait-1', path: '/media/portrait.png' }),
     tokens: [
-      mockMediaResource({ id: 'topdown-1', path: '/media/topdown.png' }),
+      mockMediaResource({ id: 'token-1', path: '/media/token.png' }),
       mockMediaResource({ id: 'miniature-1', path: '/media/miniature.png' }),
       mockMediaResource({ id: 'photo-1', path: '/media/photo.png' }),
     ],

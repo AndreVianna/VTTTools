@@ -14,7 +14,7 @@
 Refactor the VTTTools encounter domain model to eliminate conceptual overlap and improve maintainability through a perception-based, semantic categorization system.
 
 **From**: 2-tier classification (EncounterAsset, EncounterSound)
-**To**: 2-category, 9-element-type system (Game Elements, Structural Elements)
+**To**: 2-category, 8-element-type system (Game Elements, Structural Elements)
 
 ---
 
@@ -54,8 +54,10 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 
 | Category | Criterion | Element Types |
 |----------|-----------|---------------|
-| **Game Elements** | Has game rules/mechanics | Actor, Prop, Trap, Effect |
+| **Game Elements** | Has game rules/mechanics | Actor, Prop, Effect |
 | **Structural Elements** | Passive environment | Wall, Region, Light, Decoration, Audio |
+
+**Note**: Trap has been merged into Effect - a trap is just a "hazardous effect".
 
 **Key Insights:**
 1. **Visual media unified** - Images, sprites, videos are all "pixels on the map." File format is implementation detail.
@@ -69,15 +71,16 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 ### Domain Model Changes
 
 **New Entities:**
-- `EncounterActor` - Characters + Creatures (with frames, StatBlocks)
+- `EncounterActor` - Characters + Creatures (with frames, asset reference)
 - `EncounterProp` - Interactive objects (no frames, state machine)
-- `EncounterTrap` - Triggered hazards (damage, saves, triggers)
-- `EncounterEffect` - Spell zones (duration, AOE, conditions)
+- `EncounterEffect` - Unified effect/trap (4 visual resources, state machine, optional trigger)
 - `EncounterDecoration` - Unified visual media (images/sprites, ResourceType enum)
 - `EncounterAudio` - Auditory media (global or positional)
 
+**Note**: Trap entity is merged into Effect - a trap is just a "hazardous effect" with trigger capabilities.
+
 **Modified Entities:**
-- `Encounter` - 9 collections (down from 12)
+- `Encounter` - 8 collections (Actors, Props, Effects, Walls, Regions, Lights, Decorations, Audios)
 - `AssetKind` enum - Remove Effect/Object, add Prop/Decoration
 
 **Removed Entities:**
@@ -88,11 +91,10 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 
 ### Database Changes
 
-**New Tables (6):**
+**New Tables (5):**
 - EncounterActors
 - EncounterProps
-- EncounterTraps
-- EncounterEffects
+- EncounterEffects (unified - replaces both old Effects and Traps)
 - EncounterDecorations (with ResourceType enum)
 - EncounterAudios
 
@@ -102,13 +104,12 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 
 ### API Changes
 
-**New Endpoints (~30-35):**
-- `/api/v2/encounters/{id}/actors` (GET, POST, PUT, DELETE)
-- `/api/v2/encounters/{id}/props` (GET, POST, PUT, DELETE)
-- `/api/v2/encounters/{id}/traps` (GET, POST, PUT, DELETE)
-- `/api/v2/encounters/{id}/effects` (GET, POST, PUT, DELETE)
-- `/api/v2/encounters/{id}/decorations` (GET, POST, PUT, DELETE)
-- `/api/v2/encounters/{id}/audio` (GET, POST, PUT, DELETE)
+**New Endpoints (~25-30):**
+- `/api/encounters/{id}/actors` (GET, POST, PUT, DELETE)
+- `/api/encounters/{id}/props` (GET, POST, PUT, DELETE)
+- `/api/encounters/{id}/effects` (GET, POST, PUT, DELETE) - unified effects/traps
+- `/api/encounters/{id}/decorations` (GET, POST, PUT, DELETE)
+- `/api/encounters/{id}/audio` (GET, POST, PUT, DELETE)
 
 **Deprecation:**
 - V1 endpoints maintained for 6 months
@@ -117,13 +118,12 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 
 ### Frontend Changes
 
-**UI Panels (9 element panels):**
+**UI Panels (8 element panels):**
 
-**Game Elements (4 panels):**
+**Game Elements (3 panels):**
 - 👥 Actors Panel
 - 📦 Props Panel
-- ⚡ Traps Panel
-- ✨ Effects Panel
+- ✨ Effects Panel (unified - covers both effects and traps)
 
 **Structural Elements (5 panels):**
 - 🧱 Walls Panel (unchanged)
@@ -142,12 +142,12 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 ## Implementation Phases
 
 ### Phase 1: Foundation (24-30h)
-- Domain entities (9 new)
+- Domain entities (8 element types)
 - Base abstractions (EncounterElement, GameElement, StructuralElement)
-- Supporting enums (ResourceType, ObjectState, TrapState, etc.)
+- Supporting enums (ResourceType, PropState, EffectState)
 
 ### Phase 2: Backend Infrastructure (36-42h)
-- Database schema (6 new tables)
+- Database schema (5 new tables)
 - EF Core configuration
 - Schema builders and mappers
 
@@ -212,11 +212,11 @@ Refactor the VTTTools encounter domain model to eliminate conceptual overlap and
 
 ### Must Have (MVP)
 
-- ✅ All 9 element types functional (Actor, Prop, Trap, Effect, Wall, Region, Light, Decoration, Audio)
+- ✅ All 8 element types functional (Actor, Prop, Effect, Wall, Region, Light, Decoration, Audio)
 - ✅ Asset library supports new AssetKind values (Prop, Decoration)
 - ✅ Frame rendering ONLY for Actors (Props/Decorations blend seamlessly)
-- ✅ Traps have trigger areas and damage mechanics
-- ✅ Effects have duration tracking
+- ✅ Effects have state machine (Enabled, Disabled, Triggered) with 4 visual resources
+- ✅ Effects support optional trigger areas for automatic triggering
 - ✅ All existing encounters migrated successfully
 - ✅ Undo/redo works for all new element types
 - ✅ V1 API endpoints remain functional (deprecation timeline)
@@ -392,6 +392,6 @@ Each phase requires:
 
 ---
 
-**Version**: 1.0
+**Version**: 1.2
 **Last Updated**: 2025-12-28
-**Status**: Ready for stakeholder approval
+**Status**: Updated with unified Effect model (Trap + Effect merged)

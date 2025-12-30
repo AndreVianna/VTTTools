@@ -101,20 +101,20 @@ public class AuditLogStorage(ApplicationDbContext context)
             .Where(a => a.Timestamp >= startDate && a.Payload != null)
             .Select(a => new {
                 a.Timestamp,
-                a.Payload
+                a.Payload,
             })
             .ToListAsync(ct);
 
         var results = logs
             .Select(a => new {
                 a.Timestamp,
-                DurationMs = ExtractDurationMs(a.Payload!)
+                DurationMs = ExtractDurationMs(a.Payload!),
             })
             .Where(a => a.DurationMs > 0)
             .GroupBy(a => new DateTime(a.Timestamp.Year, a.Timestamp.Month, a.Timestamp.Day, a.Timestamp.Hour, 0, 0, DateTimeKind.Utc))
             .Select(g => new TimeSeriesDataPoint {
                 Timestamp = g.Key,
-                Value = g.Average(a => a.DurationMs)
+                Value = g.Average(a => a.DurationMs),
             })
             .OrderBy(dp => dp.Timestamp)
             .ToList();

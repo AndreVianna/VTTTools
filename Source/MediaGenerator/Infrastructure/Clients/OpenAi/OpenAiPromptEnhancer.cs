@@ -95,9 +95,9 @@ public sealed class OpenAiPromptEnhancer(
 
     private static string ImageDescriptionFor(string imageType, Asset asset)
         => imageType switch {
-            "TopDown" => $"a bird's eye, top-down of the {asset.Classification.Kind}, with a transparent background to be seamless integrated into a virtual battlemap",
-            "CloseUp" => $"a close-up of the main features of the {asset.Classification.Kind}, with a solid neutral background, to be used as a token on a virtual battlemap",
-            _ => $"a portrait of the {asset.Classification.Kind}, displaying it in full view, with an image background that highlights the {BackgroundFor(asset)}, to be used as the {asset.Classification.Kind} display",
+            "Token" => $"a bird's eye, top-down of the {asset.Classification.Kind}, with a transparent background to be seamless integrated into a virtual battlemap",
+            "Portrait" => $"a portrait of the {asset.Classification.Kind}, displaying it in full view, with an image background that highlights the {BackgroundFor(asset)}, to be used as the {asset.Classification.Kind} display",
+            _ => throw new ArgumentException($"Unknown image type: {imageType}", nameof(imageType)),
         };
 
     private static string BackgroundFor(Asset asset) => asset.Classification.Kind switch {

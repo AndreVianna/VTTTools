@@ -1,11 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public sealed class LibraryAdminHandlersTests {
-    private readonly ILibraryConfigService _mockService;
-
-    public LibraryAdminHandlersTests() {
-        _mockService = Substitute.For<ILibraryConfigService>();
-    }
+    private readonly ILibraryConfigService _mockService = Substitute.For<ILibraryConfigService>();
 
     #region GetConfigHandler Tests
 

@@ -3,11 +3,7 @@ using VttTools.MediaGenerator.Application.HealthChecks;
 namespace VttTools.AssetImageManager.Application.HealthChecks;
 
 public sealed class FilesystemHealthCheckTests : IDisposable {
-    private readonly string _tempDir;
-
-    public FilesystemHealthCheckTests() {
-        _tempDir = Path.Combine(Path.GetTempPath(), $"FilesystemHealthCheckTests_{Guid.NewGuid():N}");
-    }
+    private readonly string _tempDir = Path.Combine(Path.GetTempPath(), $"FilesystemHealthCheckTests_{Guid.NewGuid():N}");
 
     public void Dispose() {
         if (Directory.Exists(_tempDir)) {

@@ -34,7 +34,7 @@ public class HierarchicalFileStoreEnumerationTests {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         var assetDir = Path.Combine(tempDir, "creature", "humanoid", "goblinoid", "common", "goblin");
         Directory.CreateDirectory(assetDir);
-        File.WriteAllText(Path.Combine(assetDir, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
         File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
 
         try {
@@ -63,12 +63,13 @@ public class HierarchicalFileStoreEnumerationTests {
         var assetDir = Path.Combine(tempDir, "creature", "humanoid", "goblinoid", "common", "goblin");
         Directory.CreateDirectory(assetDir);
 
-        File.WriteAllText(Path.Combine(assetDir, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
         File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
         File.WriteAllText(Path.Combine(assetDir, "portrait.png"), "fake");
-        File.WriteAllText(Path.Combine(assetDir, "topdown_01.png"), "fake");
-        File.WriteAllText(Path.Combine(assetDir, "token_01.png"), "fake");
-        File.WriteAllText(Path.Combine(assetDir, "topdown_02.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_1.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_1.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_2.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_2.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);
@@ -97,9 +98,9 @@ public class HierarchicalFileStoreEnumerationTests {
         Directory.CreateDirectory(zombie);
         Directory.CreateDirectory(orc);
 
-        File.WriteAllText(Path.Combine(goblin, "topdown.png"), "fake");
-        File.WriteAllText(Path.Combine(zombie, "topdown.png"), "fake");
-        File.WriteAllText(Path.Combine(orc, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(goblin, "token.png"), "fake");
+        File.WriteAllText(Path.Combine(zombie, "token.png"), "fake");
+        File.WriteAllText(Path.Combine(orc, "token.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);
@@ -126,8 +127,8 @@ public class HierarchicalFileStoreEnumerationTests {
         Directory.CreateDirectory(goblin);
         Directory.CreateDirectory(sword);
 
-        File.WriteAllText(Path.Combine(goblin, "topdown.png"), "fake");
-        File.WriteAllText(Path.Combine(sword, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(goblin, "token.png"), "fake");
+        File.WriteAllText(Path.Combine(sword, "token.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);
@@ -153,8 +154,8 @@ public class HierarchicalFileStoreEnumerationTests {
         Directory.CreateDirectory(goblin);
         Directory.CreateDirectory(zombie);
 
-        File.WriteAllText(Path.Combine(goblin, "topdown.png"), "fake");
-        File.WriteAllText(Path.Combine(zombie, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(goblin, "token.png"), "fake");
+        File.WriteAllText(Path.Combine(zombie, "token.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);
@@ -180,8 +181,8 @@ public class HierarchicalFileStoreEnumerationTests {
         Directory.CreateDirectory(goblin);
         Directory.CreateDirectory(hobgoblin);
 
-        File.WriteAllText(Path.Combine(goblin, "topdown.png"), "fake");
-        File.WriteAllText(Path.Combine(hobgoblin, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(goblin, "token.png"), "fake");
+        File.WriteAllText(Path.Combine(hobgoblin, "token.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);
@@ -223,7 +224,7 @@ public class HierarchicalFileStoreEnumerationTests {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         var assetDir = Path.Combine(tempDir, "creature", "humanoid", "goblinoid", "common", "goblin");
         Directory.CreateDirectory(assetDir);
-        File.WriteAllText(Path.Combine(assetDir, "topdown.png"), "fake1");
+        File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake1");
         File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake2");
 
         try {
@@ -251,12 +252,13 @@ public class HierarchicalFileStoreEnumerationTests {
         var assetDir = Path.Combine(tempDir, "creature", "humanoid", "goblinoid", "common", "goblin");
         Directory.CreateDirectory(assetDir);
 
-        File.WriteAllText(Path.Combine(assetDir, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
         File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
         File.WriteAllText(Path.Combine(assetDir, "portrait.png"), "fake");
-        File.WriteAllText(Path.Combine(assetDir, "topdown_01.png"), "fake");
-        File.WriteAllText(Path.Combine(assetDir, "token_01.png"), "fake");
-        File.WriteAllText(Path.Combine(assetDir, "topdown_02.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_1.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_1.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_2.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token_2.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);
@@ -265,8 +267,8 @@ public class HierarchicalFileStoreEnumerationTests {
 
             Assert.NotNull(asset);
             Assert.Equal(2, asset.Tokens.Count);
-            Assert.Equal("Token 1", asset.Description);
-            Assert.Equal("Token 2", asset.Description);
+            Assert.Equal("token_1.png", asset.Tokens[0].FileName);
+            Assert.Equal("token_2.png", asset.Tokens[1].FileName);
         }
         finally {
             Directory.Delete(tempDir, recursive: true);
@@ -278,7 +280,7 @@ public class HierarchicalFileStoreEnumerationTests {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         var assetDir = Path.Combine(tempDir, "creature", "undead", "corporeal", "zombie");
         Directory.CreateDirectory(assetDir);
-        File.WriteAllText(Path.Combine(assetDir, "topdown.png"), "fake");
+        File.WriteAllText(Path.Combine(assetDir, "token.png"), "fake");
 
         try {
             var store = new HierarchicalFileStore(tempDir);

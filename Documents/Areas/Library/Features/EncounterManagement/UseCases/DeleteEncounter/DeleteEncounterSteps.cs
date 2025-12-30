@@ -57,7 +57,7 @@ public class DeleteEncounterSteps {
             Description = "Test Description",
             OwnerId = _userId,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Assets = []
         };
 
@@ -208,7 +208,7 @@ public class DeleteEncounterSteps {
             OwnerId = _userId,
             AdventureId = adventureId,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
-            Stage = new Stage(),
+            Settings = new StageSettings(),
             Assets = []
         };
 
@@ -253,7 +253,7 @@ public class DeleteEncounterSteps {
             Name = "Other User's Encounter",
             OwnerId = otherUserId, // Different owner
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
-            Stage = new Stage()
+            Settings = new StageSettings()
         };
 
         _encounterStorage.GetByIdAsync(_encounterId, Arg.Any<CancellationToken>())
@@ -274,7 +274,7 @@ public class DeleteEncounterSteps {
             Name = "Test Encounter",
             OwnerId = Guid.CreateVersion7(),
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) },
-            Stage = new Stage()
+            Settings = new StageSettings()
         };
 
         _encounterStorage.GetByIdAsync(_encounterId, Arg.Any<CancellationToken>())

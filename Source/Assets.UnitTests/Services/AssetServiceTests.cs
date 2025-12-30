@@ -2,16 +2,10 @@
 namespace VttTools.Assets.Services;
 
 public class AssetServiceTests {
-    private readonly IAssetStorage _assetStorage;
-    private readonly IMediaStorage _mediaStorage;
+    private readonly IAssetStorage _assetStorage = Substitute.For<IAssetStorage>();
+    private readonly IMediaStorage _mediaStorage = Substitute.For<IMediaStorage>();
     private readonly Guid _userId = Guid.CreateVersion7();
-    private readonly CancellationToken _ct;
-
-    public AssetServiceTests() {
-        _assetStorage = Substitute.For<IAssetStorage>();
-        _mediaStorage = Substitute.For<IMediaStorage>();
-        _ct = TestContext.Current.CancellationToken;
-    }
+    private readonly CancellationToken _ct = TestContext.Current.CancellationToken;
 
     private AssetService CreateServiceForTests()
         => new(_assetStorage, _mediaStorage);

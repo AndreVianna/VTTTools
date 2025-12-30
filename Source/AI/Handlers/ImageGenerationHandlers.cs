@@ -25,7 +25,7 @@ internal static class ImageGenerationHandlers {
             ? Results.Problem(
                 detail: result.Errors[0].Message,
                 statusCode: StatusCodes.Status400BadRequest,
-                title: "Image generation failed")
+                title: "DefaultDisplay generation failed")
             : Results.File(
             result.Value.ImageData,
             result.Value.ContentType,

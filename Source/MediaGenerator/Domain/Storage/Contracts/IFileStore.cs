@@ -26,7 +26,7 @@ public interface IFileStore {
     /// <summary>
     /// check if image file exists.
     /// </summary>
-    /// <param name="imageType">Semantic image type name (TopDown, Token, Display).</param>
+    /// <param name="imageType">Semantic image type name (Token, Token, DefaultDisplay).</param>
     /// <param name="asset">Asset definition containing category, type, subtype, and name.</param>
     /// <param name="variantIndex">Index of the asset variant.</param>
     /// <returns>Full true if image file exists.</returns>
@@ -46,7 +46,7 @@ public interface IFileStore {
     /// <summary>
     /// Search for a prompt files for an entry variant combination and returns the file name if found.
     /// </summary>
-    /// <param name="imageType">Semantic image type name (TopDown, Token, Display).</param>
+    /// <param name="imageType">Semantic image type name (Token, Token, DefaultDisplay).</param>
     /// <param name="asset">Asset definition containing category, type, subtype, and name.</param>
     /// <param name="variantIndex">Index of the asset variant.</param>
     /// <returns>  </returns>
@@ -57,7 +57,7 @@ public interface IFileStore {
     /// Saves an image to the hierarchical structure.
     /// File name pattern: {imageType}.png (e.g., top-down.png, portrait.png)
     /// </summary>
-    /// <param name="imageType">Semantic image type name (TopDown, Token, Display).</param>
+    /// <param name="imageType">Semantic image type name (Token, Token, DefaultDisplay).</param>
     /// <param name="asset">Asset definition containing category, type, subtype, and name.</param>
     /// <param name="variantIndex">Index of the asset variant.</param>
     /// <param name="content">PNG image bytes.</param>
@@ -85,7 +85,7 @@ public interface IFileStore {
     /// <summary>
     /// check if prompt file exists.
     /// </summary>
-    /// <param name="imageType">Semantic image type name (TopDown, Token, Display).</param>
+    /// <param name="imageType">Semantic image type name (Token, Token, DefaultDisplay).</param>
     /// <param name="asset">Asset definition containing category, type, subtype, and name.</param>
     /// <param name="variantIndex">Index of the asset variant.</param>
     /// <returns>Full true if prompt file exists.</returns>
@@ -97,7 +97,7 @@ public interface IFileStore {
     /// </summary>
     /// <param name="asset">Asset definition containing category, type, subtype, and name.</param>
     /// <param name="variantIndex">Index of the asset variant.</param>
-    /// <param name="imageType">Semantic image type name (TopDown, Token, Display).</param>
+    /// <param name="imageType">Semantic image type name (Token, Token, DefaultDisplay).</param>
     /// <returns>  </returns>
     /// <exception cref="ArgumentNullException">Thrown when asset or variant is null.</exception>
     string? FindPromptFile(string imageType, Asset asset, int variantIndex = 0);
@@ -116,7 +116,7 @@ public interface IFileStore {
     /// Saves an enhanced prompt to the hierarchical structure.
     /// File name pattern: {imageType}.prompt (e.g., top-down.prompt, portrait.prompt)
     /// </summary>
-    /// <param name="imageType">Semantic image type name (TopDown, Token, Display).</param>
+    /// <param name="imageType">Semantic image type name (Token, Token, DefaultDisplay).</param>
     /// <param name="asset">Asset definition containing category, type, subtype, and name.</param>
     /// <param name="variantIndex">Index of the asset variant.</param>
     /// <param name="prompt">Prompt text.</param>

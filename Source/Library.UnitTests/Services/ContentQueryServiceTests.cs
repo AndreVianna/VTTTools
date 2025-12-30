@@ -1,9 +1,7 @@
-using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
-using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
+using AdventureEntity = VttTools.Data.Library.Adventures.Entities.Adventure;
 using AdventureStyle = VttTools.Library.Adventures.Model.AdventureStyle;
-using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using ResourceRole = VttTools.Media.Model.ResourceRole;
+using StageEntity = VttTools.Data.Library.Stages.Entities.Stage;
 
 namespace VttTools.Library.Services;
 
@@ -19,9 +17,9 @@ public class ContentQueryServiceTests : IDisposable {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={databaseName};Trusted_Connection=true;TrustServerCertificate=true")
             .Options;
-        _context = new ApplicationDbContext(options);
+        _context = new(options);
         _context.Database.EnsureCreated();
-        _service = new ContentQueryService(_context);
+        _service = new(_context);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -285,14 +283,8 @@ public class ContentQueryServiceTests : IDisposable {
             IsPublished = isPublished,
             IsPublic = isPublic,
             Description = $"Description for {name}",
-            Resources = [
-                new AdventureResourceEntity {
-                    AdventureId = adventureId,
-                    ResourceId = background.Id,
-                    Resource = background,
-                    Index = 0
-                }
-            ]
+            BackgroundId = background.Id,
+            Background = background,
         };
 
         _context.Adventures.Add(adventure);
@@ -316,24 +308,34 @@ public class ContentQueryServiceTests : IDisposable {
             IsPublished = true,
             IsPublic = false,
             Description = $"Description for {name}",
-            Resources = [
-                new AdventureResourceEntity {
-                    AdventureId = adventureId,
-                    ResourceId = background.Id,
-                    Resource = background,
-                    Index = 0
-                }
-            ]
+            BackgroundId = background.Id,
+            Background = background,
         };
 
         for (var i = 0; i < encounterCount; i++) {
-            adventure.Encounters.Add(new EncounterEntity {
+            // Create a Stage for each Encounter (Stage is now a first-class entity with FK constraint)
+            var stageBackground = new ResourceEntity {
+                Id = Guid.CreateVersion7(),
+                Path = $"stages/{name}-{i}.jpg",
+                ContentType = "image/jpeg",
+                FileName = $"{name}-stage-{i}.jpg",
+                FileSize = 1024,
+            };
+            var stage = new StageEntity {
+                Id = Guid.CreateVersion7(),
+                Name = $"Stage for {name} Encounter {i + 1}",
+                Description = "Test stage",
+                OwnerId = _userId,
+                MainBackgroundId = stageBackground.Id,
+                MainBackground = stageBackground,
+            };
+            _context.Stages.Add(stage);
+
+            adventure.Encounters.Add(new() {
                 Id = Guid.CreateVersion7(),
                 Name = $"Encounter {i + 1}",
                 Description = "Encounter description",
-                Grid = new Grid(),
-                Panning = Point.Zero,
-                ZoomLevel = 1
+                StageId = stage.Id,
             });
         }
 

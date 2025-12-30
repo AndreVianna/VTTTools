@@ -197,7 +197,7 @@ public class AuditLoggingMiddleware(
         }
         return normalized switch {
             "Asset" => "Asset",
-            "Resource" => "Resource",
+            "Display" => "Display",
             "Job" => "Job",
             "User" => "User",
             "GameSession" => "GameSession",

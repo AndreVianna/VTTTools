@@ -1,5 +1,4 @@
-using AdventureResourceEntity = VttTools.Data.Library.Entities.AdventureResource;
-using ResourceRole = VttTools.Media.Model.ResourceRole;
+using VttTools.Data.Library.Adventures;
 
 namespace VttTools.Data.Library;
 
@@ -65,7 +64,7 @@ public class AdventureStorageTests
         await _storage.AddAsync(adventure, _ct);
 
         // Assert
-        var dbAdventure = await _context.Adventures.Include(a => a.Resources).FirstAsync(a => a.Id == adventure.Id, _ct);
+        var dbAdventure = await _context.Adventures.Include(a => a.Background).FirstAsync(a => a.Id == adventure.Id, _ct);
         dbAdventure.Should().NotBeNull();
         dbAdventure.Id.Should().Be(adventure.Id);
         dbAdventure.Name.Should().Be(adventure.Name);
@@ -78,10 +77,7 @@ public class AdventureStorageTests
         dbAdventure.WorldId.Should().Be(adventure.World?.Id);
         dbAdventure.CampaignId.Should().Be(adventure.Campaign?.Id);
         if (adventure.Background is not null) {
-            dbAdventure.Resources.Should().HaveCount(1);
-            var backgroundResource = dbAdventure.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background);
-            backgroundResource.Should().NotBeNull();
-            backgroundResource!.ResourceId.Should().Be(adventure.Background.Id);
+            dbAdventure.BackgroundId.Should().Be(adventure.Background.Id);
         }
     }
 

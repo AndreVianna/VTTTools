@@ -49,7 +49,7 @@ public sealed class BulkAssetGenerationHandler(
                 return Result.Failure("Failed to upload resource").WithNo<GeneratedResourceResult>();
             }
 
-            // Audit log: Resource generated via job
+            // Audit log: Display generated via job
             await LogResourceGeneratedAsync(ownerId, context.JobId, context.Index, resourceId.Value, generationType, ct);
 
             // Return resource info for frontend review (user will approve to create asset)
@@ -121,8 +121,8 @@ public sealed class BulkAssetGenerationHandler(
         };
         var auditLog = new AuditLog {
             UserId = ownerId,
-            Action = "Resource:Generated:ViaJob",
-            EntityType = "Resource",
+            Action = "Display:Generated:ViaJob",
+            EntityType = "Display",
             EntityId = resourceId.ToString(),
             Payload = JsonSerializer.Serialize(payload, JsonDefaults.Options),
         };

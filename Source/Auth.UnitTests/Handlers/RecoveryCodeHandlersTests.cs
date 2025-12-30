@@ -1,13 +1,8 @@
 namespace VttTools.Auth.Handlers;
 
 public class RecoveryCodeHandlersTests {
-    private readonly IRecoveryCodeService _mockRecoveryCodeService;
-    private readonly HttpContext _mockHttpContext;
-
-    public RecoveryCodeHandlersTests() {
-        _mockRecoveryCodeService = Substitute.For<IRecoveryCodeService>();
-        _mockHttpContext = Substitute.For<HttpContext>();
-    }
+    private readonly IRecoveryCodeService _mockRecoveryCodeService = Substitute.For<IRecoveryCodeService>();
+    private readonly HttpContext _mockHttpContext = Substitute.For<HttpContext>();
 
     private void SetupAuthenticatedUser(Guid userId) {
         var claims = new List<Claim> {

@@ -7,9 +7,11 @@ public class AssetStorage(ApplicationDbContext context)
     : IAssetStorage {
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
         var entities = await context.Assets
-                    .Include(a => a.Resources)
-                        .ThenInclude(r => r.Resource)
-                    .Include(a => a.StatEntries)
+                    .Include(a => a.Thumbnail)
+                    .Include(a => a.Portrait)
+                    .Include(a => a.Tokens)
+                        .ThenInclude(r => r.Token)
+                    .Include(a => a.StatBlockEntries)
                         .ThenInclude(se => se.GameSystem)
                     .AsSplitQuery()
                     .AsNoTracking()
@@ -33,13 +35,15 @@ public class AssetStorage(ApplicationDbContext context)
         CancellationToken ct = default) {
 
         var query = context.Assets
-            .Include(a => a.Resources)
-                .ThenInclude(r => r.Resource)
-            .Include(a => a.StatEntries)
-                .ThenInclude(se => se.GameSystem)
-            .AsNoTracking()
-            .AsSplitQuery()
-            .AsQueryable();
+                    .Include(a => a.Thumbnail)
+                    .Include(a => a.Portrait)
+                    .Include(a => a.Tokens)
+                        .ThenInclude(r => r.Token)
+                    .Include(a => a.StatBlockEntries)
+                        .ThenInclude(se => se.GameSystem)
+                    .AsNoTracking()
+                    .AsSplitQuery()
+                    .AsQueryable();
 
         query = availability switch {
             Availability.MineOnly => query.Where(a => a.OwnerId == userId),
@@ -111,10 +115,10 @@ public class AssetStorage(ApplicationDbContext context)
         foreach (var filter in advancedSearch) {
             switch (filter.Operator) {
                 case FilterOperator.GreaterThan:
-                    query = query.Where(a => a.StatEntries.Any(sb => sb.Key == filter.Key && sb.AsNumber > filter.AsNumber));
+                    query = query.Where(a => a.StatBlockEntries.Any(sb => sb.Key == filter.Key && sb.AsNumber > filter.AsNumber));
                     break;
                 case FilterOperator.LessThan:
-                    query = query.Where(a => a.StatEntries.Any(sb => sb.Key == filter.Key && sb.AsNumber < filter.AsNumber));
+                    query = query.Where(a => a.StatBlockEntries.Any(sb => sb.Key == filter.Key && sb.AsNumber < filter.AsNumber));
                     break;
             }
         }
@@ -124,9 +128,11 @@ public class AssetStorage(ApplicationDbContext context)
 
     public async Task<Asset?> FindByIdAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Resources)
-                        .ThenInclude(r => r.Resource)
-                    .Include(a => a.StatEntries)
+                    .Include(a => a.Thumbnail)
+                    .Include(a => a.Portrait)
+                    .Include(a => a.Tokens)
+                        .ThenInclude(r => r.Token)
+                    .Include(a => a.StatBlockEntries)
                         .ThenInclude(se => se.GameSystem)
                     .Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished))
                     .AsSplitQuery()
@@ -143,9 +149,11 @@ public class AssetStorage(ApplicationDbContext context)
 
     public async Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Resources)
-                        .ThenInclude(r => r.Resource)
-                    .Include(a => a.StatEntries)
+                    .Include(a => a.Thumbnail)
+                    .Include(a => a.Portrait)
+                    .Include(a => a.Tokens)
+                        .ThenInclude(r => r.Token)
+                    .Include(a => a.StatBlockEntries)
                         .ThenInclude(se => se.GameSystem)
                     .AsSplitQuery()
                     .FirstOrDefaultAsync(a => a.Id == asset.Id, ct);

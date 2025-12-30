@@ -42,8 +42,7 @@ public sealed class UserAdminService(
 
             foreach (var user in users) {
                 var roles = await userManager.GetRolesAsync(user);
-                var isLockedOut = user.LockoutEnabled &&
-                                  user.LockoutEnd.HasValue &&
+                var isLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
                                   user.LockoutEnd.Value > DateTimeOffset.UtcNow;
 
                 userListItems.Add(new UserListItem {
@@ -108,8 +107,7 @@ public sealed class UserAdminService(
             var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new UserNotFoundException(userId);
 
             var roles = await userManager.GetRolesAsync(user);
-            var isLockedOut = user.LockoutEnabled &&
-                              user.LockoutEnd.HasValue &&
+            var isLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
                               user.LockoutEnd.Value > DateTimeOffset.UtcNow;
 
             var createdDate = await auditLogService.GetUserCreatedDateAsync(userId, ct);

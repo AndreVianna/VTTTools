@@ -303,6 +303,9 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
         _mockEncounterStorage.GetByParentIdAsync(adventure.Id, Arg.Any<CancellationToken>())
             .Returns(encounters);
 
+        var users = CreateTestUsers(1);
+        _mockUserManager.Users.Returns(users.BuildMock());
+
         var result = await _sut.GetEncountersByAdventureIdAsync(adventure.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
@@ -313,6 +316,9 @@ public sealed class AdventureAdminServiceTests : IAsyncLifetime {
     public async Task GetEncountersByAdventureIdAsync_WithNoEncounters_ReturnsEmptyList() {
         _mockEncounterStorage.GetByParentIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
+
+        var users = CreateTestUsers(1);
+        _mockUserManager.Users.Returns(users.BuildMock());
 
         var result = await _sut.GetEncountersByAdventureIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 

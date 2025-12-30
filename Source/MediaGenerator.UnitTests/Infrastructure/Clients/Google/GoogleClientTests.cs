@@ -19,7 +19,7 @@ public sealed class GoogleClientTests : IDisposable {
         _config["Providers:Google:BaseUrl"].Returns("https://generativelanguage.googleapis.com");
         _config["Providers:Google:ApiKey"].Returns("test-key");
         _config["Providers:Google:gemini-2.0"].Returns("/v1beta/models/gemini-2.0:generate");
-        _config["Images:TopDown:AspectRatio"].Returns("1:1");
+        _config["Images:Token:AspectRatio"].Returns("1:1");
 
         var httpClient = new HttpClient(_mockHandler, disposeHandler: false) {
             BaseAddress = new("https://generativelanguage.googleapis.com")
@@ -63,7 +63,7 @@ public sealed class GoogleClientTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var result = await _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A fantasy dragon", _ct);
+        var result = await _client.GenerateImageFileAsync("gemini-2.0", "Token", "A fantasy dragon", _ct);
 
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeEmpty();
@@ -75,14 +75,15 @@ public sealed class GoogleClientTests : IDisposable {
     public async Task GenerateImageFileAsync_WithErrorResponse_ThrowsException() {
         _mockHandler.SetResponse(HttpStatusCode.BadRequest, "{\"error\":\"Invalid request\"}");
 
-        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Google API error*");
     }
 
     [Fact]
-    public async Task GenerateImageFileAsync_WithEmptyImageData_ThrowsException() {
+    public async Task GenerateImageFileAsync_WithEmptyImageData_ReturnsEmptyData() {
+        // Source only throws if Content is null, not empty string
         const string responseJson = """
         {
             "candidates": [{
@@ -104,10 +105,9 @@ public sealed class GoogleClientTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A dragon", _ct);
+        var result = await _client.GenerateImageFileAsync("gemini-2.0", "Token", "A dragon", _ct);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*empty image data*");
+        result.Data.Should().BeEmpty();
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public sealed class GoogleClientTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        var result = await _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A dragon", _ct);
+        var result = await _client.GenerateImageFileAsync("gemini-2.0", "Token", "A dragon", _ct);
 
         result.TotalCost.Should().BeApproximately(30.3, 0.01);
     }
@@ -165,7 +165,7 @@ public sealed class GoogleClientTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        await _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A magical forest", _ct);
+        await _client.GenerateImageFileAsync("gemini-2.0", "Token", "A magical forest", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
         requestContent.Should().Contain("A magical forest");
@@ -260,10 +260,10 @@ public sealed class GoogleClientTests : IDisposable {
         """;
         _mockHandler.SetResponse(HttpStatusCode.OK, responseJson);
 
-        await _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A dragon", _ct);
+        await _client.GenerateImageFileAsync("gemini-2.0", "Token", "A dragon", _ct);
 
         var requestContent = _mockHandler.LastRequestContent;
-        requestContent.Should().Contain("Image");
+        requestContent.Should().Contain("DefaultDisplay");
         requestContent.Should().Contain("responseModalities");
     }
 
@@ -271,7 +271,7 @@ public sealed class GoogleClientTests : IDisposable {
     public async Task Constructor_WithMissingBaseUrl_ThrowsWhenCreatingClient() {
         _config["Providers:Google:BaseUrl"].Returns((string?)null);
 
-        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*base url not configured*");
@@ -281,7 +281,7 @@ public sealed class GoogleClientTests : IDisposable {
     public async Task Constructor_WithMissingApiKey_ThrowsWhenCreatingClient() {
         _config["Providers:Google:ApiKey"].Returns((string?)null);
 
-        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("gemini-2.0", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*API key is not configured*");
@@ -291,7 +291,7 @@ public sealed class GoogleClientTests : IDisposable {
     public async Task GenerateImageFileAsync_WithMissingEndpoint_ThrowsException() {
         _config["Providers:Google:unknown-model"].Returns((string?)null);
 
-        var act = () => _client.GenerateImageFileAsync("unknown-model", "TopDown", "A dragon", _ct);
+        var act = () => _client.GenerateImageFileAsync("unknown-model", "Token", "A dragon", _ct);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*endpoint is not configured*");

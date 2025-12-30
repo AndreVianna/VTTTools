@@ -2,15 +2,53 @@
 
 **Quick Reference Guide**
 
-**Status**: 📋 PLANNED
-**Start Date**: TBD
-**Estimated Effort**: ~180-220 hours (18-20 weeks)
+**Status**: 🔄 IN PROGRESS
+**Start Date**: 2025-12-28
+**Estimated Effort**: Reduced from original 180-220h estimate (simplified approach)
+
+---
+
+## Implementation Approach (v1.1.0)
+
+**IMPORTANT**: This EPIC uses a **simplified direct replacement approach** based on planning session findings:
+
+### Key Constraints
+1. **No Production Data** - Data preservation is NOT required
+2. **User-Managed Migrations** - Claude creates scripts, user applies them manually
+3. **Direct Replacement** - No V1/V2 API versioning needed
+4. **Continuous Functionality** - Code must work at each phase completion
+5. **Full Stack Compilation** - Entire stack must compile at phase boundaries
+
+### Entity Changes (Direct Replacement)
+- **Stage extracted** as first-class library entity with structural elements
+- Current `Stage` value object → renamed to `StageSettings` (avoids naming collision)
+- `EncounterAsset` → DELETE and replace with `EncounterActor`, `EncounterProp`
+- `EncounterSound` → DELETE and replace with `StageAudio` (on Stage, not Encounter)
+- Structural elements (Walls, Regions, Lights, Decorations, Sounds) → moved to Stage
+- Game elements (Actors, Props, Effects) → remain on Encounter
+- `Encounter` gets `StageId` FK to reference Stage
+- No parallel types or APIs - update directly
+
+### Execution Workflow
+```
+Phases 1-4: Backend implementation
+    |
+    v
+[PAUSE] User creates and applies DB migration manually:
+        - dotnet ef migrations add EncounterDomainRefactoring
+        - dotnet ef database update
+    |
+    v
+Phases 5-9: Frontend implementation (after user confirms migration)
+```
 
 ---
 
 ## Summary
 
-EPIC-006 will refactor the VTTTools encounter domain model from a 2-tier classification (Assets/Sounds) to a semantic 2-category, 9-element-type system based on behavioral characteristics (Game Elements vs Structural Elements). This refactoring resolves conceptual overlap, improves maintainability, and enables future AI content generation features.
+EPIC-006 will refactor the VTTTools encounter domain model from a 2-tier classification (Assets/Sounds) to a semantic 2-category, 8-element-type system based on behavioral characteristics (Game Elements vs Structural Elements). This refactoring resolves conceptual overlap, improves maintainability, and enables future AI content generation features.
+
+**Key Change (v1.2)**: **Stage Extraction** - Stage is extracted as a first-class library entity (like World, Campaign, Adventure). Structural elements (Walls, Regions, Lights, Decorations, Sounds) move to Stage, while Game elements (Actors, Props, Effects) remain on Encounter. Encounters reference a Stage via FK, enabling map reuse across multiple encounters.
 
 **Key Principle**: **Perception-Based Design** - Categories based on domain semantics (game mechanics vs environment), not file formats. Visual media unified (images/sprites), audio separate (different perception mechanism).
 
@@ -42,30 +80,37 @@ EPIC-006 will refactor the VTTTools encounter domain model from a 2-tier classif
 ### In Scope
 
 **Domain Model Changes:**
-- Split EncounterAsset → EncounterActor, EncounterProp
-- Unified EncounterDecoration (images/sprites/videos)
-- New EncounterTrap, EncounterEffect (game mechanics)
+- **Stage extracted** as first-class library entity (like World, Campaign, Adventure)
+- Current `Stage` value object → renamed to `StageSettings`
+- DELETE EncounterAsset → REPLACE with EncounterActor, EncounterProp
+- DELETE EncounterSound → REPLACE with StageAudio (on Stage)
+- Unified StageDecoration (images/sprites) on Stage
+- New EncounterEffect (game mechanics) on Encounter
 - Update AssetKind enum (remove Effect/Object, add Prop/Decoration)
+- Encounter gets StageId FK to reference Stage
 
 **Categories:**
-- **Game Elements** (4 types): Actor, Prop, Trap, Effect
-- **Structural Elements** (5 types): Wall, Region, Light, Decoration, Audio
+- **Game Elements** (3 types on Encounter): Actor, Prop, Effect
+- **Structural Elements** (5 types on Stage): Wall, Region, Light, Decoration, Audio
 
 **Database:**
-- 6 new tables (Actors, Props, Traps, Effects, Decorations, Audios)
-- Migration from EncounterAssets/EncounterSounds
-- Data integrity validation
+- New Stage table with structural element collections
+- New Encounter element tables (Actors, Props, Effects)
+- DROP old tables (EncounterAssets, EncounterSounds)
+- No data migration needed (not in production)
 
 **API:**
-- ~30-35 new V2 endpoints
-- 6-month V1 deprecation timeline
-- API versioning strategy
+- ~30-35 endpoints (direct replacement, no V2 versioning)
+- No deprecation timeline (no V1 to maintain)
+- Update existing endpoints directly
 
 **Frontend:**
-- 9 element type panels (down from 13)
+- 8 element type panels (3 Game + 5 Structural)
 - Unified decoration browser (Images/Sprites tabs)
 - Conditional frame rendering (Actors only)
 - Updated Konva layer management
+- Stage editor for structural elements
+- Encounter editor for game elements
 
 ### Out of Scope
 
@@ -80,16 +125,17 @@ EPIC-006 will refactor the VTTTools encounter domain model from a 2-tier classif
 ## Key Achievements (Planned)
 
 ### Simplified Architecture
-- ✅ 9 element types (down from 12 in v1.0)
-- ✅ 2 semantic categories (down from 4)
-- ✅ 9 UI panels (down from 13)
-- ✅ 6 database tables (down from 8)
-- ✅ ~30-35 API endpoints (down from ~45)
+- ✅ 8 element types (3 Game + 5 Structural)
+- ✅ 2 semantic categories (Game Elements vs Structural Elements)
+- ✅ Stage as first-class entity (enables map reuse)
+- ✅ 8 UI panels (3 Game + 5 Structural)
+- ✅ ~30-35 API endpoints (encounters + stages)
 
 ### Semantic Clarity
 - ✅ Behavior-based categories (game rules vs environment)
 - ✅ Perception-based design (visual unified, audio separate)
 - ✅ File format as implementation detail
+- ✅ Stage/Encounter separation (map vs gameplay)
 
 ### Better UX
 - ✅ Unified decoration browser (images + sprites together)
@@ -140,11 +186,22 @@ Database:
 - **ADR-001**: Split EncounterAsset into Actor/Prop (2 types, not 3)
 - **ADR-002**: Remove Effect from AssetKind (encounter-specific)
 - **ADR-003**: Props and Decorations have NO frames
-- **ADR-004**: 6-month V1 API deprecation period
+- **ADR-004**: ~~6-month V1 API deprecation period~~ SUPERSEDED: Direct replacement (no V1/V2)
 - **ADR-005**: 2 semantic categories (Game vs Structural)
 - **ADR-006**: Unified visual media (Image/Sprite) in Decoration
 - **ADR-007**: Audio separate from visual (ears vs eyes)
 - **ADR-008**: Traps and Effects are Game Elements
+- **ADR-009**: User-managed database migrations (Claude creates, user applies)
+- **ADR-010**: Stage as First-Class Entity
+  - **Decision**: Extract Stage as a library entity, separate from Encounter
+  - **Context**: Structural elements (Walls, Regions, Lights, Decorations, Sounds) define the map/environment, while Game elements (Actors, Props, Effects) define the gameplay scenario
+  - **Reasoning**: Same map (Stage) can be reused across multiple encounters with different game elements. Example: "Dungeon Room 3" stage used for both "Goblin Ambush" and "Treasure Discovery" encounters
+  - **Naming**: Using "Stage" instead of "Map" because:
+    - Already exists in codebase as embedded value object
+    - Theater metaphor is consistent: Stage + Actors + Props + Effects
+    - No naming collisions (Map clashes with TypeScript `Map<K,V>` and Mapper terminology)
+    - Not a verb - unambiguous in code
+  - **Migration**: Current `Stage` value object renamed to `StageSettings` to avoid collision
 
 ---
 
@@ -152,8 +209,8 @@ Database:
 
 | EPIC | Name | Status | Relationship |
 |------|------|--------|--------------|
-| EPIC-001 | UI Migration | ✅ Complete | Foundation for encounter editor |
-| EPIC-006 | Domain Refactoring | 📋 Planned | This EPIC |
+| EPIC-001 | UI Migration | ✅ Complete | Foundation for encounter editor (verified) |
+| EPIC-006 | Domain Refactoring | 🔄 In Progress | This EPIC |
 | TBD | AI Content Generation | Planned | Enabled by EPIC-006 |
 
 ---
@@ -181,6 +238,8 @@ Database:
 
 ---
 
-**Version**: 1.0
+**Version**: 1.2
 **Created**: 2025-12-28
 **Last Updated**: 2025-12-28
+**Implementation Approach**: Direct replacement (simplified)
+**Key Update**: Stage extraction as first-class entity (ADR-010)

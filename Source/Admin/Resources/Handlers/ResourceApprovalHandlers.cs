@@ -46,8 +46,8 @@ public static class ResourceApprovalHandlers {
             if (result.IsSuccessful) {
                 await auditLogService.AddAsync(new AuditLog {
                     UserId = userId,
-                    Action = "Resource:Approved:ByUser",
-                    EntityType = "Resource",
+                    Action = "Display:Approved:ByUser",
+                    EntityType = "Display",
                     EntityId = request.ResourceId.ToString(),
                     Payload = JsonSerializer.Serialize(new {
                         resourceId = request.ResourceId,
@@ -93,8 +93,8 @@ public static class ResourceApprovalHandlers {
             if (result.IsSuccessful) {
                 await auditLogService.AddAsync(new AuditLog {
                     UserId = userId,
-                    Action = "Resource:Regenerated:ByUser",
-                    EntityType = "Resource",
+                    Action = "Display:Regenerated:ByUser",
+                    EntityType = "Display",
                     EntityId = request.ResourceId.ToString(),
                     Payload = JsonSerializer.Serialize(new {
                         oldResourceId = request.ResourceId,
@@ -134,8 +134,8 @@ public static class ResourceApprovalHandlers {
             if (result.IsSuccessful) {
                 await auditLogService.AddAsync(new AuditLog {
                     UserId = userId,
-                    Action = "Resource:Rejected:ByUser",
-                    EntityType = "Resource",
+                    Action = "Display:Rejected:ByUser",
+                    EntityType = "Display",
                     EntityId = request.ResourceId.ToString(),
                     Payload = JsonSerializer.Serialize(new {
                         resourceId = request.ResourceId,

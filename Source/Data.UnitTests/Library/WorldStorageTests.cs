@@ -1,5 +1,6 @@
-using WorldResourceEntity = VttTools.Data.Library.Entities.WorldResource;
-using ResourceRole = VttTools.Media.Model.ResourceRole;
+using VttTools.Data.Library.Worlds;
+using WorldEntity = VttTools.Data.Library.Worlds.Entities.World;
+using WorldModel = VttTools.Library.Worlds.Model.World;
 
 namespace VttTools.Data.Library;
 
@@ -43,6 +44,7 @@ public class WorldStorageTests
             Duration = TimeSpan.Zero,
         };
         _context.Resources.AddRange(backgroundResource1, backgroundResource2);
+        _context.SaveChanges();
 
         var world1Id = Guid.CreateVersion7();
         var world2Id = Guid.CreateVersion7();
@@ -50,41 +52,27 @@ public class WorldStorageTests
         var world4Id = Guid.CreateVersion7();
 
         var worlds = new[] {
-            new Entities.World {
+            new WorldEntity {
                 Id = world1Id,
                 Name = "My World",
                 Description = "My personal world",
                 IsPublished = true,
                 IsPublic = false,
                 OwnerId = _currentUserId,
-                Resources = [
-                    new WorldResourceEntity {
-                        WorldId = world1Id,
-                        ResourceId = backgroundResource1.Id,
-                        Resource = backgroundResource1,
-                        Role = ResourceRole.Background,
-                        Index = 0
-                    }
-                ]
+                BackgroundId = backgroundResource1.Id,
+                Background = backgroundResource1,
             },
-            new Entities.World {
+            new WorldEntity {
                 Id = world2Id,
                 Name = "Public World",
                 Description = "Public world for all",
                 IsPublished = true,
                 IsPublic = true,
                 OwnerId = _otherUserId,
-                Resources = [
-                    new WorldResourceEntity {
-                        WorldId = world2Id,
-                        ResourceId = backgroundResource2.Id,
-                        Resource = backgroundResource2,
-                        Role = ResourceRole.Background,
-                        Index = 0
-                    }
-                ]
+                BackgroundId = backgroundResource2.Id,
+                Background = backgroundResource2,
             },
-            new Entities.World {
+            new WorldEntity {
                 Id = world3Id,
                 Name = "Draft World",
                 Description = "Unpublished world",
@@ -92,7 +80,7 @@ public class WorldStorageTests
                 IsPublic = false,
                 OwnerId = _currentUserId,
             },
-            new Entities.World {
+            new WorldEntity {
                 Id = world4Id,
                 Name = "Other User World",
                 Description = "Private world by other user",
@@ -107,7 +95,7 @@ public class WorldStorageTests
 
     [Fact]
     public async Task AddAsync_WithValidWorld_AddsToDatabase() {
-        var world = new World {
+        var world = new WorldModel {
             Id = Guid.CreateVersion7(),
             Name = "New World",
             Description = "A new world",
@@ -132,7 +120,19 @@ public class WorldStorageTests
     [Fact]
     public async Task AddAsync_WithBackground_SavesBackgroundReference() {
         var backgroundId = Guid.CreateVersion7();
-        var world = new World {
+        var background = new Media.Entities.Resource {
+            Id = backgroundId,
+            Path = "test/background.jpg",
+            FileName = "background.jpg",
+            ContentType = "image/jpeg",
+            FileSize = 2000,
+            Dimensions = new(1920, 1080),
+            Duration = TimeSpan.Zero,
+        };
+        _context.Resources.Add(background);
+        _context.SaveChanges();
+
+        var world = new WorldModel {
             Id = Guid.CreateVersion7(),
             Name = "World with Background",
             Description = "Test world",
@@ -153,19 +153,16 @@ public class WorldStorageTests
 
         await _storage.AddAsync(world, _ct);
 
-        var dbWorld = await _context.Worlds.Include(w => w.Resources).FirstAsync(w => w.Id == world.Id, _ct);
+        var dbWorld = await _context.Worlds.Include(w => w.Background).FirstAsync(w => w.Id == world.Id, _ct);
         dbWorld.Should().NotBeNull();
-        dbWorld.Resources.Should().HaveCount(1);
-        var backgroundResource = dbWorld.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background);
-        backgroundResource.Should().NotBeNull();
-        backgroundResource!.ResourceId.Should().Be(backgroundId);
+        dbWorld.BackgroundId.Should().Be(backgroundId);
     }
 
     [Fact]
     public async Task UpdateAsync_WithExistingWorld_UpdatesInDatabase() {
         _context.ChangeTracker.Clear();
         var entity = await _context.Worlds.AsNoTracking().FirstAsync(_ct);
-        var world = new World {
+        var world = new WorldModel {
             Id = entity.Id,
             Name = "Updated World",
             Description = "Updated description",

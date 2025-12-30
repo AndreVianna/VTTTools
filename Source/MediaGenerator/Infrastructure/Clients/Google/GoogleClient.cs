@@ -19,7 +19,7 @@ public sealed class GoogleClient(IHttpClientFactory httpClientFactory, IConfigur
                 }
             },
             GenerationConfig = new {
-                ResponseModalities = new[] { "Image" },
+                ResponseModalities = new[] { "DefaultDisplay" },
                 ImageConfig = new {
                     AspectRatio = GetAspectRatio(imageType),
                 }

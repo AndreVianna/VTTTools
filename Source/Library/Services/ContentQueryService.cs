@@ -15,8 +15,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
 
     private async Task<ContentListItem[]> QueryAdventuresAsync(Guid authenticatedUserId, ContentFilters filters, CancellationToken ct) {
         var baseQuery = context.Adventures
-            .Include(a => a.Resources)
-                .ThenInclude(r => r.Resource)
+            .Include(a => a.Background)
             .Include(a => a.Encounters)
             .AsNoTracking();
 
@@ -28,19 +27,26 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
             _ => query.Where(a => a.OwnerId == authenticatedUserId || (a.IsPublic && a.IsPublished)),
         };
 
-        if (filters.Style.HasValue) query = query.Where(a => a.Style == filters.Style.Value);
+        if (filters.Style.HasValue)
+            query = query.Where(a => a.Style == filters.Style.Value);
 
-        if (filters.IsOneShot.HasValue) query = query.Where(a => a.IsOneShot == filters.IsOneShot.Value);
+        if (filters.IsOneShot.HasValue)
+            query = query.Where(a => a.IsOneShot == filters.IsOneShot.Value);
 
-        if (filters.MinEncounterCount.HasValue) query = query.Where(a => a.Encounters.Count >= filters.MinEncounterCount.Value);
+        if (filters.MinEncounterCount.HasValue)
+            query = query.Where(a => a.Encounters.Count >= filters.MinEncounterCount.Value);
 
-        if (filters.MaxEncounterCount.HasValue) query = query.Where(a => a.Encounters.Count <= filters.MaxEncounterCount.Value);
+        if (filters.MaxEncounterCount.HasValue)
+            query = query.Where(a => a.Encounters.Count <= filters.MaxEncounterCount.Value);
 
-        if (filters.IsPublished.HasValue) query = query.Where(a => a.IsPublished == filters.IsPublished.Value);
+        if (filters.IsPublished.HasValue)
+            query = query.Where(a => a.IsPublished == filters.IsPublished.Value);
 
-        if (!string.IsNullOrWhiteSpace(filters.Search)) query = query.Where(a => EF.Functions.Like(a.Name, $"%{filters.Search}%"));
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+            query = query.Where(a => EF.Functions.Like(a.Name, $"%{filters.Search}%"));
 
-        if (filters.After.HasValue) query = query.Where(a => a.Id > filters.After.Value);
+        if (filters.After.HasValue)
+            query = query.Where(a => a.Id < filters.After.Value);
 
         query = query.OrderByDescending(a => a.Id);
 
@@ -48,9 +54,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
 
         var entities = await query.ToArrayAsync(ct);
 
-        return [..entities.Select((Func<Data.Library.Entities.Adventure, ContentListItem>)(a => {
-            var background = a.Resources.FirstOrDefault(r => r.Role == ResourceRole.Background)?.Resource;
-            return new ContentListItem {
+        return [..entities.Select(a => new ContentListItem {
                 Id = a.Id,
                 Type = ContentType.Adventure,
                 Name = a.Name,
@@ -60,18 +64,15 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
                 Style = a.Style,
                 IsOneShot = a.IsOneShot,
                 EncounterCount = a.Encounters.Count,
-                Background = background == null
-                    ? null
-                    : new ResourceMetadata {
-                        Id = background.Id,
-                        Path = background.Path,
-                        ContentType = background.ContentType,
-                        FileName = background.FileName,
-                        FileSize = background.FileSize,
-                        Dimensions = background.Dimensions,
-                        Duration = background.Duration,
+                Background = a.Background is null ? null : new() {
+                        Id = a.Background.Id,
+                        Path = a.Background.Path,
+                        ContentType = a.Background.ContentType,
+                        FileName = a.Background.FileName,
+                        FileSize = a.Background.FileSize,
+                        Dimensions = a.Background.Dimensions,
+                        Duration = a.Background.Duration,
                     },
-            };
-        }))];
+        })];
     }
 }

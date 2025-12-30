@@ -1,0 +1,14 @@
+namespace VttTools.Library.Stages.Model;
+
+public record StageLight {
+    public ushort Index { get; init; }
+    public string? Name { get; init; }
+    public LightSourceType Type { get; init; }
+    public Point Position { get; init; } = Point.Zero;
+    public float Range { get; init; }
+    public float? Direction { get; init; }
+    public float? Arc { get; init; }
+    [MaxLength(9)]
+    public string? Color { get; init; }
+    public bool IsOn { get; init; } = true;
+}

@@ -8,6 +8,4 @@ public sealed record LibraryContentResponse : Response {
     public required string Description { get; init; }
     public required bool IsPublished { get; init; }
     public required bool IsPublic { get; init; }
-    public required DateTime CreatedAt { get; init; }
-    public DateTime? UpdatedAt { get; init; }
 }

@@ -1,5 +1,3 @@
-using static VttTools.Utilities.ErrorCollectionExtensions;
-
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Library.Handlers;
@@ -77,7 +75,7 @@ internal static class CampaignHandlers {
         var campaign = await campaignService.GetCampaignByIdAsync(id);
         return campaign is null
             ? Results.NotFound()
-            : campaign.OwnerId != userId && !(campaign is { IsPublic: true, IsPublished: true })
+            : campaign.OwnerId != userId && campaign is not { IsPublic: true, IsPublished: true }
                 ? Results.Forbid()
                 : Results.Ok(await campaignService.GetAdventuresAsync(id));
     }
