@@ -20,7 +20,7 @@ public class AdventureStorage(ApplicationDbContext context)
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var items = entities.Select(e => e.ToModel()!).ToArray();
+        var items = entities.Select(e => e.ToModel(includeParent: true)!).ToArray();
         return (items, totalCount);
     }
 
@@ -29,7 +29,7 @@ public class AdventureStorage(ApplicationDbContext context)
             .Where(a => a.CampaignId == campaignId)
             .AsNoTracking()
             .ToListAsync(ct);
-        return [.. entities.Select(e => e.ToModel()!)];
+        return [.. entities.Select(e => e.ToModel(includeParent: true)!)];
     }
 
     public async Task<Adventure[]> GetAllAsync(CancellationToken ct = default) {
@@ -84,7 +84,7 @@ public class AdventureStorage(ApplicationDbContext context)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(a => a.Id == id, ct);
-        return result.ToModel();
+        return result.ToModel(includeParent: true);
     }
 
     public async Task AddAsync(Adventure adventure, CancellationToken ct = default) {

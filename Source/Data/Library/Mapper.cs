@@ -25,7 +25,7 @@ internal static class Mapper {
     internal static Expression<Func<CampaignEntity, Campaign>> AsCampaign = entity
         => new() {
             OwnerId = entity.OwnerId,
-            World = entity.World != null ? entity.World.ToModel() : null,
+            World = entity.World != null ? entity.World.ToModel(includeChildren: false) : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -64,8 +64,8 @@ internal static class Mapper {
     internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity
         => new() {
             OwnerId = entity.OwnerId,
-            World = entity.World != null ? entity.World.ToModel() : null,
-            Campaign = entity.Campaign != null ? entity.Campaign.ToModel() : null,
+            World = entity.World != null ? entity.World.ToModel(includeChildren: false) : null,
+            Campaign = entity.Campaign != null ? entity.Campaign.ToModel(includeParent: false, includeChildren: false) : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -93,7 +93,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Adventure = entity.Adventure.ToModel(),
+            Adventure = entity.Adventure.ToModel(includeChildren: false),
             Stage = entity.Stage.ToModel(),
             Actors = entity.Actors.AsQueryable().Select(AsEncounterActor!).ToList(),
             Objects = entity.Objects.AsQueryable().Select(AsEncounterProp!).ToList(),
@@ -161,7 +161,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static World? ToModel(this WorldEntity? entity)
+    internal static World? ToModel(this WorldEntity? entity, bool includeChildren = true)
         => entity == null ? null : new() {
             OwnerId = entity.OwnerId,
             Id = entity.Id,
@@ -170,8 +170,12 @@ internal static class Mapper {
             Background = entity.Background.ToModel(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Campaigns = entity.Campaigns.Select(ToModel).ToList()!,
-            Adventures = entity.Adventures.Select(ToModel).ToList()!,
+            Campaigns = includeChildren
+                ? entity.Campaigns.Select(c => c.ToModel(includeParent: false)).ToList()!
+                : [],
+            Adventures = includeChildren
+                ? entity.Adventures.Select(a => a.ToModel(includeParent: false)).ToList()!
+                : [],
         };
 
     internal static WorldEntity ToEntity(this World model) {
@@ -202,17 +206,19 @@ internal static class Mapper {
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Campaign? ToModel(this CampaignEntity? entity)
+    internal static Campaign? ToModel(this CampaignEntity? entity, bool includeParent = false, bool includeChildren = true)
         => entity == null ? null : new() {
             OwnerId = entity.OwnerId,
-            World = entity.World?.ToModel(),
+            World = includeParent ? entity.World?.ToModel(includeChildren: false) : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
             Background = entity.Background.ToModel(),
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Adventures = entity.Adventures.Select(ToModel).ToList()!,
+            Adventures = includeChildren
+                ? entity.Adventures.Select(a => a.ToModel(includeParent: false)).ToList()!
+                : [],
         };
 
     internal static CampaignEntity ToEntity(this Campaign model) {
@@ -243,11 +249,11 @@ internal static class Mapper {
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Adventure? ToModel(this AdventureEntity? entity)
+    internal static Adventure? ToModel(this AdventureEntity? entity, bool includeParent = false, bool includeChildren = true)
         => entity == null ? null : new() {
             OwnerId = entity.OwnerId,
-            World = entity.World?.ToModel(),
-            Campaign = entity.Campaign?.ToModel(),
+            World = includeParent ? entity.World?.ToModel(includeChildren: false) : null,
+            Campaign = includeParent ? entity.Campaign?.ToModel(includeParent: false, includeChildren: false) : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -256,25 +262,9 @@ internal static class Mapper {
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Encounters = entity.Encounters.Select(ToChildModel).ToList()!,
-        };
-
-    // Used when loading Adventure from Encounter context (avoids circular reference)
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Adventure? ToModelWithoutEncounters(this AdventureEntity? entity)
-        => entity == null ? null : new() {
-            OwnerId = entity.OwnerId,
-            World = entity.World?.ToModel(),
-            Campaign = entity.Campaign?.ToModel(),
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Style = entity.Style,
-            Background = entity.Background.ToModel(),
-            IsOneShot = entity.IsOneShot,
-            IsPublic = entity.IsPublic,
-            IsPublished = entity.IsPublished,
-            Encounters = [], // Skip to avoid circular reference
+            Encounters = includeChildren
+                ? entity.Encounters.Select(e => e.ToModel(includeParent: false)).ToList()!
+                : [],
         };
 
     internal static AdventureEntity ToEntity(this Adventure model) {
@@ -312,9 +302,8 @@ internal static class Mapper {
         entity.Encounters = [.. existingEncounters.Union(newEncounters)];
     }
 
-    // Used when loading Encounter as child of Adventure (avoids circular reference)
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Encounter? ToChildModel(this EncounterEntity? entity) {
+    internal static Encounter? ToModel(this EncounterEntity? entity, bool includeParent = false, bool includeChildren = true) {
         if (entity is null)
             return null;
         var grid = new Grid {
@@ -330,37 +319,11 @@ internal static class Mapper {
             Description = entity.Description,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Adventure = null!, // Set by parent Adventure.ToModel()
+            Adventure = includeParent ? entity.Adventure.ToModel(includeChildren: false) : null!,
             Stage = entity.Stage.ToModel(),
-            Actors = [.. entity.Actors.Select(a => a.ToModel(grid))],
-            Objects = [.. entity.Objects.Select(p => p.ToModel(grid))],
-            Effects = [.. entity.Effects.Select(e => e.ToModel(grid))],
-        };
-    }
-
-    // Used when loading Encounter standalone (includes Adventure reference)
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Encounter? ToModel(this EncounterEntity? entity) {
-        if (entity is null)
-            return null;
-        var grid = new Grid {
-            Type = entity.Stage.GridType,
-            CellSize = entity.Stage.GridCellSize,
-            Offset = entity.Stage.GridOffset,
-            Scale = entity.Stage.GridScale,
-        };
-        return new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            IsPublished = entity.IsPublished,
-            IsPublic = entity.IsPublic,
-            Adventure = entity.Adventure.ToModelWithoutEncounters(),
-            Stage = entity.Stage.ToModel(),
-            Actors = [.. entity.Actors.Select(a => a.ToModel(grid))],
-            Objects = [.. entity.Objects.Select(p => p.ToModel(grid))],
-            Effects = [.. entity.Effects.Select(e => e.ToModel(grid))],
+            Actors = includeChildren ? [.. entity.Actors.Select(a => a.ToModel(grid))] : [],
+            Objects = includeChildren ? [.. entity.Objects.Select(p => p.ToModel(grid))] : [],
+            Effects = includeChildren ? [.. entity.Effects.Select(e => e.ToModel(grid))] : [],
         };
     }
 

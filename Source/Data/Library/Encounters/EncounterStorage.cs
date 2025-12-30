@@ -26,7 +26,7 @@ public class EncounterStorage(ApplicationDbContext context)
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var items = entities.Select(e => e.ToModel()).ToArray();
+        var items = entities.Select(e => e.ToModel(includeParent: true)).ToArray();
         return (items, totalCount);
     }
 
@@ -93,7 +93,7 @@ public class EncounterStorage(ApplicationDbContext context)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .FirstOrDefaultAsync(e => e.Id == id, ct);
-        return entity.ToModel();
+        return entity.ToModel(includeParent: true);
     }
 
     public async Task AddAsync(Encounter encounter, Guid adventureId, CancellationToken ct = default) {
