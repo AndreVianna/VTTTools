@@ -18,7 +18,6 @@ global using VttTools.AI.Storage;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
 global using VttTools.Audit.Storage;
-global using VttTools.Common.Health;
 global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
 global using VttTools.Data.Assets.Entities;

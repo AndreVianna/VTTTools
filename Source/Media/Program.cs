@@ -26,20 +26,7 @@ internal static class Program {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
         builder.AddAzureBlobServiceClient(AzureStorageOptions.ConnectionStringName);
-        var configuration = builder.Configuration;
-        var healthChecksBuilder = builder.Services.AddHealthChecks();
-        var dbConnectionString = configuration.GetConnectionString(ApplicationDbContextOptions.ConnectionStringName);
-        if (!string.IsNullOrEmpty(dbConnectionString)) {
-            builder.Services.AddSingleton(sp =>
-                new DatabaseHealthCheck(sp.GetRequiredService<IConfiguration>(), ApplicationDbContextOptions.ConnectionStringName));
-            healthChecksBuilder.AddCheck<DatabaseHealthCheck>("Database", tags: ["database"]);
-        }
-        var blobConnectionString = configuration.GetConnectionString(AzureStorageOptions.ConnectionStringName);
-        if (!string.IsNullOrEmpty(blobConnectionString)) {
-            builder.Services.AddSingleton(sp =>
-                new BlobStorageHealthCheck(sp.GetRequiredService<IConfiguration>(), AzureStorageOptions.ConnectionStringName, "media"));
-            healthChecksBuilder.AddCheck<BlobStorageHealthCheck>("BlobStorage", tags: ["storage", "blob"]);
-        }
+        // Note: Database and Blob Storage health are monitored by Aspire at the infrastructure level
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {

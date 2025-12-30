@@ -8,9 +8,6 @@ global using System.Text.Json.Serialization;
 global using System.Text.Json.Serialization.Metadata;
 global using System.Threading.RateLimiting;
 
-global using Azure;
-global using Azure.Storage.Blobs;
-
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Builder;
@@ -20,7 +17,6 @@ global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Routing;
-global using Microsoft.Data.SqlClient;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Configuration.Json;
 global using Microsoft.Extensions.DependencyInjection;

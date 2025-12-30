@@ -27,14 +27,7 @@ internal static class Program {
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
-        var configuration = builder.Configuration;
-        var healthChecksBuilder = builder.Services.AddHealthChecks();
-        var dbConnectionString = configuration.GetConnectionString(ApplicationDbContextOptions.ConnectionStringName);
-        if (!string.IsNullOrEmpty(dbConnectionString)) {
-            builder.Services.AddSingleton(sp =>
-                new DatabaseHealthCheck(sp.GetRequiredService<IConfiguration>(), ApplicationDbContextOptions.ConnectionStringName));
-            healthChecksBuilder.AddCheck<DatabaseHealthCheck>("Database", tags: ["database"]);
-        }
+        // Note: Database health is monitored by Aspire at the infrastructure level
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
