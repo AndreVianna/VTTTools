@@ -319,8 +319,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("character varying(4000)");
 
                     b.Property<string>("Payload")
-                        .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");

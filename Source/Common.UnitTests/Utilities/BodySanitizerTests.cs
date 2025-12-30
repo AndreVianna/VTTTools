@@ -75,14 +75,14 @@ public class BodySanitizerTests {
     }
 
     [Fact]
-    public void SanitizeRequestBody_WithLongContent_TruncatesTo8000Characters() {
-        var longJson = "{\"data\":\"" + new string('a', 9000) + "\"}";
+    public void SanitizeRequestBody_WithLongContent_TruncatesTo3500Characters() {
+        var longJson = "{\"data\":\"" + new string('a', 5000) + "\"}";
 
         var result = BodySanitizer.SanitizeRequestBody(longJson);
 
         result.Should().NotBeNull();
-        (result.Length > 8000).Should().BeTrue();
-        (result.Length < 8100).Should().BeTrue();
+        (result.Length > 3500).Should().BeTrue();
+        (result.Length < 3600).Should().BeTrue();
         result.Should().EndWith("... [truncated]");
     }
 
@@ -191,14 +191,14 @@ public class BodySanitizerTests {
 
     [Fact]
     public void SanitizeQueryString_WithLongQueryString_Truncates() {
-        var longValue = new string('a', 9000);
+        var longValue = new string('a', 5000);
         var queryString = $"data={longValue}";
 
         var result = BodySanitizer.SanitizeQueryString(queryString);
 
         result.Should().NotBeNull();
-        (result.Length > 8000).Should().BeTrue();
-        (result.Length < 8100).Should().BeTrue();
+        (result.Length > 3500).Should().BeTrue();
+        (result.Length < 3600).Should().BeTrue();
         result.Should().EndWith("... [truncated]");
     }
 
