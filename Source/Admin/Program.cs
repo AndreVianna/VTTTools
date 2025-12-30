@@ -34,7 +34,8 @@ internal static class Program {
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
-        // Note: Database, Redis, and Blob Storage health are monitored by Aspire at the infrastructure level
+        // Note: Database and Redis health are monitored by Aspire at the infrastructure level
+        // Blob storage is accessed via media-api (resources-api), not directly
     }
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {

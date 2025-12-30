@@ -80,7 +80,6 @@ internal static class AppHost {
         var admin = builder.AddProject<Projects.VttTools_Admin>("admin-api")
                            .WithReference(cache)
                            .WithReference(database)
-                           .WithReference(blobs)
                            .WithReference(resources)
                            .WithReference(assets)
                            .WithReference(ai)
@@ -88,9 +87,6 @@ internal static class AppHost {
                            .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
         builder.AddJavaScriptApp("web-app", "../WebClientApp", "dev")
-                                 .WithReference(cache)
-                                 .WithReference(database)
-                                 .WithReference(blobs)
                                  .WithReference(auth).WaitFor(auth)
                                  .WithReference(resources).WaitFor(resources)
                                  .WithReference(assets).WaitFor(assets)
@@ -103,8 +99,6 @@ internal static class AppHost {
                                  });
 
         builder.AddJavaScriptApp("admin-app", "../WebAdminApp", "dev")
-                                 .WithReference(cache)
-                                 .WithReference(database)
                                  .WithReference(admin).WaitFor(admin)
                                  .WithReference(ai).WaitFor(ai)
                                  .WithReference(jobs).WaitFor(jobs)
