@@ -1,4 +1,3 @@
-global using System.Data.Common;
 global using System.Security.Claims;
 global using System.Text;
 global using System.Text.Json;

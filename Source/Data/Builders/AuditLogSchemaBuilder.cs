@@ -14,7 +14,7 @@ internal static class AuditLogSchemaBuilder {
         entity.Property(e => e.ErrorMessage).HasMaxLength(4000);
         entity.Property(e => e.EntityType).HasMaxLength(100);
         entity.Property(e => e.EntityId).HasMaxLength(50);
-        entity.Property(e => e.Payload).HasMaxLength(8000);
+        entity.Property(e => e.Payload).HasColumnType("text");
 
         entity.HasIndex(e => e.Timestamp).IsDescending();
         entity.HasIndex(e => e.UserId);

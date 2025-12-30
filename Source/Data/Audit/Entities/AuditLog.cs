@@ -13,6 +13,5 @@ public record AuditLog {
     public string? EntityType { get; set; }
     [MaxLength(50)]
     public string? EntityId { get; set; }
-    [MaxLength(8000)]
     public string? Payload { get; set; }
 }
