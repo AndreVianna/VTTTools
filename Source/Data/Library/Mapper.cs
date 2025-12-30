@@ -256,7 +256,25 @@ internal static class Mapper {
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Encounters = entity.Encounters.Select(ToModel).ToList()!,
+            Encounters = entity.Encounters.Select(ToChildModel).ToList()!,
+        };
+
+    // Used when loading Adventure from Encounter context (avoids circular reference)
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static Adventure? ToModelWithoutEncounters(this AdventureEntity? entity)
+        => entity == null ? null : new() {
+            OwnerId = entity.OwnerId,
+            World = entity.World?.ToModel(),
+            Campaign = entity.Campaign?.ToModel(),
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Style = entity.Style,
+            Background = entity.Background.ToModel(),
+            IsOneShot = entity.IsOneShot,
+            IsPublic = entity.IsPublic,
+            IsPublished = entity.IsPublished,
+            Encounters = [], // Skip to avoid circular reference
         };
 
     internal static AdventureEntity ToEntity(this Adventure model) {
@@ -294,6 +312,33 @@ internal static class Mapper {
         entity.Encounters = [.. existingEncounters.Union(newEncounters)];
     }
 
+    // Used when loading Encounter as child of Adventure (avoids circular reference)
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static Encounter? ToChildModel(this EncounterEntity? entity) {
+        if (entity is null)
+            return null;
+        var grid = new Grid {
+            Type = entity.Stage.GridType,
+            CellSize = entity.Stage.GridCellSize,
+            Offset = entity.Stage.GridOffset,
+            Scale = entity.Stage.GridScale,
+        };
+        return new() {
+            Id = entity.Id,
+            OwnerId = entity.OwnerId,
+            Name = entity.Name,
+            Description = entity.Description,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
+            Adventure = null!, // Set by parent Adventure.ToModel()
+            Stage = entity.Stage.ToModel(),
+            Actors = [.. entity.Actors.Select(a => a.ToModel(grid))],
+            Objects = [.. entity.Objects.Select(p => p.ToModel(grid))],
+            Effects = [.. entity.Effects.Select(e => e.ToModel(grid))],
+        };
+    }
+
+    // Used when loading Encounter standalone (includes Adventure reference)
     [return: NotNullIfNotNull(nameof(entity))]
     internal static Encounter? ToModel(this EncounterEntity? entity) {
         if (entity is null)
@@ -311,7 +356,7 @@ internal static class Mapper {
             Description = entity.Description,
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Adventure = entity.Adventure.ToModel(),
+            Adventure = entity.Adventure.ToModelWithoutEncounters(),
             Stage = entity.Stage.ToModel(),
             Actors = [.. entity.Actors.Select(a => a.ToModel(grid))],
             Objects = [.. entity.Objects.Select(p => p.ToModel(grid))],
