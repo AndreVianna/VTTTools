@@ -34,40 +34,7 @@ internal static class Program {
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
-        var configuration = builder.Configuration;
-        var healthChecksBuilder = builder.Services.AddHealthChecks();
-
-        var dbConnectionString = configuration.GetConnectionString(ApplicationDbContextOptions.ConnectionStringName);
-        if (!string.IsNullOrEmpty(dbConnectionString)) {
-            builder.Services.AddSingleton(sp =>
-                new DatabaseHealthCheck(sp.GetRequiredService<IConfiguration>(), ApplicationDbContextOptions.ConnectionStringName));
-            healthChecksBuilder.AddCheck<DatabaseHealthCheck>("Database", tags: ["database"]);
-        }
-
-        var redisConnectionString = configuration.GetConnectionString("redis");
-        if (!string.IsNullOrEmpty(redisConnectionString)) {
-            healthChecksBuilder.AddCheck("Redis", () => {
-                try {
-                    return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Redis cache is accessible");
-                }
-                catch {
-                    return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("Redis cache is not accessible");
-                }
-            }, ["redis", "cache"]);
-        }
-
-        var blobConnectionString = configuration.GetConnectionString("blobs");
-        healthChecksBuilder.AddCheck("BlobStorage", () => {
-            if (string.IsNullOrEmpty(blobConnectionString)) {
-                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Degraded("Blob storage connection string not configured");
-            }
-            try {
-                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Blob storage is accessible");
-            }
-            catch {
-                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("Blob storage is not accessible");
-            }
-        }, ["blob", "storage"]);
+        // Note: Database, Redis, and Blob Storage health are monitored by Aspire at the infrastructure level
     }
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {
