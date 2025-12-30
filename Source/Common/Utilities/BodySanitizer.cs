@@ -1,9 +1,7 @@
 namespace VttTools.Utilities;
 
 public static class BodySanitizer {
-    // Reduced from 8000 to ensure combined RequestBody + ResponseBody + overhead fits reasonably
-    // RequestBody (3500) + ResponseBody (3500) + JSON overhead (~1000) = ~8000 max payload
-    private const int _maxBodyLength = 3500;
+    private const int _maxBodyLength = 8000;
 
     private static readonly HashSet<string> _sensitiveProperties = [
         "password", "pass", "pwd", "passwd",
