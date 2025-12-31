@@ -26,8 +26,9 @@ export function EncounterCard({ encounter, onOpen, onDuplicate, onDelete }: Enco
   };
 
   const apiEndpoints = getApiEndpoints();
-  const resourceUrl = encounter.stage.background
-    ? `${apiEndpoints.media}/${encounter.stage.background.id}`
+
+  const resourceUrl = encounter.stage?.settings?.mainBackground
+    ? `${apiEndpoints.media}/${encounter.stage.settings.mainBackground.id}`
     : null;
 
   const badges = encounter.isPublished ? <PublishedBadge /> : undefined;

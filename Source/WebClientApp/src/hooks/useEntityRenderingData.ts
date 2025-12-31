@@ -119,18 +119,22 @@ export const useEntityRenderingData = (
                 );
             })
             .map((a) => {
+                // Only provide objectData/monsterData if tokenSize is valid
+                const tokenSize = a.asset.size;
+                const hasValidTokenSize = tokenSize && typeof tokenSize.width === 'number' && typeof tokenSize.height === 'number';
+
                 const objectData =
-                    a.asset.classification.kind === AssetKind.Object
+                    a.asset.classification.kind === AssetKind.Object && hasValidTokenSize
                         ? {
-                            size: a.asset.tokenSize,
+                            size: tokenSize,
                             isMovable: true,
                             isOpaque: false,
                         }
                         : undefined;
                 const monsterData =
-                    a.asset.classification.kind === AssetKind.Creature
+                    a.asset.classification.kind === AssetKind.Creature && hasValidTokenSize
                         ? {
-                            size: a.asset.tokenSize,
+                            size: tokenSize,
                         }
                         : undefined;
 

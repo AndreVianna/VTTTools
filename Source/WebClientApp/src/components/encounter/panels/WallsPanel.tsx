@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
-import { useUpdateEncounterWallMutation } from '@/services/encounterApi';
+import { useUpdateWallMutation } from '@/services/stageApi';
 import { type PlacedWall, type Pole, SegmentState, SegmentType } from '@/types/domain';
 import { SegmentRow } from './SegmentRow';
 import { WALL_PRESETS, type WallPreset } from './wallsPanelTypes';
@@ -71,7 +71,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
     const [editConflictOpen, setEditConflictOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<'delete' | 'place' | null>(null);
 
-    const [updateEncounterWall] = useUpdateEncounterWallMutation();
+    const [updateWall] = useUpdateWallMutation();
 
     const hasWallChanges = (currentWall: PlacedWall | undefined, originalPoles: Pole[] | null): boolean => {
       if (!currentWall || !originalPoles) {
@@ -253,10 +253,10 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
       if (!encounterId) return;
 
       try {
-        await updateEncounterWall({
-          encounterId,
-          wallIndex,
-          ...updates,
+        await updateWall({
+          stageId: encounterId,
+          index: wallIndex,
+          data: updates,
         }).unwrap();
       } catch (error) {
         console.error('[WallsPanel] Failed to update wall:', error);

@@ -1,22 +1,43 @@
 import { useCallback } from 'react';
-import type {
-  useAddEncounterRegionMutation,
-  useRemoveEncounterRegionMutation,
-  useUpdateEncounterRegionMutation,
-} from '@/services/encounterApi';
-import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type Point, RegionType } from '@/types/domain';
+import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { createBatchCommand } from '@/utils/commands';
 import { CreateRegionCommand, DeleteRegionCommand, EditRegionCommand } from '@/utils/commands/regionCommands';
 import { removeRegionOptimistic, removeTempRegions, updateRegionOptimistic } from '@/utils/encounterStateUtils';
 import type { ClipResult } from '@/utils/regionMergeUtils';
 
+/**
+ * Helper to convert a string type to RegionType.
+ */
+const toRegionType = (type: string): RegionType => {
+  if (Object.values(RegionType).includes(type as RegionType)) {
+    return type as RegionType;
+  }
+  return RegionType.Terrain;
+};
+
+/**
+ * Helper to convert Partial<EncounterRegion> to UpdateRegionRequest.
+ */
+const toUpdateRequest = (updates: Partial<EncounterRegion>): UpdateRegionRequest => ({
+  ...(updates.name !== undefined && { name: updates.name }),
+  ...(updates.type !== undefined && { type: toRegionType(updates.type) }),
+  ...(updates.vertices !== undefined && { vertices: updates.vertices }),
+  ...(updates.value !== undefined && { value: updates.value }),
+});
+
+/**
+ * Params for the useClipRegions hook.
+ * Region mutations are now passed from useEncounterEditor which routes them to the Stage API.
+ */
 export interface UseClipRegionsParams {
   encounterId: string | undefined;
   encounter: Encounter | null;
-  addEncounterRegion: ReturnType<typeof useAddEncounterRegionMutation>[0];
-  updateEncounterRegion: ReturnType<typeof useUpdateEncounterRegionMutation>[0];
-  removeEncounterRegion: ReturnType<typeof useRemoveEncounterRegionMutation>[0];
+  // Stage API mutation functions (passed from useEncounterEditor)
+  addRegion: (data: CreateRegionRequest) => Promise<void>;
+  updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void>;
+  deleteRegion: (index: number) => Promise<void>;
   setEncounter: (encounter: Encounter) => void;
   setErrorMessage: (message: string | null) => void;
   recordAction: (command: Command) => void;
@@ -37,9 +58,9 @@ export interface UseClipRegionsResult {
 export const useClipRegions = ({
   encounterId,
   encounter,
-  addEncounterRegion,
-  updateEncounterRegion,
-  removeEncounterRegion,
+  addRegion,
+  updateRegion,
+  deleteRegion,
   setEncounter,
   setErrorMessage,
   recordAction,
@@ -69,18 +90,17 @@ export const useClipRegions = ({
               encounterId,
               regionIndex,
               region: originalRegion,
-              onAdd: async (encounterId, regionData) => {
-                const result = await addEncounterRegion({
-                  encounterId,
-                  ...regionData,
-                }).unwrap();
-                return result;
+              onAdd: async (_encounterId, regionData) => {
+                await addRegion({
+                  name: regionData.name,
+                  type: toRegionType(regionData.type),
+                  vertices: regionData.vertices,
+                  ...(regionData.value !== undefined && { value: regionData.value }),
+                });
+                return { index: regionIndex };
               },
-              onRemove: async (encounterId, regionIndex) => {
-                await removeEncounterRegion({
-                  encounterId,
-                  regionIndex,
-                }).unwrap();
+              onRemove: async (_encounterId, regionIndex) => {
+                await deleteRegion(regionIndex);
               },
               onRefetch: async () => {
                 const { data } = await refetch();
@@ -100,13 +120,9 @@ export const useClipRegions = ({
               regionIndex,
               oldRegion: originalRegion,
               newRegion: { ...originalRegion, vertices: newVertices },
-              onUpdate: async (encounterId, regionIndex, updates) => {
+              onUpdate: async (_encounterId, regionIndex, updates) => {
                 try {
-                  await updateEncounterRegion({
-                    encounterId,
-                    regionIndex,
-                    ...updates,
-                  }).unwrap();
+                  await updateRegion(regionIndex, toUpdateRequest(updates));
                 } catch (error) {
                   console.error('Failed to update region:', error);
                   throw error;
@@ -126,18 +142,17 @@ export const useClipRegions = ({
               encounterId,
               regionIndex,
               region: originalRegion,
-              onAdd: async (encounterId, regionData) => {
-                const result = await addEncounterRegion({
-                  encounterId,
-                  ...regionData,
-                }).unwrap();
-                return result;
+              onAdd: async (_encounterId, regionData) => {
+                await addRegion({
+                  name: regionData.name,
+                  type: toRegionType(regionData.type),
+                  vertices: regionData.vertices,
+                  ...(regionData.value !== undefined && { value: regionData.value }),
+                });
+                return { index: regionIndex };
               },
-              onRemove: async (encounterId, regionIndex) => {
-                await removeEncounterRegion({
-                  encounterId,
-                  regionIndex,
-                }).unwrap();
+              onRemove: async (_encounterId, regionIndex) => {
+                await deleteRegion(regionIndex);
               },
               onRefetch: async () => {
                 const { data } = await refetch();
@@ -166,49 +181,62 @@ export const useClipRegions = ({
           await cmd.execute();
         }
 
+        // Track created region indices for undo/redo
+        let createdRegionCount = 0;
+
         for (const { baseRegion, vertices, nameSuffix } of regionsToCreate) {
-          const newRegionData = {
+          const newRegionData: CreateRegionRequest = {
             name: `${baseRegion.name} ${nameSuffix}`,
-            type: baseRegion.type,
+            type: toRegionType(baseRegion.type),
             vertices,
             ...(baseRegion.value !== undefined && { value: baseRegion.value }),
-            ...(baseRegion.label !== undefined && { label: baseRegion.label }),
           };
 
-          const createdRegion = await addEncounterRegion({
-            encounterId,
-            ...newRegionData,
-          }).unwrap();
+          await addRegion(newRegionData);
+          createdRegionCount++;
 
-          const fullRegion: EncounterRegion = {
-            ...newRegionData,
-            encounterId,
-            index: createdRegion.index,
-          };
+          // Refetch to get the created region index
+          const { data: refreshedEncounter } = await refetch();
+          if (refreshedEncounter) {
+            // Find the newly created region by matching properties
+            const createdRegion = refreshedEncounter.stage.regions?.find(
+              (r) => r.name === newRegionData.name && r.vertices.length === vertices.length
+            );
 
-          commands.push(
-            new CreateRegionCommand({
-              encounterId,
-              region: fullRegion,
-              onCreate: async (encounterId, regionData) => {
-                const result = await addEncounterRegion({
+            if (createdRegion) {
+              const fullRegion: EncounterRegion = {
+                encounterId,
+                index: createdRegion.index,
+                name: newRegionData.name ?? '',
+                type: String(newRegionData.type),
+                vertices: newRegionData.vertices,
+                ...(newRegionData.value !== undefined && { value: newRegionData.value }),
+              };
+
+              commands.push(
+                new CreateRegionCommand({
                   encounterId,
-                  ...regionData,
-                }).unwrap();
-                return result;
-              },
-              onRemove: async (encounterId, regionIndex) => {
-                await removeEncounterRegion({
-                  encounterId,
-                  regionIndex,
-                }).unwrap();
-              },
-              onRefetch: async () => {
-                const { data } = await refetch();
-                if (data) setEncounter(data);
-              },
-            }),
-          );
+                  region: fullRegion,
+                  onCreate: async (_encounterId, regionData) => {
+                    await addRegion({
+                      name: regionData.name,
+                      type: toRegionType(regionData.type),
+                      vertices: regionData.vertices,
+                      ...(regionData.value !== undefined && { value: regionData.value }),
+                    });
+                    return { index: createdRegion.index };
+                  },
+                  onRemove: async (_encounterId, regionIndex) => {
+                    await deleteRegion(regionIndex);
+                  },
+                  onRefetch: async () => {
+                    const { data } = await refetch();
+                    if (data) setEncounter(data);
+                  },
+                }),
+              );
+            }
+          }
         }
 
         const batchCommand = createBatchCommand({ commands });
@@ -244,9 +272,9 @@ export const useClipRegions = ({
     [
       encounterId,
       encounter,
-      addEncounterRegion,
-      updateEncounterRegion,
-      removeEncounterRegion,
+      addRegion,
+      updateRegion,
+      deleteRegion,
       setEncounter,
       setErrorMessage,
       recordAction,

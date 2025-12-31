@@ -19,7 +19,7 @@ import {
 } from '@mui/icons-material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { EncounterSoundSource } from '@/types/domain';
+import type { StageSound } from '@/types/stage';
 import { SoundPickerDialog } from '@/components/sounds';
 import { useGetMediaResourceQuery } from '@/services/mediaApi';
 import { useAuthenticatedResource } from '@/hooks/useAuthenticatedResource';
@@ -27,8 +27,8 @@ import { useAuthenticatedResource } from '@/hooks/useAuthenticatedResource';
 export type SoundSourceUpdatePayload = {
     name?: string;
     position?: { x: number; y: number };
-    range?: number;
-    resourceId?: string | null;
+    radius?: number;
+    mediaId?: string | null;
     isPlaying?: boolean;
     loop?: boolean;
 };
@@ -37,7 +37,7 @@ export interface SoundContextMenuProps {
     anchorPosition: { left: number; top: number } | null;
     open: boolean;
     onClose: () => void;
-    encounterSoundSource: EncounterSoundSource | null;
+    encounterSoundSource: StageSound | null;
     onSoundSourceUpdate?: (sourceIndex: number, updates: SoundSourceUpdatePayload) => void;
     onSoundSourceDelete?: (sourceIndex: number) => void;
 }
@@ -65,7 +65,7 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
     const [duration, setDuration] = useState(0);
     const [isAudioLoading, setIsAudioLoading] = useState(false);
 
-    const resourceId = soundSource?.resource?.id;
+    const resourceId = soundSource?.media?.id;
     const { data: currentResource } = useGetMediaResourceQuery(resourceId ?? '', {
         skip: !resourceId,
     });
@@ -190,7 +190,7 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setNameValue(soundSource.name || '');
              
-            setRangeValue(soundSource.range);
+            setRangeValue(soundSource.radius);
              
             setLoopValue(soundSource.loop ?? false);
              
@@ -235,8 +235,8 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
     };
 
     const handleRangeChangeCommitted = (_: Event | React.SyntheticEvent, value: number | number[]) => {
-        if (onSoundSourceUpdate && value !== soundSource.range) {
-            onSoundSourceUpdate(soundSource.index, { range: value as number });
+        if (onSoundSourceUpdate && value !== soundSource.radius) {
+            onSoundSourceUpdate(soundSource.index, { radius: value as number });
         }
     };
 
@@ -246,7 +246,7 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
 
     const handleSoundSelected = (selectedResourceId: string) => {
         if (onSoundSourceUpdate && soundSource) {
-            onSoundSourceUpdate(soundSource.index, { resourceId: selectedResourceId });
+            onSoundSourceUpdate(soundSource.index, { mediaId: selectedResourceId });
         }
         setSoundPickerOpen(false);
     };
@@ -355,7 +355,7 @@ export const SoundContextMenu: React.FC<SoundContextMenuProps> = ({
                         </Box>
                         <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary, ml: '68px', mt: 0.25 }}>
                             {resourceId
-                                ? (currentResource?.fileName || soundSource.resource?.fileName || 'Loading...')
+                                ? (currentResource?.fileName || soundSource.media?.fileName || 'Loading...')
                                 : 'No sound assigned'}
                         </Typography>
                     </Box>

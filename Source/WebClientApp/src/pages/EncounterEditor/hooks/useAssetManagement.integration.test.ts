@@ -10,7 +10,9 @@ import type {
 } from '@/services/encounterApi';
 import type { AppDispatch } from '@/store';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
-import { AssetKind, LabelPosition, LabelVisibility, ResourceRole, Weather } from '@/types/domain';
+import { AssetKind, GridType, LabelPosition, LabelVisibility, ResourceRole, Weather } from '@/types/domain';
+import type { Stage } from '@/types/stage';
+import { AmbientLight } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import {
   clearEncounterMappings,
@@ -19,6 +21,50 @@ import {
   setEntityMapping,
 } from '@/utils/encounterEntityMapping';
 import { useAssetManagement } from './useAssetManagement';
+
+const createMockStage = (overrides?: Partial<Stage>): Stage => ({
+  id: 'stage-1',
+  ownerId: 'owner-1',
+  name: 'Test Stage',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  settings: {
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: AmbientLight.Default,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: Weather.Clear,
+  },
+  grid: {
+    type: GridType.Square,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    scale: 1,
+  },
+  walls: [],
+  regions: [],
+  lights: [],
+  elements: [],
+  sounds: [],
+  ...overrides,
+});
+
+const createMockEncounter = (): Encounter => ({
+  id: 'test-encounter-123',
+  ownerId: 'owner-1',
+  adventure: null,
+  name: 'Test Encounter',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  stage: createMockStage(),
+  actors: [],
+  objects: [],
+  effects: [],
+});
 
 vi.mock('@/utils/encounterMappers', () => ({
   hydratePlacedAssets: vi.fn().mockImplementation((assets) => Promise.resolve(assets)),
@@ -83,8 +129,9 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           duration: '',
         },
       ],
+      thumbnail: null,
       portrait: null,
-      tokenSize: {
+      size: {
         width: 100,
         height: 100,
       },
@@ -102,40 +149,14 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       size: { width: 100, height: 100 },
       rotation: 0,
       layer: 'objects',
-      visible: true,
-      locked: false,
+      isHidden: false,
+      isLocked: false,
       labelVisibility: LabelVisibility.Default,
       labelPosition: LabelPosition.Default,
       asset: mockAsset,
     };
 
-    mockEncounter = {
-      id: testEncounterId,
-      adventure: null,
-      name: 'Test Encounter',
-      description: '',
-      isPublished: false,
-      light: 0,
-      weather: Weather.Clear,
-      elevation: 0,
-      grid: {
-        type: 1,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        snap: true,
-      scale: 1,
-      },
-      stage: {
-        background: null,
-        zoomLevel: 1,
-        panning: { x: 0, y: 0 },
-      },
-      assets: [],
-      walls: [],
-      regions: [],
-      lightSources: [],
-      soundSources: [],
-    };
+    mockEncounter = createMockEncounter();
 
     mockAddEncounterAsset = vi.fn().mockImplementation(() => ({
       unwrap: vi.fn().mockResolvedValue({}),
@@ -173,19 +194,9 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
   describe('Place Asset with localStorage Mapping', () => {
     it('should place asset and create localStorage mapping after backend sync', async () => {
       const backendIndex = 5;
-      const backendAssetWithIndex = {
-        assetId: mockPlacedAsset.assetId,
-        position: mockPlacedAsset.position,
-        size: mockPlacedAsset.size,
-        rotation: mockPlacedAsset.rotation,
-        index: backendIndex,
-      };
-
-      mockEncounter.assets = [];
-      const updatedEncounter = {
-        ...mockEncounter,
-        assets: [backendAssetWithIndex],
-      };
+      // Note: Encounter no longer has 'assets' at root level after Stage refactoring
+      // The hook now manages actors, objects, and effects instead
+      const updatedEncounter = mockEncounter;
 
       const localRefetch = vi.fn().mockResolvedValue({ data: updatedEncounter });
       const localSetEncounter = vi.fn();

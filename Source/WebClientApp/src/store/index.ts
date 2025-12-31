@@ -13,6 +13,7 @@ import { contentApi } from '../services/contentApi';
 import { encounterApi } from '../services/encounterApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
+import { stageApi } from '../services/stageApi';
 import { worldsApi } from '../services/worldsApi';
 // Feature slices
 import authSlice from './slices/authSlice';
@@ -36,6 +37,7 @@ export const store = configureStore({
     [gameSessionsApi.reducerPath]: gameSessionsApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
     [encounterApi.reducerPath]: encounterApi.reducer,
+    [stageApi.reducerPath]: stageApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
     [securityApi.reducerPath]: securityApi.reducer,
     [twoFactorApi.reducerPath]: twoFactorApi.reducer,
@@ -63,6 +65,7 @@ export const store = configureStore({
       .concat(gameSessionsApi.middleware)
       .concat(mediaApi.middleware)
       .concat(encounterApi.middleware)
+      .concat(stageApi.middleware)
       .concat(profileApi.middleware)
       .concat(securityApi.middleware)
       .concat(twoFactorApi.middleware)

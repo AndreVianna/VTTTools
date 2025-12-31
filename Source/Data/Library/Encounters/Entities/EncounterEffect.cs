@@ -1,3 +1,4 @@
+using Asset = VttTools.Data.Assets.Entities.Asset;
 using Resource = VttTools.Data.Media.Entities.Resource;
 
 using Shape = VttTools.Data.Common.Entities.Shape;
@@ -16,6 +17,7 @@ public class EncounterEffect {
     public float Rotation { get; set; }
 
     public Guid AssetId { get; set; }
+    public Asset Asset { get; set; } = null!;
 
     public Guid? DisplayId { get; set; }
     public Resource? Display { get; set; }

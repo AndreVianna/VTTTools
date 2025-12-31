@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
     AudioFile as AudioFileIcon,
-    Cancel as CancelIcon,
     Close as CloseIcon,
     CloudUpload as UploadIcon,
     Search as SearchIcon,
@@ -12,7 +11,6 @@ import {
     Card,
     CardContent,
     CircularProgress,
-    LinearProgress,
     Dialog,
     IconButton,
     InputAdornment,
@@ -56,7 +54,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
         take: 50,
     }, { skip: !open });
     const resources = data?.items ?? [];
-    const { uploadState, uploadFile, cancelUpload } = useFileUpload({
+    const { uploadState, uploadFile } = useFileUpload({
         resourceType: ResourceRole[soundTypeFilter],
         onSuccess: async (resource) => {
             await refetch();

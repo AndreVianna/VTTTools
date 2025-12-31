@@ -1,10 +1,6 @@
 import { useCallback } from 'react';
-import type {
-  useAddEncounterRegionMutation,
-  useRemoveEncounterRegionMutation,
-  useUpdateEncounterRegionMutation,
-} from '@/services/encounterApi';
-import type { Encounter, EncounterRegion, PlacedRegion, Point } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type PlacedRegion, type Point, RegionType } from '@/types/domain';
+import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { CreateRegionCommand, EditRegionCommand } from '@/utils/commands/regionCommands';
 import { getDomIdByIndex, removeEntityMapping } from '@/utils/encounterEntityMapping';
@@ -19,6 +15,31 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { useClipRegions } from './useClipRegions';
 import { useMergeRegions } from './useMergeRegions';
 
+/**
+ * Helper to convert a string type to RegionType.
+ * Falls back to Terrain if the type is not a valid RegionType.
+ */
+const toRegionType = (type: string): RegionType => {
+  if (Object.values(RegionType).includes(type as RegionType)) {
+    return type as RegionType;
+  }
+  return RegionType.Terrain;
+};
+
+/**
+ * Helper to convert Partial<EncounterRegion> to UpdateRegionRequest.
+ */
+const toUpdateRequest = (updates: Partial<EncounterRegion>): UpdateRegionRequest => ({
+  ...(updates.name !== undefined && { name: updates.name }),
+  ...(updates.type !== undefined && { type: toRegionType(updates.type) }),
+  ...(updates.vertices !== undefined && { vertices: updates.vertices }),
+  ...(updates.value !== undefined && { value: updates.value }),
+});
+
+/**
+ * Props for the useRegionHandlers hook.
+ * Region mutations are now passed from useEncounterEditor which routes them to the Stage API.
+ */
 interface UseRegionHandlersProps {
   encounterId: string | undefined;
   encounter: Encounter | null;
@@ -30,9 +51,10 @@ interface UseRegionHandlersProps {
   drawingMode: 'region' | 'wall' | 'bucketFill' | null;
   drawingRegionIndex: number | null;
 
-  addEncounterRegion: ReturnType<typeof useAddEncounterRegionMutation>[0];
-  updateEncounterRegion: ReturnType<typeof useUpdateEncounterRegionMutation>[0];
-  removeEncounterRegion: ReturnType<typeof useRemoveEncounterRegionMutation>[0];
+  // Stage API mutation functions (passed from useEncounterEditor)
+  addRegion: (data: CreateRegionRequest) => Promise<void>;
+  updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void>;
+  deleteRegion: (index: number) => Promise<void>;
 
   setEncounter: (encounter: Encounter) => void;
   setPlacedRegions: (regions: PlacedRegion[]) => void;
@@ -58,9 +80,9 @@ export const useRegionHandlers = ({
   originalRegionVertices,
   drawingMode,
   drawingRegionIndex,
-  addEncounterRegion,
-  updateEncounterRegion,
-  removeEncounterRegion,
+  addRegion,
+  updateRegion,
+  deleteRegion,
   setEncounter,
   setPlacedRegions,
   setSelectedRegionIndex,
@@ -76,9 +98,9 @@ export const useRegionHandlers = ({
   const { executeMerge } = useMergeRegions({
     encounterId,
     encounter,
-    addEncounterRegion,
-    updateEncounterRegion,
-    removeEncounterRegion,
+    addRegion,
+    updateRegion,
+    deleteRegion,
     setEncounter,
     setErrorMessage,
     recordAction,
@@ -88,9 +110,9 @@ export const useRegionHandlers = ({
   const { executeClip } = useClipRegions({
     encounterId,
     encounter,
-    addEncounterRegion,
-    updateEncounterRegion,
-    removeEncounterRegion,
+    addRegion,
+    updateRegion,
+    deleteRegion,
     setEncounter,
     setErrorMessage,
     recordAction,
@@ -101,14 +123,14 @@ export const useRegionHandlers = ({
     async (regionIndex: number) => {
       if (!encounterId || !encounter) return;
 
-      const region = encounter.regions?.find((r) => r.index === regionIndex);
+      const region = encounter.stage.regions?.find((r) => r.index === regionIndex);
       if (!region) return;
 
       const regionId = getDomIdByIndex(encounterId, 'regions', regionIndex);
       if (!regionId) return;
 
       try {
-        await removeEncounterRegion({ encounterId, regionIndex }).unwrap();
+        await deleteRegion(regionIndex);
 
         removeEntityMapping(encounterId, 'regions', regionId);
 
@@ -116,7 +138,7 @@ export const useRegionHandlers = ({
         if (updatedEncounter) {
           setEncounter(updatedEncounter);
 
-          const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions, encounterId);
+          const hydratedRegions = hydratePlacedRegions(updatedEncounter.stage.regions, encounterId);
           setPlacedRegions(hydratedRegions);
         }
 
@@ -130,7 +152,7 @@ export const useRegionHandlers = ({
     [
       encounterId,
       encounter,
-      removeEncounterRegion,
+      deleteRegion,
       refetch,
       setEncounter,
       setPlacedRegions,
@@ -178,7 +200,7 @@ export const useRegionHandlers = ({
 
     const result = await regionTransaction.commitTransaction(
       encounterId,
-      { addEncounterRegion, updateEncounterRegion },
+      { addRegion, updateRegion },
       encounterForCommit || undefined,
     );
 
@@ -254,28 +276,20 @@ export const useRegionHandlers = ({
             };
 
             try {
-              await updateEncounterRegion({
-                encounterId,
-                regionIndex: editingRegionIndex,
+              await updateRegion(editingRegionIndex, {
                 name: segment.name,
                 vertices: segment.vertices,
-                type: segment.type,
+                type: toRegionType(segment.type),
                 ...(segment.value !== undefined && { value: segment.value }),
-                ...(segment.label !== undefined && { label: segment.label }),
-                ...(segment.color !== undefined && { color: segment.color }),
-              }).unwrap();
+              });
 
               const command = new EditRegionCommand({
                 encounterId,
                 regionIndex: editingRegionIndex,
                 oldRegion: originalRegion,
                 newRegion: newRegion,
-                onUpdate: async (encounterId, regionIndex, updates) => {
-                  await updateEncounterRegion({
-                    encounterId,
-                    regionIndex,
-                    ...updates,
-                  }).unwrap();
+                onUpdate: async (_encounterId, regionIndex, updates) => {
+                  await updateRegion(regionIndex, toUpdateRequest(updates));
                 },
                 onRefetch: async () => {
                   const { data } = await refetch();
@@ -369,13 +383,9 @@ export const useRegionHandlers = ({
           regionIndex: editingRegionIndex,
           oldRegion: originalRegion,
           newRegion: newRegion,
-          onUpdate: async (encounterId, regionIndex, updates) => {
+          onUpdate: async (_encounterId, regionIndex, updates) => {
             try {
-              await updateEncounterRegion({
-                encounterId,
-                regionIndex,
-                ...updates,
-              }).unwrap();
+              await updateRegion(regionIndex, toUpdateRequest(updates));
             } catch (error) {
               console.error('Failed to update region:', error);
               throw error;
@@ -402,7 +412,7 @@ export const useRegionHandlers = ({
         });
         setEncounter(updatedEncounter);
 
-        const hydratedRegions = hydratePlacedRegions(updatedEncounter.regions, encounterId);
+        const hydratedRegions = hydratePlacedRegions(updatedEncounter.stage.regions, encounterId);
         setPlacedRegions(hydratedRegions);
       }
 
@@ -434,8 +444,8 @@ export const useRegionHandlers = ({
     editingRegionIndex,
     originalRegionVertices,
     regionTransaction,
-    addEncounterRegion,
-    updateEncounterRegion,
+    addRegion,
+    updateRegion,
     setEncounter,
     setPlacedRegions,
     setEditingRegionIndex,
@@ -459,7 +469,7 @@ export const useRegionHandlers = ({
 
       const result = await regionTransaction.commitTransaction(
         encounterId,
-        { addEncounterRegion, updateEncounterRegion },
+        { addRegion, updateRegion },
         encounterForCommit || undefined,
       );
 
@@ -504,44 +514,55 @@ export const useRegionHandlers = ({
           clipResults: result.clipResults,
           clipperVertices: segment.vertices,
           onSuccess: async () => {
-            const newRegionData = {
-              encounterId,
+            const newRegionData: CreateRegionRequest = {
               name: segment.name,
-              type: segment.type,
+              type: toRegionType(segment.type),
               vertices: segment.vertices,
               ...(segment.value !== undefined && { value: segment.value }),
-              ...(segment.label !== undefined && { label: segment.label }),
-              ...(segment.color !== undefined && { color: segment.color }),
             };
 
             try {
-              const createdResult = await addEncounterRegion(newRegionData).unwrap();
+              await addRegion(newRegionData);
 
-              const command = new CreateRegionCommand({
-                encounterId,
-                region: {
-                  ...newRegionData,
-                  index: createdResult.index,
-                },
-                onCreate: async (encounterId, regionData) => {
-                  const result = await addEncounterRegion({
+              // Refetch to get the created region with its index
+              const { data: refreshedEncounter } = await refetch();
+              if (refreshedEncounter) {
+                const createdRegion = refreshedEncounter.stage.regions?.find(
+                  (r) => r.name === segment.name && r.vertices.length === segment.vertices.length
+                );
+
+                if (createdRegion) {
+                  const command = new CreateRegionCommand({
                     encounterId,
-                    ...regionData,
-                  }).unwrap();
-                  return result;
-                },
-                onRemove: async (encounterId, regionIndex) => {
-                  await removeEncounterRegion({
-                    encounterId,
-                    regionIndex,
-                  }).unwrap();
-                },
-                onRefetch: async () => {
-                  const { data } = await refetch();
-                  if (data) setEncounter(data);
-                },
-              });
-              recordAction(command);
+                    region: {
+                      encounterId,
+                      index: createdRegion.index,
+                      name: segment.name,
+                      type: segment.type,
+                      vertices: segment.vertices,
+                      ...(segment.value !== undefined && { value: segment.value }),
+                    },
+                    onCreate: async (_encounterId, regionData) => {
+                      await addRegion({
+                        name: regionData.name,
+                        type: toRegionType(regionData.type),
+                        vertices: regionData.vertices,
+                        ...(regionData.value !== undefined && { value: regionData.value }),
+                      });
+                      return { index: createdRegion.index };
+                    },
+                    onRemove: async (_encounterId, regionIndex) => {
+                      await deleteRegion(regionIndex);
+                    },
+                    onRefetch: async () => {
+                      const { data } = await refetch();
+                      if (data) setEncounter(data);
+                    },
+                  });
+                  recordAction(command);
+                }
+                setEncounter(refreshedEncounter);
+              }
             } catch (error) {
               console.error('Failed to create new region after clip:', error);
             }
@@ -592,30 +613,36 @@ export const useRegionHandlers = ({
         const syncedEncounter = syncRegionIndices(encounter, tempToReal);
         setEncounter(syncedEncounter);
 
-        const createdRegion = syncedEncounter.regions?.find((r) => r.index === result.regionIndex);
+        const createdRegion = syncedEncounter.stage.regions?.find((r) => r.index === result.regionIndex);
         if (createdRegion) {
           const command = new CreateRegionCommand({
             encounterId,
-            region: createdRegion,
-            onCreate: async (encounterId, regionData) => {
+            region: {
+              encounterId,
+              index: createdRegion.index,
+              name: createdRegion.name,
+              type: String(createdRegion.type),
+              vertices: createdRegion.vertices,
+              ...(createdRegion.value !== undefined && { value: createdRegion.value }),
+            },
+            onCreate: async (_encounterId, regionData) => {
               try {
-                const result = await addEncounterRegion({
-                  encounterId,
-                  ...regionData,
-                }).unwrap();
-                return result;
+                await addRegion({
+                  name: regionData.name,
+                  type: toRegionType(regionData.type),
+                  vertices: regionData.vertices,
+                  ...(regionData.value !== undefined && { value: regionData.value }),
+                });
+                return { index: createdRegion.index };
               } catch (error) {
                 console.error('Failed to recreate region:', error);
                 setErrorMessage('Failed to recreate region. Please try again.');
                 throw error;
               }
             },
-            onRemove: async (encounterId, regionIndex) => {
+            onRemove: async (_encounterId, regionIndex) => {
               try {
-                await removeEncounterRegion({
-                  encounterId,
-                  regionIndex,
-                }).unwrap();
+                await deleteRegion(regionIndex);
               } catch (error) {
                 console.error('Failed to remove region:', error);
                 setErrorMessage('Failed to remove region. Please try again.');
@@ -650,9 +677,9 @@ export const useRegionHandlers = ({
     drawingMode,
     drawingRegionIndex,
     regionTransaction,
-    addEncounterRegion,
-    updateEncounterRegion,
-    removeEncounterRegion,
+    addRegion,
+    updateRegion,
+    deleteRegion,
     setEncounter,
     setDrawingRegionIndex,
     setErrorMessage,
@@ -687,7 +714,10 @@ export const useRegionHandlers = ({
 
         const updatedEncounter = {
           ...encounter,
-          regions: [...(encounter.regions || []), tempRegion],
+          stage: {
+            ...encounter.stage,
+            regions: [...(encounter.stage.regions || []), tempRegion],
+          },
         };
         setEncounter(updatedEncounter);
       }
@@ -730,7 +760,10 @@ export const useRegionHandlers = ({
 
         const updatedEncounter = {
           ...encounter,
-          regions: [...(encounter.regions || []), tempRegion],
+          stage: {
+            ...encounter.stage,
+            regions: [...(encounter.stage.regions || []), tempRegion],
+          },
         };
         setEncounter(updatedEncounter);
       }
@@ -761,44 +794,50 @@ export const useRegionHandlers = ({
           return;
         }
 
-        const result = await addEncounterRegion({
-          encounterId,
+        await addRegion({
           name: segment.name,
-          type: segment.type,
+          type: toRegionType(segment.type),
           vertices: vertices,
           ...(segment.value !== undefined && { value: segment.value }),
-          ...(segment.label !== undefined && { label: segment.label }),
-          ...(segment.color !== undefined && { color: segment.color }),
-        }).unwrap();
+        });
 
         const { data: updatedEncounter } = await refetch();
         if (updatedEncounter) {
           setEncounter(updatedEncounter);
 
-          const createdRegion = updatedEncounter.regions?.find((r) => r.index === result.index);
+          // Find the created region by matching properties
+          const createdRegion = updatedEncounter.stage.regions?.find(
+            (r) => r.name === segment.name && r.vertices.length === vertices.length
+          );
           if (createdRegion) {
             const command = new CreateRegionCommand({
               encounterId,
-              region: createdRegion,
-              onCreate: async (encounterId, regionData) => {
+              region: {
+                encounterId,
+                index: createdRegion.index,
+                name: segment.name,
+                type: segment.type,
+                vertices: vertices,
+                ...(segment.value !== undefined && { value: segment.value }),
+              },
+              onCreate: async (_encounterId, regionData) => {
                 try {
-                  const result = await addEncounterRegion({
-                    encounterId,
-                    ...regionData,
-                  }).unwrap();
-                  return result;
+                  await addRegion({
+                    name: regionData.name,
+                    type: toRegionType(regionData.type),
+                    vertices: regionData.vertices,
+                    ...(regionData.value !== undefined && { value: regionData.value }),
+                  });
+                  return { index: createdRegion.index };
                 } catch (error) {
                   console.error('Failed to recreate region:', error);
                   setErrorMessage('Failed to recreate region. Please try again.');
                   throw error;
                 }
               },
-              onRemove: async (encounterId, regionIndex) => {
+              onRemove: async (_encounterId, regionIndex) => {
                 try {
-                  await removeEncounterRegion({
-                    encounterId,
-                    regionIndex,
-                  }).unwrap();
+                  await deleteRegion(regionIndex);
                 } catch (error) {
                   console.error('Failed to remove region:', error);
                   setErrorMessage('Failed to remove region. Please try again.');
@@ -830,8 +869,8 @@ export const useRegionHandlers = ({
       encounter,
       drawingRegionIndex,
       regionTransaction,
-      addEncounterRegion,
-      removeEncounterRegion,
+      addRegion,
+      deleteRegion,
       setEncounter,
       setDrawingRegionIndex,
       setErrorMessage,
@@ -849,18 +888,27 @@ export const useRegionHandlers = ({
 
   const handleEditRegionVertices = useCallback(
     (regionIndex: number) => {
-      const region = encounter?.regions?.find((r) => r.index === regionIndex);
+      const region = encounter?.stage.regions?.find((r) => r.index === regionIndex);
       if (!region) {
         return;
       }
 
+      // Convert StageRegionVertex[] to Point[] for editing
+      const vertices = region.vertices.map((v) => ({ x: v.x, y: v.y }));
       setDrawingRegionIndex(null);
-      setOriginalRegionVertices([...region.vertices]);
+      setOriginalRegionVertices([...vertices]);
       setEditingRegionIndex(regionIndex);
       setIsEditingRegionVertices(true);
       setSelectedRegionIndex(regionIndex);
 
-      regionTransaction.startTransaction('editing', region);
+      // Create EncounterRegion-compatible object for transaction
+      const encounterRegion = {
+        ...region,
+        encounterId: encounter?.id,
+        vertices,
+        type: String(region.type),
+      } as EncounterRegion;
+      regionTransaction.startTransaction('editing', encounterRegion);
     },
     [
       encounter,
@@ -877,24 +925,20 @@ export const useRegionHandlers = ({
     async (regionIndex: number, updates: Partial<EncounterRegion>) => {
       if (!encounterId || !encounter) return;
 
-      const region = encounter.regions?.find((r) => r.index === regionIndex);
+      const region = encounter.stage.regions?.find((r) => r.index === regionIndex);
       if (!region) return;
 
       try {
         const updatedEncounter = updateRegionOptimistic(encounter, regionIndex, updates);
         setEncounter(updatedEncounter);
 
-        await updateEncounterRegion({
-          encounterId,
-          regionIndex,
-          ...updates,
-        }).unwrap();
+        await updateRegion(regionIndex, toUpdateRequest(updates));
       } catch (error) {
         console.error('[useRegionHandlers] Failed to update region:', error);
         await refetch();
       }
     },
-    [encounterId, encounter, setEncounter, updateEncounterRegion, refetch],
+    [encounterId, encounter, setEncounter, updateRegion, refetch],
   );
 
   const handleSwitchToRegion = useCallback(
@@ -910,7 +954,7 @@ export const useRegionHandlers = ({
 
         await regionTransaction.commitTransaction(
           encounterId,
-          { addEncounterRegion, updateEncounterRegion },
+          { addRegion, updateRegion },
           encounterForCommit || undefined,
         );
       }
@@ -923,7 +967,7 @@ export const useRegionHandlers = ({
       const { data: refreshedEncounter } = await refetch();
       if (!refreshedEncounter) return;
 
-      const newRegion = refreshedEncounter.regions?.find((r) => r.index === newRegionIndex);
+      const newRegion = refreshedEncounter.stage.regions?.find((r) => r.index === newRegionIndex);
       if (!newRegion) return;
 
       setDrawingRegionIndex(null);
@@ -939,8 +983,8 @@ export const useRegionHandlers = ({
       encounter,
       editingRegionIndex,
       regionTransaction,
-      addEncounterRegion,
-      updateEncounterRegion,
+      addRegion,
+      updateRegion,
       refetch,
       setDrawingRegionIndex,
       setOriginalRegionVertices,

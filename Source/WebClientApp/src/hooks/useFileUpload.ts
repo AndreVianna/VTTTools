@@ -10,8 +10,8 @@ export interface UploadState {
 }
 
 export interface UseFileUploadOptions {
-  resourceType?: string;
-  entityId?: string;
+  resourceType?: string | undefined;
+  entityId?: string | undefined;
   onSuccess?: (resource: MediaResource) => void;
   onError?: (error: string) => void;
 }
@@ -75,7 +75,7 @@ export const useFileUpload = (options: UseFileUploadOptions = {}): UseFileUpload
           progress: 100,
         }));
 
-        onSuccess?.(result.resource);
+        if (result.resource) onSuccess?.(result.resource);
         return result.resource;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Upload failed';

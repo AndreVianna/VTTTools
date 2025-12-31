@@ -27,9 +27,9 @@ import {
 import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import {
-  useUpdateEncounterLightSourceMutation,
-  useRemoveEncounterLightSourceMutation,
-} from '@/services/encounterApi';
+  useUpdateLightMutation,
+  useDeleteLightMutation,
+} from '@/services/stageApi';
 import { LightSourceType, type EncounterLightSource } from '@/types/domain';
 
 export interface LightsPanelProps {
@@ -88,8 +88,8 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
     const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
     const [editedRanges, setEditedRanges] = useState<Map<number, string>>(new Map());
 
-    const [updateEncounterLightSource] = useUpdateEncounterLightSourceMutation();
-    const [removeEncounterLightSource] = useRemoveEncounterLightSourceMutation();
+    const [updateLight] = useUpdateLightMutation();
+    const [deleteLight] = useDeleteLightMutation();
 
     const compactStyles = {
       sectionHeader: {
@@ -190,10 +190,10 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
       if (!encounterId) return;
 
       try {
-        await updateEncounterLightSource({
-          encounterId,
-          sourceIndex,
-          ...updates,
+        await updateLight({
+          stageId: encounterId,
+          index: sourceIndex,
+          data: updates,
         }).unwrap();
       } catch (_error) {
         console.error('[LightsPanel] Failed to update light source');
@@ -204,9 +204,9 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
       if (!encounterId) return;
 
       try {
-        await removeEncounterLightSource({
-          encounterId,
-          sourceIndex,
+        await deleteLight({
+          stageId: encounterId,
+          index: sourceIndex,
         }).unwrap();
       } catch (_error) {
         console.error('[LightsPanel] Failed to delete light source');

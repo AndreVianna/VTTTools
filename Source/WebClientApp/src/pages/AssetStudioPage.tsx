@@ -71,7 +71,7 @@ export const AssetStudioPage: React.FC = () => {
         classification: existingAsset.classification,
         portrait: existingAsset.portrait || null,
         tokens: existingAsset.tokens || [],
-        tokenSize: existingAsset.tokenSize,
+        tokenSize: existingAsset.size,
         statBlocks: existingAsset.statBlocks || { 0: {} },
         isPublic: existingAsset.isPublic,
         isPublished: existingAsset.isPublished,

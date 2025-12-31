@@ -49,8 +49,8 @@ export const getAssetGroup = (asset: Asset): GroupName => {
 };
 
 export const getAssetSize = (asset: Asset): { width: number; height: number } => {
-  if (asset.tokenSize?.width && asset.tokenSize?.height) {
-    return { width: asset.tokenSize.width, height: asset.tokenSize.height };
+  if (asset.size?.width && asset.size?.height) {
+    return { width: asset.size.width, height: asset.size.height };
   }
 
   return { width: 1, height: 1 };

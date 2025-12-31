@@ -17,7 +17,7 @@ internal static class EncounterElementMapper {
         => entity is null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
-            Asset = new() { Id = entity.AssetId },
+            Asset = entity.Asset.ToModel(),
             Position = GridConverter.PositionToPixel(entity.Position, grid),
             Rotation = entity.Rotation,
             Elevation = entity.Elevation,
@@ -66,7 +66,7 @@ internal static class EncounterElementMapper {
         => entity is null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
-            Asset = new() { Id = entity.AssetId },
+            Asset = entity.Asset.ToModel(),
             Position = GridConverter.PositionToPixel(entity.Position, grid),
             Rotation = entity.Rotation,
             Elevation = entity.Elevation,
@@ -123,7 +123,7 @@ internal static class EncounterElementMapper {
             Name = entity.Name,
             Position = GridConverter.PositionToPixel(entity.Position, grid),
             Rotation = entity.Rotation,
-            Asset = new() { Id = entity.AssetId },
+            Asset = entity.Asset.ToModel(),
             State = entity.State,
             IsHidden = entity.IsHidden,
             TriggerRegion = entity.TriggerShape.ToModel(),

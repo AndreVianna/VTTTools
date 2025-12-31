@@ -25,12 +25,12 @@ export const useContextMenus = ({ encounter }: UseContextMenusProps) => {
 
   const contextMenuWall = useMemo(() => {
     if (contextMenuWallIndex === null) return null;
-    return encounter?.walls?.find((w) => w.index === contextMenuWallIndex) ?? null;
+    return encounter?.stage.walls?.find((w) => w.index === contextMenuWallIndex) ?? null;
   }, [encounter, contextMenuWallIndex]);
 
   const contextMenuRegion = useMemo(() => {
     if (contextMenuRegionIndex === null) return null;
-    return encounter?.regions?.find((r) => r.index === contextMenuRegionIndex) ?? null;
+    return encounter?.stage.regions?.find((r) => r.index === contextMenuRegionIndex) ?? null;
   }, [encounter, contextMenuRegionIndex]);
 
   const handleAssetContextMenu = useCallback((asset: PlacedAsset, position: { x: number; y: number }) => {
@@ -45,7 +45,7 @@ export const useContextMenus = ({ encounter }: UseContextMenusProps) => {
 
   const handleWallContextMenu = useCallback(
     (wallIndex: number, segmentIndex: number, position: { x: number; y: number }) => {
-      const encounterWall = encounter?.walls?.find((sw) => sw.index === wallIndex);
+      const encounterWall = encounter?.stage.walls?.find((sw) => sw.index === wallIndex);
 
       if (encounterWall) {
         setWallContextMenuPosition({ left: position.x, top: position.y });
@@ -64,7 +64,7 @@ export const useContextMenus = ({ encounter }: UseContextMenusProps) => {
 
   const handleRegionContextMenu = useCallback(
     (regionIndex: number, position: { x: number; y: number }) => {
-      const encounterRegion = encounter?.regions?.find((r) => r.index === regionIndex);
+      const encounterRegion = encounter?.stage.regions?.find((r) => r.index === regionIndex);
 
       if (encounterRegion) {
         setRegionContextMenuPosition({ left: position.x, top: position.y });

@@ -52,29 +52,27 @@ import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { useSessionState } from '@/hooks/useSessionState';
 import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
-import { assetsApi } from '@/services/assetsApi';
 import {
   useAddEncounterAssetMutation,
-  useAddEncounterLightSourceMutation,
-  useAddEncounterRegionMutation,
-  useAddEncounterSoundSourceMutation,
-  useAddEncounterWallMutation,
   useBulkAddEncounterAssetsMutation,
   useBulkDeleteEncounterAssetsMutation,
   useBulkUpdateEncounterAssetsMutation,
   useGetEncounterQuery,
   usePatchEncounterMutation,
   useRemoveEncounterAssetMutation,
-  useRemoveEncounterRegionMutation,
-  useRemoveEncounterLightSourceMutation,
-  useRemoveEncounterSoundSourceMutation,
-  useRemoveEncounterWallMutation,
   useUpdateEncounterAssetMutation,
-  useUpdateEncounterRegionMutation,
-  useUpdateEncounterLightSourceMutation,
-  useUpdateEncounterSoundSourceMutation,
-  useUpdateEncounterWallMutation,
 } from '@/services/encounterApi';
+import {
+  useAddLightMutation,
+  useAddRegionMutation,
+  useAddSoundMutation,
+  useDeleteLightMutation,
+  useDeleteRegionMutation,
+  useDeleteSoundMutation,
+  useUpdateLightMutation,
+  useUpdateRegionMutation,
+  useUpdateSoundMutation,
+} from '@/services/stageApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { useAppDispatch } from '@/store';
 import {
@@ -90,10 +88,37 @@ import {
   type PlacedSoundSource,
   type EncounterLightSource,
   type UpdateEncounterRequest,
-  type MediaResource,
+  RegionType,
   SegmentState,
   SegmentType,
 } from '@/types/domain';
+import type { CreateSoundRequest, ResourceMetadata, StageSound } from '@/types/stage';
+
+/**
+ * Helper to convert a string type to RegionType.
+ */
+const toRegionType = (type: string): RegionType => {
+  if (Object.values(RegionType).includes(type as RegionType)) {
+    return type as RegionType;
+  }
+  return RegionType.Terrain;
+};
+
+/**
+ * Convert StageSound data to CreateSoundRequest for the Stage API.
+ */
+function toCreateSoundRequest(source: Omit<StageSound, 'index'>): CreateSoundRequest {
+  return {
+    mediaId: source.media?.id ?? '',
+    position: source.position,
+    radius: source.radius,
+    volume: source.volume ?? 1,
+    isPlaying: source.isPlaying,
+    ...(source.name !== undefined && { name: source.name }),
+    ...(source.loop !== undefined && { loop: source.loop }),
+  };
+}
+
 import type { LocalAction } from '@/types/regionUndoActions';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
 import {
@@ -109,7 +134,7 @@ import {
   getCrosshairPlusCursor,
 } from '@/utils/customCursors';
 import {
-  hydratePlacedAssets,
+  hydrateGameElements,
   hydratePlacedRegions,
   hydratePlacedLightSources,
   hydratePlacedSoundSources,
@@ -128,6 +153,7 @@ import {
   useAssetManagement,
   useCanvasReadyState,
   useContextMenus,
+  useEncounterEditor,
   useEncounterSettings,
   useGridHandlers,
   useKeyboardState,
@@ -184,19 +210,34 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [bulkDeleteEncounterAssets] = useBulkDeleteEncounterAssetsMutation();
   const [bulkAddEncounterAssets] = useBulkAddEncounterAssetsMutation();
 
-  const [addEncounterWall] = useAddEncounterWallMutation();
-  const [removeEncounterWall] = useRemoveEncounterWallMutation();
-  const [updateEncounterWall] = useUpdateEncounterWallMutation();
+  // Stage API mutations for walls (via useEncounterEditor)
+  const {
+    addWall: stageAddWall,
+    updateWall: stageUpdateWall,
+    deleteWall: stageDeleteWall,
+  } = useEncounterEditor({
+    encounterId: encounterId ?? '',
+    skip: !encounterId,
+  });
 
-  const [addEncounterRegion] = useAddEncounterRegionMutation();
-  const [updateEncounterRegion] = useUpdateEncounterRegionMutation();
-  const [removeEncounterRegion] = useRemoveEncounterRegionMutation();
-  const [addEncounterLightSource] = useAddEncounterLightSourceMutation();
-  const [removeEncounterLightSource] = useRemoveEncounterLightSourceMutation();
-  const [updateEncounterLightSource] = useUpdateEncounterLightSourceMutation();
-  const [addEncounterSoundSource] = useAddEncounterSoundSourceMutation();
-  const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
-  const [updateEncounterSoundSource] = useUpdateEncounterSoundSourceMutation();
+  // Wall mutations object for useWallHandlers
+  const wallMutations = useMemo(() => ({
+    addWall: stageAddWall,
+    updateWall: stageUpdateWall,
+    deleteWall: stageDeleteWall,
+  }), [stageAddWall, stageUpdateWall, stageDeleteWall]);
+
+  const [addRegion] = useAddRegionMutation();
+  const [updateRegion] = useUpdateRegionMutation();
+  const [deleteRegion] = useDeleteRegionMutation();
+
+  const [addLight] = useAddLightMutation();
+  const [updateLight] = useUpdateLightMutation();
+  const [deleteLight] = useDeleteLightMutation();
+
+  const [addSound] = useAddSoundMutation();
+  const [updateSound] = useUpdateSoundMutation();
+  const [deleteSound] = useDeleteSoundMutation();
 
   useEffect(() => {
     if (encounterId) {
@@ -219,7 +260,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
   const [stageSize, setStageSize] = useState({ width: DEFAULT_STAGE_WIDTH, height: DEFAULT_STAGE_HEIGHT });
 
-  const backgroundSize = encounter?.stage?.background?.dimensions;
+  const backgroundSize = encounter?.stage?.settings?.mainBackground?.dimensions;
 
   useEffect(() => {
     const hasValidBackgroundSize = backgroundSize && backgroundSize.width > 0 && backgroundSize.height > 0;
@@ -402,12 +443,12 @@ const EncounterEditorPageInternal: React.FC = () => {
         JSON.stringify(currentData.grid) !==
         JSON.stringify({
           type:
-            typeof encounter.grid.type === 'string'
-              ? GridType[encounter.grid.type as keyof typeof GridType]
-              : encounter.grid.type,
-          cellSize: encounter.grid.cellSize,
-          offset: encounter.grid.offset,
-          scale: encounter.grid.scale,
+            typeof encounter.stage.grid.type === 'string'
+              ? GridType[encounter.stage.grid.type as keyof typeof GridType]
+              : encounter.stage.grid.type,
+          cellSize: encounter.stage.grid.cellSize,
+          offset: encounter.stage.grid.offset,
+          scale: encounter.stage.grid.scale,
         });
 
       if (!hasChanges) {
@@ -428,12 +469,12 @@ const EncounterEditorPageInternal: React.FC = () => {
         requestPayload.isPublished = currentData.isPublished;
       }
       if (overrides?.grid || JSON.stringify(currentData.grid) !== JSON.stringify({
-        type: typeof encounter.grid.type === 'string'
-          ? GridType[encounter.grid.type as keyof typeof GridType]
-          : encounter.grid.type,
-        cellSize: encounter.grid.cellSize,
-        offset: encounter.grid.offset,
-        scale: encounter.grid.scale,
+        type: typeof encounter.stage.grid.type === 'string'
+          ? GridType[encounter.stage.grid.type as keyof typeof GridType]
+          : encounter.stage.grid.type,
+        cellSize: encounter.stage.grid.cellSize,
+        offset: encounter.stage.grid.offset,
+        scale: encounter.stage.grid.scale,
       })) {
         requestPayload.grid = currentData.grid;
       }
@@ -478,9 +519,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     selectedWallIndex,
     drawingMode: drawingMode === 'light' || drawingMode === 'sound' ? null : drawingMode,
     drawingWallIndex,
-    addEncounterWall,
-    updateEncounterWall,
-    removeEncounterWall,
+    wallMutations,
     setEncounter,
     setPlacedWalls,
     setSelectedWallIndex,
@@ -498,6 +537,22 @@ const EncounterEditorPageInternal: React.FC = () => {
     },
   });
 
+  // Wrap stage API mutations to match the expected function signatures for useRegionHandlers
+  const regionMutations = useMemo(() => ({
+    addRegion: async (data: Parameters<typeof addRegion>[0]['data']) => {
+      if (!encounterId) throw new Error('No encounter ID');
+      await addRegion({ stageId: encounterId, data }).unwrap();
+    },
+    updateRegion: async (index: number, data: Parameters<typeof updateRegion>[0]['data']) => {
+      if (!encounterId) throw new Error('No encounter ID');
+      await updateRegion({ stageId: encounterId, index, data }).unwrap();
+    },
+    deleteRegion: async (index: number) => {
+      if (!encounterId) throw new Error('No encounter ID');
+      await deleteRegion({ stageId: encounterId, index }).unwrap();
+    },
+  }), [encounterId, addRegion, updateRegion, deleteRegion]);
+
   const regionHandlers = useRegionHandlers({
     encounterId,
     encounter,
@@ -508,9 +563,9 @@ const EncounterEditorPageInternal: React.FC = () => {
     originalRegionVertices,
     drawingMode: drawingMode === 'light' || drawingMode === 'sound' ? null : drawingMode,
     drawingRegionIndex,
-    addEncounterRegion,
-    updateEncounterRegion,
-    removeEncounterRegion,
+    addRegion: regionMutations.addRegion,
+    updateRegion: regionMutations.updateRegion,
+    deleteRegion: regionMutations.deleteRegion,
     setEncounter,
     setPlacedRegions,
     setSelectedRegionIndex,
@@ -607,21 +662,21 @@ const EncounterEditorPageInternal: React.FC = () => {
   useEffect(() => {
     if (!encounterData || isInitialized) return;
 
-    const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
-    const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
-    const hydratedLightSources = hydratePlacedLightSources(encounterData.lightSources || [], encounterId || '');
-    const hydratedSoundSources = hydratePlacedSoundSources(encounterData.soundSources || [], encounterId || '');
+    const hydratedWalls = hydratePlacedWalls(encounterData.stage.walls || [], encounterId || '');
+    const hydratedRegions = hydratePlacedRegions(encounterData.stage.regions || [], encounterId || '');
+    const hydratedLightSources = hydratePlacedLightSources(encounterData.stage.lights || [], encounterId || '');
+    const hydratedSoundSources = hydratePlacedSoundSources(encounterData.stage.sounds || [], encounterId || '');
 
     setEncounter(encounterData);
     setGridConfig({
       type:
-        typeof encounterData.grid.type === 'string'
-          ? GridType[encounterData.grid.type as keyof typeof GridType]
-          : encounterData.grid.type,
-      cellSize: encounterData.grid.cellSize,
-      offset: encounterData.grid.offset,
-      snap: encounterData.grid.snap ?? true,
-      scale: encounterData.grid.scale ?? 1,
+        typeof encounterData.stage.grid.type === 'string'
+          ? GridType[encounterData.stage.grid.type as keyof typeof GridType]
+          : encounterData.stage.grid.type,
+      cellSize: encounterData.stage.grid.cellSize,
+      offset: encounterData.stage.grid.offset,
+      snap: true, // snap is a UI-only setting, always default to true
+      scale: encounterData.stage.grid.scale ?? 1,
     });
     setPlacedWalls(hydratedWalls);
     setPlacedRegions(hydratedRegions);
@@ -637,36 +692,25 @@ const EncounterEditorPageInternal: React.FC = () => {
     assetsLoadedForEncounterRef.current = encounterId;
     setIsHydrating(true);
 
-    const loadAssetsAsync = async () => {
-      try {
-        const hydratedAssets = await hydratePlacedAssets(
-          encounterData.assets,
-          encounterId,
-          async (assetId: string) => {
-            const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-            return result;
-          },
-        );
+    // Hydrate actors, objects, effects directly (no legacy conversion needed)
+    const hydratedAssets = hydrateGameElements(
+      encounterData.actors ?? [],
+      encounterData.objects ?? [],
+      encounterData.effects ?? [],
+      encounterId,
+    );
 
-        setPlacedAssetsRef.current(hydratedAssets);
-      } catch (error) {
-        console.error('Failed to hydrate assets:', error);
-        setPlacedAssetsRef.current([]);
-      } finally {
-        setIsHydrating(false);
-      }
-    };
-
-    loadAssetsAsync();
-  }, [encounterData, encounterId, dispatch]);
+    setPlacedAssetsRef.current(hydratedAssets);
+    setIsHydrating(false);
+  }, [encounterData, encounterId]);
 
   useEffect(() => {
     if (encounterData && isInitialized) {
       setEncounter(encounterData);
-      const hydratedWalls = hydratePlacedWalls(encounterData.walls || [], encounterId || '');
-      const hydratedRegions = hydratePlacedRegions(encounterData.regions || [], encounterId || '');
-      const hydratedLightSources = hydratePlacedLightSources(encounterData.lightSources || [], encounterId || '');
-      const hydratedSoundSources = hydratePlacedSoundSources(encounterData.soundSources || [], encounterId || '');
+      const hydratedWalls = hydratePlacedWalls(encounterData.stage.walls || [], encounterId || '');
+      const hydratedRegions = hydratePlacedRegions(encounterData.stage.regions || [], encounterId || '');
+      const hydratedLightSources = hydratePlacedLightSources(encounterData.stage.lights || [], encounterId || '');
+      const hydratedSoundSources = hydratePlacedSoundSources(encounterData.stage.sounds || [], encounterId || '');
       setPlacedWalls(hydratedWalls);
       setPlacedRegions(hydratedRegions);
       setPlacedLightSources(hydratedLightSources);
@@ -764,21 +808,16 @@ const EncounterEditorPageInternal: React.FC = () => {
           entityId: encounterId,
         }).unwrap();
 
-        await patchEncounter({
-          id: encounterId,
-          request: {
-            stage: {
-              backgroundId: result.id,
-            },
-          },
-        }).unwrap();
+        // TODO: Need Stage API to update background. For now, just refetch after upload.
+        // The backend should handle associating the uploaded file with the encounter's stage.
+        console.log('Background uploaded:', result.id);
 
         await refetch();
       } catch (error) {
         console.error('Failed to upload background:', error);
       }
     },
-    [encounterId, uploadFile, patchEncounter, refetch],
+    [encounterId, uploadFile, refetch],
   );
 
   useEffect(() => {
@@ -848,8 +887,8 @@ const EncounterEditorPageInternal: React.FC = () => {
         return;
       }
 
-      const wall = encounter?.walls?.find((w) => w.index === wallIndex);
-      const effectiveIsClosed = newIsClosed !== undefined ? newIsClosed : (wall ? isWallClosed(wall) : false);
+      const wall = encounter?.stage.walls?.find((w) => w.index === wallIndex);
+      const effectiveIsClosed = newIsClosed !== undefined ? newIsClosed : (wall ? isWallClosed(wall as EncounterWall) : false);
       const newSegments = polesToSegments(newPoles, effectiveIsClosed);
 
       wallTransaction.updateSegment(segment.tempId, {
@@ -859,7 +898,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       setEncounter((prev) => {
         if (!prev) return prev;
 
-        const wall = prev.walls?.find((w) => w.index === wallIndex);
+        const wall = prev.stage.walls?.find((w) => w.index === wallIndex);
         if (!wall) return prev;
 
         return updateWallOptimistic(prev, wallIndex, {
@@ -896,7 +935,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         return;
       }
 
-      const region = encounter.regions?.find((r) => r.index === regionIndex);
+      const region = encounter.stage.regions?.find((r) => r.index === regionIndex);
       if (!region) return;
 
       const segment = regionTransaction.transaction.segment;
@@ -988,7 +1027,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     }) => {
       if (!encounterId || !encounter) return;
 
-      const existingWalls = encounter.walls || [];
+      const existingWalls = encounter.stage.walls || [];
 
       const wallNumbers = existingWalls
         .map((w) => {
@@ -1044,11 +1083,11 @@ const EncounterEditorPageInternal: React.FC = () => {
         sourceIndex: index,
         source,
         onAdd: async (eid, sourceData) => {
-          const result = await addEncounterLightSource({ encounterId: eid, ...sourceData }).unwrap();
+          const result = await addLight({ stageId: eid, data: sourceData }).unwrap();
           return result;
         },
         onRemove: async (eid, sourceIndex) => {
-          await removeEncounterLightSource({ encounterId: eid, sourceIndex }).unwrap();
+          await deleteLight({ stageId: eid, index: sourceIndex }).unwrap();
         },
         onRefetch: async () => {
           refetch();
@@ -1060,7 +1099,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         setSelectedLightSourceIndex(null);
       }
     },
-    [encounterId, placedLightSources, execute, addEncounterLightSource, removeEncounterLightSource, selectedLightSourceIndex, setSelectedLightSourceIndex, refetch],
+    [encounterId, placedLightSources, execute, addLight, deleteLight, selectedLightSourceIndex, setSelectedLightSourceIndex, refetch],
   );
 
   const handleSoundSourceDelete = useCallback(
@@ -1074,11 +1113,12 @@ const EncounterEditorPageInternal: React.FC = () => {
         sourceIndex: index,
         source,
         onAdd: async (eid, sourceData) => {
-          const result = await addEncounterSoundSource({ encounterId: eid, ...sourceData }).unwrap();
+          const request = toCreateSoundRequest(sourceData);
+          const result = await addSound({ stageId: eid, data: request }).unwrap();
           return result;
         },
         onRemove: async (eid, sourceIndex) => {
-          await removeEncounterSoundSource({ encounterId: eid, sourceIndex }).unwrap();
+          await deleteSound({ stageId: eid, index: sourceIndex }).unwrap();
         },
         onRefetch: async () => {
           refetch();
@@ -1090,7 +1130,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         setSelectedSoundSourceIndex(null);
       }
     },
-    [encounterId, placedSoundSources, execute, addEncounterSoundSource, removeEncounterSoundSource, selectedSoundSourceIndex, setSelectedSoundSourceIndex, refetch],
+    [encounterId, placedSoundSources, execute, addSound, deleteSound, selectedSoundSourceIndex, setSelectedSoundSourceIndex, refetch],
   );
 
   useEffect(() => {
@@ -1182,7 +1222,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         oldSource,
         newSource,
         onUpdate: async (eid, idx, upd) => {
-          await updateEncounterLightSource({ encounterId: eid, sourceIndex: idx, ...upd }).unwrap();
+          await updateLight({ stageId: eid, index: idx, data: upd }).unwrap();
         },
         onRefetch: async () => {
           refetch();
@@ -1191,7 +1231,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       await execute(command);
     },
-    [encounterId, placedLightSources, execute, updateEncounterLightSource, refetch],
+    [encounterId, placedLightSources, execute, updateLight, refetch],
   );
 
   const handleLightSourcePositionChange = useCallback(
@@ -1214,12 +1254,12 @@ const EncounterEditorPageInternal: React.FC = () => {
       const oldSource = placedSoundSources.find((s) => s.index === sourceIndex);
       if (!oldSource) return;
 
-      const { resourceId, ...restUpdates } = updates;
-      const resourceUpdate = resourceId !== undefined
-        ? { resource: resourceId === null ? null : { id: resourceId } as MediaResource }
+      const { mediaId, ...restUpdates } = updates;
+      const mediaUpdate = mediaId !== undefined
+        ? { media: mediaId === null ? null! : { id: mediaId } as ResourceMetadata }
         : {};
 
-      const newSource = { ...oldSource, ...restUpdates, ...resourceUpdate };
+      const newSource = { ...oldSource, ...restUpdates, ...mediaUpdate };
 
       const command = new UpdateSoundSourceCommand({
         encounterId,
@@ -1232,25 +1272,26 @@ const EncounterEditorPageInternal: React.FC = () => {
             sourceIndex: number;
             name?: string;
             position?: { x: number; y: number };
-            range?: number;
+            radius?: number;
             isPlaying?: boolean;
             loop?: boolean;
-            resourceId?: string | null;
+            mediaId?: string;
           } = {
             encounterId: eid,
             sourceIndex: idx,
             ...(upd.name !== undefined && { name: upd.name }),
             ...(upd.position !== undefined && { position: upd.position }),
-            ...(upd.range !== undefined && { range: upd.range }),
+            ...(upd.radius !== undefined && { radius: upd.radius }),
             ...(upd.isPlaying !== undefined && { isPlaying: upd.isPlaying }),
             ...(upd.loop !== undefined && { loop: upd.loop }),
           };
 
-          if (upd.resource !== undefined) {
-            updatePayload.resourceId = upd.resource?.id ?? null;
+          if (upd.media !== undefined) {
+            // Use empty string to clear media, undefined to leave unchanged
+            updatePayload.mediaId = upd.media?.id ?? '';
           }
 
-          await updateEncounterSoundSource(updatePayload).unwrap();
+          await updateSound({ stageId: eid, index: idx, data: updatePayload }).unwrap();
         },
         onRefetch: async () => {
           refetch();
@@ -1259,7 +1300,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
       await execute(command);
     },
-    [encounterId, placedSoundSources, execute, updateEncounterSoundSource, refetch],
+    [encounterId, placedSoundSources, execute, updateSound, refetch],
   );
 
   const handleSoundSourcePositionChange = useCallback(
@@ -1290,27 +1331,29 @@ const EncounterEditorPageInternal: React.FC = () => {
           encounterId: encounterId || '',
           region,
           onAdd: async (encId, regionData) => {
-            const result = await addEncounterRegion({
-              encounterId: encId,
-              type: regionData.type,
-              name: regionData.name,
-              ...(regionData.label !== undefined && { label: regionData.label }),
-              ...(regionData.value !== undefined && { value: regionData.value }),
-              vertices: regionData.vertices,
+            const result = await addRegion({
+              stageId: encId,
+              data: {
+                type: toRegionType(regionData.type),
+                name: regionData.name,
+                ...(regionData.label !== undefined && { label: regionData.label }),
+                ...(regionData.value !== undefined && { value: regionData.value }),
+                vertices: regionData.vertices,
+              },
             }).unwrap();
             return result;
           },
           onRemove: async (encId, regionIndex) => {
-            await removeEncounterRegion({
-              encounterId: encId,
-              regionIndex,
+            await deleteRegion({
+              stageId: encId,
+              index: regionIndex,
             }).unwrap();
           },
           onRefetch: async () => {
             const { data } = await refetch();
             if (data) {
               setEncounter(data);
-              const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+              const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
               setPlacedRegions(hydratedRegions);
             }
           },
@@ -1326,15 +1369,15 @@ const EncounterEditorPageInternal: React.FC = () => {
     onRegionsDeleted: async (regionIndices) => {
       try {
         for (const regionIndex of regionIndices) {
-          await removeEncounterRegion({
-            encounterId: encounterId || '',
-            regionIndex,
+          await deleteRegion({
+            stageId: encounterId || '',
+            index: regionIndex,
           }).unwrap();
         }
         const { data } = await refetch();
         if (data) {
           setEncounter(data);
-          const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+          const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
           setPlacedRegions(hydratedRegions);
         }
       } catch (error) {
@@ -1399,27 +1442,29 @@ const EncounterEditorPageInternal: React.FC = () => {
         encounterId: encounterId || '',
         fogRegions: fowRegionsToReveal,
         onAdd: async (encId, regionData) => {
-          const result = await addEncounterRegion({
-            encounterId: encId,
-            type: regionData.type,
-            name: regionData.name,
-            ...(regionData.label !== undefined && { label: regionData.label }),
-            ...(regionData.value !== undefined && { value: regionData.value }),
-            vertices: regionData.vertices,
+          const result = await addRegion({
+            stageId: encId,
+            data: {
+              type: toRegionType(regionData.type),
+              name: regionData.name,
+              ...(regionData.label !== undefined && { label: regionData.label }),
+              ...(regionData.value !== undefined && { value: regionData.value }),
+              vertices: regionData.vertices,
+            },
           }).unwrap();
           return result;
         },
         onRemove: async (encId, regionIndex) => {
-          await removeEncounterRegion({
-            encounterId: encId,
-            regionIndex,
+          await deleteRegion({
+            stageId: encId,
+            index: regionIndex,
           }).unwrap();
         },
         onRefetch: async () => {
           const { data } = await refetch();
           if (data) {
             setEncounter(data);
-            const hydratedRegions = hydratePlacedRegions(data.regions || [], encounterId || '');
+            const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
             setPlacedRegions(hydratedRegions);
           }
         },
@@ -1430,10 +1475,10 @@ const EncounterEditorPageInternal: React.FC = () => {
       console.error('Failed to reveal all areas:', error);
       setErrorMessage('Failed to reveal all areas. Please try again.');
     }
-  }, [placedRegions, encounterId, addEncounterRegion, removeEncounterRegion, refetch, execute]);
+  }, [placedRegions, encounterId, addRegion, deleteRegion, refetch, execute]);
 
   const visibleAssets = useMemo(() => {
-    return assetManagement.placedAssets.filter((asset) => {
+    const filtered = assetManagement.placedAssets.filter((asset) => {
       if (asset.asset.classification.kind === AssetKind.Object && !scopeVisibility.objects) {
         return false;
       }
@@ -1445,6 +1490,8 @@ const EncounterEditorPageInternal: React.FC = () => {
       }
       return true;
     });
+
+    return filtered;
   }, [assetManagement.placedAssets, scopeVisibility.objects, scopeVisibility.monsters, scopeVisibility.characters]);
 
   if (isLoadingEncounter) {
@@ -1494,10 +1541,10 @@ const EncounterEditorPageInternal: React.FC = () => {
     );
   }
 
-  const backgroundUrl = encounter?.stage?.background
-    ? `${getApiEndpoints().media}/${encounter.stage.background.id}`
+  const backgroundUrl = encounter?.stage?.settings?.mainBackground
+    ? `${getApiEndpoints().media}/${encounter.stage.settings.mainBackground.id}`
     : undefined;
-  const backgroundContentType = encounter?.stage?.background?.contentType;
+  const backgroundContentType = encounter?.stage?.settings?.mainBackground?.contentType;
 
   return (
     <EditorLayout
@@ -1506,7 +1553,6 @@ const EncounterEditorPageInternal: React.FC = () => {
       onBackClick={encounterSettings.handleBackClick}
       onEncounterDescriptionChange={encounterSettings.handleEncounterDescriptionChange}
       onEncounterPublishedChange={encounterSettings.handleEncounterPublishedChange}
-      onEncounterUpdate={encounterSettings.handleEncounterUpdate}
       gridConfig={gridConfig}
       onGridChange={gridHandlers.handleGridChange}
       {...(backgroundUrl && { backgroundUrl })}
@@ -1699,7 +1745,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                     <LightSourceRenderer
                       key={lightSource.id}
                       encounterLightSource={lightSource}
-                      walls={encounter.walls || []}
+                      walls={encounter.stage.walls || []}
                       gridConfig={gridConfig}
                       activeScope={activeScope}
                       onSelect={handleLightSourceSelect}
@@ -1760,8 +1806,8 @@ const EncounterEditorPageInternal: React.FC = () => {
                       .getActiveSegments()
                       .map((segment) => {
                         const poles = segmentsToPoles({ index: segment.wallIndex || segment.tempId, name: segment.name, segments: segment.segments });
-                        const wall = encounter?.walls?.find(w => w.index === (segment.wallIndex || segment.tempId));
-                        const isClosed = wall ? isWallClosed(wall) : false;
+                        const wall = encounter?.stage.walls?.find(w => w.index === (segment.wallIndex || segment.tempId));
+                        const isClosed = wall ? isWallClosed(wall as EncounterWall) : false;
                         return (
                           <WallTransformer
                             key={`transformer-${segment.tempId}`}
@@ -1797,7 +1843,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
               {/* Region Transformer */}
               {scopeVisibility.regions &&
-                encounter?.regions &&
+                encounter?.stage.regions &&
                 isEditingRegionVertices &&
                 editingRegionIndex !== null &&
                 regionTransaction.transaction.isActive &&
@@ -1942,7 +1988,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                           isPlaying: (sourcePlacementProperties as SoundPlacementProperties).isPlaying || false,
                         }
                     }
-                    walls={encounter.walls || []}
+                    walls={encounter.stage.walls || []}
                     gridConfig={gridConfig}
                     execute={execute}
                     onRefetch={async () => {

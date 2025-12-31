@@ -71,17 +71,17 @@ public class ResourceService(
             return null;
 
         var download = await blobStorage.GetAsync(resource.Path, ct);
-        return GetResourceStream(download);
+        return GetResourceStream(download, resource);
     }
 
-    private static Resource? GetResourceStream(ResourceDownloadResult? download)
+    private static Resource? GetResourceStream(ResourceDownloadResult? download, ResourceMetadata metadata)
         => download is null ? null : new() {
             Stream = download.Content,
-            ContentType = download.ContentType,
-            FileName = download.Metadata["FileName"],
-            FileSize = ulong.Parse(download.Metadata["FileSize"]),
-            Dimensions = new(int.Parse(download.Metadata["Width"]), int.Parse(download.Metadata["Height"])),
-            Duration = TimeSpan.Parse(download.Metadata["Duration"]),
+            ContentType = metadata.ContentType,
+            FileName = metadata.FileName,
+            FileSize = metadata.FileSize,
+            Dimensions = metadata.Dimensions,
+            Duration = metadata.Duration,
         };
 
     public Task<ResourceMetadata?> GetResourceAsync(Guid userId, Guid id, CancellationToken ct = default)

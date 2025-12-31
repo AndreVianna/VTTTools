@@ -4,10 +4,56 @@ import type { CommitResult } from '@/hooks/useRegionTransaction';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
-import { Weather } from '@/types/domain';
+import { GridType, Weather } from '@/types/domain';
+import type { Stage, StageRegion } from '@/types/stage';
+import { AmbientLight } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { useMergeRegions } from '../useMergeRegions';
 import { useRegionHandlers } from '../useRegionHandlers';
+
+const createMockStage = (overrides?: Partial<Stage>): Stage => ({
+  id: 'stage-1',
+  ownerId: 'owner-1',
+  name: 'Test Stage',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  settings: {
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: AmbientLight.Default,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: Weather.Clear,
+  },
+  grid: {
+    type: GridType.Square,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    scale: 1,
+  },
+  walls: [],
+  regions: [],
+  lights: [],
+  elements: [],
+  sounds: [],
+  ...overrides,
+});
+
+const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
+  id: 'test-encounter-123',
+  ownerId: 'owner-1',
+  adventure: null,
+  name: 'Test Encounter',
+  description: 'Test Description',
+  isPublished: false,
+  isPublic: false,
+  stage: createMockStage({ regions }),
+  actors: [],
+  objects: [],
+  effects: [],
+});
 
 describe('Region Workflows - Integration Tests', () => {
   let mockEncounter: Encounter;
@@ -31,40 +77,14 @@ describe('Region Workflows - Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockEncounter = {
-      id: encounterId,
-      name: 'Test Encounter',
-      description: 'Test Description',
-      adventure: null,
-      isPublished: false,
-      light: 0,
-      weather: Weather.Clear,
-      elevation: 0,
-      grid: {
-        type: 0,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        snap: true,
-      scale: 1,
-      },
-      stage: {
-        background: null,
-        zoomLevel: 1,
-        panning: { x: 0, y: 0 },
-      },
-      assets: [],
-      walls: [],
-      regions: [],
-      lightSources: [],
-      soundSources: [],
-    };
+    mockEncounter = createMockEncounter();
 
     gridConfig = {
       type: 1,
       cellSize: { width: 50, height: 50 },
       offset: { left: 0, top: 0 },
       snap: true,
-    scale: 1,
+      scale: 1,
     };
 
     mockSetEncounter = vi.fn();
@@ -117,8 +137,8 @@ describe('Region Workflows - Integration Tests', () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
         );
@@ -224,8 +244,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
         expect(result.success).toBe(true);
       });
@@ -242,8 +262,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(false);
@@ -270,7 +290,7 @@ describe('Region Workflows - Integration Tests', () => {
         color: '#00FF00',
       };
 
-      mockEncounter.regions = [existingRegion];
+      mockEncounter.stage.regions = [existingRegion];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
@@ -291,8 +311,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(true);
@@ -423,8 +443,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(true);
@@ -460,7 +480,7 @@ describe('Region Workflows - Integration Tests', () => {
         value: 10,
       };
 
-      mockEncounter.regions = [region1];
+      mockEncounter.stage.regions = [region1];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
@@ -482,8 +502,8 @@ describe('Region Workflows - Integration Tests', () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
         );
@@ -510,7 +530,7 @@ describe('Region Workflows - Integration Tests', () => {
         value: 10,
       };
 
-      mockEncounter.regions = [region1];
+      mockEncounter.stage.regions = [region1];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
@@ -532,8 +552,8 @@ describe('Region Workflows - Integration Tests', () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
         );
@@ -558,7 +578,7 @@ describe('Region Workflows - Integration Tests', () => {
         value: 10,
       };
 
-      mockEncounter.regions = [region1];
+      mockEncounter.stage.regions = [region1];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
@@ -580,8 +600,8 @@ describe('Region Workflows - Integration Tests', () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
         );
@@ -620,7 +640,7 @@ describe('Region Workflows - Integration Tests', () => {
         value: 5,
       };
 
-      mockEncounter.regions = [region1, region2];
+      mockEncounter.stage.regions = [region1, region2];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
@@ -641,8 +661,8 @@ describe('Region Workflows - Integration Tests', () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
         );
@@ -682,15 +702,15 @@ describe('Region Workflows - Integration Tests', () => {
         value: 10,
       };
 
-      mockEncounter.regions = [targetRegion, regionToDelete];
+      mockEncounter.stage.regions = [targetRegion, regionToDelete];
 
       const { result: mergeResult } = renderHook(() =>
         useMergeRegions({
           encounterId,
           encounter: mockEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -752,7 +772,7 @@ describe('Region Workflows - Integration Tests', () => {
         type: 'Elevation',
       };
 
-      mockEncounter.regions = [regionToDelete];
+      mockEncounter.stage.regions = [regionToDelete];
 
       await act(async () => {
         await mockRemoveEncounterRegion({
@@ -768,7 +788,7 @@ describe('Region Workflows - Integration Tests', () => {
     });
 
     it('should not delete region if region not found', async () => {
-      mockEncounter.regions = [];
+      mockEncounter.stage.regions = [];
 
       const transactionHook = renderHook(() => useRegionTransaction());
 
@@ -784,9 +804,9 @@ describe('Region Workflows - Integration Tests', () => {
           originalRegionVertices: null,
           drawingMode: null,
           drawingRegionIndex: null,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setPlacedRegions: mockSetPlacedRegions,
           setSelectedRegionIndex: mockSetSelectedRegionIndex,
@@ -831,8 +851,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: failingAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: failingAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(false);
@@ -873,8 +893,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: failingUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: failingUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(false);
@@ -895,7 +915,7 @@ describe('Region Workflows - Integration Tests', () => {
         type: 'Elevation',
       };
 
-      mockEncounter.regions = [targetRegion];
+      mockEncounter.stage.regions = [targetRegion];
 
       const failingUpdateEncounterRegion = vi.fn().mockImplementation(() => ({
         unwrap: vi.fn().mockRejectedValue(new Error('Merge failed')),
@@ -905,9 +925,9 @@ describe('Region Workflows - Integration Tests', () => {
         useMergeRegions({
           encounterId,
           encounter: mockEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: failingUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: failingUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -949,8 +969,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(false);
@@ -961,15 +981,15 @@ describe('Region Workflows - Integration Tests', () => {
     });
 
     it('should handle merge when target region not found', async () => {
-      mockEncounter.regions = [];
+      mockEncounter.stage.regions = [];
 
       const { result: mergeResult } = renderHook(() =>
         useMergeRegions({
           encounterId,
           encounter: mockEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1023,16 +1043,16 @@ describe('Region Workflows - Integration Tests', () => {
         value: 10,
       };
 
-      mockEncounter.regions = [existingRegion];
+      mockEncounter.stage.regions = [existingRegion];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
       const { result: mergeResult } = renderHook(() =>
         useMergeRegions({
           encounterId,
           encounter: mockEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1059,8 +1079,8 @@ describe('Region Workflows - Integration Tests', () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
         );
@@ -1103,7 +1123,7 @@ describe('Region Workflows - Integration Tests', () => {
         value: 5,
       };
 
-      mockEncounter.regions = [existingRegion];
+      mockEncounter.stage.regions = [existingRegion];
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
@@ -1125,8 +1145,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(result.success).toBe(true);

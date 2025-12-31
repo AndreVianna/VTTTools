@@ -40,8 +40,9 @@ describe('TokenDragHandle Logic Tests', () => {
       isPublished: true,
       isPublic: false,
       tokens: [],
+      thumbnail: null,
       portrait: null,
-      tokenSize: { width: 1, height: 1 },
+      size: { width: 1, height: 1 },
       statBlocks: {},
       tags: [],
     },
@@ -52,8 +53,8 @@ describe('TokenDragHandle Logic Tests', () => {
     index: 0,
     number: 1,
     name: 'Test Token',
-    visible: true,
-    locked: false,
+    isHidden: false,
+    isLocked: false,
     labelVisibility: LabelVisibility.Always,
     labelPosition: LabelPosition.Bottom,
   };
@@ -62,7 +63,7 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should allow monsters to move', () => {
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -72,7 +73,7 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should not allow monsters to rotate in Phase 6', () => {
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -82,7 +83,7 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should not allow monsters to resize', () => {
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -92,7 +93,7 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should allow monsters to be deleted', () => {
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -102,7 +103,7 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should require grid alignment for monsters', () => {
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -112,7 +113,7 @@ describe('TokenDragHandle Logic Tests', () => {
     it('should not allow monsters to overlap', () => {
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -153,7 +154,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const size = { width: 50, height: 50 };
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -182,7 +183,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const size = { width: 50, height: 50 };
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -211,7 +212,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const size = { width: 1, height: 1 };
       const monsterProperties =
         mockMonsterAsset.asset.classification.kind === 'Creature'
-          ? { size: mockMonsterAsset.asset.tokenSize }
+          ? { size: mockMonsterAsset.asset.size }
           : undefined;
       const behavior = getPlacementBehavior(mockMonsterAsset.asset.classification.kind, undefined, monsterProperties);
 
@@ -312,8 +313,9 @@ describe('TokenDragHandle Logic Tests', () => {
         isPublished: true,
         isPublic: false,
         tokens: [],
+        thumbnail: null,
         portrait: null,
-        tokenSize: { width: 2, height: 1 },
+        size: { width: 2, height: 1 },
         statBlocks: {},
         tags: [],
       },
@@ -324,8 +326,8 @@ describe('TokenDragHandle Logic Tests', () => {
       index: 0,
       number: 1,
       name: 'Immovable Wall',
-      visible: true,
-      locked: false,
+      isHidden: false,
+      isLocked: false,
       labelVisibility: LabelVisibility.Always,
       labelPosition: LabelPosition.Bottom,
     };
@@ -334,7 +336,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const objectProperties =
         immovableObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: immovableObjectAsset.asset.tokenSize,
+              size: immovableObjectAsset.asset.size,
               isMovable: false,
               isOpaque: true,
             }
@@ -355,7 +357,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const objectProperties =
         movableObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: movableObjectAsset.asset.tokenSize,
+              size: movableObjectAsset.asset.size,
               isMovable: true,
               isOpaque: false,
             }
@@ -369,7 +371,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const objectProperties =
         immovableObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: immovableObjectAsset.asset.tokenSize,
+              size: immovableObjectAsset.asset.size,
               isMovable: false,
               isOpaque: true,
             }
@@ -390,7 +392,7 @@ describe('TokenDragHandle Logic Tests', () => {
       const objectProperties =
         transparentObjectAsset.asset.classification.kind === 'Object'
           ? {
-              size: transparentObjectAsset.asset.tokenSize,
+              size: transparentObjectAsset.asset.size,
               isMovable: true,
               isOpaque: false,
             }

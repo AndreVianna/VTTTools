@@ -262,10 +262,10 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={placedAsset.visible !== false}
+                            checked={!placedAsset.isHidden}
                             onChange={(e) =>
                               onAssetUpdate?.(placedAsset.id, {
-                                visible: e.target.checked,
+                                isHidden: !e.target.checked,
                               })
                             }
                             size='small'
@@ -277,10 +277,10 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={placedAsset.locked || false}
+                            checked={placedAsset.isLocked}
                             onChange={(e) =>
                               onAssetUpdate?.(placedAsset.id, {
-                                locked: e.target.checked,
+                                isLocked: e.target.checked,
                               })
                             }
                             size='small'

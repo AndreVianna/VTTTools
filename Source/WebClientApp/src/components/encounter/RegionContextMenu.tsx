@@ -47,7 +47,7 @@ export const RegionContextMenu: React.FC<RegionContextMenuProps> = ({
     // Sync form state when context menu opens or region changes
     if (open && encounterRegion) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setNameValue(encounterRegion.name);
+      setNameValue(encounterRegion.name ?? '');
     }
   }, [open, encounterRegion, regionIndex]);
 
@@ -65,7 +65,7 @@ export const RegionContextMenu: React.FC<RegionContextMenuProps> = ({
     if (onRegionUpdate && nameValue !== encounterRegion.name && nameValue.trim()) {
       onRegionUpdate(encounterRegion.index, { name: nameValue.trim() });
     } else {
-      setNameValue(encounterRegion.name);
+      setNameValue(encounterRegion.name ?? '');
     }
   };
 
@@ -73,7 +73,7 @@ export const RegionContextMenu: React.FC<RegionContextMenuProps> = ({
     if (event.key === 'Enter') {
       (event.target as HTMLInputElement).blur();
     } else if (event.key === 'Escape') {
-      setNameValue(encounterRegion.name);
+      setNameValue(encounterRegion.name ?? '');
       (event.target as HTMLInputElement).blur();
     }
   };

@@ -193,7 +193,7 @@ function createSegment(
   poles: Pole[],
   segmentNumber: number,
 ): EncounterWall {
-  const baseName = originalWall.name.replace(/\s*\(\d+\)$/, '');
+  const baseName = (originalWall.name ?? '').replace(/\s*\(\d+\)$/, '');
   return {
     ...originalWall,
     name: `${baseName} (${segmentNumber})`,

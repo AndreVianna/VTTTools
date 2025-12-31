@@ -26,15 +26,15 @@ import React, { useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
 import { AudioPreviewPlayer, SoundPickerDialog } from '@/components/sounds';
 import {
-  useUpdateEncounterSoundSourceMutation,
-  useRemoveEncounterSoundSourceMutation,
-} from '@/services/encounterApi';
+  useUpdateSoundMutation,
+  useDeleteSoundMutation,
+} from '@/services/stageApi';
 import { useGetMediaResourceQuery } from '@/services/mediaApi';
-import { type EncounterSoundSource } from '@/types/domain';
+import { type StageSound } from '@/types/stage';
 
 export interface SoundsPanelProps {
   encounterId: string;
-  soundSources: EncounterSoundSource[];
+  soundSources: StageSound[];
   selectedSourceIndex: number | null;
   onSourceSelect: (index: number) => void;
   onPlaceSound: (properties: SoundPlacementProperties) => void;
@@ -92,8 +92,8 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     const [soundPickerSourceIndex, setSoundPickerSourceIndex] = useState<number | null>(null);
     const [newSoundPickerOpen, setNewSoundPickerOpen] = useState(false);
 
-    const [updateEncounterSoundSource] = useUpdateEncounterSoundSourceMutation();
-    const [removeEncounterSoundSource] = useRemoveEncounterSoundSourceMutation();
+    const [updateSound] = useUpdateSoundMutation();
+    const [deleteSound] = useDeleteSoundMutation();
 
     const compactStyles = {
       sectionHeader: {
@@ -176,10 +176,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
       if (!encounterId) return;
 
       try {
-        await updateEncounterSoundSource({
-          encounterId,
-          sourceIndex,
-          ...updates,
+        await updateSound({
+          stageId: encounterId,
+          index: sourceIndex,
+          data: updates,
         }).unwrap();
       } catch (_error) {
         console.error('[SoundsPanel] Failed to update sound source');
@@ -190,9 +190,9 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
       if (!encounterId) return;
 
       try {
-        await removeEncounterSoundSource({
-          encounterId,
-          sourceIndex,
+        await deleteSound({
+          stageId: encounterId,
+          index: sourceIndex,
         }).unwrap();
       } catch (_error) {
         console.error('[SoundsPanel] Failed to delete sound source');
@@ -207,10 +207,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     const handleSoundSelected = async (resourceId: string) => {
       if (soundPickerSourceIndex !== null && encounterId) {
         try {
-          await updateEncounterSoundSource({
-            encounterId,
-            sourceIndex: soundPickerSourceIndex,
-            resourceId,
+          await updateSound({
+            stageId: encounterId,
+            index: soundPickerSourceIndex,
+            data: { mediaId: resourceId },
           }).unwrap();
         } catch (_error) {
           console.error('[SoundsPanel] Failed to set sound resource');
@@ -223,10 +223,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     const handleClearSound = async (sourceIndex: number) => {
       if (!encounterId) return;
       try {
-        await updateEncounterSoundSource({
-          encounterId,
-          sourceIndex,
-          resourceId: null,
+        await updateSound({
+          stageId: encounterId,
+          index: sourceIndex,
+          data: { mediaId: '' },
         }).unwrap();
       } catch (_error) {
         console.error('[SoundsPanel] Failed to clear sound resource');
@@ -389,7 +389,7 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                           primary={source.name || `Sound #${source.index}`}
                           primaryTypographyProps={{ fontSize: '10px' }}
                           secondary={
-                            `Range: ${source.range}ft | ${source.isPlaying ? 'Playing' : 'Paused'}${source.resource?.id ? ` | Has Sound` : ''}`
+                            `Range: ${source.radius}ft | ${source.isPlaying ? 'Playing' : 'Paused'}${source.media?.id ? ` | Has Sound` : ''}`
                           }
                           secondaryTypographyProps={{ fontSize: '8px' }}
                         />
@@ -412,7 +412,7 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                         Range
                       </Typography>
                       <Typography variant='caption' sx={{ fontSize: '9px', color: theme.palette.text.secondary, mb: 1 }}>
-                        {source.range} feet
+                        {source.radius} feet
                       </Typography>
 
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -420,11 +420,11 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
                           Sound Resource
                         </Typography>
 
-                        {source.resource?.id ? (
+                        {source.media?.id ? (
                           <>
-                            <SoundResourceInfo resourceId={source.resource.id} />
+                            <SoundResourceInfo resourceId={source.media.id} />
 
-                            <AudioPreviewPlayer resourceId={source.resource.id} compact />
+                            <AudioPreviewPlayer resourceId={source.media.id} compact />
 
                             <Box sx={{ display: 'flex', gap: 0.5 }}>
                               <Button
@@ -506,9 +506,9 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
           }}
           onSelect={handleSoundSelected}
           {...(soundPickerSourceIndex !== null &&
-            soundSources.find((s) => s.index === soundPickerSourceIndex)?.resource?.id && {
+            soundSources.find((s) => s.index === soundPickerSourceIndex)?.media?.id && {
               currentResourceId: soundSources.find((s) => s.index === soundPickerSourceIndex)!
-                .resource!.id,
+                .media!.id,
             })}
         />
 

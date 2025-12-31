@@ -23,8 +23,9 @@ const createMockAsset = (id: string): Asset => ({
   isPublished: true,
   isPublic: false,
   tokens: [],
+  thumbnail: null,
   portrait: null,
-  tokenSize: { width: 1, height: 1 },
+  size: { width: 1, height: 1 },
   statBlocks: {},
   tags: [],
 });

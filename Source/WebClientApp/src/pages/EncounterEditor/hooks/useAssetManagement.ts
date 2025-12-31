@@ -1,6 +1,5 @@
 import { toBackendRotation } from '@utils/rotationUtils';
 import { useCallback, useEffect, useState } from 'react';
-import { assetsApi } from '@/services/assetsApi';
 import type {
   useAddEncounterAssetMutation,
   useBulkAddEncounterAssetsMutation,
@@ -33,7 +32,7 @@ import {
   createUpdateAssetDisplayCommand,
 } from '@/utils/commands';
 import { getIndexByDomId, removeEntityMapping, setEntityMapping } from '@/utils/encounterEntityMapping';
-import { hydratePlacedAssets } from '@/utils/encounterMappers';
+import { hydrateGameElements } from '@/utils/encounterMappers';
 
 interface UseAssetManagementProps {
   encounterId: string | undefined;
@@ -131,11 +130,16 @@ export const useAssetManagement = ({
               if (updatedEncounter) {
                 setEncounter(updatedEncounter);
 
-                const oldIndices = new Set(encounter.assets.map((a) => a.index));
-                const newBackendAsset = updatedEncounter.assets.find((sa) => {
-                  const saIndex = sa.index;
-                  return !oldIndices.has(saIndex);
-                });
+                // Combine all game elements to find newly created ones
+                const oldActorIndices = new Set(encounter.actors.map((a) => a.index));
+                const oldObjectIndices = new Set(encounter.objects.map((o) => o.index));
+                const oldEffectIndices = new Set(encounter.effects.map((e) => e.index));
+
+                // Find new actor (most common case for placed assets)
+                const newBackendActor = updatedEncounter.actors.find((a) => !oldActorIndices.has(a.index));
+                const newBackendObject = updatedEncounter.objects.find((o) => !oldObjectIndices.has(o.index));
+                const newBackendEffect = updatedEncounter.effects.find((e) => !oldEffectIndices.has(e.index));
+                const newBackendAsset = newBackendActor ?? newBackendObject ?? newBackendEffect;
 
                 if (newBackendAsset) {
                   const backendIndex = newBackendAsset.index;
@@ -147,7 +151,8 @@ export const useAssetManagement = ({
                         ? {
                             ...a,
                             index: backendIndex,
-                            number: newBackendAsset.number,
+                            // New types don't have number; use index as fallback
+                            number: backendIndex,
                           }
                         : a,
                     ),
@@ -428,13 +433,11 @@ export const useAssetManagement = ({
             const { data: updatedEncounter } = await refetch();
             if (updatedEncounter) {
               setEncounter(updatedEncounter);
-              const hydratedAssets = await hydratePlacedAssets(
-                updatedEncounter.assets,
+              const hydratedAssets = hydrateGameElements(
+                updatedEncounter.actors ?? [],
+                updatedEncounter.objects ?? [],
+                updatedEncounter.effects ?? [],
                 encounterId || '',
-                async (assetId: string) => {
-                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                  return result;
-                },
               );
               setPlacedAssets(hydratedAssets);
             }
@@ -459,13 +462,11 @@ export const useAssetManagement = ({
             const { data: updatedEncounter } = await refetch();
             if (updatedEncounter) {
               setEncounter(updatedEncounter);
-              const hydratedAssets = await hydratePlacedAssets(
-                updatedEncounter.assets,
+              const hydratedAssets = hydrateGameElements(
+                updatedEncounter.actors ?? [],
+                updatedEncounter.objects ?? [],
+                updatedEncounter.effects ?? [],
                 encounterId || '',
-                async (assetId: string) => {
-                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                  return result;
-                },
               );
               setPlacedAssets(hydratedAssets);
             }
@@ -533,13 +534,11 @@ export const useAssetManagement = ({
             const { data: updatedEncounter } = await refetch();
             if (updatedEncounter) {
               setEncounter(updatedEncounter);
-              const hydratedAssets = await hydratePlacedAssets(
-                updatedEncounter.assets,
+              const hydratedAssets = hydrateGameElements(
+                updatedEncounter.actors ?? [],
+                updatedEncounter.objects ?? [],
+                updatedEncounter.effects ?? [],
                 encounterId || '',
-                async (assetId: string) => {
-                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                  return result;
-                },
               );
               setPlacedAssets(hydratedAssets);
             }
@@ -564,13 +563,11 @@ export const useAssetManagement = ({
             const { data: updatedEncounter } = await refetch();
             if (updatedEncounter) {
               setEncounter(updatedEncounter);
-              const hydratedAssets = await hydratePlacedAssets(
-                updatedEncounter.assets,
+              const hydratedAssets = hydrateGameElements(
+                updatedEncounter.actors ?? [],
+                updatedEncounter.objects ?? [],
+                updatedEncounter.effects ?? [],
                 encounterId || '',
-                async (assetId: string) => {
-                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                  return result;
-                },
               );
               setPlacedAssets(hydratedAssets);
             }
@@ -633,13 +630,11 @@ export const useAssetManagement = ({
             const { data: updatedEncounter } = await refetch();
             if (updatedEncounter) {
               setEncounter(updatedEncounter);
-              const hydratedAssets = await hydratePlacedAssets(
-                updatedEncounter.assets,
+              const hydratedAssets = hydrateGameElements(
+                updatedEncounter.actors ?? [],
+                updatedEncounter.objects ?? [],
+                updatedEncounter.effects ?? [],
                 encounterId || '',
-                async (assetId: string) => {
-                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                  return result;
-                },
               );
               setPlacedAssets(hydratedAssets);
 
@@ -675,13 +670,11 @@ export const useAssetManagement = ({
             const { data: updatedEncounter } = await refetch();
             if (updatedEncounter) {
               setEncounter(updatedEncounter);
-              const hydratedAssets = await hydratePlacedAssets(
-                updatedEncounter.assets,
+              const hydratedAssets = hydrateGameElements(
+                updatedEncounter.actors ?? [],
+                updatedEncounter.objects ?? [],
+                updatedEncounter.effects ?? [],
                 encounterId || '',
-                async (assetId: string) => {
-                  const result = await dispatch(assetsApi.endpoints.getAsset.initiate(assetId)).unwrap();
-                  return result;
-                },
               );
               setPlacedAssets(hydratedAssets);
             }

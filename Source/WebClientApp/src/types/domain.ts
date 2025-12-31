@@ -1,5 +1,14 @@
 // TypeScript types matching existing Domain layer API contracts
 
+import type { ResourceMetadata, Stage, StageLight, StageSound, StageWall, StageWallSegment, StageRegionVertex } from './stage';
+
+// 3D position type for game elements
+export interface Position3D {
+  x: number;
+  y: number;
+  z?: number;  // Optional z for elevation
+}
+
 // Common types
 export interface User {
   id: string;
@@ -151,8 +160,9 @@ export interface Asset {
   classification: AssetClassification;
   name: string;
   description: string;
+  thumbnail: MediaResource | null;
   portrait: MediaResource | null;
-  tokenSize: NamedSize;
+  size: NamedSize;  // Backend sends 'size', not 'tokenSize'
   tokens: MediaResource[];
   statBlocks: Record<number, Record<string, StatBlockValue>>;
   tags: string[];
@@ -160,6 +170,9 @@ export interface Asset {
   isPublished: boolean;
   isPublic: boolean;
 }
+
+// Alias for backwards compatibility - some code may still use tokenSize
+export type AssetWithTokenSize = Omit<Asset, 'size'> & { tokenSize: NamedSize };
 
 // Placed Asset - Frontend-only type for local placement state
 export interface PlacedAsset {
@@ -173,8 +186,8 @@ export interface PlacedAsset {
   index: number; // Backend Index property - encounter-wide unique identifier (never reused)
   number: number; // Backend Number property - per-asset-type counter (e.g., "Goblin #3")
   name: string;
-  visible: boolean;
-  locked: boolean;
+  isHidden: boolean; // Game-time property - during editing, visibility is controlled by topbar buttons
+  isLocked: boolean;
   labelVisibility: LabelVisibility;
   labelPosition: LabelPosition;
 }
@@ -256,13 +269,13 @@ export interface UpdateAdventureRequest {
 }
 
 export enum AdventureStyle {
-  Generic = 0,
-  OpenWorld = 1,
-  DungeonCrawl = 2,
-  HackNSlash = 3,
-  Survival = 4,
-  GoalDriven = 5,
-  RandomlyGenerated = 6,
+  Generic = 'Generic',
+  OpenWorld = 'OpenWorld',
+  DungeonCrawl = 'DungeonCrawl',
+  HackNSlash = 'HackNSlash',
+  Survival = 'Survival',
+  GoalDriven = 'GoalDriven',
+  RandomlyGenerated = 'RandomlyGenerated',
 }
 
 export enum ContentType {
@@ -340,62 +353,187 @@ export interface Campaign {
 }
 
 // Encounters (from Domain.Library.Encounters.ApiContracts)
+// NOTE: Encounters now reference a Stage entity for structural elements.
+// Game elements (actors, objects, effects) remain on Encounter.
+// Structural elements (walls, regions, lights, elements, sounds) are on Stage.
+
 export interface CreateEncounterRequest {
   name: string;
-  description: string;
-  backgroundId?: string;
-  grid?: {
-    type: number;
-    cellSize: { width: number; height: number };
-    offset: { left: number; top: number };
-    snap: boolean;
-  };
+  description?: string;
+  // Note: stageId is not passed - backend auto-creates embedded Stage
 }
 
 export interface UpdateEncounterRequest {
   name?: string;
   description?: string;
   isPublished?: boolean;
-  stage?: {
-    backgroundId?: string | null;
-    zoomLevel?: number;
-    panning?: { x: number; y: number };
-  };
-  grid?: {
-    type: number;
-    cellSize: { width: number; height: number };
-    offset: { left: number; top: number };
-    snap: boolean;
-  };
+  isPublic?: boolean;
+  // Note: stage is not directly updatable via encounter - use Stage API
 }
 
 export interface Encounter {
   id: string;
+  ownerId: string;
   adventure: Adventure | null;
   name: string;
   description: string;
   isPublished: boolean;
-  light: Light;
-  weather: Weather;
-  elevation: number;
-  grid: {
-    type: number;
-    cellSize: { width: number; height: number };
-    offset: { left: number; top: number };
-    snap: boolean;
-    scale: number;
-  };
-  stage: {
-    background: MediaResource | null;
-    zoomLevel: number;
-    panning: { x: number; y: number };
-  };
-  assets: EncounterAsset[];
-  walls: EncounterWall[];
-  regions: EncounterRegion[];
-  lightSources: EncounterLightSource[];
-  soundSources: EncounterSoundSource[];
+  isPublic: boolean;
+
+  // Stage contains all structural/environmental elements
+  // The Stage is auto-created when Encounter is created
+  stage: Stage;
+
+  // Game elements only
+  actors: EncounterActor[];
+  objects: EncounterObject[];
+  effects: EncounterEffect[];
 }
+
+// Game Elements (remain on Encounter)
+
+export enum ObjectState {
+  Closed = 'Closed',
+  Open = 'Open',
+  Destroyed = 'Destroyed',
+}
+
+export enum EffectState {
+  Enabled = 'Enabled',
+  Disabled = 'Disabled',
+  Triggered = 'Triggered',
+}
+
+// Frame shape enum matching backend FrameShape
+export enum FrameShape {
+  None = 'None',
+  Square = 'Square',
+  Circle = 'Circle',
+  Hexagon = 'Hexagon',
+}
+
+// Frame type matching backend Domain.Common.Model.Frame
+export interface Frame {
+  shape: FrameShape | string;
+  borderColor: string;
+  borderThickness: number;
+  background: string;
+}
+
+// EncounterActor matching backend Domain.Library.Encounters.Model.EncounterActor
+export interface EncounterActor {
+  asset: Asset;  // Full asset object (no separate assetId)
+  index: number;
+  name?: string | null;
+  position: Point;  // 2D position (x, y)
+  rotation: number;
+  elevation: number;
+  size: NamedSize;
+  display?: ResourceMetadata | null;
+  frame: Frame;
+  controlledBy?: string | null;
+  isHidden: boolean;
+  isLocked: boolean;
+}
+
+// EncounterObject matching backend Domain.Library.Encounters.Model.EncounterObject
+export interface EncounterObject {
+  asset: Asset;  // Full asset object (no separate assetId)
+  index: number;
+  name?: string | null;
+  position: Point;  // 2D position (x, y)
+  rotation: number;
+  elevation: number;
+  size: NamedSize;
+  display?: ResourceMetadata | null;
+  closedDisplay?: ResourceMetadata | null;
+  openedDisplay?: ResourceMetadata | null;
+  destroyedDisplay?: ResourceMetadata | null;
+  state: ObjectState;
+  isHidden: boolean;
+  isLocked: boolean;
+}
+
+// EncounterEffect matching backend Domain.Library.Encounters.Model.EncounterEffect
+export interface EncounterEffect {
+  asset: Asset;  // Full asset object (no separate assetId)
+  index: number;
+  name?: string | null;
+  position: Point;  // 2D position (x, y)
+  rotation: number;
+  state: EffectState;
+  isHidden: boolean;
+  triggerRegion?: Shape | null;
+  display?: ResourceMetadata | null;
+  enabledDisplay?: ResourceMetadata | null;
+  disabledDisplay?: ResourceMetadata | null;
+  onTriggerDisplay?: ResourceMetadata | null;
+  triggeredDisplay?: ResourceMetadata | null;
+}
+
+export interface Shape {
+  type: 'circle' | 'rectangle' | 'polygon';
+  vertices?: Point[];
+  radius?: number;
+  width?: number;
+  height?: number;
+}
+
+// Game element request types
+export interface CreateActorRequest {
+  assetId: string;
+  name?: string;
+  position?: Position3D;
+  rotation?: number;
+  elevation?: number;
+}
+
+export interface UpdateActorRequest {
+  name?: string;
+  position?: Position3D;
+  rotation?: number;
+  elevation?: number;
+  displayId?: string | null;
+  controlledBy?: string | null;
+  isHidden?: boolean;
+  isLocked?: boolean;
+}
+
+export interface CreateObjectRequest {
+  assetId: string;
+  name?: string;
+  position?: Position3D;
+  rotation?: number;
+  elevation?: number;
+}
+
+export interface UpdateObjectRequest {
+  name?: string;
+  position?: Position3D;
+  rotation?: number;
+  elevation?: number;
+  state?: ObjectState;
+  isHidden?: boolean;
+  isLocked?: boolean;
+}
+
+export interface CreateEffectRequest {
+  assetId: string;
+  name?: string;
+  position?: Position3D;
+  rotation?: number;
+}
+
+export interface UpdateEffectRequest {
+  name?: string;
+  position?: Position3D;
+  rotation?: number;
+  state?: EffectState;
+  isHidden?: boolean;
+}
+
+// Legacy type alias for backwards compatibility
+// The old EncounterAsset is now split into EncounterActor/Object/Effect
 
 export interface EncounterAsset {
   id: string;
@@ -415,8 +553,8 @@ export interface EncounterAsset {
   scaleY: number;
   layer: number;
   elevation: number;
-  visible: boolean;
-  locked: boolean;
+  isHidden: boolean;
+  isLocked: boolean;
   asset: Asset;
   customBehavior?: Partial<import('./placement').PlacementBehavior>;
 }
@@ -644,62 +782,41 @@ export enum RegionType {
   FogOfWar = 'FogOfWar',
 }
 
-export interface EncounterWallSegment {
-  index: number;
-  name?: string;
-  startPole: Pole;
-  endPole: Pole;
-  type: SegmentType;
-  isOpaque: boolean;
-  state: SegmentState;
-}
+// Legacy structural element types - now aliases to Stage types
+// These are kept for backwards compatibility with existing components
+// New code should use Stage* types directly from './stage'
+// (Stage types imported at top of file)
 
-export interface EncounterWall {
-  index: number;
-  name: string;
-  segments: EncounterWallSegment[];
-}
+// Wall types - now aliases to Stage types
+export type EncounterWallSegment = StageWallSegment;
+export type EncounterWall = StageWall;
 
 export interface PlacedWall extends EncounterWall {
   id: string;
 }
 
+// Region types - now aliases to Stage types
+// Note: encounterId was removed since regions now belong to Stage, not Encounter
 export interface EncounterRegion {
-  encounterId: string;
+  encounterId?: string | undefined; // Optional for backwards compat, not used
   index: number;
-  name: string;
+  name?: string | undefined;
   type: string;
-  vertices: Point[];
-  value?: number;
-  label?: string;
-  color?: string;
+  vertices: Point[] | StageRegionVertex[];
+  value?: number | undefined;
+  label?: string | undefined;
+  color?: string | undefined;
 }
 
 export interface PlacedRegion extends EncounterRegion {
   id: string;
 }
 
-export interface EncounterLightSource {
-  index: number;
-  name?: string | undefined;
-  type: LightSourceType;
-  position: Point;
-  range: number;
-  direction?: number | undefined;
-  arc?: number | undefined;
-  color?: string | undefined;
-  isOn: boolean;
-}
+// Light source types - now aliases to Stage types
+export type EncounterLightSource = StageLight;
 
-export interface EncounterSoundSource {
-  index: number;
-  name?: string;
-  position: Point;
-  range: number;
-  resource?: MediaResource | null;
-  isPlaying: boolean;
-  loop?: boolean;
-}
+// Sound source types - now alias to Stage types
+export type EncounterSoundSource = StageSound;
 
 export interface PlacedLightSource extends EncounterLightSource {
   id: string;

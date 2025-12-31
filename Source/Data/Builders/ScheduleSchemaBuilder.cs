@@ -23,7 +23,7 @@ internal static class ScheduleSchemaBuilder {
             entity.ComplexProperty(s => s.Recurrence, rb => {
                 rb.Property(s => s.Frequency).IsRequired().HasConversion<string>().HasDefaultValue(Frequency.Daily);
                 rb.Property(s => s.Interval).IsRequired().HasDefaultValue(1);
-                rb.PrimitiveCollection(s => s.Days).IsRequired().HasDefaultValue(new List<int>());
+                rb.PrimitiveCollection(s => s.Days).IsRequired();
                 rb.Property(s => s.UseWeekdays).IsRequired();
                 rb.Property(s => s.Count).IsRequired().HasDefaultValue(1);
                 rb.Property(s => s.Until).IsRequired(false);

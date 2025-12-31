@@ -9,12 +9,18 @@ const imageCache = new Map<string, { img: HTMLImageElement; blobUrl: string; ref
 const getTokenImageUrl = (asset: Asset): string | null => {
     const mediaBaseUrl = getApiEndpoints().media;
 
-    if (asset.tokens.length > 0 && asset.tokens[0]) {
+    // Priority: tokens > portrait > thumbnail
+    if (asset.tokens && asset.tokens.length > 0 && asset.tokens[0]) {
         return `${mediaBaseUrl}/${asset.tokens[0].id}`;
     }
 
     if (asset.portrait) {
         return `${mediaBaseUrl}/${asset.portrait.id}`;
+    }
+
+    // Fallback to thumbnail if no tokens or portrait
+    if (asset.thumbnail) {
+        return `${mediaBaseUrl}/${asset.thumbnail.id}`;
     }
 
     return null;
@@ -35,16 +41,16 @@ export const useAssetImageLoader = ({
     const onImagesLoadedRef = useRef(onImagesLoaded);
     const loadedAssetIdsRef = useRef<Set<string>>(new Set());
 
-    const token = useSelector((state: RootState) => state.auth.token);
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
     useEffect(() => {
         onImagesLoadedRef.current = onImagesLoaded;
     }, [onImagesLoaded]);
 
-    const loadImage = useCallback(async (url: string, token: string): Promise<HTMLImageElement> => {
+    const loadImage = useCallback(async (url: string): Promise<HTMLImageElement> => {
         const response = await fetch(url, {
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'X-Requested-With': 'XMLHttpRequest',
             },
         });
@@ -69,7 +75,7 @@ export const useAssetImageLoader = ({
     }, []);
 
     useEffect(() => {
-        if (!token) return;
+        if (!isAuthenticated) return;
 
         const loadImages = async () => {
             const assetsToLoad: Array<{ id: string; url: string }> = [];
@@ -114,7 +120,7 @@ export const useAssetImageLoader = ({
                 const results = await Promise.all(
                     assetsToLoad.map(async ({ id, url }) => {
                         try {
-                            const img = await loadImage(url, token);
+                            const img = await loadImage(url);
                             const blobUrl = (img as HTMLImageElement & { _blobUrl: string })._blobUrl;
                             imageCache.set(id, { img, blobUrl, refCount: 1 });
                             loadedAssetIdsRef.current.add(id);
@@ -146,7 +152,7 @@ export const useAssetImageLoader = ({
         };
 
         loadImages();
-    }, [placedAssets, draggedAsset, loadImage, token]);
+    }, [placedAssets, draggedAsset, loadImage, isAuthenticated]);
 
     useEffect(() => {
         const loadedIds = loadedAssetIdsRef.current;

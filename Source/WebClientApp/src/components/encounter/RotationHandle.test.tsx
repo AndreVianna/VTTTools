@@ -13,8 +13,9 @@ const mockBaseAsset: Asset = {
   isPublished: false,
   isPublic: false,
   tokens: [],
+  thumbnail: null,
   portrait: null,
-  tokenSize: { width: 2, height: 2 },
+  size: { width: 2, height: 2 },
   statBlocks: {},
   tags: [],
 };
@@ -30,8 +31,8 @@ const mockAsset: PlacedAsset = {
   index: 1,
   number: 1,
   name: 'Test Asset #1',
-  visible: true,
-  locked: false,
+  isHidden: false,
+  isLocked: false,
   labelVisibility: LabelVisibility.Default,
   labelPosition: LabelPosition.Default,
 };

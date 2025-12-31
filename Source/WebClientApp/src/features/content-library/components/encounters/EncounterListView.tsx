@@ -19,8 +19,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Encounter } from '@/types/domain';
-import { GridType } from '@/utils/gridCalculator';
+import { type Encounter, GridType } from '@/types/domain';
 import { EncounterCard } from './EncounterCard';
 
 export function EncounterListView() {
@@ -66,7 +65,7 @@ export function EncounterListView() {
 
   const filteredEncounters = encounters.filter((encounter) => {
     const matchesSearch = encounter.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGrid = gridFilter === 'all' || encounter.grid.type === gridFilter;
+    const matchesGrid = gridFilter === 'all' || encounter.stage.grid.type === gridFilter;
     const matchesPublished =
       publishedFilter === 'all' ||
       (publishedFilter === 'published' && encounter.isPublished) ||

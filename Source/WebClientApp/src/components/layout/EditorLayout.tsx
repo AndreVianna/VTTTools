@@ -11,7 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { EncounterPropertiesDrawer } from '@/components/encounter';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectTheme, toggleTheme } from '@/store/slices/uiSlice';
-import type { Encounter, Light, Weather } from '@/types/domain';
+import type { Encounter } from '@/types/domain';
+import { Weather } from '@/types/domain';
+import { type AmbientLight } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 interface EditorLayoutProps {
@@ -21,7 +23,7 @@ interface EditorLayoutProps {
   onBackClick?: () => void;
   onEncounterDescriptionChange?: (description: string) => void;
   onEncounterPublishedChange?: (published: boolean) => void;
-  onEncounterUpdate?: (updates: Partial<Encounter>) => void;
+  onStageSettingsChange?: (updates: { ambientLight?: AmbientLight; weather?: Weather }) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
   backgroundUrl?: string;
@@ -37,7 +39,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onBackClick,
   onEncounterDescriptionChange,
   onEncounterPublishedChange,
-  onEncounterUpdate,
+  onStageSettingsChange,
   gridConfig,
   onGridChange,
   backgroundUrl,
@@ -209,10 +211,9 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           })}
           onDescriptionChange={onEncounterDescriptionChange ?? (() => {})}
           onPublishedChange={onEncounterPublishedChange ?? (() => {})}
-          {...(onEncounterUpdate && {
-            onLightChange: (light: Light) => onEncounterUpdate({ light }),
-            onWeatherChange: (weather: Weather) => onEncounterUpdate({ weather }),
-            onElevationChange: (elevation: number) => onEncounterUpdate({ elevation }),
+          {...(onStageSettingsChange && {
+            onLightChange: (ambientLight: AmbientLight) => onStageSettingsChange({ ambientLight }),
+            onWeatherChange: (weather: Weather) => onStageSettingsChange({ weather }),
           })}
           {...(gridConfig && { gridConfig })}
           {...(onGridChange && { onGridChange })}

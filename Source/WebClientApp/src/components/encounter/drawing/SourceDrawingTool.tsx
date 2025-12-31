@@ -3,12 +3,13 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
 import {
-  useAddEncounterLightSourceMutation,
-  useAddEncounterSoundSourceMutation,
-  useRemoveEncounterLightSourceMutation,
-  useRemoveEncounterSoundSourceMutation,
-} from '@/services/encounterApi';
-import type { EncounterLightSource, EncounterWall, MediaResource, Point, LightSourceType } from '@/types/domain';
+  useAddLightMutation,
+  useAddSoundMutation,
+  useDeleteLightMutation,
+  useDeleteSoundMutation,
+} from '@/services/stageApi';
+import { type EncounterLightSource, type EncounterWall, type Point, type LightSourceType } from '@/types/domain';
+import type { CreateSoundRequest, StageSound } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { CreateLightSourceCommand, CreateSoundSourceCommand } from '@/utils/commands/sourceCommands';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
@@ -70,10 +71,10 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   const [currentRange, setCurrentRange] = useState<number>(0);
   const [currentDirection, setCurrentDirection] = useState<number>(0);
   const [currentArc, setCurrentArc] = useState<number>(45);
-  const [addLightSource] = useAddEncounterLightSourceMutation();
-  const [addSoundSource] = useAddEncounterSoundSourceMutation();
-  const [removeLightSource] = useRemoveEncounterLightSourceMutation();
-  const [removeSoundSource] = useRemoveEncounterSoundSourceMutation();
+  const [addLight] = useAddLightMutation();
+  const [addSound] = useAddSoundMutation();
+  const [deleteLight] = useDeleteLightMutation();
+  const [deleteSound] = useDeleteSoundMutation();
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const isLight = source.sourceType === 'light';
@@ -124,11 +125,11 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
             encounterId,
             source: sourceData,
             onCreate: async (eid, data) => {
-              const result = await addLightSource({ encounterId: eid, ...data }).unwrap();
+              const result = await addLight({ stageId: eid, data }).unwrap();
               return result;
             },
             onRemove: async (eid, sourceIndex) => {
-              await removeLightSource({ encounterId: eid, sourceIndex }).unwrap();
+              await deleteLight({ stageId: eid, index: sourceIndex }).unwrap();
             },
             onRefetch,
           });
@@ -136,25 +137,34 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           await execute(command);
         } else {
           const soundSource = source as SoundSourceDrawingProps;
-          const sourceData = {
+          const sourceData: StageSound = {
             index: 0,
             position: centerPos,
-            range: rangeToUse,
-            resource: soundSource.resourceId ? { id: soundSource.resourceId } as MediaResource : null,
+            radius: rangeToUse,
+            volume: 1,
+            media: null!,
             isPlaying: soundSource.isPlaying ?? true,
+            loop: soundSource.loop ?? false,
             ...(soundSource.name !== undefined && { name: soundSource.name }),
-            ...(soundSource.loop !== undefined && { loop: soundSource.loop }),
           };
 
           const command = new CreateSoundSourceCommand({
             encounterId,
             source: sourceData,
             onCreate: async (eid, data) => {
-              const result = await addSoundSource({ encounterId: eid, ...data }).unwrap();
+              const requestData: CreateSoundRequest = {
+                position: data.position,
+                radius: data.radius,
+                isPlaying: data.isPlaying,
+                mediaId: soundSource.resourceId ?? '',
+                ...(data.name !== undefined && { name: data.name }),
+                ...(data.loop !== undefined && { loop: data.loop }),
+              };
+              const result = await addSound({ stageId: eid, data: requestData }).unwrap();
               return result;
             },
             onRemove: async (eid, sourceIndex) => {
-              await removeSoundSource({ encounterId: eid, sourceIndex }).unwrap();
+              await deleteSound({ stageId: eid, index: sourceIndex }).unwrap();
             },
             onRefetch,
           });
@@ -184,10 +194,10 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       isLight,
       isDirectional,
       execute,
-      addLightSource,
-      addSoundSource,
-      removeLightSource,
-      removeSoundSource,
+      addLight,
+      addSound,
+      deleteLight,
+      deleteSound,
       onRefetch,
       onComplete,
     ],

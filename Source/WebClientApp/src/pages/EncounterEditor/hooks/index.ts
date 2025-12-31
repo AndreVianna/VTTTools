@@ -1,6 +1,7 @@
 export { useAssetManagement } from './useAssetManagement';
 export { useCanvasReadyState } from './useCanvasReadyState';
 export { useContextMenus } from './useContextMenus';
+export { useEncounterEditor } from './useEncounterEditor';
 export { useEncounterSettings } from './useEncounterSettings';
 export { useGridHandlers } from './useGridHandlers';
 export { useKeyboardState } from './useKeyboardState';

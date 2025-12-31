@@ -70,7 +70,7 @@ internal static class EncounterSchemaBuilder {
         });
 
         entity.Property(e => e.ControlledBy);
-        entity.Property(e => e.IsHidden).IsRequired().HasDefaultValue(true);
+        entity.Property(e => e.IsHidden).IsRequired().HasDefaultValue(false);
         entity.Property(e => e.IsLocked).IsRequired().HasDefaultValue(false);
 
         entity.HasOne(e => e.Encounter)
@@ -173,6 +173,11 @@ internal static class EncounterSchemaBuilder {
         entity.HasOne(e => e.Encounter)
               .WithMany(s => s.Effects)
               .HasForeignKey(e => e.EncounterId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(e => e.Asset)
+              .WithMany()
+              .HasForeignKey(e => e.AssetId)
               .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasIndex(e => e.EncounterId);

@@ -1,12 +1,58 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
-import { Light, Weather } from '@/types/domain';
+import { GridType, Weather } from '@/types/domain';
+import type { Stage, StageRegion } from '@/types/stage';
+import { AmbientLight } from '@/types/stage';
 import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
 import { useRegionTransaction } from './useRegionTransaction';
 
 import type { LocalAction } from '@/types/regionUndoActions';
+
+const createMockStage = (overrides?: Partial<Stage>): Stage => ({
+  id: 'stage-1',
+  ownerId: 'owner-1',
+  name: 'Test Stage',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  settings: {
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: AmbientLight.Default,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: Weather.Clear,
+  },
+  grid: {
+    type: GridType.Square,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    scale: 1,
+  },
+  walls: [],
+  regions: [],
+  lights: [],
+  elements: [],
+  sounds: [],
+  ...overrides,
+});
+
+const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
+  id: 'encounter-1',
+  ownerId: 'owner-1',
+  adventure: null,
+  name: 'Test Encounter',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  stage: createMockStage({ regions }),
+  actors: [],
+  objects: [],
+  effects: [],
+});
 
 vi.mock('@/utils/polygonUtils');
 vi.mock('@/utils/regionMergeUtils');
@@ -326,29 +372,7 @@ describe('useRegionTransaction', () => {
         const { result } = renderHook(() => useRegionTransaction());
         mockFindMergeableRegions.mockReturnValue([]);
 
-        const encounter: Encounter = {
-          id: 'encounter-1',
-          adventure: null,
-          name: 'Test Encounter',
-          description: '',
-          isPublished: false,
-          light: Light.Bright,
-          weather: Weather.Clear,
-          elevation: 0,
-          grid: {
-            type: 0,
-            cellSize: { width: 50, height: 50 },
-            offset: { left: 0, top: 0 },
-            snap: true,
-            scale: 1,
-          },
-          stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
-          assets: [],
-          walls: [],
-          regions: [],
-          lightSources: [],
-          soundSources: [],
-        };
+        const encounter = createMockEncounter();
 
         act(() => {
           result.current.startTransaction('placement', undefined, {
@@ -367,8 +391,8 @@ describe('useRegionTransaction', () => {
           const commitResult = await result.current.commitTransaction(
             'encounter-1',
             {
-              addEncounterRegion: mockAddEncounterRegion,
-              updateEncounterRegion: mockUpdateEncounterRegion,
+              addRegion: mockAddEncounterRegion,
+              updateRegion: mockUpdateEncounterRegion,
             },
             encounter,
           );
@@ -382,8 +406,7 @@ describe('useRegionTransaction', () => {
       it('should detect merge with overlapping regions', async () => {
         const { result } = renderHook(() => useRegionTransaction());
 
-        const existingRegion: EncounterRegion = {
-          encounterId: 'encounter-1',
+        const existingRegion: StageRegion = {
           index: 1,
           name: 'Region 1',
           vertices: [
@@ -405,29 +428,7 @@ describe('useRegionTransaction', () => {
         mockFindMergeableRegions.mockReturnValue([existingRegion]);
         mockMergePolygons.mockReturnValue(mergedVertices);
 
-        const encounter: Encounter = {
-          id: 'encounter-1',
-          adventure: null,
-          name: 'Test Encounter',
-          description: '',
-          isPublished: false,
-          light: Light.Bright,
-          weather: Weather.Clear,
-          elevation: 0,
-          grid: {
-            type: 0,
-            cellSize: { width: 50, height: 50 },
-            offset: { left: 0, top: 0 },
-            snap: true,
-            scale: 1,
-          },
-          stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
-          assets: [],
-          walls: [],
-          regions: [existingRegion],
-          lightSources: [],
-          soundSources: [],
-        };
+        const encounter = createMockEncounter([existingRegion]);
 
         act(() => {
           result.current.startTransaction('placement', undefined, {
@@ -449,8 +450,8 @@ describe('useRegionTransaction', () => {
           const commitResult = await result.current.commitTransaction(
             'encounter-1',
             {
-              addEncounterRegion: mockAddEncounterRegion,
-              updateEncounterRegion: mockUpdateEncounterRegion,
+              addRegion: mockAddEncounterRegion,
+              updateRegion: mockUpdateEncounterRegion,
             },
             encounter,
           );
@@ -465,8 +466,7 @@ describe('useRegionTransaction', () => {
       it('should handle merge with multiple overlapping regions', async () => {
         const { result } = renderHook(() => useRegionTransaction());
 
-        const region1: EncounterRegion = {
-          encounterId: 'encounter-1',
+        const region1: StageRegion = {
           index: 5,
           name: 'Region 1',
           vertices: [
@@ -477,8 +477,7 @@ describe('useRegionTransaction', () => {
           type: 'Elevation',
         };
 
-        const region2: EncounterRegion = {
-          encounterId: 'encounter-1',
+        const region2: StageRegion = {
           index: 3,
           name: 'Region 2',
           vertices: [
@@ -496,29 +495,7 @@ describe('useRegionTransaction', () => {
           { x: 50, y: 100 },
         ]);
 
-        const encounter: Encounter = {
-          id: 'encounter-1',
-          adventure: null,
-          name: 'Test Encounter',
-          description: '',
-          isPublished: false,
-          light: Light.Bright,
-          weather: Weather.Clear,
-          elevation: 0,
-          grid: {
-            type: 0,
-            cellSize: { width: 50, height: 50 },
-            offset: { left: 0, top: 0 },
-            snap: true,
-            scale: 1,
-          },
-          stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
-          assets: [],
-          walls: [],
-          regions: [region2, region1],
-          lightSources: [],
-          soundSources: [],
-        };
+        const encounter = createMockEncounter([region2, region1]);
 
         act(() => {
           result.current.startTransaction('placement', undefined, {
@@ -538,8 +515,8 @@ describe('useRegionTransaction', () => {
           const commitResult = await result.current.commitTransaction(
             'encounter-1',
             {
-              addEncounterRegion: mockAddEncounterRegion,
-              updateEncounterRegion: mockUpdateEncounterRegion,
+              addRegion: mockAddEncounterRegion,
+              updateRegion: mockUpdateEncounterRegion,
             },
             encounter,
           );
@@ -554,8 +531,7 @@ describe('useRegionTransaction', () => {
       it('should use grid config when provided for merge', async () => {
         const { result } = renderHook(() => useRegionTransaction());
 
-        const existingRegion: EncounterRegion = {
-          encounterId: 'encounter-1',
+        const existingRegion: StageRegion = {
           index: 1,
           name: 'Region 1',
           vertices: [
@@ -573,29 +549,7 @@ describe('useRegionTransaction', () => {
           { x: 50, y: 100 },
         ]);
 
-        const encounter: Encounter = {
-          id: 'encounter-1',
-          adventure: null,
-          name: 'Test Encounter',
-          description: '',
-          isPublished: false,
-          light: Light.Bright,
-          weather: Weather.Clear,
-          elevation: 0,
-          grid: {
-            type: 0,
-            cellSize: { width: 50, height: 50 },
-            offset: { left: 0, top: 0 },
-            snap: true,
-            scale: 1,
-          },
-          stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
-          assets: [],
-          walls: [],
-          regions: [existingRegion],
-          lightSources: [],
-          soundSources: [],
-        };
+        const encounter = createMockEncounter([existingRegion]);
 
         act(() => {
           result.current.startTransaction('placement', undefined, {
@@ -615,8 +569,8 @@ describe('useRegionTransaction', () => {
           await result.current.commitTransaction(
             'encounter-1',
             {
-              addEncounterRegion: mockAddEncounterRegion,
-              updateEncounterRegion: mockUpdateEncounterRegion,
+              addRegion: mockAddEncounterRegion,
+              updateRegion: mockUpdateEncounterRegion,
             },
             encounter,
           );
@@ -645,8 +599,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
 
           expect(commitResult.success).toBe(false);
@@ -686,8 +640,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
 
           expect(commitResult.success).toBe(true);
@@ -724,8 +678,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
 
           expect(commitResult.success).toBe(true);
@@ -764,8 +718,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-123', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
 
           expect(commitResult.success).toBe(true);
@@ -821,8 +775,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-456', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
 
           expect(commitResult.success).toBe(true);
@@ -863,8 +817,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
 
           expect(commitResult.success).toBe(false);
@@ -898,8 +852,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           await result.current.commitTransaction('encounter-1', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
         });
 
@@ -940,8 +894,8 @@ describe('useRegionTransaction', () => {
 
         await act(async () => {
           await result.current.commitTransaction('encounter-1', {
-            addEncounterRegion: mockAddEncounterRegion,
-            updateEncounterRegion: mockUpdateEncounterRegion,
+            addRegion: mockAddEncounterRegion,
+            updateRegion: mockUpdateEncounterRegion,
           });
         });
 
@@ -964,8 +918,8 @@ describe('useRegionTransaction', () => {
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(commitResult.success).toBe(false);
@@ -999,8 +953,8 @@ describe('useRegionTransaction', () => {
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(commitResult.success).toBe(false);
@@ -1033,8 +987,8 @@ describe('useRegionTransaction', () => {
 
       await act(async () => {
         await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
       });
 
@@ -1168,8 +1122,8 @@ describe('useRegionTransaction', () => {
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(commitResult.success).toBe(false);
@@ -1203,8 +1157,8 @@ describe('useRegionTransaction', () => {
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
 
         expect(commitResult.success).toBe(false);
@@ -1237,8 +1191,8 @@ describe('useRegionTransaction', () => {
 
       await act(async () => {
         await result.current.commitTransaction('encounter-1', {
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
         });
       });
 

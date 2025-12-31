@@ -37,6 +37,7 @@ describe('AssetInspectorPanel', () => {
       type: 'Goblin',
       subtype: 'Warrior',
     },
+    thumbnail: null,
     portrait: {
       id: 'portrait-1',
       role: ResourceRole.Portrait,
@@ -47,7 +48,7 @@ describe('AssetInspectorPanel', () => {
       dimensions: { width: 512, height: 512 },
       duration: '0',
     },
-    tokenSize: { width: 1, height: 1 },
+    size: { width: 1, height: 1 },
     tokens: [
       {
         id: 'token-1',
@@ -314,7 +315,7 @@ describe('AssetInspectorPanel', () => {
     it('should render correct token size for larger assets', () => {
       const largeAsset = {
         ...mockAsset,
-        tokenSize: { width: 4, height: 4 },
+        size: { width: 4, height: 4 },
       };
 
       render(

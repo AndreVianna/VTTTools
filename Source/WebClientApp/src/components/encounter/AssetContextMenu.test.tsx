@@ -16,8 +16,8 @@ describe('AssetContextMenu', () => {
     index: 0,
     number: 1,
     name: 'Test Asset',
-    visible: true,
-    locked: false,
+    isHidden: false,
+    isLocked: false,
     labelVisibility: LabelVisibility.Default,
     labelPosition: LabelPosition.Default,
   };

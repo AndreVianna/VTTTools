@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Asset, AssetKind } from '@/types/domain';
 import type { ViewMode, SortField, SortDirection } from '@/components/assets/browser/BrowserToolbar';
-import { getFirstLetter, useLetterFilter } from '@/hooks/useLetterFilter';
+import { getFirstLetter } from '@/hooks/useLetterFilter';
 
 export interface AssetBrowserState {
   selectedPath: string[];

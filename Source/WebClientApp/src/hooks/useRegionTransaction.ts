@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
-import type { useAddEncounterRegionMutation, useUpdateEncounterRegionMutation } from '@/services/encounterApi';
-import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type Point, RegionType } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
+import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
 import {
   type ClipResult,
@@ -13,6 +13,16 @@ import {
   mergePolygons,
 } from '@/utils/regionMergeUtils';
 import { useUndoHistory } from './useUndoHistory';
+
+/**
+ * Helper to convert a string type to RegionType.
+ */
+const toRegionType = (type: string): RegionType => {
+  if (Object.values(RegionType).includes(type as RegionType)) {
+    return type as RegionType;
+  }
+  return RegionType.Terrain;
+};
 
 export type TransactionType = 'placement' | 'editing' | 'modification' | null;
 
@@ -54,9 +64,13 @@ export interface CommitResult {
   error?: string;
 }
 
+/**
+ * API hooks interface for region mutations.
+ * These are passed from useEncounterEditor which routes them to the Stage API.
+ */
 interface ApiHooks {
-  addEncounterRegion: ReturnType<typeof useAddEncounterRegionMutation>[0];
-  updateEncounterRegion: ReturnType<typeof useUpdateEncounterRegionMutation>[0];
+  addRegion: (data: CreateRegionRequest) => Promise<void>;
+  updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void>;
 }
 
 const INITIAL_TRANSACTION: RegionTransaction = {
@@ -100,7 +114,7 @@ export const useRegionTransaction = () => {
           segment: {
             tempId: 0,
             regionIndex: region.index,
-            name: region.name,
+            name: region.name ?? '',
             vertices: [...region.vertices],
             type: region.type,
             ...(region.value !== undefined && { value: region.value }),
@@ -186,8 +200,14 @@ export const useRegionTransaction = () => {
 
   const detectRegionMerge = useCallback(
     (encounter: Encounter, segment: RegionSegment): CommitResult | null => {
+      // Cast StageRegion[] to EncounterRegion[] for compatibility with utility functions
+      const regions = encounter.stage.regions.map((r) => ({
+        ...r,
+        encounterId: encounter.id,
+        type: String(r.type),
+      })) as EncounterRegion[];
       const mergeableRegions = findMergeableRegions(
-        encounter.regions,
+        regions,
         segment.vertices,
         segment.type,
         segment.value,
@@ -234,8 +254,14 @@ export const useRegionTransaction = () => {
 
   const detectRegionClip = useCallback(
     (encounter: Encounter, segment: RegionSegment): CommitResult | null => {
+      // Cast StageRegion[] to EncounterRegion[] for compatibility with utility functions
+      const regions = encounter.stage.regions.map((r) => ({
+        ...r,
+        encounterId: encounter.id,
+        type: String(r.type),
+      })) as EncounterRegion[];
       const clippableRegions = findClippableRegions(
-        encounter.regions,
+        regions,
         segment.vertices,
         segment.type,
         segment.value,
@@ -264,7 +290,13 @@ export const useRegionTransaction = () => {
         return null;
       }
 
-      const regionsToClip = findRegionsForNullClip(encounter.regions, segment.vertices, segment.type);
+      // Cast StageRegion[] to EncounterRegion[] for compatibility with utility functions
+      const regions = encounter.stage.regions.map((r) => ({
+        ...r,
+        encounterId: encounter.id,
+        type: String(r.type),
+      })) as EncounterRegion[];
+      const regionsToClip = findRegionsForNullClip(regions, segment.vertices, segment.type);
 
       if (regionsToClip.length === 0) {
         return {
@@ -308,25 +340,21 @@ export const useRegionTransaction = () => {
 
   const persistRegionToBackend = useCallback(
     async (
-      encounterId: string,
+      _encounterId: string,
       segment: RegionSegment,
       cleanedVertices: Point[],
       apiHooks: ApiHooks,
     ): Promise<CommitResult> => {
-      const { addEncounterRegion, updateEncounterRegion } = apiHooks;
+      const { addRegion, updateRegion } = apiHooks;
 
       if (segment.regionIndex !== null) {
-        const updateData = {
-          encounterId,
-          regionIndex: segment.regionIndex,
+        const updateData: UpdateRegionRequest = {
           name: segment.name,
           vertices: cleanedVertices,
-          type: segment.type,
+          type: toRegionType(segment.type),
           ...(segment.value !== undefined && { value: segment.value }),
-          ...(segment.label !== undefined && { label: segment.label }),
-          ...(segment.color !== undefined && { color: segment.color }),
         };
-        await updateEncounterRegion(updateData).unwrap();
+        await updateRegion(segment.regionIndex, updateData);
 
         return {
           success: true,
@@ -335,21 +363,20 @@ export const useRegionTransaction = () => {
         };
       }
 
-      const addData = {
-        encounterId,
+      const addData: CreateRegionRequest = {
         name: segment.name,
         vertices: cleanedVertices,
-        type: segment.type,
+        type: toRegionType(segment.type),
         ...(segment.value !== undefined && { value: segment.value }),
-        ...(segment.label !== undefined && { label: segment.label }),
-        ...(segment.color !== undefined && { color: segment.color }),
       };
-      const result = await addEncounterRegion(addData).unwrap();
+      await addRegion(addData);
 
+      // Note: The caller should refetch to get the created region index
+      // We return a placeholder since the Stage API addRegion doesn't return the index directly
       return {
         success: true,
         action: 'create',
-        regionIndex: result.index,
+        regionIndex: -1, // Will be resolved by caller via refetch
       };
     },
     [],
@@ -377,7 +404,7 @@ export const useRegionTransaction = () => {
 
         const segment = transaction.segment;
 
-        if (currentEncounter?.regions) {
+        if (currentEncounter?.stage.regions) {
           const nullClipResult = detectNullRegionClip(currentEncounter, segment);
           if (nullClipResult) {
             return nullClipResult;

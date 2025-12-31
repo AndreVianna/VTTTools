@@ -167,7 +167,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
   };
 
   const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
-    if (!encounter?.grid || !onGridChange) return;
+    if (!encounter?.stage.grid || !onGridChange) return;
     const newType = Number.parseInt(e.target.value, 10) as GridType;
 
     onGridChange({
@@ -417,7 +417,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
               <Select<string>
                 id='select-grid-type'
                 labelId='label-grid-type'
-                value={(encounter?.grid?.type ?? 'NoGrid') as string}
+                value={(encounter?.stage.grid?.type ?? 'NoGrid') as string}
                 label='Type'
                 onChange={handleGridTypeChange}
                 sx={compactStyles.select}
@@ -446,7 +446,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
                 id='input-cell-width'
                 label='W'
                 type='number'
-                value={encounter?.grid.cellSize.width ?? 50}
+                value={encounter?.stage.grid.cellSize.width ?? 50}
                 onChange={handleCellWidthChange}
                 size='small'
                 fullWidth
@@ -457,7 +457,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
                 id='input-cell-height'
                 label='H'
                 type='number'
-                value={encounter?.grid.cellSize.height ?? 50}
+                value={encounter?.stage.grid.cellSize.height ?? 50}
                 onChange={handleCellHeightChange}
                 size='small'
                 fullWidth
@@ -472,7 +472,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
                 id='input-offset-x'
                 label='X'
                 type='number'
-                value={encounter?.grid.offset.left ?? 0}
+                value={encounter?.stage.grid.offset.left ?? 0}
                 onChange={handleOffsetXChange}
                 size='small'
                 fullWidth
@@ -483,7 +483,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
                 id='input-offset-y'
                 label='Y'
                 type='number'
-                value={encounter?.grid.offset.top ?? 0}
+                value={encounter?.stage.grid.offset.top ?? 0}
                 onChange={handleOffsetYChange}
                 size='small'
                 fullWidth
@@ -498,7 +498,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
                 <Switch
                   id='switch-snap-grid'
                   size='small'
-                  checked={encounter?.grid.snap ?? false}
+                  checked={gridConfig.snap ?? false}
                   onChange={handleSnapChange}
                 />
               }

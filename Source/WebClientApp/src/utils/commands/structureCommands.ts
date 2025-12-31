@@ -1,4 +1,5 @@
-import type { EncounterRegion, EncounterLightSource, EncounterSoundSource, EncounterWall, Point } from '@/types/domain';
+import type { EncounterRegion, EncounterLightSource, EncounterWall, Point } from '@/types/domain';
+import type { StageSound } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { getPolesFromWall } from '@/utils/wallUtils';
 
@@ -155,7 +156,7 @@ export interface PlaceSourceCommandParams {
     range?: number,
     intensity?: number,
     hasGradient?: boolean,
-  ) => Promise<EncounterLightSource | EncounterSoundSource>;
+  ) => Promise<EncounterLightSource | StageSound>;
   removeSourceFn: (encounterId: string, id: number) => Promise<void>;
 }
 
@@ -192,7 +193,7 @@ export class PlaceSourceCommand implements Command {
 
 export interface RemoveSourceCommandParams {
   encounterId: string;
-  encounterSource: EncounterLightSource | EncounterSoundSource;
+  encounterSource: EncounterLightSource | StageSound;
   placeSourceFn: (
     encounterId: string,
     id: number,
@@ -200,7 +201,7 @@ export interface RemoveSourceCommandParams {
     range?: number,
     intensity?: number,
     hasGradient?: boolean,
-  ) => Promise<EncounterLightSource | EncounterSoundSource>;
+  ) => Promise<EncounterLightSource | StageSound>;
   removeSourceFn: (encounterId: string, id: number) => Promise<void>;
 }
 
@@ -218,11 +219,14 @@ export class RemoveSourceCommand implements Command {
 
   async undo(): Promise<void> {
     await this.executePromise;
+    const source = this.params.encounterSource;
+    // Handle both light sources (range) and sound sources (radius)
+    const rangeOrRadius = 'range' in source ? source.range : source.radius;
     await this.params.placeSourceFn(
       this.params.encounterId,
-      this.params.encounterSource.index,
-      this.params.encounterSource.position,
-      this.params.encounterSource.range,
+      source.index,
+      source.position,
+      rangeOrRadius,
       undefined,
       undefined,
     );

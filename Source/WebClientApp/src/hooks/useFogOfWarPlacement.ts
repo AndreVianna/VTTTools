@@ -42,8 +42,8 @@ function getMaxChildIndex(parentName: string, regions: PlacedRegion[]): number {
     let maxIndex = 0;
 
     for (const region of regions) {
-        if (region.name.startsWith(prefix)) {
-            const childPart = region.name.substring(prefix.length);
+        if ((region.name ?? '').startsWith(prefix)) {
+            const childPart = (region.name ?? '').substring(prefix.length);
             const dotIndex = childPart.indexOf('.');
             const immediateChild = dotIndex === -1 ? childPart : childPart.substring(0, dotIndex);
             const childIndex = parseInt(immediateChild, 10);
@@ -61,8 +61,8 @@ function getNextHierarchicalName(existingRegions: PlacedRegion[], mode: 'add' | 
         let maxRootIndex = 0;
         for (const region of existingRegions) {
             if (region.type === 'FogOfWar') {
-                const dotIndex = region.name.indexOf('.');
-                const rootPart = dotIndex === -1 ? region.name : region.name.substring(0, dotIndex);
+                const dotIndex = (region.name ?? '').indexOf('.');
+                const rootPart = dotIndex === -1 ? (region.name ?? '') : (region.name ?? '').substring(0, dotIndex);
                 const rootIndex = parseInt(rootPart, 10);
                 if (!isNaN(rootIndex) && rootIndex > maxRootIndex) {
                     maxRootIndex = rootIndex;
@@ -84,7 +84,7 @@ function getNextHierarchicalName(existingRegions: PlacedRegion[], mode: 'add' | 
         return '1';
     }
 
-    const parentName = mostRecent.name;
+    const parentName = mostRecent.name ?? '1';
     const maxChildIndex = getMaxChildIndex(parentName, fowRegions);
     return `${parentName}.${maxChildIndex + 1}`;
 }

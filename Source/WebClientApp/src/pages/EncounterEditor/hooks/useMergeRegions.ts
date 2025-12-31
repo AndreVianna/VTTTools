@@ -1,21 +1,42 @@
 import { useCallback } from 'react';
-import type {
-  useAddEncounterRegionMutation,
-  useRemoveEncounterRegionMutation,
-  useUpdateEncounterRegionMutation,
-} from '@/services/encounterApi';
-import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type Point, RegionType } from '@/types/domain';
+import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { createBatchCommand } from '@/utils/commands';
 import { DeleteRegionCommand, EditRegionCommand } from '@/utils/commands/regionCommands';
 import { removeRegionOptimistic, removeTempRegions, updateRegionOptimistic } from '@/utils/encounterStateUtils';
 
+/**
+ * Helper to convert a string type to RegionType.
+ */
+const toRegionType = (type: string): RegionType => {
+  if (Object.values(RegionType).includes(type as RegionType)) {
+    return type as RegionType;
+  }
+  return RegionType.Terrain;
+};
+
+/**
+ * Helper to convert Partial<EncounterRegion> to UpdateRegionRequest.
+ */
+const toUpdateRequest = (updates: Partial<EncounterRegion>): UpdateRegionRequest => ({
+  ...(updates.name !== undefined && { name: updates.name }),
+  ...(updates.type !== undefined && { type: toRegionType(updates.type) }),
+  ...(updates.vertices !== undefined && { vertices: updates.vertices }),
+  ...(updates.value !== undefined && { value: updates.value }),
+});
+
+/**
+ * Params for the useMergeRegions hook.
+ * Region mutations are now passed from useEncounterEditor which routes them to the Stage API.
+ */
 export interface UseMergeRegionsParams {
   encounterId: string | undefined;
   encounter: Encounter | null;
-  addEncounterRegion: ReturnType<typeof useAddEncounterRegionMutation>[0];
-  updateEncounterRegion: ReturnType<typeof useUpdateEncounterRegionMutation>[0];
-  removeEncounterRegion: ReturnType<typeof useRemoveEncounterRegionMutation>[0];
+  // Stage API mutation functions (passed from useEncounterEditor)
+  addRegion: (data: CreateRegionRequest) => Promise<void>;
+  updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void>;
+  deleteRegion: (index: number) => Promise<void>;
   setEncounter: (encounter: Encounter) => void;
   setErrorMessage: (message: string | null) => void;
   recordAction: (command: Command) => void;
@@ -40,9 +61,9 @@ export interface UseMergeRegionsResult {
 export const useMergeRegions = ({
   encounterId,
   encounter,
-  addEncounterRegion,
-  updateEncounterRegion,
-  removeEncounterRegion,
+  addRegion,
+  updateRegion,
+  deleteRegion,
   setEncounter,
   setErrorMessage,
   recordAction,
@@ -61,7 +82,7 @@ export const useMergeRegions = ({
     }: ExecuteMergeParams) => {
       if (!encounterId || !encounter) return;
 
-      const targetRegion = encounter.regions?.find((r) => r.index === targetRegionIndex);
+      const targetRegion = encounter.stage.regions?.find((r) => r.index === targetRegionIndex);
       if (!targetRegion) {
         setErrorMessage('Merge target region not found');
         onError();
@@ -76,13 +97,9 @@ export const useMergeRegions = ({
           regionIndex: targetRegionIndex,
           oldRegion: originalTargetRegion,
           newRegion: { ...targetRegion, vertices: mergedVertices },
-          onUpdate: async (encounterId, regionIndex, updates) => {
+          onUpdate: async (_encounterId, regionIndex, updates) => {
             try {
-              await updateEncounterRegion({
-                encounterId,
-                regionIndex,
-                ...updates,
-              }).unwrap();
+              await updateRegion(regionIndex, toUpdateRequest(updates));
             } catch (error) {
               console.error('Failed to update region:', error);
               throw error;
@@ -96,7 +113,7 @@ export const useMergeRegions = ({
       );
 
       for (const deleteIndex of regionsToDelete) {
-        let regionToDelete = encounter.regions?.find((r) => r.index === deleteIndex);
+        let regionToDelete = encounter.stage.regions?.find((r) => r.index === deleteIndex);
 
         if (
           editingRegionIndex !== null &&
@@ -112,19 +129,25 @@ export const useMergeRegions = ({
             new DeleteRegionCommand({
               encounterId,
               regionIndex: deleteIndex,
-              region: regionToDelete,
-              onAdd: async (encounterId, regionData) => {
-                const result = await addEncounterRegion({
-                  encounterId,
-                  ...regionData,
-                }).unwrap();
-                return result;
+              region: {
+                encounterId,
+                index: regionToDelete.index,
+                name: regionToDelete.name,
+                type: String(regionToDelete.type),
+                vertices: regionToDelete.vertices,
+                ...(regionToDelete.value !== undefined && { value: regionToDelete.value }),
               },
-              onRemove: async (encounterId, regionIndex) => {
-                await removeEncounterRegion({
-                  encounterId,
-                  regionIndex,
-                }).unwrap();
+              onAdd: async (_encounterId, regionData) => {
+                await addRegion({
+                  name: regionData.name,
+                  type: toRegionType(regionData.type),
+                  vertices: regionData.vertices,
+                  ...(regionData.value !== undefined && { value: regionData.value }),
+                });
+                return { index: deleteIndex };
+              },
+              onRemove: async (_encounterId, regionIndex) => {
+                await deleteRegion(regionIndex);
               },
               onRefetch: async () => {
                 const { data } = await refetch();
@@ -164,9 +187,9 @@ export const useMergeRegions = ({
     [
       encounterId,
       encounter,
-      addEncounterRegion,
-      updateEncounterRegion,
-      removeEncounterRegion,
+      addRegion,
+      updateRegion,
+      deleteRegion,
       setEncounter,
       setErrorMessage,
       recordAction,

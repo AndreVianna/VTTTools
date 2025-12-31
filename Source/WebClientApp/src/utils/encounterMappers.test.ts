@@ -13,7 +13,7 @@ const mockMonsterAssetData: Asset = mockMonsterAsset({
   isPublic: false,
   tokens: [mockMediaResource({ id: 'asset-1-token' })],
   portrait: null,
-  tokenSize: { width: 1, height: 1 },
+  size: { width: 1, height: 1 },
 });
 
 const mockObjectAssetData: Asset = mockObjectAsset({
@@ -25,7 +25,7 @@ const mockObjectAssetData: Asset = mockObjectAsset({
   isPublic: false,
   tokens: [mockMediaResource({ id: 'asset-2-token' })],
   portrait: null,
-  tokenSize: { width: 1, height: 1 },
+  size: { width: 1, height: 1 },
 });
 
 const createMockEncounterAsset = (overrides: Partial<EncounterAsset>): EncounterAsset => ({
@@ -44,8 +44,8 @@ const createMockEncounterAsset = (overrides: Partial<EncounterAsset>): Encounter
   scaleY: 1,
   layer: 0,
   elevation: 0,
-  visible: true,
-  locked: false,
+  isHidden: false,
+  isLocked: false,
   asset: mockMonsterAssetData,
   ...overrides,
 });
@@ -121,8 +121,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -159,8 +159,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockObjectAssetData,
       };
 
@@ -192,8 +192,8 @@ describe('hydratePlacedAssets', () => {
           scaleY: 1,
           layer: 0,
           elevation: 0,
-          visible: true,
-          locked: false,
+          isHidden: false,
+          isLocked: false,
           asset: mockMonsterAssetData,
           name: 'Goblin #1',
           index: 0,
@@ -212,8 +212,8 @@ describe('hydratePlacedAssets', () => {
           scaleY: 1,
           layer: 0,
           elevation: 0,
-          visible: true,
-          locked: false,
+          isHidden: false,
+          isLocked: false,
           asset: mockMonsterAssetData,
           name: '',
           index: 1,
@@ -232,8 +232,8 @@ describe('hydratePlacedAssets', () => {
           scaleY: 1,
           layer: 0,
           elevation: 0,
-          visible: true,
-          locked: false,
+          isHidden: false,
+          isLocked: false,
           asset: mockObjectAssetData,
           name: 'Magic Chest',
           index: 2,
@@ -272,8 +272,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -304,8 +304,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -338,8 +338,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -368,8 +368,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockObjectAssetData,
       };
 
@@ -400,8 +400,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -431,8 +431,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -461,8 +461,8 @@ describe('hydratePlacedAssets', () => {
         scaleX: 1,
         scaleY: 1,
         layer: 0,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
         asset: mockMonsterAssetData,
       };
 
@@ -650,8 +650,8 @@ describe('hydratePlacedAssets', () => {
           scaleX: 1,
           scaleY: 1,
           layer: 0,
-          visible: true,
-          locked: false,
+          isHidden: false,
+          isLocked: false,
           asset: mockMonsterAssetData,
         },
         {
@@ -670,8 +670,8 @@ describe('hydratePlacedAssets', () => {
           scaleX: 1,
           scaleY: 1,
           layer: 0,
-          visible: true,
-          locked: false,
+          isHidden: false,
+          isLocked: false,
           asset: mockMonsterAssetData,
         },
       ];
@@ -703,8 +703,8 @@ describe('dehydratePlacedAssets', () => {
       name: 'Goblin #3',
       labelVisibility: LabelVisibility.Default,
       labelPosition: LabelPosition.Default,
-      visible: true,
-      locked: false,
+      isHidden: false,
+      isLocked: false,
     };
 
     const result = dehydratePlacedAssets([placedAsset], 'encounter-1');
@@ -726,8 +726,8 @@ describe('dehydratePlacedAssets', () => {
       scaleY: 1,
       layer: 0,
       elevation: 0,
-      visible: true,
-      locked: false,
+      isHidden: false,
+      isLocked: false,
       asset: mockMonsterAssetData,
     });
   });
@@ -747,8 +747,8 @@ describe('dehydratePlacedAssets', () => {
         name: 'Goblin #1',
         labelVisibility: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
       },
       {
         id: 'encounter-asset-2',
@@ -763,8 +763,8 @@ describe('dehydratePlacedAssets', () => {
         name: 'Treasure Chest',
         labelVisibility: LabelVisibility.Default,
         labelPosition: LabelPosition.Default,
-        visible: true,
-        locked: false,
+        isHidden: false,
+        isLocked: false,
       },
     ];
 

@@ -1,10 +1,18 @@
 import type { EncounterRegion } from '@/types/domain';
 import type { Command } from '@/utils/commands';
 
+/**
+ * Simplified result from creating a region.
+ * The Stage API doesn't return the full region, just the index.
+ */
+export interface CreateRegionResult {
+  index: number;
+}
+
 export interface CreateRegionCommandParams {
   encounterId: string;
   region: EncounterRegion;
-  onCreate: (encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<EncounterRegion>;
+  onCreate: (encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<CreateRegionResult>;
   onRemove: (encounterId: string, regionIndex: number) => Promise<void>;
   onRefetch: () => Promise<void>;
 }
@@ -41,11 +49,11 @@ export class CreateRegionCommand implements Command {
 }
 
 export interface EditRegionCommandParams {
-  encounterId: string;
+  encounterId: string | undefined;
   regionIndex: number;
   oldRegion: EncounterRegion;
   newRegion: EncounterRegion;
-  onUpdate: (encounterId: string, regionIndex: number, updates: Partial<EncounterRegion>) => Promise<void>;
+  onUpdate: (encounterId: string | undefined, regionIndex: number, updates: Partial<EncounterRegion>) => Promise<void>;
   onRefetch: () => Promise<void>;
 }
 
@@ -93,7 +101,7 @@ export interface DeleteRegionCommandParams {
   encounterId: string;
   regionIndex: number;
   region: EncounterRegion;
-  onAdd: (encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<EncounterRegion>;
+  onAdd: (encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<CreateRegionResult>;
   onRemove: (encounterId: string, regionIndex: number) => Promise<void>;
   onRefetch: () => Promise<void>;
 }
@@ -122,8 +130,8 @@ export class DeleteRegionCommand implements Command {
       ...(region.label !== undefined && { label: region.label }),
       ...(region.color !== undefined && { color: region.color }),
     };
-    const restoredRegion = await onAdd(encounterId, regionData);
-    this.restoredIndex = restoredRegion.index;
+    const result = await onAdd(encounterId, regionData);
+    this.restoredIndex = result.index;
     await onRefetch();
   }
 

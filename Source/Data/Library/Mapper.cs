@@ -93,7 +93,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Adventure = entity.Adventure.ToModel(includeChildren: false),
+            Adventure = entity.Adventure.ToModel(false, false),
             Stage = entity.Stage.ToModel(),
             Actors = entity.Actors.AsQueryable().Select(AsEncounterActor!).ToList(),
             Objects = entity.Objects.AsQueryable().Select(AsEncounterProp!).ToList(),
@@ -104,7 +104,7 @@ internal static class Mapper {
         => new() {
             Index = entity.Index,
             Name = entity.Name,
-            Asset = new() { Id = entity.AssetId },
+            Asset = entity.Asset.ToModel(),
             Position = entity.Position,
             Rotation = entity.Rotation,
             Elevation = entity.Elevation,
@@ -120,7 +120,7 @@ internal static class Mapper {
         => new() {
             Index = entity.Index,
             Name = entity.Name,
-            Asset = new() { Id = entity.AssetId },
+            Asset = entity.Asset.ToModel(),
             Position = entity.Position,
             Rotation = entity.Rotation,
             Elevation = entity.Elevation,
@@ -140,7 +140,7 @@ internal static class Mapper {
             Name = entity.Name,
             Position = entity.Position,
             Rotation = entity.Rotation,
-            Asset = new() { Id = entity.AssetId },
+            Asset = entity.Asset.ToModel(),
             State = entity.State,
             IsHidden = entity.IsHidden,
             TriggerRegion = entity.TriggerShape == null ? null : new Shape {

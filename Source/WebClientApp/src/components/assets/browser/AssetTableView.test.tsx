@@ -37,8 +37,9 @@ describe('AssetTableView', () => {
       type: 'Goblin',
       subtype: null,
     },
+    thumbnail: null,
     portrait: null,
-    tokenSize: { width: 1, height: 1 },
+    size: { width: 1, height: 1 },
     tokens: [],
     statBlocks: {
       0: {
@@ -63,8 +64,9 @@ describe('AssetTableView', () => {
       type: 'Red Dragon',
       subtype: null,
     },
+    thumbnail: null,
     portrait: null,
-    tokenSize: { width: 4, height: 4 },
+    size: { width: 4, height: 4 },
     tokens: [
       {
         id: 'token-1',
@@ -108,8 +110,9 @@ describe('AssetTableView', () => {
       type: 'Sword',
       subtype: null,
     },
+    thumbnail: null,
     portrait: null,
-    tokenSize: { width: 1, height: 1 },
+    size: { width: 1, height: 1 },
     tokens: [],
     statBlocks: {},
     tags: ['magic', 'weapon'],

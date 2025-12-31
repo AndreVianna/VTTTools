@@ -23,7 +23,7 @@ describe('MockApiService', () => {
       expect(firstAsset).toHaveProperty('name');
       expect(firstAsset).toHaveProperty('description');
       expect(firstAsset).toHaveProperty('portrait');
-      expect(firstAsset).toHaveProperty('tokenSize');
+      expect(firstAsset).toHaveProperty('size');
       expect(firstAsset).toHaveProperty('tokens');
       expect(firstAsset).toHaveProperty('statBlocks');
       expect(firstAsset).toHaveProperty('ownerId');
@@ -80,15 +80,15 @@ describe('MockApiService', () => {
       expect(assetsWithoutPortrait.length).toBeGreaterThan(0);
     });
 
-    it('should have tokenSize property', async () => {
+    it('should have size property', async () => {
       const assets = await mockApi.mockGetAssets();
 
       assets.forEach((asset) => {
-        expect(asset.tokenSize).toBeDefined();
-        expect(asset.tokenSize).toHaveProperty('width');
-        expect(asset.tokenSize).toHaveProperty('height');
-        expect(typeof asset.tokenSize.width).toBe('number');
-        expect(typeof asset.tokenSize.height).toBe('number');
+        expect(asset.size).toBeDefined();
+        expect(asset.size).toHaveProperty('width');
+        expect(asset.size).toHaveProperty('height');
+        expect(typeof asset.size.width).toBe('number');
+        expect(typeof asset.size.height).toBe('number');
       });
     });
 
@@ -100,7 +100,7 @@ describe('MockApiService', () => {
 
       creatures.forEach((creature) => {
         expect(creature.classification.kind).toBe(AssetKind.Creature);
-        expect(creature.tokenSize).toBeDefined();
+        expect(creature.size).toBeDefined();
       });
     });
 
@@ -112,14 +112,14 @@ describe('MockApiService', () => {
 
       objects.forEach((obj) => {
         expect(obj.classification.kind).toBe(AssetKind.Object);
-        expect(obj.tokenSize).toBeDefined();
+        expect(obj.size).toBeDefined();
       });
     });
 
     it('should include diverse asset sizes', async () => {
       const assets = await mockApi.mockGetAssets();
 
-      const sizes = assets.map((a) => `${a.tokenSize.width}x${a.tokenSize.height}`);
+      const sizes = assets.map((a) => `${a.size.width}x${a.size.height}`);
       const uniqueSizes = new Set(sizes);
 
       expect(uniqueSizes.size).toBeGreaterThan(2);

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useUndoHistory } from './useUndoHistory';
-import type { useAddEncounterWallMutation, useUpdateEncounterWallMutation } from '@/services/encounterApi';
 import type { EncounterWall, EncounterWallSegment } from '@/types/domain';
+import type { CreateWallRequest, UpdateWallRequest, StageWall } from '@/types/stage';
 import type { LocalAction } from '@/types/wallUndoActions';
 
 export type TransactionType = 'placement' | 'editing' | null;
@@ -29,9 +29,13 @@ export interface CommitResult {
   }>;
 }
 
-interface ApiHooks {
-  addEncounterWall: ReturnType<typeof useAddEncounterWallMutation>[0];
-  updateEncounterWall: ReturnType<typeof useUpdateEncounterWallMutation>[0];
+/**
+ * Wall mutation functions from Stage API
+ */
+export interface WallMutationHooks {
+  addWall: (data: CreateWallRequest) => Promise<StageWall>;
+  updateWall: (index: number, data: UpdateWallRequest) => Promise<void>;
+  deleteWall: (index: number) => Promise<void>;
 }
 
 const INITIAL_TRANSACTION: WallTransaction = {
@@ -84,7 +88,7 @@ export const useWallTransaction = () => {
           {
             tempId: -1,
             wallIndex: wall.index,
-            name: wall.name,
+            name: wall.name ?? '',
             segments: [...wall.segments],
           },
         ]
@@ -193,8 +197,8 @@ export const useWallTransaction = () => {
   }, [transaction.segments]);
 
   const commitTransaction = useCallback(
-    async (encounterId: string, apiHooks: ApiHooks, segmentsOverride?: WallSegment[]): Promise<CommitResult> => {
-      const { addEncounterWall, updateEncounterWall } = apiHooks;
+    async (_encounterId: string, wallMutations: WallMutationHooks, segmentsOverride?: WallSegment[]): Promise<CommitResult> => {
+      const { addWall, updateWall } = wallMutations;
       const results: CommitResult['segmentResults'] = [];
 
       let currentTransaction: WallTransaction;
@@ -216,7 +220,7 @@ export const useWallTransaction = () => {
         let names: string[];
         if (segmentsToProcess.length > 1) {
           if (currentTransaction.type === 'editing' && currentTransaction.originalWall !== null) {
-            names = generateBrokenWallNames(currentTransaction.originalWall.name, segmentsToProcess.length);
+            names = generateBrokenWallNames(currentTransaction.originalWall.name ?? '', segmentsToProcess.length);
           } else {
             const baseName = segmentsToProcess[0]?.name || 'Wall';
             const baseNameMatch = baseName.match(/^(.*?)\s*(\d+)$/);
@@ -239,27 +243,21 @@ export const useWallTransaction = () => {
 
           try {
             if (segment?.wallIndex !== null) {
-              const updatePayload = {
-                encounterId,
-                wallIndex: segment?.wallIndex || 1,
+              // Update existing wall via Stage API
+              await updateWall(segment?.wallIndex || 1, {
                 name: assignedName,
-                segments: segment?.segments,
-              };
-
-              await updateEncounterWall(updatePayload).unwrap();
+              });
 
               results.push({
                 tempId: segment?.tempId || 0,
                 wallIndex: segment?.wallIndex || 0,
               });
             } else {
-              const addPayload = {
-                encounterId,
+              // Add new wall via Stage API
+              const result = await addWall({
                 name: assignedName || '',
                 segments: segment?.segments || [],
-              };
-
-              const result = await addEncounterWall(addPayload).unwrap();
+              });
 
               results.push({
                 tempId: segment.tempId,

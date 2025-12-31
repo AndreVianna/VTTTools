@@ -1,4 +1,5 @@
-import type { EncounterLightSource, EncounterSoundSource } from '@/types/domain';
+import type { EncounterLightSource } from '@/types/domain';
+import type { StageSound } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 
 export interface CreateLightSourceCommandParams {
@@ -146,8 +147,8 @@ export class DeleteLightSourceCommand implements Command {
 
 export interface CreateSoundSourceCommandParams {
   encounterId: string;
-  source: EncounterSoundSource;
-  onCreate: (encounterId: string, source: Omit<EncounterSoundSource, 'index'>) => Promise<EncounterSoundSource>;
+  source: StageSound;
+  onCreate: (encounterId: string, source: Omit<StageSound, 'index'>) => Promise<StageSound>;
   onRemove: (encounterId: string, sourceIndex: number) => Promise<void>;
   onRefetch: () => Promise<void>;
 }
@@ -170,13 +171,14 @@ export class CreateSoundSourceCommand implements Command {
 
   async redo(): Promise<void> {
     const { encounterId, source, onCreate, onRefetch } = this.params;
-    const sourceData: Omit<EncounterSoundSource, 'index'> = {
+    const sourceData: Omit<StageSound, 'index'> = {
       position: source.position,
-      range: source.range,
+      radius: source.radius,
+      volume: source.volume,
       isPlaying: source.isPlaying,
-      resource: source.resource ?? null,
+      media: source.media,
+      loop: source.loop,
       ...(source.name !== undefined && { name: source.name }),
-      ...(source.loop !== undefined && { loop: source.loop }),
     };
     await onCreate(encounterId, sourceData);
     await onRefetch();
@@ -186,9 +188,9 @@ export class CreateSoundSourceCommand implements Command {
 export interface UpdateSoundSourceCommandParams {
   encounterId: string;
   sourceIndex: number;
-  oldSource: EncounterSoundSource;
-  newSource: EncounterSoundSource;
-  onUpdate: (encounterId: string, sourceIndex: number, updates: Partial<EncounterSoundSource>) => Promise<void>;
+  oldSource: StageSound;
+  newSource: StageSound;
+  onUpdate: (encounterId: string, sourceIndex: number, updates: Partial<StageSound>) => Promise<void>;
   onRefetch: () => Promise<void>;
 }
 
@@ -205,13 +207,14 @@ export class UpdateSoundSourceCommand implements Command {
 
   async undo(): Promise<void> {
     const { oldSource, encounterId, sourceIndex, onUpdate, onRefetch } = this.params;
-    const updates: Partial<EncounterSoundSource> = {
+    const updates: Partial<StageSound> = {
       position: oldSource.position,
-      range: oldSource.range,
+      radius: oldSource.radius,
+      volume: oldSource.volume,
       isPlaying: oldSource.isPlaying,
-      resource: oldSource.resource ?? null,
+      media: oldSource.media,
+      loop: oldSource.loop,
       ...(oldSource.name !== undefined && { name: oldSource.name }),
-      ...(oldSource.loop !== undefined && { loop: oldSource.loop }),
     };
     await onUpdate(encounterId, sourceIndex, updates);
     await onRefetch();
@@ -219,13 +222,14 @@ export class UpdateSoundSourceCommand implements Command {
 
   async redo(): Promise<void> {
     const { newSource, encounterId, sourceIndex, onUpdate, onRefetch } = this.params;
-    const updates: Partial<EncounterSoundSource> = {
+    const updates: Partial<StageSound> = {
       position: newSource.position,
-      range: newSource.range,
+      radius: newSource.radius,
+      volume: newSource.volume,
       isPlaying: newSource.isPlaying,
-      resource: newSource.resource ?? null,
+      media: newSource.media,
+      loop: newSource.loop,
       ...(newSource.name !== undefined && { name: newSource.name }),
-      ...(newSource.loop !== undefined && { loop: newSource.loop }),
     };
     await onUpdate(encounterId, sourceIndex, updates);
     await onRefetch();
@@ -235,8 +239,8 @@ export class UpdateSoundSourceCommand implements Command {
 export interface DeleteSoundSourceCommandParams {
   encounterId: string;
   sourceIndex: number;
-  source: EncounterSoundSource;
-  onAdd: (encounterId: string, source: Omit<EncounterSoundSource, 'index'>) => Promise<EncounterSoundSource>;
+  source: StageSound;
+  onAdd: (encounterId: string, source: Omit<StageSound, 'index'>) => Promise<StageSound>;
   onRemove: (encounterId: string, sourceIndex: number) => Promise<void>;
   onRefetch: () => Promise<void>;
 }
@@ -257,13 +261,14 @@ export class DeleteSoundSourceCommand implements Command {
 
   async undo(): Promise<void> {
     const { encounterId, source, onAdd, onRefetch } = this.params;
-    const sourceData: Omit<EncounterSoundSource, 'index'> = {
+    const sourceData: Omit<StageSound, 'index'> = {
       position: source.position,
-      range: source.range,
+      radius: source.radius,
+      volume: source.volume,
       isPlaying: source.isPlaying,
-      resource: source.resource ?? null,
+      media: source.media,
+      loop: source.loop,
       ...(source.name !== undefined && { name: source.name }),
-      ...(source.loop !== undefined && { loop: source.loop }),
     };
     const restoredSource = await onAdd(encounterId, sourceData);
     this.restoredIndex = restoredSource.index;

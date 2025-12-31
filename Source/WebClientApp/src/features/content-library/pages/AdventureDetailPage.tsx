@@ -225,12 +225,6 @@ export function AdventureDetailPage() {
           request: {
             name: 'New Encounter',
             description: '',
-            grid: {
-              type: 1,
-              cellSize: { width: 50, height: 50 },
-              offset: { left: 0, top: 0 },
-              snap: true,
-            },
           },
         }).unwrap();
         navigate(`/encounter-editor/${encounter.id}`);

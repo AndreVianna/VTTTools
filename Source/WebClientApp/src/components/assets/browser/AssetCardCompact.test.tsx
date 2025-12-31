@@ -35,8 +35,9 @@ describe('AssetCardCompact', () => {
       type: 'Goblin',
       subtype: null,
     },
+    thumbnail: null,
     portrait: null,
-    tokenSize: { width: 1, height: 1 },
+    size: { width: 1, height: 1 },
     tokens: [
       {
         id: 'token-1',

@@ -37,10 +37,10 @@ export function useAuthenticatedResource(
     const abortControllerRef = useRef<AbortController | null>(null);
     const previousUrlRef = useRef<string | null>(null);
 
-    const token = useSelector((state: RootState) => state.auth.token);
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
     const fetchResource = useCallback(async () => {
-        if (!resourcePath || !enabled || !token) {
+        if (!resourcePath || !enabled || !isAuthenticated) {
             setBlobUrl(null);
             return;
         }
@@ -60,8 +60,8 @@ export function useAuthenticatedResource(
 
         try {
             const response = await fetch(fullUrl, {
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 signal: abortControllerRef.current.signal,
@@ -89,7 +89,7 @@ export function useAuthenticatedResource(
         } finally {
             setIsLoading(false);
         }
-    }, [resourcePath, enabled, token]);
+    }, [resourcePath, enabled, isAuthenticated]);
 
     useEffect(() => {
         fetchResource();
@@ -125,10 +125,10 @@ export function useAuthenticatedResourceCached(
     const [error, setError] = useState<Error | null>(null);
     const resourcePathRef = useRef(resourcePath);
 
-    const token = useSelector((state: RootState) => state.auth.token);
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
     const fetchResource = useCallback(async () => {
-        if (!resourcePath || !enabled || !token) {
+        if (!resourcePath || !enabled || !isAuthenticated) {
             setBlobUrl(null);
             return;
         }
@@ -151,8 +151,8 @@ export function useAuthenticatedResourceCached(
 
         try {
             const response = await fetch(fullUrl, {
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
             });
@@ -172,7 +172,7 @@ export function useAuthenticatedResourceCached(
         } finally {
             setIsLoading(false);
         }
-    }, [resourcePath, enabled, token]);
+    }, [resourcePath, enabled, isAuthenticated]);
 
     useEffect(() => {
         resourcePathRef.current = resourcePath;

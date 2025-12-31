@@ -8,8 +8,8 @@ export interface UploadProgressEvent {
 
 export interface UploadOptions {
   file: File;
-  resourceType?: string;
-  entityId?: string;
+  resourceType?: string | undefined;
+  entityId?: string | undefined;
   onProgress?: (event: UploadProgressEvent) => void;
   onAbort?: () => void;
 }

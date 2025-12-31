@@ -26,15 +26,46 @@ vi.mock('react-konva', () => ({
 import { GroupName } from '@/services/layerManager';
 import { mockMediaResource } from '@/test-utils/assetMocks';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
-import { AssetKind, LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum, Light, Weather } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
-import { GridType } from '@/utils/gridCalculator';
+import { AssetKind, GridType, LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum, Weather } from '@/types/domain';
+import type { Stage } from '@/types/stage';
+import { AmbientLight } from '@/types/stage';
+import { GridType as GridCalcType, type GridConfig } from '@/utils/gridCalculator';
 import { SnapMode } from '@/utils/snapping';
 import { EntityPlacement } from './EntityPlacement';
 import { formatMonsterLabel } from './tokenPlacementUtils';
 
+const createMockStage = (overrides?: Partial<Stage>): Stage => ({
+  id: 'stage-1',
+  ownerId: 'owner-1',
+  name: 'Test Stage',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  settings: {
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: AmbientLight.Default,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: Weather.Clear,
+  },
+  grid: {
+    type: GridType.Square,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    scale: 1,
+  },
+  walls: [],
+  regions: [],
+  lights: [],
+  elements: [],
+  sounds: [],
+  ...overrides,
+});
+
 const mockGridConfig: GridConfig = {
-  type: GridType.Square,
+  type: GridCalcType.Square,
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,
@@ -55,8 +86,9 @@ const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asse
   isPublished: true,
   isPublic: false,
   tokens: [mockMediaResource({ id: `${id}-token` })],
+  thumbnail: null,
   portrait: null,
-  tokenSize: { width: 1, height: 1 },
+  size: { width: 1, height: 1 },
   statBlocks: {},
   tags: [],
 });
@@ -76,8 +108,8 @@ const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
   index: 0,
   number: 1,
   name: `Asset ${id}`,
-  visible: true,
-  locked: false,
+  isHidden: false,
+  isLocked: false,
   labelVisibility: DisplayNameEnum.Always,
   labelPosition: LabelPositionEnum.Bottom,
 });
@@ -89,30 +121,16 @@ describe('EntityPlacement', () => {
   let mockOnDragComplete: ReturnType<typeof vi.fn>;
   const mockEncounter: Encounter = {
     id: 'encounter-1',
+    ownerId: 'owner-1',
     name: 'Encounter 1',
     description: 'Encounter 1 description',
     isPublished: true,
+    isPublic: false,
     adventure: null,
-    grid: {
-      type: GridType.Square,
-      cellSize: { width: 50, height: 50 },
-      offset: { left: 0, top: 0 },
-      snap: true,
-      scale: 1,
-    },
-    stage: {
-      background: null,
-      zoomLevel: 1,
-      panning: { x: 0, y: 0 },
-    },
-    light: Light.Daylight,
-    weather: Weather.Clear,
-    elevation: 0,
-    assets: [],
-    walls: [],
-    regions: [],
-    lightSources: [],
-    soundSources: [],
+    stage: createMockStage(),
+    actors: [],
+    objects: [],
+    effects: [],
   };
 
   beforeEach(() => {

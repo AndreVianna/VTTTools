@@ -13,6 +13,7 @@ global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging;
 
 global using Npgsql;
+global using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 global using VttTools.Data;
 global using VttTools.Data.MigrationService;

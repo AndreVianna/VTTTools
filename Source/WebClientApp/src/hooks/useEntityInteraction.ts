@@ -82,7 +82,7 @@ export const useEntityInteraction = ({
             const objectProperties =
                 draggedAsset.classification.kind === AssetKind.Object
                     ? {
-                        size: draggedAsset.tokenSize,
+                        size: draggedAsset.size,
                         isMovable: true,
                         isOpaque: false,
                     }
@@ -90,7 +90,7 @@ export const useEntityInteraction = ({
             const monsterProperties =
                 draggedAsset.classification.kind === AssetKind.Creature
                     ? {
-                        size: draggedAsset.tokenSize,
+                        size: draggedAsset.size,
                     }
                     : undefined;
 
@@ -154,8 +154,8 @@ export const useEntityInteraction = ({
                 index: tempIndex,
                 number: 1,
                 name: draggedAsset.name,
-                visible: true,
-                locked: false,
+                isHidden: false,
+                isLocked: false,
                 labelVisibility: DisplayNameEnum.Default,
                 labelPosition: LabelPositionEnum.Default,
             };

@@ -17,7 +17,9 @@ import type React from 'react';
 import { useCallback } from 'react';
 import { PrecisionNumberInput } from '@/components/common';
 import { BackgroundPanel } from '@/components/encounter/panels/BackgroundPanel';
-import { type Encounter, Light, Weather } from '@/types/domain';
+import type { Encounter } from '@/types/domain';
+import { Weather } from '@/types/domain';
+import { AmbientLight } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 
@@ -28,9 +30,8 @@ export interface EncounterPropertiesDrawerProps {
   onNameChange?: (name: string) => void;
   onDescriptionChange: (description: string) => void;
   onPublishedChange: (published: boolean) => void;
-  onLightChange?: (light: Light) => void;
+  onLightChange?: (light: AmbientLight) => void;
   onWeatherChange?: (weather: Weather) => void;
-  onElevationChange?: (elevation: number) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
   backgroundUrl?: string;
@@ -48,7 +49,6 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
   onPublishedChange,
   onLightChange,
   onWeatherChange,
-  onElevationChange,
   gridConfig,
   onGridChange,
   backgroundUrl,
@@ -144,22 +144,13 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
 
   const handleLightChange = (e: SelectChangeEvent<number>) => {
     if (onLightChange) {
-      onLightChange(Number(e.target.value) as Light);
+      onLightChange(Number(e.target.value) as AmbientLight);
     }
   };
 
   const handleWeatherChange = (e: SelectChangeEvent<string>) => {
     if (onWeatherChange) {
       onWeatherChange(e.target.value as Weather);
-    }
-  };
-
-  const handleElevationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onElevationChange) {
-      const value = parseFloat(e.target.value);
-      if (!Number.isNaN(value)) {
-        onElevationChange(value);
-      }
     }
   };
 
@@ -321,7 +312,7 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
           sx={compactStyles.textFieldMultiline}
         />
 
-        {/* Light, Weather, Elevation - Single Row */}
+        {/* Light and Weather - Single Row */}
         <Box sx={{ display: 'flex', gap: 0.75 }}>
           {/* Light */}
           <FormControl fullWidth size='small'>
@@ -331,42 +322,42 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
             <Select
               id='select-light'
               labelId='label-light'
-              value={encounter?.light ?? Light.Ambient}
+              value={encounter?.stage.settings.ambientLight ?? AmbientLight.Default}
               label='Light'
               onChange={handleLightChange}
               sx={compactStyles.select}
             >
-              <MenuItem sx={compactStyles.menuItem} value={Light.Black}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Black}>
                 Black
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Darkness}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Darkness}>
                 Darkness
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Nighttime}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Nighttime}>
                 Nighttime
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Dim}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Dim}>
                 Dim
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Twilight}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Twilight}>
                 Twilight
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Ambient}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Default}>
                 Ambient
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Candlelight}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Candlelight}>
                 Candlelight
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Torchlight}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Torchlight}>
                 Torchlight
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Artificial}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Artificial}>
                 Artificial
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Daylight}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Daylight}>
                 Daylight
               </MenuItem>
-              <MenuItem sx={compactStyles.menuItem} value={Light.Bright}>
+              <MenuItem sx={compactStyles.menuItem} value={AmbientLight.Bright}>
                 Bright
               </MenuItem>
             </Select>
@@ -380,7 +371,7 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
             <Select
               id='select-weather'
               labelId='label-weather'
-              value={encounter?.weather ?? Weather.Clear}
+              value={encounter?.stage.settings.weather ?? Weather.Clear}
               label='Weather'
               onChange={handleWeatherChange}
               sx={compactStyles.select}
@@ -447,21 +438,6 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
               </MenuItem>
             </Select>
           </FormControl>
-
-          {/* Elevation */}
-          <TextField
-            id='encounter-elevation'
-            label='Elevation'
-            type='number'
-            value={encounter?.elevation ?? 0}
-            onChange={handleElevationChange}
-            fullWidth
-            variant='outlined'
-            placeholder='0'
-            size='small'
-            sx={compactStyles.textField}
-            InputProps={{ inputProps: { step: 0.1 } }}
-          />
         </Box>
 
         {/* Grid Configuration */}

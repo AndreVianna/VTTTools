@@ -105,7 +105,7 @@ export const SoundSourceRenderer: React.FC<SoundSourceRendererProps> = ({
     }
   };
 
-  const rangeInPixels = encounterSoundSource.range * gridConfig.cellSize.width;
+  const rangeInPixels = encounterSoundSource.radius * gridConfig.cellSize.width;
   const transparentColor = `${SOUND_COLOR}00`;
 
   const effectiveOpacity = encounterSoundSource.isPlaying ? 1.0 : 0.3;

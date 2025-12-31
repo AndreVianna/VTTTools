@@ -68,17 +68,17 @@ export const AssetSelectionPreviewPanel: React.FC<AssetSelectionPreviewPanelProp
     );
   }
 
-  const sizeLabel = `${asset.tokenSize.width}x${asset.tokenSize.height}`;
-  const sizeName = asset.tokenSize.width === 1 && asset.tokenSize.height === 1
+  const sizeLabel = `${asset.size.width}x${asset.size.height}`;
+  const sizeName = asset.size.width === 1 && asset.size.height === 1
     ? 'Medium'
-    : asset.tokenSize.width <= 2
+    : asset.size.width <= 2
       ? 'Large'
       : 'Huge';
 
   const showPortrait = shouldShowPortrait(asset);
 
-  const tokenWidth = asset.tokenSize.width;
-  const tokenHeight = asset.tokenSize.height;
+  const tokenWidth = asset.size.width;
+  const tokenHeight = asset.size.height;
   const cellSize = 48;
   const gridCols = Math.max(3, tokenWidth + 2);
   const gridRows = Math.max(3, tokenHeight + 2);

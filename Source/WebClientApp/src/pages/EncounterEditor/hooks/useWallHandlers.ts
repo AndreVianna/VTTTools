@@ -1,12 +1,8 @@
 import type { WallBreakData } from '@components/encounter/editing/WallTransformer';
 import { useCallback } from 'react';
 import type { useWallTransaction } from '@/hooks/useWallTransaction';
-import type {
-  useAddEncounterWallMutation,
-  useRemoveEncounterWallMutation,
-  useUpdateEncounterWallMutation,
-} from '@/services/encounterApi';
 import type { Encounter, EncounterWall, EncounterWallSegment, PlacedWall, Pole } from '@/types/domain';
+import type { CreateWallRequest, UpdateWallRequest, StageWall, StageWallSegment } from '@/types/stage';
 import { createBreakWallAction } from '@/types/wallUndoActions';
 import type { Command } from '@/utils/commands';
 import { BreakWallCommand, EditWallCommand } from '@/utils/commands/wallCommands';
@@ -16,6 +12,24 @@ import { removeWallOptimistic, syncWallIndices, updateWallOptimistic } from '@/u
 import { polesToSegments } from '@/utils/wallUtils';
 import { segmentsToPoles } from '@/utils/wallSegmentUtils';
 
+/**
+ * Extended update request that includes segments (for full wall updates)
+ */
+export interface UpdateWallWithSegmentsRequest extends UpdateWallRequest {
+  segments?: StageWallSegment[];
+}
+
+/**
+ * Wall mutation functions from Stage API (passed from useEncounterEditor)
+ */
+export interface WallMutations {
+  addWall: (data: CreateWallRequest) => Promise<StageWall>;
+  updateWall: (index: number, data: UpdateWallRequest) => Promise<void>;
+  deleteWall: (index: number) => Promise<void>;
+  /** Optional: Full wall update including segments (for segment-level updates) */
+  updateWallWithSegments?: (index: number, data: UpdateWallWithSegmentsRequest) => Promise<void>;
+}
+
 interface UseWallHandlersProps {
   encounterId: string | undefined;
   encounter: Encounter | null;
@@ -24,9 +38,8 @@ interface UseWallHandlersProps {
   drawingMode: 'wall' | 'region' | 'bucketFill' | null;
   drawingWallIndex: number | null;
 
-  addEncounterWall: ReturnType<typeof useAddEncounterWallMutation>[0];
-  updateEncounterWall: ReturnType<typeof useUpdateEncounterWallMutation>[0];
-  removeEncounterWall: ReturnType<typeof useRemoveEncounterWallMutation>[0];
+  // Stage API mutation functions (from useEncounterEditor)
+  wallMutations: WallMutations;
 
   setEncounter: (encounter: Encounter) => void;
   setPlacedWalls: (walls: PlacedWall[]) => void;
@@ -50,9 +63,7 @@ export const useWallHandlers = ({
   selectedWallIndex,
   drawingMode,
   drawingWallIndex,
-  addEncounterWall,
-  updateEncounterWall,
-  removeEncounterWall,
+  wallMutations,
   setEncounter,
   setPlacedWalls,
   setSelectedWallIndex,
@@ -66,6 +77,7 @@ export const useWallHandlers = ({
   execute,
   refetch,
 }: UseWallHandlersProps) => {
+  const { addWall, updateWall, deleteWall, updateWallWithSegments } = wallMutations;
   const handleWallDelete = useCallback(
     async (wallIndex: number) => {
       if (!encounterId || !encounter) {
@@ -75,7 +87,7 @@ export const useWallHandlers = ({
       const domId = getDomIdByIndex(encounterId, 'walls', wallIndex);
 
       try {
-        await removeEncounterWall({ encounterId, wallIndex }).unwrap();
+        await deleteWall(wallIndex);
 
         if (domId) {
           removeEntityMapping(encounterId, 'walls', domId);
@@ -103,7 +115,7 @@ export const useWallHandlers = ({
     [
       encounterId,
       encounter,
-      removeEncounterWall,
+      deleteWall,
       refetch,
       setEncounter,
       setSelectedWallIndex,
@@ -118,7 +130,7 @@ export const useWallHandlers = ({
 
   const handleEditVertices = useCallback(
     (wallIndex: number) => {
-      const wall = encounter?.walls?.find((w) => w.index === wallIndex);
+      const wall = encounter?.stage.walls?.find((w) => w.index === wallIndex);
       if (!wall) return;
 
       const poles = segmentsToPoles(wall);
@@ -185,14 +197,11 @@ export const useWallHandlers = ({
         segments: editedSegment.segments,
       });
       setEncounter(updatedEncounter);
-      const hydratedWalls = hydratePlacedWalls(updatedEncounter.walls || [], encounterId);
+      const hydratedWalls = hydratePlacedWalls(updatedEncounter.stage.walls || [], encounterId);
       setPlacedWalls(hydratedWalls);
     }
 
-    const result = await wallTransaction.commitTransaction(encounterId, {
-      addEncounterWall,
-      updateEncounterWall,
-    });
+    const result = await wallTransaction.commitTransaction(encounterId, wallMutations);
 
     if (result.success) {
       const originalWall = wallTransaction.transaction.originalWall;
@@ -208,7 +217,7 @@ export const useWallHandlers = ({
 
       const { data: updatedEncounter } = await refetch();
       if (updatedEncounter) {
-        const hydratedWalls = hydratePlacedWalls(updatedEncounter.walls || [], encounterId);
+        const hydratedWalls = hydratePlacedWalls(updatedEncounter.stage.walls || [], encounterId);
         setEncounter(updatedEncounter);
         setPlacedWalls(hydratedWalls);
 
@@ -216,7 +225,7 @@ export const useWallHandlers = ({
           const newWalls: EncounterWall[] = [];
           result.segmentResults.forEach((r) => {
             if (r.wallIndex !== undefined) {
-              const wall = updatedEncounter.walls?.find((w) => w.index === r.wallIndex);
+              const wall = updatedEncounter.stage.walls?.find((w) => w.index === r.wallIndex);
               if (wall) newWalls.push(wall);
             }
           });
@@ -232,27 +241,26 @@ export const useWallHandlers = ({
             originalWallIndex: selectedWallIndex,
             originalWall,
             newWalls,
-            onAdd: async (encounterId: string, wallData: Omit<EncounterWall, 'index' | 'encounterId'>) => {
-              const result = await addEncounterWall({
-                encounterId,
-                ...wallData,
-              }).unwrap();
-              return result;
+            onAdd: async (_encounterId: string, wallData: Omit<EncounterWall, 'index' | 'encounterId'>) => {
+              const result = await addWall({
+                name: wallData.name,
+                segments: wallData.segments,
+              });
+              // Convert StageWall to EncounterWall format for the command
+              return { ...wallData, index: result.index } as EncounterWall;
             },
-            onUpdate: async (encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => {
-              await updateEncounterWall({
-                encounterId,
-                wallIndex,
-                ...updates,
-              }).unwrap();
+            onUpdate: async (_encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => {
+              await updateWall(wallIndex, {
+                name: updates.name,
+              });
             },
-            onRemove: async (encounterId: string, wallIndex: number) => {
-              await removeEncounterWall({ encounterId, wallIndex }).unwrap();
+            onRemove: async (_encounterId: string, wallIndex: number) => {
+              await deleteWall(wallIndex);
             },
             onRefetch: async () => {
               const { data } = await refetch();
               if (data) {
-                const hydratedWalls = hydratePlacedWalls(data.walls || [], encounterId);
+                const hydratedWalls = hydratePlacedWalls(data.stage.walls || [], encounterId);
                 setEncounter(data);
                 setPlacedWalls(hydratedWalls);
               }
@@ -262,20 +270,18 @@ export const useWallHandlers = ({
         } else if (result.segmentResults[0]?.wallIndex !== undefined) {
           const segmentResult = result.segmentResults[0];
           const wallIndex = segmentResult.wallIndex ?? 0;
-          const updatedWall = updatedEncounter.walls?.find((w) => w.index === wallIndex);
+          const updatedWall = updatedEncounter.stage.walls?.find((w) => w.index === wallIndex);
           if (updatedWall) {
             const command = new EditWallCommand({
               encounterId,
               wallIndex,
               oldWall: originalWall,
               newWall: updatedWall,
-              onUpdate: async (encounterId, wallIndex, updates) => {
+              onUpdate: async (_encounterId, wallIndex, updates) => {
                 try {
-                  await updateEncounterWall({
-                    encounterId,
-                    wallIndex,
-                    ...updates,
-                  }).unwrap();
+                  await updateWall(wallIndex, {
+                    name: updates.name,
+                  });
                 } catch (error) {
                   console.error('Failed to update wall:', error);
                   throw error;
@@ -284,7 +290,7 @@ export const useWallHandlers = ({
               onRefetch: async () => {
                 const { data } = await refetch();
                 if (data) {
-                  const hydratedWalls = hydratePlacedWalls(data.walls || [], encounterId);
+                  const hydratedWalls = hydratePlacedWalls(data.stage.walls || [], encounterId);
                   setEncounter(data);
                   setPlacedWalls(hydratedWalls);
                 }
@@ -309,9 +315,10 @@ export const useWallHandlers = ({
     encounter,
     selectedWallIndex,
     wallTransaction,
-    addEncounterWall,
-    updateEncounterWall,
-    removeEncounterWall,
+    wallMutations,
+    addWall,
+    updateWall,
+    deleteWall,
     refetch,
     setEncounter,
     setPlacedWalls,
@@ -392,10 +399,7 @@ export const useWallHandlers = ({
     if (!encounterId || !encounter) return;
     if (drawingMode !== 'wall' || drawingWallIndex === null) return;
 
-    const result = await wallTransaction.commitTransaction(encounterId, {
-      addEncounterWall,
-      updateEncounterWall,
-    });
+    const result = await wallTransaction.commitTransaction(encounterId, wallMutations);
 
     if (result.success && result.segmentResults.length > 0) {
       const tempToReal = new Map<number, number>();
@@ -407,7 +411,7 @@ export const useWallHandlers = ({
 
       const syncedEncounter = syncWallIndices(encounter, tempToReal);
 
-      const hydratedWalls = hydratePlacedWalls(syncedEncounter.walls || [], encounterId);
+      const hydratedWalls = hydratePlacedWalls(syncedEncounter.stage.walls || [], encounterId);
 
       setEncounter(syncedEncounter);
       setPlacedWalls(hydratedWalls);
@@ -425,8 +429,7 @@ export const useWallHandlers = ({
     drawingMode,
     drawingWallIndex,
     wallTransaction,
-    addEncounterWall,
-    updateEncounterWall,
+    wallMutations,
     setEncounter,
     setPlacedWalls,
     setDrawingWallIndex,
@@ -437,7 +440,7 @@ export const useWallHandlers = ({
     async (wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => {
       if (!encounterId || !encounter) return;
 
-      const wall = encounter.walls?.find((w) => w.index === wallIndex);
+      const wall = encounter.stage.walls?.find((w) => w.index === wallIndex);
       if (!wall) {
         console.warn(`[useWallHandlers] Wall ${wallIndex} not found`);
         return;
@@ -460,27 +463,31 @@ export const useWallHandlers = ({
 
       const updatedWall = updateWallOptimistic(encounter, wallIndex, { segments: updatedSegments });
       setEncounter(updatedWall);
-      const hydratedWalls = hydratePlacedWalls(updatedWall.walls || [], encounterId);
+      const hydratedWalls = hydratePlacedWalls(updatedWall.stage.walls || [], encounterId);
       setPlacedWalls(hydratedWalls);
 
       try {
-        await updateEncounterWall({
-          encounterId,
-          wallIndex,
-          segments: updatedSegments,
-        }).unwrap();
+        if (updateWallWithSegments) {
+          // Use the extended update function if available
+          await updateWallWithSegments(wallIndex, {
+            segments: updatedSegments as StageWallSegment[],
+          });
+        } else {
+          // Fall back: segment updates not supported without updateWallWithSegments
+          console.warn('[useWallHandlers] updateWallWithSegments not provided, segment update may be incomplete');
+        }
       } catch (error) {
         console.error('Failed to update segment:', error);
         setErrorMessage('Failed to update segment. Please try again.');
         const { data: refreshedEncounter } = await refetch();
         if (refreshedEncounter) {
           setEncounter(refreshedEncounter);
-          const hydratedWalls = hydratePlacedWalls(refreshedEncounter.walls || [], encounterId);
+          const hydratedWalls = hydratePlacedWalls(refreshedEncounter.stage.walls || [], encounterId);
           setPlacedWalls(hydratedWalls);
         }
       }
     },
-    [encounterId, encounter, updateEncounterWall, setEncounter, setPlacedWalls, setErrorMessage, refetch],
+    [encounterId, encounter, updateWallWithSegments, setEncounter, setPlacedWalls, setErrorMessage, refetch],
   );
 
   return {

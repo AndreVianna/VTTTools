@@ -34,7 +34,7 @@ const FogOfWarRendererComponent: React.FC<FogOfWarRendererProps> = ({
     const sortedFogRegions = useMemo(() => {
         return regions
             .filter((region) => region.type === FOG_OF_WAR_TYPE && (region.value === FOG_VALUE_HIDDEN || region.value === FOG_VALUE_VISIBLE))
-            .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+            .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { numeric: true }));
     }, [regions]);
 
     const handleLineRef = useCallback((node: Konva.Line | null, isSubtract: boolean) => {

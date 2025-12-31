@@ -217,7 +217,7 @@ export const AssetInspectorPanel: React.FC<AssetInspectorPanelProps> = ({
             sx={{ height: 20, fontSize: '0.65rem' }}
           />
           <Chip
-            label={`${asset.tokenSize.width}x${asset.tokenSize.height}`}
+            label={`${asset.size.width}x${asset.size.height}`}
             size="small"
             variant="outlined"
             sx={{ height: 20, fontSize: '0.65rem' }}

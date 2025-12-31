@@ -27,8 +27,9 @@ import {
 } from '@mui/material';
 import React, { useMemo, useState } from 'react';
 import { ConfirmDialog } from '@/components/common';
-import { useUpdateEncounterRegionMutation } from '@/services/encounterApi';
-import type { PlacedRegion } from '@/types/domain';
+import { useUpdateRegionMutation } from '@/services/stageApi';
+import type { PlacedRegion, RegionType } from '@/types/domain';
+import type { UpdateRegionRequest } from '@/types/stage';
 import { getRegionColor, getRegionFillOpacity, sortRegions } from '@/utils/regionColorUtils';
 import {
   getRegionDisplayLabel,
@@ -54,7 +55,7 @@ const getSuggestedRegionName = (regions: PlacedRegion[]): string => {
   if (regions.length === 0) return 'Region 1';
   const maxIndex = Math.max(
     ...regions.map((r) => {
-      const match = r.name.match(/Region (\d+)$/);
+      const match = (r.name ?? '').match(/Region (\d+)$/);
       return match?.[1] ? Number.parseInt(match[1], 10) : 0;
     }),
   );
@@ -85,7 +86,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
     const [editedTypes, setEditedTypes] = useState<Map<number, string>>(new Map());
     const [editedValues, setEditedValues] = useState<Map<number, number>>(new Map());
 
-    const [updateEncounterRegion] = useUpdateEncounterRegionMutation();
+    const [updateRegion] = useUpdateRegionMutation();
 
     const compactStyles = {
       sectionHeader: {
@@ -205,10 +206,15 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
       if (!encounterId) return;
 
       try {
-        await updateEncounterRegion({
-          encounterId,
-          regionIndex,
-          ...updates,
+        const requestData: UpdateRegionRequest = {
+          ...(updates.name !== undefined && { name: updates.name }),
+          ...(updates.type !== undefined && { type: updates.type as RegionType }),
+          ...(updates.value !== undefined && { value: updates.value }),
+        };
+        await updateRegion({
+          stageId: encounterId,
+          index: regionIndex,
+          data: requestData,
         }).unwrap();
       } catch (_error) {
         console.error('[RegionsPanel] Failed to update region');

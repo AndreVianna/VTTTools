@@ -1,4 +1,12 @@
-export type EncounterEntityType = 'assets' | 'walls' | 'regions' | 'lightSources' | 'soundSources' | 'effects';
+export type EncounterEntityType =
+  | 'assets'
+  | 'actors'
+  | 'objects'
+  | 'effects'
+  | 'walls'
+  | 'regions'
+  | 'lightSources'
+  | 'soundSources';
 
 const STORAGE_KEY = 'encounter-mappings';
 const MAX_ID_GENERATION_ATTEMPTS = 10;
@@ -7,11 +15,13 @@ const usedIds = new Set<string>();
 
 interface EntityTypeMappings {
   assets: Record<string, number>;
+  actors: Record<string, number>;
+  objects: Record<string, number>;
+  effects: Record<string, number>;
   walls: Record<string, number>;
   regions: Record<string, number>;
   lightSources: Record<string, number>;
   soundSources: Record<string, number>;
-  effects: Record<string, number>;
 }
 
 interface EncounterMappings {
@@ -27,21 +37,59 @@ function validateId(id: string, fieldName: string): void {
   }
 }
 
-function isEncounterMappings(value: unknown): value is EncounterMappings {
+// Validates basic structure - allows partial data that will be migrated
+function isValidEncounterMappingsStructure(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false;
 
   const obj = value as Record<string, unknown>;
   for (const encounterId in obj) {
     const encounterMappings = obj[encounterId];
     if (!encounterMappings || typeof encounterMappings !== 'object') return false;
-
-    const mappings = encounterMappings as Record<string, unknown>;
-    const requiredTypes: EncounterEntityType[] = ['assets', 'walls', 'regions', 'lightSources', 'soundSources', 'effects'];
-    for (const type of requiredTypes) {
-      if (!(type in mappings) || typeof mappings[type] !== 'object') return false;
-    }
+    // Allow partial data - missing keys will be added during migration
   }
   return true;
+}
+
+// Migrates old localStorage data to include new entity types
+function migrateEncounterMappings(data: Record<string, unknown>): EncounterMappings {
+  const migrated: EncounterMappings = {};
+  const allTypes: EncounterEntityType[] = [
+    'assets',
+    'actors',
+    'objects',
+    'effects',
+    'walls',
+    'regions',
+    'lightSources',
+    'soundSources',
+  ];
+
+  for (const encounterId in data) {
+    const encounterData = data[encounterId] as Record<string, unknown> | undefined;
+    if (!encounterData || typeof encounterData !== 'object') continue;
+
+    const entityMappings: EntityTypeMappings = {
+      assets: {},
+      actors: {},
+      objects: {},
+      effects: {},
+      walls: {},
+      regions: {},
+      lightSources: {},
+      soundSources: {},
+    };
+
+    // Preserve existing data
+    for (const type of allTypes) {
+      if (type in encounterData && typeof encounterData[type] === 'object' && encounterData[type] !== null) {
+        entityMappings[type] = encounterData[type] as Record<string, number>;
+      }
+    }
+
+    migrated[encounterId] = entityMappings;
+  }
+
+  return migrated;
 }
 
 function getStoredMappings(): EncounterMappings {
@@ -51,11 +99,12 @@ function getStoredMappings(): EncounterMappings {
       return {};
     }
     const parsed = JSON.parse(data);
-    if (!isEncounterMappings(parsed)) {
-      console.error('Corrupted encounter mappings data in localStorage');
+    if (!isValidEncounterMappingsStructure(parsed)) {
+      console.warn('Invalid encounter mappings structure in localStorage, resetting');
       return {};
     }
-    return parsed;
+    // Migrate old data to include new entity types
+    return migrateEncounterMappings(parsed as Record<string, unknown>);
   } catch (error) {
     console.error('Failed to read encounter mappings from localStorage:', error);
     return {};
@@ -76,11 +125,13 @@ function getEncounterMappings(encounterId: string): EntityTypeMappings {
   return (
     allMappings[encounterId] ?? {
       assets: {},
+      actors: {},
+      objects: {},
+      effects: {},
       walls: {},
       regions: {},
       lightSources: {},
       soundSources: {},
-      effects: {},
     }
   );
 }

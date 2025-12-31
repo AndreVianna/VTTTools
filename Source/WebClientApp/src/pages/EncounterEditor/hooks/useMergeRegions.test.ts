@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
-import { Light, Weather } from '@/types/domain';
+import { GridType, Weather } from '@/types/domain';
+import type { Stage, StageRegion } from '@/types/stage';
+import { AmbientLight } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import * as commands from '@/utils/commands';
 import * as regionCommands from '@/utils/commands/regionCommands';
@@ -17,6 +19,50 @@ const mockRemoveRegionOptimistic = vi.mocked(encounterStateUtils.removeRegionOpt
 const mockRemoveTempRegions = vi.mocked(encounterStateUtils.removeTempRegions);
 const mockCreateBatchCommand = vi.mocked(commands.createBatchCommand);
 
+const createMockStage = (overrides?: Partial<Stage>): Stage => ({
+  id: 'stage-1',
+  ownerId: 'owner-1',
+  name: 'Test Stage',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  settings: {
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: AmbientLight.Default,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: Weather.Clear,
+  },
+  grid: {
+    type: GridType.Square,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    scale: 1,
+  },
+  walls: [],
+  regions: [],
+  lights: [],
+  elements: [],
+  sounds: [],
+  ...overrides,
+});
+
+const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
+  id: 'encounter-1',
+  ownerId: 'owner-1',
+  adventure: null,
+  name: 'Test Encounter',
+  description: '',
+  isPublished: false,
+  isPublic: false,
+  stage: createMockStage({ regions }),
+  actors: [],
+  objects: [],
+  effects: [],
+});
+
 describe('useMergeRegions', () => {
   let mockAddEncounterRegion: ReturnType<typeof vi.fn>;
   let mockUpdateEncounterRegion: ReturnType<typeof vi.fn>;
@@ -27,8 +73,8 @@ describe('useMergeRegions', () => {
   let mockRefetch: ReturnType<typeof vi.fn>;
 
   let testEncounter: Encounter;
-  let targetRegion: EncounterRegion;
-  let regionToDelete: EncounterRegion;
+  let targetRegion: StageRegion;
+  let regionToDelete: StageRegion;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,7 +88,6 @@ describe('useMergeRegions', () => {
     mockRefetch = vi.fn().mockResolvedValue({ data: {} as Encounter });
 
     targetRegion = {
-      encounterId: 'encounter-1',
       index: 1,
       name: 'Target Region',
       vertices: [
@@ -52,11 +97,9 @@ describe('useMergeRegions', () => {
       ],
       type: 'Elevation',
       value: 10,
-      color: '#FF0000',
     };
 
     regionToDelete = {
-      encounterId: 'encounter-1',
       index: 2,
       name: 'Region to Delete',
       vertices: [
@@ -66,46 +109,32 @@ describe('useMergeRegions', () => {
       ],
       type: 'Elevation',
       value: 10,
-      color: '#FF0000',
     };
 
-    testEncounter = {
-      id: 'encounter-1',
-      adventure: null,
-      name: 'Test Encounter',
-      description: '',
-      isPublished: false,
-      light: Light.Bright,
-      weather: Weather.Clear,
-      elevation: 0,
-      grid: {
-        type: 0,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        snap: true,
-      scale: 1,
-      },
-      stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
-      assets: [],
-      regions: [targetRegion, regionToDelete],
-      walls: [],
-      lightSources: [],
-      soundSources: [],
-    };
+    testEncounter = createMockEncounter([targetRegion, regionToDelete]);
 
     mockUpdateRegionOptimistic.mockImplementation((encounter, regionIndex, changes) => ({
       ...encounter,
-      regions: encounter.regions.map((r) => (r.index === regionIndex ? { ...r, ...changes } : r)),
+      stage: {
+        ...encounter.stage,
+        regions: encounter.stage.regions.map((r: StageRegion) => (r.index === regionIndex ? { ...r, ...changes } : r)),
+      },
     }));
 
     mockRemoveRegionOptimistic.mockImplementation((encounter, regionIndex) => ({
       ...encounter,
-      regions: encounter.regions.filter((r) => r.index !== regionIndex),
+      stage: {
+        ...encounter.stage,
+        regions: encounter.stage.regions.filter((r: StageRegion) => r.index !== regionIndex),
+      },
     }));
 
     mockRemoveTempRegions.mockImplementation((encounter) => ({
       ...encounter,
-      regions: encounter.regions.filter((r) => r.index !== -1),
+      stage: {
+        ...encounter.stage,
+        regions: encounter.stage.regions.filter((r: StageRegion) => r.index !== -1),
+      },
     }));
 
     mockCreateBatchCommand.mockImplementation(({ commands: cmds }) => ({
@@ -121,9 +150,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -195,18 +224,15 @@ describe('useMergeRegions', () => {
         value: 10,
       };
 
-      const encounterWith3Regions: Encounter = {
-        ...testEncounter,
-        regions: [targetRegion, regionToDelete, region3],
-      };
+      const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: encounterWith3Regions,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -273,9 +299,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -328,9 +354,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: undefined,
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -362,9 +388,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: null,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -396,9 +422,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -431,9 +457,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -480,9 +506,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -536,9 +562,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -591,9 +617,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -659,18 +685,15 @@ describe('useMergeRegions', () => {
         type: 'Elevation',
       };
 
-      const encounterWith3Regions: Encounter = {
-        ...testEncounter,
-        regions: [targetRegion, regionToDelete, region3],
-      };
+      const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: encounterWith3Regions,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -743,9 +766,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -801,9 +824,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -864,18 +887,15 @@ describe('useMergeRegions', () => {
         type: 'Elevation',
       };
 
-      const encounterWith3Regions: Encounter = {
-        ...testEncounter,
-        regions: [targetRegion, regionToDelete, region3],
-      };
+      const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: encounterWith3Regions,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -927,9 +947,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -980,9 +1000,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1014,10 +1034,7 @@ describe('useMergeRegions', () => {
           }) as unknown as regionCommands.DeleteRegionCommand,
       );
 
-      const finalEncounter: Encounter = {
-        ...testEncounter,
-        regions: [{ ...targetRegion, vertices: mergedVertices }],
-      };
+      const finalEncounter = createMockEncounter([{ ...targetRegion, vertices: mergedVertices }]);
       mockRemoveTempRegions.mockReturnValue(finalEncounter);
 
       await act(async () => {
@@ -1041,9 +1058,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1102,9 +1119,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1156,9 +1173,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1202,9 +1219,9 @@ describe('useMergeRegions', () => {
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: testEncounter,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
@@ -1266,18 +1283,15 @@ describe('useMergeRegions', () => {
         type: 'Elevation',
       };
 
-      const encounterWith3Regions: Encounter = {
-        ...testEncounter,
-        regions: [targetRegion, regionToDelete, region3],
-      };
+      const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
         useMergeRegions({
           encounterId: 'encounter-1',
           encounter: encounterWith3Regions,
-          addEncounterRegion: mockAddEncounterRegion,
-          updateEncounterRegion: mockUpdateEncounterRegion,
-          removeEncounterRegion: mockRemoveEncounterRegion,
+          addRegion: mockAddEncounterRegion,
+          updateRegion: mockUpdateEncounterRegion,
+          deleteRegion: mockRemoveEncounterRegion,
           setEncounter: mockSetEncounter,
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,

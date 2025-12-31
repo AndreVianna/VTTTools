@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { encounterApi } from '@/services/encounterApi';
 import type { Encounter, EncounterWall, Pole } from '@/types/domain';
+import { GridType as DomainGridType, Weather } from '@/types/domain';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import { WallDrawingTool } from './WallDrawingTool';
 
@@ -89,10 +90,34 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
   const createMockEncounter = (walls: EncounterWall[] = []): Partial<Encounter> => ({
     id: 'encounter-1',
     name: 'Test Encounter',
-    walls,
-    regions: [],
-    lightSources: [],
-    soundSources: [],
+    stage: {
+      id: 'stage-1',
+      ownerId: 'owner-1',
+      name: 'Test Stage',
+      description: '',
+      isPublished: false,
+      isPublic: false,
+      settings: {
+        zoomLevel: 1,
+        panning: { x: 0, y: 0 },
+        ambientLight: 0,
+        ambientSoundVolume: 1,
+        ambientSoundLoop: false,
+        ambientSoundIsPlaying: false,
+        weather: Weather.Clear,
+      },
+      grid: {
+        type: DomainGridType.Square,
+        cellSize: { width: 50, height: 50 },
+        offset: { left: 0, top: 0 },
+        scale: 1,
+      },
+      walls,
+      regions: [],
+      lights: [],
+      elements: [],
+      sounds: [],
+    },
   });
 
   const mockEncounterEmpty = createMockEncounter([

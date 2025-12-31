@@ -49,7 +49,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { data: encounter } = useGetEncounterQuery(encounterId);
-  const wall = encounter?.walls?.find((w) => w.index === wallIndex);
+  const wall = encounter?.stage.walls?.find((w) => w.index === wallIndex);
 
   useEffect(() => {
     return () => {
