@@ -4,14 +4,16 @@
 
 | Phase | Description | Effort | Status |
 |-------|-------------|--------|--------|
-| 1 | Domain Identity Models | 4-6h | Planned |
-| 2 | Data Layer Identity Implementation | 4-6h | Planned |
-| 3 | Library Layer Cleanup | 1-2h | Planned |
-| 4 | Auth Service Integration | 2-4h | Planned |
-| 5 | Health Check Abstraction | 1-2h | Planned |
-| 6 | Testing & Verification | 2-4h | Planned |
+| 1 | Domain Identity Models | 4-6h | Pending |
+| 2 | Data Layer Identity Implementation | 4-6h | Pending |
+| 3 | Library Layer Cleanup | 1-2h | Pending |
+| 4 | Auth Service Integration | 2-4h | Pending |
+| 5 | Health Check Abstraction | 1-2h | ✅ Completed |
+| 6 | Testing & Verification | 2-4h | Pending |
 
 **Total Estimated Effort**: 16-24 hours
+**Completed**: ~4 hours (Phase 5)
+**Remaining**: ~12-20 hours (Phases 1-4, 6)
 
 ---
 
@@ -336,13 +338,13 @@ Ensure all changes work correctly and maintain backwards compatibility.
 | 4.4 Update authorization | Planned | |
 | 4.5 Test auth flow | Planned | |
 
-### Phase 5: Health Check
+### Phase 5: Health Check ✅ COMPLETED
 | Task | Status | Notes |
 |------|--------|-------|
-| 5.1 Update health check | Planned | |
-| 5.2 Update IBlobStorage | Planned | |
-| 5.3 Remove Azure SDK | Planned | |
-| 5.4 Register with DI | Planned | |
+| 5.1 Delegate to Aspire | ✅ Done | Used `.WithHttpHealthCheck("health")` |
+| 5.2 Remove custom checks | ✅ Done | Removed BlobStorage/Database/Cache health checks |
+| 5.3 Fix infra references | ✅ Done | admin-api, web-app, admin-app |
+| 5.4 Cleanup Common | ✅ Done | Removed Azure/SqlClient usings |
 
 ### Phase 6: Testing
 | Task | Status | Notes |

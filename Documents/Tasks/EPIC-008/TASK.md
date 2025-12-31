@@ -3,9 +3,11 @@
 **Target Type**: Epic (Architecture Refactoring)
 **Target Item**: EPIC-008
 **Created**: 2025-12-30
-**Status**: Planned
+**Status**: In Progress
 **Estimated Effort**: 16-24 hours (2-3 days)
 **Priority**: High (Clean Architecture Compliance)
+
+> **Progress Update (2025-12-31)**: Phase 5 (Aspire Infrastructure) completed. Phases 1-4 (Identity Layer Isolation) pending.
 
 ---
 
@@ -301,7 +303,7 @@ internal static class UserMapper {
 
 ### Should Have
 
-- [ ] Health checks use `IBlobStorage` abstraction
+- [x] Health checks use infrastructure abstraction *(Delegated to Aspire)*
 - [ ] Clear separation documentation in code comments
 - [ ] Mapper classes with full coverage
 
@@ -309,6 +311,13 @@ internal static class UserMapper {
 
 - [ ] Roslyn analyzer rule to prevent infrastructure refs in Domain
 - [ ] Architecture decision record (ADR) documenting the pattern
+
+### Completed Items (Phase 5: Aspire Infrastructure)
+
+- [x] Health checks delegated to Aspire (`.WithHttpHealthCheck("health")`)
+- [x] Removed custom BlobStorageHealthCheck, DatabaseHealthCheck, CacheHealthCheck
+- [x] Fixed Aspire infrastructure references (admin-api, web-app, admin-app)
+- [x] Removed Azure/SqlClient usings from Common.UnitTests
 
 ---
 
