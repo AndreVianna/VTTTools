@@ -6,7 +6,7 @@ namespace VttTools.Admin.Services;
 public sealed class AssetAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
     private readonly IAssetStorage _mockAssetStorage;
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<AssetAdminService> _mockLogger;
     private readonly AssetAdminService _sut;
     private readonly Guid _masterUserId = Guid.CreateVersion7();
@@ -439,9 +439,9 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
@@ -472,16 +472,17 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
         return assets;
     }
 
-    private static User CreateTestUser(Guid id, string email, string name) => new() {
+    private static UserEntity CreateTestUser(Guid id, string email, string name) => new() {
         Id = id,
         UserName = email,
         Email = email,
+        Name = name,
         DisplayName = name,
         EmailConfirmed = true
     };
 
-    private static List<User> CreateTestUsers(int count) {
-        var users = new List<User>();
+    private static List<UserEntity> CreateTestUsers(int count) {
+        var users = new List<UserEntity>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser(Guid.CreateVersion7(), $"user{i}@example.com", $"User {i}"));
         }

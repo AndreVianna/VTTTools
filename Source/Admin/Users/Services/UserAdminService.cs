@@ -1,8 +1,8 @@
 namespace VttTools.Admin.Users.Services;
 
 public sealed class UserAdminService(
-    UserManager<User> userManager,
-    RoleManager<Role> roleManager,
+    UserManager<UserEntity> userManager,
+    RoleManager<RoleEntity> roleManager,
     IAuditLogService auditLogService,
     ILogger<UserAdminService> logger) : IUserAdminService {
 

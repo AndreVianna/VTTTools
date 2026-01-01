@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class TwoFactorAuthenticationServiceTests {
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<TwoFactorAuthenticationService> _mockLogger;
     private readonly TwoFactorAuthenticationService _twoFactorService;
 
@@ -33,14 +33,14 @@ public class TwoFactorAuthenticationServiceTests {
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
         await _mockUserManager.Received(1).GetAuthenticatorKeyAsync(testUser);
-        await _mockUserManager.DidNotReceive().ResetAuthenticatorKeyAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().ResetAuthenticatorKeyAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
     public async Task InitiateSetupAsync_WithNonExistentUser_ReturnsNotFound() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _twoFactorService.InitiateSetupAsync(userId, TestContext.Current.CancellationToken);
@@ -52,8 +52,8 @@ public class TwoFactorAuthenticationServiceTests {
         Assert.Equal(string.Empty, result.AuthenticatorUri);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().GetAuthenticatorKeyAsync(Arg.Any<User>());
-        await _mockUserManager.DidNotReceive().ResetAuthenticatorKeyAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().GetAuthenticatorKeyAsync(Arg.Any<UserEntity>());
+        await _mockUserManager.DidNotReceive().ResetAuthenticatorKeyAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -210,8 +210,8 @@ public class TwoFactorAuthenticationServiceTests {
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
         await _mockUserManager.Received(1).VerifyTwoFactorTokenAsync(testUser, "Authenticator", request.Code);
-        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<User>(), Arg.Any<bool>());
-        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<User>(), Arg.Any<int>());
+        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<UserEntity>(), Arg.Any<bool>());
+        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<UserEntity>(), Arg.Any<int>());
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class TwoFactorAuthenticationServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
         var request = new VerifySetupRequest { Code = "123456" };
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _twoFactorService.VerifySetupAsync(userId, request, TestContext.Current.CancellationToken);
@@ -230,9 +230,9 @@ public class TwoFactorAuthenticationServiceTests {
         Assert.Null(result.RecoveryCodes);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().VerifyTwoFactorTokenAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
-        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<User>(), Arg.Any<bool>());
-        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<User>(), Arg.Any<int>());
+        await _mockUserManager.DidNotReceive().VerifyTwoFactorTokenAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<UserEntity>(), Arg.Any<bool>());
+        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<UserEntity>(), Arg.Any<int>());
     }
 
     [Fact]
@@ -363,7 +363,7 @@ public class TwoFactorAuthenticationServiceTests {
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
         await _mockUserManager.Received(1).CheckPasswordAsync(testUser, request.Password);
-        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<User>(), Arg.Any<bool>());
+        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<UserEntity>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -371,7 +371,7 @@ public class TwoFactorAuthenticationServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
         var request = new DisableTwoFactorRequest { Password = "Password123!" };
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _twoFactorService.DisableTwoFactorAsync(userId, request, TestContext.Current.CancellationToken);
@@ -381,8 +381,8 @@ public class TwoFactorAuthenticationServiceTests {
         Assert.Equal("User not found", result.Message);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().CheckPasswordAsync(Arg.Any<User>(), Arg.Any<string>());
-        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<User>(), Arg.Any<bool>());
+        await _mockUserManager.DidNotReceive().CheckPasswordAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().SetTwoFactorEnabledAsync(Arg.Any<UserEntity>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -488,13 +488,13 @@ public class TwoFactorAuthenticationServiceTests {
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,

@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class SecurityService(
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<SecurityService> logger) : ISecurityService {
 
     public async Task<SecuritySettingsResponse> GetSecuritySettingsAsync(Guid userId, CancellationToken ct = default) {

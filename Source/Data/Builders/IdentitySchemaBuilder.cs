@@ -1,3 +1,11 @@
+using Role = VttTools.Data.Identity.Entities.Role;
+using RoleClaim = VttTools.Data.Identity.Entities.RoleClaim;
+using User = VttTools.Data.Identity.Entities.User;
+using UserClaim = VttTools.Data.Identity.Entities.UserClaim;
+using UserLogin = VttTools.Data.Identity.Entities.UserLogin;
+using UserRole = VttTools.Data.Identity.Entities.UserRole;
+using UserToken = VttTools.Data.Identity.Entities.UserToken;
+
 namespace VttTools.Data.Builders;
 
 internal static class IdentitySchemaBuilder {

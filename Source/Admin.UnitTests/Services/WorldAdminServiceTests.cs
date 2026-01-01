@@ -4,7 +4,7 @@ public sealed class WorldAdminServiceTests {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
     private readonly IWorldStorage _mockWorldStorage;
     private readonly ICampaignStorage _mockCampaignStorage;
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<WorldAdminService> _mockLogger;
     private readonly WorldAdminService _sut;
     private readonly Guid _masterUserId = Guid.CreateVersion7();
@@ -84,9 +84,9 @@ public sealed class WorldAdminServiceTests {
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
@@ -107,16 +107,17 @@ public sealed class WorldAdminServiceTests {
         return [.. worlds];
     }
 
-    private static User CreateTestUser(Guid id, string email, string name) => new() {
+    private static UserEntity CreateTestUser(Guid id, string email, string name) => new() {
         Id = id,
         UserName = email,
         Email = email,
+        Name = name,
         DisplayName = name,
         EmailConfirmed = true
     };
 
-    private static List<User> CreateTestUsers(int count) {
-        var users = new List<User>();
+    private static List<UserEntity> CreateTestUsers(int count) {
+        var users = new List<UserEntity>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser(Guid.CreateVersion7(), $"user{i}@example.com", $"User {i}"));
         }

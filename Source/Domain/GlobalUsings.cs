@@ -9,8 +9,6 @@ global using DotNetToolbox;
 global using DotNetToolbox.Results;
 global using DotNetToolbox.Validation;
 
-global using Microsoft.AspNetCore.Identity;
-
 global using VttTools.AI.ApiContracts;
 global using VttTools.AI.Model;
 global using VttTools.AI.ServiceContracts;
@@ -25,6 +23,7 @@ global using VttTools.Common.ServiceContracts;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Identity.Model;
+global using VttTools.Identity.Storage;
 global using VttTools.Jobs.Events;
 global using VttTools.Jobs.Model;
 global using VttTools.Jobs.ServiceContracts;

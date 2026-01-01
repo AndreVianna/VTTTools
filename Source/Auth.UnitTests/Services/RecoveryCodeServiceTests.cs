@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class RecoveryCodeServiceTests {
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<RecoveryCodeService> _mockLogger;
     private readonly RecoveryCodeService _recoveryCodeService;
 
@@ -58,7 +58,7 @@ public class RecoveryCodeServiceTests {
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
         await _mockUserManager.Received(1).CheckPasswordAsync(testUser, request.Password);
-        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<User>(), Arg.Any<int>());
+        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<UserEntity>(), Arg.Any<int>());
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class RecoveryCodeServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
         var request = new GenerateRecoveryCodesRequest { Password = "Password123!" };
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _recoveryCodeService.GenerateNewCodesAsync(userId, request, TestContext.Current.CancellationToken);
@@ -77,8 +77,8 @@ public class RecoveryCodeServiceTests {
         Assert.Null(result.RecoveryCodes);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().CheckPasswordAsync(Arg.Any<User>(), Arg.Any<string>());
-        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<User>(), Arg.Any<int>());
+        await _mockUserManager.DidNotReceive().CheckPasswordAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().GenerateNewTwoFactorRecoveryCodesAsync(Arg.Any<UserEntity>(), Arg.Any<int>());
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class RecoveryCodeServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
         var request = new GenerateRecoveryCodesRequest { Password = "Password123!" };
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _recoveryCodeService.GenerateNewCodesAsync(userId, request, TestContext.Current.CancellationToken);
@@ -285,7 +285,7 @@ public class RecoveryCodeServiceTests {
     public async Task GetStatusAsync_WithNonExistentUser_ReturnsNotFound() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _recoveryCodeService.GetStatusAsync(userId, TestContext.Current.CancellationToken);
@@ -296,7 +296,7 @@ public class RecoveryCodeServiceTests {
         Assert.Equal(0, result.RemainingCount);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().CountRecoveryCodesAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().CountRecoveryCodesAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class RecoveryCodeServiceTests {
     public async Task GetStatusAsync_LogsWarningForNonExistentUser() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _recoveryCodeService.GetStatusAsync(userId, TestContext.Current.CancellationToken);
@@ -416,13 +416,13 @@ public class RecoveryCodeServiceTests {
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,

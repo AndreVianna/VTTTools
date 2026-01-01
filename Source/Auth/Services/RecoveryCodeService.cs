@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class RecoveryCodeService(
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<RecoveryCodeService> logger) : IRecoveryCodeService {
 
     public async Task<GenerateRecoveryCodesResponse> GenerateNewCodesAsync(Guid userId, GenerateRecoveryCodesRequest request, CancellationToken ct = default) {

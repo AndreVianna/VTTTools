@@ -7,7 +7,7 @@ public sealed class AdventureAdminService(
     IOptions<PublicLibraryOptions> options,
     IAdventureStorage adventureStorage,
     IEncounterStorage encounterStorage,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<AdventureAdminService> logger)
     : LibraryAdminService(options, userManager, logger), IAdventureAdminService {
 

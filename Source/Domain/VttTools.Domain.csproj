@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetToolbox.Core" Version="10.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

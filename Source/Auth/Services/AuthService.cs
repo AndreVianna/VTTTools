@@ -1,8 +1,10 @@
+using VttTools.Data.Identity;
+
 namespace VttTools.Auth.Services;
 
 public class AuthService(
-    UserManager<User> userManager,
-    SignInManager<User> signInManager,
+    UserManager<UserEntity> userManager,
+    SignInManager<UserEntity> signInManager,
     IEmailService emailService,
     IJwtTokenService jwtTokenService,
     ILogger<AuthService> logger) : IAuthService {
@@ -53,15 +55,14 @@ public class AuthService(
 
             logger.LogInformation("User {Email} logged in successfully", request.Email);
 
-            var roles = await userManager.GetRolesAsync(user);
-            user.IsAdministrator = roles.Contains("Administrator");
-
-            var token = jwtTokenService.GenerateToken(user, roles, request.RememberMe);
+            var roles = (await userManager.GetRolesAsync(user)).ToList();
+            var domainUser = user.ToModel(roles);
+            var token = jwtTokenService.GenerateToken(domainUser, roles, request.RememberMe);
 
             return new AuthResponse {
                 Success = true,
                 Message = "Success",
-                User = MapUserToUserInfo(user),
+                User = MapUserToUserInfo(domainUser),
                 Token = token,
             };
         }
@@ -82,7 +83,7 @@ public class AuthService(
                 };
             }
 
-            var user = new User {
+            var userEntity = new UserEntity {
                 UserName = request.Email,
                 Email = request.Email,
                 Name = request.Name,
@@ -90,19 +91,20 @@ public class AuthService(
                 EmailConfirmed = true,
             };
 
-            var result = await userManager.CreateAsync(user, request.Password);
+            var result = await userManager.CreateAsync(userEntity, request.Password);
             if (result.Succeeded) {
                 logger.LogInformation("User {Email} registered successfully", request.Email);
 
-                await signInManager.SignInAsync(user, isPersistent: false);
+                await signInManager.SignInAsync(userEntity, isPersistent: false);
 
-                var roles = await userManager.GetRolesAsync(user);
-                var token = jwtTokenService.GenerateToken(user, roles, rememberMe: false);
+                var roles = (await userManager.GetRolesAsync(userEntity)).ToList();
+                var domainUser = userEntity.ToModel(roles);
+                var token = jwtTokenService.GenerateToken(domainUser, roles, rememberMe: false);
 
                 return new AuthResponse {
                     Success = true,
                     Message = "RegistrationSuccess",
-                    User = MapUserToUserInfo(user),
+                    User = MapUserToUserInfo(domainUser),
                     Token = token,
                 };
             }
@@ -151,12 +153,12 @@ public class AuthService(
             }
 
             // Get user roles for IsAdministrator flag
-            var roles = await userManager.GetRolesAsync(user);
-            user.IsAdministrator = roles.Contains("Administrator");
+            var roles = (await userManager.GetRolesAsync(user)).ToList();
+            var domainUser = user.ToModel(roles);
 
             return new AuthResponse {
                 Success = true,
-                User = MapUserToUserInfo(user),
+                User = MapUserToUserInfo(domainUser),
             };
         }
         catch (Exception ex) {

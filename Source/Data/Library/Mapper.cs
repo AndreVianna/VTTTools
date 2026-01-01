@@ -25,7 +25,7 @@ internal static class Mapper {
     internal static Expression<Func<CampaignEntity, Campaign>> AsCampaign = entity
         => new() {
             OwnerId = entity.OwnerId,
-            World = entity.World != null ? entity.World.ToModel(includeChildren: false) : null,
+            World = entity.World != null ? entity.World.ToModel(false) : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -64,8 +64,8 @@ internal static class Mapper {
     internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity
         => new() {
             OwnerId = entity.OwnerId,
-            World = entity.World != null ? entity.World.ToModel(includeChildren: false) : null,
-            Campaign = entity.Campaign != null ? entity.Campaign.ToModel(includeParent: false, includeChildren: false) : null,
+            World = entity.World != null ? entity.World.ToModel(false) : null,
+            Campaign = entity.Campaign != null ? entity.Campaign.ToModel(false, false) : null,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,

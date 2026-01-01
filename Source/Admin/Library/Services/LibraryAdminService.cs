@@ -3,11 +3,11 @@ namespace VttTools.Admin.Library.Services;
 
 public abstract class LibraryAdminService(
     IOptions<PublicLibraryOptions> options,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger logger) {
 
     protected Guid MasterUserId => options.Value.MasterUserId;
-    protected UserManager<User> UserManager => userManager;
+    protected UserManager<UserEntity> UserManager => userManager;
     protected ILogger Logger => logger;
 
     protected async Task<string?> GetOwnerNameAsync(Guid ownerId) {

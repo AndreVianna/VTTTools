@@ -1,8 +1,10 @@
+using VttTools.Data.Identity;
+
 namespace VttTools.Admin.Auth.Services;
 
 public class AdminAuthService(
-    UserManager<User> userManager,
-    SignInManager<User> signInManager,
+    UserManager<UserEntity> userManager,
+    SignInManager<UserEntity> signInManager,
     IJwtTokenService jwtTokenService,
     ILogger<AdminAuthService> logger)
     : IAdminAuthService {
@@ -71,7 +73,8 @@ public class AdminAuthService(
 
             logger.LogInformation("Admin user logged in successfully: {Email}", request.Email);
 
-            var token = jwtTokenService.GenerateToken(user, roles, rememberMe: false);
+            var domainUser = user.ToModel(roles.ToList());
+            var token = jwtTokenService.GenerateToken(domainUser!, roles, rememberMe: false);
 
             return new AdminLoginResponse {
                 Success = true,

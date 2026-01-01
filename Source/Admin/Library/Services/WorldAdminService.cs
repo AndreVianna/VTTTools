@@ -4,7 +4,7 @@ public sealed class WorldAdminService(
     IOptions<PublicLibraryOptions> options,
     IWorldStorage worldStorage,
     ICampaignStorage campaignStorage,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<WorldAdminService> logger)
     : LibraryAdminService(options, userManager, logger), IWorldAdminService {
 

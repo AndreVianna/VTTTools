@@ -1,34 +1,22 @@
 namespace VttTools.Identity.Model;
 
-public class User
-    : IdentityUser<Guid> {
-    public override Guid Id { get; set; } = Guid.CreateVersion7();
-
-    [MaxLength(256)]
-    [Required(AllowEmptyStrings = false)]
-#pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
-    public override string Email { get; set; } = null!;
-#pragma warning restore CS8765
-
-    [MaxLength(128)]
-    [Required(AllowEmptyStrings = false)]
-    public string Name { get; set; } = null!;
-
-    [NotNull]
-    [MaxLength(32)]
-    public string? DisplayName {
+public record User {
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public required string Email { get; init; }
+    public required string Name { get; init; }
+    public string DisplayName {
         get => string.IsNullOrEmpty(field)
-            ? (Name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? Name ?? string.Empty)
+            ? (Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? Name)
             : field;
-        set;
-    }
-
-    public Guid? AvatarId { get; set; }
-
-    public UnitSystem UnitSystem { get; set; } = UnitSystem.Imperial;
-
-    [NotMapped]
-    public bool IsAdministrator { get; set; }
-    [NotMapped]
-    public bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
+        init;
+    } = string.Empty;
+    public Guid? AvatarId { get; init; }
+    public UnitSystem UnitSystem { get; init; } = UnitSystem.Imperial;
+    public bool EmailConfirmed { get; init; }
+    public bool TwoFactorEnabled { get; init; }
+    public bool LockoutEnabled { get; init; }
+    public DateTimeOffset? LockoutEnd { get; init; }
+    public bool HasPassword { get; init; }
+    public IReadOnlyList<string> Roles { get; init; } = [];
+    public bool IsAdministrator => Roles.Contains(nameof(RoleName.Administrator));
 }

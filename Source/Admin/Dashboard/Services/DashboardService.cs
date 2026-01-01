@@ -1,7 +1,7 @@
 namespace VttTools.Admin.Dashboard.Services;
 
 public class DashboardService(
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     IAuditLogService auditLogService,
     ILogger<DashboardService> logger)
     : IDashboardService {

@@ -1,7 +1,7 @@
 namespace VttTools.Admin.Services;
 
 public class DashboardServiceTests {
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly IAuditLogService _mockAuditLogService;
     private readonly ILogger<DashboardService> _mockLogger;
     private readonly DashboardService _sut;
@@ -15,7 +15,7 @@ public class DashboardServiceTests {
 
     [Fact]
     public async Task GetStatsAsync_ReturnsTotalUsers_FromUserManager() {
-        var users = new List<User> {
+        var users = new List<UserEntity> {
             CreateTestUser("user1@example.com", "User One"),
             CreateTestUser("user2@example.com", "User Two"),
             CreateTestUser("user3@example.com", "User Three"),
@@ -38,7 +38,7 @@ public class DashboardServiceTests {
 
     [Fact]
     public async Task GetStatsAsync_ReturnsActiveUsers24h_FromAuditLogs() {
-        var users = new List<User> {
+        var users = new List<UserEntity> {
             CreateTestUser("user1@example.com", "User One")
         };
 
@@ -105,13 +105,13 @@ public class DashboardServiceTests {
         => await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             async () => await _sut.GetMetricsAsync(169, TestContext.Current.CancellationToken));
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,
