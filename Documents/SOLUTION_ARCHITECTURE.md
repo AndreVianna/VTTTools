@@ -2,7 +2,7 @@
 
 **Solution**: `Source/VttTools.slnx` (NOT `.sln`)
 **Pattern**: DDD Contracts + Service Implementation + Clean Architecture
-**Last Updated**: 2025-12
+**Last Updated**: 2026-01
 
 ## Technology Stack
 
@@ -61,6 +61,37 @@ var entity = await context.Assets.FindAsync([id], ct);
 - ❌ Handler calling Storage directly (bypasses business logic)
 - ❌ Business logic in Handler (belongs in Service)
 - ❌ Service calling Handler (backwards dependency)
+
+## Identity Infrastructure Isolation
+
+Services MUST NOT depend on ASP.NET Identity types directly. Use `IUserStorage` interface instead.
+
+| Component | Location | Depends On | Purpose |
+|-----------|----------|------------|---------|
+| IUserStorage | Domain/Identity/Storage/ | Domain models only | User data contract (49 methods) |
+| UserStorage | Data/Identity/ | UserManager, DbContext | Encapsulates Identity infrastructure |
+| ISignInService | Domain/Identity/Services/ | Domain models only | Sign-in contract |
+| SignInService | Auth/Services/, Admin/Auth/Services/ | UserManager, SignInManager | Infrastructure bridge (acceptable exception) |
+
+**Rules:**
+- ✅ Services use `IUserStorage` for user operations (FindByIdAsync, GetDisplayNamesAsync, etc.)
+- ✅ SignInService wraps UserManager/SignInManager (required for cookie auth)
+- ❌ Services inject UserManager directly
+- ❌ Handlers inject UserManager directly (use IUserStorage)
+
+```csharp
+// CORRECT: Service using IUserStorage
+public class DashboardService(IUserStorage userStorage) : IDashboardService {
+    public async Task<int> GetUserCountAsync(CancellationToken ct)
+        => await userStorage.GetTotalUserCountAsync(ct);
+}
+
+// CORRECT: Infrastructure bridge (SignInService only)
+public class SignInService(UserManager<UserEntity> userManager, SignInManager<UserEntity> signInManager) : ISignInService { }
+
+// WRONG: Direct UserManager in service
+public class SomeService(UserManager<User> userManager) { } // ❌ Never do this
+```
 
 ## Domain Layer: Anemic Models
 
