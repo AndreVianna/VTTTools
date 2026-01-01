@@ -1,8 +1,5 @@
 namespace VttTools.Assets.Model;
 
-/// <summary>
-/// Represents a single stat entry in an asset's stat block for a specific game system and level.
-/// </summary>
 public record StatEntry {
     public Guid AssetId { get; init; }
 

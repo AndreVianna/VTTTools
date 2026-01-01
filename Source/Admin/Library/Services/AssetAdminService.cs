@@ -7,9 +7,9 @@ namespace VttTools.Admin.Library.Services;
 public sealed class AssetAdminService(
     IOptions<PublicLibraryOptions> options,
     IAssetStorage assetStorage,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<AssetAdminService> logger)
-    : LibraryAdminService(options, userManager, logger), IAssetAdminService {
+    : LibraryAdminService(options, userStorage, logger), IAssetAdminService {
 
     public async Task<LibraryContentSearchResponse> SearchAssetsAsync(
         LibrarySearchRequest request,

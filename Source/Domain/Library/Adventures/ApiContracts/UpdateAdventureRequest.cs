@@ -2,9 +2,7 @@ namespace VttTools.Library.Adventures.ApiContracts;
 
 public record UpdateAdventureRequest
     : Request {
-    [MaxLength(128)]
     public Optional<string> Name { get; init; }
-    [MaxLength(1024)]
     public Optional<string> Description { get; init; }
     public Optional<AdventureStyle> Style { get; init; }
     public Optional<bool> IsOneShot { get; init; }

@@ -6,7 +6,7 @@ namespace VttTools.Admin.Services;
 public sealed class AssetAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
     private readonly IAssetStorage _mockAssetStorage;
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly ILogger<AssetAdminService> _mockLogger;
     private readonly AssetAdminService _sut;
     private readonly Guid _masterUserId = Guid.CreateVersion7();
@@ -16,9 +16,9 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
         _mockOptions.Value.Returns(new PublicLibraryOptions { MasterUserId = _masterUserId });
 
         _mockAssetStorage = Substitute.For<IAssetStorage>();
-        _mockUserManager = CreateUserManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockLogger = Substitute.For<ILogger<AssetAdminService>>();
-        _sut = new(_mockOptions, _mockAssetStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockAssetStorage, _mockUserStorage, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -50,7 +50,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(([.. assets.Take(11)], 15));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Skip = 0, Take = 10 };
 
@@ -81,7 +81,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(([], 0));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Kind = "Character", Skip = 0, Take = 10 };
 
@@ -122,7 +122,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(([], 0));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Category = "Heroes", Skip = 0, Take = 10 };
 
@@ -163,7 +163,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(([], 0));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Search = "dragon", Skip = 0, Take = 10 };
 
@@ -196,7 +196,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(asset);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.GetAssetByIdAsync(asset.Id, TestContext.Current.CancellationToken);
 
@@ -222,7 +222,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task CreateAssetAsync_WithValidData_CreatesAsset() {
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.CreateAssetAsync("New Asset", "Description", TestContext.Current.CancellationToken);
 
@@ -264,7 +264,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(true);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.UpdateAssetAsync(
             asset.Id,
@@ -300,7 +300,7 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
             .Returns(true);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.UpdateAssetAsync(
             asset.Id,
@@ -439,10 +439,18 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
 
     #region Helper Methods
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
+    private void SetupUserStorageMock(List<User> users) {
+        _mockUserStorage.GetDisplayNamesAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                var ids = callInfo.Arg<IEnumerable<Guid>>().ToList();
+                return users.Where(u => ids.Contains(u.Id))
+                    .ToDictionary(u => u.Id, u => (string?)u.DisplayName) as IReadOnlyDictionary<Guid, string?>;
+            });
+        _mockUserStorage.FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                var id = callInfo.Arg<Guid>();
+                return users.FirstOrDefault(u => u.Id == id);
+            });
     }
 
     private AssetModel CreateTestAsset(
@@ -472,17 +480,15 @@ public sealed class AssetAdminServiceTests : IAsyncLifetime {
         return assets;
     }
 
-    private static UserEntity CreateTestUser(Guid id, string email, string name) => new() {
+    private static User CreateTestUser(Guid id, string email, string name) => new() {
         Id = id,
-        UserName = email,
         Email = email,
         Name = name,
-        DisplayName = name,
-        EmailConfirmed = true
+        DisplayName = name
     };
 
-    private static List<UserEntity> CreateTestUsers(int count) {
-        var users = new List<UserEntity>();
+    private static List<User> CreateTestUsers(int count) {
+        var users = new List<User>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser(Guid.CreateVersion7(), $"user{i}@example.com", $"User {i}"));
         }

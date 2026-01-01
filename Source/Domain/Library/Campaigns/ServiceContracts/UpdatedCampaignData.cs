@@ -1,8 +1,5 @@
 namespace VttTools.Library.Campaigns.ServiceContracts;
 
-/// <summary>
-/// Represents the data for updating an existing campaign.
-/// </summary>
 public record UpdatedCampaignData
     : Data {
     public Guid Id { get; init; }

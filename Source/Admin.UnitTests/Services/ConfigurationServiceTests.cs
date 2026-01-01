@@ -9,7 +9,7 @@ public class ConfigurationServiceTests {
     private readonly IConfigurationRoot _configuration;
     private readonly ConfigurationSourceDetector _sourceDetector;
     private readonly FrontendConfigurationService _mockFrontendService;
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly ILogger<ConfigurationService> _mockLogger;
     private readonly IConfigurationService _sut;
 
@@ -17,14 +17,14 @@ public class ConfigurationServiceTests {
         _configuration = CreateConfiguration();
         _sourceDetector = new(_configuration);
         _mockFrontendService = Substitute.For<FrontendConfigurationService>(Substitute.For<ILogger<FrontendConfigurationService>>());
-        _mockUserManager = CreateMockUserManager();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockLogger = Substitute.For<ILogger<ConfigurationService>>();
 
         _sut = new ConfigurationService(
             _configuration,
             _sourceDetector,
             _mockFrontendService,
-            _mockUserManager,
+            _mockUserStorage,
             _mockLogger
         );
     }
@@ -67,10 +67,10 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithValidTotp_ReturnsActualValue() {
         var userId = Guid.CreateVersion7();
-        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
+        var user = new User { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
-        _mockUserManager.VerifyTwoFactorTokenAsync(user, "Authenticator", "123456")
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.VerifyTwoFactorCodeAsync(userId, "123456", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
 
         var result = await _sut.RevealConfigValueAsync(
@@ -82,17 +82,17 @@ public class ConfigurationServiceTests {
 
         result.Should().NotBeNull();
         result.Should().Be("SecretValue123");
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.Received(1).VerifyTwoFactorTokenAsync(user, "Authenticator", "123456");
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).VerifyTwoFactorCodeAsync(userId, "123456", Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task RevealConfigValueAsync_WithInvalidTotp_ThrowsUnauthorizedAccessException() {
         var userId = Guid.CreateVersion7();
-        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
+        var user = new User { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
-        _mockUserManager.VerifyTwoFactorTokenAsync(user, "Authenticator", "wrong-code")
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.VerifyTwoFactorCodeAsync(userId, "wrong-code", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(false));
 
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
@@ -110,9 +110,9 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithUser2FADisabled_ThrowsUnauthorizedAccessException() {
         var userId = Guid.CreateVersion7();
-        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = false };
+        var user = new User { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = false };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
 
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
             async () => await _sut.RevealConfigValueAsync(
@@ -130,7 +130,7 @@ public class ConfigurationServiceTests {
     public async Task RevealConfigValueAsync_WithNullUser_ThrowsUnauthorizedAccessException() {
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(Task.FromResult<UserEntity?>(null));
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(Task.FromResult<User?>(null));
 
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
             async () => await _sut.RevealConfigValueAsync(
@@ -163,10 +163,10 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithNonexistentKey_ThrowsKeyNotFoundException() {
         var userId = Guid.CreateVersion7();
-        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
+        var user = new User { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
-        _mockUserManager.VerifyTwoFactorTokenAsync(user, "Authenticator", "123456")
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.VerifyTwoFactorCodeAsync(userId, "123456", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
 
         var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -253,12 +253,6 @@ public class ConfigurationServiceTests {
         return new ConfigurationBuilder()
             .AddInMemoryCollection(configData)
             .Build();
-    }
-
-    private static UserManager<UserEntity> CreateMockUserManager() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
     }
 
     #endregion

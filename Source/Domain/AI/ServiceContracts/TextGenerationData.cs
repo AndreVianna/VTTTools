@@ -2,29 +2,13 @@ namespace VttTools.AI.ServiceContracts;
 
 public sealed record TextGenerationData : Data {
     public required GeneratedContentType ContentType { get; init; }
-
-    [MaxLength(64)]
     public string? Provider { get; init; }
-
-    [MaxLength(64)]
     public string? Model { get; init; }
-
-    [Required]
-    [MaxLength(8192)]
     public required string Prompt { get; init; }
-
-    [MaxLength(4096)]
     public string? SystemPrompt { get; init; }
-
-    [MaxLength(128)]
     public string? TemplateName { get; init; }
-
     public Dictionary<string, string>? TemplateContext { get; init; }
-
-    [Range(1, 16384)]
     public int? MaxTokens { get; init; }
-
-    [Range(0.0, 2.0)]
     public double? Temperature { get; init; }
 
     public override Result Validate(IMap? context = null) {

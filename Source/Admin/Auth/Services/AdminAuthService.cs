@@ -1,17 +1,15 @@
-using VttTools.Data.Identity;
-
 namespace VttTools.Admin.Auth.Services;
 
 public class AdminAuthService(
-    UserManager<UserEntity> userManager,
-    SignInManager<UserEntity> signInManager,
+    IUserStorage userStorage,
+    ISignInService signInService,
     IJwtTokenService jwtTokenService,
     ILogger<AdminAuthService> logger)
     : IAdminAuthService {
 
     public async Task<AdminLoginResponse> LoginAsync(AdminLoginRequest request, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByEmailAsync(request.Email);
+            var user = await userStorage.FindByEmailAsync(request.Email, ct);
             if (user is null) {
                 logger.LogWarning("Admin login attempt with non-existent email: {Email}", request.Email);
                 return new AdminLoginResponse { Success = false };
@@ -22,70 +20,42 @@ public class AdminAuthService(
                 return new AdminLoginResponse { Success = false };
             }
 
-            if (await userManager.IsLockedOutAsync(user)) {
+            var isLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
+                              user.LockoutEnd.Value > DateTimeOffset.UtcNow;
+            if (isLockedOut) {
                 logger.LogWarning("Admin login attempt for locked account: {Email}", request.Email);
                 return new AdminLoginResponse { Success = false };
             }
 
-            var roles = await userManager.GetRolesAsync(user);
-            if (!roles.Contains("Administrator")) {
+            if (!user.Roles.Contains("Administrator")) {
                 logger.LogWarning("Non-admin user attempted admin login: {Email}", request.Email);
                 return new AdminLoginResponse { Success = false };
             }
 
-            // TODO: Re-enable when 2FA feature is implemented
-            // TEMPORARY: 2FA requirement disabled for development/testing
-            // if (!user.TwoFactorEnabled) {
-            //     logger.LogWarning("Admin user without 2FA attempted login: {Email}", request.Email);
-            //     return new AdminLoginResponse { Success = false };
-            // }
-
-            var passwordValid = await userManager.CheckPasswordAsync(user, request.Password);
+            var passwordValid = await userStorage.CheckPasswordAsync(user.Id, request.Password, ct);
             if (!passwordValid) {
-                await userManager.AccessFailedAsync(user);
+                await userStorage.RecordAccessFailedAsync(user.Id, ct);
                 logger.LogWarning("Admin login attempt with invalid password: {Email}", request.Email);
                 return new AdminLoginResponse { Success = false };
             }
 
-            // TODO: Re-enable when 2FA feature is implemented
-            // TEMPORARY: 2FA validation disabled for development/testing
-            // if (string.IsNullOrEmpty(request.TwoFactorCode)) {
-            //     logger.LogInformation("Admin login requires 2FA code: {Email}", request.Email);
-            //     return new AdminLoginResponse {
-            //         Success = false,
-            //         RequiresTwoFactor = true
-            //     };
-            // }
-            //
-            // var twoFactorResult = await signInManager.TwoFactorAuthenticatorSignInAsync(
-            //     request.TwoFactorCode,
-            //     isPersistent: false,
-            //     rememberClient: false);
-            //
-            // if (!twoFactorResult.Succeeded) {
-            //     await userManager.AccessFailedAsync(user);
-            //     logger.LogWarning("Admin login attempt with invalid 2FA code: {Email}", request.Email);
-            //     return new AdminLoginResponse { Success = false };
-            // }
-
-            await signInManager.SignInAsync(user, isPersistent: false);
-            await userManager.ResetAccessFailedCountAsync(user);
+            await signInService.SignInAsync(user.Id, isPersistent: false, ct);
+            await userStorage.ResetAccessFailedCountAsync(user.Id, ct);
 
             logger.LogInformation("Admin user logged in successfully: {Email}", request.Email);
 
-            var domainUser = user.ToModel([.. roles]);
-            var token = jwtTokenService.GenerateToken(domainUser!, roles, rememberMe: false);
+            var token = jwtTokenService.GenerateToken(user, user.Roles, rememberMe: false);
 
             return new AdminLoginResponse {
                 Success = true,
                 User = new AdminUserInfo {
                     Id = user.Id,
-                    Email = user.Email!,
+                    Email = user.Email,
                     Name = user.Name,
                     DisplayName = user.DisplayName,
-                    IsAdmin = true
+                    IsAdmin = true,
                 },
-                Token = token
+                Token = token,
             };
         }
         catch (Exception ex) {
@@ -96,7 +66,7 @@ public class AdminAuthService(
 
     public async Task<AdminLoginResponse> LogoutAsync(CancellationToken ct = default) {
         try {
-            await signInManager.SignOutAsync();
+            await signInService.SignOutAsync(ct);
             logger.LogInformation("Admin user logged out successfully");
 
             return new AdminLoginResponse { Success = true };
@@ -109,24 +79,23 @@ public class AdminAuthService(
 
     public async Task<AdminUserInfo?> GetCurrentUserAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("GetCurrentUser called for non-existent user ID: {UserId}", userId);
                 return null;
             }
 
-            var roles = await userManager.GetRolesAsync(user);
-            if (!roles.Contains("Administrator")) {
+            if (!user.Roles.Contains("Administrator")) {
                 logger.LogWarning("GetCurrentUser called for non-admin user: {UserId}", userId);
                 return null;
             }
 
             return new AdminUserInfo {
                 Id = user.Id,
-                Email = user.Email!,
+                Email = user.Email,
                 Name = user.Name,
                 DisplayName = user.DisplayName,
-                IsAdmin = true
+                IsAdmin = true,
             };
         }
         catch (Exception ex) {
@@ -139,7 +108,7 @@ public class AdminAuthService(
         await Task.CompletedTask;
         return new AdminSessionResponse {
             IsValid = true,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(30),
         };
     }
 }

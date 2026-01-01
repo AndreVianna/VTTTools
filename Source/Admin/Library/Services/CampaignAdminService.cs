@@ -7,9 +7,9 @@ public sealed class CampaignAdminService(
     IOptions<PublicLibraryOptions> options,
     ICampaignStorage campaignStorage,
     IAdventureStorage adventureStorage,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<CampaignAdminService> logger)
-    : LibraryAdminService(options, userManager, logger), ICampaignAdminService {
+    : LibraryAdminService(options, userStorage, logger), ICampaignAdminService {
 
     public async Task<LibraryContentSearchResponse> SearchCampaignsAsync(
         LibrarySearchRequest request,

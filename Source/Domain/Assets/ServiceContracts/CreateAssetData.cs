@@ -1,8 +1,5 @@
 namespace VttTools.Assets.ServiceContracts;
 
-/// <summary>
-/// Data to create a new Asset template.
-/// </summary>
 public record CreateAssetData
     : Data {
     public AssetKind Kind { get; init; }

@@ -95,6 +95,7 @@ internal static class Program {
                   .WithExposedHeaders("X-Refreshed-Token")));
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.AddScoped<ISignInService, SignInService>();
         builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();

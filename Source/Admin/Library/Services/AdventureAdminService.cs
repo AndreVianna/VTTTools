@@ -7,9 +7,9 @@ public sealed class AdventureAdminService(
     IOptions<PublicLibraryOptions> options,
     IAdventureStorage adventureStorage,
     IEncounterStorage encounterStorage,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<AdventureAdminService> logger)
-    : LibraryAdminService(options, userManager, logger), IAdventureAdminService {
+    : LibraryAdminService(options, userStorage, logger), IAdventureAdminService {
 
     public async Task<LibraryContentSearchResponse> SearchAdventuresAsync(
         LibrarySearchRequest request,

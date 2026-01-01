@@ -1,14 +1,14 @@
 namespace VttTools.Auth.Services;
 
 public class ProfileServiceTests {
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly ILogger<ProfileService> _mockLogger;
     private readonly ProfileService _profileService;
 
     public ProfileServiceTests() {
-        _mockUserManager = CreateUserManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockLogger = Substitute.For<ILogger<ProfileService>>();
-        _profileService = new ProfileService(_mockUserManager, _mockLogger);
+        _profileService = new ProfileService(_mockUserStorage, _mockLogger);
     }
 
     #region GetProfileAsync Tests
@@ -17,7 +17,7 @@ public class ProfileServiceTests {
     public async Task GetProfileAsync_WithValidUserId_ReturnsProfileResponse() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
 
         // Act
         var result = await _profileService.GetProfileAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -29,14 +29,14 @@ public class ProfileServiceTests {
         Assert.Equal("test@example.com", result.Email);
         Assert.Null(result.Message);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetProfileAsync_WithNonExistentUser_ReturnsNotFoundError() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _profileService.GetProfileAsync(userId, TestContext.Current.CancellationToken);
@@ -46,16 +46,15 @@ public class ProfileServiceTests {
         Assert.Equal("User not found", result.Message);
         Assert.Equal(Guid.Empty, result.Id);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetProfileAsync_WithAvatarId_ReturnsAvatarUrl() {
         // Arrange
         var avatarId = Guid.CreateVersion7();
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarId = avatarId;
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
+        var testUser = CreateTestUser("test@example.com", "Test User") with { AvatarId = avatarId };
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
 
         // Act
         var result = await _profileService.GetProfileAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -65,15 +64,14 @@ public class ProfileServiceTests {
         Assert.Equal(avatarId, result.AvatarId);
         Assert.Equal($"/api/resources/{avatarId}", result.AvatarUrl);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetProfileAsync_WithoutAvatarResourceId_ReturnsNullAvatarUrl() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarId = null;
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
+        var testUser = CreateTestUser("test@example.com", "Test User") with { AvatarId = null };
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
 
         // Act
         var result = await _profileService.GetProfileAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -83,14 +81,14 @@ public class ProfileServiceTests {
         Assert.Null(result.AvatarId);
         Assert.Null(result.AvatarUrl);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetProfileAsync_WhenExceptionThrown_ReturnsInternalServerError() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString())
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -100,7 +98,7 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("Internal server error", result.Message);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -115,82 +113,88 @@ public class ProfileServiceTests {
             Name = "Updated Name",
             DisplayName = "UpdatedDisplay",
             Email = "updated@example.com",
-            PhoneNumber = "+1234567890"
         };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.FindByEmailAsync(request.Email!).Returns((UserEntity?)null);
-        _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
+        var updatedUser = testUser with {
+            Name = "Updated Name",
+            DisplayName = "UpdatedDisplay",
+            Email = "updated@example.com",
+        };
+
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser, updatedUser);
+        _mockUserStorage.FindByEmailAsync(request.Email!, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         // Act
         var result = await _profileService.UpdateProfileAsync(testUser.Id, request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("Updated Name", testUser.Name);
-        Assert.Equal("UpdatedDisplay", testUser.DisplayName);
-        Assert.Equal("updated@example.com", testUser.Email);
-        Assert.Equal("updated@example.com", testUser.UserName);
-        Assert.Equal("+1234567890", testUser.PhoneNumber);
+        Assert.Equal("Updated Name", result.Name);
+        Assert.Equal("UpdatedDisplay", result.DisplayName);
+        Assert.Equal("updated@example.com", result.Email);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email!);
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(2).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).FindByEmailAsync(request.Email!, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task UpdateProfileAsync_WithPartialUpdate_OnlyUpdatesProvidedFields() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Original Name");
-        testUser.DisplayName = "OriginalDisplay";
-        testUser.PhoneNumber = "+0000000000";
+        var testUser = CreateTestUser("test@example.com", "Original Name") with {
+            DisplayName = "OriginalDisplay",
+        };
 
         var request = new UpdateProfileRequest {
             Name = "Updated Name",
             DisplayName = null,
             Email = null,
-            PhoneNumber = null
         };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
+        var updatedUser = testUser with {
+            Name = "Updated Name",
+        };
+
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser, updatedUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         // Act
         var result = await _profileService.UpdateProfileAsync(testUser.Id, request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("Updated Name", testUser.Name);
-        Assert.Equal("OriginalDisplay", testUser.DisplayName);
-        Assert.Equal("test@example.com", testUser.Email);
-        Assert.Equal("+0000000000", testUser.PhoneNumber);
+        Assert.Equal("Updated Name", result.Name);
+        Assert.Equal("OriginalDisplay", result.DisplayName);
+        Assert.Equal("test@example.com", result.Email);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.DidNotReceive().FindByEmailAsync(Arg.Any<string>());
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(2).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().FindByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_WithEmailChange_UpdatesUserNameToo() {
+    public async Task UpdateProfileAsync_WithEmailChange_ChecksForDuplicate() {
         // Arrange
         var testUser = CreateTestUser("old@example.com", "Test User");
         var request = new UpdateProfileRequest {
             Email = "new@example.com"
         };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.FindByEmailAsync(request.Email!).Returns((UserEntity?)null);
-        _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
+        var updatedUser = testUser with { Email = "new@example.com" };
+
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser, updatedUser);
+        _mockUserStorage.FindByEmailAsync(request.Email!, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         // Act
         var result = await _profileService.UpdateProfileAsync(testUser.Id, request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("new@example.com", testUser.Email);
-        Assert.Equal("new@example.com", testUser.UserName);
+        Assert.Equal("new@example.com", result.Email);
 
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email!);
+        await _mockUserStorage.Received(1).FindByEmailAsync(request.Email!, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -202,18 +206,20 @@ public class ProfileServiceTests {
             Email = "test@example.com"
         };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
+        var updatedUser = testUser with { Name = "Updated Name" };
+
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser, updatedUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         // Act
         var result = await _profileService.UpdateProfileAsync(testUser.Id, request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("Updated Name", testUser.Name);
+        Assert.Equal("Updated Name", result.Name);
 
-        await _mockUserManager.DidNotReceive().FindByEmailAsync(Arg.Any<string>());
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.DidNotReceive().FindByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -225,8 +231,8 @@ public class ProfileServiceTests {
             Email = "existing@example.com"
         };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.FindByEmailAsync(request.Email!).Returns(existingUser);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.FindByEmailAsync(request.Email!, Arg.Any<CancellationToken>()).Returns(existingUser);
 
         // Act
         var result = await _profileService.UpdateProfileAsync(testUser.Id, request, TestContext.Current.CancellationToken);
@@ -235,9 +241,9 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("Email address is already in use", result.Message);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email!);
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).FindByEmailAsync(request.Email!, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -248,7 +254,7 @@ public class ProfileServiceTests {
             Name = "New Name"
         };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _profileService.UpdateProfileAsync(userId, request, TestContext.Current.CancellationToken);
@@ -257,26 +263,22 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("User not found", result.Message);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_WithIdentityError_ReturnsErrorMessage() {
+    public async Task UpdateProfileAsync_WithUpdateError_ReturnsErrorMessage() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
         var request = new UpdateProfileRequest {
             Name = "Invalid Name"
         };
 
-        var identityErrors = new List<IdentityError> {
-            new() { Description = "Name contains invalid characters" },
-            new() { Description = "Name is too long" }
-        };
-        var failedResult = IdentityResult.Failed([.. identityErrors]);
+        var failedResult = Result.Failure(new Error("Name contains invalid characters"), new Error("Name is too long"));
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(failedResult);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(failedResult);
 
         // Act
         var result = await _profileService.UpdateProfileAsync(testUser.Id, request, TestContext.Current.CancellationToken);
@@ -286,7 +288,7 @@ public class ProfileServiceTests {
         Assert.Contains("Name contains invalid characters", result.Message);
         Assert.Contains("Name is too long", result.Message);
 
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -297,7 +299,7 @@ public class ProfileServiceTests {
             Name = "Updated Name"
         };
 
-        _mockUserManager.FindByIdAsync(userId.ToString())
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -318,20 +320,21 @@ public class ProfileServiceTests {
         var testUser = CreateTestUser("test@example.com", "Test User");
         var avatarId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
+        var updatedUser = testUser with { AvatarId = avatarId };
+
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser, updatedUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         // Act
         var result = await _profileService.UpdateAvatarAsync(testUser.Id, avatarId, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(avatarId, testUser.AvatarId);
         Assert.Equal(avatarId, result.AvatarId);
         Assert.Equal($"/api/resources/{avatarId}", result.AvatarUrl);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(2).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -340,7 +343,7 @@ public class ProfileServiceTests {
         var userId = Guid.CreateVersion7();
         var avatarId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _profileService.UpdateAvatarAsync(userId, avatarId, TestContext.Current.CancellationToken);
@@ -349,23 +352,20 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("User not found", result.Message);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateAvatarAsync_WithIdentityError_ReturnsErrorMessage() {
+    public async Task UpdateAvatarAsync_WithUpdateError_ReturnsErrorMessage() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
         var avatarId = Guid.CreateVersion7();
 
-        var identityErrors = new List<IdentityError> {
-            new() { Description = "Avatar resource not found" }
-        };
-        var failedResult = IdentityResult.Failed([.. identityErrors]);
+        var failedResult = Result.Failure(new Error("Avatar resource not found"));
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(failedResult);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(failedResult);
 
         // Act
         var result = await _profileService.UpdateAvatarAsync(testUser.Id, avatarId, TestContext.Current.CancellationToken);
@@ -374,7 +374,7 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("Avatar resource not found", result.Message);
 
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class ProfileServiceTests {
         var userId = Guid.CreateVersion7();
         var avatarId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString())
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -401,23 +401,23 @@ public class ProfileServiceTests {
     [Fact]
     public async Task RemoveAvatarAsync_WithValidUserId_RemovesAvatar() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarId = Guid.CreateVersion7();
+        var testUser = CreateTestUser("test@example.com", "Test User") with { AvatarId = Guid.CreateVersion7() };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
+        var updatedUser = testUser with { AvatarId = null };
+
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser, updatedUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         // Act
         var result = await _profileService.RemoveAvatarAsync(testUser.Id, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Null(testUser.AvatarId);
         Assert.Null(result.AvatarId);
         Assert.Null(result.AvatarUrl);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(2).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class ProfileServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _profileService.RemoveAvatarAsync(userId, TestContext.Current.CancellationToken);
@@ -434,23 +434,19 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("User not found", result.Message);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task RemoveAvatarAsync_WithIdentityError_ReturnsErrorMessage() {
+    public async Task RemoveAvatarAsync_WithUpdateError_ReturnsErrorMessage() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarId = Guid.CreateVersion7();
+        var testUser = CreateTestUser("test@example.com", "Test User") with { AvatarId = Guid.CreateVersion7() };
 
-        var identityErrors = new List<IdentityError> {
-            new() { Description = "Failed to update user" }
-        };
-        var failedResult = IdentityResult.Failed([.. identityErrors]);
+        var failedResult = Result.Failure(new Error("Failed to update user"));
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.UpdateAsync(testUser).Returns(failedResult);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(failedResult);
 
         // Act
         var result = await _profileService.RemoveAvatarAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -459,7 +455,7 @@ public class ProfileServiceTests {
         Assert.False(result.Success);
         Assert.Equal("Failed to update user", result.Message);
 
-        await _mockUserManager.Received(1).UpdateAsync(testUser);
+        await _mockUserStorage.Received(1).UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -467,7 +463,7 @@ public class ProfileServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString())
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -482,16 +478,9 @@ public class ProfileServiceTests {
 
     #region Helper Methods
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
-    }
-
-    private static UserEntity CreateTestUser(string email, string name)
+    private static User CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
-            UserName = email,
             Email = email,
             Name = name,
             DisplayName = name,

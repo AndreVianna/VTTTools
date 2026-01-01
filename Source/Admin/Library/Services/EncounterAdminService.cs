@@ -6,9 +6,9 @@ public sealed class EncounterAdminService(
     IOptions<PublicLibraryOptions> options,
     IEncounterStorage encounterStorage,
     IAdventureStorage adventureStorage,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<EncounterAdminService> logger)
-    : LibraryAdminService(options, userManager, logger),
+    : LibraryAdminService(options, userStorage, logger),
       IEncounterAdminService {
 
     public async Task<LibraryContentSearchResponse> SearchEncountersAsync(

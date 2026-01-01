@@ -30,6 +30,7 @@ global using VttTools.Auth.Services;
 global using VttTools.Common.Model;
 global using VttTools.Configuration;
 global using VttTools.Identity.Model;
+global using VttTools.Identity.Storage;
 global using VttTools.Json;
 global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;

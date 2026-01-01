@@ -2,11 +2,7 @@ namespace VttTools.Library.Adventures.ApiContracts;
 
 public record CreateAdventureRequest
     : Request {
-    [Required]
-    [MaxLength(128)]
     public string Name { get; init; } = string.Empty;
-    [Required]
-    [MaxLength(1024)]
     public string Description { get; init; } = string.Empty;
     public AdventureStyle Style { get; init; }
     public bool IsOneShot { get; init; }

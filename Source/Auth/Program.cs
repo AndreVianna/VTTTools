@@ -130,6 +130,7 @@ internal static class Program {
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));
+        builder.Services.AddScoped<ISignInService, SignInService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IProfileService, ProfileService>();
         builder.Services.AddScoped<ISecurityService, SecurityService>();

@@ -1,14 +1,14 @@
 namespace VttTools.Auth.Services;
 
 public class SecurityServiceTests {
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly ILogger<SecurityService> _mockLogger;
     private readonly SecurityService _securityService;
 
     public SecurityServiceTests() {
-        _mockUserManager = CreateUserManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockLogger = Substitute.For<ILogger<SecurityService>>();
-        _securityService = new SecurityService(_mockUserManager, _mockLogger);
+        _securityService = new SecurityService(_mockUserStorage, _mockLogger);
     }
 
     #region GetSecuritySettingsAsync Tests
@@ -16,12 +16,13 @@ public class SecurityServiceTests {
     [Fact]
     public async Task GetSecuritySettingsAsync_WithValidUserId_ReturnsSettings() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.PasswordHash = "hashed_password";
-        testUser.TwoFactorEnabled = false;
+        var testUser = CreateTestUser("test@example.com", "Test User") with {
+            HasPassword = true,
+            TwoFactorEnabled = false,
+        };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.CountRecoveryCodesAsync(testUser).Returns(5);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(5);
 
         // Act
         var result = await _securityService.GetSecuritySettingsAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -33,15 +34,15 @@ public class SecurityServiceTests {
         Assert.False(result.TwoFactorEnabled);
         Assert.Equal(5, result.RecoveryCodesRemaining);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).CountRecoveryCodesAsync(testUser);
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetSecuritySettingsAsync_WithNonExistentUser_ReturnsNotFound() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _securityService.GetSecuritySettingsAsync(userId, TestContext.Current.CancellationToken);
@@ -53,43 +54,20 @@ public class SecurityServiceTests {
         Assert.False(result.TwoFactorEnabled);
         Assert.Equal(0, result.RecoveryCodesRemaining);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().CountRecoveryCodesAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().CountRecoveryCodesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetSecuritySettingsAsync_WithUserWithoutPassword_ReturnsFalseHasPassword() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.PasswordHash = null;
-        testUser.TwoFactorEnabled = false;
+        var testUser = CreateTestUser("test@example.com", "Test User") with {
+            HasPassword = false,
+            TwoFactorEnabled = false,
+        };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.CountRecoveryCodesAsync(testUser).Returns(0);
-
-        // Act
-        var result = await _securityService.GetSecuritySettingsAsync(testUser.Id, TestContext.Current.CancellationToken);
-
-        // Assert
-        Assert.True(result.Success);
-        Assert.Null(result.Message);
-        Assert.False(result.HasPassword);
-        Assert.False(result.TwoFactorEnabled);
-        Assert.Equal(0, result.RecoveryCodesRemaining);
-
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).CountRecoveryCodesAsync(testUser);
-    }
-
-    [Fact]
-    public async Task GetSecuritySettingsAsync_WithUserWithEmptyPasswordHash_ReturnsFalseHasPassword() {
-        // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.PasswordHash = string.Empty;
-        testUser.TwoFactorEnabled = false;
-
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.CountRecoveryCodesAsync(testUser).Returns(0);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(0);
 
         // Act
         var result = await _securityService.GetSecuritySettingsAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -101,18 +79,20 @@ public class SecurityServiceTests {
         Assert.False(result.TwoFactorEnabled);
         Assert.Equal(0, result.RecoveryCodesRemaining);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetSecuritySettingsAsync_WithTwoFactorEnabled_ReturnsTrueTwoFactorEnabled() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.PasswordHash = "hashed_password";
-        testUser.TwoFactorEnabled = true;
+        var testUser = CreateTestUser("test@example.com", "Test User") with {
+            HasPassword = true,
+            TwoFactorEnabled = true,
+        };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.CountRecoveryCodesAsync(testUser).Returns(10);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(10);
 
         // Act
         var result = await _securityService.GetSecuritySettingsAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -124,19 +104,20 @@ public class SecurityServiceTests {
         Assert.True(result.TwoFactorEnabled);
         Assert.Equal(10, result.RecoveryCodesRemaining);
 
-        await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
-        await _mockUserManager.Received(1).CountRecoveryCodesAsync(testUser);
+        await _mockUserStorage.Received(1).FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetSecuritySettingsAsync_WithRecoveryCodes_ReturnsCorrectCount() {
         // Arrange
-        var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.PasswordHash = "hashed_password";
-        testUser.TwoFactorEnabled = true;
+        var testUser = CreateTestUser("test@example.com", "Test User") with {
+            HasPassword = true,
+            TwoFactorEnabled = true,
+        };
 
-        _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.CountRecoveryCodesAsync(testUser).Returns(3);
+        _mockUserStorage.FindByIdAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(testUser);
+        _mockUserStorage.CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>()).Returns(3);
 
         // Act
         var result = await _securityService.GetSecuritySettingsAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -145,14 +126,14 @@ public class SecurityServiceTests {
         Assert.True(result.Success);
         Assert.Equal(3, result.RecoveryCodesRemaining);
 
-        await _mockUserManager.Received(1).CountRecoveryCodesAsync(testUser);
+        await _mockUserStorage.Received(1).CountRecoveryCodesAsync(testUser.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetSecuritySettingsAsync_WhenExceptionThrown_ReturnsInternalError() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString())
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -165,29 +146,21 @@ public class SecurityServiceTests {
         Assert.False(result.TwoFactorEnabled);
         Assert.Equal(0, result.RecoveryCodesRemaining);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
     }
 
     #endregion
 
     #region Helper Methods
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
-    }
-
-    private static UserEntity CreateTestUser(string email, string name)
+    private static User CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
-            UserName = email,
             Email = email,
             Name = name,
-            DisplayName = name,
             EmailConfirmed = true,
-            PasswordHash = "default_hashed_password",
-            TwoFactorEnabled = false
+            HasPassword = true,
+            TwoFactorEnabled = false,
         };
 
     #endregion

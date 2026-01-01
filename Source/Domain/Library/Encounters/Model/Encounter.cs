@@ -5,11 +5,7 @@ public record Encounter {
 
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid OwnerId { get; set; }
-
-    [MaxLength(128)]
     public string? Name { get; init; }
-
-    [MaxLength(4096)]
     public string? Description { get; init; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }

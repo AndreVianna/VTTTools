@@ -4,7 +4,7 @@ namespace VttTools.Services;
 public sealed class JwtTokenService(IOptions<JwtOptions> jwtOptions, ILogger<JwtTokenService> logger) : IJwtTokenService {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    public string GenerateToken(User user, IList<string> roles, bool rememberMe = false) {
+    public string GenerateToken(User user, IReadOnlyList<string> roles, bool rememberMe = false) {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
 

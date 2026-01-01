@@ -1,27 +1,22 @@
 namespace VttTools.Admin.Services;
 
 public class DashboardServiceTests {
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly IAuditLogService _mockAuditLogService;
     private readonly ILogger<DashboardService> _mockLogger;
     private readonly DashboardService _sut;
 
     public DashboardServiceTests() {
-        _mockUserManager = CreateUserManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockAuditLogService = Substitute.For<IAuditLogService>();
         _mockLogger = Substitute.For<ILogger<DashboardService>>();
-        _sut = new(_mockUserManager, _mockAuditLogService, _mockLogger);
+        _sut = new(_mockUserStorage, _mockAuditLogService, _mockLogger);
     }
 
     [Fact]
-    public async Task GetStatsAsync_ReturnsTotalUsers_FromUserManager() {
-        var users = new List<UserEntity> {
-            CreateTestUser("user1@example.com", "User One"),
-            CreateTestUser("user2@example.com", "User Two"),
-            CreateTestUser("user3@example.com", "User Three"),
-        };
-
-        _mockUserManager.Users.Returns(users.AsQueryable());
+    public async Task GetStatsAsync_ReturnsTotalUsers_FromUserStorage() {
+        _mockUserStorage.GetTotalUserCountAsync(Arg.Any<CancellationToken>())
+            .Returns(3);
 
         _mockAuditLogService.GetDistinctActiveUsersCountAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
             .Returns(0);
@@ -38,11 +33,8 @@ public class DashboardServiceTests {
 
     [Fact]
     public async Task GetStatsAsync_ReturnsActiveUsers24h_FromAuditLogs() {
-        var users = new List<UserEntity> {
-            CreateTestUser("user1@example.com", "User One")
-        };
-
-        _mockUserManager.Users.Returns(users.AsQueryable());
+        _mockUserStorage.GetTotalUserCountAsync(Arg.Any<CancellationToken>())
+            .Returns(1);
 
         _mockAuditLogService.GetDistinctActiveUsersCountAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
             .Returns(3);
@@ -105,19 +97,4 @@ public class DashboardServiceTests {
         => await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             async () => await _sut.GetMetricsAsync(169, TestContext.Current.CancellationToken));
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
-    }
-
-    private static UserEntity CreateTestUser(string email, string name)
-        => new() {
-            Id = Guid.CreateVersion7(),
-            UserName = email,
-            Email = email,
-            Name = name,
-            DisplayName = name,
-            EmailConfirmed = true
-        };
 }

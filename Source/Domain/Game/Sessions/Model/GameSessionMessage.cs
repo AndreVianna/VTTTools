@@ -5,6 +5,5 @@ public record GameSessionMessage {
     public Guid SentBy { get; init; }
     public Guid[] SentTo { get; init; } = [];
     public MessageType Type { get; init; }
-    [MaxLength(4096)]
     public string Content { get; init; } = string.Empty;
 }

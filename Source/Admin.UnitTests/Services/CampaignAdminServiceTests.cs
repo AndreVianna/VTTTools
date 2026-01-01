@@ -7,7 +7,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
     private readonly ICampaignStorage _mockCampaignStorage;
     private readonly IAdventureStorage _mockAdventureStorage;
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly ILogger<CampaignAdminService> _mockLogger;
     private readonly CampaignAdminService _sut;
     private readonly Guid _masterUserId = Guid.CreateVersion7();
@@ -18,9 +18,9 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
 
         _mockCampaignStorage = Substitute.For<ICampaignStorage>();
         _mockAdventureStorage = Substitute.For<IAdventureStorage>();
-        _mockUserManager = CreateUserManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockLogger = Substitute.For<ILogger<CampaignAdminService>>();
-        _sut = new(_mockOptions, _mockCampaignStorage, _mockAdventureStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockCampaignStorage, _mockAdventureStorage, _mockUserStorage, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -37,7 +37,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(([.. campaigns.Take(11)], 15));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Skip = 0, Take = 10 };
 
@@ -54,7 +54,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(([], 0));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Search = "dragon", Skip = 0, Take = 10 };
 
@@ -73,7 +73,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(campaign);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.GetCampaignByIdAsync(campaign.Id, TestContext.Current.CancellationToken);
 
@@ -94,7 +94,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
     [Fact]
     public async Task CreateCampaignAsync_WithValidData_CreatesCampaign() {
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.CreateCampaignAsync("New Campaign", "Description", TestContext.Current.CancellationToken);
 
@@ -122,7 +122,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(true);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.UpdateCampaignAsync(campaign.Id, "New Name", "New desc", true, true, TestContext.Current.CancellationToken);
 
@@ -220,7 +220,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(adventures);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.GetAdventuresByCampaignIdAsync(campaign.Id, TestContext.Current.CancellationToken);
 
@@ -233,7 +233,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns([]);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.GetAdventuresByCampaignIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
@@ -247,7 +247,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(campaign);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.CreateAdventureForCampaignAsync(campaign.Id, "New Adventure", "Desc", TestContext.Current.CancellationToken);
 
@@ -276,7 +276,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(adventure);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.CloneAdventureAsync(campaignId, adventure.Id, "Cloned", TestContext.Current.CancellationToken);
 
@@ -295,7 +295,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(adventure);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.CloneAdventureAsync(campaignId, adventure.Id, null, TestContext.Current.CancellationToken);
 
@@ -336,10 +336,18 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
+    private void SetupUserStorageMock(List<User> users) {
+        _mockUserStorage.GetDisplayNamesAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                var ids = callInfo.Arg<IEnumerable<Guid>>().ToList();
+                return users.Where(u => ids.Contains(u.Id))
+                    .ToDictionary(u => u.Id, u => (string?)u.DisplayName) as IReadOnlyDictionary<Guid, string?>;
+            });
+        _mockUserStorage.FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                var id = callInfo.Arg<Guid>();
+                return users.FirstOrDefault(u => u.Id == id);
+            });
     }
 
     private CampaignModel CreateTestCampaign(string name, string description, Guid? ownerId = null) => new() {
@@ -368,17 +376,15 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
         IsPublic = false
     };
 
-    private static UserEntity CreateTestUser(Guid id, string email, string name) => new() {
+    private static User CreateTestUser(Guid id, string email, string name) => new() {
         Id = id,
-        UserName = email,
         Email = email,
         Name = name,
-        DisplayName = name,
-        EmailConfirmed = true
+        DisplayName = name
     };
 
-    private static List<UserEntity> CreateTestUsers(int count) {
-        var users = new List<UserEntity>();
+    private static List<User> CreateTestUsers(int count) {
+        var users = new List<User>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser(Guid.CreateVersion7(), $"user{i}@example.com", $"User {i}"));
         }
