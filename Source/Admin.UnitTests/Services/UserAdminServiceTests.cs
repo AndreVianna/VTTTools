@@ -1,19 +1,25 @@
+using DotNetToolbox;
+
+using VttTools.Common.Model;
+using VttTools.Identity.Model;
+using VttTools.Identity.Storage;
+
 namespace VttTools.Admin.Services;
 
 public class UserAdminServiceTests
     : IAsyncLifetime {
-    private readonly UserManager<UserEntity> _mockUserManager;
-    private readonly RoleManager<RoleEntity> _mockRoleManager;
+    private readonly IUserStorage _mockUserStorage;
+    private readonly IRoleStorage _mockRoleStorage;
     private readonly IAuditLogService _mockAuditLogService;
     private readonly ILogger<UserAdminService> _mockLogger;
     private readonly UserAdminService _sut;
 
     public UserAdminServiceTests() {
-        _mockUserManager = CreateUserManagerMock();
-        _mockRoleManager = CreateRoleManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
+        _mockRoleStorage = Substitute.For<IRoleStorage>();
         _mockAuditLogService = Substitute.For<IAuditLogService>();
         _mockLogger = Substitute.For<ILogger<UserAdminService>>();
-        _sut = new(_mockUserManager, _mockRoleManager, _mockAuditLogService, _mockLogger);
+        _sut = new(_mockUserStorage, _mockRoleStorage, _mockAuditLogService, _mockLogger);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -28,13 +34,16 @@ public class UserAdminServiceTests
     [Fact]
     public async Task SearchUsersAsync_WithValidRequest_ReturnsPagedResults() {
         var users = CreateTestUsers(15);
-        var queryable = users.BuildMock();
 
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
+        _mockUserStorage.SearchAsync(
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<Pagination?>(),
+            Arg.Any<CancellationToken>())
+            .Returns(([.. users.Take(10)], 15));
 
         var request = new UserSearchRequest {
             Skip = 0,
@@ -52,18 +61,20 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task SearchUsersAsync_WithSearchTerm_ReturnsFilteredResults() {
-        var users = new List<UserEntity> {
+        var matchingUsers = new User[] {
             CreateTestUser("john@example.com", "John Doe"),
-            CreateTestUser("jane@example.com", "Jane Smith"),
-            CreateTestUser("bob@example.com", "Bob Johnson")
+            CreateTestUser("johnson@example.com", "Bob Johnson")
         };
-        var queryable = users.BuildMock();
 
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
+        _mockUserStorage.SearchAsync(
+            "john",
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<Pagination?>(),
+            Arg.Any<CancellationToken>())
+            .Returns((matchingUsers, 2));
 
         var request = new UserSearchRequest {
             Search = "john",
@@ -79,25 +90,17 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task SearchUsersAsync_WithStatusActive_ReturnsActiveUsers() {
-        var activeUser = CreateTestUser("active@example.com", "Active User");
-        activeUser.EmailConfirmed = true;
+        var activeUser = CreateTestUser("active@example.com", "Active User", emailConfirmed: true);
 
-        var lockedUser = CreateTestUser("locked@example.com", "Locked User");
-        lockedUser.EmailConfirmed = true;
-        lockedUser.LockoutEnabled = true;
-        lockedUser.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1);
-
-        var unconfirmedUser = CreateTestUser("unconfirmed@example.com", "Unconfirmed User");
-        unconfirmedUser.EmailConfirmed = false;
-
-        var users = new List<UserEntity> { activeUser, lockedUser, unconfirmedUser };
-        var queryable = users.BuildMock();
-
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
+        _mockUserStorage.SearchAsync(
+            Arg.Any<string?>(),
+            "active",
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<Pagination?>(),
+            Arg.Any<CancellationToken>())
+            .Returns(([activeUser], 1));
 
         var request = new UserSearchRequest {
             Status = "active",
@@ -113,22 +116,17 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task SearchUsersAsync_WithStatusLocked_ReturnsLockedUsers() {
-        var activeUser = CreateTestUser("active@example.com", "Active User");
-        activeUser.EmailConfirmed = true;
+        var lockedUser = CreateTestUser("locked@example.com", "Locked User", emailConfirmed: true, lockoutEnabled: true, lockoutEnd: DateTimeOffset.UtcNow.AddDays(1));
 
-        var lockedUser = CreateTestUser("locked@example.com", "Locked User");
-        lockedUser.EmailConfirmed = true;
-        lockedUser.LockoutEnabled = true;
-        lockedUser.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1);
-
-        var users = new List<UserEntity> { activeUser, lockedUser };
-        var queryable = users.BuildMock();
-
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
+        _mockUserStorage.SearchAsync(
+            Arg.Any<string?>(),
+            "locked",
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<Pagination?>(),
+            Arg.Any<CancellationToken>())
+            .Returns(([lockedUser], 1));
 
         var request = new UserSearchRequest {
             Status = "locked",
@@ -145,16 +143,20 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task SearchUsersAsync_WithRoleFilter_ReturnsUsersWithRole() {
-        var users = CreateTestUsers(5);
-        var queryable = users.BuildMock();
+        var adminUsers = new User[] {
+            CreateTestUser("admin1@example.com", "Admin 1", roles: ["Administrator"]),
+            CreateTestUser("admin2@example.com", "Admin 2", roles: ["Administrator"])
+        };
 
-        _mockUserManager.Users.Returns(queryable);
-
-        _mockUserManager.GetRolesAsync(users[0]).Returns(["Administrator"]);
-        _mockUserManager.GetRolesAsync(users[1]).Returns(["User"]);
-        _mockUserManager.GetRolesAsync(users[2]).Returns(["Administrator"]);
-        _mockUserManager.GetRolesAsync(users[3]).Returns(["User"]);
-        _mockUserManager.GetRolesAsync(users[4]).Returns(["Editor"]);
+        _mockUserStorage.SearchAsync(
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            "Administrator",
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<Pagination?>(),
+            Arg.Any<CancellationToken>())
+            .Returns((adminUsers, 2));
 
         var request = new UserSearchRequest {
             Role = "Administrator",
@@ -168,104 +170,18 @@ public class UserAdminServiceTests
         result.Users.All(u => u.Roles.Contains("Administrator")).Should().BeTrue();
     }
 
-    [Fact]
-    public async Task SearchUsersAsync_WithSortByEmail_ReturnsSortedResults() {
-        var users = new List<UserEntity> {
-            CreateTestUser("charlie@example.com", "Charlie"),
-            CreateTestUser("alice@example.com", "Alice"),
-            CreateTestUser("bob@example.com", "Bob")
-        };
-        var queryable = users.BuildMock();
-
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
-
-        var request = new UserSearchRequest {
-            SortBy = "email",
-            SortOrder = "asc",
-            Skip = 0,
-            Take = 10
-        };
-
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
-
-        result.Users[0].Email.Should().Be("alice@example.com");
-        result.Users[result.Users.Count - 1].Email.Should().Be("charlie@example.com");
-    }
-
-    [Fact]
-    public async Task SearchUsersAsync_WithSortByCreatedDate_ReturnsSortedResults() {
-        var user1 = CreateTestUser("user1@example.com", "User 1");
-        var user2 = CreateTestUser("user2@example.com", "User 2");
-        var user3 = CreateTestUser("user3@example.com", "User 3");
-
-        var users = new List<UserEntity> { user1, user2, user3 };
-        var queryable = users.BuildMock();
-
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
-
-        var request = new UserSearchRequest {
-            SortBy = "createddate",
-            SortOrder = "desc",
-            Skip = 0,
-            Take = 10
-        };
-
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
-
-        result.Users[0].Email.Should().Be("user3@example.com");
-        result.Users[result.Users.Count - 1].Email.Should().Be("user1@example.com");
-    }
-
-    [Fact]
-    public async Task SearchUsersAsync_WithDateFilters_ReturnsFilteredResults() {
-        var now = DateTime.UtcNow;
-        var user1 = CreateTestUser("user1@example.com", "User 1");
-        var user2 = CreateTestUser("user2@example.com", "User 2");
-        var user3 = CreateTestUser("user3@example.com", "User 3");
-
-        var users = new List<UserEntity> { user1, user2, user3 };
-        var queryable = users.BuildMock();
-
-        _mockUserManager.Users.Returns(queryable);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
-
-        var request = new UserSearchRequest {
-            Skip = 0,
-            Take = 2
-        };
-
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
-
-        result.Users.Count.Should().Be(2);
-        result.Users.Should().Contain(u => u.Email == "user1@example.com");
-        result.Users.Should().Contain(u => u.Email == "user2@example.com");
-    }
-
     #endregion
 
     #region GetUserByIdAsync Tests
 
     [Fact]
     public async Task GetUserByIdAsync_WithExistingUser_ReturnsUserDetail() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        var roles = new List<string> { "User", "Editor" };
+        var user = CreateTestUser("test@example.com", "Test User", roles: ["User", "Editor"]);
         var createdDate = DateTime.UtcNow.AddDays(-30);
         var lastLoginDate = DateTime.UtcNow.AddDays(-1);
         var lastModifiedDate = DateTime.UtcNow;
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(roles);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
         _mockAuditLogService.GetUserCreatedDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns(createdDate);
         _mockAuditLogService.GetUserLastLoginDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns(lastLoginDate);
         _mockAuditLogService.GetUserLastModifiedDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns(lastModifiedDate);
@@ -277,13 +193,13 @@ public class UserAdminServiceTests
         result.Email.Should().Be(user.Email);
         result.DisplayName.Should().Be(user.DisplayName);
         result.EmailConfirmed.Should().Be(user.EmailConfirmed);
-        result.Roles.Should().BeEquivalentTo(roles);
+        result.Roles.Should().BeEquivalentTo(["User", "Editor"]);
     }
 
     [Fact]
     public async Task GetUserByIdAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var act = () => _sut.GetUserByIdAsync(userId, default);
 
@@ -293,13 +209,10 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task GetUserByIdAsync_WithLockedUser_ReturnsIsLockedOutTrue() {
-        var user = CreateTestUser("locked@example.com", "Locked User");
-        user.LockoutEnabled = true;
-        user.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1);
+        var user = CreateTestUser("locked@example.com", "Locked User", lockoutEnabled: true, lockoutEnd: DateTimeOffset.UtcNow.AddDays(1));
         var createdDate = DateTime.UtcNow.AddDays(-30);
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["User"]);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
         _mockAuditLogService.GetUserCreatedDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns(createdDate);
         _mockAuditLogService.GetUserLastLoginDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns((DateTime?)null);
         _mockAuditLogService.GetUserLastModifiedDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns((DateTime?)null);
@@ -319,11 +232,12 @@ public class UserAdminServiceTests
     [Fact]
     public async Task LockUserAsync_WithValidUser_LocksUserSuccessfully() {
         var user = CreateTestUser("test@example.com", "Test User");
+        var summary = new UsersSummary { TotalUsers = 5, TotalAdministrators = 2, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        _mockUserManager.SetLockoutEnabledAsync(user, true).Returns(IdentityResult.Success);
-        _mockUserManager.SetLockoutEndDateAsync(user, Arg.Any<DateTimeOffset?>()).Returns(IdentityResult.Success);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -332,14 +246,15 @@ public class UserAdminServiceTests
         result.LockedUntil.Should().NotBeNull();
         result.LockedUntil!.Value.Should().BeAfter(DateTimeOffset.UtcNow.AddYears(99));
 
-        await _mockUserManager.Received(1).SetLockoutEnabledAsync(user, true);
-        await _mockUserManager.Received(1).SetLockoutEndDateAsync(user, Arg.Any<DateTimeOffset?>());
+        await _mockUserStorage.Received(1).UpdateAsync(
+            Arg.Is<User>(u => u.LockoutEnabled && u.LockoutEnd > DateTimeOffset.UtcNow.AddYears(99)),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LockUserAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var act = () => _sut.LockUserAsync(userId, TestContext.Current.CancellationToken);
 
@@ -349,15 +264,11 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task LockUserAsync_WhenLockingLastAdmin_ThrowsLastAdminException() {
-        var user = CreateTestUser("admin@example.com", "Admin User");
-        var allUsers = new List<UserEntity> { user }.BuildMock();
+        var user = CreateTestUser("admin@example.com", "Admin User", roles: ["Administrator"]);
+        var summary = new UsersSummary { TotalUsers = 1, TotalAdministrators = 1, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-        _mockUserManager.Users.Returns(allUsers);
-
-        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
-        _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
         var act = () => _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -367,33 +278,28 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task LockUserAsync_WithMultipleAdmins_LocksAdminSuccessfully() {
-        var admin1 = CreateTestUser("admin1@example.com", "Admin 1");
-        var admin2 = CreateTestUser("admin2@example.com", "Admin 2");
-        var allUsers = new List<UserEntity> { admin1, admin2 }.BuildMock();
+        var admin = CreateTestUser("admin1@example.com", "Admin 1", roles: ["Administrator"]);
+        var summary = new UsersSummary { TotalUsers = 2, TotalAdministrators = 2, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(admin1.Id.ToString()).Returns(admin1);
-        _mockUserManager.GetRolesAsync(admin1).Returns(["Administrator"]);
-        _mockUserManager.GetRolesAsync(admin2).Returns(["Administrator"]);
-        _mockUserManager.Users.Returns(allUsers);
-        _mockUserManager.SetLockoutEnabledAsync(admin1, true).Returns(IdentityResult.Success);
-        _mockUserManager.SetLockoutEndDateAsync(admin1, Arg.Any<DateTimeOffset?>()).Returns(IdentityResult.Success);
+        _mockUserStorage.FindByIdAsync(admin.Id, Arg.Any<CancellationToken>()).Returns(admin);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
-        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
-        _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
-
-        var result = await _sut.LockUserAsync(admin1.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.LockUserAsync(admin.Id, TestContext.Current.CancellationToken);
 
         result.Success.Should().BeTrue();
     }
 
     [Fact]
-    public async Task LockUserAsync_WhenSetLockoutFails_ReturnsFailure() {
+    public async Task LockUserAsync_WhenUpdateFails_ReturnsFailure() {
         var user = CreateTestUser("test@example.com", "Test User");
+        var summary = new UsersSummary { TotalUsers = 5, TotalAdministrators = 2, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        _mockUserManager.SetLockoutEnabledAsync(user, true)
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Lockout failed" }));
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Lockout failed")));
 
         var result = await _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -407,28 +313,26 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task UnlockUserAsync_WithLockedUser_UnlocksSuccessfully() {
-        var user = CreateTestUser("locked@example.com", "Locked User");
-        user.LockoutEnabled = true;
-        user.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1);
-        user.AccessFailedCount = 3;
+        var user = CreateTestUser("locked@example.com", "Locked User", lockoutEnabled: true, lockoutEnd: DateTimeOffset.UtcNow.AddDays(1));
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.SetLockoutEndDateAsync(user, null).Returns(IdentityResult.Success);
-        _mockUserManager.ResetAccessFailedCountAsync(user).Returns(IdentityResult.Success);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _sut.UnlockUserAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
 
-        await _mockUserManager.Received(1).SetLockoutEndDateAsync(user, null);
-        await _mockUserManager.Received(1).ResetAccessFailedCountAsync(user);
+        await _mockUserStorage.Received(1).UpdateAsync(
+            Arg.Is<User>(u => u.LockoutEnd == null),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task UnlockUserAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var act = () => _sut.UnlockUserAsync(userId, TestContext.Current.CancellationToken);
 
@@ -437,12 +341,12 @@ public class UserAdminServiceTests
     }
 
     [Fact]
-    public async Task UnlockUserAsync_WhenUnlockFails_ReturnsFailure() {
+    public async Task UnlockUserAsync_WhenUpdateFails_ReturnsFailure() {
         var user = CreateTestUser("test@example.com", "Test User");
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.SetLockoutEndDateAsync(user, null)
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Unlock failed" }));
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Unlock failed")));
 
         var result = await _sut.UnlockUserAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -455,12 +359,11 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task VerifyEmailAsync_WithUnconfirmedEmail_ConfirmsSuccessfully() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.EmailConfirmed = false;
+        var user = CreateTestUser("test@example.com", "Test User", emailConfirmed: false);
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GenerateEmailConfirmationTokenAsync(user).Returns("test-token");
-        _mockUserManager.ConfirmEmailAsync(user, "test-token").Returns(IdentityResult.Success);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.ConfirmEmailAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _sut.VerifyEmailAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -468,16 +371,14 @@ public class UserAdminServiceTests
         result.Success.Should().BeTrue();
         result.EmailConfirmed.Should().BeTrue();
 
-        await _mockUserManager.Received(1).GenerateEmailConfirmationTokenAsync(user);
-        await _mockUserManager.Received(1).ConfirmEmailAsync(user, "test-token");
+        await _mockUserStorage.Received(1).ConfirmEmailAsync(user.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task VerifyEmailAsync_WithAlreadyConfirmedEmail_ReturnsSuccess() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.EmailConfirmed = true;
+        var user = CreateTestUser("test@example.com", "Test User", emailConfirmed: true);
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
 
         var result = await _sut.VerifyEmailAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -485,13 +386,13 @@ public class UserAdminServiceTests
         result.Success.Should().BeTrue();
         result.EmailConfirmed.Should().BeTrue();
 
-        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.DidNotReceive().ConfirmEmailAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task VerifyEmailAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var act = () => _sut.VerifyEmailAsync(userId, default);
 
@@ -501,13 +402,11 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task VerifyEmailAsync_WhenConfirmationFails_ReturnsFailure() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.EmailConfirmed = false;
+        var user = CreateTestUser("test@example.com", "Test User", emailConfirmed: false);
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GenerateEmailConfirmationTokenAsync(user).Returns("test-token");
-        _mockUserManager.ConfirmEmailAsync(user, "test-token")
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Confirmation failed" }));
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.ConfirmEmailAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Confirmation failed")));
 
         var result = await _sut.VerifyEmailAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -523,8 +422,9 @@ public class UserAdminServiceTests
     public async Task SendPasswordResetAsync_WithExistingUser_ReturnsSuccess() {
         var user = CreateTestUser("test@example.com", "Test User");
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GeneratePasswordResetTokenAsync(user).Returns("reset-token");
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GeneratePasswordResetTokenAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns("reset-token");
 
         var result = await _sut.SendPasswordResetAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -532,13 +432,13 @@ public class UserAdminServiceTests
         result.Success.Should().BeTrue();
         result.EmailSent.Should().BeTrue();
 
-        await _mockUserManager.Received(1).GeneratePasswordResetTokenAsync(user);
+        await _mockUserStorage.Received(1).GeneratePasswordResetTokenAsync(user.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task SendPasswordResetAsync_WithNonExistentUser_ReturnsSuccessForSecurity() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var result = await _sut.SendPasswordResetAsync(userId, TestContext.Current.CancellationToken);
 
@@ -546,7 +446,7 @@ public class UserAdminServiceTests
         result.Success.Should().BeTrue();
         result.EmailSent.Should().BeTrue();
 
-        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -556,22 +456,25 @@ public class UserAdminServiceTests
     [Fact]
     public async Task AssignRoleAsync_WithValidRequest_AssignsRoleSuccessfully() {
         var user = CreateTestUser("test@example.com", "Test User");
+        var updatedUser = CreateTestUser("test@example.com", "Test User", roles: ["User", "Editor"]);
+        updatedUser = updatedUser with { Id = user.Id };
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
-        var updatedRoles = new List<string> { "User", "Editor" };
+        var role = new Role { Id = Guid.CreateVersion7(), Name = roleName };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockRoleManager.RoleExistsAsync(roleName).Returns(true);
-        _mockUserManager.AddToRoleAsync(user, roleName).Returns(IdentityResult.Success);
-        _mockUserManager.GetRolesAsync(user).Returns(updatedRoles);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(user, updatedUser);
+        _mockRoleStorage.FindByNameAsync(roleName, Arg.Any<CancellationToken>()).Returns(role);
+        _mockUserStorage.AddToRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _sut.AssignRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
-        result.Roles.Should().BeEquivalentTo(updatedRoles);
+        result.Roles.Should().BeEquivalentTo(["User", "Editor"]);
 
-        await _mockUserManager.Received(1).AddToRoleAsync(user, roleName);
+        await _mockUserStorage.Received(1).AddToRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -591,7 +494,7 @@ public class UserAdminServiceTests
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var act = () => _sut.AssignRoleAsync(userId, roleName, adminUserId, default);
 
@@ -605,13 +508,13 @@ public class UserAdminServiceTests
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "InvalidRole";
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockRoleManager.RoleExistsAsync(roleName).Returns(false);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockRoleStorage.FindByNameAsync(roleName, Arg.Any<CancellationToken>()).Returns((Role?)null);
 
         var act = () => _sut.AssignRoleAsync(user.Id, roleName, adminUserId, default);
 
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage($"IsDefault '{roleName}' does not exist.*");
+            .WithMessage($"Role '{roleName}' does not exist.*");
     }
 
     [Fact]
@@ -619,11 +522,12 @@ public class UserAdminServiceTests
         var user = CreateTestUser("test@example.com", "Test User");
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
+        var role = new Role { Id = Guid.CreateVersion7(), Name = roleName };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockRoleManager.RoleExistsAsync(roleName).Returns(true);
-        _mockUserManager.AddToRoleAsync(user, roleName)
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "IsDefault assignment failed" }));
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockRoleStorage.FindByNameAsync(roleName, Arg.Any<CancellationToken>()).Returns(role);
+        _mockUserStorage.AddToRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Role assignment failed")));
 
         var result = await _sut.AssignRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
@@ -637,22 +541,26 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task RemoveRoleAsync_WithValidRequest_RemovesRoleSuccessfully() {
-        var user = CreateTestUser("test@example.com", "Test User");
+        var user = CreateTestUser("test@example.com", "Test User", roles: ["User", "Editor"]);
+        var updatedUser = CreateTestUser("test@example.com", "Test User", roles: ["User"]);
+        updatedUser = updatedUser with { Id = user.Id };
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
-        var updatedRoles = new List<string> { "User" };
+        var summary = new UsersSummary { TotalUsers = 5, TotalAdministrators = 2, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.RemoveFromRoleAsync(user, roleName).Returns(IdentityResult.Success);
-        _mockUserManager.GetRolesAsync(user).Returns(updatedRoles);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(user, updatedUser);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
+        _mockUserStorage.RemoveFromRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _sut.RemoveRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
-        result.Roles.Should().BeEquivalentTo(updatedRoles);
+        result.Roles.Should().BeEquivalentTo(["User"]);
 
-        await _mockUserManager.Received(1).RemoveFromRoleAsync(user, roleName);
+        await _mockUserStorage.Received(1).RemoveFromRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -672,7 +580,7 @@ public class UserAdminServiceTests
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var act = () => _sut.RemoveRoleAsync(userId, roleName, adminUserId, default);
 
@@ -682,16 +590,12 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task RemoveRoleAsync_WhenRemovingLastAdminRole_ThrowsLastAdminException() {
-        var user = CreateTestUser("admin@example.com", "Admin User");
+        var user = CreateTestUser("admin@example.com", "Admin User", roles: ["Administrator"]);
         var adminUserId = Guid.CreateVersion7();
-        var allUsers = new List<UserEntity> { user }.BuildMock();
+        var summary = new UsersSummary { TotalUsers = 1, TotalAdministrators = 1, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-        _mockUserManager.Users.Returns(allUsers);
-
-        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
-        _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
         var act = () => _sut.RemoveRoleAsync(user.Id, "Administrator", adminUserId, default);
 
@@ -701,19 +605,17 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task RemoveRoleAsync_WithMultipleAdmins_RemovesAdminRoleSuccessfully() {
-        var admin1 = CreateTestUser("admin1@example.com", "Admin 1");
-        var admin2 = CreateTestUser("admin2@example.com", "Admin 2");
+        var admin1 = CreateTestUser("admin1@example.com", "Admin 1", roles: ["Administrator"]);
+        var updatedAdmin = CreateTestUser("admin1@example.com", "Admin 1", roles: []);
+        updatedAdmin = updatedAdmin with { Id = admin1.Id };
         var adminUserId = Guid.CreateVersion7();
-        var allUsers = new List<UserEntity> { admin1, admin2 }.BuildMock();
+        var summary = new UsersSummary { TotalUsers = 2, TotalAdministrators = 2, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(admin1.Id.ToString()).Returns(admin1);
-        _mockUserManager.GetRolesAsync(admin1).Returns(["Administrator"]);
-        _mockUserManager.GetRolesAsync(admin2).Returns(["Administrator"]);
-        _mockUserManager.Users.Returns(allUsers);
-        _mockUserManager.RemoveFromRoleAsync(admin1, "Administrator").Returns(IdentityResult.Success);
-
-        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
-        _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
+        _mockUserStorage.FindByIdAsync(admin1.Id, Arg.Any<CancellationToken>())
+            .Returns(admin1, updatedAdmin);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
+        _mockUserStorage.RemoveFromRoleAsync(admin1.Id, "Administrator", Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _sut.RemoveRoleAsync(admin1.Id, "Administrator", adminUserId, TestContext.Current.CancellationToken);
 
@@ -725,10 +627,12 @@ public class UserAdminServiceTests
         var user = CreateTestUser("test@example.com", "Test User");
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
+        var summary = new UsersSummary { TotalUsers = 5, TotalAdministrators = 2, LockedUsers = 0, UnconfirmedEmails = 0 };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.RemoveFromRoleAsync(user, roleName)
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "IsDefault removal failed" }));
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
+        _mockUserStorage.RemoveFromRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Role removal failed")));
 
         var result = await _sut.RemoveRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
@@ -742,32 +646,14 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task GetUserStatsAsync_ReturnsCorrectCounts() {
-        var user1 = CreateTestUser("user1@example.com", "User 1");
-        user1.EmailConfirmed = true;
+        var summary = new UsersSummary {
+            TotalUsers = 4,
+            TotalAdministrators = 1,
+            LockedUsers = 1,
+            UnconfirmedEmails = 1
+        };
 
-        var user2 = CreateTestUser("user2@example.com", "User 2");
-        user2.EmailConfirmed = false;
-
-        var lockedUser = CreateTestUser("locked@example.com", "Locked User");
-        lockedUser.EmailConfirmed = true;
-        lockedUser.LockoutEnabled = true;
-        lockedUser.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1);
-
-        var adminUser = CreateTestUser("admin@example.com", "Admin User");
-        adminUser.EmailConfirmed = true;
-
-        var users = new List<UserEntity> { user1, user2, lockedUser, adminUser };
-        var queryable = users.BuildMock();
-
-        _mockUserManager.Users.Returns(queryable);
-
-        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
-        _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
-
-        _mockUserManager.GetRolesAsync(users[0]).Returns(["User"]);
-        _mockUserManager.GetRolesAsync(users[1]).Returns(["User"]);
-        _mockUserManager.GetRolesAsync(users[2]).Returns(["User"]);
-        _mockUserManager.GetRolesAsync(users[3]).Returns(["Administrator"]);
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
         var result = await _sut.GetUserStatsAsync(TestContext.Current.CancellationToken);
 
@@ -780,15 +666,14 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task GetUserStatsAsync_WithNoAdminRole_ReturnsZeroAdministrators() {
-        var users = CreateTestUsers(3);
-        var queryable = users.BuildMock();
+        var summary = new UsersSummary {
+            TotalUsers = 3,
+            TotalAdministrators = 0,
+            LockedUsers = 0,
+            UnconfirmedEmails = 0
+        };
 
-        _mockUserManager.Users.Returns(queryable);
-        _mockRoleManager.FindByNameAsync("Administrator").Returns((RoleEntity?)null);
-
-        foreach (var user in users) {
-            _mockUserManager.GetRolesAsync(user).Returns(["User"]);
-        }
+        _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
         var result = await _sut.GetUserStatsAsync(TestContext.Current.CancellationToken);
 
@@ -868,31 +753,26 @@ public class UserAdminServiceTests
 
     #region Helper Methods
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
-    }
-
-    private static RoleManager<RoleEntity> CreateRoleManagerMock() {
-        var roleStore = Substitute.For<IRoleStore<RoleEntity>>();
-        return Substitute.For<RoleManager<RoleEntity>>(
-            roleStore, null, null, null, null);
-    }
-
-    private static UserEntity CreateTestUser(string email, string name) => new() {
+    private static User CreateTestUser(
+        string email,
+        string name,
+        bool emailConfirmed = true,
+        bool lockoutEnabled = false,
+        DateTimeOffset? lockoutEnd = null,
+        IReadOnlyList<string>? roles = null) => new() {
         Id = Guid.CreateVersion7(),
-        UserName = email,
         Email = email,
         Name = name,
         DisplayName = name,
-        EmailConfirmed = true,
-        PasswordHash = "default_hashed_password",
-        TwoFactorEnabled = false
+        EmailConfirmed = emailConfirmed,
+        LockoutEnabled = lockoutEnabled,
+        LockoutEnd = lockoutEnd,
+        TwoFactorEnabled = false,
+        Roles = roles ?? ["User"]
     };
 
-    private static List<UserEntity> CreateTestUsers(int count) {
-        var users = new List<UserEntity>();
+    private static List<User> CreateTestUsers(int count) {
+        var users = new List<User>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser($"user{i}@example.com", $"User {i}"));
         }
