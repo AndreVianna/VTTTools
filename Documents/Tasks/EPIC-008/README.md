@@ -5,75 +5,58 @@
 | Property | Value |
 |----------|-------|
 | **Type** | Epic (Architecture Refactoring) |
-| **Status** | In Progress |
+| **Status** | ✅ COMPLETED |
 | **Priority** | High |
 | **Effort** | 16-24 hours (estimated) |
+| **Actual** | ~18 hours |
 | **Created** | 2025-12-30 |
+| **Completed** | 2026-01-01 |
 
 ## Purpose
 
 Isolate the Domain layer from infrastructure dependencies while maintaining full functionality of EF Core Identity and Azure Cloud services. This follows Clean Architecture principles where the Domain layer should have zero infrastructure dependencies.
 
-## Current Progress
+## Completion Summary
 
-### Phase 5: Aspire Infrastructure ✅ COMPLETED
-- [x] Health checks delegated to Aspire (`.WithHttpHealthCheck("health")`)
-- [x] Removed custom BlobStorageHealthCheck, DatabaseHealthCheck, CacheHealthCheck
-- [x] Fixed Aspire infrastructure references (admin-api, web-app, admin-app)
-- [x] Removed Azure/SqlClient usings from Common.UnitTests
+### All Phases Completed ✅
 
-### Phases 1-4: Identity Layer Isolation ❌ PENDING
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Domain Identity Models | ✅ Completed |
+| 2 | Data Layer Identity Implementation | ✅ Completed |
+| 3 | Library Layer Cleanup | ✅ Completed |
+| 4 | Auth Service Integration | ✅ Completed |
+| 5 | Health Check Abstraction (Aspire) | ✅ Completed |
+| 6 | Testing & Verification | ✅ Completed |
 
-#### Domain Layer Issues (CRITICAL)
-| Issue | Current State | Target |
-|-------|---------------|--------|
-| Identity package in Domain.csproj | `Microsoft.AspNetCore.Identity.EntityFrameworkCore` | Remove entirely |
-| User.cs | `class User : IdentityUser<Guid>` | `record DomainUser` (pure POCO) |
-| Role.cs | `class Role : IdentityRole<Guid>` | `record DomainRole` (pure POCO) |
-| UserClaim, UserLogin, UserRole, UserToken, RoleClaim | In Domain layer | Move to Data layer |
-| IUserStorage interface | Does not exist | Create in Domain |
-| IRoleStorage interface | Does not exist | Create in Domain |
+### Key Deliverables
 
-#### Library Layer Issues (HIGH)
-| Issue | Current State | Target |
-|-------|---------------|--------|
-| GlobalUsings.cs:7 | `global using Microsoft.EntityFrameworkCore;` | Remove |
+#### Domain Layer (Pure POCOs - No EF Dependencies)
+- ✅ `Source/Domain/Identity/Model/User.cs` - Immutable record with init-only properties
+- ✅ `Source/Domain/Identity/Model/Role.cs` - Immutable record with init-only properties
+- ✅ `Source/Domain/Identity/Storage/IUserStorage.cs` - Storage interface
+- ✅ `Source/Domain/Identity/Storage/IRoleStorage.cs` - Storage interface
+- ✅ Removed EF-specific types: UserClaim, UserLogin, UserRole, UserToken, RoleClaim
+- ✅ Removed `Microsoft.AspNetCore.Identity.EntityFrameworkCore` package reference
 
-## Remaining Work
+#### Data Layer (EF Identity Implementation)
+- ✅ `Source/Data/Identity/Entities/User.cs` - Inherits IdentityUser<Guid>
+- ✅ `Source/Data/Identity/Entities/Role.cs` - Inherits IdentityRole<Guid>
+- ✅ Plus UserClaim, UserLogin, UserRole, UserToken, RoleClaim entities
+- ✅ `Source/Data/Identity/Mapper.cs` - ToModel()/ToEntity()/UpdateFrom() conversions
+- ✅ `Source/Data/Identity/UserStorage.cs` - Implements IUserStorage (wraps UserManager)
+- ✅ `Source/Data/Identity/RoleStorage.cs` - Implements IRoleStorage (wraps RoleManager)
 
-### Phase 1: Domain Identity Models (4-6h)
-- [ ] Create `DomainUser` record (pure POCO)
-- [ ] Create `DomainRole` record (pure POCO)
-- [ ] Create `IUserStorage` interface
-- [ ] Create `IRoleStorage` interface
-- [ ] Remove `Microsoft.AspNetCore.Identity.EntityFrameworkCore` from Domain.csproj
-- [ ] Delete identity model files that move to Data layer
+#### Service Layer Updates
+- ✅ All Auth services use `UserEntity` for Identity operations
+- ✅ All Admin services use `UserEntity` for Identity operations
+- ✅ Convert to Domain `User` via `ToModel()` for business logic
 
-### Phase 2: Data Layer Identity Implementation (4-6h)
-- [ ] Create `Source/Data/Identity/Entities/` folder with EF Identity entities
-- [ ] Create `UserMapper.cs` and `RoleMapper.cs`
-- [ ] Implement `UserStorage : IUserStorage`
-- [ ] Implement `RoleStorage : IRoleStorage`
-- [ ] Update `ApplicationDbContext` references
-- [ ] Update `IdentitySchemaBuilder.cs`
-- [ ] Update `IdentitySchemaSeeder.cs`
+#### Testing
+- ✅ **2,461 tests passing** (0 failures)
+- ✅ All unit test files updated with correct type aliases
 
-### Phase 3: Library Layer Cleanup (1-2h)
-- [ ] Remove `global using Microsoft.EntityFrameworkCore` from GlobalUsings.cs
-- [ ] Verify all services compile without EF Core types
-- [ ] Update any identity-related code to use domain models
-
-### Phase 4: Auth Service Integration (2-4h)
-- [ ] Register storage implementations in Auth/Program.cs
-- [ ] Update authentication handlers if needed
-- [ ] Test authentication flow end-to-end
-
-### Phase 6: Testing & Verification (2-4h)
-- [ ] Add unit tests for mappers and storage implementations
-- [ ] Run full test suite
-- [ ] Manual verification of auth flows
-
-## Target Architecture
+## Final Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -83,11 +66,11 @@ Isolate the Domain layer from infrastructure dependencies while maintaining full
 │                                                             │
 │ Identity/                                                   │
 │   Model/                                                    │
-│     DomainUser.cs          (record - pure POCO)            │
-│     DomainRole.cs          (record - pure POCO)            │
+│     User.cs              (record - pure POCO)               │
+│     Role.cs              (record - pure POCO)               │
 │   Storage/                                                  │
-│     IUserStorage.cs        (user persistence contract)      │
-│     IRoleStorage.cs        (role persistence contract)      │
+│     IUserStorage.cs      (user persistence contract)        │
+│     IRoleStorage.cs      (role persistence contract)        │
 └─────────────────────────────────────────────────────────────┘
                             ▲
                             │ implements
@@ -98,14 +81,12 @@ Isolate the Domain layer from infrastructure dependencies while maintaining full
 │                                                             │
 │ Identity/                                                   │
 │   Entities/                                                 │
-│     User.cs                (: IdentityUser<Guid>)          │
-│     Role.cs                (: IdentityRole<Guid>)          │
-│     UserClaim.cs, etc.     (EF Identity entities)          │
-│   Mappers/                                                  │
-│     UserMapper.cs          (Entity <-> Domain mapping)      │
-│   Storage/                                                  │
-│     UserStorage.cs         (: IUserStorage)                │
-│     RoleStorage.cs         (: IRoleStorage)                │
+│     User.cs              (: IdentityUser<Guid>)             │
+│     Role.cs              (: IdentityRole<Guid>)             │
+│     UserClaim.cs, etc.   (EF Identity entities)             │
+│   Mapper.cs              (Entity <-> Domain mapping)        │
+│   UserStorage.cs         (: IUserStorage)                   │
+│   RoleStorage.cs         (: IRoleStorage)                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -114,6 +95,7 @@ Isolate the Domain layer from infrastructure dependencies while maintaining full
 - [TASK.md](./TASK.md) - Detailed specification and acceptance criteria
 - [ROADMAP.md](./ROADMAP.md) - Implementation phases and progress tracking
 
-## Dependencies
+## Related
 
 - **EPIC-007** (PostgreSQL Migration) - Completed, prerequisite
+- **PR**: refactor(identity): EPIC-008 - Domain Layer Infrastructure Isolation
