@@ -1,90 +1,42 @@
+using VttTools.Common.Model;
+using VttTools.Identity.Model;
+using VttTools.Identity.Storage;
+
 namespace VttTools.Admin.Users.Services;
 
 public sealed class UserAdminService(
-    UserManager<UserEntity> userManager,
-    RoleManager<RoleEntity> roleManager,
+    IUserStorage userStorage,
+    IRoleStorage roleStorage,
     IAuditLogService auditLogService,
     ILogger<UserAdminService> logger) : IUserAdminService {
 
     public async Task<UserSearchResponse> SearchUsersAsync(UserSearchRequest request, CancellationToken ct = default) {
         try {
-            var query = userManager.Users.AsQueryable();
+            var pagination = new Pagination(request.Skip, request.Take);
 
-            if (!string.IsNullOrWhiteSpace(request.Search)) {
-                var searchTerm = request.Search.Trim().ToLowerInvariant();
-                query = query.Where(u =>
-                    u.Email.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase) ||
-                    u.DisplayName.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase));
-            }
+            (var users, var totalCount) = await userStorage.SearchAsync(
+                search: request.Search,
+                status: request.Status,
+                role: request.Role,
+                sortBy: request.SortBy,
+                sortOrder: request.SortOrder,
+                pagination: pagination,
+                ct: ct);
 
-            if (!string.IsNullOrWhiteSpace(request.Status)) {
-                query = request.Status.ToLowerInvariant() switch {
-                    "active" => query.Where(u =>
-                        u.EmailConfirmed &&
-                        (!u.LockoutEnabled || u.LockoutEnd == null || u.LockoutEnd <= DateTimeOffset.UtcNow)),
-                    "locked" => query.Where(u =>
-                        u.LockoutEnabled &&
-                        u.LockoutEnd != null &&
-                        u.LockoutEnd > DateTimeOffset.UtcNow),
-                    "unconfirmed" => query.Where(u => !u.EmailConfirmed),
-                    _ => query
-                };
-            }
+            var userListItems = users.Select(user => new UserListItem {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Name,
+                DisplayName = user.DisplayName,
+                EmailConfirmed = user.EmailConfirmed,
+                LockoutEnabled = user.LockoutEnabled,
+                IsLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
+                              user.LockoutEnd.Value > DateTimeOffset.UtcNow,
+                TwoFactorEnabled = user.TwoFactorEnabled,
+                Roles = user.Roles.ToList().AsReadOnly()
+            }).ToList();
 
-            var totalCount = await query.CountAsync(ct);
-
-            var users = await query
-                .Skip(request.Skip)
-                .Take(request.Take + 1)
-                .ToListAsync(ct);
-
-            var userListItems = new List<UserListItem>();
-
-            foreach (var user in users) {
-                var roles = await userManager.GetRolesAsync(user);
-                var isLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
-                                  user.LockoutEnd.Value > DateTimeOffset.UtcNow;
-
-                userListItems.Add(new UserListItem {
-                    Id = user.Id,
-                    Email = user.Email,
-                    Name = user.Name,
-                    DisplayName = user.DisplayName,
-                    EmailConfirmed = user.EmailConfirmed,
-                    LockoutEnabled = user.LockoutEnabled,
-                    IsLockedOut = isLockedOut,
-                    TwoFactorEnabled = user.TwoFactorEnabled,
-                    Roles = roles.ToList().AsReadOnly()
-                });
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Role)) {
-                var usersWithRole = new List<UserListItem>();
-                foreach (var userItem in userListItems) {
-                    if (userItem.Roles.Any(r => r.Equals(request.Role, StringComparison.OrdinalIgnoreCase))) {
-                        usersWithRole.Add(userItem);
-                    }
-                }
-                userListItems = usersWithRole;
-                totalCount = userListItems.Count;
-            }
-
-            var sortBy = request.SortBy?.ToLowerInvariant() ?? "email";
-            var sortOrder = request.SortOrder?.ToLowerInvariant() ?? "asc";
-
-            userListItems = sortBy switch {
-                "displayname" => sortOrder == "desc"
-                    ? [.. userListItems.OrderByDescending(u => u.DisplayName)]
-                    : [.. userListItems.OrderBy(u => u.DisplayName)],
-                _ => sortOrder == "desc"
-                    ? [.. userListItems.OrderByDescending(u => u.Email)]
-                    : [.. userListItems.OrderBy(u => u.Email)]
-            };
-
-            var hasMore = userListItems.Count > request.Take;
-            if (hasMore) {
-                userListItems = [.. userListItems.Take(request.Take)];
-            }
+            var hasMore = request.Skip + users.Length < totalCount;
 
             logger.LogInformation(
                 "User search completed: {UserCount} users found (Skip: {Skip}, Take: {Take}, Total: {Total})",
@@ -104,9 +56,8 @@ public sealed class UserAdminService(
 
     public async Task<UserDetailResponse?> GetUserByIdAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new UserNotFoundException(userId);
+            var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
-            var roles = await userManager.GetRolesAsync(user);
             var isLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
                               user.LockoutEnd.Value > DateTimeOffset.UtcNow;
 
@@ -120,15 +71,15 @@ public sealed class UserAdminService(
                 Id = user.Id,
                 Email = user.Email,
                 DisplayName = user.DisplayName,
-                PhoneNumber = user.PhoneNumber,
+                PhoneNumber = null,
                 EmailConfirmed = user.EmailConfirmed,
-                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                PhoneNumberConfirmed = false,
                 TwoFactorEnabled = user.TwoFactorEnabled,
                 LockoutEnabled = user.LockoutEnabled,
                 LockoutEnd = user.LockoutEnd,
                 IsLockedOut = isLockedOut,
-                AccessFailedCount = user.AccessFailedCount,
-                Roles = roles.ToList().AsReadOnly(),
+                AccessFailedCount = 0,
+                Roles = user.Roles.ToList().AsReadOnly(),
                 CreatedDate = createdDate,
                 LastLoginDate = lastLoginDate,
                 LastModifiedDate = lastModifiedDate
@@ -145,11 +96,10 @@ public sealed class UserAdminService(
 
     public async Task<LockUserResponse> LockUserAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = (await userManager.FindByIdAsync(userId.ToString()))
+            var user = await userStorage.FindByIdAsync(userId, ct)
                 ?? throw new UserNotFoundException(userId);
 
-            var roles = await userManager.GetRolesAsync(user);
-            if (roles.Contains("Administrator")) {
+            if (user.Roles.Contains("Administrator")) {
                 var adminCount = await CountAdministratorsAsync(ct);
                 if (adminCount <= 1) {
                     throw new LastAdminException();
@@ -157,21 +107,11 @@ public sealed class UserAdminService(
             }
 
             var lockoutEnd = DateTimeOffset.UtcNow.AddYears(100);
+            var lockedUser = user with { LockoutEnabled = true, LockoutEnd = lockoutEnd };
 
-            var enableResult = await userManager.SetLockoutEnabledAsync(user, true);
-            if (!enableResult.Succeeded) {
-                logger.LogError("Failed to enable lockout for user {UserId}: {Errors}",
-                    userId, string.Join(", ", enableResult.Errors.Select(e => e.Description)));
-                return new LockUserResponse {
-                    Success = false,
-                    LockedUntil = null
-                };
-            }
-
-            var lockResult = await userManager.SetLockoutEndDateAsync(user, lockoutEnd);
-            if (!lockResult.Succeeded) {
-                logger.LogError("Failed to set lockout end date for user {UserId}: {Errors}",
-                    userId, string.Join(", ", lockResult.Errors.Select(e => e.Description)));
+            var result = await userStorage.UpdateAsync(lockedUser, ct);
+            if (!result.IsSuccessful) {
+                logger.LogError("Failed to lock user {UserId}", userId);
                 return new LockUserResponse {
                     Success = false,
                     LockedUntil = null
@@ -199,19 +139,15 @@ public sealed class UserAdminService(
 
     public async Task<UnlockUserResponse> UnlockUserAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new UserNotFoundException(userId);
+            var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
-            var unlockResult = await userManager.SetLockoutEndDateAsync(user, null);
-            if (!unlockResult.Succeeded) {
-                logger.LogError("Failed to unlock user {UserId}: {Errors}",
-                    userId, string.Join(", ", unlockResult.Errors.Select(e => e.Description)));
+            // Clearing LockoutEnd will trigger implicit access failed count reset in storage
+            var unlockedUser = user with { LockoutEnd = null };
+
+            var result = await userStorage.UpdateAsync(unlockedUser, ct);
+            if (!result.IsSuccessful) {
+                logger.LogError("Failed to unlock user {UserId}", userId);
                 return new UnlockUserResponse { Success = false };
-            }
-
-            var resetResult = await userManager.ResetAccessFailedCountAsync(user);
-            if (!resetResult.Succeeded) {
-                logger.LogError("Failed to reset access failed count for user {UserId}: {Errors}",
-                    userId, string.Join(", ", resetResult.Errors.Select(e => e.Description)));
             }
 
             logger.LogInformation("User {UserId} ({Email}) has been unlocked", userId, user.Email);
@@ -229,7 +165,7 @@ public sealed class UserAdminService(
 
     public async Task<VerifyEmailResponse> VerifyEmailAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new UserNotFoundException(userId);
+            var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
             if (user.EmailConfirmed) {
                 logger.LogInformation("User {UserId} ({Email}) email already confirmed", userId, user.Email);
@@ -239,12 +175,10 @@ public sealed class UserAdminService(
                 };
             }
 
-            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            var result = await userManager.ConfirmEmailAsync(user, token);
+            var result = await userStorage.ConfirmEmailAsync(userId, ct);
 
-            if (!result.Succeeded) {
-                logger.LogError("Failed to verify email for user {UserId}: {Errors}",
-                    userId, string.Join(", ", result.Errors.Select(e => e.Description)));
+            if (!result.IsSuccessful) {
+                logger.LogError("Failed to verify email for user {UserId}", userId);
                 return new VerifyEmailResponse {
                     Success = false,
                     EmailConfirmed = false
@@ -269,7 +203,7 @@ public sealed class UserAdminService(
 
     public async Task<PasswordResetResponse> SendPasswordResetAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 return new PasswordResetResponse {
                     Success = true,
@@ -277,7 +211,7 @@ public sealed class UserAdminService(
                 };
             }
 
-            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var token = await userStorage.GeneratePasswordResetTokenAsync(userId, ct);
 
             logger.LogInformation("Password reset token generated for user {UserId} ({Email})", userId, user.Email);
 
@@ -302,32 +236,31 @@ public sealed class UserAdminService(
                 throw new CannotModifySelfException();
             }
 
-            var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new UserNotFoundException(userId);
+            var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
-            var roleExists = await roleManager.RoleExistsAsync(roleName);
-            if (!roleExists) {
-                throw new ArgumentException($"IsDefault '{roleName}' does not exist.", nameof(roleName));
+            var role = await roleStorage.FindByNameAsync(roleName, ct);
+            if (role is null) {
+                throw new ArgumentException($"Role '{roleName}' does not exist.", nameof(roleName));
             }
 
-            var result = await userManager.AddToRoleAsync(user, roleName);
-            if (!result.Succeeded) {
-                logger.LogError("Failed to assign role {RoleName} to user {UserId}: {Errors}",
-                    roleName, userId, string.Join(", ", result.Errors.Select(e => e.Description)));
+            var result = await userStorage.AddToRoleAsync(userId, roleName, ct);
+            if (!result.IsSuccessful) {
+                logger.LogError("Failed to assign role {RoleName} to user {UserId}", roleName, userId);
                 return new AssignRoleResponse {
                     Success = false,
                     Roles = []
                 };
             }
 
-            var updatedRoles = await userManager.GetRolesAsync(user);
+            var updatedUser = await userStorage.FindByIdAsync(userId, ct);
 
             logger.LogInformation(
-                "IsDefault {RoleName} assigned to user {UserId} ({Email}) by admin {AdminUserId}",
+                "Role {RoleName} assigned to user {UserId} ({Email}) by admin {AdminUserId}",
                 roleName, userId, user.Email, adminUserId);
 
             return new AssignRoleResponse {
                 Success = true,
-                Roles = updatedRoles.ToList().AsReadOnly()
+                Roles = updatedUser?.Roles.ToList().AsReadOnly() ?? []
             };
         }
         catch (CannotModifySelfException) {
@@ -355,35 +288,33 @@ public sealed class UserAdminService(
                 throw new CannotModifySelfException();
             }
 
-            var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new UserNotFoundException(userId);
+            var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
             if (roleName.Equals("Administrator", StringComparison.OrdinalIgnoreCase)) {
                 var adminCount = await CountAdministratorsAsync(ct);
-                var userRoles = await userManager.GetRolesAsync(user);
-                if (userRoles.Contains("Administrator") && adminCount <= 1) {
+                if (user.Roles.Contains("Administrator") && adminCount <= 1) {
                     throw new LastAdminException();
                 }
             }
 
-            var result = await userManager.RemoveFromRoleAsync(user, roleName);
-            if (!result.Succeeded) {
-                logger.LogError("Failed to remove role {RoleName} from user {UserId}: {Errors}",
-                    roleName, userId, string.Join(", ", result.Errors.Select(e => e.Description)));
+            var result = await userStorage.RemoveFromRoleAsync(userId, roleName, ct);
+            if (!result.IsSuccessful) {
+                logger.LogError("Failed to remove role {RoleName} from user {UserId}", roleName, userId);
                 return new RemoveRoleResponse {
                     Success = false,
                     Roles = []
                 };
             }
 
-            var updatedRoles = await userManager.GetRolesAsync(user);
+            var updatedUser = await userStorage.FindByIdAsync(userId, ct);
 
             logger.LogInformation(
-                "IsDefault {RoleName} removed from user {UserId} ({Email}) by admin {AdminUserId}",
+                "Role {RoleName} removed from user {UserId} ({Email}) by admin {AdminUserId}",
                 roleName, userId, user.Email, adminUserId);
 
             return new RemoveRoleResponse {
                 Success = true,
-                Roles = updatedRoles.ToList().AsReadOnly()
+                Roles = updatedUser?.Roles.ToList().AsReadOnly() ?? []
             };
         }
         catch (CannotModifySelfException) {
@@ -444,39 +375,17 @@ public sealed class UserAdminService(
 
     public async Task<UserStatsResponse> GetUserStatsAsync(CancellationToken ct = default) {
         try {
-            var totalUsers = await userManager.Users.CountAsync(ct);
-
-            const string adminRoleName = "Administrator";
-            var adminRole = await roleManager.FindByNameAsync(adminRoleName);
-            var totalAdministrators = 0;
-
-            if (adminRole is not null) {
-                var allUsers = await userManager.Users.ToListAsync(ct);
-                foreach (var user in allUsers) {
-                    var roles = await userManager.GetRolesAsync(user);
-                    if (roles.Contains(adminRoleName)) {
-                        totalAdministrators++;
-                    }
-                }
-            }
-
-            var lockedUsers = await userManager.Users
-                .Where(u => u.LockoutEnabled && u.LockoutEnd != null && u.LockoutEnd > DateTimeOffset.UtcNow)
-                .CountAsync(ct);
-
-            var unconfirmedEmails = await userManager.Users
-                .Where(u => !u.EmailConfirmed)
-                .CountAsync(ct);
+            var summary = await userStorage.GetSummaryAsync(ct);
 
             logger.LogInformation(
                 "User stats retrieved: Total={Total}, Admins={Admins}, Locked={Locked}, Unconfirmed={Unconfirmed}",
-                totalUsers, totalAdministrators, lockedUsers, unconfirmedEmails);
+                summary.TotalUsers, summary.TotalAdministrators, summary.LockedUsers, summary.UnconfirmedEmails);
 
             return new UserStatsResponse {
-                TotalUsers = totalUsers,
-                TotalAdministrators = totalAdministrators,
-                LockedUsers = lockedUsers,
-                UnconfirmedEmails = unconfirmedEmails
+                TotalUsers = summary.TotalUsers,
+                TotalAdministrators = summary.TotalAdministrators,
+                LockedUsers = summary.LockedUsers,
+                UnconfirmedEmails = summary.UnconfirmedEmails
             };
         }
         catch (Exception ex) {
@@ -486,22 +395,7 @@ public sealed class UserAdminService(
     }
 
     private async Task<int> CountAdministratorsAsync(CancellationToken ct = default) {
-        const string adminRoleName = "Administrator";
-        var adminRole = await roleManager.FindByNameAsync(adminRoleName);
-        if (adminRole is null) {
-            return 0;
-        }
-
-        var allUsers = await userManager.Users.ToListAsync(ct);
-        var adminCount = 0;
-
-        foreach (var user in allUsers) {
-            var roles = await userManager.GetRolesAsync(user);
-            if (roles.Contains(adminRoleName)) {
-                adminCount++;
-            }
-        }
-
-        return adminCount;
+        var summary = await userStorage.GetSummaryAsync(ct);
+        return summary.TotalAdministrators;
     }
 }
