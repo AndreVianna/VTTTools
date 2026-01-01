@@ -99,7 +99,7 @@ public class JwtTokenServiceTests {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
             Name = "Test User",
-            DisplayName = null,
+            DisplayName = null!,
         };
         var roles = new List<string>();
 

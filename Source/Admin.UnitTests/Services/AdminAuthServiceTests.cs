@@ -40,7 +40,7 @@ public class AdminAuthServiceTests {
         user.EmailConfirmed = false;
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
@@ -60,7 +60,7 @@ public class AdminAuthServiceTests {
         user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(5);
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
@@ -80,7 +80,7 @@ public class AdminAuthServiceTests {
         var user = CreateTestUser("test@example.com", "Test User");
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
@@ -102,7 +102,7 @@ public class AdminAuthServiceTests {
         user.TwoFactorEnabled = false;
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
@@ -123,7 +123,7 @@ public class AdminAuthServiceTests {
         user.TwoFactorEnabled = true;
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "WrongPassword",
             TwoFactorCode = "123456"
         };
@@ -147,7 +147,7 @@ public class AdminAuthServiceTests {
         user.TwoFactorEnabled = true;
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!"
         };
 
@@ -171,7 +171,7 @@ public class AdminAuthServiceTests {
         user.TwoFactorEnabled = true;
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!",
             TwoFactorCode = "000000"
         };
@@ -202,7 +202,7 @@ public class AdminAuthServiceTests {
         user.TwoFactorEnabled = true;
 
         var request = new AdminLoginRequest {
-            Email = user.Email,
+            Email = user.Email!,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };

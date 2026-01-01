@@ -1,17 +1,21 @@
 global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Linq.Expressions;
+global using System.Security.Claims;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
 
 global using DotNetToolbox;
+global using DotNetToolbox.Results;
 
+global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
 
 global using Npgsql;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
 
 global using VttTools.AI.Model;
 global using VttTools.AI.Storage;
@@ -32,6 +36,7 @@ global using VttTools.Game.Schedule.Model;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.Storage;
 global using VttTools.Identity.Model;
+global using VttTools.Identity.Storage;
 global using VttTools.Jobs.Model;
 global using VttTools.Jobs.Storage;
 global using VttTools.Library.Adventures.Model;

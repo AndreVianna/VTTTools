@@ -100,7 +100,7 @@ internal static class Program {
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
         builder.Services.AddScoped<IDashboardService, DashboardService>();
-        builder.Services.AddScoped<IUserAdminService, UserAdminService>();
+        builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IMaintenanceModeStorage, MaintenanceModeStorage>();
         builder.Services.AddScoped<IMaintenanceModeService, MaintenanceModeService>();
         builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
@@ -146,7 +146,7 @@ internal static class Program {
         app.MapAuditLogEndpoints();
         app.MapDashboardEndpoints();
         app.MapHealthCheckEndpoints();
-        app.MapUserAdminEndpoints();
+        app.MapUserEndpoints();
         app.MapMaintenanceModeEndpoints();
         app.MapConfigurationEndpoints();
         app.MapLibraryAdminEndpoints();

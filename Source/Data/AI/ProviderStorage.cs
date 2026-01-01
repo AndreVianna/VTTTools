@@ -85,9 +85,8 @@ public class ProviderStorage(ApplicationDbContext context)
             .Where(m => m.ContentType == model.ContentType && m.IsDefault && m.Id != modelId)
             .ToListAsync(ct);
 
-        foreach (var existingDefault in existingDefaults) {
+        foreach (var existingDefault in existingDefaults)
             existingDefault.IsDefault = false;
-        }
 
         model.IsDefault = true;
         await context.SaveChangesAsync(ct);

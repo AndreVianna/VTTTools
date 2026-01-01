@@ -22,7 +22,7 @@ public class StageStorage(ApplicationDbContext context)
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var items = entities.Select(e => e.ToModel()!).ToArray();
+        var items = entities.Select(e => e.ToModel()).ToArray();
         return (items, totalCount);
     }
 

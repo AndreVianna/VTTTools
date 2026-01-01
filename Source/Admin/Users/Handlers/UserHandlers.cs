@@ -2,8 +2,8 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Admin.Users.Handlers;
 
-public static class UserAdminHandlers {
-    public static async Task<IResult> SearchUsersHandler(
+public static class UserHandlers {
+    public static async Task<IResult> SearchHandler(
         [FromQuery] int skip,
         [FromQuery] int take,
         [FromQuery] string? search,
@@ -11,7 +11,7 @@ public static class UserAdminHandlers {
         [FromQuery] string? status,
         [FromQuery] string? sortBy,
         [FromQuery] string? sortOrder,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             var request = new UserSearchRequest {
@@ -24,7 +24,7 @@ public static class UserAdminHandlers {
                 SortOrder = sortOrder
             };
 
-            var response = await service.SearchUsersAsync(request, ct);
+            var response = await service.SearchAsync(request, ct);
             return Results.Ok(response);
         }
         catch (Exception) {
@@ -32,12 +32,12 @@ public static class UserAdminHandlers {
         }
     }
 
-    public static async Task<IResult> GetUserByIdHandler(
+    public static async Task<IResult> GetByIdHandler(
         Guid userId,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
-            var response = await service.GetUserByIdAsync(userId, ct);
+            var response = await service.GetByIdAsync(userId, ct);
 
             return response is null ? Results.NotFound() : Results.Ok(response);
         }
@@ -49,10 +49,10 @@ public static class UserAdminHandlers {
         }
     }
 
-    public static async Task<IResult> LockUserHandler(
+    public static async Task<IResult> LockHandler(
         Guid userId,
         ClaimsPrincipal user,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             var adminUserIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -64,7 +64,7 @@ public static class UserAdminHandlers {
                 return Results.BadRequest(new { error = "Cannot modify your own account" });
             }
 
-            var response = await service.LockUserAsync(userId, ct);
+            var response = await service.LockAsync(userId, ct);
 
             return !response.Success ? Results.BadRequest(new { error = "Failed to lock user account" }) : Results.Ok(response);
         }
@@ -82,12 +82,12 @@ public static class UserAdminHandlers {
         }
     }
 
-    public static async Task<IResult> UnlockUserHandler(
+    public static async Task<IResult> UnlockHandler(
         Guid userId,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
-            var response = await service.UnlockUserAsync(userId, ct);
+            var response = await service.UnlockAsync(userId, ct);
 
             return !response.Success ? Results.BadRequest(new { error = "Failed to unlock user account" }) : Results.Ok(response);
         }
@@ -101,7 +101,7 @@ public static class UserAdminHandlers {
 
     public static async Task<IResult> VerifyEmailHandler(
         Guid userId,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             var response = await service.VerifyEmailAsync(userId, ct);
@@ -118,7 +118,7 @@ public static class UserAdminHandlers {
 
     public static async Task<IResult> SendPasswordResetHandler(
         Guid userId,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             var response = await service.SendPasswordResetAsync(userId, ct);
@@ -133,7 +133,7 @@ public static class UserAdminHandlers {
         Guid userId,
         [FromBody] AssignRoleRequest request,
         ClaimsPrincipal user,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             var adminUserIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -159,11 +159,11 @@ public static class UserAdminHandlers {
         }
     }
 
-    public static async Task<IResult> RemoveRoleHandler(
+    public static async Task<IResult> RevokeRoleHandler(
         Guid userId,
         string roleName,
         ClaimsPrincipal user,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             var adminUserIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -171,7 +171,7 @@ public static class UserAdminHandlers {
                 return Results.BadRequest(new { error = "Invalid user claims" });
             }
 
-            var response = await service.RemoveRoleAsync(userId, roleName, adminUserId, ct);
+            var response = await service.RevokeRoleAsync(userId, roleName, adminUserId, ct);
 
             return !response.Success ? Results.BadRequest(new { error = "Failed to remove role" }) : Results.Ok(response);
         }
@@ -189,11 +189,11 @@ public static class UserAdminHandlers {
         }
     }
 
-    public static async Task<IResult> GetUserAuditTrailHandler(
+    public static async Task<IResult> GetAuditTrailHandler(
         Guid userId,
         [FromQuery] int page,
         [FromQuery] int pageSize,
-        IUserAdminService service,
+        IUserService service,
         CancellationToken ct) {
         try {
             if (page < 1) {
@@ -204,7 +204,7 @@ public static class UserAdminHandlers {
                 return Results.BadRequest(new { error = "PageSize must be between 1 and 100" });
             }
 
-            var response = await service.GetUserAuditTrailAsync(userId, page, pageSize, ct);
+            var response = await service.GetAuditTrailAsync(userId, page, pageSize, ct);
             return Results.Ok(response);
         }
         catch (Exception) {
@@ -212,11 +212,11 @@ public static class UserAdminHandlers {
         }
     }
 
-    public static async Task<IResult> GetUserStatsHandler(
-        IUserAdminService service,
+    public static async Task<IResult> GetSummaryHandler(
+        IUserService service,
         CancellationToken ct) {
         try {
-            var response = await service.GetUserStatsAsync(ct);
+            var response = await service.GetSummaryAsync(ct);
             return Results.Ok(response);
         }
         catch (Exception) {

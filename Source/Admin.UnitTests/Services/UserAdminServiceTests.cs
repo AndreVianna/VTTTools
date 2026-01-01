@@ -11,14 +11,14 @@ public class UserAdminServiceTests
     private readonly IUserStorage _mockUserStorage;
     private readonly IRoleStorage _mockRoleStorage;
     private readonly IAuditLogService _mockAuditLogService;
-    private readonly ILogger<UserAdminService> _mockLogger;
-    private readonly UserAdminService _sut;
+    private readonly ILogger<UserService> _mockLogger;
+    private readonly UserService _sut;
 
     public UserAdminServiceTests() {
         _mockUserStorage = Substitute.For<IUserStorage>();
         _mockRoleStorage = Substitute.For<IRoleStorage>();
         _mockAuditLogService = Substitute.For<IAuditLogService>();
-        _mockLogger = Substitute.For<ILogger<UserAdminService>>();
+        _mockLogger = Substitute.For<ILogger<UserService>>();
         _sut = new(_mockUserStorage, _mockRoleStorage, _mockAuditLogService, _mockLogger);
     }
 
@@ -50,7 +50,7 @@ public class UserAdminServiceTests
             Take = 10
         };
 
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
+        var result = await _sut.SearchAsync(request, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Users.Should().NotBeNull();
@@ -82,7 +82,7 @@ public class UserAdminServiceTests
             Take = 10
         };
 
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
+        var result = await _sut.SearchAsync(request, TestContext.Current.CancellationToken);
 
         result.Users.Count.Should().Be(2);
         result.Users.Should().Contain(u => u.Email.Contains("john", StringComparison.OrdinalIgnoreCase));
@@ -108,7 +108,7 @@ public class UserAdminServiceTests
             Take = 10
         };
 
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
+        var result = await _sut.SearchAsync(request, TestContext.Current.CancellationToken);
 
         result.Users.Count.Should().Be(1);
         result.Users[0].Email.Should().Be("active@example.com");
@@ -134,7 +134,7 @@ public class UserAdminServiceTests
             Take = 10
         };
 
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
+        var result = await _sut.SearchAsync(request, TestContext.Current.CancellationToken);
 
         result.Users.Count.Should().Be(1);
         result.Users[0].Email.Should().Be("locked@example.com");
@@ -164,7 +164,7 @@ public class UserAdminServiceTests
             Take = 10
         };
 
-        var result = await _sut.SearchUsersAsync(request, TestContext.Current.CancellationToken);
+        var result = await _sut.SearchAsync(request, TestContext.Current.CancellationToken);
 
         result.Users.Count.Should().Be(2);
         result.Users.All(u => u.Roles.Contains("Administrator")).Should().BeTrue();
@@ -186,7 +186,7 @@ public class UserAdminServiceTests
         _mockAuditLogService.GetUserLastLoginDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns(lastLoginDate);
         _mockAuditLogService.GetUserLastModifiedDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns(lastModifiedDate);
 
-        var result = await _sut.GetUserByIdAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.GetByIdAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Id.Should().Be(user.Id);
@@ -201,7 +201,7 @@ public class UserAdminServiceTests
         var userId = Guid.CreateVersion7();
         _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
-        var act = () => _sut.GetUserByIdAsync(userId, default);
+        var act = () => _sut.GetByIdAsync(userId, default);
 
         await act.Should().ThrowAsync<UserNotFoundException>()
             .WithMessage($"User with ID '{userId}' was not found.");
@@ -217,7 +217,7 @@ public class UserAdminServiceTests
         _mockAuditLogService.GetUserLastLoginDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns((DateTime?)null);
         _mockAuditLogService.GetUserLastModifiedDateAsync(user.Id, Arg.Any<CancellationToken>()).Returns((DateTime?)null);
 
-        var result = await _sut.GetUserByIdAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.GetByIdAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.IsLockedOut.Should().BeTrue();
@@ -239,7 +239,7 @@ public class UserAdminServiceTests
         _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var result = await _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.LockAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
@@ -256,7 +256,7 @@ public class UserAdminServiceTests
         var userId = Guid.CreateVersion7();
         _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
-        var act = () => _sut.LockUserAsync(userId, TestContext.Current.CancellationToken);
+        var act = () => _sut.LockAsync(userId, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UserNotFoundException>()
             .WithMessage($"User with ID '{userId}' was not found.");
@@ -270,7 +270,7 @@ public class UserAdminServiceTests
         _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
         _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
-        var act = () => _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var act = () => _sut.LockAsync(user.Id, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<LastAdminException>()
             .WithMessage("Cannot remove or lock the last administrator account.");
@@ -286,7 +286,7 @@ public class UserAdminServiceTests
         _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var result = await _sut.LockUserAsync(admin.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.LockAsync(admin.Id, TestContext.Current.CancellationToken);
 
         result.Success.Should().BeTrue();
     }
@@ -301,7 +301,7 @@ public class UserAdminServiceTests
         _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new Error("Lockout failed")));
 
-        var result = await _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.LockAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Success.Should().BeFalse();
         result.LockedUntil.Should().BeNull();
@@ -319,7 +319,7 @@ public class UserAdminServiceTests
         _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var result = await _sut.UnlockUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.UnlockAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
@@ -334,7 +334,7 @@ public class UserAdminServiceTests
         var userId = Guid.CreateVersion7();
         _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
-        var act = () => _sut.UnlockUserAsync(userId, TestContext.Current.CancellationToken);
+        var act = () => _sut.UnlockAsync(userId, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<UserNotFoundException>()
             .WithMessage($"User with ID '{userId}' was not found.");
@@ -348,7 +348,7 @@ public class UserAdminServiceTests
         _mockUserStorage.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new Error("Unlock failed")));
 
-        var result = await _sut.UnlockUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _sut.UnlockAsync(user.Id, TestContext.Current.CancellationToken);
 
         result.Success.Should().BeFalse();
     }
@@ -554,7 +554,7 @@ public class UserAdminServiceTests
         _mockUserStorage.RemoveFromRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var result = await _sut.RemoveRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
+        var result = await _sut.RevokeRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
@@ -568,7 +568,7 @@ public class UserAdminServiceTests
         var userId = Guid.CreateVersion7();
         const string roleName = "Editor";
 
-        var act = () => _sut.RemoveRoleAsync(userId, roleName, userId, default);
+        var act = () => _sut.RevokeRoleAsync(userId, roleName, userId, default);
 
         await act.Should().ThrowAsync<CannotModifySelfException>()
             .WithMessage("Administrators cannot modify their own account.");
@@ -582,7 +582,7 @@ public class UserAdminServiceTests
 
         _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
-        var act = () => _sut.RemoveRoleAsync(userId, roleName, adminUserId, default);
+        var act = () => _sut.RevokeRoleAsync(userId, roleName, adminUserId, default);
 
         await act.Should().ThrowAsync<UserNotFoundException>()
             .WithMessage($"User with ID '{userId}' was not found.");
@@ -597,7 +597,7 @@ public class UserAdminServiceTests
         _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
         _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
-        var act = () => _sut.RemoveRoleAsync(user.Id, "Administrator", adminUserId, default);
+        var act = () => _sut.RevokeRoleAsync(user.Id, "Administrator", adminUserId, default);
 
         await act.Should().ThrowAsync<LastAdminException>()
             .WithMessage("Cannot remove or lock the last administrator account.");
@@ -617,7 +617,7 @@ public class UserAdminServiceTests
         _mockUserStorage.RemoveFromRoleAsync(admin1.Id, "Administrator", Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var result = await _sut.RemoveRoleAsync(admin1.Id, "Administrator", adminUserId, TestContext.Current.CancellationToken);
+        var result = await _sut.RevokeRoleAsync(admin1.Id, "Administrator", adminUserId, TestContext.Current.CancellationToken);
 
         result.Success.Should().BeTrue();
     }
@@ -634,7 +634,7 @@ public class UserAdminServiceTests
         _mockUserStorage.RemoveFromRoleAsync(user.Id, roleName, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new Error("Role removal failed")));
 
-        var result = await _sut.RemoveRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
+        var result = await _sut.RevokeRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
         result.Success.Should().BeFalse();
         result.Roles.Should().BeEmpty();
@@ -655,7 +655,7 @@ public class UserAdminServiceTests
 
         _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
-        var result = await _sut.GetUserStatsAsync(TestContext.Current.CancellationToken);
+        var result = await _sut.GetSummaryAsync(TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.TotalUsers.Should().Be(4);
@@ -675,7 +675,7 @@ public class UserAdminServiceTests
 
         _mockUserStorage.GetSummaryAsync(Arg.Any<CancellationToken>()).Returns(summary);
 
-        var result = await _sut.GetUserStatsAsync(TestContext.Current.CancellationToken);
+        var result = await _sut.GetSummaryAsync(TestContext.Current.CancellationToken);
 
         result.TotalAdministrators.Should().Be(0);
     }
@@ -700,7 +700,7 @@ public class UserAdminServiceTests
             ct: Arg.Any<CancellationToken>()
         ).Returns((logs, 3));
 
-        var result = await _sut.GetUserAuditTrailAsync(userId, 1, 10, TestContext.Current.CancellationToken);
+        var result = await _sut.GetAuditTrailAsync(userId, 1, 10, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Logs.Should().HaveCount(3);
@@ -724,7 +724,7 @@ public class UserAdminServiceTests
             ct: Arg.Any<CancellationToken>()
         ).Returns((logs, 25));
 
-        var result = await _sut.GetUserAuditTrailAsync(userId, 2, 10, TestContext.Current.CancellationToken);
+        var result = await _sut.GetAuditTrailAsync(userId, 2, 10, TestContext.Current.CancellationToken);
 
         result.Logs.Should().HaveCount(10);
         result.TotalCount.Should().Be(25);
@@ -743,7 +743,7 @@ public class UserAdminServiceTests
             ct: Arg.Any<CancellationToken>()
         ).Returns((emptyLogs, 0));
 
-        var result = await _sut.GetUserAuditTrailAsync(userId, 1, 10, TestContext.Current.CancellationToken);
+        var result = await _sut.GetAuditTrailAsync(userId, 1, 10, TestContext.Current.CancellationToken);
 
         result.Logs.Should().BeEmpty();
         result.TotalCount.Should().Be(0);

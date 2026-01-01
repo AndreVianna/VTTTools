@@ -67,9 +67,8 @@ public class AssetStorage(ApplicationDbContext context)
         }
 
         if (tags is { Length: > 0 }) {
-            foreach (var tag in tags) {
+            foreach (var tag in tags)
                 query = query.Where(a => a.Tags.Contains(tag));
-            }
         }
 
         query = AddAdvancedSearchFilters(filters, query);

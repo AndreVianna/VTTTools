@@ -19,13 +19,12 @@ public class PromptTemplateStorage(ApplicationDbContext context)
             .Include(t => t.ReferenceImage)
             .Where(t => t.Name == name);
 
-        if (!includeDrafts) {
+        if (!includeDrafts)
             query = query.Where(t => !t.Version.EndsWith("-draft"));
-        }
 
         var entity = await query
-            .OrderByDescending(t => t.Version)
-            .FirstOrDefaultAsync(ct);
+                          .OrderByDescending(t => t.Version)
+                          .FirstOrDefaultAsync(ct);
         return entity?.ToModel();
     }
 

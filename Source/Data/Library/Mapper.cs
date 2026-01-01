@@ -171,10 +171,10 @@ internal static class Mapper {
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Campaigns = includeChildren
-                ? entity.Campaigns.Select(c => c.ToModel(includeParent: false)).ToList()!
+                ? entity.Campaigns.Select(c => c.ToModel(includeParent: false)).ToList()
                 : [],
             Adventures = includeChildren
-                ? entity.Adventures.Select(a => a.ToModel(includeParent: false)).ToList()!
+                ? entity.Adventures.Select(a => a.ToModel(includeParent: false)).ToList()
                 : [],
         };
 
@@ -217,7 +217,7 @@ internal static class Mapper {
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Adventures = includeChildren
-                ? entity.Adventures.Select(a => a.ToModel(includeParent: false)).ToList()!
+                ? entity.Adventures.Select(a => a.ToModel(includeParent: false)).ToList()
                 : [],
         };
 
@@ -263,7 +263,7 @@ internal static class Mapper {
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             Encounters = includeChildren
-                ? entity.Encounters.Select(e => e.ToModel(includeParent: false)).ToList()!
+                ? entity.Encounters.Select(e => e.ToModel(includeParent: false)).ToList()
                 : [],
         };
 

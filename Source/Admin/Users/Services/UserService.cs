@@ -1,16 +1,12 @@
-using VttTools.Common.Model;
-using VttTools.Identity.Model;
-using VttTools.Identity.Storage;
-
 namespace VttTools.Admin.Users.Services;
 
-public sealed class UserAdminService(
+public sealed class UserService(
     IUserStorage userStorage,
     IRoleStorage roleStorage,
     IAuditLogService auditLogService,
-    ILogger<UserAdminService> logger) : IUserAdminService {
+    ILogger<UserService> logger) : IUserService {
 
-    public async Task<UserSearchResponse> SearchUsersAsync(UserSearchRequest request, CancellationToken ct = default) {
+    public async Task<UserSearchResponse> SearchAsync(UserSearchRequest request, CancellationToken ct = default) {
         try {
             var pagination = new Pagination(request.Skip, request.Take);
 
@@ -54,7 +50,7 @@ public sealed class UserAdminService(
         }
     }
 
-    public async Task<UserDetailResponse?> GetUserByIdAsync(Guid userId, CancellationToken ct = default) {
+    public async Task<UserDetailResponse?> GetByIdAsync(Guid userId, CancellationToken ct = default) {
         try {
             var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
@@ -94,7 +90,7 @@ public sealed class UserAdminService(
         }
     }
 
-    public async Task<LockUserResponse> LockUserAsync(Guid userId, CancellationToken ct = default) {
+    public async Task<LockUserResponse> LockAsync(Guid userId, CancellationToken ct = default) {
         try {
             var user = await userStorage.FindByIdAsync(userId, ct)
                 ?? throw new UserNotFoundException(userId);
@@ -137,7 +133,7 @@ public sealed class UserAdminService(
         }
     }
 
-    public async Task<UnlockUserResponse> UnlockUserAsync(Guid userId, CancellationToken ct = default) {
+    public async Task<UnlockUserResponse> UnlockAsync(Guid userId, CancellationToken ct = default) {
         try {
             var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
@@ -238,10 +234,7 @@ public sealed class UserAdminService(
 
             var user = await userStorage.FindByIdAsync(userId, ct) ?? throw new UserNotFoundException(userId);
 
-            var role = await roleStorage.FindByNameAsync(roleName, ct);
-            if (role is null) {
-                throw new ArgumentException($"Role '{roleName}' does not exist.", nameof(roleName));
-            }
+            var role = await roleStorage.FindByNameAsync(roleName, ct) ?? throw new ArgumentException($"Role '{roleName}' does not exist.", nameof(roleName));
 
             var result = await userStorage.AddToRoleAsync(userId, roleName, ct);
             if (!result.IsSuccessful) {
@@ -278,7 +271,7 @@ public sealed class UserAdminService(
         }
     }
 
-    public async Task<RemoveRoleResponse> RemoveRoleAsync(
+    public async Task<RemoveRoleResponse> RevokeRoleAsync(
         Guid userId,
         string roleName,
         Guid adminUserId,
@@ -332,7 +325,7 @@ public sealed class UserAdminService(
         }
     }
 
-    public async Task<AuditTrailResponse> GetUserAuditTrailAsync(
+    public async Task<AuditTrailResponse> GetAuditTrailAsync(
         Guid userId,
         int page,
         int pageSize,
@@ -373,7 +366,7 @@ public sealed class UserAdminService(
         }
     }
 
-    public async Task<UserStatsResponse> GetUserStatsAsync(CancellationToken ct = default) {
+    public async Task<UserStatsResponse> GetSummaryAsync(CancellationToken ct = default) {
         try {
             var summary = await userStorage.GetSummaryAsync(ct);
 

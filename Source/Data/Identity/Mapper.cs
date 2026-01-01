@@ -1,9 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
-
-using User = VttTools.Identity.Model.User;
 using Role = VttTools.Identity.Model.Role;
-using UserEntity = VttTools.Data.Identity.Entities.User;
 using RoleEntity = VttTools.Data.Identity.Entities.Role;
+using User = VttTools.Identity.Model.User;
+using UserEntity = VttTools.Data.Identity.Entities.User;
 
 namespace VttTools.Data.Identity;
 

@@ -73,14 +73,14 @@ public class AdminAuthService(
 
             logger.LogInformation("Admin user logged in successfully: {Email}", request.Email);
 
-            var domainUser = user.ToModel(roles.ToList());
+            var domainUser = user.ToModel([.. roles]);
             var token = jwtTokenService.GenerateToken(domainUser!, roles, rememberMe: false);
 
             return new AdminLoginResponse {
                 Success = true,
                 User = new AdminUserInfo {
                     Id = user.Id,
-                    Email = user.Email,
+                    Email = user.Email!,
                     Name = user.Name,
                     DisplayName = user.DisplayName,
                     IsAdmin = true
@@ -123,7 +123,7 @@ public class AdminAuthService(
 
             return new AdminUserInfo {
                 Id = user.Id,
-                Email = user.Email,
+                Email = user.Email!,
                 Name = user.Name,
                 DisplayName = user.DisplayName,
                 IsAdmin = true

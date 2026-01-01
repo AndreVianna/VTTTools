@@ -87,7 +87,7 @@ public class AuthService(
                 UserName = request.Email,
                 Email = request.Email,
                 Name = request.Name,
-                DisplayName = request.DisplayName ?? request.Name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? request.Name,
+                DisplayName = request.DisplayName ?? request.Name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? request.Name ?? string.Empty,
                 EmailConfirmed = true,
             };
 

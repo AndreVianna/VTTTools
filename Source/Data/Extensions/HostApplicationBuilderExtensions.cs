@@ -2,7 +2,6 @@ using VttTools.Data.Identity;
 using VttTools.Data.Library.Encounters;
 using VttTools.Data.Library.Stages;
 using VttTools.Data.Library.Worlds;
-using VttTools.Identity.Storage;
 
 namespace VttTools.Data.Extensions;
 

@@ -1,7 +1,7 @@
 namespace VttTools.Admin.Handlers;
 
 public sealed class UserAdminHandlersTests {
-    private readonly IUserAdminService _mockService = Substitute.For<IUserAdminService>();
+    private readonly IUserService _mockService = Substitute.For<IUserService>();
 
     #region SearchUsersHandler Tests
 
@@ -10,10 +10,10 @@ public sealed class UserAdminHandlersTests {
         var request = new UserSearchRequest { Skip = 0, Take = 10 };
         var response = new UserSearchResponse { Users = [], TotalCount = 0, HasMore = false };
 
-        _mockService.SearchUsersAsync(Arg.Any<UserSearchRequest>(), Arg.Any<CancellationToken>())
+        _mockService.SearchAsync(Arg.Any<UserSearchRequest>(), Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.SearchUsersHandler(
+        var result = await UserHandlers.SearchHandler(
             0, 10, null, null, null, null, null,
             _mockService, TestContext.Current.CancellationToken);
 
@@ -26,15 +26,15 @@ public sealed class UserAdminHandlersTests {
     public async Task SearchUsersHandler_WithSearchFilters_ReturnsFilteredResults() {
         var response = new UserSearchResponse { Users = [], TotalCount = 5, HasMore = false };
 
-        _mockService.SearchUsersAsync(Arg.Any<UserSearchRequest>(), Arg.Any<CancellationToken>())
+        _mockService.SearchAsync(Arg.Any<UserSearchRequest>(), Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.SearchUsersHandler(
+        var result = await UserHandlers.SearchHandler(
             0, 10, "test", "Admin", "active", "name", "asc",
             _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<UserSearchResponse>>();
-        await _mockService.Received(1).SearchUsersAsync(
+        await _mockService.Received(1).SearchAsync(
             Arg.Is<UserSearchRequest>(r =>
                 r.Search == "test" &&
                 r.Role == "Admin" &&
@@ -44,10 +44,10 @@ public sealed class UserAdminHandlersTests {
 
     [Fact]
     public async Task SearchUsersHandler_WhenExceptionThrown_ReturnsProblem() {
-        _mockService.SearchUsersAsync(Arg.Any<UserSearchRequest>(), Arg.Any<CancellationToken>())
+        _mockService.SearchAsync(Arg.Any<UserSearchRequest>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Test exception"));
 
-        var result = await UserAdminHandlers.SearchUsersHandler(
+        var result = await UserHandlers.SearchHandler(
             0, 10, null, null, null, null, null,
             _mockService, TestContext.Current.CancellationToken);
 
@@ -75,10 +75,10 @@ public sealed class UserAdminHandlersTests {
             CreatedDate = DateTime.UtcNow
         };
 
-        _mockService.GetUserByIdAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.GetUserByIdHandler(
+        var result = await UserHandlers.GetByIdHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<UserDetailResponse>>();
@@ -90,10 +90,10 @@ public sealed class UserAdminHandlersTests {
     public async Task GetUserByIdHandler_WhenUserNotFound_ReturnsNotFound() {
         var userId = Guid.CreateVersion7();
 
-        _mockService.GetUserByIdAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns((UserDetailResponse?)null);
 
-        var result = await UserAdminHandlers.GetUserByIdHandler(
+        var result = await UserHandlers.GetByIdHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -103,10 +103,10 @@ public sealed class UserAdminHandlersTests {
     public async Task GetUserByIdHandler_WhenUserNotFoundExceptionThrown_ReturnsNotFound() {
         var userId = Guid.CreateVersion7();
 
-        _mockService.GetUserByIdAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UserNotFoundException(userId));
 
-        var result = await UserAdminHandlers.GetUserByIdHandler(
+        var result = await UserHandlers.GetByIdHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -116,10 +116,10 @@ public sealed class UserAdminHandlersTests {
     public async Task GetUserByIdHandler_WhenExceptionThrown_ReturnsProblem() {
         var userId = Guid.CreateVersion7();
 
-        _mockService.GetUserByIdAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Test exception"));
 
-        var result = await UserAdminHandlers.GetUserByIdHandler(
+        var result = await UserHandlers.GetByIdHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<ProblemHttpResult>();
@@ -138,10 +138,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.LockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.LockAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<LockUserResponse>>();
@@ -154,7 +154,7 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, userId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -166,7 +166,7 @@ public sealed class UserAdminHandlersTests {
         var userId = Guid.CreateVersion7();
         var user = new ClaimsPrincipal(new ClaimsIdentity());
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -181,10 +181,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.LockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.LockAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new CannotModifySelfException());
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -199,10 +199,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.LockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.LockAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new LastAdminException());
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -217,10 +217,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.LockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.LockAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UserNotFoundException(userId));
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -235,10 +235,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.LockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.LockAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.LockUserHandler(
+        var result = await UserHandlers.LockHandler(
             userId, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -254,10 +254,10 @@ public sealed class UserAdminHandlersTests {
         var userId = Guid.CreateVersion7();
         var response = new UnlockUserResponse { Success = true };
 
-        _mockService.UnlockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.UnlockAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.UnlockUserHandler(
+        var result = await UserHandlers.UnlockHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<UnlockUserResponse>>();
@@ -267,10 +267,10 @@ public sealed class UserAdminHandlersTests {
     public async Task UnlockUserHandler_WhenUserNotFoundExceptionThrown_ReturnsNotFound() {
         var userId = Guid.CreateVersion7();
 
-        _mockService.UnlockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.UnlockAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UserNotFoundException(userId));
 
-        var result = await UserAdminHandlers.UnlockUserHandler(
+        var result = await UserHandlers.UnlockHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -281,10 +281,10 @@ public sealed class UserAdminHandlersTests {
         var userId = Guid.CreateVersion7();
         var response = new UnlockUserResponse { Success = false };
 
-        _mockService.UnlockUserAsync(userId, Arg.Any<CancellationToken>())
+        _mockService.UnlockAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.UnlockUserHandler(
+        var result = await UserHandlers.UnlockHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -303,7 +303,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.VerifyEmailAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.VerifyEmailHandler(
+        var result = await UserHandlers.VerifyEmailHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<VerifyEmailResponse>>();
@@ -316,7 +316,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.VerifyEmailAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UserNotFoundException(userId));
 
-        var result = await UserAdminHandlers.VerifyEmailHandler(
+        var result = await UserHandlers.VerifyEmailHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -330,7 +330,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.VerifyEmailAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.VerifyEmailHandler(
+        var result = await UserHandlers.VerifyEmailHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -349,7 +349,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.SendPasswordResetAsync(userId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.SendPasswordResetHandler(
+        var result = await UserHandlers.SendPasswordResetHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<PasswordResetResponse>>();
@@ -362,7 +362,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.SendPasswordResetAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Test exception"));
 
-        var result = await UserAdminHandlers.SendPasswordResetHandler(
+        var result = await UserHandlers.SendPasswordResetHandler(
             userId, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<ProblemHttpResult>();
@@ -385,7 +385,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.AssignRoleAsync(userId, request.RoleName, adminUserId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.AssignRoleHandler(
+        var result = await UserHandlers.AssignRoleHandler(
             userId, request, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<AssignRoleResponse>>();
@@ -397,7 +397,7 @@ public sealed class UserAdminHandlersTests {
         var request = new AssignRoleRequest { RoleName = "Admin" };
         var user = new ClaimsPrincipal(new ClaimsIdentity());
 
-        var result = await UserAdminHandlers.AssignRoleHandler(
+        var result = await UserHandlers.AssignRoleHandler(
             userId, request, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -416,7 +416,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.AssignRoleAsync(userId, request.RoleName, adminUserId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new CannotModifySelfException());
 
-        var result = await UserAdminHandlers.AssignRoleHandler(
+        var result = await UserHandlers.AssignRoleHandler(
             userId, request, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -435,7 +435,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.AssignRoleAsync(userId, request.RoleName, adminUserId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new ArgumentException("Invalid role"));
 
-        var result = await UserAdminHandlers.AssignRoleHandler(
+        var result = await UserHandlers.AssignRoleHandler(
             userId, request, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -454,7 +454,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.AssignRoleAsync(userId, request.RoleName, adminUserId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UserNotFoundException(userId));
 
-        var result = await UserAdminHandlers.AssignRoleHandler(
+        var result = await UserHandlers.AssignRoleHandler(
             userId, request, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -473,7 +473,7 @@ public sealed class UserAdminHandlersTests {
         _mockService.AssignRoleAsync(userId, request.RoleName, adminUserId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.AssignRoleHandler(
+        var result = await UserHandlers.AssignRoleHandler(
             userId, request, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -494,10 +494,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.RemoveRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
+        _mockService.RevokeRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.RemoveRoleHandler(
+        var result = await UserHandlers.RevokeRoleHandler(
             userId, roleName, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<RemoveRoleResponse>>();
@@ -509,7 +509,7 @@ public sealed class UserAdminHandlersTests {
         const string roleName = "Admin";
         var user = new ClaimsPrincipal(new ClaimsIdentity());
 
-        var result = await UserAdminHandlers.RemoveRoleHandler(
+        var result = await UserHandlers.RevokeRoleHandler(
             userId, roleName, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -525,10 +525,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.RemoveRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
+        _mockService.RevokeRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new CannotModifySelfException());
 
-        var result = await UserAdminHandlers.RemoveRoleHandler(
+        var result = await UserHandlers.RevokeRoleHandler(
             userId, roleName, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -544,10 +544,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.RemoveRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
+        _mockService.RevokeRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new LastAdminException());
 
-        var result = await UserAdminHandlers.RemoveRoleHandler(
+        var result = await UserHandlers.RevokeRoleHandler(
             userId, roleName, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -563,10 +563,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.RemoveRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
+        _mockService.RevokeRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UserNotFoundException(userId));
 
-        var result = await UserAdminHandlers.RemoveRoleHandler(
+        var result = await UserHandlers.RevokeRoleHandler(
             userId, roleName, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<NotFound>();
@@ -582,10 +582,10 @@ public sealed class UserAdminHandlersTests {
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-        _mockService.RemoveRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
+        _mockService.RevokeRoleAsync(userId, roleName, adminUserId, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.RemoveRoleHandler(
+        var result = await UserHandlers.RevokeRoleHandler(
             userId, roleName, user, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -606,10 +606,10 @@ public sealed class UserAdminHandlersTests {
             PageSize = 10
         };
 
-        _mockService.GetUserAuditTrailAsync(userId, 1, 10, Arg.Any<CancellationToken>())
+        _mockService.GetAuditTrailAsync(userId, 1, 10, Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.GetUserAuditTrailHandler(
+        var result = await UserHandlers.GetAuditTrailHandler(
             userId, 1, 10, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<AuditTrailResponse>>();
@@ -619,7 +619,7 @@ public sealed class UserAdminHandlersTests {
     public async Task GetUserAuditTrailHandler_WithInvalidPage_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
 
-        var result = await UserAdminHandlers.GetUserAuditTrailHandler(
+        var result = await UserHandlers.GetAuditTrailHandler(
             userId, 0, 10, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -630,7 +630,7 @@ public sealed class UserAdminHandlersTests {
     public async Task GetUserAuditTrailHandler_WithInvalidPageSize_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
 
-        var result = await UserAdminHandlers.GetUserAuditTrailHandler(
+        var result = await UserHandlers.GetAuditTrailHandler(
             userId, 1, 0, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -641,7 +641,7 @@ public sealed class UserAdminHandlersTests {
     public async Task GetUserAuditTrailHandler_WithPageSizeTooLarge_ReturnsBadRequest() {
         var userId = Guid.CreateVersion7();
 
-        var result = await UserAdminHandlers.GetUserAuditTrailHandler(
+        var result = await UserHandlers.GetAuditTrailHandler(
             userId, 1, 101, _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeAssignableTo<IStatusCodeHttpResult>()
@@ -661,10 +661,10 @@ public sealed class UserAdminHandlersTests {
             UnconfirmedEmails = 10
         };
 
-        _mockService.GetUserStatsAsync(Arg.Any<CancellationToken>())
+        _mockService.GetSummaryAsync(Arg.Any<CancellationToken>())
             .Returns(response);
 
-        var result = await UserAdminHandlers.GetUserStatsHandler(
+        var result = await UserHandlers.GetSummaryHandler(
             _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<Ok<UserStatsResponse>>();
@@ -674,10 +674,10 @@ public sealed class UserAdminHandlersTests {
 
     [Fact]
     public async Task GetUserStatsHandler_WhenExceptionThrown_ReturnsProblem() {
-        _mockService.GetUserStatsAsync(Arg.Any<CancellationToken>())
+        _mockService.GetSummaryAsync(Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Test exception"));
 
-        var result = await UserAdminHandlers.GetUserStatsHandler(
+        var result = await UserHandlers.GetSummaryHandler(
             _mockService, TestContext.Current.CancellationToken);
 
         result.Should().BeOfType<ProblemHttpResult>();

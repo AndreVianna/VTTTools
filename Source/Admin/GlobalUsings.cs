@@ -67,6 +67,7 @@ global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Http;
 global using VttTools.Identity.Model;
+global using VttTools.Identity.Storage;
 global using VttTools.Json;
 
 global using UserEntity = VttTools.Data.Identity.Entities.User;

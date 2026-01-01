@@ -167,9 +167,8 @@ internal static class Mapper {
         };
 
     private static StatModifier[]? DeserializeModifiers(string? json) {
-        if (string.IsNullOrWhiteSpace(json)) {
+        if (string.IsNullOrWhiteSpace(json))
             return null;
-        }
 
         try {
             return JsonSerializer.Deserialize<StatModifier[]>(json);
