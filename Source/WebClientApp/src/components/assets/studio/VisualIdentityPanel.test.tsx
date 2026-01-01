@@ -469,7 +469,7 @@ describe('VisualIdentityPanel', () => {
 
   describe('layout', () => {
     it('should render tokens in grid layout', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <VisualIdentityPanel
             portrait={null}
@@ -490,7 +490,7 @@ describe('VisualIdentityPanel', () => {
     });
 
     it('should maintain aspect ratio for portrait', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <VisualIdentityPanel
             portrait={null}

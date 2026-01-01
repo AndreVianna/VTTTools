@@ -117,7 +117,7 @@ describe('AssetStudioLayout', () => {
 
   describe('responsive panel sizing', () => {
     it('should render visual panel with correct width constraints', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}
@@ -135,7 +135,7 @@ describe('AssetStudioLayout', () => {
     });
 
     it('should render metadata panel with correct width constraints', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}
@@ -153,7 +153,7 @@ describe('AssetStudioLayout', () => {
     });
 
     it('should render data panel with flex grow', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}
@@ -210,7 +210,7 @@ describe('AssetStudioLayout', () => {
 
   describe('overflow handling', () => {
     it('should set overflow auto on panel containers', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}

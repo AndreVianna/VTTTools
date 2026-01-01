@@ -210,7 +210,7 @@ export const userService = {
 
     async getUserStats(): Promise<UserStatsResponse> {
         const response = await apiClient.get<UserStatsResponse>(
-            `${API_BASE}/stats`
+            `${API_BASE}/summary`
         );
         return response.data;
     },

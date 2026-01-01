@@ -18,20 +18,20 @@ import type {
 import { LightSourceType, RegionType } from '@/types/domain';
 
 // Captured request for URL verification
-let capturedRequest: { url: string; method: string | undefined; body: unknown } | null = null;
+let capturedRequest: { url: string; method: string | null; body: unknown } | null = null;
 
 vi.mock('./enhancedBaseQuery', () => ({
     createEnhancedBaseQuery: vi.fn(() => async (args: unknown) => {
         // Capture the request for inspection
         if (typeof args === 'string') {
-            capturedRequest = { url: args };
+            capturedRequest = { url: args, method: null, body: null };
             // Return array for getStages endpoint (empty string URL)
             if (args === '') {
                 return { data: [] };
             }
         } else if (args && typeof args === 'object') {
             const req = args as { url: string; method?: string; body?: unknown };
-            capturedRequest = { url: req.url, method: req.method, body: req.body };
+            capturedRequest = { url: req.url, method: req.method ?? null, body: req.body ?? null };
             // Return array for getStages endpoint (empty string URL)
             if (req.url === '') {
                 return { data: [] };
@@ -43,7 +43,8 @@ vi.mock('./enhancedBaseQuery', () => ({
 }));
 
 describe('stageApi', () => {
-    let store: ReturnType<typeof configureStore>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let store: ReturnType<typeof configureStore> & { dispatch: (action: any) => any };
 
     beforeEach(() => {
         capturedRequest = null;
@@ -424,7 +425,7 @@ describe('stageApi', () => {
 
         describe('Region URL patterns', () => {
             it('addRegion should POST to /{stageId}/regions', async () => {
-                const data: CreateRegionRequest = { name: 'Region 1', type: RegionType.DifficultTerrain, vertices: [] };
+                const data: CreateRegionRequest = { name: 'Region 1', type: RegionType.Terrain, vertices: [] };
                 await store.dispatch(stageApi.endpoints.addRegion.initiate({ stageId: 'stage-123', data }));
                 expect(capturedRequest?.url).toBe('/stage-123/regions');
                 expect(capturedRequest?.method).toBe('POST');
@@ -448,7 +449,7 @@ describe('stageApi', () => {
 
         describe('Light URL patterns', () => {
             it('addLight should POST to /{stageId}/lights', async () => {
-                const data: CreateLightRequest = { name: 'Torch', type: LightSourceType.Torch, position: { x: 0, y: 0 }, range: 20 };
+                const data: CreateLightRequest = { name: 'Torch', type: LightSourceType.Natural, position: { x: 0, y: 0 }, range: 20 };
                 await store.dispatch(stageApi.endpoints.addLight.initiate({ stageId: 'stage-123', data }));
                 expect(capturedRequest?.url).toBe('/stage-123/lights');
                 expect(capturedRequest?.method).toBe('POST');

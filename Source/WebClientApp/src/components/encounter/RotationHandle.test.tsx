@@ -97,8 +97,10 @@ describe('RotationHandle Logic', () => {
   it('calculates rotation angle from center', () => {
     const center = { x: 150, y: 150 };
     const pointer = { x: 200, y: 150 };
+    // Coordinate system: 0° = up/north, 90° = right/east, 180° = down/south, 270° = left/west
+    // Pointer is to the right (east) of center, so angle should be 90°
     const angle = calculateAngleFromCenter(center, pointer);
-    expect(angle).toBe(0);
+    expect(angle).toBe(90);
   });
 
   it('rotates point around origin', () => {

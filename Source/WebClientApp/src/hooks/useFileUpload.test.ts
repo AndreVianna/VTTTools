@@ -321,11 +321,9 @@ describe('useFileUpload', () => {
 
   describe('cancelUpload', () => {
     it('should abort ongoing upload when cancelUpload is called', async () => {
-      let resolveUpload: (value: { resource: MediaResource; aborted: boolean }) => void;
-
       mockUploadFileWithProgress.mockReturnValue(
-        new Promise((resolve) => {
-          resolveUpload = resolve;
+        new Promise(() => {
+          // Promise intentionally never resolves to simulate ongoing upload
         }),
       );
 

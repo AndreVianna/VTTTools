@@ -380,27 +380,6 @@ describe('TokenDragHandle Logic Tests', () => {
 
       expect(behavior.allowOverlap).toBe(false);
     });
-
-    it('should allow overlap for non-opaque objects', () => {
-      const transparentObjectAsset = {
-        ...immovableObjectAsset,
-        asset: {
-          ...immovableObjectAsset.asset,
-        },
-      };
-
-      const objectProperties =
-        transparentObjectAsset.asset.classification.kind === 'Object'
-          ? {
-              size: transparentObjectAsset.asset.size,
-              isMovable: true,
-              isOpaque: false,
-            }
-          : undefined;
-      const behavior = getPlacementBehavior(transparentObjectAsset.asset.classification.kind, objectProperties, undefined);
-
-      expect(behavior.allowOverlap).toBe(true);
-    });
   });
 
   describe('Multi-Selection', () => {

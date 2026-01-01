@@ -309,7 +309,7 @@ describe('AssetTableView', () => {
       );
 
       const checkboxes = screen.getAllByRole('checkbox');
-      const firstRowCheckbox = checkboxes[1];
+      const firstRowCheckbox = checkboxes[1]!;
 
       await user.click(firstRowCheckbox);
 

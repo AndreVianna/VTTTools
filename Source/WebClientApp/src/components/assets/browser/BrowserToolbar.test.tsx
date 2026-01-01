@@ -73,7 +73,7 @@ describe('BrowserToolbar', () => {
     });
 
     it('should hide total count when totalCount is undefined', () => {
-      const propsWithoutTotal = { ...defaultProps, totalCount: undefined };
+      const { totalCount: _, ...propsWithoutTotal } = defaultProps;
 
       render(
         <TestWrapper>

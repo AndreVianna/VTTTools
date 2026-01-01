@@ -36,15 +36,13 @@ describe('AssetResourceManager', () => {
   const mockCancelUpload = vi.fn();
   const mockResetState = vi.fn();
 
-  const defaultProps: AssetResourceManagerProps = {
-    portraitId: undefined,
-    tokenId: undefined,
+  const defaultProps = {
     onPortraitChange: vi.fn(),
     onTokenChange: vi.fn(),
     tokenSize: { width: 1, height: 1 },
     readOnly: false,
     entityId: 'test-entity-id',
-  };
+  } satisfies Partial<AssetResourceManagerProps>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,7 +89,7 @@ describe('AssetResourceManager', () => {
     it('should show placeholder when no portrait is uploaded', () => {
       render(
         <TestWrapper>
-          <AssetResourceManager {...defaultProps} portraitId={undefined} />
+          <AssetResourceManager {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -102,7 +100,7 @@ describe('AssetResourceManager', () => {
     it('should show placeholder when no token is uploaded', () => {
       render(
         <TestWrapper>
-          <AssetResourceManager {...defaultProps} tokenId={undefined} />
+          <AssetResourceManager {...defaultProps} />
         </TestWrapper>,
       );
 

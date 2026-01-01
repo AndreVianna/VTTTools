@@ -8,24 +8,25 @@
  */
 
 import { act, renderHook } from '@testing-library/react';
-import Konva from 'konva';
-import { beforeEach, describe, expect, it } from 'vitest';
+import type Konva from 'konva';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useKonvaRefs } from './useKonvaRefs';
+
+// Mock Konva.Image since actual Konva requires canvas
+const createMockKonvaImage = (id: string): Konva.Image => ({
+    id: () => id,
+    getClassName: () => 'Image',
+    attrs: { id },
+} as unknown as Konva.Image);
 
 describe('useKonvaRefs', () => {
   let mockImage1: Konva.Image;
   let mockImage2: Konva.Image;
 
   beforeEach(() => {
-    mockImage1 = new Konva.Image({
-      id: 'image-1',
-      image: new Image(),
-    });
-
-    mockImage2 = new Konva.Image({
-      id: 'image-2',
-      image: new Image(),
-    });
+    vi.clearAllMocks();
+    mockImage1 = createMockKonvaImage('image-1');
+    mockImage2 = createMockKonvaImage('image-2');
   });
 
   it('should initialize with empty refs', () => {

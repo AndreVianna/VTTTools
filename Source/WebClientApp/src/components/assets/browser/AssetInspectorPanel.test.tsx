@@ -352,10 +352,7 @@ describe('AssetInspectorPanel', () => {
     });
 
     it('should not render clone button when onClone is not provided', () => {
-      const propsWithoutClone = {
-        ...defaultProps,
-        onClone: undefined,
-      };
+      const { onClone: _, ...propsWithoutClone } = defaultProps;
 
       render(
         <TestWrapper>

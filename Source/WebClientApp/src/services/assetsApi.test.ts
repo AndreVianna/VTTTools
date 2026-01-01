@@ -1,6 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind } from '@/types/domain';
+import { describe, expect, it, vi } from 'vitest';
 import { assetsApi } from './assetsApi';
 
 vi.mock('./enhancedBaseQuery', () => ({
@@ -8,16 +6,6 @@ vi.mock('./enhancedBaseQuery', () => ({
 }));
 
 describe('assetsApi', () => {
-  let store: ReturnType<typeof configureStore>;
-
-  beforeEach(() => {
-    store = configureStore({
-      reducer: {
-        [assetsApi.reducerPath]: assetsApi.reducer,
-      },
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(assetsApi.middleware),
-    });
-  });
 
   describe('API configuration', () => {
     it('should have correct reducerPath', () => {

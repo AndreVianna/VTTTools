@@ -1,4 +1,4 @@
-import { act, render } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type UndoRedoContextValue, useUndoRedoContext } from '@/hooks/useUndoRedo';
 import type { Command } from '@/utils/commands';
@@ -8,6 +8,17 @@ const TestComponent = ({ onRender }: { onRender: (context: UndoRedoContextValue)
   const context = useUndoRedoContext();
   onRender(context);
   return null;
+};
+
+// Helper that keeps a reference to the latest context value
+const createContextRef = () => {
+  const ref: { current: UndoRedoContextValue | null } = { current: null };
+  const Component = () => {
+    const context = useUndoRedoContext();
+    ref.current = context;
+    return null;
+  };
+  return { ref, Component };
 };
 
 describe('UndoRedoContext', () => {
@@ -75,79 +86,115 @@ describe('UndoRedoContext', () => {
     expect(context!.canRedo).toBe(false);
   });
 
-  it.skip('undoes command and moves to future - TODO: Fix async test handling', async () => {
-    let context: UndoRedoContextValue | null = null;
+  it('undoes command and moves to future', async () => {
+    let capturedContext: UndoRedoContextValue | null = null;
+    const ContextCapture = () => {
+      capturedContext = useUndoRedoContext();
+      return null;
+    };
 
-    render(
+    const { rerender } = render(
       <UndoRedoProvider>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
+        <ContextCapture />
       </UndoRedoProvider>,
     );
 
-    const command = createMockCommand('1');
-
-    act(() => {
-      context?.execute(command);
-    });
-
-    expect(context).not.toBeNull();
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canUndo).toBe(true);
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canRedo).toBe(false);
+    // Track if undo was called on the command
+    const undoSpy = vi.fn().mockResolvedValue(undefined);
+    const command: Command = {
+      description: 'Test command',
+      execute: mockExecute,
+      undo: undoSpy,
+    };
 
     await act(async () => {
-      const undoPromise = context?.undo();
-      await undoPromise;
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await capturedContext?.execute(command);
     });
 
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canUndo).toBe(false);
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canRedo).toBe(true);
-    expect(mockUndo).toHaveBeenCalledTimes(1);
+    // Force rerender to get fresh context
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
+
+    expect(capturedContext).not.toBeNull();
+    expect(capturedContext!.canUndo).toBe(true);
+    expect(capturedContext!.canRedo).toBe(false);
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await capturedContext?.undo();
+    });
+
+    // Force rerender to get fresh context
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
+
+    expect(capturedContext!.canUndo).toBe(false);
+    expect(capturedContext!.canRedo).toBe(true);
+    expect(undoSpy).toHaveBeenCalledTimes(1);
   });
 
-  it.skip('redoes command and moves back to past - TODO: Fix async test handling', async () => {
-    let context: UndoRedoContextValue | null = null;
+  it('redoes command and moves back to past', async () => {
+    let capturedContext: UndoRedoContextValue | null = null;
+    const ContextCapture = () => {
+      capturedContext = useUndoRedoContext();
+      return null;
+    };
 
-    render(
+    const { rerender } = render(
       <UndoRedoProvider>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
+        <ContextCapture />
       </UndoRedoProvider>,
     );
 
-    const command = createMockCommand('1');
-
-    act(() => {
-      context?.execute(command);
-    });
+    const executeSpy = vi.fn();
+    const command: Command = {
+      description: 'Test command',
+      execute: executeSpy,
+      undo: vi.fn().mockResolvedValue(undefined),
+    };
 
     await act(async () => {
-      await context?.undo();
+      await capturedContext?.execute(command);
     });
 
-    mockExecute.mockClear();
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
 
-    act(() => {
-      context?.redo();
+    await act(async () => {
+      await capturedContext?.undo();
     });
 
-    expect(mockExecute).toHaveBeenCalledTimes(1);
-    expect(context).not.toBeNull();
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canUndo).toBe(true);
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canRedo).toBe(false);
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
+
+    executeSpy.mockClear();
+
+    await act(async () => {
+      await capturedContext?.redo();
+    });
+
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
+
+    expect(executeSpy).toHaveBeenCalledTimes(1);
+    expect(capturedContext).not.toBeNull();
+    expect(capturedContext!.canUndo).toBe(true);
+    expect(capturedContext!.canRedo).toBe(false);
   });
 
   it('clears future when new command executed', async () => {
@@ -185,40 +232,57 @@ describe('UndoRedoContext', () => {
     expect(context!.canRedo).toBe(false);
   });
 
-  it.skip('limits history size to maxHistorySize - TODO: Fix async test handling', async () => {
-    let context: UndoRedoContextValue | null = null;
+  it('limits history size to maxHistorySize', async () => {
+    let capturedContext: UndoRedoContextValue | null = null;
+    const ContextCapture = () => {
+      capturedContext = useUndoRedoContext();
+      return null;
+    };
 
-    render(
+    const undoSpies = [vi.fn(), vi.fn(), vi.fn(), vi.fn()];
+    const commands = undoSpies.map((spy, i) => ({
+      description: `Command ${i + 1}`,
+      execute: mockExecute,
+      undo: spy.mockResolvedValue(undefined),
+    }));
+
+    const { rerender } = render(
       <UndoRedoProvider maxHistorySize={3}>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
+        <ContextCapture />
       </UndoRedoProvider>,
     );
 
-    act(() => {
-      context?.execute(createMockCommand('1'));
-      context?.execute(createMockCommand('2'));
-      context?.execute(createMockCommand('3'));
-      context?.execute(createMockCommand('4'));
-    });
+    for (const command of commands) {
+      await act(async () => {
+        await capturedContext?.execute(command);
+      });
+      rerender(
+        <UndoRedoProvider maxHistorySize={3}>
+          <ContextCapture />
+        </UndoRedoProvider>,
+      );
+    }
 
     expect(mockExecute).toHaveBeenCalledTimes(4);
 
-    mockUndo.mockClear();
+    // Undo 3 times - should only be able to undo 3 due to maxHistorySize
+    for (let i = 0; i < 3; i++) {
+      await act(async () => {
+        await capturedContext?.undo();
+      });
+      rerender(
+        <UndoRedoProvider maxHistorySize={3}>
+          <ContextCapture />
+        </UndoRedoProvider>,
+      );
+    }
 
-    await act(async () => {
-      await context?.undo();
-      await context?.undo();
-      await context?.undo();
-    });
-
-    expect(mockUndo).toHaveBeenCalledTimes(3);
-    expect(context).not.toBeNull();
-    // biome-ignore lint/style/noNonNullAssertion: Checked for null above
-    expect(context!.canUndo).toBe(false);
+    // Commands 2, 3, 4 should have had undo called (command 1 was pushed out)
+    expect(undoSpies[1]).toHaveBeenCalledTimes(1);
+    expect(undoSpies[2]).toHaveBeenCalledTimes(1);
+    expect(undoSpies[3]).toHaveBeenCalledTimes(1);
+    expect(capturedContext).not.toBeNull();
+    expect(capturedContext!.canUndo).toBe(false);
   });
 
   it('does nothing when undo called with empty past', () => {
@@ -333,24 +397,35 @@ describe('UndoRedoContext keyboard shortcuts', () => {
     },
   });
 
-  it.skip('handles Ctrl+Z for undo on Windows - TODO: Fix async test handling', async () => {
-    let context: UndoRedoContextValue | null = null;
+  it('handles Ctrl+Z for undo on Windows', async () => {
+    let capturedContext: UndoRedoContextValue | null = null;
+    const ContextCapture = () => {
+      capturedContext = useUndoRedoContext();
+      return null;
+    };
 
-    render(
+    const undoSpy = vi.fn().mockResolvedValue(undefined);
+    const command: Command = {
+      description: 'Test command',
+      execute: mockExecute,
+      undo: undoSpy,
+    };
+
+    const { rerender } = render(
       <UndoRedoProvider>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
+        <ContextCapture />
       </UndoRedoProvider>,
     );
 
-    act(() => {
-      context?.execute(createMockCommand('1'));
+    await act(async () => {
+      await capturedContext?.execute(command);
     });
 
-    mockUndo.mockClear();
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
 
     const event = new KeyboardEvent('keydown', {
       key: 'z',
@@ -360,34 +435,58 @@ describe('UndoRedoContext keyboard shortcuts', () => {
 
     await act(async () => {
       window.dispatchEvent(event);
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(mockUndo).toHaveBeenCalledTimes(1);
-  });
-
-  it.skip('handles Ctrl+Y for redo on Windows - TODO: Fix async test handling', async () => {
-    let context: UndoRedoContextValue | null = null;
-
-    render(
+    rerender(
       <UndoRedoProvider>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
+        <ContextCapture />
       </UndoRedoProvider>,
     );
 
-    act(() => {
-      context?.execute(createMockCommand('1'));
-    });
+    expect(undoSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles Ctrl+Y for redo on Windows', async () => {
+    let capturedContext: UndoRedoContextValue | null = null;
+    const ContextCapture = () => {
+      capturedContext = useUndoRedoContext();
+      return null;
+    };
+
+    const executeSpy = vi.fn();
+    const command: Command = {
+      description: 'Test command',
+      execute: executeSpy,
+      undo: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const { rerender } = render(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
 
     await act(async () => {
-      await context?.undo();
+      await capturedContext?.execute(command);
     });
 
-    mockExecute.mockClear();
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
+
+    await act(async () => {
+      await capturedContext?.undo();
+    });
+
+    rerender(
+      <UndoRedoProvider>
+        <ContextCapture />
+      </UndoRedoProvider>,
+    );
+
+    executeSpy.mockClear();
 
     const event = new KeyboardEvent('keydown', {
       key: 'y',
@@ -395,86 +494,17 @@ describe('UndoRedoContext keyboard shortcuts', () => {
       bubbles: true,
     });
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(event);
     });
 
-    expect(mockExecute).toHaveBeenCalledTimes(1);
-  });
-
-  it.skip('handles Ctrl+Shift+Z for redo on Windows - TODO: Fix async test handling', async () => {
-    let context: UndoRedoContextValue | null = null;
-
-    render(
+    rerender(
       <UndoRedoProvider>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
+        <ContextCapture />
       </UndoRedoProvider>,
     );
 
-    act(() => {
-      context?.execute(createMockCommand('1'));
-    });
-
-    await act(async () => {
-      await context?.undo();
-    });
-
-    mockExecute.mockClear();
-
-    const event = new KeyboardEvent('keydown', {
-      key: 'z',
-      ctrlKey: true,
-      shiftKey: true,
-      bubbles: true,
-    });
-
-    act(() => {
-      window.dispatchEvent(event);
-    });
-
-    expect(mockExecute).toHaveBeenCalledTimes(1);
-  });
-
-  it.skip('handles Cmd+Z for undo on Mac - TODO: Fix async test handling', async () => {
-    Object.defineProperty(navigator, 'platform', {
-      writable: true,
-      value: 'MacIntel',
-    });
-
-    let context: UndoRedoContextValue | null = null;
-
-    render(
-      <UndoRedoProvider>
-        <TestComponent
-          onRender={(ctx) => {
-            context = ctx;
-          }}
-        />
-      </UndoRedoProvider>,
-    );
-
-    act(() => {
-      context?.execute(createMockCommand('1'));
-    });
-
-    mockUndo.mockClear();
-
-    const event = new KeyboardEvent('keydown', {
-      key: 'z',
-      metaKey: true,
-      bubbles: true,
-    });
-
-    await act(async () => {
-      window.dispatchEvent(event);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(mockUndo).toHaveBeenCalledTimes(1);
+    expect(executeSpy).toHaveBeenCalledTimes(1);
   });
 
   it('cleans up event listeners on unmount', () => {

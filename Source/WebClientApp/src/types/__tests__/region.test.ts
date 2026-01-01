@@ -1,116 +1,115 @@
-// TODO: Phase 8.8 - Re-enable when Wall/Region/Source types are implemented
-// import { describe, it, expect } from 'vitest';
-// import type {
-//     Region,
-//     EncounterRegion,
-//     CreateRegionRequest,
-//     UpdateRegionRequest,
-//     PlaceEncounterRegionRequest,
-//     UpdateEncounterRegionRequest,
-//     Point
-// } from '../domain';
+import { describe, it, expect } from 'vitest';
+import type {
+    Region,
+    EncounterRegion,
+    CreateRegionRequest,
+    UpdateRegionRequest,
+    PlaceEncounterRegionRequest,
+    UpdateEncounterRegionRequest,
+    Point
+} from '../domain';
 
-// describe('Region Types', () => {
-//     it('should allow valid Region object', () => {
-//         const region: Region = {
-//             id: '123e4567-e89b-12d3-a456-426614174000',
-//             ownerId: '123e4567-e89b-12d3-a456-426614174001',
-//             name: 'Illumination Zone',
-//             description: 'A region that defines lighting levels',
-//             regionType: 'Illumination',
-//             labelMap: {
-//                 0: 'dark',
-//                 1: 'dim',
-//                 2: 'bright',
-//             },
-//             createdAt: '2025-10-28T00:00:00Z',
-//         };
-//         expect(region.name).toBe('Illumination Zone');
-//         expect(region.regionType).toBe('Illumination');
-//         expect(region.labelMap[1]).toBe('dim');
-//     });
+describe('Region Types', () => {
+    it('should allow valid Region object', () => {
+        const region: Region = {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            ownerId: '123e4567-e89b-12d3-a456-426614174001',
+            name: 'Illumination Zone',
+            description: 'A region that defines lighting levels',
+            regionType: 'Illumination',
+            labelMap: {
+                0: 'dark',
+                1: 'dim',
+                2: 'bright',
+            },
+            createdAt: '2025-10-28T00:00:00Z',
+        };
+        expect(region.name).toBe('Illumination Zone');
+        expect(region.regionType).toBe('Illumination');
+        expect(region.labelMap[1]).toBe('dim');
+    });
 
-//     it('should allow Region with extensible regionType', () => {
-//         const region: Region = {
-//             id: '123e4567-e89b-12d3-a456-426614174000',
-//             ownerId: '123e4567-e89b-12d3-a456-426614174001',
-//             name: 'Weather Zone',
-//             regionType: 'Weather',
-//             labelMap: {
-//                 0: 'clear',
-//                 1: 'rainy',
-//                 2: 'stormy',
-//             },
-//             createdAt: '2025-10-28T00:00:00Z',
-//         };
-//         expect(region.regionType).toBe('Weather');
-//     });
+    it('should allow Region with extensible regionType', () => {
+        const region: Region = {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            ownerId: '123e4567-e89b-12d3-a456-426614174001',
+            name: 'Weather Zone',
+            regionType: 'Weather',
+            labelMap: {
+                0: 'clear',
+                1: 'rainy',
+                2: 'stormy',
+            },
+            createdAt: '2025-10-28T00:00:00Z',
+        };
+        expect(region.regionType).toBe('Weather');
+    });
 
-//     it('should allow valid EncounterRegion object', () => {
-//         const vertices: Point[] = [
-//             { x: 0, y: 0 },
-//             { x: 10, y: 0 },
-//             { x: 10, y: 10 },
-//         ];
+    it('should allow valid EncounterRegion object', () => {
+        const vertices: Point[] = [
+            { x: 0, y: 0 },
+            { x: 10, y: 0 },
+            { x: 10, y: 10 },
+        ];
 
-//         const encounterRegion: EncounterRegion = {
-//             id: '789e4567-e89b-12d3-a456-426614174000',
-//             encounterId: 'abc-def-ghi',
-//             regionId: '123e4567-e89b-12d3-a456-426614174000',
-//             vertices,
-//             value: 1,
-//         };
-//         expect(encounterRegion.vertices).toHaveLength(3);
-//         expect(encounterRegion.value).toBe(1);
-//     });
+        const encounterRegion: EncounterRegion = {
+            id: '789e4567-e89b-12d3-a456-426614174000',
+            encounterId: 'abc-def-ghi',
+            regionId: '123e4567-e89b-12d3-a456-426614174000',
+            vertices,
+            value: 1,
+        };
+        expect(encounterRegion.vertices).toHaveLength(3);
+        expect(encounterRegion.value).toBe(1);
+    });
 
-//     it('should allow valid CreateRegionRequest', () => {
-//         const request: CreateRegionRequest = {
-//             name: 'Elevation Map',
-//             description: 'Defines terrain elevation',
-//             regionType: 'Elevation',
-//             labelMap: {
-//                 0: 'ground',
-//                 1: 'elevated',
-//                 2: 'high',
-//             },
-//         };
-//         expect(request.name).toBe('Elevation Map');
-//         expect(request.regionType).toBe('Elevation');
-//     });
+    it('should allow valid CreateRegionRequest', () => {
+        const request: CreateRegionRequest = {
+            name: 'Elevation Map',
+            description: 'Defines terrain elevation',
+            regionType: 'Elevation',
+            labelMap: {
+                0: 'ground',
+                1: 'elevated',
+                2: 'high',
+            },
+        };
+        expect(request.name).toBe('Elevation Map');
+        expect(request.regionType).toBe('Elevation');
+    });
 
-//     it('should allow UpdateRegionRequest with partial updates', () => {
-//         const request: UpdateRegionRequest = {
-//             name: 'Updated Region',
-//             labelMap: {
-//                 0: 'none',
-//                 1: 'some',
-//             },
-//         };
-//         expect(request.name).toBe('Updated Region');
-//         expect(request.description).toBeUndefined();
-//     });
+    it('should allow UpdateRegionRequest with partial updates', () => {
+        const request: UpdateRegionRequest = {
+            name: 'Updated Region',
+            labelMap: {
+                0: 'none',
+                1: 'some',
+            },
+        };
+        expect(request.name).toBe('Updated Region');
+        expect(request.description).toBeUndefined();
+    });
 
-//     it('should allow valid PlaceEncounterRegionRequest', () => {
-//         const request: PlaceEncounterRegionRequest = {
-//             regionId: '123e4567-e89b-12d3-a456-426614174000',
-//             vertices: [
-//                 { x: 0, y: 0 },
-//                 { x: 50, y: 0 },
-//                 { x: 25, y: 50 },
-//             ],
-//             value: 2,
-//         };
-//         expect(request.regionId).toBeDefined();
-//         expect(request.vertices).toHaveLength(3);
-//         expect(request.value).toBe(2);
-//     });
+    it('should allow valid PlaceEncounterRegionRequest', () => {
+        const request: PlaceEncounterRegionRequest = {
+            regionId: '123e4567-e89b-12d3-a456-426614174000',
+            vertices: [
+                { x: 0, y: 0 },
+                { x: 50, y: 0 },
+                { x: 25, y: 50 },
+            ],
+            value: 2,
+        };
+        expect(request.regionId).toBeDefined();
+        expect(request.vertices).toHaveLength(3);
+        expect(request.value).toBe(2);
+    });
 
-//     it('should allow UpdateEncounterRegionRequest with partial updates', () => {
-//         const request: UpdateEncounterRegionRequest = {
-//             value: 1,
-//         };
-//         expect(request.value).toBe(1);
-//         expect(request.vertices).toBeUndefined();
-//     });
-// });
+    it('should allow UpdateEncounterRegionRequest with partial updates', () => {
+        const request: UpdateEncounterRegionRequest = {
+            value: 1,
+        };
+        expect(request.value).toBe(1);
+        expect(request.vertices).toBeUndefined();
+    });
+});

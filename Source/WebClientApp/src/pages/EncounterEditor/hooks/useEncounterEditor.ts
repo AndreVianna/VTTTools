@@ -35,6 +35,7 @@ import type {
   UpdateSoundRequest,
   UpdateStageSettingsRequest,
   UpdateStageGridRequest,
+  Stage,
   StageWall,
 } from '@/types/stage';
 import type { UpdateEncounterRequest, Point } from '@/types/domain';
@@ -47,7 +48,7 @@ export interface UseEncounterEditorOptions {
 export interface UseEncounterEditorResult {
   // Data
   encounter: ReturnType<typeof useGetEncounterQuery>['data'];
-  stage: ReturnType<typeof useGetEncounterQuery>['data'] extends { stage: infer S } ? S : undefined;
+  stage: Stage | undefined;
   stageId: string | undefined;
   isLoading: boolean;
   isError: boolean;

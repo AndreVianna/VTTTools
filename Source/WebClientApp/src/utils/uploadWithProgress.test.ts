@@ -1,10 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MediaResource } from '@/types/domain';
 import { ResourceRole } from '@/types/domain';
-import { uploadFileWithProgress, type UploadOptions, type UploadProgressEvent } from './uploadWithProgress';
+import { uploadFileWithProgress, type UploadOptions } from './uploadWithProgress';
+
+// Type for mutable XHR mock
+interface MockXHR {
+  open: ReturnType<typeof vi.fn>;
+  send: ReturnType<typeof vi.fn>;
+  abort: ReturnType<typeof vi.fn>;
+  setRequestHeader: ReturnType<typeof vi.fn>;
+  status: number;
+  responseText: string;
+  withCredentials: boolean;
+  upload: XMLHttpRequestUpload;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
+}
 
 describe('uploadWithProgress', () => {
-  let mockXhr: Partial<XMLHttpRequest>;
+  let mockXhr: MockXHR;
   let xhrEventListeners: Record<string, EventListener>;
   let xhrUploadEventListeners: Record<string, EventListener>;
 
@@ -36,14 +50,15 @@ describe('uploadWithProgress', () => {
           xhrUploadEventListeners[event] = listener;
         }),
         removeEventListener: vi.fn(),
-      } as Partial<XMLHttpRequestUpload> as XMLHttpRequestUpload,
+      } as unknown as XMLHttpRequestUpload,
       addEventListener: vi.fn((event: string, listener: EventListener) => {
         xhrEventListeners[event] = listener;
       }),
       removeEventListener: vi.fn(),
     };
 
-    global.XMLHttpRequest = vi.fn(() => mockXhr as XMLHttpRequest);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.XMLHttpRequest = vi.fn(() => mockXhr) as any;
   });
 
   describe('successful upload', () => {

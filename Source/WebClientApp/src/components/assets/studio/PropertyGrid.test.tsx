@@ -1,8 +1,8 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PropertyGrid } from './PropertyGrid';
 import type { PropertyGridSection } from './PropertyGrid';
 
@@ -397,7 +397,7 @@ describe('PropertyGrid', () => {
       let updatedSections = mockOnChange.mock.calls[0]?.[0];
       expect(updatedSections[0]?.properties).toHaveLength(3);
 
-      const { rerender } = render(
+      render(
         <TestWrapper>
           <PropertyGrid sections={updatedSections} onChange={mockOnChange} allowAddProperty allowRemoveProperty />
         </TestWrapper>,

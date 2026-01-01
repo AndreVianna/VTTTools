@@ -4,7 +4,6 @@ import { GridType, type GridConfig } from '@/utils/gridCalculator';
 import type { Command } from '@/utils/commands';
 import {
     SourceDrawingTool,
-    type SourceDrawingToolProps,
     type LightSourceDrawingProps,
     type SoundSourceDrawingProps,
 } from './SourceDrawingTool';
@@ -16,8 +15,6 @@ const mockGridConfig: GridConfig = {
     snap: true,
     scale: 1,
 };
-
-const mockWalls: EncounterWall[] = [];
 
 const createMockLightSource = (overrides: Partial<LightSourceDrawingProps> = {}): LightSourceDrawingProps => ({
     sourceType: 'light',
@@ -32,17 +29,6 @@ const createMockSoundSource = (overrides: Partial<SoundSourceDrawingProps> = {})
 });
 
 describe('SourceDrawingTool', () => {
-    const defaultProps: SourceDrawingToolProps = {
-        encounterId: 'encounter-1',
-        source: createMockLightSource(),
-        walls: mockWalls,
-        gridConfig: mockGridConfig,
-        execute: vi.fn(),
-        onRefetch: vi.fn(),
-        onComplete: vi.fn(),
-        onCancel: vi.fn(),
-    };
-
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -297,12 +283,12 @@ describe('SourceDrawingTool', () => {
 
     describe('execute command integration', () => {
         it('should accept execute function', () => {
-            const execute = vi.fn<[Command], Promise<void>>();
+            const execute = vi.fn<(cmd: Command) => Promise<void>>();
             expect(typeof execute).toBe('function');
         });
 
         it('should accept async execute function', async () => {
-            const execute = vi.fn<[Command], Promise<void>>().mockResolvedValue(undefined);
+            const execute = vi.fn<(cmd: Command) => Promise<void>>().mockResolvedValue(undefined);
             expect(execute).not.toHaveBeenCalled();
         });
     });

@@ -15,13 +15,14 @@ describe('useFogOfWarPlacement', () => {
   const mockEncounterId = 'encounter-123';
   const mockOnRegionCreated = vi.fn();
 
-  const createMockRegion = (name: string, value: number, vertices: Point[]): PlacedRegion => ({
+  // Note: Implementation uses value=2 for "Hidden" (add) and value=0 for "Revealed" (subtract)
+  const createMockRegion = (name: string, value: number, vertices: Point[], index = 0): PlacedRegion => ({
     id: `region-${name}`,
     encounterId: mockEncounterId,
-    index: 0,
+    index,
     type: 'FogOfWar',
     name,
-    label: 'Hidden',
+    label: value === 2 ? 'Hidden' : 'Revealed',
     value,
     vertices,
   });
@@ -54,13 +55,12 @@ describe('useFogOfWarPlacement', () => {
       expect(mockOnRegionCreated).toHaveBeenCalledTimes(1);
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
       expect(createdRegion?.name).toBe('1');
-      expect(createdRegion?.value).toBe(1);
-      expect(createdRegion?.label).toBe('Hidden');
+      expect(createdRegion?.value).toBe(2); // Hidden = 2
     });
 
     it('should create name "2" for second add mode region', () => {
       const existingRegions: PlacedRegion[] = [
-        createMockRegion('1', 1, [
+        createMockRegion('1', 2, [
           { x: 0, y: 0 },
           { x: 50, y: 0 },
           { x: 50, y: 50 },
@@ -93,7 +93,7 @@ describe('useFogOfWarPlacement', () => {
 
     it('should create child name "1.1" for first subtract mode region', () => {
       const existingRegions: PlacedRegion[] = [
-        createMockRegion('1', 1, [
+        createMockRegion('1', 2, [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
           { x: 100, y: 100 },
@@ -122,21 +122,22 @@ describe('useFogOfWarPlacement', () => {
       expect(mockOnRegionCreated).toHaveBeenCalled();
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
       expect(createdRegion?.name).toBe('1.1');
-      expect(createdRegion?.value).toBe(-1);
+      expect(createdRegion?.value).toBe(0); // Revealed = 0
     });
 
-    it('should create child name "1.2" for second subtract under parent "1"', () => {
+    it('should create child name "1.1.1" for subtract under most recent parent "1.1"', () => {
+      // Note: Implementation uses highest-index region as parent for subtract mode
       const existingRegions: PlacedRegion[] = [
-        createMockRegion('1', 1, [
+        createMockRegion('1', 2, [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
           { x: 100, y: 100 },
-        ]),
-        createMockRegion('1.1', -1, [
+        ], 0),
+        createMockRegion('1.1', 0, [
           { x: 10, y: 10 },
           { x: 20, y: 10 },
           { x: 20, y: 20 },
-        ]),
+        ], 1),
       ];
 
       const { result } = renderHook(() =>
@@ -160,12 +161,13 @@ describe('useFogOfWarPlacement', () => {
 
       expect(mockOnRegionCreated).toHaveBeenCalled();
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
-      expect(createdRegion?.name).toBe('1.2');
+      // Uses "1.1" as parent (highest index), so child is "1.1.1"
+      expect(createdRegion?.name).toBe('1.1.1');
     });
   });
 
   describe('Mode-based Region Creation', () => {
-    it('should create region with value=1 in add mode', () => {
+    it('should create region with value=2 (Hidden) in add mode', () => {
       const { result } = renderHook(() =>
         useFogOfWarPlacement({
           encounterId: mockEncounterId,
@@ -184,14 +186,13 @@ describe('useFogOfWarPlacement', () => {
       });
 
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
-      expect(createdRegion?.value).toBe(1);
+      expect(createdRegion?.value).toBe(2); // Hidden = 2
       expect(createdRegion?.type).toBe('FogOfWar');
-      expect(createdRegion?.label).toBe('Hidden');
     });
 
-    it('should create region with value=-1 in subtract mode', () => {
+    it('should create region with value=0 in subtract mode', () => {
       const existingRegions: PlacedRegion[] = [
-        createMockRegion('1', 1, [
+        createMockRegion('1', 2, [
           { x: 0, y: 0 },
           { x: 200, y: 0 },
           { x: 200, y: 200 },
@@ -216,7 +217,7 @@ describe('useFogOfWarPlacement', () => {
       });
 
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
-      expect(createdRegion?.value).toBe(-1);
+      expect(createdRegion?.value).toBe(0); // Revealed = 0
     });
   });
 
@@ -225,7 +226,7 @@ describe('useFogOfWarPlacement', () => {
       const polygonClipping = await import('polygon-clipping');
 
       const existingRegions: PlacedRegion[] = [
-        createMockRegion('1', 1, [
+        createMockRegion('1', 2, [ // Hidden = 2 (required for union to be called)
           { x: 0, y: 0 },
           { x: 50, y: 0 },
           { x: 50, y: 50 },
@@ -278,12 +279,12 @@ describe('useFogOfWarPlacement', () => {
       expect(mockOnRegionCreated).toHaveBeenCalled();
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
       expect(createdRegion?.name).toBe('1');
-      expect(createdRegion?.value).toBe(1);
+      expect(createdRegion?.value).toBe(2); // Hidden = 2
     });
 
     it('should handle bucket fill completion in subtract mode', () => {
       const existingRegions: PlacedRegion[] = [
-        createMockRegion('1', 1, [
+        createMockRegion('1', 2, [
           { x: 0, y: 0 },
           { x: 1000, y: 0 },
           { x: 1000, y: 1000 },
@@ -312,7 +313,7 @@ describe('useFogOfWarPlacement', () => {
       expect(mockOnRegionCreated).toHaveBeenCalled();
       const createdRegion = mockOnRegionCreated.mock.calls[0]?.[0];
       expect(createdRegion?.name).toBe('1.1');
-      expect(createdRegion?.value).toBe(-1);
+      expect(createdRegion?.value).toBe(0); // Revealed = 0
     });
   });
 

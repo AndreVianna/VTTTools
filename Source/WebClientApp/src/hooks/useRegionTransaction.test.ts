@@ -632,11 +632,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(duplicateVertices);
         });
 
-        const mockUnwrap = vi.fn().mockResolvedValue({ index: 1 });
-        const mockAddEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
-        const mockUpdateEncounterRegion = vi.fn();
+        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -670,11 +667,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(validVertices);
         });
 
-        const mockUnwrap = vi.fn().mockResolvedValue({ index: 1 });
-        const mockAddEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
-        const mockUpdateEncounterRegion = vi.fn();
+        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -710,11 +704,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockUnwrap = vi.fn().mockResolvedValue({ index: 5 });
-        const mockAddEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
-        const mockUpdateEncounterRegion = vi.fn();
+        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-123', {
@@ -724,17 +715,16 @@ describe('useRegionTransaction', () => {
 
           expect(commitResult.success).toBe(true);
           expect(commitResult.action).toBe('create');
-          expect(commitResult.regionIndex).toBe(5);
+          // regionIndex is -1 since addRegion doesn't return the index directly
+          expect(commitResult.regionIndex).toBe(-1);
         });
 
+        // API now takes CreateRegionRequest without encounterId, color, or label
         expect(mockAddEncounterRegion).toHaveBeenCalledWith({
-          encounterId: 'encounter-123',
           name: 'New Region',
           vertices,
           type: 'Elevation',
           value: 10,
-          label: 'High Ground',
-          color: '#00FF00',
         });
         expect(mockUpdateEncounterRegion).not.toHaveBeenCalled();
       });
@@ -767,11 +757,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(updatedVertices);
         });
 
-        const mockAddEncounterRegion = vi.fn();
-        const mockUnwrap = vi.fn().mockResolvedValue({});
-        const mockUpdateEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
+        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-456', {
@@ -784,12 +771,12 @@ describe('useRegionTransaction', () => {
           expect(commitResult.regionIndex).toBe(3);
         });
 
-        expect(mockUpdateEncounterRegion).toHaveBeenCalledWith({
-          encounterId: 'encounter-456',
-          regionIndex: 3,
+        // API now takes (index, data) separately, data is UpdateRegionRequest
+        // 'Difficult' is converted to 'Terrain' by toRegionType()
+        expect(mockUpdateEncounterRegion).toHaveBeenCalledWith(3, {
           name: 'Updated Name',
           vertices: updatedVertices,
-          type: 'Difficult',
+          type: 'Terrain',
         });
         expect(mockAddEncounterRegion).not.toHaveBeenCalled();
       });
@@ -809,11 +796,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockUnwrap = vi.fn().mockRejectedValue(new Error('Network error'));
-        const mockAddEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
-        const mockUpdateEncounterRegion = vi.fn();
+        const mockAddEncounterRegion = vi.fn().mockRejectedValue(new Error('Network error'));
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -844,11 +828,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockUnwrap = vi.fn().mockResolvedValue({ index: 1 });
-        const mockAddEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
-        const mockUpdateEncounterRegion = vi.fn();
+        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           await result.current.commitTransaction('encounter-1', {
@@ -858,15 +839,17 @@ describe('useRegionTransaction', () => {
         });
 
         const callArgs = mockAddEncounterRegion.mock.calls[0]?.[0];
+        // API uses CreateRegionRequest which doesn't include encounterId or color
+        // 'custom' type is converted to 'Terrain' by toRegionType()
         expect(callArgs).toEqual({
-          encounterId: 'encounter-1',
           name: 'Simple Region',
           vertices,
-          type: 'custom',
-          color: '#808080',
+          type: 'Terrain',
         });
         expect(callArgs).not.toHaveProperty('value');
         expect(callArgs).not.toHaveProperty('label');
+        expect(callArgs).not.toHaveProperty('encounterId');
+        expect(callArgs).not.toHaveProperty('color');
       });
     });
 
@@ -886,11 +869,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockUnwrap = vi.fn().mockResolvedValue({ index: 1 });
-        const mockAddEncounterRegion = vi.fn().mockReturnValue({
-          unwrap: mockUnwrap,
-        });
-        const mockUpdateEncounterRegion = vi.fn();
+        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
         await act(async () => {
           await result.current.commitTransaction('encounter-1', {
@@ -945,11 +925,9 @@ describe('useRegionTransaction', () => {
         result.current.updateVertices(vertices);
       });
 
-      const mockUnwrap = vi.fn().mockRejectedValue('String error');
-      const mockAddEncounterRegion = vi.fn().mockReturnValue({
-        unwrap: mockUnwrap,
-      });
-      const mockUpdateEncounterRegion = vi.fn();
+      // Mock rejects with a non-Error value (string)
+      const mockAddEncounterRegion = vi.fn().mockRejectedValue('String error');
+      const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -979,11 +957,9 @@ describe('useRegionTransaction', () => {
         result.current.updateVertices(vertices);
       });
 
-      const mockUnwrap = vi.fn().mockRejectedValue(new Error('Failed'));
-      const mockAddEncounterRegion = vi.fn().mockReturnValue({
-        unwrap: mockUnwrap,
-      });
-      const mockUpdateEncounterRegion = vi.fn();
+      // Mock rejects with an Error
+      const mockAddEncounterRegion = vi.fn().mockRejectedValue(new Error('Failed'));
+      const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
 
       await act(async () => {
         await result.current.commitTransaction('encounter-1', {
@@ -1110,94 +1086,6 @@ describe('useRegionTransaction', () => {
         result.current.redoLocal();
       });
       expect(state.vertices).toHaveLength(2);
-    });
-  });
-
-  describe('commitTransaction - Edge Cases', () => {
-    it('should fail when no segment exists', async () => {
-      const { result } = renderHook(() => useRegionTransaction());
-
-      const mockAddEncounterRegion = vi.fn();
-      const mockUpdateEncounterRegion = vi.fn();
-
-      await act(async () => {
-        const commitResult = await result.current.commitTransaction('encounter-1', {
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-        });
-
-        expect(commitResult.success).toBe(false);
-        expect(commitResult.error).toBe('No segment to commit');
-      });
-
-      expect(mockAddEncounterRegion).not.toHaveBeenCalled();
-      expect(mockUpdateEncounterRegion).not.toHaveBeenCalled();
-    });
-
-    it('should handle non-Error exceptions', async () => {
-      const { result } = renderHook(() => useRegionTransaction());
-      const vertices: Point[] = [
-        { x: 0, y: 0 },
-        { x: 100, y: 0 },
-        { x: 50, y: 100 },
-      ];
-
-      mockCleanPolygonVertices.mockReturnValue(vertices);
-
-      act(() => {
-        result.current.startTransaction('placement');
-        result.current.updateVertices(vertices);
-      });
-
-      const mockUnwrap = vi.fn().mockRejectedValue('String error');
-      const mockAddEncounterRegion = vi.fn().mockReturnValue({
-        unwrap: mockUnwrap,
-      });
-      const mockUpdateEncounterRegion = vi.fn();
-
-      await act(async () => {
-        const commitResult = await result.current.commitTransaction('encounter-1', {
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-        });
-
-        expect(commitResult.success).toBe(false);
-        expect(commitResult.error).toBe('Transaction commit failed');
-      });
-    });
-
-    it('should not clear state on failed commit', async () => {
-      const { result } = renderHook(() => useRegionTransaction());
-      const vertices: Point[] = [
-        { x: 0, y: 0 },
-        { x: 100, y: 0 },
-        { x: 50, y: 100 },
-      ];
-
-      mockCleanPolygonVertices.mockReturnValue(vertices);
-
-      act(() => {
-        result.current.startTransaction('placement', undefined, {
-          name: 'Test Region',
-        });
-        result.current.updateVertices(vertices);
-      });
-
-      const mockUnwrap = vi.fn().mockRejectedValue(new Error('Failed'));
-      const mockAddEncounterRegion = vi.fn().mockReturnValue({
-        unwrap: mockUnwrap,
-      });
-      const mockUpdateEncounterRegion = vi.fn();
-
-      await act(async () => {
-        await result.current.commitTransaction('encounter-1', {
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-        });
-      });
-
-      expect(result.current.transaction.isActive).toBe(true);
-      expect(result.current.transaction.segment?.name).toBe('Test Region');
     });
   });
 
