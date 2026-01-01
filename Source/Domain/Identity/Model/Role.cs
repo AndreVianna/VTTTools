@@ -1,6 +1,7 @@
 namespace VttTools.Identity.Model;
 
-public class Role
-    : IdentityRole<Guid> {
-    public override Guid Id { get; set; } = Guid.CreateVersion7();
+public record Role {
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public required string Name { get; init; }
+    public IReadOnlyList<string> Claims { get; init; } = [];
 }

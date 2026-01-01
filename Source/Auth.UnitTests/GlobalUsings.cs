@@ -25,6 +25,9 @@ global using VttTools.Auth.Services;
 global using VttTools.Configuration;
 global using VttTools.Identity.Model;
 global using VttTools.Media.Model;
+
+global using UserEntity = VttTools.Data.Identity.Entities.User;
+global using RoleEntity = VttTools.Data.Identity.Entities.Role;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;
 global using VttTools.Services;

@@ -24,7 +24,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
             DisplayName = "Test User",
         };
         var roles = new List<string> { "User" };
@@ -39,7 +39,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var roles = new List<string>();
 
@@ -56,7 +56,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var roles = new List<string> { "User", "Admin", "Moderator" };
 
@@ -70,7 +70,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var roles = new List<string>();
 
@@ -84,7 +84,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = null,
+            Name = "Test User",
         };
         var roles = new List<string>();
 
@@ -98,7 +98,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
             DisplayName = null,
         };
         var roles = new List<string>();
@@ -113,7 +113,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var roles = new List<string> { "User" };
         var token = _service.GenerateToken(user, roles);
@@ -171,7 +171,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var token = otherService.GenerateToken(user, []);
 
@@ -193,7 +193,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var token = wrongIssuerService.GenerateToken(user, []);
 
@@ -215,7 +215,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var token = wrongAudienceService.GenerateToken(user, []);
 
@@ -237,7 +237,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var token = wrongKeyService.GenerateToken(user, []);
 
@@ -252,7 +252,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var roles = new List<string> { "User" };
         var token = _service.GenerateToken(user, roles);
@@ -303,7 +303,7 @@ public class JwtTokenServiceTests {
         var user = new User {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
-            UserName = "testUser",
+            Name = "Test User",
         };
         var token = otherService.GenerateToken(user, []);
 

@@ -12,8 +12,8 @@ public sealed class JwtTokenService(IOptions<JwtOptions> jwtOptions, ILogger<Jwt
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString("n")),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Name, user.UserName ?? user.Email),
-            new("DisplayName", user.DisplayName ?? string.Empty)
+            new(ClaimTypes.Name, user.Email),
+            new("DisplayName", user.DisplayName)
         };
 
         if (roles.Any()) {

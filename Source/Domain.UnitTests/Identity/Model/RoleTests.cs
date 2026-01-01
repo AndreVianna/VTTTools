@@ -4,35 +4,31 @@ public class RoleTests {
     [Fact]
     public void Constructor_WhenCalled_InitializesWithDefaultValues() {
         // Arrange & Act
-        var role = new Role();
+        var role = new Role {
+            Name = "TestRole",
+        };
 
         // Assert
         role.Id.Should().NotBeEmpty();
-        role.Name.Should().BeNull();
-        role.NormalizedName.Should().BeNull();
-        role.ConcurrencyStamp.Should().NotBeNull();
+        role.Name.Should().Be("TestRole");
+        role.Claims.Should().BeEmpty();
     }
 
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         var id = Guid.CreateVersion7();
-        const string name = "Admin";
-        const string normalizedName = "ADMIN";
-        var concurrencyStamp = Guid.CreateVersion7().ToString();
 
         // Act
         var role = new Role {
             Id = id,
-            Name = name,
-            NormalizedName = normalizedName,
-            ConcurrencyStamp = concurrencyStamp,
+            Name = "Administrator",
+            Claims = ["users:read", "users:write", "admin:access"],
         };
 
         // Assert
         role.Id.Should().Be(id);
-        role.Name.Should().Be(name);
-        role.NormalizedName.Should().Be(normalizedName);
-        role.ConcurrencyStamp.Should().Be(concurrencyStamp);
+        role.Name.Should().Be("Administrator");
+        role.Claims.Should().BeEquivalentTo(["users:read", "users:write", "admin:access"]);
     }
 }

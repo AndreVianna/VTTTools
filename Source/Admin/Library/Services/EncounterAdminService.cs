@@ -6,7 +6,7 @@ public sealed class EncounterAdminService(
     IOptions<PublicLibraryOptions> options,
     IEncounterStorage encounterStorage,
     IAdventureStorage adventureStorage,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<EncounterAdminService> logger)
     : LibraryAdminService(options, userManager, logger),
       IEncounterAdminService {

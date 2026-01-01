@@ -1,7 +1,9 @@
+using VttTools.Data.Identity;
+
 namespace VttTools.Auth.Services;
 
 public class ProfileService(
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<ProfileService> logger) : IProfileService {
 
     public async Task<ProfileResponse> GetProfileAsync(Guid userId, CancellationToken ct = default) {
@@ -161,11 +163,11 @@ public class ProfileService(
         }
     }
 
-    private static ProfileResponse MapUserToProfileResponse(User user)
+    private static ProfileResponse MapUserToProfileResponse(UserEntity user)
         => new() {
             Id = user.Id,
             Name = user.Name,
-            DisplayName = user.DisplayName ?? string.Empty,
+            DisplayName = user.DisplayName,
             Email = user.Email ?? string.Empty,
             EmailConfirmed = user.EmailConfirmed,
             PhoneNumber = user.PhoneNumber,

@@ -25,7 +25,7 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser",
+            Name = "Test User",
         };
         var roles = new List<string> { "User" };
         const string newToken = "new.jwt.token";
@@ -52,7 +52,7 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser",
+            Name = "Test User",
         };
         var roles = new List<string>();
         const string newToken = "new.jwt.token";
@@ -230,7 +230,7 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser",
+            Name = "Test User",
         };
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
@@ -252,7 +252,7 @@ public class TokenRefreshMiddlewareTests {
         var user = new User {
             Id = userId,
             Email = "test@example.com",
-            UserName = "testuser",
+            Name = "Test User",
         };
         var roles = new List<string> { "User" };
         _httpContext.Response.StatusCode = 200;

@@ -25,7 +25,6 @@ public class JwtTokenServiceTests {
         => new() {
             Id = id ?? Guid.NewGuid(),
             Email = email,
-            UserName = email,
             Name = name,
             DisplayName = name.Split(' ').FirstOrDefault() ?? name
         };

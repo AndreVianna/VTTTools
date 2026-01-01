@@ -2,8 +2,8 @@ namespace VttTools.Admin.Services;
 
 public class UserAdminServiceTests
     : IAsyncLifetime {
-    private readonly UserManager<User> _mockUserManager;
-    private readonly RoleManager<Role> _mockRoleManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly RoleManager<RoleEntity> _mockRoleManager;
     private readonly IAuditLogService _mockAuditLogService;
     private readonly ILogger<UserAdminService> _mockLogger;
     private readonly UserAdminService _sut;
@@ -52,7 +52,7 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task SearchUsersAsync_WithSearchTerm_ReturnsFilteredResults() {
-        var users = new List<User> {
+        var users = new List<UserEntity> {
             CreateTestUser("john@example.com", "John Doe"),
             CreateTestUser("jane@example.com", "Jane Smith"),
             CreateTestUser("bob@example.com", "Bob Johnson")
@@ -90,7 +90,7 @@ public class UserAdminServiceTests
         var unconfirmedUser = CreateTestUser("unconfirmed@example.com", "Unconfirmed User");
         unconfirmedUser.EmailConfirmed = false;
 
-        var users = new List<User> { activeUser, lockedUser, unconfirmedUser };
+        var users = new List<UserEntity> { activeUser, lockedUser, unconfirmedUser };
         var queryable = users.BuildMock();
 
         _mockUserManager.Users.Returns(queryable);
@@ -121,7 +121,7 @@ public class UserAdminServiceTests
         lockedUser.LockoutEnabled = true;
         lockedUser.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1);
 
-        var users = new List<User> { activeUser, lockedUser };
+        var users = new List<UserEntity> { activeUser, lockedUser };
         var queryable = users.BuildMock();
 
         _mockUserManager.Users.Returns(queryable);
@@ -170,7 +170,7 @@ public class UserAdminServiceTests
 
     [Fact]
     public async Task SearchUsersAsync_WithSortByEmail_ReturnsSortedResults() {
-        var users = new List<User> {
+        var users = new List<UserEntity> {
             CreateTestUser("charlie@example.com", "Charlie"),
             CreateTestUser("alice@example.com", "Alice"),
             CreateTestUser("bob@example.com", "Bob")
@@ -202,7 +202,7 @@ public class UserAdminServiceTests
         var user2 = CreateTestUser("user2@example.com", "User 2");
         var user3 = CreateTestUser("user3@example.com", "User 3");
 
-        var users = new List<User> { user1, user2, user3 };
+        var users = new List<UserEntity> { user1, user2, user3 };
         var queryable = users.BuildMock();
 
         _mockUserManager.Users.Returns(queryable);
@@ -231,7 +231,7 @@ public class UserAdminServiceTests
         var user2 = CreateTestUser("user2@example.com", "User 2");
         var user3 = CreateTestUser("user3@example.com", "User 3");
 
-        var users = new List<User> { user1, user2, user3 };
+        var users = new List<UserEntity> { user1, user2, user3 };
         var queryable = users.BuildMock();
 
         _mockUserManager.Users.Returns(queryable);
@@ -283,7 +283,7 @@ public class UserAdminServiceTests
     [Fact]
     public async Task GetUserByIdAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var act = () => _sut.GetUserByIdAsync(userId, default);
 
@@ -339,7 +339,7 @@ public class UserAdminServiceTests
     [Fact]
     public async Task LockUserAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var act = () => _sut.LockUserAsync(userId, TestContext.Current.CancellationToken);
 
@@ -350,13 +350,13 @@ public class UserAdminServiceTests
     [Fact]
     public async Task LockUserAsync_WhenLockingLastAdmin_ThrowsLastAdminException() {
         var user = CreateTestUser("admin@example.com", "Admin User");
-        var allUsers = new List<User> { user }.BuildMock();
+        var allUsers = new List<UserEntity> { user }.BuildMock();
 
         _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
         _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
         _mockUserManager.Users.Returns(allUsers);
 
-        var adminRole = new Role { Name = "Administrator", Id = Guid.CreateVersion7() };
+        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
         _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
 
         var act = () => _sut.LockUserAsync(user.Id, TestContext.Current.CancellationToken);
@@ -369,7 +369,7 @@ public class UserAdminServiceTests
     public async Task LockUserAsync_WithMultipleAdmins_LocksAdminSuccessfully() {
         var admin1 = CreateTestUser("admin1@example.com", "Admin 1");
         var admin2 = CreateTestUser("admin2@example.com", "Admin 2");
-        var allUsers = new List<User> { admin1, admin2 }.BuildMock();
+        var allUsers = new List<UserEntity> { admin1, admin2 }.BuildMock();
 
         _mockUserManager.FindByIdAsync(admin1.Id.ToString()).Returns(admin1);
         _mockUserManager.GetRolesAsync(admin1).Returns(["Administrator"]);
@@ -378,7 +378,7 @@ public class UserAdminServiceTests
         _mockUserManager.SetLockoutEnabledAsync(admin1, true).Returns(IdentityResult.Success);
         _mockUserManager.SetLockoutEndDateAsync(admin1, Arg.Any<DateTimeOffset?>()).Returns(IdentityResult.Success);
 
-        var adminRole = new Role { Name = "Administrator", Id = Guid.CreateVersion7() };
+        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
         _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
 
         var result = await _sut.LockUserAsync(admin1.Id, TestContext.Current.CancellationToken);
@@ -428,7 +428,7 @@ public class UserAdminServiceTests
     [Fact]
     public async Task UnlockUserAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var act = () => _sut.UnlockUserAsync(userId, TestContext.Current.CancellationToken);
 
@@ -485,13 +485,13 @@ public class UserAdminServiceTests
         result.Success.Should().BeTrue();
         result.EmailConfirmed.Should().BeTrue();
 
-        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
     public async Task VerifyEmailAsync_WithNonExistentUser_ThrowsUserNotFoundException() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var act = () => _sut.VerifyEmailAsync(userId, default);
 
@@ -538,7 +538,7 @@ public class UserAdminServiceTests
     [Fact]
     public async Task SendPasswordResetAsync_WithNonExistentUser_ReturnsSuccessForSecurity() {
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var result = await _sut.SendPasswordResetAsync(userId, TestContext.Current.CancellationToken);
 
@@ -546,7 +546,7 @@ public class UserAdminServiceTests
         result.Success.Should().BeTrue();
         result.EmailSent.Should().BeTrue();
 
-        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<UserEntity>());
     }
 
     #endregion
@@ -591,7 +591,7 @@ public class UserAdminServiceTests
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var act = () => _sut.AssignRoleAsync(userId, roleName, adminUserId, default);
 
@@ -672,7 +672,7 @@ public class UserAdminServiceTests
         var adminUserId = Guid.CreateVersion7();
         const string roleName = "Editor";
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var act = () => _sut.RemoveRoleAsync(userId, roleName, adminUserId, default);
 
@@ -684,13 +684,13 @@ public class UserAdminServiceTests
     public async Task RemoveRoleAsync_WhenRemovingLastAdminRole_ThrowsLastAdminException() {
         var user = CreateTestUser("admin@example.com", "Admin User");
         var adminUserId = Guid.CreateVersion7();
-        var allUsers = new List<User> { user }.BuildMock();
+        var allUsers = new List<UserEntity> { user }.BuildMock();
 
         _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
         _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
         _mockUserManager.Users.Returns(allUsers);
 
-        var adminRole = new Role { Name = "Administrator", Id = Guid.CreateVersion7() };
+        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
         _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
 
         var act = () => _sut.RemoveRoleAsync(user.Id, "Administrator", adminUserId, default);
@@ -704,7 +704,7 @@ public class UserAdminServiceTests
         var admin1 = CreateTestUser("admin1@example.com", "Admin 1");
         var admin2 = CreateTestUser("admin2@example.com", "Admin 2");
         var adminUserId = Guid.CreateVersion7();
-        var allUsers = new List<User> { admin1, admin2 }.BuildMock();
+        var allUsers = new List<UserEntity> { admin1, admin2 }.BuildMock();
 
         _mockUserManager.FindByIdAsync(admin1.Id.ToString()).Returns(admin1);
         _mockUserManager.GetRolesAsync(admin1).Returns(["Administrator"]);
@@ -712,7 +712,7 @@ public class UserAdminServiceTests
         _mockUserManager.Users.Returns(allUsers);
         _mockUserManager.RemoveFromRoleAsync(admin1, "Administrator").Returns(IdentityResult.Success);
 
-        var adminRole = new Role { Name = "Administrator", Id = Guid.CreateVersion7() };
+        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
         _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
 
         var result = await _sut.RemoveRoleAsync(admin1.Id, "Administrator", adminUserId, TestContext.Current.CancellationToken);
@@ -756,12 +756,12 @@ public class UserAdminServiceTests
         var adminUser = CreateTestUser("admin@example.com", "Admin User");
         adminUser.EmailConfirmed = true;
 
-        var users = new List<User> { user1, user2, lockedUser, adminUser };
+        var users = new List<UserEntity> { user1, user2, lockedUser, adminUser };
         var queryable = users.BuildMock();
 
         _mockUserManager.Users.Returns(queryable);
 
-        var adminRole = new Role { Name = "Administrator", Id = Guid.CreateVersion7() };
+        var adminRole = new RoleEntity { Name = "Administrator", Id = Guid.CreateVersion7() };
         _mockRoleManager.FindByNameAsync("Administrator").Returns(adminRole);
 
         _mockUserManager.GetRolesAsync(users[0]).Returns(["User"]);
@@ -784,7 +784,7 @@ public class UserAdminServiceTests
         var queryable = users.BuildMock();
 
         _mockUserManager.Users.Returns(queryable);
-        _mockRoleManager.FindByNameAsync("Administrator").Returns((Role?)null);
+        _mockRoleManager.FindByNameAsync("Administrator").Returns((RoleEntity?)null);
 
         foreach (var user in users) {
             _mockUserManager.GetRolesAsync(user).Returns(["User"]);
@@ -868,19 +868,19 @@ public class UserAdminServiceTests
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static RoleManager<Role> CreateRoleManagerMock() {
-        var roleStore = Substitute.For<IRoleStore<Role>>();
-        return Substitute.For<RoleManager<Role>>(
+    private static RoleManager<RoleEntity> CreateRoleManagerMock() {
+        var roleStore = Substitute.For<IRoleStore<RoleEntity>>();
+        return Substitute.For<RoleManager<RoleEntity>>(
             roleStore, null, null, null, null);
     }
 
-    private static User CreateTestUser(string email, string name) => new() {
+    private static UserEntity CreateTestUser(string email, string name) => new() {
         Id = Guid.CreateVersion7(),
         UserName = email,
         Email = email,
@@ -891,8 +891,8 @@ public class UserAdminServiceTests
         TwoFactorEnabled = false
     };
 
-    private static List<User> CreateTestUsers(int count) {
-        var users = new List<User>();
+    private static List<UserEntity> CreateTestUsers(int count) {
+        var users = new List<UserEntity>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser($"user{i}@example.com", $"User {i}"));
         }

@@ -7,7 +7,7 @@ namespace VttTools.Admin.Library.Services;
 public sealed class AssetAdminService(
     IOptions<PublicLibraryOptions> options,
     IAssetStorage assetStorage,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<AssetAdminService> logger)
     : LibraryAdminService(options, userManager, logger), IAssetAdminService {
 

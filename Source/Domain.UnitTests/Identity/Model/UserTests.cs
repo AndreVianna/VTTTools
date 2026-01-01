@@ -4,57 +4,101 @@ public class UserTests {
     [Fact]
     public void Constructor_WhenCalled_InitializesWithDefaultValues() {
         // Arrange & Act
-        var user = new User();
+        var user = new User {
+            Email = "test@example.com",
+            Name = "Test User",
+        };
 
         // Assert
         user.Id.Should().NotBeEmpty();
-        user.UserName.Should().BeNull();
-        user.NormalizedUserName.Should().BeNull();
-        user.Email.Should().BeNull();
-        user.NormalizedEmail.Should().BeNull();
+        user.Email.Should().Be("test@example.com");
+        user.Name.Should().Be("Test User");
+        user.DisplayName.Should().Be("Test");
+        user.AvatarId.Should().BeNull();
+        user.UnitSystem.Should().Be(UnitSystem.Imperial);
         user.EmailConfirmed.Should().BeFalse();
-        user.PasswordHash.Should().BeNull();
-        user.SecurityStamp.Should().BeNull();
-        user.ConcurrencyStamp.Should().NotBeNull();
-        user.PhoneNumber.Should().BeNull();
-        user.PhoneNumberConfirmed.Should().BeFalse();
         user.TwoFactorEnabled.Should().BeFalse();
-        user.LockoutEnd.Should().BeNull();
         user.LockoutEnabled.Should().BeFalse();
-        user.AccessFailedCount.Should().Be(0);
+        user.LockoutEnd.Should().BeNull();
+        user.HasPassword.Should().BeFalse();
+        user.Roles.Should().BeEmpty();
+        user.IsAdministrator.Should().BeFalse();
     }
 
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         var id = Guid.CreateVersion7();
-        const string userName = "test_user";
-        const string email = "test@example.com";
+        var avatarId = Guid.CreateVersion7();
+        var lockoutEnd = DateTimeOffset.UtcNow.AddHours(1);
 
         // Act
         var user = new User {
             Id = id,
-            UserName = userName,
-            Email = email,
+            Email = "admin@example.com",
+            Name = "Admin User",
+            DisplayName = "AdminDisplay",
+            AvatarId = avatarId,
+            UnitSystem = UnitSystem.Metric,
             EmailConfirmed = true,
-            PhoneNumberConfirmed = true,
             TwoFactorEnabled = true,
             LockoutEnabled = true,
-            AccessFailedCount = 3,
-            Name = "Some Title",
-            DisplayName = "Some",
+            LockoutEnd = lockoutEnd,
+            HasPassword = true,
+            Roles = ["User", "Administrator"],
         };
 
         // Assert
         user.Id.Should().Be(id);
-        user.UserName.Should().Be(userName);
-        user.Email.Should().Be(email);
+        user.Email.Should().Be("admin@example.com");
+        user.Name.Should().Be("Admin User");
+        user.DisplayName.Should().Be("AdminDisplay");
+        user.AvatarId.Should().Be(avatarId);
+        user.UnitSystem.Should().Be(UnitSystem.Metric);
         user.EmailConfirmed.Should().BeTrue();
-        user.PhoneNumberConfirmed.Should().BeTrue();
         user.TwoFactorEnabled.Should().BeTrue();
         user.LockoutEnabled.Should().BeTrue();
-        user.AccessFailedCount.Should().Be(3);
-        user.Name.Should().Be("Some Title");
-        user.DisplayName.Should().Be("Some");
+        user.LockoutEnd.Should().Be(lockoutEnd);
+        user.HasPassword.Should().BeTrue();
+        user.Roles.Should().BeEquivalentTo(["User", "Administrator"]);
+        user.IsAdministrator.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DisplayName_WhenEmpty_ReturnsFirstNameFromName() {
+        // Arrange & Act
+        var user = new User {
+            Email = "test@example.com",
+            Name = "John Doe Smith",
+        };
+
+        // Assert
+        user.DisplayName.Should().Be("John");
+    }
+
+    [Fact]
+    public void IsAdministrator_WhenRolesContainsAdministrator_ReturnsTrue() {
+        // Arrange
+        var user = new User {
+            Email = "admin@example.com",
+            Name = "Admin",
+            Roles = ["Administrator"],
+        };
+
+        // Assert
+        user.IsAdministrator.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAdministrator_WhenRolesDoesNotContainAdministrator_ReturnsFalse() {
+        // Arrange
+        var user = new User {
+            Email = "user@example.com",
+            Name = "User",
+            Roles = ["User"],
+        };
+
+        // Assert
+        user.IsAdministrator.Should().BeFalse();
     }
 }

@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class TwoFactorAuthenticationService(
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<TwoFactorAuthenticationService> logger) : ITwoFactorService {
 
     public async Task<TwoFactorSetupResponse> InitiateSetupAsync(Guid userId, CancellationToken ct = default) {

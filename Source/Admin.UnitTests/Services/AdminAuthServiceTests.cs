@@ -1,8 +1,8 @@
 namespace VttTools.Admin.Services;
 
 public class AdminAuthServiceTests {
-    private readonly UserManager<User> _mockUserManager;
-    private readonly SignInManager<User> _mockSignInManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly SignInManager<UserEntity> _mockSignInManager;
     private readonly IJwtTokenService _mockJwtTokenService;
     private readonly ILogger<AdminAuthService> _mockLogger;
     private readonly AdminAuthService _sut;
@@ -25,7 +25,7 @@ public class AdminAuthServiceTests {
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
@@ -297,7 +297,7 @@ public class AdminAuthServiceTests {
     public async Task GetCurrentUserAsync_WithNonExistentUser_ReturnsNull() {
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         var result = await _sut.GetCurrentUserAsync(userId, TestContext.Current.CancellationToken);
 
@@ -347,21 +347,21 @@ public class AdminAuthServiceTests {
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static SignInManager<User> CreateSignInManagerMock(UserManager<User> userManager) {
+    private static SignInManager<UserEntity> CreateSignInManagerMock(UserManager<UserEntity> userManager) {
         var contextAccessor = Substitute.For<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
-        var claimsFactory = Substitute.For<IUserClaimsPrincipalFactory<User>>();
+        var claimsFactory = Substitute.For<IUserClaimsPrincipalFactory<UserEntity>>();
         var options = Substitute.For<Microsoft.Extensions.Options.IOptions<IdentityOptions>>();
-        var logger = Substitute.For<ILogger<SignInManager<User>>>();
+        var logger = Substitute.For<ILogger<SignInManager<UserEntity>>>();
         var schemes = Substitute.For<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider>();
-        var confirmation = Substitute.For<IUserConfirmation<User>>();
+        var confirmation = Substitute.For<IUserConfirmation<UserEntity>>();
 
-        return Substitute.For<SignInManager<User>>(
+        return Substitute.For<SignInManager<UserEntity>>(
             userManager,
             contextAccessor,
             claimsFactory,
@@ -371,7 +371,7 @@ public class AdminAuthServiceTests {
             confirmation);
     }
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,

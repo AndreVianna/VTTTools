@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class SecurityServiceTests {
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<SecurityService> _mockLogger;
     private readonly SecurityService _securityService;
 
@@ -41,7 +41,7 @@ public class SecurityServiceTests {
     public async Task GetSecuritySettingsAsync_WithNonExistentUser_ReturnsNotFound() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _securityService.GetSecuritySettingsAsync(userId, TestContext.Current.CancellationToken);
@@ -54,7 +54,7 @@ public class SecurityServiceTests {
         Assert.Equal(0, result.RecoveryCodesRemaining);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().CountRecoveryCodesAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().CountRecoveryCodesAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -172,13 +172,13 @@ public class SecurityServiceTests {
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,

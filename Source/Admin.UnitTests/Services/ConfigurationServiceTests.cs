@@ -9,7 +9,7 @@ public class ConfigurationServiceTests {
     private readonly IConfigurationRoot _configuration;
     private readonly ConfigurationSourceDetector _sourceDetector;
     private readonly FrontendConfigurationService _mockFrontendService;
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<ConfigurationService> _mockLogger;
     private readonly IConfigurationService _sut;
 
@@ -67,7 +67,7 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithValidTotp_ReturnsActualValue() {
         var userId = Guid.CreateVersion7();
-        var user = new User { Id = userId, TwoFactorEnabled = true };
+        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
 
         _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
         _mockUserManager.VerifyTwoFactorTokenAsync(user, "Authenticator", "123456")
@@ -89,7 +89,7 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithInvalidTotp_ThrowsUnauthorizedAccessException() {
         var userId = Guid.CreateVersion7();
-        var user = new User { Id = userId, TwoFactorEnabled = true };
+        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
 
         _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
         _mockUserManager.VerifyTwoFactorTokenAsync(user, "Authenticator", "wrong-code")
@@ -110,7 +110,7 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithUser2FADisabled_ThrowsUnauthorizedAccessException() {
         var userId = Guid.CreateVersion7();
-        var user = new User { Id = userId, TwoFactorEnabled = false };
+        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = false };
 
         _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
 
@@ -130,7 +130,7 @@ public class ConfigurationServiceTests {
     public async Task RevealConfigValueAsync_WithNullUser_ThrowsUnauthorizedAccessException() {
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(Task.FromResult<User?>(null));
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(Task.FromResult<UserEntity?>(null));
 
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
             async () => await _sut.RevealConfigValueAsync(
@@ -163,7 +163,7 @@ public class ConfigurationServiceTests {
     [Fact]
     public async Task RevealConfigValueAsync_WithNonexistentKey_ThrowsKeyNotFoundException() {
         var userId = Guid.CreateVersion7();
-        var user = new User { Id = userId, TwoFactorEnabled = true };
+        var user = new UserEntity { Id = userId, Email = "test@example.com", Name = "Test", TwoFactorEnabled = true };
 
         _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
         _mockUserManager.VerifyTwoFactorTokenAsync(user, "Authenticator", "123456")
@@ -255,28 +255,10 @@ public class ConfigurationServiceTests {
             .Build();
     }
 
-    private static UserManager<User> CreateMockUserManager() {
-        var userStoreMock = Substitute.For<IUserStore<User>>();
-        var optionsMock = Substitute.For<Microsoft.Extensions.Options.IOptions<IdentityOptions>>();
-        var passwordHasherMock = Substitute.For<IPasswordHasher<User>>();
-        var userValidators = new List<IUserValidator<User>>();
-        var passwordValidators = new List<IPasswordValidator<User>>();
-        var keyNormalizer = Substitute.For<ILookupNormalizer>();
-        var errors = Substitute.For<IdentityErrorDescriber>();
-        var services = Substitute.For<IServiceProvider>();
-        var loggerMock = Substitute.For<ILogger<UserManager<User>>>();
-
-        return Substitute.For<UserManager<User>>(
-            userStoreMock,
-            optionsMock,
-            passwordHasherMock,
-            userValidators,
-            passwordValidators,
-            keyNormalizer,
-            errors,
-            services,
-            loggerMock
-        );
+    private static UserManager<UserEntity> CreateMockUserManager() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
+            userStore, null, null, null, null, null, null, null, null);
     }
 
     #endregion

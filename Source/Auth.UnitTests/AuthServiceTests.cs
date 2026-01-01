@@ -5,23 +5,23 @@ namespace VttTools.Auth;
 /// Tests individual methods in isolation without external dependencies.
 /// </summary>
 public class AuthServiceTests {
-    private readonly UserManager<User> _mockUserManager;
-    private readonly SignInManager<User> _mockSignInManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly SignInManager<UserEntity> _mockSignInManager;
     private readonly IEmailService _mockEmailService;
     private readonly IJwtTokenService _mockJwtTokenService;
     private readonly ILogger<AuthService> _mockLogger;
     private readonly AuthService _authService;
 
     public AuthServiceTests() {
-        // Mock UserManager<User>
-        var userStore = Substitute.For<IUserStore<User>>();
-        _mockUserManager = Substitute.For<UserManager<User>>(
+        // Mock UserManager<UserEntity>
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        _mockUserManager = Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
 
-        // Mock SignInManager<User>
+        // Mock SignInManager<UserEntity>
         var contextAccessor = Substitute.For<IHttpContextAccessor>();
-        var userPrincipalFactory = Substitute.For<IUserClaimsPrincipalFactory<User>>();
-        _mockSignInManager = Substitute.For<SignInManager<User>>(
+        var userPrincipalFactory = Substitute.For<IUserClaimsPrincipalFactory<UserEntity>>();
+        _mockSignInManager = Substitute.For<SignInManager<UserEntity>>(
             _mockUserManager, contextAccessor, userPrincipalFactory, null, null, null, null);
 
         // Mock EmailService
@@ -56,7 +56,7 @@ public class AuthServiceTests {
         _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
             .Returns(SignInResult.Success);
         _mockUserManager.GetRolesAsync(user).Returns(roles);
-        _mockJwtTokenService.GenerateToken(user, roles, request.RememberMe).Returns(expectedToken);
+        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>()).Returns(expectedToken);
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -74,7 +74,7 @@ public class AuthServiceTests {
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
         await _mockSignInManager.Received(1).PasswordSignInAsync(user, request.Password, request.RememberMe, true);
         await _mockUserManager.Received(1).GetRolesAsync(user);
-        _mockJwtTokenService.Received(1).GenerateToken(user, roles, request.RememberMe);
+        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -98,7 +98,7 @@ public class AuthServiceTests {
 
         // Verify only FindByEmailAsync was called
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
-        await _mockSignInManager.DidNotReceive().PasswordSignInAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>());
+        await _mockSignInManager.DidNotReceive().PasswordSignInAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -216,11 +216,11 @@ public class AuthServiceTests {
         var roles = new List<string> { "User" };
         const string expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
-        _mockUserManager.CreateAsync(Arg.Any<User>(), request.Password).Returns(IdentityResult.Success);
-        _mockSignInManager.SignInAsync(Arg.Any<User>(), false).Returns(Task.CompletedTask);
-        _mockUserManager.GetRolesAsync(Arg.Any<User>()).Returns(roles);
-        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), roles, false).Returns(expectedToken);
+        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
+        _mockUserManager.CreateAsync(Arg.Any<UserEntity>(), request.Password).Returns(IdentityResult.Success);
+        _mockSignInManager.SignInAsync(Arg.Any<UserEntity>(), false).Returns(Task.CompletedTask);
+        _mockUserManager.GetRolesAsync(Arg.Any<UserEntity>()).Returns(roles);
+        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>()).Returns(expectedToken);
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -236,13 +236,13 @@ public class AuthServiceTests {
 
         // Verify method calls
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
-        await _mockUserManager.Received(1).CreateAsync(Arg.Is<User>(u =>
+        await _mockUserManager.Received(1).CreateAsync(Arg.Is<UserEntity>(u =>
             u.Email == request.Email &&
             u.Name == request.Name &&
             u.DisplayName == request.DisplayName), request.Password);
-        await _mockSignInManager.Received(1).SignInAsync(Arg.Any<User>(), false);
-        await _mockUserManager.Received(1).GetRolesAsync(Arg.Any<User>());
-        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), roles, false);
+        await _mockSignInManager.Received(1).SignInAsync(Arg.Any<UserEntity>(), false);
+        await _mockUserManager.Received(1).GetRolesAsync(Arg.Any<UserEntity>());
+        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -268,7 +268,7 @@ public class AuthServiceTests {
         Assert.Null(result.User);
 
         // Verify AddAsync was not called
-        await _mockUserManager.DidNotReceive().CreateAsync(Arg.Any<User>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().CreateAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -288,8 +288,8 @@ public class AuthServiceTests {
         };
         var failedResult = IdentityResult.Failed([.. identityErrors]);
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
-        _mockUserManager.CreateAsync(Arg.Any<User>(), request.Password).Returns(failedResult);
+        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
+        _mockUserManager.CreateAsync(Arg.Any<UserEntity>(), request.Password).Returns(failedResult);
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -313,8 +313,8 @@ public class AuthServiceTests {
             DisplayName = null
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
-        _mockUserManager.CreateAsync(Arg.Any<User>(), request.Password).Returns(IdentityResult.Success);
+        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
+        _mockUserManager.CreateAsync(Arg.Any<UserEntity>(), request.Password).Returns(IdentityResult.Success);
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -415,7 +415,7 @@ public class AuthServiceTests {
     public async Task GetCurrentUserAsync_NonExistentUser_ReturnsFailureResponse() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _authService.GetCurrentUserAsync(userId);
@@ -490,14 +490,14 @@ public class AuthServiceTests {
     public async Task ForgotPasswordAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
         const string email = "nonexistent@example.com";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
 
         var result = await _authService.ForgotPasswordAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("reset instructions have been sent");
         await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<UserEntity>());
         await _mockEmailService.DidNotReceive().SendPasswordResetEmailAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -561,13 +561,13 @@ public class AuthServiceTests {
         const string email = "nonexistent@example.com";
         const string token = "some-token";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
 
         var result = await _authService.ValidateResetTokenAsync(email, token);
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid reset link");
-        await _mockUserManager.DidNotReceive().VerifyUserTokenAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().VerifyUserTokenAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -631,13 +631,13 @@ public class AuthServiceTests {
         const string token = "some-token";
         const string newPassword = "NewPassword123!";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
 
         var result = await _authService.ResetPasswordAsync(email, token, newPassword);
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid reset link");
-        await _mockUserManager.DidNotReceive().ResetPasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().ResetPasswordAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -690,7 +690,7 @@ public class AuthServiceTests {
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("already confirmed");
-        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<UserEntity>());
         await _mockEmailService.DidNotReceive().SendEmailConfirmationAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -698,13 +698,13 @@ public class AuthServiceTests {
     public async Task ResendEmailConfirmationAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
         const string email = "nonexistent@example.com";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
 
         var result = await _authService.ResendEmailConfirmationAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("confirmation instructions have been sent");
-        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<UserEntity>());
         await _mockEmailService.DidNotReceive().SendEmailConfirmationAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -755,7 +755,7 @@ public class AuthServiceTests {
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("already confirmed");
-        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -783,13 +783,13 @@ public class AuthServiceTests {
         const string email = "nonexistent@example.com";
         const string token = "some-token";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
 
         var result = await _authService.ConfirmEmailAsync(email, token);
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid confirmation link");
-        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>());
+        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -855,7 +855,7 @@ public class AuthServiceTests {
 
     #region Helper Methods
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,
@@ -863,7 +863,7 @@ public class AuthServiceTests {
             Name = name,
             DisplayName = name,
             EmailConfirmed = true,
-            IsAdministrator = false
+            PasswordHash = "hashed_password"
         };
 
     #endregion

@@ -7,7 +7,7 @@ public sealed class CampaignAdminService(
     IOptions<PublicLibraryOptions> options,
     ICampaignStorage campaignStorage,
     IAdventureStorage adventureStorage,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<CampaignAdminService> logger)
     : LibraryAdminService(options, userManager, logger), ICampaignAdminService {
 

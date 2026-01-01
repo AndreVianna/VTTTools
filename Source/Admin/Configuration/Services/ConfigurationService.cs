@@ -6,7 +6,7 @@ public class ConfigurationService(
     IConfiguration configuration,
     ConfigurationSourceDetector sourceDetector,
     FrontendConfigurationService frontendConfigService,
-    UserManager<User> userManager,
+    UserManager<UserEntity> userManager,
     ILogger<ConfigurationService> logger) : IConfigurationService {
 
     public async Task<ConfigurationResponse> GetServiceConfigurationAsync(string serviceName, CancellationToken ct = default)

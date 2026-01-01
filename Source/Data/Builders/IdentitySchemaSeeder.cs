@@ -1,3 +1,7 @@
+using Role = VttTools.Data.Identity.Entities.Role;
+using User = VttTools.Data.Identity.Entities.User;
+using UserRole = VttTools.Data.Identity.Entities.UserRole;
+
 namespace VttTools.Data.Builders;
 
 internal static class IdentitySchemaSeeder {

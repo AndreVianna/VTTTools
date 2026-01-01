@@ -25,5 +25,8 @@ global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Identity.Model;
 global using VttTools.Media.ServiceContracts;
+
+global using UserEntity = VttTools.Data.Identity.Entities.User;
+global using RoleEntity = VttTools.Data.Identity.Entities.Role;
 global using VttTools.Media.Services;
 global using VttTools.Services;

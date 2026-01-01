@@ -1,7 +1,7 @@
 namespace VttTools.Auth.Services;
 
 public class ProfileServiceTests {
-    private readonly UserManager<User> _mockUserManager;
+    private readonly UserManager<UserEntity> _mockUserManager;
     private readonly ILogger<ProfileService> _mockLogger;
     private readonly ProfileService _profileService;
 
@@ -36,7 +36,7 @@ public class ProfileServiceTests {
     public async Task GetProfileAsync_WithNonExistentUser_ReturnsNotFoundError() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _profileService.GetProfileAsync(userId, TestContext.Current.CancellationToken);
@@ -119,7 +119,7 @@ public class ProfileServiceTests {
         };
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.FindByEmailAsync(request.Email!).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(request.Email!).Returns((UserEntity?)null);
         _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
 
         // Act
@@ -179,7 +179,7 @@ public class ProfileServiceTests {
         };
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.FindByEmailAsync(request.Email!).Returns((User?)null);
+        _mockUserManager.FindByEmailAsync(request.Email!).Returns((UserEntity?)null);
         _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
 
         // Act
@@ -237,7 +237,7 @@ public class ProfileServiceTests {
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email!);
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -248,7 +248,7 @@ public class ProfileServiceTests {
             Name = "New Name"
         };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _profileService.UpdateProfileAsync(userId, request, TestContext.Current.CancellationToken);
@@ -258,7 +258,7 @@ public class ProfileServiceTests {
         Assert.Equal("User not found", result.Message);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class ProfileServiceTests {
         var userId = Guid.CreateVersion7();
         var avatarId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _profileService.UpdateAvatarAsync(userId, avatarId, TestContext.Current.CancellationToken);
@@ -350,7 +350,7 @@ public class ProfileServiceTests {
         Assert.Equal("User not found", result.Message);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class ProfileServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
+        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
 
         // Act
         var result = await _profileService.RemoveAvatarAsync(userId, TestContext.Current.CancellationToken);
@@ -435,7 +435,7 @@ public class ProfileServiceTests {
         Assert.Equal("User not found", result.Message);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<User>());
+        await _mockUserManager.DidNotReceive().UpdateAsync(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -482,13 +482,13 @@ public class ProfileServiceTests {
 
     #region Helper Methods
 
-    private static UserManager<User> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<User>>();
-        return Substitute.For<UserManager<User>>(
+    private static UserManager<UserEntity> CreateUserManagerMock() {
+        var userStore = Substitute.For<IUserStore<UserEntity>>();
+        return Substitute.For<UserManager<UserEntity>>(
             userStore, null, null, null, null, null, null, null, null);
     }
 
-    private static User CreateTestUser(string email, string name)
+    private static UserEntity CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
             UserName = email,
