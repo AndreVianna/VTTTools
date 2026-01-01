@@ -1,8 +1,5 @@
 namespace VttTools.Library.Worlds.ServiceContracts;
 
-/// <summary>
-/// Represents the data required to create a new world.
-/// </summary>
 public record CreateWorldData
     : Data {
     public string Name { get; init; } = string.Empty;

@@ -39,6 +39,7 @@ global using VttTools.EndpointMappers;
 global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Identity.Model;
+global using VttTools.Identity.Storage;
 global using VttTools.Json;
 global using VttTools.Maintenance.Model;
 global using VttTools.Maintenance.Services;

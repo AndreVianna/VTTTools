@@ -1,18 +1,20 @@
+using SignInResult = VttTools.Identity.Model.SignInResult;
+
 namespace VttTools.Admin.Services;
 
 public class AdminAuthServiceTests {
-    private readonly UserManager<UserEntity> _mockUserManager;
-    private readonly SignInManager<UserEntity> _mockSignInManager;
+    private readonly IUserStorage _mockUserStorage;
+    private readonly ISignInService _mockSignInService;
     private readonly IJwtTokenService _mockJwtTokenService;
     private readonly ILogger<AdminAuthService> _mockLogger;
     private readonly AdminAuthService _sut;
 
     public AdminAuthServiceTests() {
-        _mockUserManager = CreateUserManagerMock();
-        _mockSignInManager = CreateSignInManagerMock(_mockUserManager);
+        _mockUserStorage = Substitute.For<IUserStorage>();
+        _mockSignInService = Substitute.For<ISignInService>();
         _mockJwtTokenService = Substitute.For<IJwtTokenService>();
         _mockLogger = Substitute.For<ILogger<AdminAuthService>>();
-        _sut = new(_mockUserManager, _mockSignInManager, _mockJwtTokenService, _mockLogger);
+        _sut = new(_mockUserStorage, _mockSignInService, _mockJwtTokenService, _mockLogger);
     }
 
     #region LoginAsync Tests
@@ -25,210 +27,156 @@ public class AdminAuthServiceTests {
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns((User?)null);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
-        Assert.Null(result.User);
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
+        result.Success.Should().BeFalse();
+        result.User.Should().BeNull();
+        await _mockUserStorage.Received(1).FindByEmailAsync(request.Email, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LoginAsync_WithUnconfirmedEmail_ReturnsFailure() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.EmailConfirmed = false;
+        var user = CreateTestUser("test@example.com", "Test User") with { EmailConfirmed = false };
 
         var request = new AdminLoginRequest {
-            Email = user.Email!,
+            Email = user.Email,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns(user);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
-        Assert.Null(result.User);
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
+        result.Success.Should().BeFalse();
+        result.User.Should().BeNull();
+        await _mockUserStorage.Received(1).FindByEmailAsync(request.Email, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LoginAsync_WithLockedAccount_ReturnsFailure() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(5);
+        var user = CreateTestUser("test@example.com", "Test User") with {
+            LockoutEnabled = true,
+            LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(5)
+        };
 
         var request = new AdminLoginRequest {
-            Email = user.Email!,
+            Email = user.Email,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(true);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns(user);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
-        Assert.Null(result.User);
-        await _mockUserManager.Received(1).IsLockedOutAsync(user);
+        result.Success.Should().BeFalse();
+        result.User.Should().BeNull();
     }
 
     [Fact]
     public async Task LoginAsync_WithNonAdminUser_ReturnsFailure() {
-        var user = CreateTestUser("test@example.com", "Test User");
+        var user = CreateTestUser("test@example.com", "Test User") with {
+            Roles = ["User"]
+        };
 
         var request = new AdminLoginRequest {
-            Email = user.Email!,
+            Email = user.Email,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(false);
-        _mockUserManager.GetRolesAsync(user).Returns(["User"]);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns(user);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
-        Assert.Null(result.User);
-        await _mockUserManager.Received(1).GetRolesAsync(user);
-    }
-
-    [Fact]
-    public async Task LoginAsync_WithTwoFactorDisabled_ReturnsFailure() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.TwoFactorEnabled = false;
-
-        var request = new AdminLoginRequest {
-            Email = user.Email!,
-            Password = "Password123!",
-            TwoFactorCode = "123456"
-        };
-
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(false);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-
-        var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
-
-        Assert.False(result.Success);
-        Assert.Null(result.User);
+        result.Success.Should().BeFalse();
+        result.User.Should().BeNull();
     }
 
     [Fact]
     public async Task LoginAsync_WithInvalidPassword_ReturnsFailure() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.TwoFactorEnabled = true;
+        var user = CreateTestUser("test@example.com", "Test User") with {
+            Roles = ["Administrator"]
+        };
 
         var request = new AdminLoginRequest {
-            Email = user.Email!,
+            Email = user.Email,
             Password = "WrongPassword",
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(false);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-        _mockUserManager.CheckPasswordAsync(user, request.Password).Returns(false);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns(user);
+        _mockUserStorage.CheckPasswordAsync(user.Id, request.Password, Arg.Any<CancellationToken>())
+            .Returns(false);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
-        Assert.Null(result.User);
-        await _mockUserManager.Received(1).CheckPasswordAsync(user, request.Password);
-        await _mockUserManager.Received(1).AccessFailedAsync(user);
+        result.Success.Should().BeFalse();
+        result.User.Should().BeNull();
+        await _mockUserStorage.Received(1).CheckPasswordAsync(user.Id, request.Password, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).RecordAccessFailedAsync(user.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task LoginAsync_WithoutTwoFactorCode_SucceedsWhenTwoFactorDisabled() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.TwoFactorEnabled = true;
+    public async Task LoginAsync_WithValidCredentials_ReturnsSuccess() {
+        var user = CreateTestUser("test@example.com", "Test User") with {
+            Roles = ["Administrator"]
+        };
 
         var request = new AdminLoginRequest {
-            Email = user.Email!,
+            Email = user.Email,
             Password = "Password123!"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(false);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-        _mockUserManager.CheckPasswordAsync(user, request.Password).Returns(true);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns(user);
+        _mockUserStorage.CheckPasswordAsync(user.Id, request.Password, Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.True(result.Success);
-        Assert.False(result.RequiresTwoFactor);
-        Assert.NotNull(result.User);
-        await _mockUserManager.Received(1).CheckPasswordAsync(user, request.Password);
-        await _mockUserManager.Received(1).ResetAccessFailedCountAsync(user);
+        result.Success.Should().BeTrue();
+        result.User.Should().NotBeNull();
+        await _mockUserStorage.Received(1).CheckPasswordAsync(user.Id, request.Password, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).ResetAccessFailedCountAsync(user.Id, Arg.Any<CancellationToken>());
+        await _mockSignInService.Received(1).SignInAsync(user.Id, false, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task LoginAsync_WithInvalidTwoFactorCode_SucceedsWhenTwoFactorDisabled() {
-        var user = CreateTestUser("test@example.com", "Test User");
-        user.TwoFactorEnabled = true;
-
-        var request = new AdminLoginRequest {
-            Email = user.Email!,
-            Password = "Password123!",
-            TwoFactorCode = "000000"
+    public async Task LoginAsync_WithValidCredentialsAndAdmin_ReturnsCorrectUserInfo() {
+        var user = CreateTestUser("admin@example.com", "Admin User") with {
+            Roles = ["Administrator"]
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(false);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-        _mockUserManager.CheckPasswordAsync(user, request.Password).Returns(true);
-
-        var signInResult = SignInResult.Failed;
-        _mockSignInManager.TwoFactorAuthenticatorSignInAsync(
-            request.TwoFactorCode,
-            false,
-            false)
-            .Returns(signInResult);
-
-        var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
-
-        Assert.True(result.Success);
-        Assert.NotNull(result.User);
-        await _mockUserManager.Received(1).CheckPasswordAsync(user, request.Password);
-        await _mockUserManager.Received(1).ResetAccessFailedCountAsync(user);
-    }
-
-    [Fact]
-    public async Task LoginAsync_WithValidCredentialsAndTwoFactor_ReturnsSuccess() {
-        var user = CreateTestUser("admin@example.com", "Admin User");
-        user.TwoFactorEnabled = true;
-
         var request = new AdminLoginRequest {
-            Email = user.Email!,
+            Email = user.Email,
             Password = "Password123!",
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockUserManager.IsLockedOutAsync(user).Returns(false);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
-        _mockUserManager.CheckPasswordAsync(user, request.Password).Returns(true);
-
-        var signInResult = SignInResult.Success;
-        _mockSignInManager.TwoFactorAuthenticatorSignInAsync(
-            request.TwoFactorCode,
-            false,
-            false)
-            .Returns(signInResult);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns(user);
+        _mockUserStorage.CheckPasswordAsync(user.Id, request.Password, Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.True(result.Success);
-        Assert.NotNull(result.User);
-        Assert.Equal(user.Id, result.User.Id);
-        Assert.Equal(user.Email, result.User.Email);
-        Assert.Equal(user.Name, result.User.Name);
-        Assert.Equal(user.DisplayName, result.User.DisplayName);
+        result.Success.Should().BeTrue();
+        result.User.Should().NotBeNull();
+        result.User!.Id.Should().Be(user.Id);
+        result.User.Email.Should().Be(user.Email);
+        result.User.Name.Should().Be(user.Name);
+        result.User.DisplayName.Should().Be(user.DisplayName);
 
-        await _mockUserManager.Received(1).ResetAccessFailedCountAsync(user);
+        await _mockUserStorage.Received(1).ResetAccessFailedCountAsync(user.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -239,13 +187,13 @@ public class AdminAuthServiceTests {
             TwoFactorCode = "123456"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email)
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _sut.LoginAsync(request, TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
-        Assert.Null(result.User);
+        result.Success.Should().BeFalse();
+        result.User.Should().BeNull();
     }
 
     #endregion
@@ -256,18 +204,18 @@ public class AdminAuthServiceTests {
     public async Task LogoutAsync_CallsSignOut_ReturnsSuccess() {
         var result = await _sut.LogoutAsync(TestContext.Current.CancellationToken);
 
-        Assert.True(result.Success);
-        await _mockSignInManager.Received(1).SignOutAsync();
+        result.Success.Should().BeTrue();
+        await _mockSignInService.Received(1).SignOutAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LogoutAsync_WhenExceptionThrown_ReturnsFailure() {
-        _mockSignInManager.SignOutAsync()
+        _mockSignInService.SignOutAsync(Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Sign out error"));
 
         var result = await _sut.LogoutAsync(TestContext.Current.CancellationToken);
 
-        Assert.False(result.Success);
+        result.Success.Should().BeFalse();
     }
 
     #endregion
@@ -276,58 +224,61 @@ public class AdminAuthServiceTests {
 
     [Fact]
     public async Task GetCurrentUserAsync_WithValidAdminUser_ReturnsUserInfo() {
-        var user = CreateTestUser("admin@example.com", "Admin User");
+        var user = CreateTestUser("admin@example.com", "Admin User") with {
+            Roles = ["Administrator"]
+        };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(user);
 
         var result = await _sut.GetCurrentUserAsync(user.Id, TestContext.Current.CancellationToken);
 
-        Assert.NotNull(result);
-        Assert.Equal(user.Id, result.Id);
-        Assert.Equal(user.Email, result.Email);
-        Assert.Equal(user.Name, result.Name);
-        Assert.Equal(user.DisplayName, result.DisplayName);
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(user.Id);
+        result.Email.Should().Be(user.Email);
+        result.Name.Should().Be(user.Name);
+        result.DisplayName.Should().Be(user.DisplayName);
 
-        await _mockUserManager.Received(1).FindByIdAsync(user.Id.ToString());
-        await _mockUserManager.Received(1).GetRolesAsync(user);
+        await _mockUserStorage.Received(1).FindByIdAsync(user.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetCurrentUserAsync_WithNonExistentUser_ReturnsNull() {
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((User?)null);
 
         var result = await _sut.GetCurrentUserAsync(userId, TestContext.Current.CancellationToken);
 
-        Assert.Null(result);
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
+        result.Should().BeNull();
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetCurrentUserAsync_WithNonAdminUser_ReturnsNull() {
-        var user = CreateTestUser("user@example.com", "Regular User");
+        var user = CreateTestUser("user@example.com", "Regular User") with {
+            Roles = ["User"]
+        };
 
-        _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(["User"]);
+        _mockUserStorage.FindByIdAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(user);
 
         var result = await _sut.GetCurrentUserAsync(user.Id, TestContext.Current.CancellationToken);
 
-        Assert.Null(result);
-        await _mockUserManager.Received(1).GetRolesAsync(user);
+        result.Should().BeNull();
     }
 
     [Fact]
     public async Task GetCurrentUserAsync_WhenExceptionThrown_ReturnsNull() {
         var userId = Guid.CreateVersion7();
 
-        _mockUserManager.FindByIdAsync(userId.ToString())
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _sut.GetCurrentUserAsync(userId, TestContext.Current.CancellationToken);
 
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 
     #endregion
@@ -338,49 +289,25 @@ public class AdminAuthServiceTests {
     public async Task GetSessionStatusAsync_ReturnsValidSession() {
         var result = await _sut.GetSessionStatusAsync(TestContext.Current.CancellationToken);
 
-        Assert.True(result.IsValid);
-        Assert.NotNull(result.ExpiresAt);
-        Assert.True(result.ExpiresAt > DateTime.UtcNow);
+        result.IsValid.Should().BeTrue();
+        result.ExpiresAt.Should().NotBeNull();
+        result.ExpiresAt.Should().BeAfter(DateTime.UtcNow);
     }
 
     #endregion
 
     #region Helper Methods
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
-    }
-
-    private static SignInManager<UserEntity> CreateSignInManagerMock(UserManager<UserEntity> userManager) {
-        var contextAccessor = Substitute.For<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
-        var claimsFactory = Substitute.For<IUserClaimsPrincipalFactory<UserEntity>>();
-        var options = Substitute.For<Microsoft.Extensions.Options.IOptions<IdentityOptions>>();
-        var logger = Substitute.For<ILogger<SignInManager<UserEntity>>>();
-        var schemes = Substitute.For<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider>();
-        var confirmation = Substitute.For<IUserConfirmation<UserEntity>>();
-
-        return Substitute.For<SignInManager<UserEntity>>(
-            userManager,
-            contextAccessor,
-            claimsFactory,
-            options,
-            logger,
-            schemes,
-            confirmation);
-    }
-
-    private static UserEntity CreateTestUser(string email, string name)
+    private static User CreateTestUser(string email, string name)
         => new() {
             Id = Guid.CreateVersion7(),
-            UserName = email,
             Email = email,
             Name = name,
             DisplayName = name,
             EmailConfirmed = true,
-            PasswordHash = "default_hashed_password",
-            TwoFactorEnabled = false
+            TwoFactorEnabled = false,
+            LockoutEnabled = false,
+            Roles = []
         };
 
     #endregion

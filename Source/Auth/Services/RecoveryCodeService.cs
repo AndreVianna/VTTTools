@@ -1,38 +1,38 @@
 namespace VttTools.Auth.Services;
 
 public class RecoveryCodeService(
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<RecoveryCodeService> logger) : IRecoveryCodeService {
 
     public async Task<GenerateRecoveryCodesResponse> GenerateNewCodesAsync(Guid userId, GenerateRecoveryCodesRequest request, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Recovery code generation attempted for non-existent user ID: {UserId}", userId);
                 return new GenerateRecoveryCodesResponse {
                     Success = false,
                     Message = "User not found",
-                    RecoveryCodes = null
+                    RecoveryCodes = null,
                 };
             }
 
-            var isPasswordValid = await userManager.CheckPasswordAsync(user, request.Password);
+            var isPasswordValid = await userStorage.CheckPasswordAsync(userId, request.Password, ct);
             if (!isPasswordValid) {
                 logger.LogWarning("Recovery code generation failed - incorrect password for user: {UserId}", userId);
                 return new GenerateRecoveryCodesResponse {
                     Success = false,
                     Message = "Password is incorrect",
-                    RecoveryCodes = null
+                    RecoveryCodes = null,
                 };
             }
 
-            var codes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            var codes = await userStorage.GenerateRecoveryCodesAsync(userId, 10, ct);
 
             logger.LogInformation("Recovery codes generated successfully for user: {UserId}", userId);
             return new GenerateRecoveryCodesResponse {
                 Success = true,
                 Message = "Recovery codes generated successfully",
-                RecoveryCodes = codes?.ToArray()
+                RecoveryCodes = codes,
             };
         }
         catch (Exception ex) {
@@ -40,30 +40,30 @@ public class RecoveryCodeService(
             return new GenerateRecoveryCodesResponse {
                 Success = false,
                 Message = "Internal server error",
-                RecoveryCodes = null
+                RecoveryCodes = null,
             };
         }
     }
 
     public async Task<RecoveryCodesStatusResponse> GetStatusAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Recovery code status check attempted for non-existent user ID: {UserId}", userId);
                 return new RecoveryCodesStatusResponse {
                     Success = false,
                     Message = "User not found",
-                    RemainingCount = 0
+                    RemainingCount = 0,
                 };
             }
 
-            var remainingCount = await userManager.CountRecoveryCodesAsync(user);
+            var remainingCount = await userStorage.CountRecoveryCodesAsync(userId, ct);
 
             logger.LogInformation("Recovery code status retrieved for user: {UserId}, remaining count: {RemainingCount}", userId, remainingCount);
             return new RecoveryCodesStatusResponse {
                 Success = true,
                 Message = null,
-                RemainingCount = remainingCount
+                RemainingCount = remainingCount,
             };
         }
         catch (Exception ex) {
@@ -71,7 +71,7 @@ public class RecoveryCodeService(
             return new RecoveryCodesStatusResponse {
                 Success = false,
                 Message = "Internal server error",
-                RemainingCount = 0
+                RemainingCount = 0,
             };
         }
     }

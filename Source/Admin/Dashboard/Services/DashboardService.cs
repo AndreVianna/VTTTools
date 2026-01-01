@@ -1,7 +1,7 @@
 namespace VttTools.Admin.Dashboard.Services;
 
 public class DashboardService(
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     IAuditLogService auditLogService,
     ILogger<DashboardService> logger)
     : IDashboardService {
@@ -10,7 +10,7 @@ public class DashboardService(
         try {
             logger.LogDebug("Retrieving dashboard statistics");
 
-            var totalUsers = await Task.Run(() => userManager.Users.Count(), cancellationToken);
+            var totalUsers = await userStorage.GetTotalUserCountAsync(cancellationToken);
 
             var twentyFourHoursAgo = DateTime.UtcNow.AddHours(-24);
             var activeUsers24h = await auditLogService.GetDistinctActiveUsersCountAsync(

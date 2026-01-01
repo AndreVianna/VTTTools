@@ -6,7 +6,7 @@ public class ConfigurationService(
     IConfiguration configuration,
     ConfigurationSourceDetector sourceDetector,
     FrontendConfigurationService frontendConfigService,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<ConfigurationService> logger) : IConfigurationService {
 
     public async Task<ConfigurationResponse> GetServiceConfigurationAsync(string serviceName, CancellationToken ct = default)
@@ -28,12 +28,12 @@ public class ConfigurationService(
             throw new NotSupportedException($"Configuration reveal not supported for service: {serviceName}. Only 'Admin', 'WebClientApp', and 'WebAdminApp' are supported.");
         }
 
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user?.TwoFactorEnabled != true) {
+        var user = await userStorage.FindByIdAsync(userId, ct);
+        if (user is not { TwoFactorEnabled: true }) {
             throw new UnauthorizedAccessException("2FA not enabled");
         }
 
-        var isValid = await userManager.VerifyTwoFactorTokenAsync(user, "Authenticator", totpCode);
+        var isValid = await userStorage.VerifyTwoFactorCodeAsync(userId, totpCode, ct);
         if (!isValid) {
             throw new UnauthorizedAccessException("Invalid 2FA code");
         }

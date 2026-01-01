@@ -2,7 +2,7 @@ namespace VttTools.Middlewares;
 
 public class TokenRefreshMiddlewareTests {
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly UserManager<User> _userManager;
+    private readonly IUserStorage _userStorage;
     private readonly ILogger<TokenRefreshMiddleware> _logger;
     private readonly TokenRefreshMiddleware _middleware;
     private readonly RequestDelegate _next;
@@ -10,9 +10,7 @@ public class TokenRefreshMiddlewareTests {
 
     public TokenRefreshMiddlewareTests() {
         _jwtTokenService = Substitute.For<IJwtTokenService>();
-        _userManager = Substitute.For<UserManager<User>>(
-            Substitute.For<IUserStore<User>>(),
-            null, null, null, null, null, null, null, null);
+        _userStorage = Substitute.For<IUserStorage>();
         _logger = Substitute.For<ILogger<TokenRefreshMiddleware>>();
         _next = Substitute.For<RequestDelegate>();
         _middleware = new(_next, _logger);
@@ -26,8 +24,8 @@ public class TokenRefreshMiddlewareTests {
             Id = userId,
             Email = "test@example.com",
             Name = "Test User",
+            Roles = ["User"],
         };
-        var roles = new List<string> { "User" };
         const string newToken = "new.jwt.token";
 
         _httpContext.Response.StatusCode = 200;
@@ -36,11 +34,10 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, userId.ToString()),
                                                    ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
-        _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
-        _jwtTokenService.GenerateToken(user, roles, false).Returns(newToken);
+        _userStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _jwtTokenService.GenerateToken(user, user.Roles, false).Returns(newToken);
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().ContainKey("X-Refreshed-Token");
         _httpContext.Response.Headers["X-Refreshed-Token"].ToString().Should().Be(newToken);
@@ -53,8 +50,8 @@ public class TokenRefreshMiddlewareTests {
             Id = userId,
             Email = "test@example.com",
             Name = "Test User",
+            Roles = [],
         };
-        var roles = new List<string>();
         const string newToken = "new.jwt.token";
 
         _httpContext.Response.StatusCode = 204;
@@ -63,11 +60,10 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, userId.ToString()),
                                                    ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
-        _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
-        _jwtTokenService.GenerateToken(user, roles, false).Returns(newToken);
+        _userStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _jwtTokenService.GenerateToken(user, user.Roles, false).Returns(newToken);
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().ContainKey("X-Refreshed-Token");
     }
@@ -80,7 +76,7 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
                                                    ], "test"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -90,7 +86,7 @@ public class TokenRefreshMiddlewareTests {
         _httpContext.Response.StatusCode = 404;
         _httpContext.Request.Path = "/api/test";
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -100,7 +96,7 @@ public class TokenRefreshMiddlewareTests {
         _httpContext.Response.StatusCode = 500;
         _httpContext.Request.Path = "/api/test";
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -113,7 +109,7 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
                                                    ], "test"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -126,7 +122,7 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
                                                    ], "test"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -137,7 +133,7 @@ public class TokenRefreshMiddlewareTests {
         _httpContext.Request.Path = "/api/test";
         _httpContext.User = new(new ClaimsIdentity());
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -148,7 +144,7 @@ public class TokenRefreshMiddlewareTests {
         _httpContext.Request.Path = "/api/test";
         _httpContext.User = new();
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -161,7 +157,7 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.Email, "test@example.com"),
                                                    ], "test"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -174,7 +170,7 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, string.Empty),
                                                    ], "test"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -187,7 +183,7 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, "not-a-guid"),
                                                    ], "test"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -201,15 +197,15 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, userId.ToString()),
                                                    ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult<User>(null!));
+        _userStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
 
     [Fact]
-    public async Task InvokeAsync_WhenUserManagerThrows_DoesNotRefreshToken() {
+    public async Task InvokeAsync_WhenUserStorageThrows_DoesNotRefreshToken() {
         var userId = Guid.NewGuid();
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
@@ -217,31 +213,9 @@ public class TokenRefreshMiddlewareTests {
                                                        new(ClaimTypes.NameIdentifier, userId.ToString()),
                                                    ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns<User>(_ => throw new("Database error"));
+        _userStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns<User?>(_ => throw new("Database error"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
-
-        _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
-    }
-
-    [Fact]
-    public async Task InvokeAsync_WhenGetRolesThrows_DoesNotRefreshToken() {
-        var userId = Guid.NewGuid();
-        var user = new User {
-            Id = userId,
-            Email = "test@example.com",
-            Name = "Test User",
-        };
-        _httpContext.Response.StatusCode = 200;
-        _httpContext.Request.Path = "/api/test";
-        _httpContext.User = new(new ClaimsIdentity([
-                                                       new(ClaimTypes.NameIdentifier, userId.ToString()),
-                                                   ], "test"));
-
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
-        _userManager.GetRolesAsync(user).Returns<IList<string>>(_ => throw new("Role error"));
-
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -253,19 +227,18 @@ public class TokenRefreshMiddlewareTests {
             Id = userId,
             Email = "test@example.com",
             Name = "Test User",
+            Roles = ["User"],
         };
-        var roles = new List<string> { "User" };
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
         _httpContext.User = new(new ClaimsIdentity([
                                                        new(ClaimTypes.NameIdentifier, userId.ToString()),
                                                    ], "test"));
 
-        _userManager.FindByIdAsync(userId.ToString())!.Returns(Task.FromResult(user));
-        _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(roles));
-        _jwtTokenService.GenerateToken(user, roles, false).Returns<string>(_ => throw new("Token error"));
+        _userStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _jwtTokenService.GenerateToken(user, user.Roles, false).Returns<string>(_ => throw new("Token error"));
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         _httpContext.Response.Headers.Should().NotContainKey("X-Refreshed-Token");
     }
@@ -275,7 +248,7 @@ public class TokenRefreshMiddlewareTests {
         _httpContext.Response.StatusCode = 200;
         _httpContext.Request.Path = "/api/test";
 
-        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userManager);
+        await _middleware.InvokeAsync(_httpContext, _jwtTokenService, _userStorage);
 
         await _next.Received(1).Invoke(_httpContext);
     }

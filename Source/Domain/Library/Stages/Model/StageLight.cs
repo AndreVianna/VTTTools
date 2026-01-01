@@ -8,7 +8,6 @@ public record StageLight {
     public float Range { get; init; }
     public float? Direction { get; init; }
     public float? Arc { get; init; }
-    [MaxLength(9)]
     public string? Color { get; init; }
     public bool IsOn { get; init; } = true;
 }

@@ -176,14 +176,14 @@ public static class AuthHandlers {
 #if DEBUG
     public static async Task<IResult> GenerateTestResetTokenHandler(
         [FromQuery] string email,
-        UserManager<User> userManager) {
+        IUserStorage userStorage) {
 
-        var user = await userManager.FindByEmailAsync(email);
-        if (user == null) {
+        var user = await userStorage.FindByEmailAsync(email);
+        if (user is null) {
             return Results.NotFound(new { error = "User not found" });
         }
 
-        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var token = await userStorage.GeneratePasswordResetTokenAsync(user.Id);
 
         return Results.Ok(new { email, token });
     }
@@ -191,14 +191,14 @@ public static class AuthHandlers {
     public static async Task<IResult> SetTestTwoFactorHandler(
         [FromQuery] string email,
         [FromQuery] bool enabled,
-        UserManager<User> userManager) {
+        IUserStorage userStorage) {
 
-        var user = await userManager.FindByEmailAsync(email);
-        if (user == null) {
+        var user = await userStorage.FindByEmailAsync(email);
+        if (user is null) {
             return Results.NotFound(new { error = "User not found" });
         }
 
-        await userManager.SetTwoFactorEnabledAsync(user, enabled);
+        await userStorage.SetTwoFactorEnabledAsync(user.Id, enabled);
 
         return Results.Ok(new { email, twoFactorEnabled = enabled });
     }

@@ -1,8 +1,5 @@
 namespace VttTools.Library.Campaigns.ServiceContracts;
 
-/// <summary>
-/// Represents the data required to create a new campaign.
-/// </summary>
 public record CreateCampaignData
     : Data {
     public Guid? WorldId { get; init; }

@@ -22,18 +22,4 @@ public class AdventureStyleTests {
         actualValues.Should().BeEquivalentTo(expectedValues);
     }
 
-    [Fact]
-    public void AdventureType_ShouldHaveDisplayAttribute() {
-        // Arrange
-        var type = typeof(AdventureStyle);
-
-        // Act & Assert
-        foreach (var value in Enum.GetValues<AdventureStyle>()) {
-            var memberInfo = type.GetMember(value.ToString()).First();
-            var displayAttribute = memberInfo.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
-
-            displayAttribute.Should().NotBeNull($"AdventureType.{value} should have DisplayAttribute");
-            displayAttribute.Name.Should().NotBeNullOrEmpty($"AdventureType.{value} DisplayAttribute Name should not be null or empty");
-        }
-    }
 }

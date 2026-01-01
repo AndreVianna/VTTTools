@@ -1,8 +1,5 @@
 namespace VttTools.Library.Worlds.ServiceContracts;
 
-/// <summary>
-/// Represents the data for updating an existing world.
-/// </summary>
 public record UpdatedWorldData
     : Data {
     public Guid Id { get; init; }

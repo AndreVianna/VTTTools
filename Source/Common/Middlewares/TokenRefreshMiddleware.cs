@@ -4,7 +4,7 @@ public class TokenRefreshMiddleware(
     RequestDelegate next,
     ILogger<TokenRefreshMiddleware> logger) {
 
-    public async Task InvokeAsync(HttpContext context, IJwtTokenService jwtTokenService, UserManager<User> userManager) {
+    public async Task InvokeAsync(HttpContext context, IJwtTokenService jwtTokenService, IUserStorage userStorage) {
         await next(context);
 
         if (context.Response.StatusCode is not 200 and not 204) {
@@ -26,14 +26,12 @@ public class TokenRefreshMiddleware(
         }
 
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
-            if (user == null) {
+            var user = await userStorage.FindByIdAsync(userId, context.RequestAborted);
+            if (user is null) {
                 return;
             }
 
-            var roles = await userManager.GetRolesAsync(user);
-
-            var newToken = jwtTokenService.GenerateToken(user, roles, rememberMe: false);
+            var newToken = jwtTokenService.GenerateToken(user, user.Roles, rememberMe: false);
 
             context.Response.Headers.Append("X-Refreshed-Token", newToken);
         }

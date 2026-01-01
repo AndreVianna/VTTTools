@@ -25,7 +25,6 @@ public record NamedSize() {
     public double Width { get; init; }
     public double Height { get; init; }
 
-    [NotMapped]
     public SizeName Name {
         get => FromSize(Width, Height);
         init => (Width, Height) = FromName(value);

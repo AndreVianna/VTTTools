@@ -67,11 +67,10 @@ global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Http;
 global using VttTools.Identity.Model;
+global using VttTools.Identity.Services;
 global using VttTools.Identity.Storage;
 global using VttTools.Json;
 
-global using UserEntity = VttTools.Data.Identity.Entities.User;
-global using RoleEntity = VttTools.Data.Identity.Entities.Role;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Campaigns.Storage;
 global using VttTools.Library.Common;

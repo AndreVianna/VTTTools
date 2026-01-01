@@ -1,11 +1,6 @@
 namespace VttTools.Library.Encounters.Storage;
 
-/// <summary>
-/// Storage interface for encounter persistence operations.
-/// Note: Structural elements (walls, regions, lights, elements, sounds) are now managed on Stage.
-/// </summary>
 public interface IEncounterStorage {
-    // === Encounter Operations ===
 
     Task<(Encounter[] Items, int TotalCount)> SearchAsync(
         Guid masterUserId,

@@ -4,9 +4,9 @@ public sealed class WorldAdminService(
     IOptions<PublicLibraryOptions> options,
     IWorldStorage worldStorage,
     ICampaignStorage campaignStorage,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<WorldAdminService> logger)
-    : LibraryAdminService(options, userManager, logger), IWorldAdminService {
+    : LibraryAdminService(options, userStorage, logger), IWorldAdminService {
 
     public async Task<LibraryContentSearchResponse> SearchWorldsAsync(
         LibrarySearchRequest request,

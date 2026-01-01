@@ -1,40 +1,28 @@
+using SignInResult = VttTools.Identity.Model.SignInResult;
+
 namespace VttTools.Auth;
 
-/// <summary>
-/// Unit tests for AuthService business logic with mocked dependencies.
-/// Tests individual methods in isolation without external dependencies.
-/// </summary>
 public class AuthServiceTests {
-    private readonly UserManager<UserEntity> _mockUserManager;
-    private readonly SignInManager<UserEntity> _mockSignInManager;
+    private readonly IUserStorage _mockUserStorage;
+    private readonly ISignInService _mockSignInService;
     private readonly IEmailService _mockEmailService;
     private readonly IJwtTokenService _mockJwtTokenService;
     private readonly ILogger<AuthService> _mockLogger;
     private readonly AuthService _authService;
 
     public AuthServiceTests() {
-        // Mock UserManager<UserEntity>
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        _mockUserManager = Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
-
-        // Mock SignInManager<UserEntity>
-        var contextAccessor = Substitute.For<IHttpContextAccessor>();
-        var userPrincipalFactory = Substitute.For<IUserClaimsPrincipalFactory<UserEntity>>();
-        _mockSignInManager = Substitute.For<SignInManager<UserEntity>>(
-            _mockUserManager, contextAccessor, userPrincipalFactory, null, null, null, null);
-
-        // Mock EmailService
+        _mockUserStorage = Substitute.For<IUserStorage>();
+        _mockSignInService = Substitute.For<ISignInService>();
         _mockEmailService = Substitute.For<IEmailService>();
-
-        // Mock JwtTokenService
         _mockJwtTokenService = Substitute.For<IJwtTokenService>();
-
-        // Mock Logger
         _mockLogger = Substitute.For<ILogger<AuthService>>();
 
-        // Create AuthService with mocked dependencies
-        _authService = new AuthService(_mockUserManager, _mockSignInManager, _mockEmailService, _mockJwtTokenService, _mockLogger);
+        _authService = new AuthService(
+            _mockUserStorage,
+            _mockSignInService,
+            _mockEmailService,
+            _mockJwtTokenService,
+            _mockLogger);
     }
 
     #region LoginAsync Tests
@@ -49,14 +37,12 @@ public class AuthServiceTests {
         };
 
         var user = CreateTestUser("test@example.com", "Test User");
-        var roles = new List<string> { "User" };
         const string expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(SignInResult.Success);
-        _mockUserManager.GetRolesAsync(user).Returns(roles);
-        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>()).Returns(expectedToken);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = true, User = user });
+        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), Arg.Any<IReadOnlyList<string>>(), Arg.Any<bool>())
+            .Returns(expectedToken);
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -71,10 +57,8 @@ public class AuthServiceTests {
         Assert.Equal(expectedToken, result.Token);
 
         // Verify method calls
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
-        await _mockSignInManager.Received(1).PasswordSignInAsync(user, request.Password, request.RememberMe, true);
-        await _mockUserManager.Received(1).GetRolesAsync(user);
-        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>());
+        await _mockUserStorage.Received(1).ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>());
+        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), Arg.Any<IReadOnlyList<string>>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -86,7 +70,8 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = false });
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -96,9 +81,7 @@ public class AuthServiceTests {
         Assert.Equal("FailedLogin", result.Message);
         Assert.Null(result.User);
 
-        // Verify only FindByEmailAsync was called
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
-        await _mockSignInManager.DidNotReceive().PasswordSignInAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>());
+        await _mockUserStorage.Received(1).ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -110,11 +93,8 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        var user = CreateTestUser("test@example.com", "Test User");
-
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(SignInResult.Failed);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = false });
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -124,8 +104,7 @@ public class AuthServiceTests {
         Assert.Equal("FailedLogin", result.Message);
         Assert.Null(result.User);
 
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
-        await _mockSignInManager.Received(1).PasswordSignInAsync(user, request.Password, request.RememberMe, true);
+        await _mockUserStorage.Received(1).ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -137,11 +116,8 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        var user = CreateTestUser("locked@example.com", "Locked User");
-
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(SignInResult.LockedOut);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = false, IsLockedOut = true });
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -161,13 +137,10 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        var user = CreateTestUser("admin@example.com", "Admin User");
-        var roles = new List<string> { "Administrator", "User" };
+        var user = CreateTestUser("admin@example.com", "Admin User", ["Administrator", "User"]);
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(SignInResult.Success);
-        _mockUserManager.GetRolesAsync(user).Returns(roles);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = true, User = user });
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -187,7 +160,8 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -213,14 +187,15 @@ public class AuthServiceTests {
             DisplayName = "NewUser"
         };
 
-        var roles = new List<string> { "User" };
+        var createdUser = CreateTestUser(request.Email, request.Name) with { DisplayName = request.DisplayName ?? request.Name };
         const string expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
-        _mockUserManager.CreateAsync(Arg.Any<UserEntity>(), request.Password).Returns(IdentityResult.Success);
-        _mockSignInManager.SignInAsync(Arg.Any<UserEntity>(), false).Returns(Task.CompletedTask);
-        _mockUserManager.GetRolesAsync(Arg.Any<UserEntity>()).Returns(roles);
-        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>()).Returns(expectedToken);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _mockUserStorage.CreateAsync(Arg.Any<User>(), request.Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Success(createdUser));
+        _mockSignInService.SignInAsync(Arg.Any<Guid>(), false, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), Arg.Any<IReadOnlyList<string>>(), Arg.Any<bool>())
+            .Returns(expectedToken);
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -235,14 +210,10 @@ public class AuthServiceTests {
         Assert.Equal(expectedToken, result.Token);
 
         // Verify method calls
-        await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
-        await _mockUserManager.Received(1).CreateAsync(Arg.Is<UserEntity>(u =>
-            u.Email == request.Email &&
-            u.Name == request.Name &&
-            u.DisplayName == request.DisplayName), request.Password);
-        await _mockSignInManager.Received(1).SignInAsync(Arg.Any<UserEntity>(), false);
-        await _mockUserManager.Received(1).GetRolesAsync(Arg.Any<UserEntity>());
-        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), Arg.Any<IList<string>>(), Arg.Any<bool>());
+        await _mockUserStorage.Received(1).FindByEmailAsync(request.Email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).CreateAsync(Arg.Any<User>(), request.Password, Arg.Any<CancellationToken>());
+        await _mockSignInService.Received(1).SignInAsync(Arg.Any<Guid>(), false, Arg.Any<CancellationToken>());
+        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), Arg.Any<IReadOnlyList<string>>(), Arg.Any<bool>());
     }
 
     [Fact]
@@ -257,7 +228,7 @@ public class AuthServiceTests {
         };
 
         var existingUser = CreateTestUser("existing@example.com", "Existing User");
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(existingUser);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(existingUser);
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -267,8 +238,8 @@ public class AuthServiceTests {
         Assert.Equal("DuplicatedUser", result.Message);
         Assert.Null(result.User);
 
-        // Verify AddAsync was not called
-        await _mockUserManager.DidNotReceive().CreateAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
+        // Verify CreateAsync was not called
+        await _mockUserStorage.DidNotReceive().CreateAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -282,21 +253,15 @@ public class AuthServiceTests {
             DisplayName = "FailUser"
         };
 
-        var identityErrors = new List<IdentityError> {
-            new() { Description = "Password too weak" },
-            new() { Description = "Password must contain uppercase letter" }
-        };
-        var failedResult = IdentityResult.Failed([.. identityErrors]);
-
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
-        _mockUserManager.CreateAsync(Arg.Any<UserEntity>(), request.Password).Returns(failedResult);
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _mockUserStorage.CreateAsync(Arg.Any<User>(), request.Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<User>(null!, new Error("Password too weak"), new Error("Password must contain uppercase letter")));
 
         // Act
         var result = await _authService.RegisterAsync(request);
 
         // Assert
         Assert.False(result.Success);
-        // Auth service returns errors directly, not prefixed
         Assert.Contains("Password too weak", result.Message);
         Assert.Contains("Password must contain uppercase letter", result.Message);
         Assert.Null(result.User);
@@ -313,8 +278,18 @@ public class AuthServiceTests {
             DisplayName = null
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).Returns((UserEntity?)null);
-        _mockUserManager.CreateAsync(Arg.Any<UserEntity>(), request.Password).Returns(IdentityResult.Success);
+        var createdUser = new User {
+            Id = Guid.CreateVersion7(),
+            Email = request.Email,
+            Name = request.Name,
+            DisplayName = "No",
+            EmailConfirmed = true,
+            Roles = []
+        };
+
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _mockUserStorage.CreateAsync(Arg.Any<User>(), request.Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Success(createdUser));
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -322,7 +297,7 @@ public class AuthServiceTests {
         // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.User);
-        Assert.Equal("No", result.User.DisplayName); // DisplayName uses first word of Name
+        Assert.Equal("No", result.User.DisplayName);
     }
 
     [Fact]
@@ -336,7 +311,8 @@ public class AuthServiceTests {
             DisplayName = "ErrorUser"
         };
 
-        _mockUserManager.FindByEmailAsync(request.Email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByEmailAsync(request.Email, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -354,7 +330,7 @@ public class AuthServiceTests {
     [Fact]
     public async Task LogoutAsync_Success_ReturnsSuccessResponse() {
         // Arrange
-        _mockSignInManager.SignOutAsync().Returns(Task.CompletedTask);
+        _mockSignInService.SignOutAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         // Act
         var result = await _authService.LogoutAsync();
@@ -364,13 +340,14 @@ public class AuthServiceTests {
         Assert.Equal("LogoutSuccess", result.Message);
         Assert.Null(result.User);
 
-        await _mockSignInManager.Received(1).SignOutAsync();
+        await _mockSignInService.Received(1).SignOutAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LogoutAsync_ExceptionThrown_ReturnsErrorResponse() {
         // Arrange
-        _mockSignInManager.SignOutAsync().ThrowsAsync(new InvalidOperationException("Logout error"));
+        _mockSignInService.SignOutAsync(Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Logout error"));
 
         // Act
         var result = await _authService.LogoutAsync();
@@ -390,11 +367,9 @@ public class AuthServiceTests {
         // Arrange
         var userId = Guid.CreateVersion7();
         var user = CreateTestUser("current@example.com", "Current User");
-        user.Id = userId;
-        var roles = new List<string> { "User" };
+        user = user with { Id = userId };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(roles);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
         var result = await _authService.GetCurrentUserAsync(userId);
@@ -407,15 +382,14 @@ public class AuthServiceTests {
         Assert.Equal("Current User", result.User.Name);
         Assert.False(result.User.IsAdministrator);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
-        await _mockUserManager.Received(1).GetRolesAsync(user);
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetCurrentUserAsync_NonExistentUser_ReturnsFailureResponse() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns((UserEntity?)null);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _authService.GetCurrentUserAsync(userId);
@@ -425,19 +399,17 @@ public class AuthServiceTests {
         Assert.Equal("NotFound", result.Message);
         Assert.Null(result.User);
 
-        await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
+        await _mockUserStorage.Received(1).FindByIdAsync(userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetCurrentUserAsync_AdministratorUser_SetsIsAdministratorTrue() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        var user = CreateTestUser("admin@example.com", "Admin User");
-        user.Id = userId;
-        var roles = new List<string> { "Administrator" };
+        var user = CreateTestUser("admin@example.com", "Admin User", ["Administrator"]);
+        user = user with { Id = userId };
 
-        _mockUserManager.FindByIdAsync(userId.ToString()).Returns(user);
-        _mockUserManager.GetRolesAsync(user).Returns(roles);
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
         var result = await _authService.GetCurrentUserAsync(userId);
@@ -452,7 +424,8 @@ public class AuthServiceTests {
     public async Task GetCurrentUserAsync_ExceptionThrown_ReturnsErrorResponse() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        _mockUserManager.FindByIdAsync(userId.ToString()).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByIdAsync(userId, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
         var result = await _authService.GetCurrentUserAsync(userId);
@@ -473,16 +446,16 @@ public class AuthServiceTests {
         var user = CreateTestUser(email, "Test User");
         const string resetToken = "reset-token-123";
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.GeneratePasswordResetTokenAsync(user).Returns(resetToken);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GeneratePasswordResetTokenAsync(user.Id, Arg.Any<CancellationToken>()).Returns(resetToken);
         _mockEmailService.SendPasswordResetEmailAsync(email, Arg.Any<string>()).Returns(Task.CompletedTask);
 
         var result = await _authService.ForgotPasswordAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("reset instructions have been sent");
-        await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.Received(1).GeneratePasswordResetTokenAsync(user);
+        await _mockUserStorage.Received(1).FindByEmailAsync(email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).GeneratePasswordResetTokenAsync(user.Id, Arg.Any<CancellationToken>());
         await _mockEmailService.Received(1).SendPasswordResetEmailAsync(email, Arg.Any<string>());
     }
 
@@ -490,14 +463,14 @@ public class AuthServiceTests {
     public async Task ForgotPasswordAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
         const string email = "nonexistent@example.com";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var result = await _authService.ForgotPasswordAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("reset instructions have been sent");
-        await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.Received(1).FindByEmailAsync(email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await _mockEmailService.DidNotReceive().SendPasswordResetEmailAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -505,7 +478,8 @@ public class AuthServiceTests {
     public async Task ForgotPasswordAsync_WhenExceptionThrown_ReturnsInternalServerError() {
         const string email = "error@example.com";
 
-        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _authService.ForgotPasswordAsync(email);
 
@@ -523,18 +497,14 @@ public class AuthServiceTests {
         const string token = "valid-token";
         var user = CreateTestUser(email, "Test User");
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.VerifyUserTokenAsync(
-            user,
-            Arg.Any<string>(),
-            "ResetPassword",
-            token).Returns(true);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.VerifyPasswordResetTokenAsync(user.Id, token, Arg.Any<CancellationToken>()).Returns(true);
 
         var result = await _authService.ValidateResetTokenAsync(email, token);
 
         result.Success.Should().BeTrue();
-        await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.Received(1).VerifyUserTokenAsync(user, Arg.Any<string>(), "ResetPassword", token);
+        await _mockUserStorage.Received(1).FindByEmailAsync(email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).VerifyPasswordResetTokenAsync(user.Id, token, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -543,12 +513,8 @@ public class AuthServiceTests {
         const string token = "invalid-token";
         var user = CreateTestUser(email, "Test User");
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.VerifyUserTokenAsync(
-            user,
-            Arg.Any<string>(),
-            "ResetPassword",
-            token).Returns(false);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.VerifyPasswordResetTokenAsync(user.Id, token, Arg.Any<CancellationToken>()).Returns(false);
 
         var result = await _authService.ValidateResetTokenAsync(email, token);
 
@@ -561,13 +527,13 @@ public class AuthServiceTests {
         const string email = "nonexistent@example.com";
         const string token = "some-token";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var result = await _authService.ValidateResetTokenAsync(email, token);
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid reset link");
-        await _mockUserManager.DidNotReceive().VerifyUserTokenAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+        await _mockUserStorage.DidNotReceive().VerifyPasswordResetTokenAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -575,7 +541,8 @@ public class AuthServiceTests {
         const string email = "error@example.com";
         const string token = "some-token";
 
-        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _authService.ValidateResetTokenAsync(email, token);
 
@@ -594,15 +561,16 @@ public class AuthServiceTests {
         const string newPassword = "NewPassword123!";
         var user = CreateTestUser(email, "Test User");
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.ResetPasswordAsync(user, token, newPassword).Returns(IdentityResult.Success);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.ResetPasswordWithTokenAsync(user.Id, token, newPassword, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _authService.ResetPasswordAsync(email, token, newPassword);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Be("Password updated successfully");
-        await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.Received(1).ResetPasswordAsync(user, token, newPassword);
+        await _mockUserStorage.Received(1).FindByEmailAsync(email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).ResetPasswordWithTokenAsync(user.Id, token, newPassword, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -611,13 +579,10 @@ public class AuthServiceTests {
         const string token = "invalid-token";
         const string newPassword = "NewPassword123!";
         var user = CreateTestUser(email, "Test User");
-        var identityErrors = new List<IdentityError> {
-            new() { Description = "Invalid token" }
-        };
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.ResetPasswordAsync(user, token, newPassword)
-            .Returns(IdentityResult.Failed([.. identityErrors]));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.ResetPasswordWithTokenAsync(user.Id, token, newPassword, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Invalid token")));
 
         var result = await _authService.ResetPasswordAsync(email, token, newPassword);
 
@@ -631,13 +596,13 @@ public class AuthServiceTests {
         const string token = "some-token";
         const string newPassword = "NewPassword123!";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var result = await _authService.ResetPasswordAsync(email, token, newPassword);
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid reset link");
-        await _mockUserManager.DidNotReceive().ResetPasswordAsync(Arg.Any<UserEntity>(), Arg.Any<string>(), Arg.Any<string>());
+        await _mockUserStorage.DidNotReceive().ResetPasswordWithTokenAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -646,7 +611,8 @@ public class AuthServiceTests {
         const string token = "some-token";
         const string newPassword = "NewPassword123!";
 
-        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _authService.ResetPasswordAsync(email, token, newPassword);
 
@@ -661,20 +627,19 @@ public class AuthServiceTests {
     [Fact]
     public async Task ResendEmailConfirmationAsync_WithUnconfirmedUser_SendsEmailAndReturnsSuccess() {
         const string email = "unconfirmed@example.com";
-        var user = CreateTestUser(email, "Test User");
-        user.EmailConfirmed = false;
+        var user = CreateTestUser(email, "Test User") with { EmailConfirmed = false };
         const string confirmToken = "confirm-token-123";
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.GenerateEmailConfirmationTokenAsync(user).Returns(confirmToken);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.GenerateEmailConfirmationTokenAsync(user.Id, Arg.Any<CancellationToken>()).Returns(confirmToken);
         _mockEmailService.SendEmailConfirmationAsync(email, Arg.Any<string>()).Returns(Task.CompletedTask);
 
         var result = await _authService.ResendEmailConfirmationAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("confirmation instructions have been sent");
-        await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.Received(1).GenerateEmailConfirmationTokenAsync(user);
+        await _mockUserStorage.Received(1).FindByEmailAsync(email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).GenerateEmailConfirmationTokenAsync(user.Id, Arg.Any<CancellationToken>());
         await _mockEmailService.Received(1).SendEmailConfirmationAsync(email, Arg.Any<string>());
     }
 
@@ -682,15 +647,14 @@ public class AuthServiceTests {
     public async Task ResendEmailConfirmationAsync_WithAlreadyConfirmedUser_ReturnsSuccessWithoutSendingEmail() {
         const string email = "confirmed@example.com";
         var user = CreateTestUser(email, "Test User");
-        user.EmailConfirmed = true;
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
 
         var result = await _authService.ResendEmailConfirmationAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("already confirmed");
-        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await _mockEmailService.DidNotReceive().SendEmailConfirmationAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -698,13 +662,13 @@ public class AuthServiceTests {
     public async Task ResendEmailConfirmationAsync_WithNonExistentUser_ReturnsSuccessWithoutSendingEmail() {
         const string email = "nonexistent@example.com";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var result = await _authService.ResendEmailConfirmationAsync(email);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("confirmation instructions have been sent");
-        await _mockUserManager.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<UserEntity>());
+        await _mockUserStorage.DidNotReceive().GenerateEmailConfirmationTokenAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await _mockEmailService.DidNotReceive().SendEmailConfirmationAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -712,7 +676,8 @@ public class AuthServiceTests {
     public async Task ResendEmailConfirmationAsync_WhenExceptionThrown_ReturnsInternalServerError() {
         const string email = "error@example.com";
 
-        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _authService.ResendEmailConfirmationAsync(email);
 
@@ -728,18 +693,18 @@ public class AuthServiceTests {
     public async Task ConfirmEmailAsync_WithValidToken_ConfirmsEmailAndReturnsSuccess() {
         const string email = "user@example.com";
         const string token = "valid-token";
-        var user = CreateTestUser(email, "Test User");
-        user.EmailConfirmed = false;
+        var user = CreateTestUser(email, "Test User") with { EmailConfirmed = false };
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.ConfirmEmailAsync(user, token).Returns(IdentityResult.Success);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.ConfirmEmailWithTokenAsync(user.Id, token, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var result = await _authService.ConfirmEmailAsync(email, token);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Be("Email confirmed successfully");
-        await _mockUserManager.Received(1).FindByEmailAsync(email);
-        await _mockUserManager.Received(1).ConfirmEmailAsync(user, token);
+        await _mockUserStorage.Received(1).FindByEmailAsync(email, Arg.Any<CancellationToken>());
+        await _mockUserStorage.Received(1).ConfirmEmailWithTokenAsync(user.Id, token, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -747,30 +712,25 @@ public class AuthServiceTests {
         const string email = "confirmed@example.com";
         const string token = "some-token";
         var user = CreateTestUser(email, "Test User");
-        user.EmailConfirmed = true;
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
 
         var result = await _authService.ConfirmEmailAsync(email, token);
 
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("already confirmed");
-        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
+        await _mockUserStorage.DidNotReceive().ConfirmEmailWithTokenAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task ConfirmEmailAsync_WithInvalidToken_ReturnsFailure() {
         const string email = "user@example.com";
         const string token = "invalid-token";
-        var user = CreateTestUser(email, "Test User");
-        user.EmailConfirmed = false;
-        var identityErrors = new List<IdentityError> {
-            new() { Description = "Invalid token" }
-        };
+        var user = CreateTestUser(email, "Test User") with { EmailConfirmed = false };
 
-        _mockUserManager.FindByEmailAsync(email).Returns(user);
-        _mockUserManager.ConfirmEmailAsync(user, token)
-            .Returns(IdentityResult.Failed([.. identityErrors]));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns(user);
+        _mockUserStorage.ConfirmEmailWithTokenAsync(user.Id, token, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Invalid token")));
 
         var result = await _authService.ConfirmEmailAsync(email, token);
 
@@ -783,13 +743,13 @@ public class AuthServiceTests {
         const string email = "nonexistent@example.com";
         const string token = "some-token";
 
-        _mockUserManager.FindByEmailAsync(email).Returns((UserEntity?)null);
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         var result = await _authService.ConfirmEmailAsync(email, token);
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid confirmation link");
-        await _mockUserManager.DidNotReceive().ConfirmEmailAsync(Arg.Any<UserEntity>(), Arg.Any<string>());
+        await _mockUserStorage.DidNotReceive().ConfirmEmailWithTokenAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -797,7 +757,8 @@ public class AuthServiceTests {
         const string email = "error@example.com";
         const string token = "some-token";
 
-        _mockUserManager.FindByEmailAsync(email).ThrowsAsync(new InvalidOperationException("Database error"));
+        _mockUserStorage.FindByEmailAsync(email, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var result = await _authService.ConfirmEmailAsync(email, token);
 
@@ -817,11 +778,8 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        var user = CreateTestUser(request.Email, "Unconfirmed User");
-
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(SignInResult.NotAllowed);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = false, IsNotAllowed = true });
 
         var result = await _authService.LoginAsync(request);
 
@@ -838,11 +796,8 @@ public class AuthServiceTests {
             RememberMe = false
         };
 
-        var user = CreateTestUser(request.Email, "2FA User");
-
-        _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
-        _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(SignInResult.TwoFactorRequired);
+        _mockUserStorage.ValidateCredentialsAsync(request.Email, request.Password, true, Arg.Any<CancellationToken>())
+            .Returns(new SignInResult { Succeeded = false, RequiresTwoFactor = true });
 
         var result = await _authService.LoginAsync(request);
 
@@ -855,15 +810,14 @@ public class AuthServiceTests {
 
     #region Helper Methods
 
-    private static UserEntity CreateTestUser(string email, string name)
+    private static User CreateTestUser(string email, string name, IReadOnlyList<string>? roles = null)
         => new() {
             Id = Guid.CreateVersion7(),
-            UserName = email,
             Email = email,
             Name = name,
             DisplayName = name,
             EmailConfirmed = true,
-            PasswordHash = "hashed_password"
+            Roles = roles ?? []
         };
 
     #endregion

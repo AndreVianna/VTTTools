@@ -4,7 +4,7 @@ public sealed class WorldAdminServiceTests {
     private readonly IOptions<PublicLibraryOptions> _mockOptions;
     private readonly IWorldStorage _mockWorldStorage;
     private readonly ICampaignStorage _mockCampaignStorage;
-    private readonly UserManager<UserEntity> _mockUserManager;
+    private readonly IUserStorage _mockUserStorage;
     private readonly ILogger<WorldAdminService> _mockLogger;
     private readonly WorldAdminService _sut;
     private readonly Guid _masterUserId = Guid.CreateVersion7();
@@ -15,9 +15,9 @@ public sealed class WorldAdminServiceTests {
 
         _mockWorldStorage = Substitute.For<IWorldStorage>();
         _mockCampaignStorage = Substitute.For<ICampaignStorage>();
-        _mockUserManager = CreateUserManagerMock();
+        _mockUserStorage = Substitute.For<IUserStorage>();
         _mockLogger = Substitute.For<ILogger<WorldAdminService>>();
-        _sut = new(_mockOptions, _mockWorldStorage, _mockCampaignStorage, _mockUserManager, _mockLogger);
+        _sut = new(_mockOptions, _mockWorldStorage, _mockCampaignStorage, _mockUserStorage, _mockLogger);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public sealed class WorldAdminServiceTests {
             .Returns(([.. worlds.Take(10)], 15));
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var request = new LibrarySearchRequest { Skip = 0, Take = 10 };
 
@@ -44,7 +44,7 @@ public sealed class WorldAdminServiceTests {
             .Returns(world);
 
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.GetWorldByIdAsync(world.Id, TestContext.Current.CancellationToken);
 
@@ -66,7 +66,7 @@ public sealed class WorldAdminServiceTests {
     [Fact]
     public async Task CreateWorldAsync_WithValidData_CreatesWorld() {
         var users = CreateTestUsers(1);
-        _mockUserManager.Users.Returns(users.BuildMock());
+        SetupUserStorageMock(users);
 
         var result = await _sut.CreateWorldAsync("New World", "Description", TestContext.Current.CancellationToken);
 
@@ -84,10 +84,18 @@ public sealed class WorldAdminServiceTests {
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    private static UserManager<UserEntity> CreateUserManagerMock() {
-        var userStore = Substitute.For<IUserStore<UserEntity>>();
-        return Substitute.For<UserManager<UserEntity>>(
-            userStore, null, null, null, null, null, null, null, null);
+    private void SetupUserStorageMock(List<User> users) {
+        _mockUserStorage.GetDisplayNamesAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                var ids = callInfo.Arg<IEnumerable<Guid>>().ToList();
+                return users.Where(u => ids.Contains(u.Id))
+                    .ToDictionary(u => u.Id, u => (string?)u.DisplayName) as IReadOnlyDictionary<Guid, string?>;
+            });
+        _mockUserStorage.FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                var id = callInfo.Arg<Guid>();
+                return users.FirstOrDefault(u => u.Id == id);
+            });
     }
 
     private VttTools.Library.Worlds.Model.World CreateTestWorld(string name, string description, Guid? ownerId = null) => new() {
@@ -107,17 +115,15 @@ public sealed class WorldAdminServiceTests {
         return [.. worlds];
     }
 
-    private static UserEntity CreateTestUser(Guid id, string email, string name) => new() {
+    private static User CreateTestUser(Guid id, string email, string name) => new() {
         Id = id,
-        UserName = email,
         Email = email,
         Name = name,
-        DisplayName = name,
-        EmailConfirmed = true
+        DisplayName = name
     };
 
-    private static List<UserEntity> CreateTestUsers(int count) {
-        var users = new List<UserEntity>();
+    private static List<User> CreateTestUsers(int count) {
+        var users = new List<User>();
         for (var i = 0; i < count; i++) {
             users.Add(CreateTestUser(Guid.CreateVersion7(), $"user{i}@example.com", $"User {i}"));
         }

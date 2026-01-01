@@ -1,12 +1,12 @@
 namespace VttTools.Auth.Services;
 
 public class SecurityService(
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger<SecurityService> logger) : ISecurityService {
 
     public async Task<SecuritySettingsResponse> GetSecuritySettingsAsync(Guid userId, CancellationToken ct = default) {
         try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Security settings request for non-existent user ID: {UserId}", userId);
                 return new SecuritySettingsResponse {
@@ -14,19 +14,19 @@ public class SecurityService(
                     Message = "User not found",
                     HasPassword = false,
                     TwoFactorEnabled = false,
-                    RecoveryCodesRemaining = 0
+                    RecoveryCodesRemaining = 0,
                 };
             }
 
-            var recoveryCodesRemaining = await userManager.CountRecoveryCodesAsync(user);
+            var recoveryCodesRemaining = await userStorage.CountRecoveryCodesAsync(userId, ct);
 
             logger.LogInformation("Security settings retrieved for user: {UserId}", userId);
             return new SecuritySettingsResponse {
                 Success = true,
                 Message = null,
-                HasPassword = !string.IsNullOrEmpty(user.PasswordHash),
+                HasPassword = user.HasPassword,
                 TwoFactorEnabled = user.TwoFactorEnabled,
-                RecoveryCodesRemaining = recoveryCodesRemaining
+                RecoveryCodesRemaining = recoveryCodesRemaining,
             };
         }
         catch (Exception ex) {
@@ -36,7 +36,7 @@ public class SecurityService(
                 Message = "Internal server error",
                 HasPassword = false,
                 TwoFactorEnabled = false,
-                RecoveryCodesRemaining = 0
+                RecoveryCodesRemaining = 0,
             };
         }
     }

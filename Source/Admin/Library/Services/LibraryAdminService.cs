@@ -3,25 +3,22 @@ namespace VttTools.Admin.Library.Services;
 
 public abstract class LibraryAdminService(
     IOptions<PublicLibraryOptions> options,
-    UserManager<UserEntity> userManager,
+    IUserStorage userStorage,
     ILogger logger) {
 
     protected Guid MasterUserId => options.Value.MasterUserId;
-    protected UserManager<UserEntity> UserManager => userManager;
+    protected IUserStorage UserStorage => userStorage;
     protected ILogger Logger => logger;
 
     protected async Task<string?> GetOwnerNameAsync(Guid ownerId) {
-        var user = await UserManager.FindByIdAsync(ownerId.ToString());
+        var user = await UserStorage.FindByIdAsync(ownerId);
         return user?.DisplayName;
     }
 
-    protected Task<Dictionary<Guid, string?>> GetOwnerDictionaryAsync(
+    protected async Task<IReadOnlyDictionary<Guid, string?>> GetOwnerDictionaryAsync(
         IEnumerable<Guid> ownerIds,
         CancellationToken ct = default) {
-        var distinctOwnerIds = ownerIds.Distinct().ToList();
-        return UserManager.Users
-                          .Where(u => distinctOwnerIds.Contains(u.Id))
-                          .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.UserName, ct);
+        return await UserStorage.GetDisplayNamesAsync(ownerIds, ct);
     }
 
     protected static IQueryable<T> ApplySearchFilters<T>(

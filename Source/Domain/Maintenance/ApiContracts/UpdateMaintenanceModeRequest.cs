@@ -1,10 +1,7 @@
 namespace VttTools.Maintenance.ApiContracts;
 
 public sealed record UpdateMaintenanceModeRequest : Request {
-    [Required(ErrorMessage = "ErrorMessage is required")]
-    [MaxLength(2000, ErrorMessage = "ErrorMessage cannot exceed 2000 characters")]
     public required string Message { get; init; }
-
     public DateTime? ScheduledStartTime { get; init; }
     public DateTime? ScheduledEndTime { get; init; }
 }

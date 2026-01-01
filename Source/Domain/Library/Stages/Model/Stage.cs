@@ -5,11 +5,7 @@ public record Stage {
 
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid OwnerId { get; init; }
-
-    [MaxLength(128)]
     public string Name { get; init; } = NewStageName;
-
-    [MaxLength(4096)]
     public string Description { get; init; } = string.Empty;
 
     public bool IsPublished { get; init; }
