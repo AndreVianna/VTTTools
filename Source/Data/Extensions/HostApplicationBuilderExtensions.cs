@@ -6,6 +6,9 @@ using VttTools.Data.Library.Worlds;
 namespace VttTools.Data.Extensions;
 
 public static class HostApplicationBuilderExtensions {
+    /// <summary>
+    /// Registers content storage services. Safe to call from any API.
+    /// </summary>
     public static void AddDataStorage(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IMediaStorage, MediaStorage>();
         builder.Services.AddScoped<IAssetStorage, AssetStorage>();
@@ -16,6 +19,12 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.AddScoped<ICampaignStorage, CampaignStorage>();
         builder.Services.AddScoped<IGameSessionStorage, GameSessionStorage>();
         builder.Services.AddScoped<IContentQueryStorage, ContentQueryStorage>();
+    }
+
+    /// <summary>
+    /// Registers Identity storage services. Only call in APIs with ASP.NET Identity configured.
+    /// </summary>
+    public static void AddIdentityStorage(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IUserStorage, UserStorage>();
         builder.Services.AddScoped<IRoleStorage, RoleStorage>();
     }

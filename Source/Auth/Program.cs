@@ -31,11 +31,12 @@ internal static class Program {
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
+        builder.AddIdentityStorage();
         // Note: Database health is monitored by Aspire at the infrastructure level
     }
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {
-        builder.Services.AddIdentity<User, Role>(options => {
+        builder.AddIdentityInfrastructure(options => {
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
             options.Password.RequireNonAlphanumeric = true;
@@ -53,9 +54,7 @@ internal static class Program {
 
             options.SignIn.RequireConfirmedEmail = true;
             options.SignIn.RequireConfirmedPhoneNumber = false;
-        })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+        });
 
         var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration section 'Jwt' is missing from appsettings.json");
 

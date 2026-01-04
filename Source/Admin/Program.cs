@@ -34,12 +34,13 @@ internal static class Program {
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
+        builder.AddIdentityStorage();
         // Note: Database and Redis health are monitored by Aspire at the infrastructure level
         // Blob storage is accessed via media-api (resources-api), not directly
     }
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {
-        builder.Services.AddIdentity<User, Role>(options => {
+        builder.AddIdentityInfrastructure(options => {
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
             options.Password.RequireNonAlphanumeric = true;
@@ -57,9 +58,7 @@ internal static class Program {
 
             options.SignIn.RequireConfirmedEmail = true;
             options.SignIn.RequireConfirmedPhoneNumber = false;
-        })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+        });
 
         builder.AddJwtAuthentication();
 
