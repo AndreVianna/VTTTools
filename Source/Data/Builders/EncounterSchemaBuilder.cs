@@ -54,6 +54,7 @@ internal static class EncounterSchemaBuilder {
             sizeBuilder.IsRequired();
             sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("Width");
             sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("Height");
+            sizeBuilder.Ignore(s => s.Name);
         });
 
         entity.HasOne(e => e.Display)
@@ -107,6 +108,7 @@ internal static class EncounterSchemaBuilder {
             sizeBuilder.IsRequired();
             sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("Width");
             sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("Height");
+            sizeBuilder.Ignore(s => s.Name);
         });
 
         entity.HasOne(e => e.Display).WithMany().IsRequired(false)

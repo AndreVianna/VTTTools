@@ -201,6 +201,7 @@ internal static class StageSchemaBuilder {
             sizeBuilder.IsRequired();
             sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(1.0).HasColumnName("Width");
             sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(1.0).HasColumnName("Height");
+            sizeBuilder.Ignore(s => s.Name);
         });
 
         entity.Property(e => e.Opacity).IsRequired().HasDefaultValue(1.0f);

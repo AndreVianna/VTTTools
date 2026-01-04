@@ -18,6 +18,7 @@ internal static class AssetSchemaBuilder {
             entity.OwnsOne(ea => ea.Size, sizeBuilder => {
                 sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0).HasColumnName(nameof(Size.Width));
                 sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0).HasColumnName(nameof(Size.Height));
+                sizeBuilder.Ignore(s => s.Name);
             });
             entity.Property(e => e.OwnerId).IsRequired();
             entity.Property(e => e.IsPublished).IsRequired().HasDefaultValue(false);
