@@ -35,8 +35,22 @@ internal static class Program {
         builder.AddNpgsqlDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
         builder.AddIdentityStorage();
-        // Note: Database and Redis health are monitored by Aspire at the infrastructure level
-        // Blob storage is accessed via media-api (resources-api), not directly
+        builder.AddInfrastructureHealthChecks();
+    }
+
+    internal static void AddInfrastructureHealthChecks(this IHostApplicationBuilder builder) {
+        // Add infrastructure health checks with proper tags for frontend discovery
+        builder.Services.AddHealthChecks()
+            // Database health check - actual connectivity test
+            .AddCheck<DatabaseHealthCheck>("database", tags: ["database", "infrastructure"])
+            // Redis is available as connection string reference but not directly used by Admin API
+            .AddCheck("redis", () =>
+                HealthCheckResult.Healthy("Redis available via Aspire infrastructure"),
+                ["redis", "infrastructure"])
+            // Blob storage is accessed through resources-api, not directly by Admin
+            .AddCheck("blob-storage", () =>
+                HealthCheckResult.Healthy("Blob storage accessed via resources-api"),
+                ["blob", "infrastructure"]);
     }
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {

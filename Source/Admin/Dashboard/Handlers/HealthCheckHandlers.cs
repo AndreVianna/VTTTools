@@ -23,7 +23,9 @@ public static class HealthCheckHandlers {
                     Status = entry.Value.Status.ToString(),
                     Duration = $"{entry.Value.Duration.TotalMilliseconds:F2}ms",
                     Description = entry.Value.Description,
-                    Data = entry.Value.Data.Count > 0 ? entry.Value.Data.ToDictionary(d => d.Key, d => d.Value) : null
+                    Data = entry.Value.Data.Count > 0 ? entry.Value.Data.ToDictionary(d => d.Key, d => d.Value) : null,
+                    Exception = entry.Value.Exception?.Message,
+                    Tags = [.. entry.Value.Tags],
                 })]
         };
 

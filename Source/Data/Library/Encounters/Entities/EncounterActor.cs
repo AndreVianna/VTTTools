@@ -25,6 +25,6 @@ public class EncounterActor {
     public Frame Frame { get; set; } = new();
 
     public Guid? ControlledBy { get; set; }
-    public bool IsHidden { get; set; } = true;
+    public bool IsHidden { get; set; }
     public bool IsLocked { get; set; }
 }

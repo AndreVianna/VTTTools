@@ -6,4 +6,6 @@ public sealed record HealthCheckResult {
     public required string Duration { get; init; }
     public string? Description { get; init; }
     public Dictionary<string, object>? Data { get; init; }
+    public string? Exception { get; init; }
+    public string[] Tags { get; init; } = [];
 }

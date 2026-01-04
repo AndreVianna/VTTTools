@@ -34,6 +34,7 @@ global using VttTools.Admin.Dashboard.EndpointMappers;
 global using VttTools.Admin.Dashboard.Handlers;
 global using VttTools.Admin.Dashboard.Services;
 global using VttTools.Admin.Exceptions;
+global using VttTools.Admin.Infrastructure;
 global using VttTools.Admin.Library.ApiContracts;
 global using VttTools.Admin.Library.EndpointMappers;
 global using VttTools.Admin.Library.Handlers;
