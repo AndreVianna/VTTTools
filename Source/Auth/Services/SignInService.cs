@@ -13,6 +13,6 @@ public class SignInService(
             await signInManager.SignInAsync(entity, isPersistent);
     }
 
-    public async Task SignOutAsync(CancellationToken ct = default)
-        => await signInManager.SignOutAsync();
+    public Task SignOutAsync(CancellationToken ct = default)
+        => signInManager.SignOutAsync();
 }

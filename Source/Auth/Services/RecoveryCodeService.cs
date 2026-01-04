@@ -9,7 +9,7 @@ public class RecoveryCodeService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Recovery code generation attempted for non-existent user ID: {UserId}", userId);
-                return new GenerateRecoveryCodesResponse {
+                return new() {
                     Success = false,
                     Message = "User not found",
                     RecoveryCodes = null,
@@ -19,7 +19,7 @@ public class RecoveryCodeService(
             var isPasswordValid = await userStorage.CheckPasswordAsync(userId, request.Password, ct);
             if (!isPasswordValid) {
                 logger.LogWarning("Recovery code generation failed - incorrect password for user: {UserId}", userId);
-                return new GenerateRecoveryCodesResponse {
+                return new() {
                     Success = false,
                     Message = "Password is incorrect",
                     RecoveryCodes = null,
@@ -29,7 +29,7 @@ public class RecoveryCodeService(
             var codes = await userStorage.GenerateRecoveryCodesAsync(userId, 10, ct);
 
             logger.LogInformation("Recovery codes generated successfully for user: {UserId}", userId);
-            return new GenerateRecoveryCodesResponse {
+            return new() {
                 Success = true,
                 Message = "Recovery codes generated successfully",
                 RecoveryCodes = codes,
@@ -37,7 +37,7 @@ public class RecoveryCodeService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error generating recovery codes for user ID: {UserId}", userId);
-            return new GenerateRecoveryCodesResponse {
+            return new() {
                 Success = false,
                 Message = "Internal server error",
                 RecoveryCodes = null,
@@ -50,7 +50,7 @@ public class RecoveryCodeService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Recovery code status check attempted for non-existent user ID: {UserId}", userId);
-                return new RecoveryCodesStatusResponse {
+                return new() {
                     Success = false,
                     Message = "User not found",
                     RemainingCount = 0,
@@ -60,7 +60,7 @@ public class RecoveryCodeService(
             var remainingCount = await userStorage.CountRecoveryCodesAsync(userId, ct);
 
             logger.LogInformation("Recovery code status retrieved for user: {UserId}, remaining count: {RemainingCount}", userId, remainingCount);
-            return new RecoveryCodesStatusResponse {
+            return new() {
                 Success = true,
                 Message = null,
                 RemainingCount = remainingCount,
@@ -68,7 +68,7 @@ public class RecoveryCodeService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error retrieving recovery code status for user ID: {UserId}", userId);
-            return new RecoveryCodesStatusResponse {
+            return new() {
                 Success = false,
                 Message = "Internal server error",
                 RemainingCount = 0,

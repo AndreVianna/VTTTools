@@ -67,7 +67,7 @@ internal static class Program {
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
-                options.TokenValidationParameters = new TokenValidationParameters {
+                options.TokenValidationParameters = new() {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,

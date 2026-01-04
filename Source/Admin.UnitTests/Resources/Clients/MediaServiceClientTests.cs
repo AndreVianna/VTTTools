@@ -178,7 +178,7 @@ public sealed class MediaServiceClientTests {
         var request = new ResourceFilterRequest();
 
         // Act
-        var act = async () => await client.ListUnpublishedResourcesAsync(request, TestContext.Current.CancellationToken);
+        var act = () => client.ListUnpublishedResourcesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         await act.Should().ThrowAsync<JsonException>();
@@ -245,12 +245,12 @@ public sealed class MediaServiceClientTests {
         var data = new byte[] { 1, 2, 3, 4 };
 
         // Act
-        var act = async () => await client.UploadResourceAsync(
-            data,
-            "test.png",
-            "image/png",
-            ResourceRole.Portrait,
-            TestContext.Current.CancellationToken);
+        var act = () => client.UploadResourceAsync(
+                                                   data,
+                                                   "test.png",
+                                                   "image/png",
+                                                   ResourceRole.Portrait,
+                                                   TestContext.Current.CancellationToken);
 
         // Assert
         await act.Should().ThrowAsync<JsonException>();

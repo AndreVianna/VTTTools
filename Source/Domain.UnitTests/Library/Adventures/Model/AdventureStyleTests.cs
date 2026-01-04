@@ -21,5 +21,4 @@ public class AdventureStyleTests {
         // Assert
         actualValues.Should().BeEquivalentTo(expectedValues);
     }
-
 }

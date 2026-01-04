@@ -1,6 +1,6 @@
+using SignInResult = VttTools.Identity.Model.SignInResult;
 using User = VttTools.Identity.Model.User;
 using UserEntity = VttTools.Data.Identity.Entities.User;
-using SignInResult = VttTools.Identity.Model.SignInResult;
 
 namespace VttTools.Data.Identity;
 
@@ -36,17 +36,17 @@ public class UserStorage(
         return users;
     }
 
-    public async Task<int> GetTotalUserCountAsync(CancellationToken ct = default)
-        => await userManager.Users.CountAsync(ct);
+    public Task<int> GetTotalUserCountAsync(CancellationToken ct = default)
+        => userManager.Users.CountAsync(ct);
 
     public async Task<IReadOnlyDictionary<Guid, string?>> GetDisplayNamesAsync(
         IEnumerable<Guid> userIds, CancellationToken ct = default) {
         var ids = userIds.Distinct().ToList();
-        if (ids.Count == 0)
-            return new Dictionary<Guid, string?>();
-        return await userManager.Users
-            .Where(u => ids.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.UserName, ct);
+        return ids.Count == 0
+                   ? []
+                   : await userManager.Users
+                                      .Where(u => ids.Contains(u.Id))
+                                      .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.UserName, ct);
     }
 
     public async Task<IReadOnlyList<User>> GetUsersInRoleAsync(string roleName, CancellationToken ct = default) {
@@ -326,9 +326,7 @@ public class UserStorage(
 
     public async Task<bool> VerifyPasswordResetTokenAsync(Guid userId, string token, CancellationToken ct = default) {
         var entity = await userManager.FindByIdAsync(userId.ToString());
-        if (entity is null)
-            return false;
-        return await userManager.VerifyUserTokenAsync(
+        return entity is not null && await userManager.VerifyUserTokenAsync(
             entity,
             userManager.Options.Tokens.PasswordResetTokenProvider,
             "ResetPassword",

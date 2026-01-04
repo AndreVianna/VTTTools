@@ -15,11 +15,10 @@ public abstract class LibraryAdminService(
         return user?.DisplayName;
     }
 
-    protected async Task<IReadOnlyDictionary<Guid, string?>> GetOwnerDictionaryAsync(
+    protected Task<IReadOnlyDictionary<Guid, string?>> GetOwnerDictionaryAsync(
         IEnumerable<Guid> ownerIds,
-        CancellationToken ct = default) {
-        return await UserStorage.GetDisplayNamesAsync(ownerIds, ct);
-    }
+        CancellationToken ct = default)
+        => UserStorage.GetDisplayNamesAsync(ownerIds, ct);
 
     protected static IQueryable<T> ApplySearchFilters<T>(
         IQueryable<T> query,

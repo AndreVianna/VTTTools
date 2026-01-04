@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.1" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageReference Include="FFMpegCore" Version="5.4.0" />
-    <PackageReference Include="Svg.Skia" Version="3.2.1" />
+    <PackageReference Include="Svg.Skia" Version="3.3.0" />
   </ItemGroup>
 
   <ItemGroup>

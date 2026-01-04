@@ -174,7 +174,7 @@ public sealed class ListCommandTests : IDisposable {
             await CreateTokenFileAsync(entity, variantIndex, fakeImage);
     }
 
-    private async Task CreateTokenFileAsync(Asset entity, int variantIndex, byte[] content) {
+    private Task CreateTokenFileAsync(Asset entity, int variantIndex, byte[] content) {
         var assetPath = Path.Combine(_tempDir,
             entity.Classification.Kind.ToString().ToLowerInvariant(),
             entity.Classification.Category.ToLowerInvariant(),
@@ -182,7 +182,7 @@ public sealed class ListCommandTests : IDisposable {
             entity.Classification.Subtype?.ToLowerInvariant() ?? string.Empty,
             entity.Name.ToLowerInvariant().Replace(" ", "_"));
         Directory.CreateDirectory(assetPath);
-        await File.WriteAllBytesAsync(Path.Combine(assetPath, $"token_{variantIndex}.png"), content);
+        return File.WriteAllBytesAsync(Path.Combine(assetPath, $"token_{variantIndex}.png"), content);
     }
 
     private async Task CreateSampleHierarchyAsync() {

@@ -9,7 +9,7 @@ public class SecurityService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Security settings request for non-existent user ID: {UserId}", userId);
-                return new SecuritySettingsResponse {
+                return new() {
                     Success = false,
                     Message = "User not found",
                     HasPassword = false,
@@ -21,7 +21,7 @@ public class SecurityService(
             var recoveryCodesRemaining = await userStorage.CountRecoveryCodesAsync(userId, ct);
 
             logger.LogInformation("Security settings retrieved for user: {UserId}", userId);
-            return new SecuritySettingsResponse {
+            return new() {
                 Success = true,
                 Message = null,
                 HasPassword = user.HasPassword,
@@ -31,7 +31,7 @@ public class SecurityService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error getting security settings for user ID: {UserId}", userId);
-            return new SecuritySettingsResponse {
+            return new() {
                 Success = false,
                 Message = "Internal server error",
                 HasPassword = false,

@@ -13,29 +13,29 @@ public class AuthService(
 
             if (result.IsNotAllowed) {
                 logger.LogInformation("User {Email} not confirmed", request.Email);
-                return new AuthResponse { Message = "NotAllowed" };
+                return new() { Message = "NotAllowed" };
             }
 
             if (result.IsLockedOut) {
                 logger.LogWarning("Account locked for email: {Email}", request.Email);
-                return new AuthResponse { Message = "LockedAccount" };
+                return new() { Message = "LockedAccount" };
             }
 
             if (result.RequiresTwoFactor) {
                 logger.LogWarning("Two factor verification is required: {Email}", request.Email);
-                return new AuthResponse { Message = "RequiresTwoFactor" };
+                return new() { Message = "RequiresTwoFactor" };
             }
 
             if (!result.Succeeded || result.User is null) {
                 logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
-                return new AuthResponse { Message = "FailedLogin" };
+                return new() { Message = "FailedLogin" };
             }
 
             logger.LogInformation("User {Email} logged in successfully", request.Email);
 
             var token = jwtTokenService.GenerateToken(result.User, result.User.Roles, request.RememberMe);
 
-            return new AuthResponse {
+            return new() {
                 Success = true,
                 Message = "Success",
                 User = MapUserToUserInfo(result.User),
@@ -44,7 +44,7 @@ public class AuthService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during login for email: {Email}", request.Email);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -52,7 +52,7 @@ public class AuthService(
         try {
             var existingUser = await userStorage.FindByEmailAsync(request.Email);
             if (existingUser is not null)
-                return new AuthResponse { Message = "DuplicatedUser" };
+                return new() { Message = "DuplicatedUser" };
 
             var user = new User {
                 Email = request.Email,
@@ -65,7 +65,7 @@ public class AuthService(
             if (!createResult.IsSuccessful) {
                 var errors = string.Join("; ", createResult.Errors.Select(e => e.Message));
                 logger.LogWarning("Registration failed for email {Email}: {Errors}", request.Email, errors);
-                return new AuthResponse { Success = false, Message = errors };
+                return new() { Success = false, Message = errors };
             }
 
             logger.LogInformation("User {Email} registered successfully", request.Email);
@@ -75,7 +75,7 @@ public class AuthService(
 
             var token = jwtTokenService.GenerateToken(createdUser, createdUser.Roles, rememberMe: false);
 
-            return new AuthResponse {
+            return new() {
                 Success = true,
                 Message = "RegistrationSuccess",
                 User = MapUserToUserInfo(createdUser),
@@ -84,7 +84,7 @@ public class AuthService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during registration for email: {Email}. Exception: {ErrorMessage}", request.Email, ex.Message);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -93,28 +93,27 @@ public class AuthService(
             await signInService.SignOutAsync();
             logger.LogInformation("User logged out successfully");
 
-            return new AuthResponse { Success = true, Message = "LogoutSuccess" };
+            return new() { Success = true, Message = "LogoutSuccess" };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during logout");
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
     public async Task<AuthResponse> GetCurrentUserAsync(Guid userId) {
         try {
             var user = await userStorage.FindByIdAsync(userId);
-            if (user is null)
-                return new AuthResponse { Message = "NotFound" };
-
-            return new AuthResponse {
-                Success = true,
-                User = MapUserToUserInfo(user),
-            };
+            return user is null
+                ? new() { Message = "NotFound" }
+                : new AuthResponse {
+                    Success = true,
+                    User = MapUserToUserInfo(user),
+                };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error getting current user with ID: {UserId}", userId);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -124,7 +123,7 @@ public class AuthService(
 
             if (user is null) {
                 logger.LogInformation("Password reset requested for non-existent email: {Email}", email);
-                return new AuthResponse {
+                return new() {
                     Success = true,
                     Message = "If that email exists, reset instructions have been sent",
                 };
@@ -132,7 +131,7 @@ public class AuthService(
 
             var token = await userStorage.GeneratePasswordResetTokenAsync(user.Id);
             if (token is null)
-                return new AuthResponse { Success = true, Message = "If that email exists, reset instructions have been sent" };
+                return new() { Success = true, Message = "If that email exists, reset instructions have been sent" };
 
             var encodedEmail = Uri.EscapeDataString(email);
             var encodedToken = Uri.EscapeDataString(token);
@@ -142,14 +141,14 @@ public class AuthService(
 
             logger.LogInformation("Password reset email sent to: {Email}", email);
 
-            return new AuthResponse {
+            return new() {
                 Success = true,
                 Message = "If that email exists, reset instructions have been sent",
             };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during forgot password for email: {Email}", email);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -158,22 +157,22 @@ public class AuthService(
             var user = await userStorage.FindByEmailAsync(email);
             if (user is null) {
                 logger.LogWarning("Token validation attempted for non-existent email: {Email}", email);
-                return new AuthResponse { Success = false, Message = "Invalid reset link" };
+                return new() { Success = false, Message = "Invalid reset link" };
             }
 
             var isValid = await userStorage.VerifyPasswordResetTokenAsync(user.Id, token);
 
             if (!isValid) {
                 logger.LogWarning("Invalid or expired reset token for email: {Email}", email);
-                return new AuthResponse { Success = false, Message = "Reset link has expired or is invalid" };
+                return new() { Success = false, Message = "Reset link has expired or is invalid" };
             }
 
             logger.LogInformation("Reset token validated successfully for email: {Email}", email);
-            return new AuthResponse { Success = true };
+            return new() { Success = true };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error validating reset token for email: {Email}", email);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -182,7 +181,7 @@ public class AuthService(
             var user = await userStorage.FindByEmailAsync(email);
             if (user is null) {
                 logger.LogWarning("Password reset attempted for non-existent email: {Email}", email);
-                return new AuthResponse { Success = false, Message = "Invalid reset link" };
+                return new() { Success = false, Message = "Invalid reset link" };
             }
 
             var result = await userStorage.ResetPasswordWithTokenAsync(user.Id, token, newPassword);
@@ -190,15 +189,15 @@ public class AuthService(
             if (!result.IsSuccessful) {
                 var errors = string.Join("; ", result.Errors.Select(e => e.Message));
                 logger.LogWarning("Password reset failed for email {Email}: {Errors}", email, errors);
-                return new AuthResponse { Success = false, Message = errors };
+                return new() { Success = false, Message = errors };
             }
 
             logger.LogInformation("Password reset successfully for email: {Email}", email);
-            return new AuthResponse { Success = true, Message = "Password updated successfully" };
+            return new() { Success = true, Message = "Password updated successfully" };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during password reset for email: {Email}", email);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -208,7 +207,7 @@ public class AuthService(
 
             if (user is null) {
                 logger.LogInformation("Email confirmation requested for non-existent email: {Email}", email);
-                return new AuthResponse {
+                return new() {
                     Success = true,
                     Message = "If that email exists, confirmation instructions have been sent",
                 };
@@ -216,12 +215,12 @@ public class AuthService(
 
             if (user.EmailConfirmed) {
                 logger.LogInformation("Email confirmation requested for already confirmed email: {Email}", email);
-                return new AuthResponse { Success = true, Message = "Email is already confirmed" };
+                return new() { Success = true, Message = "Email is already confirmed" };
             }
 
             var token = await userStorage.GenerateEmailConfirmationTokenAsync(user.Id);
             if (token is null)
-                return new AuthResponse { Success = true, Message = "If that email exists, confirmation instructions have been sent" };
+                return new() { Success = true, Message = "If that email exists, confirmation instructions have been sent" };
 
             var encodedEmail = Uri.EscapeDataString(email);
             var encodedToken = Uri.EscapeDataString(token);
@@ -231,14 +230,14 @@ public class AuthService(
 
             logger.LogInformation("Email confirmation sent to: {Email}", email);
 
-            return new AuthResponse {
+            return new() {
                 Success = true,
                 Message = "If that email exists, confirmation instructions have been sent",
             };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during resend email confirmation for email: {Email}", email);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 
@@ -247,27 +246,27 @@ public class AuthService(
             var user = await userStorage.FindByEmailAsync(email);
             if (user is null) {
                 logger.LogWarning("Email confirmation attempted for non-existent email: {Email}", email);
-                return new AuthResponse { Success = false, Message = "Invalid confirmation link" };
+                return new() { Success = false, Message = "Invalid confirmation link" };
             }
 
             if (user.EmailConfirmed) {
                 logger.LogInformation("Email already confirmed for: {Email}", email);
-                return new AuthResponse { Success = true, Message = "Email already confirmed" };
+                return new() { Success = true, Message = "Email already confirmed" };
             }
 
             var result = await userStorage.ConfirmEmailWithTokenAsync(user.Id, token);
 
             if (!result.IsSuccessful) {
                 logger.LogWarning("Email confirmation failed for email {Email}", email);
-                return new AuthResponse { Success = false, Message = "Confirmation link has expired or is invalid" };
+                return new() { Success = false, Message = "Confirmation link has expired or is invalid" };
             }
 
             logger.LogInformation("Email confirmed successfully for: {Email}", email);
-            return new AuthResponse { Success = true, Message = "Email confirmed successfully" };
+            return new() { Success = true, Message = "Email confirmed successfully" };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during email confirmation for email: {Email}", email);
-            return new AuthResponse { Message = "InternalServerError" };
+            return new() { Message = "InternalServerError" };
         }
     }
 

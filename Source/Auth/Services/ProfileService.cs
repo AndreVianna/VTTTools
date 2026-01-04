@@ -9,7 +9,7 @@ public class ProfileService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Profile request for non-existent user ID: {UserId}", userId);
-                return new ProfileResponse { Success = false, Message = "User not found" };
+                return new() { Success = false, Message = "User not found" };
             }
 
             logger.LogInformation("Profile retrieved for user: {UserId}, EmailConfirmed: {EmailConfirmed}", userId, user.EmailConfirmed);
@@ -17,7 +17,7 @@ public class ProfileService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error getting profile for user ID: {UserId}", userId);
-            return new ProfileResponse { Success = false, Message = "Internal server error" };
+            return new() { Success = false, Message = "Internal server error" };
         }
     }
 
@@ -26,14 +26,14 @@ public class ProfileService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Profile update attempted for non-existent user ID: {UserId}", userId);
-                return new ProfileResponse { Success = false, Message = "User not found" };
+                return new() { Success = false, Message = "User not found" };
             }
 
             if (request.Email is not null && request.Email != user.Email) {
                 var existingUser = await userStorage.FindByEmailAsync(request.Email, ct);
                 if (existingUser is not null) {
                     logger.LogWarning("Profile update failed - email already in use: {Email}", request.Email);
-                    return new ProfileResponse { Success = false, Message = "Email address is already in use" };
+                    return new() { Success = false, Message = "Email address is already in use" };
                 }
             }
 
@@ -48,7 +48,7 @@ public class ProfileService(
             if (!result.IsSuccessful) {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Message));
                 logger.LogWarning("Profile update failed for user {UserId}: {Errors}", userId, errors);
-                return new ProfileResponse { Success = false, Message = errors };
+                return new() { Success = false, Message = errors };
             }
 
             var refreshedUser = await userStorage.FindByIdAsync(userId, ct);
@@ -57,7 +57,7 @@ public class ProfileService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error updating profile for user ID: {UserId}", userId);
-            return new ProfileResponse { Success = false, Message = "Internal server error" };
+            return new() { Success = false, Message = "Internal server error" };
         }
     }
 
@@ -66,7 +66,7 @@ public class ProfileService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Avatar update attempted for non-existent user ID: {UserId}", userId);
-                return new ProfileResponse { Success = false, Message = "User not found" };
+                return new() { Success = false, Message = "User not found" };
             }
 
             var updatedUser = user with { AvatarId = avatarId };
@@ -75,7 +75,7 @@ public class ProfileService(
             if (!result.IsSuccessful) {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Message));
                 logger.LogWarning("Avatar update failed for user {UserId}: {Errors}", userId, errors);
-                return new ProfileResponse { Success = false, Message = errors };
+                return new() { Success = false, Message = errors };
             }
 
             var refreshedUser = await userStorage.FindByIdAsync(userId, ct);
@@ -84,7 +84,7 @@ public class ProfileService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error updating avatar for user ID: {UserId}", userId);
-            return new ProfileResponse { Success = false, Message = "Internal server error" };
+            return new() { Success = false, Message = "Internal server error" };
         }
     }
 
@@ -93,7 +93,7 @@ public class ProfileService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Avatar removal attempted for non-existent user ID: {UserId}", userId);
-                return new ProfileResponse { Success = false, Message = "User not found" };
+                return new() { Success = false, Message = "User not found" };
             }
 
             var updatedUser = user with { AvatarId = null };
@@ -102,7 +102,7 @@ public class ProfileService(
             if (!result.IsSuccessful) {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Message));
                 logger.LogWarning("Avatar removal failed for user {UserId}: {Errors}", userId, errors);
-                return new ProfileResponse { Success = false, Message = errors };
+                return new() { Success = false, Message = errors };
             }
 
             var refreshedUser = await userStorage.FindByIdAsync(userId, ct);
@@ -111,7 +111,7 @@ public class ProfileService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error removing avatar for user ID: {UserId}", userId);
-            return new ProfileResponse { Success = false, Message = "Internal server error" };
+            return new() { Success = false, Message = "Internal server error" };
         }
     }
 

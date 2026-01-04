@@ -9,7 +9,7 @@ public class TwoFactorAuthenticationService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Two-factor setup initiation attempted for non-existent user ID: {UserId}", userId);
-                return new TwoFactorSetupResponse {
+                return new() {
                     Success = false,
                     Message = "User not found",
                     SharedKey = string.Empty,
@@ -23,7 +23,7 @@ public class TwoFactorAuthenticationService(
 
                 if (key is null) {
                     logger.LogError("Failed to generate authenticator key for user: {UserId}", userId);
-                    return new TwoFactorSetupResponse {
+                    return new() {
                         Success = false,
                         Message = "Failed to generate authenticator key",
                         SharedKey = string.Empty,
@@ -38,7 +38,7 @@ public class TwoFactorAuthenticationService(
             var authenticatorUri = $"otpauth://totp/VTTTools:{accountIdentifier}?secret={key}&issuer=VTTTools";
 
             logger.LogInformation("Two-factor setup initiated for user: {UserId}", userId);
-            return new TwoFactorSetupResponse {
+            return new() {
                 Success = true,
                 Message = null,
                 SharedKey = key,
@@ -47,7 +47,7 @@ public class TwoFactorAuthenticationService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error initiating two-factor setup for user ID: {UserId}", userId);
-            return new TwoFactorSetupResponse {
+            return new() {
                 Success = false,
                 Message = "Internal server error",
                 SharedKey = string.Empty,
@@ -61,7 +61,7 @@ public class TwoFactorAuthenticationService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Two-factor setup verification attempted for non-existent user ID: {UserId}", userId);
-                return new TwoFactorVerifyResponse {
+                return new() {
                     Success = false,
                     Message = "User not found",
                     RecoveryCodes = null,
@@ -71,7 +71,7 @@ public class TwoFactorAuthenticationService(
             var isCodeValid = await userStorage.VerifyTwoFactorCodeAsync(userId, request.Code, ct);
             if (!isCodeValid) {
                 logger.LogWarning("Two-factor setup verification failed - invalid code for user: {UserId}", userId);
-                return new TwoFactorVerifyResponse {
+                return new() {
                     Success = false,
                     Message = "Invalid verification code",
                     RecoveryCodes = null,
@@ -82,7 +82,7 @@ public class TwoFactorAuthenticationService(
             var codes = await userStorage.GenerateRecoveryCodesAsync(userId, 10, ct);
 
             logger.LogInformation("Two-factor authentication enabled successfully for user: {UserId}", userId);
-            return new TwoFactorVerifyResponse {
+            return new() {
                 Success = true,
                 Message = "Two-factor authentication enabled successfully",
                 RecoveryCodes = codes,
@@ -90,7 +90,7 @@ public class TwoFactorAuthenticationService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error verifying two-factor setup for user ID: {UserId}", userId);
-            return new TwoFactorVerifyResponse {
+            return new() {
                 Success = false,
                 Message = "Internal server error",
                 RecoveryCodes = null,
@@ -103,26 +103,26 @@ public class TwoFactorAuthenticationService(
             var user = await userStorage.FindByIdAsync(userId, ct);
             if (user is null) {
                 logger.LogWarning("Two-factor authentication disable attempted for non-existent user ID: {UserId}", userId);
-                return new TwoFactorDisableResponse { Success = false, Message = "User not found" };
+                return new() { Success = false, Message = "User not found" };
             }
 
             var isPasswordValid = await userStorage.CheckPasswordAsync(userId, request.Password, ct);
             if (!isPasswordValid) {
                 logger.LogWarning("Two-factor authentication disable failed - incorrect password for user: {UserId}", userId);
-                return new TwoFactorDisableResponse { Success = false, Message = "Password is incorrect" };
+                return new() { Success = false, Message = "Password is incorrect" };
             }
 
             await userStorage.SetTwoFactorEnabledAsync(userId, false, ct);
 
             logger.LogInformation("Two-factor authentication disabled successfully for user: {UserId}", userId);
-            return new TwoFactorDisableResponse {
+            return new() {
                 Success = true,
                 Message = "Two-factor authentication disabled successfully",
             };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error disabling two-factor authentication for user ID: {UserId}", userId);
-            return new TwoFactorDisableResponse { Success = false, Message = "Internal server error" };
+            return new() { Success = false, Message = "Internal server error" };
         }
     }
 }
