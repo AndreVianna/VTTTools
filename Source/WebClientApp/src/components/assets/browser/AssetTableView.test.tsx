@@ -10,7 +10,7 @@ vi.mock('@mui/x-data-grid/esm/index.css', () => ({}));
 
 vi.mock('@/components/common/ResourceImage', () => ({
   ResourceImage: ({ alt, fallback }: { alt: string; fallback: React.ReactNode }) => (
-    <div data-testid="resource-image" aria-label={alt}>
+    <div data-mock="resource-image" role="img" aria-label={alt}>
       {fallback}
     </div>
   ),

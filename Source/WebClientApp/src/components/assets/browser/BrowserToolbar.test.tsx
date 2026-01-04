@@ -121,7 +121,7 @@ describe('BrowserToolbar', () => {
       );
 
       const buttons = screen.getAllByRole('button');
-      const clearButton = buttons.find((btn) => btn.querySelector('svg[data-testid="ClearIcon"]'));
+      const clearButton = buttons.find((btn) => btn.querySelector('.MuiSvgIcon-root'));
       expect(clearButton).toBeDefined();
     });
 
@@ -136,7 +136,7 @@ describe('BrowserToolbar', () => {
       );
 
       const buttons = screen.getAllByRole('button');
-      const clearButton = buttons.find((btn) => btn.querySelector('svg[data-testid="ClearIcon"]'));
+      const clearButton = buttons.find((btn) => btn.closest('.MuiInputAdornment-root') && btn.querySelector('.MuiSvgIcon-root'));
       if (clearButton) {
         await user.click(clearButton);
         expect(onSearchChange).toHaveBeenCalledWith('');
@@ -151,7 +151,7 @@ describe('BrowserToolbar', () => {
       );
 
       const buttons = screen.getAllByRole('button');
-      const clearButton = buttons.find((btn) => btn.querySelector('svg[data-testid="ClearIcon"]'));
+      const clearButton = buttons.find((btn) => btn.closest('.MuiInputAdornment-root') && btn.querySelector('.MuiSvgIcon-root'));
       expect(clearButton).toBeUndefined();
     });
   });
@@ -340,7 +340,7 @@ describe('BrowserToolbar', () => {
       );
 
       const buttons = screen.getAllByRole('button');
-      const deleteButton = buttons.find((btn) => btn.querySelector('svg[data-testid="DeleteIcon"]'));
+      const deleteButton = buttons.find((btn) => btn.getAttribute('aria-label')?.toLowerCase().includes('delete'));
 
       if (deleteButton) {
         await user.click(deleteButton);
@@ -359,7 +359,7 @@ describe('BrowserToolbar', () => {
       );
 
       const buttons = screen.getAllByRole('button');
-      const publishButton = buttons.find((btn) => btn.querySelector('svg[data-testid="PublishIcon"]'));
+      const publishButton = buttons.find((btn) => btn.getAttribute('aria-label')?.toLowerCase().includes('publish'));
 
       if (publishButton) {
         await user.click(publishButton);
@@ -378,7 +378,7 @@ describe('BrowserToolbar', () => {
       );
 
       const buttons = screen.getAllByRole('button');
-      const tagsButton = buttons.find((btn) => btn.querySelector('svg[data-testid="LabelIcon"]'));
+      const tagsButton = buttons.find((btn) => btn.getAttribute('aria-label')?.toLowerCase().includes('tag'));
 
       if (tagsButton) {
         await user.click(tagsButton);

@@ -50,8 +50,7 @@ export const SnapModeIndicator: React.FC<SnapModeIndicatorProps> = ({ snapMode, 
 
   return (
     <Box
-      id='snap-mode-indicator'
-      data-testid='snap-mode-indicator'
+      id='indicator-snap-mode'
       role='status'
       aria-live='polite'
       aria-label={`Snap mode: ${config.label}`}

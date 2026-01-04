@@ -274,7 +274,8 @@ describe('detectPoleOnPoleCollision', () => {
   it('should detect collision at exact tolerance distance', () => {
     const tolerance = 5;
     const newPoles = [createPoint(0, 0)];
-    const existingWalls = [createWall([createPole(3, 4)], 0)];
+    // Walls need at least 2 poles to create segments - add far pole that won't affect test
+    const existingWalls = [createWall([createPole(3, 4), createPole(1000, 1000)], 0)];
 
     const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig, tolerance);
     expect(result.hasCollision).toBe(true);
@@ -285,14 +286,15 @@ describe('detectPoleOnPoleCollision', () => {
   it('should not detect collision beyond tolerance distance', () => {
     const tolerance = 5;
     const newPoles = [createPoint(0, 0)];
-    const existingWalls = [createWall([createPole(4, 4)], 0)];
+    // Walls need at least 2 poles to create segments - add far pole that won't affect test
+    const existingWalls = [createWall([createPole(4, 4), createPole(1000, 1000)], 0)];
 
     const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig, tolerance);
     expect(result.hasCollision).toBe(false);
   });
 
   it('should handle empty new poles array', () => {
-    const existingWalls = [createWall([createPole(0, 0)], 0)];
+    const existingWalls = [createWall([createPole(0, 0), createPole(1000, 1000)], 0)];
     const result = detectPoleOnPoleCollision([], existingWalls, gridConfig);
     expect(result.hasCollision).toBe(false);
   });
@@ -307,11 +309,12 @@ describe('detectPoleOnPoleCollision', () => {
     const newPoles = [createPoint(50, 50)];
     const existingWalls: EncounterWall[] = [];
 
+    // Walls need at least 2 poles to create segments
     for (let i = 0; i < 100; i++) {
-      existingWalls.push(createWall([createPole(i * 20, i * 20)], i));
+      existingWalls.push(createWall([createPole(i * 20, i * 20), createPole(i * 20 + 10000, i * 20 + 10000)], i));
     }
 
-    existingWalls.push(createWall([createPole(52, 52)], 100));
+    existingWalls.push(createWall([createPole(52, 52), createPole(10000, 10000)], 100));
 
     const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig);
     expect(result.hasCollision).toBe(true);
@@ -321,10 +324,11 @@ describe('detectPoleOnPoleCollision', () => {
 
   it('should detect collisions with multiple walls', () => {
     const newPoles = [createPoint(0, 0)];
+    // Walls need at least 2 poles to create segments - add far pole that won't affect test
     const existingWalls = [
-      createWall([createPole(2, 2)], 0),
-      createWall([createPole(100, 100)], 1),
-      createWall([createPole(-2, -2)], 2),
+      createWall([createPole(2, 2), createPole(1000, 1000)], 0),
+      createWall([createPole(100, 100), createPole(1000, 1000)], 1),
+      createWall([createPole(-2, -2), createPole(-1000, -1000)], 2),
     ];
 
     const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig);
@@ -335,7 +339,8 @@ describe('detectPoleOnPoleCollision', () => {
   it('should use custom tolerance when provided', () => {
     const tolerance = 10;
     const newPoles = [createPoint(0, 0)];
-    const existingWalls = [createWall([createPole(8, 6)], 0)];
+    // Walls need at least 2 poles to create segments - add far pole that won't affect test
+    const existingWalls = [createWall([createPole(8, 6), createPole(1000, 1000)], 0)];
 
     const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig, tolerance);
     expect(result.hasCollision).toBe(true);

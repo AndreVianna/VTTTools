@@ -9,7 +9,7 @@ import type { AssetClassification, NamedSize } from '@/types/domain';
 
 vi.mock('./BreadcrumbTaxonomyInput', () => ({
   BreadcrumbTaxonomyInput: ({ classification, onChange }: { classification: AssetClassification; onChange: (c: AssetClassification) => void }) => (
-    <div data-testid="breadcrumb-taxonomy">
+    <div data-mock="breadcrumb-taxonomy" role="group" aria-label="taxonomy input">
       <button onClick={() => onChange({ ...classification, kind: AssetKind.Character })}>
         Change Classification
       </button>
@@ -117,7 +117,7 @@ describe('MetadataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('breadcrumb-taxonomy')).toBeInTheDocument();
+      expect(screen.getByRole('group', { name: 'taxonomy input' })).toBeInTheDocument();
       expect(screen.getByText('Creature')).toBeInTheDocument();
     });
 

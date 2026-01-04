@@ -41,7 +41,6 @@ export const StatusHintBar: React.FC<StatusHintBarProps> = ({ mode, visible = tr
   return (
     <Box
       id='status-hint-bar'
-      data-testid='status-hint-bar'
       role='complementary'
       aria-label='Keyboard shortcuts and interaction hints'
       sx={{
@@ -62,7 +61,7 @@ export const StatusHintBar: React.FC<StatusHintBarProps> = ({ mode, visible = tr
         textAlign: 'center',
       }}
     >
-      <Typography id='status-hint-text' data-testid='status-hint-text' variant='caption' component='div'>
+      <Typography id='status-hint-text' variant='caption' component='div'>
         {hints[mode]}
       </Typography>
     </Box>

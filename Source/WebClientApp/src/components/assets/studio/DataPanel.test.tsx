@@ -10,19 +10,19 @@ import type { PropertyGridSection } from './PropertyGrid';
 
 vi.mock('./PropertyGrid', () => ({
   PropertyGrid: ({ sections, onChange }: { sections: PropertyGridSection[]; onChange: (s: PropertyGridSection[]) => void }) => (
-    <div data-testid="property-grid">
+    <div data-mock="property-grid" role="region" aria-label="Property Grid">
       {sections.map((section) => (
-        <div key={section.title} data-testid={`section-${section.title}`}>
-          <h3>{section.title}</h3>
+        <section key={section.title} aria-labelledby={`section-heading-${section.title.replace(/\s+/g, '-')}`}>
+          <h3 id={`section-heading-${section.title.replace(/\s+/g, '-')}`}>{section.title}</h3>
           {section.properties.map((prop) => (
-            <div key={prop.key} data-testid={`property-${prop.key}`}>
+            <div key={prop.key} role="listitem" aria-label={`Property ${prop.key}`}>
               {prop.key}: {prop.value}
             </div>
           ))}
           <button onClick={() => onChange([...sections, { title: 'New Section', properties: [] }])}>
             Add Section
           </button>
-        </div>
+        </section>
       ))}
     </div>
   ),
@@ -67,7 +67,7 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-grid')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Property Grid' })).toBeInTheDocument();
     });
 
     it('should not render tabs when only one level exists', () => {
@@ -128,10 +128,10 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('section-Core Stats')).toBeInTheDocument();
-      expect(screen.getByTestId('property-HP')).toHaveTextContent('HP: 100');
-      expect(screen.getByTestId('property-AC')).toHaveTextContent('AC: 15');
-      expect(screen.getByTestId('property-CR')).toHaveTextContent('CR: 5');
+      expect(screen.getByRole('heading', { name: 'Core Stats' })).toBeInTheDocument();
+      expect(screen.getByRole('listitem', { name: 'Property HP' })).toHaveTextContent('HP: 100');
+      expect(screen.getByRole('listitem', { name: 'Property AC' })).toHaveTextContent('AC: 15');
+      expect(screen.getByRole('listitem', { name: 'Property CR' })).toHaveTextContent('CR: 5');
     });
 
     it('should organize ability scores into Ability Scores section', () => {
@@ -149,10 +149,10 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('section-Ability Scores')).toBeInTheDocument();
-      expect(screen.getByTestId('property-STR')).toHaveTextContent('STR: 18');
-      expect(screen.getByTestId('property-DEX')).toHaveTextContent('DEX: 14');
-      expect(screen.getByTestId('property-CON')).toHaveTextContent('CON: 16');
+      expect(screen.getByRole('heading', { name: 'Ability Scores' })).toBeInTheDocument();
+      expect(screen.getByRole('listitem', { name: 'Property STR' })).toHaveTextContent('STR: 18');
+      expect(screen.getByRole('listitem', { name: 'Property DEX' })).toHaveTextContent('DEX: 14');
+      expect(screen.getByRole('listitem', { name: 'Property CON' })).toHaveTextContent('CON: 16');
     });
 
     it('should organize other stats into Other section', () => {
@@ -169,9 +169,9 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('section-Other')).toBeInTheDocument();
-      expect(screen.getByTestId('property-Proficiency')).toHaveTextContent('Proficiency: +3');
-      expect(screen.getByTestId('property-Languages')).toHaveTextContent('Languages: Common, Elvish');
+      expect(screen.getByRole('heading', { name: 'Other' })).toBeInTheDocument();
+      expect(screen.getByRole('listitem', { name: 'Property Proficiency' })).toHaveTextContent('Proficiency: +3');
+      expect(screen.getByRole('listitem', { name: 'Property Languages' })).toHaveTextContent('Languages: Common, Elvish');
     });
 
     it('should create Stats section when stat block is empty', () => {
@@ -185,7 +185,7 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('section-Stats')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Stats' })).toBeInTheDocument();
     });
 
     it('should organize mixed stats into correct sections', () => {
@@ -203,9 +203,9 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('section-Core Stats')).toBeInTheDocument();
-      expect(screen.getByTestId('section-Ability Scores')).toBeInTheDocument();
-      expect(screen.getByTestId('section-Other')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Core Stats' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Ability Scores' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Other' })).toBeInTheDocument();
     });
   });
 
@@ -228,12 +228,12 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-HP')).toHaveTextContent('HP: 100');
+      expect(screen.getByRole('listitem', { name: 'Property HP' })).toHaveTextContent('HP: 100');
 
       const level5Tab = screen.getByRole('tab', { name: 'Level 5' });
       await user.click(level5Tab);
 
-      expect(screen.getByTestId('property-HP')).toHaveTextContent('HP: 150');
+      expect(screen.getByRole('listitem', { name: 'Property HP' })).toHaveTextContent('HP: 150');
     });
 
     it('should default to first level when component mounts', () => {
@@ -252,7 +252,7 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-HP')).toHaveTextContent('HP: 150');
+      expect(screen.getByRole('listitem', { name: 'Property HP' })).toHaveTextContent('HP: 150');
     });
 
     it('should sort levels numerically', () => {
@@ -342,7 +342,7 @@ describe('DataPanel', () => {
       );
 
       expect(screen.getByText('Stat Block')).toBeInTheDocument();
-      expect(screen.getByTestId('property-grid')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Property Grid' })).toBeInTheDocument();
     });
 
     it('should default to level 0 when no levels exist', () => {
@@ -354,7 +354,7 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('section-Stats')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Stats' })).toBeInTheDocument();
     });
   });
 
@@ -410,7 +410,7 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-HP')).toHaveTextContent('HP: 100');
+      expect(screen.getByRole('listitem', { name: 'Property HP' })).toHaveTextContent('HP: 100');
     });
 
     it('should convert text type stats correctly', () => {
@@ -426,7 +426,7 @@ describe('DataPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-Languages')).toHaveTextContent('Languages: Common');
+      expect(screen.getByRole('listitem', { name: 'Property Languages' })).toHaveTextContent('Languages: Common');
     });
   });
 });

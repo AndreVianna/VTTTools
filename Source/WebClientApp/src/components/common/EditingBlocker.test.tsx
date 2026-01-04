@@ -14,13 +14,13 @@ describe('EditingBlocker', () => {
   it('should not render when not blocked', () => {
     renderWithTheme(<EditingBlocker isBlocked={false} />);
 
-    expect(document.getElementById('editing-blocker')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /editing blocker overlay/i })).not.toBeInTheDocument();
   });
 
   it('should render when blocked', () => {
     renderWithTheme(<EditingBlocker isBlocked={true} />);
 
-    expect(document.getElementById('editing-blocker')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /editing blocker overlay/i })).toBeInTheDocument();
     expect(screen.getByText('Editing disabled while offline')).toBeInTheDocument();
   });
 
@@ -34,12 +34,10 @@ describe('EditingBlocker', () => {
       </button>,
     );
 
-    const blocker = document.getElementById('editing-blocker');
+    const blocker = screen.getByRole('region', { name: /editing blocker overlay/i });
     expect(blocker).toBeInTheDocument();
 
-    if (blocker) {
-      await user.click(blocker);
-    }
+    await user.click(blocker);
 
     expect(handleClick).not.toHaveBeenCalled();
   });
@@ -58,63 +56,53 @@ describe('EditingBlocker', () => {
   it('should adapt to light theme', () => {
     renderWithTheme(<EditingBlocker isBlocked={true} />, 'light');
 
-    const blocker = document.getElementById('editing-blocker');
+    const blocker = screen.getByRole('region', { name: /editing blocker overlay/i });
     expect(blocker).toBeInTheDocument();
 
-    if (blocker) {
-      const computedStyle = window.getComputedStyle(blocker);
-      expect(computedStyle.backgroundColor).toBeTruthy();
-    }
+    const computedStyle = window.getComputedStyle(blocker);
+    expect(computedStyle.backgroundColor).toBeTruthy();
   });
 
   it('should adapt to dark theme', () => {
     renderWithTheme(<EditingBlocker isBlocked={true} />, 'dark');
 
-    const blocker = document.getElementById('editing-blocker');
+    const blocker = screen.getByRole('region', { name: /editing blocker overlay/i });
     expect(blocker).toBeInTheDocument();
 
-    if (blocker) {
-      const computedStyle = window.getComputedStyle(blocker);
-      expect(computedStyle.backgroundColor).toBeTruthy();
-    }
+    const computedStyle = window.getComputedStyle(blocker);
+    expect(computedStyle.backgroundColor).toBeTruthy();
   });
 
   it('should have correct z-index to block editing but not navigation', () => {
     renderWithTheme(<EditingBlocker isBlocked={true} />);
 
-    const blocker = document.getElementById('editing-blocker');
+    const blocker = screen.getByRole('region', { name: /editing blocker overlay/i });
     expect(blocker).toBeInTheDocument();
 
-    if (blocker) {
-      const computedStyle = window.getComputedStyle(blocker);
-      expect(parseInt(computedStyle.zIndex, 10)).toBeLessThan(1300);
-    }
+    const computedStyle = window.getComputedStyle(blocker);
+    expect(parseInt(computedStyle.zIndex, 10)).toBeLessThan(1300);
   });
 
   it('should be positioned below navigation bar (top: 64)', () => {
     renderWithTheme(<EditingBlocker isBlocked={true} />);
 
-    const blocker = document.getElementById('editing-blocker');
+    const blocker = screen.getByRole('region', { name: /editing blocker overlay/i });
     expect(blocker).toBeInTheDocument();
 
-    if (blocker) {
-      const computedStyle = window.getComputedStyle(blocker);
-      expect(computedStyle.top).toBe('64px');
-    }
+    const computedStyle = window.getComputedStyle(blocker);
+    expect(computedStyle.top).toBe('64px');
   });
 
   it('should cover the entire viewport below the header', () => {
     renderWithTheme(<EditingBlocker isBlocked={true} />);
 
-    const blocker = document.getElementById('editing-blocker');
+    const blocker = screen.getByRole('region', { name: /editing blocker overlay/i });
     expect(blocker).toBeInTheDocument();
 
-    if (blocker) {
-      const computedStyle = window.getComputedStyle(blocker);
-      expect(computedStyle.position).toBe('fixed');
-      expect(computedStyle.left).toBe('0px');
-      expect(computedStyle.right).toBe('0px');
-      expect(computedStyle.bottom).toBe('0px');
-    }
+    const computedStyle = window.getComputedStyle(blocker);
+    expect(computedStyle.position).toBe('fixed');
+    expect(computedStyle.left).toBe('0px');
+    expect(computedStyle.right).toBe('0px');
+    expect(computedStyle.bottom).toBe('0px');
   });
 });

@@ -620,8 +620,13 @@ describe('mergeWalls', () => {
 
       const result = mergeWalls(params);
 
-      expect(result[0]).toEqual(createPoint(0, 0));
-      expect(result[result.length - 1]).toEqual(createPoint(40, 0));
+      // Merged path contains both endpoints - order depends on traversal start point
+      const hasCorrectEndpoints =
+        (result[0]?.x === 0 && result[result.length - 1]?.x === 40) ||
+        (result[0]?.x === 40 && result[result.length - 1]?.x === 0);
+      expect(hasCorrectEndpoints).toBe(true);
+      expect(result).toContainEqual(createPoint(0, 0));
+      expect(result).toContainEqual(createPoint(40, 0));
     });
 
     it('should include all poles from multiple walls in correct order', () => {

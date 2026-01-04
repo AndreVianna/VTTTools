@@ -27,10 +27,10 @@ vi.mock('@services/userService', () => ({
 
 // Mock MUI icons - simple functional components that work with MUI Chip
 vi.mock('@mui/icons-material', () => {
-    const AddIcon = () => <svg data-testid="AddIcon" className="MuiSvgIcon-root" />;
+    const AddIcon = () => <svg role="img" aria-label="Add" className="MuiSvgIcon-root" />;
     // Delete needs to accept props and spread them for MUI Chip's event handling
     const DeleteIcon = (props: Record<string, unknown>) => (
-        <svg data-testid="DeleteIcon" className="MuiSvgIcon-root" {...props} />
+        <svg role="img" aria-label="Delete" className="MuiSvgIcon-root" {...props} />
     );
     return { Add: AddIcon, Delete: DeleteIcon };
 });
@@ -168,7 +168,7 @@ describe('RoleManagement', () => {
             render(<RoleManagement {...defaultProps} currentRoles={roles} />);
 
             // Assert - MUI Chip delete icons are rendered using our mocked DeleteIcon
-            const deleteIcons = screen.getAllByTestId('DeleteIcon');
+            const deleteIcons = screen.getAllByRole('img', { name: 'Delete' });
             expect(deleteIcons).toHaveLength(2);
         });
 
@@ -380,7 +380,7 @@ describe('RoleManagement', () => {
         // React's event delegation catches it.
         const clickDeleteForRole = (roleName: string) => {
             const roleChip = screen.getByText(roleName).closest('.MuiChip-root');
-            const deleteIcon = roleChip?.querySelector('[data-testid="DeleteIcon"]');
+            const deleteIcon = roleChip?.querySelector('[aria-label="Delete"]');
             if (deleteIcon) {
                 fireEvent.click(deleteIcon);
             }
@@ -556,7 +556,7 @@ describe('RoleManagement', () => {
 
             // Act - Click on delete icon
             const roleChip = screen.getByText('Administrator').closest('.MuiChip-root');
-            const deleteIcon = roleChip?.querySelector('[data-testid="DeleteIcon"]');
+            const deleteIcon = roleChip?.querySelector('[aria-label="Delete"]');
             if (deleteIcon) {
                 fireEvent.click(deleteIcon);
             }

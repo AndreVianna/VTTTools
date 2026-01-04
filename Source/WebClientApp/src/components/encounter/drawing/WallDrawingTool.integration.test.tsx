@@ -19,7 +19,7 @@ vi.mock('konva', () => ({
 }));
 
 vi.mock('react-konva', () => ({
-  Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
+  Group: ({ children }: { children: React.ReactNode }) => <div data-mock='konva-group'>{children}</div>,
   Rect: ({
     onClick,
     onDblClick,
@@ -44,7 +44,7 @@ vi.mock('react-konva', () => ({
     return (
       <button
         type='button'
-        data-testid='konva-rect'
+        data-mock='konva-rect'
         onClick={() => onClick?.(mockKonvaEvent)}
         onDoubleClick={() => onDblClick?.(mockKonvaEvent)}
         onMouseMove={() => onMouseMove?.(mockKonvaEvent)}
@@ -55,12 +55,12 @@ vi.mock('react-konva', () => ({
 
 vi.mock('./VertexMarker', () => ({
   VertexMarker: ({ position, preview }: { position: { x: number; y: number }; preview?: boolean }) => (
-    <div data-testid={preview ? 'vertex-marker-preview' : 'vertex-marker'} data-x={position.x} data-y={position.y} />
+    <div data-mock={preview ? 'vertex-marker-preview' : 'vertex-marker'} data-x={position.x} data-y={position.y} />
   ),
 }));
 
 vi.mock('./WallPreview', () => ({
-  WallPreview: () => <div data-testid='wall-preview' />,
+  WallPreview: () => <div data-mock='wall-preview' />,
 }));
 
 vi.mock('@/utils/snapping', () => ({
@@ -191,7 +191,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -239,7 +239,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       for (let i = 0; i < 5; i++) {
         act(() => {
@@ -278,7 +278,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -319,7 +319,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      expect(container.querySelector('[data-testid="konva-group"]')).toBeTruthy();
+      expect(container.querySelector('[data-mock="konva-group"]')).toBeTruthy();
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
       expect(transaction!.transaction.isActive).toBe(true);
@@ -423,7 +423,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -455,9 +455,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       } as Konva.KonvaEventObject<MouseEvent>;
 
       vi.mock('react-konva', () => ({
-        Group: ({ children }: { children: React.ReactNode }) => <div data-testid='konva-group'>{children}</div>,
+        Group: ({ children }: { children: React.ReactNode }) => <div data-mock='konva-group'>{children}</div>,
         Rect: ({ onClick }: { onClick?: (e: Konva.KonvaEventObject<MouseEvent>) => void }) => (
-          <button type='button' data-testid='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
+          <button type='button' data-mock='konva-rect' onClick={() => onClick?.(customKonvaEvent)} />
         ),
       }));
 
@@ -484,7 +484,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       for (let i = 0; i < 3; i++) {
         act(() => {
@@ -524,7 +524,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -564,7 +564,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -614,7 +614,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -668,7 +668,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -723,7 +723,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -806,7 +806,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();
@@ -857,7 +857,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       expect(transaction).not.toBeNull();
       // biome-ignore lint/style/noNonNullAssertion: Checked for null above
@@ -958,7 +958,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         </Provider>,
       );
 
-      const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+      const rect = container.querySelector('[data-mock="konva-rect"]') as HTMLElement;
 
       act(() => {
         rect.click();

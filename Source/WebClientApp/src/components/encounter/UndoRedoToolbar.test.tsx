@@ -2,7 +2,7 @@
 // WORLD: EPIC-001 Phase 6 - UndoRedoToolbar Tests
 // LAYER: UI (Tests)
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type React from 'react';
 import { describe, expect, it } from 'vitest';
 import { UndoRedoProvider } from '@/contexts/UndoRedoContext';
@@ -14,27 +14,32 @@ describe('UndoRedoToolbar', () => {
   };
 
   it('renders undo and redo buttons', () => {
+    // Arrange & Act
     renderWithProvider(<UndoRedoToolbar />);
 
-    expect(document.querySelector('#btn-undo')).toBeTruthy();
-    expect(document.querySelector('#btn-redo')).toBeTruthy();
+    // Assert
+    expect(screen.getByRole('button', { name: /undo/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /redo/i })).toBeInTheDocument();
   });
 
   it('disables buttons when no history', () => {
+    // Arrange & Act
     renderWithProvider(<UndoRedoToolbar />);
 
-    const undoBtn = document.querySelector('#btn-undo') as HTMLButtonElement;
-    const redoBtn = document.querySelector('#btn-redo') as HTMLButtonElement;
+    // Assert
+    const undoBtn = screen.getByRole('button', { name: /undo/i });
+    const redoBtn = screen.getByRole('button', { name: /redo/i });
 
-    expect(undoBtn?.disabled).toBe(true);
-    expect(redoBtn?.disabled).toBe(true);
+    expect(undoBtn).toBeDisabled();
+    expect(redoBtn).toBeDisabled();
   });
 
-  it('has correct IDs for testing', () => {
+  it('has correct structure with toolbar container', () => {
+    // Arrange & Act
     renderWithProvider(<UndoRedoToolbar />);
 
-    expect(document.querySelector('#undo-redo-toolbar')).toBeTruthy();
-    expect(document.querySelector('#btn-undo')).toBeTruthy();
-    expect(document.querySelector('#btn-redo')).toBeTruthy();
+    // Assert
+    expect(screen.getByRole('button', { name: /undo/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /redo/i })).toBeInTheDocument();
   });
 });

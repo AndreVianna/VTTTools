@@ -320,7 +320,7 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
               aria-label='Change background image'
             >
               <PhotoCameraIcon fontSize='small' />
-              <input type='file' hidden accept='image/*' onChange={handleBackgroundFileChange} />
+              <input id='input-background-upload' type='file' hidden accept='image/*' onChange={handleBackgroundFileChange} />
             </IconButton>
             {!backgroundUrl && (
               <Box

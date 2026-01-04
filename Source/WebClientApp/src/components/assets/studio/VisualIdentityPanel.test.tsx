@@ -8,7 +8,7 @@ import { ResourceRole, type MediaResource } from '@/types/domain';
 
 vi.mock('@/components/common/ResourceImage', () => ({
   ResourceImage: ({ resourceId, alt }: { resourceId: string; alt: string }) => (
-    <img data-testid={`resource-image-${resourceId}`} alt={alt} src={`/resources/${resourceId}`} />
+    <img data-mock={`resource-image-${resourceId}`} alt={alt} src={`/resources/${resourceId}`} />
   ),
 }));
 
@@ -151,7 +151,7 @@ describe('VisualIdentityPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('resource-image-portrait-123')).toBeInTheDocument();
+      expect(screen.getByAltText('Portrait')).toBeInTheDocument();
       expect(screen.getByAltText('Portrait')).toBeInTheDocument();
     });
 
@@ -230,7 +230,7 @@ describe('VisualIdentityPanel', () => {
         </TestWrapper>,
       );
 
-      const portraitContainer = screen.getByTestId('resource-image-portrait-123').parentElement?.parentElement;
+      const portraitContainer = screen.getByAltText('Portrait').parentElement?.parentElement;
       if (portraitContainer) {
         await user.click(portraitContainer);
         expect(mockOnSelectPortrait).toHaveBeenCalled();
@@ -275,8 +275,8 @@ describe('VisualIdentityPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('resource-image-token-1')).toBeInTheDocument();
-      expect(screen.getByTestId('resource-image-token-2')).toBeInTheDocument();
+      expect(screen.getByAltText('Token 1')).toBeInTheDocument();
+      expect(screen.getByAltText('Token 2')).toBeInTheDocument();
     });
 
     it('should render token images with correct alt text', () => {
@@ -482,7 +482,7 @@ describe('VisualIdentityPanel', () => {
         </TestWrapper>,
       );
 
-      const tokenGridContainer = screen.getByTestId('resource-image-token-1').parentElement?.parentElement;
+      const tokenGridContainer = screen.getByAltText('Token 1').parentElement?.parentElement;
       if (tokenGridContainer) {
         const styles = window.getComputedStyle(tokenGridContainer);
         expect(styles.display).toBe('grid');

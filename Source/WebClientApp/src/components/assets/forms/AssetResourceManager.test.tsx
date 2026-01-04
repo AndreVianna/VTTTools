@@ -11,17 +11,17 @@ vi.mock('@/hooks/useFileUpload', () => ({
 }));
 
 vi.mock('@/components/common/DisplayPreview', () => ({
-  DisplayPreview: ({ resourceId }: { resourceId: string }) => <div data-testid='display-preview'>{resourceId}</div>,
+  DisplayPreview: ({ resourceId }: { resourceId: string }) => <div data-mock='display-preview'>{resourceId}</div>,
 }));
 
 vi.mock('@/components/common/ResourceImage', () => ({
   ResourceImage: ({ resourceId, alt }: { resourceId: string; alt: string }) => (
-    <img data-testid='resource-image' src={resourceId} alt={alt} />
+    <img data-mock='resource-image' src={resourceId} alt={alt} />
   ),
 }));
 
 vi.mock('@/components/common/TokenPreview', () => ({
-  TokenPreview: ({ resourceId }: { resourceId: string }) => <div data-testid='token-preview'>{resourceId}</div>,
+  TokenPreview: ({ resourceId }: { resourceId: string }) => <div data-mock='token-preview'>{resourceId}</div>,
 }));
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -115,7 +115,7 @@ describe('AssetResourceManager', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('resource-image')).toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'Portrait' })).toBeInTheDocument();
     });
 
     it('should render token preview when tokenId is provided', () => {
@@ -125,7 +125,7 @@ describe('AssetResourceManager', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('token-preview')).toBeInTheDocument();
+      expect(screen.getByText('token-123')).toBeInTheDocument();
     });
 
     it('should render remove buttons when images are uploaded', () => {
@@ -135,7 +135,7 @@ describe('AssetResourceManager', () => {
         </TestWrapper>,
       );
 
-      const removeButtons = document.querySelectorAll('[data-testid="CloseIcon"]');
+      const removeButtons = screen.getAllByRole('img', { name: 'Close' });
       expect(removeButtons.length).toBeGreaterThan(0);
     });
   });
@@ -169,7 +169,7 @@ describe('AssetResourceManager', () => {
       );
 
       expect(screen.getByText('Portrait')).toBeInTheDocument();
-      expect(screen.getByTestId('display-preview')).toBeInTheDocument();
+      expect(screen.getByText('portrait-123')).toBeInTheDocument();
     });
 
     it('should render token preview in read-only mode', () => {
@@ -180,7 +180,7 @@ describe('AssetResourceManager', () => {
       );
 
       expect(screen.getByText('Token')).toBeInTheDocument();
-      expect(screen.getByTestId('token-preview')).toBeInTheDocument();
+      expect(screen.getByText('token-123')).toBeInTheDocument();
     });
 
     it('should not render remove buttons in read-only mode', () => {
@@ -190,7 +190,7 @@ describe('AssetResourceManager', () => {
         </TestWrapper>,
       );
 
-      const closeIcons = document.querySelectorAll('[data-testid="CloseIcon"]');
+      const closeIcons = screen.getAllByRole('img', { name: 'Close' });
       expect(closeIcons.length).toBe(0);
     });
   });
@@ -295,13 +295,13 @@ describe('AssetResourceManager', () => {
         resetState: mockResetState,
       });
 
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetResourceManager {...defaultProps} />
         </TestWrapper>,
       );
 
-      const progressBar = container.querySelector('.MuiLinearProgress-root');
+      const progressBar = screen.getByRole('progressbar');
       expect(progressBar).toBeInTheDocument();
     });
 
@@ -324,7 +324,7 @@ describe('AssetResourceManager', () => {
         </TestWrapper>,
       );
 
-      const closeIcons = document.querySelectorAll('[data-testid="CloseIcon"]');
+      const closeIcons = screen.getAllByRole('img', { name: 'Close' });
       expect(closeIcons.length).toBeGreaterThan(0);
     });
   });

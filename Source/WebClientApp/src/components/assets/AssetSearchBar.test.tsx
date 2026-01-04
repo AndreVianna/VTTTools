@@ -51,8 +51,8 @@ describe('AssetSearchBar', () => {
         </TestWrapper>,
       );
 
-      const searchIcons = document.querySelectorAll('[data-testid="SearchIcon"]');
-      expect(searchIcons.length).toBeGreaterThan(0);
+      const searchIcon = screen.getByRole('img', { name: 'Search' });
+      expect(searchIcon).toBeInTheDocument();
     });
 
     it('should not display clear button when value is empty', () => {
@@ -143,25 +143,31 @@ describe('AssetSearchBar', () => {
 
   describe('fullWidth prop', () => {
     it('should apply fullWidth when prop is true', () => {
-      const { container } = render(
+      // Arrange & Act
+      render(
         <TestWrapper>
           <AssetSearchBar {...defaultProps} fullWidth={true} />
         </TestWrapper>,
       );
 
-      const textField = container.querySelector('.MuiTextField-root');
-      expect(textField).toHaveClass('MuiTextField-fullWidth');
+      // Assert - Get textbox and verify parent FormControl has fullWidth class
+      const textbox = screen.getByRole('textbox');
+      const formControl = textbox.closest('.MuiFormControl-root');
+      expect(formControl).toHaveClass('MuiFormControl-fullWidth');
     });
 
     it('should not apply fullWidth when prop is false', () => {
-      const { container } = render(
+      // Arrange & Act
+      render(
         <TestWrapper>
           <AssetSearchBar {...defaultProps} fullWidth={false} />
         </TestWrapper>,
       );
 
-      const textField = container.querySelector('.MuiTextField-root');
-      expect(textField).not.toHaveClass('MuiTextField-fullWidth');
+      // Assert - Get textbox and verify parent FormControl does not have fullWidth class
+      const textbox = screen.getByRole('textbox');
+      const formControl = textbox.closest('.MuiFormControl-root');
+      expect(formControl).not.toHaveClass('MuiFormControl-fullWidth');
     });
   });
 

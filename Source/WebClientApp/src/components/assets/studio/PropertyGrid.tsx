@@ -211,6 +211,8 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
 
   return (
     <Box
+      role="group"
+      aria-label="Property grid"
       sx={{
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 1,

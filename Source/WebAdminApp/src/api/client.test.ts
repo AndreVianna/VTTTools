@@ -1,198 +1,209 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { configureStore, type Store } from '@reduxjs/toolkit';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import MockAdapter from 'axios-mock-adapter';
 import apiClient, { configureApiClient } from './client';
-import authReducer from '@store/slices/authSlice';
-import uiReducer from '@store/slices/uiSlice';
-import type { RootState, AppDispatch } from '@store/store';
 
 describe('API Client', () => {
     let mockAxios: MockAdapter;
-    let store: Store<RootState, any, any> & { dispatch: AppDispatch };
 
     beforeEach(() => {
         mockAxios = new MockAdapter(apiClient);
-        store = configureStore({
-            reducer: {
-                auth: authReducer,
-                ui: uiReducer,
-            },
-        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
-        configureApiClient(store);
     });
 
-    it('should include Authorization header when token is present', async () => {
-        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token';
+    afterEach(() => {
+        mockAxios.restore();
+        vi.clearAllMocks();
+    });
 
-        store = configureStore({
-            reducer: {
-                auth: authReducer,
-                ui: uiReducer,
-            },
-            preloadedState: {
-                auth: {
-                    user: {
-                        id: '123',
-                        email: 'admin@test.com',
-                        displayName: 'Admin User',
-                        isAdmin: true,
-                        emailConfirmed: true,
-                        twoFactorEnabled: false,
-                    },
-                    isAuthenticated: true,
-                    isLoading: false,
-                    error: null,
-                    token: mockToken,
-                },
-            },
-        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
+    describe('configuration', () => {
+        it('should use withCredentials for cookie-based auth', () => {
+            // Arrange & Act - access the axios defaults
+            const defaults = apiClient.defaults;
 
-        configureApiClient(store);
+            // Assert
+            expect(defaults.withCredentials).toBe(true);
+        });
+    });
 
-        mockAxios.onGet('/api/admin/test').reply((config) => {
-            expect(config.headers?.Authorization).toBe(`Bearer ${mockToken}`);
-            return [200, { success: true }];
+    describe('configureApiClient', () => {
+        it('should accept onUnauthorized callback', () => {
+            // Arrange
+            const onUnauthorized = vi.fn();
+
+            // Act - should not throw
+            configureApiClient({ onUnauthorized });
+
+            // Assert
+            expect(onUnauthorized).not.toHaveBeenCalled();
         });
 
-        await apiClient.get('/api/admin/test');
+        it('should accept empty callbacks object', () => {
+            // Arrange & Act - should not throw
+            configureApiClient({});
+
+            // Assert - no error thrown
+            expect(true).toBe(true);
+        });
     });
 
-    it('should not include Authorization header when token is not present', async () => {
-        mockAxios.onGet('/api/admin/test').reply((config) => {
-            expect(config.headers?.Authorization).toBeUndefined();
-            return [200, { success: true }];
+    describe('successful requests', () => {
+        it('should pass through successful responses', async () => {
+            // Arrange
+            mockAxios.onGet('/api/admin/test').reply(200, { success: true, data: 'test' });
+
+            // Act
+            const response = await apiClient.get('/api/admin/test');
+
+            // Assert
+            expect(response.status).toBe(200);
+            expect(response.data).toEqual({ success: true, data: 'test' });
         });
 
-        await apiClient.get('/api/admin/test');
+        it('should handle POST requests', async () => {
+            // Arrange
+            const requestData = { name: 'Test' };
+            mockAxios.onPost('/api/admin/create').reply(201, { id: '123' });
+
+            // Act
+            const response = await apiClient.post('/api/admin/create', requestData);
+
+            // Assert
+            expect(response.status).toBe(201);
+            expect(response.data).toEqual({ id: '123' });
+        });
     });
 
-    it('should redirect to login on 401 unauthorized when authenticated', async () => {
-        const originalLocation = window.location.href;
+    describe('unauthorized handling', () => {
+        it('should call onUnauthorized callback on 401 response', async () => {
+            // Arrange
+            const onUnauthorized = vi.fn();
+            configureApiClient({ onUnauthorized });
+            mockAxios.onGet('/api/admin/protected').reply(401);
 
-        store = configureStore({
-            reducer: {
-                auth: authReducer,
-                ui: uiReducer,
-            },
-            preloadedState: {
-                auth: {
-                    user: {
-                        id: '123',
-                        email: 'admin@test.com',
-                        displayName: 'Admin User',
-                        isAdmin: true,
-                        emailConfirmed: true,
-                        twoFactorEnabled: false,
-                    },
-                    isAuthenticated: true,
-                    isLoading: false,
-                    error: null,
-                    token: 'test-token',
-                },
-            },
-        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
+            // Act
+            try {
+                await apiClient.get('/api/admin/protected');
+            } catch {
+                // Expected to throw
+            }
 
-        configureApiClient(store);
-
-        Object.defineProperty(window, 'location', {
-            value: { href: originalLocation },
-            writable: true,
+            // Assert
+            expect(onUnauthorized).toHaveBeenCalledTimes(1);
         });
 
-        mockAxios.onGet('/api/admin/test').reply(401);
+        it('should reject promise on 401 response', async () => {
+            // Arrange
+            const onUnauthorized = vi.fn();
+            configureApiClient({ onUnauthorized });
+            mockAxios.onGet('/api/admin/protected').reply(401);
 
-        try {
-            await apiClient.get('/api/admin/test');
-        } catch {
-            expect(window.location.href).toBe('/login');
-        }
+            // Act & Assert
+            await expect(apiClient.get('/api/admin/protected')).rejects.toThrow();
+        });
+
+        it('should not call onUnauthorized on other error codes', async () => {
+            // Arrange
+            const onUnauthorized = vi.fn();
+            configureApiClient({ onUnauthorized });
+            mockAxios.onGet('/api/admin/test').reply(403);
+
+            // Act
+            try {
+                await apiClient.get('/api/admin/test');
+            } catch {
+                // Expected to throw
+            }
+
+            // Assert
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
+
+        it('should not call onUnauthorized on 500 error', async () => {
+            // Arrange
+            const onUnauthorized = vi.fn();
+            configureApiClient({ onUnauthorized });
+            mockAxios.onGet('/api/admin/test').reply(500);
+
+            // Act
+            try {
+                await apiClient.get('/api/admin/test');
+            } catch {
+                // Expected to throw
+            }
+
+            // Assert
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
     });
 
-    it('should update token when X-Refreshed-Token header is present', async () => {
-        const oldToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.old.token';
-        const newToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new.token';
+    describe('error handling', () => {
+        it('should reject on 404 errors', async () => {
+            // Arrange
+            mockAxios.onGet('/api/admin/notfound').reply(404);
 
-        store = configureStore({
-            reducer: {
-                auth: authReducer,
-                ui: uiReducer,
-            },
-            preloadedState: {
-                auth: {
-                    user: {
-                        id: '123',
-                        email: 'admin@test.com',
-                        displayName: 'Admin User',
-                        isAdmin: true,
-                        emailConfirmed: true,
-                        twoFactorEnabled: false,
-                    },
-                    isAuthenticated: true,
-                    isLoading: false,
-                    error: null,
-                    token: oldToken,
-                },
-            },
-        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
+            // Act & Assert
+            await expect(apiClient.get('/api/admin/notfound')).rejects.toThrow();
+        });
 
-        configureApiClient(store);
+        it('should reject on network errors', async () => {
+            // Arrange
+            mockAxios.onGet('/api/admin/test').networkError();
 
-        mockAxios.onGet('/api/admin/test').reply(200, { success: true }, { 'x-refreshed-token': newToken });
+            // Act & Assert
+            await expect(apiClient.get('/api/admin/test')).rejects.toThrow();
+        });
 
-        await apiClient.get('/api/admin/test');
+        it('should reject on timeout', async () => {
+            // Arrange
+            mockAxios.onGet('/api/admin/test').timeout();
 
-        const state = store.getState();
-        expect(state.auth.token).toBe(newToken);
-        expect(localStorage.getItem('vtttools_admin_token')).toBe(newToken);
+            // Act & Assert
+            await expect(apiClient.get('/api/admin/test')).rejects.toThrow();
+        });
     });
 
-    it('should not update token when not authenticated', async () => {
-        const newToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new.token';
+    describe('request methods', () => {
+        it('should support GET requests', async () => {
+            // Arrange
+            mockAxios.onGet('/api/admin/items').reply(200, [{ id: 1 }]);
 
-        mockAxios.onGet('/api/admin/test').reply(200, { success: true }, { 'x-refreshed-token': newToken });
+            // Act
+            const response = await apiClient.get('/api/admin/items');
 
-        await apiClient.get('/api/admin/test');
+            // Assert
+            expect(response.data).toEqual([{ id: 1 }]);
+        });
 
-        const state = store.getState();
-        expect(state.auth.token).toBeNull();
-    });
+        it('should support PUT requests', async () => {
+            // Arrange
+            mockAxios.onPut('/api/admin/items/1').reply(200, { updated: true });
 
-    it('should not update token when token is the same', async () => {
-        const sameToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.same.token';
+            // Act
+            const response = await apiClient.put('/api/admin/items/1', { name: 'Updated' });
 
-        store = configureStore({
-            reducer: {
-                auth: authReducer,
-                ui: uiReducer,
-            },
-            preloadedState: {
-                auth: {
-                    user: {
-                        id: '123',
-                        email: 'admin@test.com',
-                        displayName: 'Admin User',
-                        isAdmin: true,
-                        emailConfirmed: true,
-                        twoFactorEnabled: false,
-                    },
-                    isAuthenticated: true,
-                    isLoading: false,
-                    error: null,
-                    token: sameToken,
-                },
-            },
-        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
+            // Assert
+            expect(response.data).toEqual({ updated: true });
+        });
 
-        configureApiClient(store);
+        it('should support DELETE requests', async () => {
+            // Arrange
+            mockAxios.onDelete('/api/admin/items/1').reply(204);
 
-        const dispatchSpy = store.dispatch;
-        const initialDispatchCount = (dispatchSpy as unknown as { mock?: { calls?: unknown[] } }).mock?.calls?.length ?? 0;
+            // Act
+            const response = await apiClient.delete('/api/admin/items/1');
 
-        mockAxios.onGet('/api/admin/test').reply(200, { success: true }, { 'x-refreshed-token': sameToken });
+            // Assert
+            expect(response.status).toBe(204);
+        });
 
-        await apiClient.get('/api/admin/test');
+        it('should support PATCH requests', async () => {
+            // Arrange
+            mockAxios.onPatch('/api/admin/items/1').reply(200, { patched: true });
 
-        const finalDispatchCount = (dispatchSpy as unknown as { mock?: { calls?: unknown[] } }).mock?.calls?.length ?? 0;
-        expect(finalDispatchCount).toBe(initialDispatchCount);
+            // Act
+            const response = await apiClient.patch('/api/admin/items/1', { field: 'value' });
+
+            // Assert
+            expect(response.data).toEqual({ patched: true });
+        });
     });
 });

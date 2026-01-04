@@ -17,6 +17,7 @@ import { stageApi } from '../services/stageApi';
 import { worldsApi } from '../services/worldsApi';
 // Feature slices
 import authSlice from './slices/authSlice';
+import encounterSlice from './slices/encounterSlice';
 import errorSlice from './slices/errorSlice';
 import uiSlice from './slices/uiSlice';
 
@@ -24,6 +25,7 @@ export const store = configureStore({
   reducer: {
     // Feature slices - minimal local state
     auth: authSlice,
+    encounter: encounterSlice,
     ui: uiSlice,
     error: errorSlice,
 

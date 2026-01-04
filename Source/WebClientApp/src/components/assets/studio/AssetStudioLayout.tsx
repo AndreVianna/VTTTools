@@ -17,7 +17,7 @@ export const AssetStudioLayout: React.FC<AssetStudioLayoutProps> = ({
   const theme = useTheme();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Box role="region" aria-label="Asset studio" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {toolbar && (
         <Box
           sx={{

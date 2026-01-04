@@ -39,6 +39,7 @@ export const UndoRedoToolbar: React.FC = () => {
         <span>
           <IconButton
             id='btn-undo'
+            aria-label='Undo'
             onClick={undo}
             disabled={!canUndo}
             size='small'
@@ -58,6 +59,7 @@ export const UndoRedoToolbar: React.FC = () => {
         <span>
           <IconButton
             id='btn-redo'
+            aria-label='Redo'
             onClick={redo}
             disabled={!canRedo}
             size='small'

@@ -134,9 +134,9 @@ describe('ConnectionStatusBanner', () => {
       vi.advanceTimersByTime(2000);
     });
 
-    expect(document.getElementById('connection-status-banner')).toBeInTheDocument();
-    expect(document.getElementById('connection-status-title')).toBeInTheDocument();
-    expect(document.getElementById('connection-status-message')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText('Connection Lost')).toBeInTheDocument();
+    expect(screen.getByText(/Changes are saved locally and will sync when restored/)).toBeInTheDocument();
   });
 
   it('should adapt to light theme', async () => {
@@ -152,8 +152,7 @@ describe('ConnectionStatusBanner', () => {
       vi.advanceTimersByTime(2000);
     });
 
-    const banner = document.getElementById('connection-status-banner');
-    expect(banner).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
   it('should adapt to dark theme', async () => {
@@ -169,8 +168,7 @@ describe('ConnectionStatusBanner', () => {
       vi.advanceTimersByTime(2000);
     });
 
-    const banner = document.getElementById('connection-status-banner');
-    expect(banner).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
   it('should hide banner immediately when connection is restored', async () => {

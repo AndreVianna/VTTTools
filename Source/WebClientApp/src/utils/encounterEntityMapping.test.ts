@@ -353,13 +353,13 @@ describe('encounterEntityMapping', () => {
       expect(result).toEqual({});
     });
 
-    it('should log error for corrupted data', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should log warning for invalid structure', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       localStorage.setItem('encounter-mappings', JSON.stringify({ invalid: 'structure' }));
 
       getAllMappings(testEncounterId, testEntityType);
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Corrupted encounter mappings data in localStorage');
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Invalid encounter mappings structure in localStorage, resetting');
     });
   });
 

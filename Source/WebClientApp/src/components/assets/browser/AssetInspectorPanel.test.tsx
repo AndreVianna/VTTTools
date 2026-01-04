@@ -8,7 +8,7 @@ import { AssetInspectorPanel, type AssetInspectorPanelProps } from './AssetInspe
 
 vi.mock('@/components/common/ResourceImage', () => ({
   ResourceImage: ({ alt, fallback }: { alt: string; fallback: React.ReactNode }) => (
-    <div data-testid="resource-image" aria-label={alt}>
+    <div data-mock="resource-image" aria-label={alt}>
       {fallback}
     </div>
   ),
@@ -16,7 +16,7 @@ vi.mock('@/components/common/ResourceImage', () => ({
 
 vi.mock('./TokenCarousel', () => ({
   TokenCarousel: ({ tokens }: { tokens: unknown[] }) => (
-    <div data-testid="token-carousel">Token Carousel ({tokens.length} tokens)</div>
+    <div data-mock="token-carousel">Token Carousel ({tokens.length} tokens)</div>
   ),
 }));
 
@@ -106,7 +106,7 @@ describe('AssetInspectorPanel', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('resource-image')).toBeInTheDocument();
+      expect(screen.getByLabelText('Goblin Warrior')).toBeInTheDocument();
     });
 
     it('should render classification path', () => {
@@ -145,7 +145,7 @@ describe('AssetInspectorPanel', () => {
       );
 
       expect(screen.getByText('Tokens (1)')).toBeInTheDocument();
-      expect(screen.getByTestId('token-carousel')).toBeInTheDocument();
+      expect(screen.getByText(/Token Carousel/)).toBeInTheDocument();
     });
 
     it('should not render tokens section when no tokens', () => {
@@ -161,7 +161,7 @@ describe('AssetInspectorPanel', () => {
       );
 
       expect(screen.queryByText(/Tokens/)).not.toBeInTheDocument();
-      expect(screen.queryByTestId('token-carousel')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Token Carousel/)).not.toBeInTheDocument();
     });
 
     it('should render stats section when stats exist', () => {
@@ -346,9 +346,7 @@ describe('AssetInspectorPanel', () => {
         </TestWrapper>,
       );
 
-      const buttons = screen.getAllByRole('button');
-      const cloneButton = buttons.find((btn) => btn.querySelector('svg[data-testid="CloneIcon"]'));
-      expect(cloneButton).toBeDefined();
+      expect(screen.getByRole('button', { name: /clone/i })).toBeInTheDocument();
     });
 
     it('should not render clone button when onClone is not provided', () => {
@@ -360,9 +358,7 @@ describe('AssetInspectorPanel', () => {
         </TestWrapper>,
       );
 
-      const buttons = screen.getAllByRole('button');
-      const cloneButton = buttons.find((btn) => btn.querySelector('svg[data-testid="CloneIcon"]'));
-      expect(cloneButton).toBeUndefined();
+      expect(screen.queryByRole('button', { name: /clone/i })).not.toBeInTheDocument();
     });
 
     it('should render delete button', () => {
@@ -372,9 +368,7 @@ describe('AssetInspectorPanel', () => {
         </TestWrapper>,
       );
 
-      const buttons = screen.getAllByRole('button');
-      const deleteButton = buttons.find((btn) => btn.querySelector('svg[data-testid="DeleteIcon"]'));
-      expect(deleteButton).toBeDefined();
+      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
     });
 
     it('should call onEdit when Edit Asset button is clicked', async () => {
@@ -403,13 +397,9 @@ describe('AssetInspectorPanel', () => {
         </TestWrapper>,
       );
 
-      const buttons = screen.getAllByRole('button');
-      const deleteButton = buttons.find((btn) => btn.querySelector('svg[data-testid="DeleteIcon"]'));
-
-      if (deleteButton) {
-        await user.click(deleteButton);
-        expect(onDelete).toHaveBeenCalled();
-      }
+      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      await user.click(deleteButton);
+      expect(onDelete).toHaveBeenCalled();
     });
 
     it('should call onClone when clone button is clicked', async () => {
@@ -422,13 +412,9 @@ describe('AssetInspectorPanel', () => {
         </TestWrapper>,
       );
 
-      const buttons = screen.getAllByRole('button');
-      const cloneButton = buttons.find((btn) => btn.querySelector('svg[data-testid="CloneIcon"]'));
-
-      if (cloneButton) {
-        await user.click(cloneButton);
-        expect(onClone).toHaveBeenCalled();
-      }
+      const cloneButton = screen.getByRole('button', { name: /clone/i });
+      await user.click(cloneButton);
+      expect(onClone).toHaveBeenCalled();
     });
   });
 

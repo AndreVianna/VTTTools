@@ -79,6 +79,7 @@
     "jsdom": "^27.0.0",
     "msnodesqlv8": "^5.1.1",
     "mssql": "^12.0.0",
+    "msw": "^2.12.7",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",

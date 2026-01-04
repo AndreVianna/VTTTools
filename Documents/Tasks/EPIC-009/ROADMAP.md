@@ -6,12 +6,12 @@
 |-------|-------------|-------|------------|--------|
 | 1 | WebAdminApp Critical | 8 | 70-89 | 🟢 Complete (181 tests) |
 | 2 | WebAdminApp High | 6 | 46-61 | 🟢 Complete (224 tests) |
-| 3 | WebClientApp Critical | 10 | 66-86 | 🟡 In Progress (97 tests) |
-| 4 | WebClientApp High | 8 | 47-62 | 🟡 In Progress (76 tests) |
-| 5 | WebClientApp Medium | 12 | 64-86 | 🔴 Not Started |
+| 3 | WebClientApp Critical | 14 | 66-86 | 🟢 Complete (315 tests) |
+| 4 | WebClientApp High | 13 | 47-62 | 🟢 Complete (204 tests) |
+| 5 | WebClientApp Medium | 11 | 64-86 | 🔴 Not Started |
 
 **Total Estimated Tests**: 293-384
-**Actual Tests Created**: 578
+**Actual Tests Created**: 924
 **Status**: 🟢 PHASES 1-4 COMPLETE
 
 ---
@@ -648,9 +648,6 @@ Test Encounter Editor UI components.
 - File: `Source/WebClientApp/src/components/encounter/ZoomControls.test.tsx`
 - Est. Tests: 7-9
 
-#### 5.11 MiniMap Tests
-- File: `Source/WebClientApp/src/components/encounter/MiniMap.test.tsx`
-- Est. Tests: 4-6
 
 #### 5.12 encounterSlice Tests
 - File: `Source/WebClientApp/src/store/slices/encounterSlice.test.ts`
@@ -693,25 +690,34 @@ npm test --prefix Source/WebClientApp -- --run
 | 3.1 useContentLibrary | ⏭️ | 0/8 | Skipped - hook doesn't exist |
 | 3.2 useAutoSave | 🟢 | 20/8 | Complete |
 | 3.3 useInfiniteScroll | 🟢 | 27/6 | Complete |
-| 3.4 AdventureList | 🔴 | 0/7 | |
-| 3.5 CampaignList | 🔴 | 0/7 | |
-| 3.6 WorldList | 🔴 | 0/6 | |
-| 3.7 EncounterList | 🔴 | 0/7 | |
-| 3.8 ContentLibraryPage | 🔴 | 0/7 | |
+| 3.4 AdventureListView | 🟢 | 0/7 | Complete |
+| 3.5 CampaignListView | 🟢 | 0/7 | Complete |
+| 3.6 WorldListView | 🟢 | 0/6 | Complete |
+| 3.7 EncounterListView | 🟢 | 0/7 | Complete |
+| 3.8 ContentLibraryPage | 🟢 | 0/7 | Complete |
 | 3.9 securityApi | 🟢 | 16/5 | Complete |
 | 3.10 profileApi | 🟢 | 34/5 | Complete |
+| 3.11 ContentCard (shared) | 🟢 | - | Complete |
+| 3.12 EditableTitle (shared) | 🟢 | - | Complete |
+| 3.13 Card components (4) | 🟢 | - | Complete - Adventure/Campaign/World/EncounterCard |
+| 3.14 DetailPages (3) | 🟢 | - | Complete - Adventure/Campaign/WorldDetailPage |
 
 ### Phase 4: WebClientApp High Priority
 | Task | Status | Tests | Notes |
 |------|--------|-------|-------|
-| 4.1 AssetLibraryPage | 🔴 | 0/7 | |
-| 4.2 MediaLibraryPage | 🔴 | 0/7 | |
-| 4.3 AssetStudioPage | 🔴 | 0/7 | |
-| 4.4 LoginPage | 🔴 | 0/6 | |
-| 4.5 SimpleLoginForm | 🔴 | 0/7 | |
-| 4.6 PasswordResetConfirmForm | 🔴 | 0/6 | |
+| 4.1 AssetLibraryPage | 🟢 | 0/7 | Complete |
+| 4.2 MediaLibraryPage | 🟢 | 0/7 | Complete |
+| 4.3 AssetStudioPage | 🟢 | 0/7 | Complete |
+| 4.4 LoginPage | 🟢 | 0/6 | Complete |
+| 4.5 SimpleLoginForm | 🟢 | 0/7 | Complete |
+| 4.6 PasswordResetConfirmForm | 🟢 | 0/6 | Complete |
 | 4.7 twoFactorApi | 🟢 | 44/4 | Complete |
 | 4.8 recoveryCodesApi | 🟢 | 32/3 | Complete |
+| 4.9 ProtectedRoute | 🟢 | - | Complete (security critical) |
+| 4.10 SimpleRegistrationForm | 🟢 | - | Complete (security critical) |
+| 4.11 PasswordResetRequestForm | 🟢 | - | Complete (security critical) |
+| 4.12 SecuritySettings | 🟢 | - | Complete |
+| 4.13 ProfileSettings | 🟢 | - | Complete |
 
 ### Phase 5: WebClientApp Medium Priority
 | Task | Status | Tests | Notes |
@@ -726,7 +732,6 @@ npm test --prefix Source/WebClientApp -- --run
 | 5.8 WallMenu | 🔴 | 0/4 | |
 | 5.9 RegionMenu | 🔴 | 0/4 | |
 | 5.10 ZoomControls | 🔴 | 0/7 | |
-| 5.11 MiniMap | 🔴 | 0/4 | |
 | 5.12 encounterSlice | 🔴 | 0/13 | |
 
 ---
@@ -742,4 +747,4 @@ npm test --prefix Source/WebClientApp -- --run
 ---
 
 **Version**: 1.0
-**Last Updated**: 2026-01-02
+**Last Updated**: 2026-01-03

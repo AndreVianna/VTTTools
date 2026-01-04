@@ -11,10 +11,10 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('AssetStudioLayout', () => {
-  const mockVisualPanel = <div data-testid="visual-panel">Visual Panel</div>;
-  const mockDataPanel = <div data-testid="data-panel">Data Panel</div>;
-  const mockMetadataPanel = <div data-testid="metadata-panel">Metadata Panel</div>;
-  const mockToolbar = <div data-testid="toolbar">Toolbar</div>;
+  const mockVisualPanel = <div data-mock="visual-panel">Mock Visual Panel</div>;
+  const mockDataPanel = <div data-mock="data-panel">Mock Data Panel</div>;
+  const mockMetadataPanel = <div data-mock="metadata-panel">Mock Metadata Panel</div>;
+  const mockToolbar = <div data-mock="toolbar">Mock Toolbar</div>;
 
   describe('rendering', () => {
     it('should render all three panels', () => {
@@ -28,9 +28,9 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('visual-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('data-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('metadata-panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Visual Panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Data Panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Metadata Panel')).toBeInTheDocument();
     });
 
     it('should render toolbar when provided', () => {
@@ -45,7 +45,7 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('toolbar')).toBeInTheDocument();
+      expect(screen.getByText('Mock Toolbar')).toBeInTheDocument();
     });
 
     it('should not render toolbar when not provided', () => {
@@ -59,11 +59,11 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.queryByTestId('toolbar')).not.toBeInTheDocument();
+      expect(screen.queryByText('Mock Toolbar')).not.toBeInTheDocument();
     });
 
     it('should render panels in correct order (visual, data, metadata)', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}
@@ -73,16 +73,26 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const panels = container.querySelectorAll('[data-testid]');
-      expect(panels[0]).toHaveAttribute('data-testid', 'visual-panel');
-      expect(panels[1]).toHaveAttribute('data-testid', 'data-panel');
-      expect(panels[2]).toHaveAttribute('data-testid', 'metadata-panel');
+      const studioRegion = screen.getByRole('region', { name: /asset studio/i });
+      const panelTexts = ['Mock Visual Panel', 'Mock Data Panel', 'Mock Metadata Panel'];
+      const panelElements = panelTexts.map(text => screen.getByText(text));
+
+      // Verify order by checking each panel appears within the studio region
+      panelElements.forEach(panel => {
+        expect(studioRegion).toContainElement(panel);
+      });
+
+      // Verify order by checking DOM positions
+      const visualPos = panelElements[0]?.compareDocumentPosition(panelElements[1]!);
+      const dataPos = panelElements[1]?.compareDocumentPosition(panelElements[2]!);
+      expect(visualPos! & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(dataPos! & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   });
 
   describe('layout structure', () => {
     it('should have flexbox layout with column direction', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}
@@ -92,14 +102,14 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const rootBox = container.firstChild as HTMLElement;
+      const rootBox = screen.getByRole('region', { name: /asset studio/i });
       const styles = window.getComputedStyle(rootBox);
       expect(styles.display).toBe('flex');
       expect(styles.flexDirection).toBe('column');
     });
 
     it('should set height to 100%', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetStudioLayout
             visualPanel={mockVisualPanel}
@@ -109,7 +119,7 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const rootBox = container.firstChild as HTMLElement;
+      const rootBox = screen.getByRole('region', { name: /asset studio/i });
       const styles = window.getComputedStyle(rootBox);
       expect(styles.height).toBe('100%');
     });
@@ -127,7 +137,7 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const visualPanelContainer = screen.getByTestId('visual-panel').parentElement as HTMLElement;
+      const visualPanelContainer = screen.getByText('Mock Visual Panel').parentElement as HTMLElement;
       const styles = window.getComputedStyle(visualPanelContainer);
       expect(styles.width).toBe('30%');
       expect(styles.minWidth).toBe('280px');
@@ -145,7 +155,7 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const metadataPanelContainer = screen.getByTestId('metadata-panel').parentElement as HTMLElement;
+      const metadataPanelContainer = screen.getByText('Mock Metadata Panel').parentElement as HTMLElement;
       const styles = window.getComputedStyle(metadataPanelContainer);
       expect(styles.width).toBe('30%');
       expect(styles.minWidth).toBe('280px');
@@ -163,7 +173,7 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const dataPanelContainer = screen.getByTestId('data-panel').parentElement as HTMLElement;
+      const dataPanelContainer = screen.getByText('Mock Data Panel').parentElement as HTMLElement;
       const styles = window.getComputedStyle(dataPanelContainer);
       expect(styles.flexGrow).toBe('1');
       expect(styles.minWidth).toBe('400px');
@@ -184,9 +194,9 @@ describe('AssetStudioLayout', () => {
         </ThemeProvider>,
       );
 
-      expect(screen.getByTestId('visual-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('data-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('metadata-panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Visual Panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Data Panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Metadata Panel')).toBeInTheDocument();
     });
 
     it('should render correctly in light mode', () => {
@@ -202,9 +212,9 @@ describe('AssetStudioLayout', () => {
         </ThemeProvider>,
       );
 
-      expect(screen.getByTestId('visual-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('data-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('metadata-panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Visual Panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Data Panel')).toBeInTheDocument();
+      expect(screen.getByText('Mock Metadata Panel')).toBeInTheDocument();
     });
   });
 
@@ -220,9 +230,9 @@ describe('AssetStudioLayout', () => {
         </TestWrapper>,
       );
 
-      const visualPanelContainer = screen.getByTestId('visual-panel').parentElement as HTMLElement;
-      const dataPanelContainer = screen.getByTestId('data-panel').parentElement as HTMLElement;
-      const metadataPanelContainer = screen.getByTestId('metadata-panel').parentElement as HTMLElement;
+      const visualPanelContainer = screen.getByText('Mock Visual Panel').parentElement as HTMLElement;
+      const dataPanelContainer = screen.getByText('Mock Data Panel').parentElement as HTMLElement;
+      const metadataPanelContainer = screen.getByText('Mock Metadata Panel').parentElement as HTMLElement;
 
       expect(window.getComputedStyle(visualPanelContainer).overflow).toBe('auto');
       expect(window.getComputedStyle(dataPanelContainer).overflow).toBe('auto');

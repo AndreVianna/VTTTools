@@ -12,9 +12,9 @@ TestWrapper.displayName = 'TestWrapper';
 
 describe('AssetBrowserLayout', () => {
   const defaultProps: AssetBrowserLayoutProps = {
-    leftSidebar: <div data-testid="left-sidebar">Left Sidebar</div>,
-    mainContent: <div data-testid="main-content">Main Content</div>,
-    rightSidebar: <div data-testid="right-sidebar">Right Sidebar</div>,
+    leftSidebar: <div data-mock="left-sidebar">Left Sidebar Content</div>,
+    mainContent: <div data-mock="main-content">Main Content Area</div>,
+    rightSidebar: <div data-mock="right-sidebar">Right Sidebar Content</div>,
     rightSidebarOpen: false,
   };
 
@@ -26,8 +26,7 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('left-sidebar')).toBeInTheDocument();
-      expect(screen.getByText('Left Sidebar')).toBeInTheDocument();
+      expect(screen.getByText('Left Sidebar Content')).toBeInTheDocument();
     });
 
     it('should render main content area', () => {
@@ -37,8 +36,7 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('main-content')).toBeInTheDocument();
-      expect(screen.getByText('Main Content')).toBeInTheDocument();
+      expect(screen.getByText('Main Content Area')).toBeInTheDocument();
     });
 
     it('should render all three sections when right sidebar is open', () => {
@@ -48,9 +46,9 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('left-sidebar')).toBeInTheDocument();
-      expect(screen.getByTestId('main-content')).toBeInTheDocument();
-      expect(screen.getByTestId('right-sidebar')).toBeInTheDocument();
+      expect(screen.getByText('Left Sidebar Content')).toBeInTheDocument();
+      expect(screen.getByText('Main Content Area')).toBeInTheDocument();
+      expect(screen.getByText('Right Sidebar Content')).toBeInTheDocument();
     });
 
     it('should hide right sidebar when rightSidebarOpen is false', () => {
@@ -60,9 +58,9 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('left-sidebar')).toBeInTheDocument();
-      expect(screen.getByTestId('main-content')).toBeInTheDocument();
-      expect(screen.queryByTestId('right-sidebar')).not.toBeInTheDocument();
+      expect(screen.getByText('Left Sidebar Content')).toBeInTheDocument();
+      expect(screen.getByText('Main Content Area')).toBeInTheDocument();
+      expect(screen.queryByText('Right Sidebar Content')).not.toBeInTheDocument();
     });
 
     it('should render without right sidebar prop', () => {
@@ -77,9 +75,9 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('left-sidebar')).toBeInTheDocument();
-      expect(screen.getByTestId('main-content')).toBeInTheDocument();
-      expect(screen.queryByTestId('right-sidebar')).not.toBeInTheDocument();
+      expect(screen.getByText('Left Sidebar Content')).toBeInTheDocument();
+      expect(screen.getByText('Main Content Area')).toBeInTheDocument();
+      expect(screen.queryByText('Right Sidebar Content')).not.toBeInTheDocument();
     });
   });
 
@@ -91,7 +89,7 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.queryByTestId('right-sidebar')).not.toBeInTheDocument();
+      expect(screen.queryByText('Right Sidebar Content')).not.toBeInTheDocument();
 
       rerender(
         <TestWrapper>
@@ -99,8 +97,7 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('right-sidebar')).toBeInTheDocument();
-      expect(screen.getByText('Right Sidebar')).toBeInTheDocument();
+      expect(screen.getByText('Right Sidebar Content')).toBeInTheDocument();
     });
 
     it('should hide right sidebar when rightSidebarOpen changes to false', () => {
@@ -110,7 +107,7 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('right-sidebar')).toBeInTheDocument();
+      expect(screen.getByText('Right Sidebar Content')).toBeInTheDocument();
 
       rerender(
         <TestWrapper>
@@ -118,7 +115,7 @@ describe('AssetBrowserLayout', () => {
         </TestWrapper>,
       );
 
-      expect(screen.queryByTestId('right-sidebar')).not.toBeInTheDocument();
+      expect(screen.queryByText('Right Sidebar Content')).not.toBeInTheDocument();
     });
   });
 
@@ -132,9 +129,9 @@ describe('AssetBrowserLayout', () => {
         </ThemeProvider>,
       );
 
-      expect(screen.getByTestId('left-sidebar')).toBeInTheDocument();
-      expect(screen.getByTestId('main-content')).toBeInTheDocument();
-      expect(screen.getByTestId('right-sidebar')).toBeInTheDocument();
+      expect(screen.getByText('Left Sidebar Content')).toBeInTheDocument();
+      expect(screen.getByText('Main Content Area')).toBeInTheDocument();
+      expect(screen.getByText('Right Sidebar Content')).toBeInTheDocument();
     });
 
     it('should render correctly in light mode', () => {
@@ -146,9 +143,9 @@ describe('AssetBrowserLayout', () => {
         </ThemeProvider>,
       );
 
-      expect(screen.getByTestId('left-sidebar')).toBeInTheDocument();
-      expect(screen.getByTestId('main-content')).toBeInTheDocument();
-      expect(screen.getByTestId('right-sidebar')).toBeInTheDocument();
+      expect(screen.getByText('Left Sidebar Content')).toBeInTheDocument();
+      expect(screen.getByText('Main Content Area')).toBeInTheDocument();
+      expect(screen.getByText('Right Sidebar Content')).toBeInTheDocument();
     });
   });
 });

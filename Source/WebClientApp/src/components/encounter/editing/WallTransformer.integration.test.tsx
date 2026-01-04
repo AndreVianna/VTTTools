@@ -16,11 +16,11 @@ import { WallTransformer } from './WallTransformer';
 // Mock react-konva components with minimal overhead
 vi.mock('react-konva', () => ({
     Group: ({ children }: { children?: React.ReactNode }) => (
-        <div data-testid="konva-group">{children}</div>
+        <div data-mock="konva-group" role="group">{children}</div>
     ),
-    Circle: () => <div data-testid="konva-circle" />,
-    Line: () => <div data-testid="konva-line" />,
-    Rect: () => <div data-testid="konva-rect" />,
+    Circle: () => <div data-mock="konva-circle" role="presentation" aria-label="circle" />,
+    Line: () => <div data-mock="konva-line" role="presentation" aria-label="line" />,
+    Rect: () => <div data-mock="konva-rect" role="presentation" aria-label="rect" />,
 }));
 
 // Mock custom cursors
@@ -74,7 +74,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(container.querySelector('[data-testid="konva-group"]')).toBeTruthy();
+            expect(container.querySelector('[data-mock="konva-group"]')).toBeTruthy();
         });
 
         it('should render poles as circles', () => {
@@ -88,7 +88,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            const circles = screen.getAllByTestId('konva-circle');
+            const circles = screen.getAllByRole('presentation', { name: 'circle' });
             expect(circles.length).toBeGreaterThan(0);
         });
 
@@ -103,7 +103,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            const lines = screen.getAllByTestId('konva-line');
+            const lines = screen.getAllByRole('presentation', { name: 'line' });
             expect(lines.length).toBeGreaterThan(0);
         });
 
@@ -119,7 +119,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            const lines = screen.getAllByTestId('konva-line');
+            const lines = screen.getAllByRole('presentation', { name: 'line' });
             expect(lines.length).toBeGreaterThan(0);
         });
 
@@ -135,7 +135,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            const rects = screen.queryAllByTestId('konva-rect');
+            const rects = screen.queryAllByRole('presentation', { name: 'rect' });
             expect(rects.length).toBe(0);
         });
 
@@ -151,7 +151,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            const rects = screen.getAllByTestId('konva-rect');
+            const rects = screen.getAllByRole('presentation', { name: 'rect' });
             expect(rects.length).toBeGreaterThan(0);
         });
 
@@ -169,7 +169,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
     });
 
@@ -573,7 +573,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
 
         it('should render with empty poles array', () => {
@@ -587,7 +587,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
 
         it('should render with single pole', () => {
@@ -601,7 +601,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
 
         it('should handle poles with different heights', () => {
@@ -621,7 +621,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
     });
 
@@ -645,7 +645,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
 
         it('should render with no snap', () => {
@@ -667,7 +667,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
 
         it('should render with custom offset', () => {
@@ -689,7 +689,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
 
         it('should render with different scale', () => {
@@ -711,7 +711,7 @@ describe('WallTransformer Integration Tests', () => {
                 </ThemeProvider>
             );
 
-            expect(screen.getAllByTestId('konva-group').length).toBeGreaterThan(0);
+            expect(screen.getAllByRole('group').length).toBeGreaterThan(0);
         });
     });
 });

@@ -288,7 +288,8 @@ describe('hydratePlacedAssets', () => {
     });
 
     it('handles nested position and size properties', async () => {
-      const encounterAsset: EncounterAsset = {
+      // Test with nested position and size objects (new backend format)
+      const encounterAsset = {
         id: 'encounter-asset-1',
         encounterId: 'encounter-1',
         assetId: 'asset-1',
@@ -307,7 +308,10 @@ describe('hydratePlacedAssets', () => {
         isHidden: false,
         isLocked: false,
         asset: mockMonsterAssetData,
-      };
+        // New backend format with nested objects
+        position: { x: 200, y: 250 },
+        size: { width: 60, height: 80 },
+      } as EncounterAsset & { position: { x: number; y: number }; size: { width: number; height: number } };
 
       const getAsset = async () => mockMonsterAssetData;
 
@@ -551,6 +555,7 @@ describe('hydratePlacedAssets', () => {
       localStorage.setItem('vtt-objects-label-position', LabelPosition.Middle);
       const encounterAssetWithObject = createMockEncounterAsset({
         assetId: 'asset-2',
+        asset: mockObjectAssetData,
       });
 
       const getAsset = async () => mockObjectAssetData;
@@ -567,6 +572,7 @@ describe('hydratePlacedAssets', () => {
 
       const encounterAssetWithObject = createMockEncounterAsset({
         assetId: 'asset-2',
+        asset: mockObjectAssetData,
       });
 
       const getAsset = async () => mockObjectAssetData;
@@ -580,6 +586,7 @@ describe('hydratePlacedAssets', () => {
     it('uses object default values when localStorage is empty', async () => {
       const encounterAssetWithObject = createMockEncounterAsset({
         assetId: 'asset-2',
+        asset: mockObjectAssetData,
       });
 
       const getAsset = async () => mockObjectAssetData;
@@ -598,10 +605,12 @@ describe('hydratePlacedAssets', () => {
 
       const monsterAsset = createMockEncounterAsset({
         assetId: 'asset-1',
+        asset: mockMonsterAssetData,
       });
 
       const objectAsset = createMockEncounterAsset({
         assetId: 'asset-2',
+        asset: mockObjectAssetData,
       });
 
       const getAsset = async (assetId: string) => {
@@ -672,15 +681,21 @@ describe('hydratePlacedAssets', () => {
           layer: 0,
           isHidden: false,
           isLocked: false,
-          asset: mockMonsterAssetData,
+          asset: null as unknown as Asset, // No embedded asset - must fetch from API
         },
       ];
 
-      const getAsset = async (_assetId: string): Promise<Asset> => {
+      const getAsset = async (assetId: string): Promise<Asset | null> => {
+        // Return null for missing asset to trigger filtering
+        if (assetId === 'asset-missing') return null;
         return mockMonsterAssetData;
       };
 
-      const result = await hydratePlacedAssets(encounterAssets, 'test-encounter-1', getAsset);
+      const result = await hydratePlacedAssets(
+        encounterAssets,
+        'test-encounter-1',
+        getAsset as (assetId: string) => Promise<Asset>,
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]?.assetId).toBe('asset-1');

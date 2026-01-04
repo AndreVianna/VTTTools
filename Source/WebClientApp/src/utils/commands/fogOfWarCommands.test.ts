@@ -82,7 +82,6 @@ describe('CreateFogOfWarRegionCommand', () => {
       type: 'FogOfWar',
       vertices: mockRegion.vertices,
       value: 1,
-      label: 'Hidden',
     });
     expect(mockOnRefetch).toHaveBeenCalled();
   });
@@ -147,7 +146,6 @@ describe('CreateFogOfWarRegionCommand', () => {
       type: 'FogOfWar',
       vertices: mockRegion.vertices,
       value: 1,
-      label: 'Hidden',
     });
   });
 
@@ -181,7 +179,6 @@ describe('CreateFogOfWarRegionCommand', () => {
       name: '1',
       type: 'FogOfWar',
       vertices: mockRegion.vertices,
-      label: 'Hidden',
     }));
   });
 });
@@ -251,7 +248,6 @@ describe('DeleteFogOfWarRegionCommand', () => {
       type: 'FogOfWar',
       vertices: mockRegion.vertices,
       value: 1,
-      label: 'Hidden',
     });
   });
 

@@ -8,7 +8,7 @@ import { AssetCardCompact, type AssetCardCompactProps } from './AssetCardCompact
 
 vi.mock('@/components/common/ResourceImage', () => ({
   ResourceImage: ({ alt, fallback }: { alt: string; fallback: React.ReactNode }) => (
-    <div data-testid="resource-image" aria-label={alt}>
+    <div data-mock="resource-image" role="img" aria-label={alt}>
       {fallback}
     </div>
   ),
@@ -249,25 +249,25 @@ describe('AssetCardCompact', () => {
 
   describe('selection states', () => {
     it('should show selected state', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetCardCompact {...defaultProps} isSelected={true} />
         </TestWrapper>,
       );
 
-      const card = container.querySelector('.MuiCard-root');
-      expect(card).toBeInTheDocument();
+      // Verify the card renders and is accessible - the card renders with the asset name
+      expect(screen.getByText('Goblin Warrior')).toBeInTheDocument();
     });
 
     it('should not show selected state by default', () => {
-      const { container } = render(
+      render(
         <TestWrapper>
           <AssetCardCompact {...defaultProps} isSelected={false} />
         </TestWrapper>,
       );
 
-      const card = container.querySelector('.MuiCard-root');
-      expect(card).toBeInTheDocument();
+      // Verify the card renders and is accessible - the card renders with the asset name
+      expect(screen.getByText('Goblin Warrior')).toBeInTheDocument();
     });
 
     it('should show checkbox in multi-select mode', () => {

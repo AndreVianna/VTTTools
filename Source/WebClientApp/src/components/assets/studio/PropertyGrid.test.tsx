@@ -44,8 +44,9 @@ describe('PropertyGrid', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByText('CORE STATS')).toBeInTheDocument();
-      expect(screen.getByText('ABILITIES')).toBeInTheDocument();
+      // Note: CSS textTransform: uppercase is applied, so text content is 'Core Stats' not 'CORE STATS'
+      expect(screen.getByText('Core Stats')).toBeInTheDocument();
+      expect(screen.getByText('Abilities')).toBeInTheDocument();
     });
 
     it('should render all properties in sections', () => {
@@ -114,7 +115,7 @@ describe('PropertyGrid', () => {
         </TestWrapper>,
       );
 
-      const coreStatsHeader = screen.getByText('CORE STATS');
+      const coreStatsHeader = screen.getByText('Core Stats');
       await user.click(coreStatsHeader);
 
       expect(screen.queryByText('HP')).not.toBeVisible();
@@ -129,7 +130,7 @@ describe('PropertyGrid', () => {
         </TestWrapper>,
       );
 
-      const coreStatsHeader = screen.getByText('CORE STATS');
+      const coreStatsHeader = screen.getByText('Core Stats');
       await user.click(coreStatsHeader);
       expect(screen.queryByText('HP')).not.toBeVisible();
 
@@ -146,7 +147,7 @@ describe('PropertyGrid', () => {
         </TestWrapper>,
       );
 
-      const coreStatsHeader = screen.getByText('CORE STATS');
+      const coreStatsHeader = screen.getByText('Core Stats');
       await user.click(coreStatsHeader);
 
       expect(screen.queryByText('HP')).not.toBeVisible();
@@ -421,7 +422,7 @@ describe('PropertyGrid', () => {
         </ThemeProvider>,
       );
 
-      expect(screen.getByText('CORE STATS')).toBeInTheDocument();
+      expect(screen.getByText('Core Stats')).toBeInTheDocument();
     });
 
     it('should render correctly in light mode', () => {
@@ -433,7 +434,7 @@ describe('PropertyGrid', () => {
         </ThemeProvider>,
       );
 
-      expect(screen.getByText('CORE STATS')).toBeInTheDocument();
+      expect(screen.getByText('Core Stats')).toBeInTheDocument();
     });
   });
 
@@ -445,7 +446,7 @@ describe('PropertyGrid', () => {
         </TestWrapper>,
       );
 
-      expect(screen.queryByText('CORE STATS')).not.toBeInTheDocument();
+      expect(screen.queryByText('Core Stats')).not.toBeInTheDocument();
     });
 
     it('should handle section with single property', () => {
@@ -509,26 +510,30 @@ describe('PropertyGrid', () => {
 
   describe('layout and styling', () => {
     it('should have border around the grid', () => {
-      const { container } = render(
-        <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
-        </TestWrapper>,
-      );
-
-      const gridRoot = container.firstChild as HTMLElement;
-      const styles = window.getComputedStyle(gridRoot);
-      expect(styles.borderRadius).toBeTruthy();
-    });
-
-    it('should uppercase section titles', () => {
       render(
         <TestWrapper>
           <PropertyGrid sections={mockSections} onChange={mockOnChange} />
         </TestWrapper>,
       );
 
-      expect(screen.getByText('CORE STATS')).toBeInTheDocument();
-      expect(screen.queryByText('Core Stats')).not.toBeInTheDocument();
+      const gridRoot = screen.getByRole('group', { name: /property grid/i });
+      const styles = window.getComputedStyle(gridRoot);
+      expect(styles.borderRadius).toBeTruthy();
+    });
+
+    it('should uppercase section titles via CSS', () => {
+      render(
+        <TestWrapper>
+          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+        </TestWrapper>,
+      );
+
+      // CSS textTransform: uppercase is applied, so we check the raw text content
+      const sectionTitle = screen.getByText('Core Stats');
+      expect(sectionTitle).toBeInTheDocument();
+      // The uppercase styling is applied via CSS textTransform
+      const styles = window.getComputedStyle(sectionTitle);
+      expect(styles.textTransform).toBe('uppercase');
     });
   });
 });

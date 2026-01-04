@@ -339,7 +339,7 @@ describe('RecoveryCodeForm', () => {
       const submitButton = screen.getByRole('button', {
         name: /verify recovery code/i,
       });
-      const spinner = submitButton.querySelector('svg[data-testid="circular-progress"], .MuiCircularProgress-root');
+      const spinner = submitButton.querySelector('.MuiCircularProgress-root');
       expect(spinner).toBeInTheDocument();
     });
 

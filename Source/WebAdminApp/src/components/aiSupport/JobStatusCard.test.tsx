@@ -23,8 +23,8 @@ import type { JobResponse } from '@/types/jobs';
 
 // Mock MUI icons to prevent file loading issues
 vi.mock('@mui/icons-material', () => {
-    const CancelComponent = () => <span data-testid="cancel-icon">CancelIcon</span>;
-    const RefreshComponent = () => <span data-testid="refresh-icon">RefreshIcon</span>;
+    const CancelComponent = () => <svg role="img" aria-label="Cancel" className="MuiSvgIcon-root" />;
+    const RefreshComponent = () => <svg role="img" aria-label="Refresh" className="MuiSvgIcon-root" />;
     return {
         Cancel: CancelComponent,
         Refresh: RefreshComponent,

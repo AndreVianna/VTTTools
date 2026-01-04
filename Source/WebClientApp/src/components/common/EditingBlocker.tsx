@@ -14,6 +14,8 @@ export const EditingBlocker: React.FC<EditingBlockerProps> = ({ isBlocked }) => 
   return (
     <Box
       id='editing-blocker'
+      role='region'
+      aria-label='Editing blocker overlay'
       sx={{
         position: 'fixed',
         top: 64,
