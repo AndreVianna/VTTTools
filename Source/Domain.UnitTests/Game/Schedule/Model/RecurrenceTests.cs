@@ -122,7 +122,7 @@ public class RecurrenceTests {
     public void RecordEquality_WithSameValues_ReturnsTrue() {
         // Arrange
         var until = DateTimeOffset.Now.AddMonths(6);
-        var days = new List<int> { 1, 3, 5 };
+        var days = (int[])[1, 3, 5];
         var recurrence1 = new Recurrence {
             Frequency = Frequency.Weekly,
             Interval = 2,

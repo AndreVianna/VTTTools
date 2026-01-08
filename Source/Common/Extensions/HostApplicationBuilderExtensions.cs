@@ -24,7 +24,6 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.ConfigureHttpJsonOptions(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
-        // Configure internal API key authentication (used by service-to-service calls)
         builder.Services.Configure<InternalApiOptions>(
             builder.Configuration.GetSection(InternalApiOptions.SectionName));
 
@@ -36,9 +35,7 @@ public static class HostApplicationBuilderExtensions {
                       .AllowCredentials();
             }
             else {
-                // Production: Get allowed origins from configuration
-                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                    ?? ["https://vtttools.com"];  // Fallback default
+                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["https://vtttools.com"];
 
                 policy.WithOrigins(allowedOrigins)
                       .AllowAnyHeader()
@@ -47,45 +44,21 @@ public static class HostApplicationBuilderExtensions {
             }
         }));
 
-        //builder.Services.AddOpenApi();
         builder.AddDetailedHealthChecks();
 
-        // REMOVED: Insecure x-user header authentication handler
-        // JWT Bearer authentication is now the default (configured via AddJwtAuthentication)
         builder.Services.AddAuthorization();
     }
 
-    /// <summary>
-    /// Adds detailed health checks with comprehensive JSON response formatting.
-    /// </summary>
-    /// <param name="builder">The host application builder.</param>
-    /// <returns>The health checks builder for chaining additional health checks.</returns>
     public static IHealthChecksBuilder AddDetailedHealthChecks(this IHostApplicationBuilder builder)
         => builder.Services.AddHealthChecks()
                   .AddCheck("self", () => HealthCheckResult.Healthy("Service is operational"), ["live"]);
 
-    /// <summary>
-    /// Adds a custom health check with the specified name, check function, and tags.
-    /// </summary>
-    /// <param name="healthChecksBuilder">The health checks builder.</param>
-    /// <param name="name">The name of the health check.</param>
-    /// <param name="healthCheck">The health check function.</param>
-    /// <param name="tags">Optional tags for the health check.</param>
-    /// <returns>The health checks builder for chaining additional health checks.</returns>
     public static IHealthChecksBuilder AddCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder,
                                                             string name,
                                                             Func<HealthCheckResult> healthCheck,
                                                             params string[] tags)
         => healthChecksBuilder.AddCheck(name, healthCheck, tags);
 
-    /// <summary>
-    /// Adds an async custom health check with the specified name, check function, and tags.
-    /// </summary>
-    /// <param name="healthChecksBuilder">The health checks builder.</param>
-    /// <param name="name">The name of the health check.</param>
-    /// <param name="healthCheck">The async health check function.</param>
-    /// <param name="tags">Optional tags for the health check.</param>
-    /// <returns>The health checks builder for chaining additional health checks.</returns>
     public static IHealthChecksBuilder AddAsyncCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder,
         string name, Func<CancellationToken, Task<HealthCheckResult>> healthCheck, params string[] tags) => healthChecksBuilder.AddAsyncCheck(name, healthCheck, tags);
 

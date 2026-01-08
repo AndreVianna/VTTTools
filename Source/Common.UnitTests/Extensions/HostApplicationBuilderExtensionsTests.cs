@@ -1,5 +1,3 @@
-using VttTools.Configuration;
-
 namespace VttTools.Extensions;
 
 public class HostApplicationBuilderExtensionsTests {
@@ -75,19 +73,16 @@ public class HostApplicationBuilderExtensionsTests {
     /// client cookie, causing 401 errors after successful login in WebClientApp.
     /// </summary>
     [Fact]
-    public void CookiePriority_ClientCookieConstant_IsDifferentFromAdminCookieConstant() {
-        AuthCookieConstants.ClientCookieName.Should().NotBe(AuthCookieConstants.AdminCookieName);
-    }
+    public void CookiePriority_ClientCookieConstant_IsDifferentFromAdminCookieConstant()
+        => AuthCookieConstants.ClientCookieName.Should().NotBe(AuthCookieConstants.AdminCookieName);
 
     [Fact]
-    public void CookiePriority_ClientCookieName_HasExpectedValue() {
-        AuthCookieConstants.ClientCookieName.Should().Be("vtttools_client_auth");
-    }
+    public void CookiePriority_ClientCookieName_HasExpectedValue()
+        => AuthCookieConstants.ClientCookieName.Should().Be("vtttools_client_auth");
 
     [Fact]
-    public void CookiePriority_AdminCookieName_HasExpectedValue() {
-        AuthCookieConstants.AdminCookieName.Should().Be("vtttools_admin_auth");
-    }
+    public void CookiePriority_AdminCookieName_HasExpectedValue()
+        => AuthCookieConstants.AdminCookieName.Should().Be("vtttools_admin_auth");
 
     #endregion
 
@@ -127,7 +122,7 @@ public class HostApplicationBuilderExtensionsTests {
     public void AddJwtAuthentication_ThrowsWhenJwtConfigurationMissing() {
         var builder = new HostApplicationBuilder();
 
-        var action = () => builder.AddJwtAuthentication();
+        var action = builder.AddJwtAuthentication;
 
         action.Should().Throw<InvalidOperationException>()
             .WithMessage("*JWT configuration section 'Jwt' is missing*");
