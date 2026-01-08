@@ -1,10 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { configureStore, type Store } from '@reduxjs/toolkit';
-import authReducer, { login, logout, checkAuth, clearError } from './authSlice';
-import { authService } from '@services/authService';
+import authReducer, {
+    setLoading,
+    setAuthenticated,
+    setAuthError,
+    clearError,
+    logout,
+    updateUser,
+} from './authSlice';
 import type { AuthState } from '../../types/auth';
-
-vi.mock('@services/authService');
 
 describe('authSlice', () => {
     let store: Store<{ auth: AuthState }>;
@@ -24,7 +28,6 @@ describe('authSlice', () => {
                 auth: authReducer,
             },
         });
-        vi.clearAllMocks();
     });
 
     describe('initial state', () => {
@@ -39,26 +42,26 @@ describe('authSlice', () => {
         });
     });
 
-    describe('login', () => {
-        it('should set loading state when login is pending', async () => {
-            vi.mocked(authService.login).mockImplementation(
-                () => new Promise(() => {}) // Never resolves
-            );
-
-            store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
+    describe('setLoading', () => {
+        it('should set loading state to true', () => {
+            store.dispatch(setLoading(true));
 
             const state = store.getState().auth;
             expect(state.isLoading).toBe(true);
-            expect(state.error).toBeNull();
         });
 
-        it('should handle successful login', async () => {
-            vi.mocked(authService.login).mockResolvedValue({
-                success: true,
-                user: mockUser,
-            });
+        it('should set loading state to false', () => {
+            store.dispatch(setLoading(true));
+            store.dispatch(setLoading(false));
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
+            const state = store.getState().auth;
+            expect(state.isLoading).toBe(false);
+        });
+    });
+
+    describe('setAuthenticated', () => {
+        it('should set authenticated state with user', () => {
+            store.dispatch(setAuthenticated({ user: mockUser }));
 
             const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(true);
@@ -66,63 +69,36 @@ describe('authSlice', () => {
             expect(state.isLoading).toBe(false);
             expect(state.error).toBeNull();
         });
+    });
 
-        it('should fetch user from getCurrentUser when not in login response', async () => {
-            vi.mocked(authService.login).mockResolvedValue({
-                success: true,
-            });
-            vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser);
+    describe('setAuthError', () => {
+        it('should set error and clear authentication', () => {
+            // First authenticate
+            store.dispatch(setAuthenticated({ user: mockUser }));
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
-
-            const state = store.getState().auth;
-            expect(state.isAuthenticated).toBe(true);
-            expect(state.user).toEqual(mockUser);
-            expect(authService.getCurrentUser).toHaveBeenCalled();
-        });
-
-        it('should handle failed login with error message', async () => {
-            vi.mocked(authService.login).mockResolvedValue({
-                success: false,
-                error: 'Invalid credentials',
-            });
-
-            await store.dispatch(login({ email: 'admin@test.com', password: 'wrong' }) as any);
+            // Then set error
+            store.dispatch(setAuthError('Invalid credentials'));
 
             const state = store.getState().auth;
+            expect(state.error).toBe('Invalid credentials');
             expect(state.isAuthenticated).toBe(false);
             expect(state.user).toBeNull();
             expect(state.isLoading).toBe(false);
-            expect(state.error).toBe('Invalid credentials');
         });
+    });
 
-        it('should handle failed login with default error', async () => {
-            vi.mocked(authService.login).mockResolvedValue({
-                success: false,
-            });
-
-            await store.dispatch(login({ email: 'admin@test.com', password: 'wrong' }) as any);
+    describe('clearError', () => {
+        it('should clear error from state', () => {
+            store.dispatch(setAuthError('Some error'));
+            store.dispatch(clearError());
 
             const state = store.getState().auth;
-            expect(state.error).toBe('Login failed');
-        });
-
-        it('should handle failed getCurrentUser after login', async () => {
-            vi.mocked(authService.login).mockResolvedValue({
-                success: true,
-            });
-            vi.mocked(authService.getCurrentUser).mockResolvedValue(null);
-
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
-
-            const state = store.getState().auth;
-            expect(state.isAuthenticated).toBe(false);
-            expect(state.error).toBe('Failed to get user information');
+            expect(state.error).toBeNull();
         });
     });
 
     describe('logout', () => {
-        it('should clear user and authentication state', async () => {
+        it('should clear user and authentication state', () => {
             // Set up authenticated state
             store = configureStore({
                 reducer: {
@@ -134,90 +110,37 @@ describe('authSlice', () => {
                         isAuthenticated: true,
                         isLoading: false,
                         error: null,
-                        token: null,
+                        token: 'test-token',
                     },
                 },
             });
 
-            vi.mocked(authService.logout).mockResolvedValue();
-
-            await store.dispatch(logout() as any);
+            store.dispatch(logout());
 
             const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(false);
             expect(state.user).toBeNull();
+            expect(state.token).toBeNull();
             expect(state.error).toBeNull();
-            expect(authService.logout).toHaveBeenCalled();
-        });
-    });
-
-    describe('checkAuth', () => {
-        it('should set loading state when checking auth', async () => {
-            vi.mocked(authService.getCurrentUser).mockImplementation(
-                () => new Promise(() => {})
-            );
-
-            store.dispatch(checkAuth() as any);
-
-            const state = store.getState().auth;
-            expect(state.isLoading).toBe(true);
-        });
-
-        it('should set authenticated state when user exists', async () => {
-            vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser);
-
-            await store.dispatch(checkAuth() as any);
-
-            const state = store.getState().auth;
-            expect(state.isAuthenticated).toBe(true);
-            expect(state.user).toEqual(mockUser);
-            expect(state.isLoading).toBe(false);
-        });
-
-        it('should clear authenticated state when user is null', async () => {
-            vi.mocked(authService.getCurrentUser).mockResolvedValue(null);
-
-            await store.dispatch(checkAuth() as any);
-
-            const state = store.getState().auth;
-            expect(state.isAuthenticated).toBe(false);
-            expect(state.user).toBeNull();
-            expect(state.isLoading).toBe(false);
-        });
-
-        it('should clear authenticated state on error', async () => {
-            vi.mocked(authService.getCurrentUser).mockRejectedValue(new Error('Network error'));
-
-            await store.dispatch(checkAuth() as any);
-
-            const state = store.getState().auth;
-            expect(state.isAuthenticated).toBe(false);
-            expect(state.user).toBeNull();
             expect(state.isLoading).toBe(false);
         });
     });
 
-    describe('clearError', () => {
-        it('should clear error from state', () => {
-            store = configureStore({
-                reducer: {
-                    auth: authReducer,
-                },
-                preloadedState: {
-                    auth: {
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                        error: 'Some error',
-                        token: null,
-                    },
-                },
-            });
-
-            store.dispatch(clearError());
+    describe('updateUser', () => {
+        it('should update user properties', () => {
+            store.dispatch(setAuthenticated({ user: mockUser }));
+            store.dispatch(updateUser({ displayName: 'Updated Name' }));
 
             const state = store.getState().auth;
-            expect(state.error).toBeNull();
+            expect(state.user?.displayName).toBe('Updated Name');
+            expect(state.user?.email).toBe('admin@test.com');
+        });
+
+        it('should not update if no user is authenticated', () => {
+            store.dispatch(updateUser({ displayName: 'Updated Name' }));
+
+            const state = store.getState().auth;
+            expect(state.user).toBeNull();
         });
     });
 });

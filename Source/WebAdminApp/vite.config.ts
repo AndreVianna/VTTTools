@@ -61,6 +61,7 @@ export default defineConfig(({ mode }) => {
           target: 'https://localhost:7175',
           changeOrigin: true,
           secure: false,
+          cookieDomainRewrite: 'localhost',
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
               console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
@@ -71,6 +72,7 @@ export default defineConfig(({ mode }) => {
           target: 'https://localhost:7050',
           changeOrigin: true,
           secure: false,
+          cookieDomainRewrite: 'localhost',
           rewrite: (path) => path.replace(/^\/api\/auth/, '/api'),
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
@@ -264,11 +266,13 @@ export default defineConfig(({ mode }) => {
           target: 'https://localhost:7175',
           changeOrigin: true,
           secure: false,
+          cookieDomainRewrite: 'localhost',
         },
         '/api/auth': {
           target: 'https://localhost:7050',
           changeOrigin: true,
           secure: false,
+          cookieDomainRewrite: 'localhost',
           rewrite: (path) => path.replace(/^\/api\/auth/, '/api'),
         },
         '/api/library': {

@@ -13,8 +13,6 @@ internal static class Program {
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
-        app.UseAuthentication();
-        app.UseAuthorization();
         app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();

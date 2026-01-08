@@ -63,7 +63,12 @@ internal static class Program {
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        // IMPORTANT: AddIdentity() sets cookie authentication as default scheme.
+        // We must explicitly override it to use JWT Bearer for API endpoints.
+        builder.Services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options => {
                 var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
                 options.TokenValidationParameters = new() {
@@ -75,6 +80,32 @@ internal static class Program {
                     ValidAudience = jwtOptions.Audience,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
+                };
+
+                options.Events = new JwtBearerEvents {
+                    OnMessageReceived = context => {
+                        if (!string.IsNullOrEmpty(context.Token))
+                            return Task.CompletedTask;
+
+                        var path = context.HttpContext.Request.Path;
+                        if (path.StartsWithSegments("/hubs")) {
+                            var accessToken = context.Request.Query["access_token"];
+                            if (!string.IsNullOrEmpty(accessToken)) {
+                                context.Token = accessToken;
+                                return Task.CompletedTask;
+                            }
+                        }
+
+                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.ClientCookieName, out var clientToken)) {
+                            context.Token = clientToken;
+                            return Task.CompletedTask;
+                        }
+
+                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.AdminCookieName, out var adminToken))
+                            context.Token = adminToken;
+
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

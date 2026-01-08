@@ -25,13 +25,15 @@ export const authApi = createApi({
   tagTypes: ['User'],
   endpoints: (builder) => ({
     // Login using existing Identity endpoints
+    // NOTE: Do NOT use invalidatesTags here - it causes an immediate /me refetch
+    // before the browser has stored the cookie from the login response.
+    // The login response already includes user data which useAuth uses directly.
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
         url: '/login',
         method: 'POST',
         body: credentials,
       }),
-      invalidatesTags: ['User'],
     }),
 
     // Logout using existing Identity endpoints

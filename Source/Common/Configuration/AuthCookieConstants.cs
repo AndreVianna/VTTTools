@@ -7,7 +7,7 @@ public static class AuthCookieConstants {
     public static CookieOptions CreateSecureCookie(bool isDevelopment = false) => new() {
         HttpOnly = true,
         Secure = !isDevelopment,
-        SameSite = SameSiteMode.Strict,
+        SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict,
         MaxAge = TimeSpan.FromDays(7),
         Path = "/",
     };
@@ -15,7 +15,7 @@ public static class AuthCookieConstants {
     public static CookieOptions CreateExpiredCookie(bool isDevelopment = false) => new() {
         HttpOnly = true,
         Secure = !isDevelopment,
-        SameSite = SameSiteMode.Strict,
+        SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict,
         MaxAge = TimeSpan.Zero,
         Path = "/",
     };

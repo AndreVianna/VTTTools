@@ -38,6 +38,7 @@ export default defineConfig(({ mode }) => {
               target: 'https://localhost:7050',
               changeOrigin: true,
               secure: false,
+              cookieDomainRewrite: 'localhost',
               configure: (proxy, _options) => {
                 proxy.on('error', (err, _req, _res) => {
                   console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
@@ -56,26 +57,31 @@ export default defineConfig(({ mode }) => {
               target: 'https://localhost:7050',
               changeOrigin: true,
               secure: false,
+              cookieDomainRewrite: 'localhost',
             },
             '/api/profile': {
               target: 'https://localhost:7050',
               changeOrigin: true,
               secure: false,
+              cookieDomainRewrite: 'localhost',
             },
             '/api/security': {
               target: 'https://localhost:7050',
               changeOrigin: true,
               secure: false,
+              cookieDomainRewrite: 'localhost',
             },
             '/api/two-factor': {
               target: 'https://localhost:7050',
               changeOrigin: true,
               secure: false,
+              cookieDomainRewrite: 'localhost',
             },
             '/api/recovery-codes': {
               target: 'https://localhost:7050',
               changeOrigin: true,
               secure: false,
+              cookieDomainRewrite: 'localhost',
             },
             '/api/assets': {
               target: 'https://localhost:7171',

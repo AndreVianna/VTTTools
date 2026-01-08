@@ -117,7 +117,6 @@ public static class HostApplicationBuilderExtensions {
                             return Task.CompletedTask;
 
                         var path = context.HttpContext.Request.Path;
-
                         if (path.StartsWithSegments("/hubs")) {
                             var accessToken = context.Request.Query["access_token"];
                             if (!string.IsNullOrEmpty(accessToken)) {
@@ -126,14 +125,13 @@ public static class HostApplicationBuilderExtensions {
                             }
                         }
 
-                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.AdminCookieName, out var adminToken)) {
-                            context.Token = adminToken;
+                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.ClientCookieName, out var clientToken)) {
+                            context.Token = clientToken;
                             return Task.CompletedTask;
                         }
 
-                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.ClientCookieName, out var clientToken)) {
-                            context.Token = clientToken;
-                        }
+                        if (context.Request.Cookies.TryGetValue(AuthCookieConstants.AdminCookieName, out var adminToken))
+                            context.Token = adminToken;
 
                         return Task.CompletedTask;
                     }

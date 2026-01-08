@@ -810,8 +810,6 @@ const EncounterEditorPageInternal: React.FC = () => {
 
         // TODO: Need Stage API to update background. For now, just refetch after upload.
         // The backend should handle associating the uploaded file with the encounter's stage.
-        console.log('Background uploaded:', result.id);
-
         await refetch();
       } catch (error) {
         console.error('Failed to upload background:', error);

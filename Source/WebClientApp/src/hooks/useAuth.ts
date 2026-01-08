@@ -132,17 +132,18 @@ export const useAuth = () => {
   // Local state to track if initial auth check is complete
   const [initComplete, setInitComplete] = useState(globalAuthInitialized);
 
-  // IMPORTANT: Only fetch current user if:
-  // 1. We haven't initialized yet (checking for existing session), OR
-  // 2. Redux confirms we're authenticated
-  // This prevents cached user data from showing after logout
+  // IMPORTANT: Only fetch current user on INITIAL page load to check for existing session.
+  // After initialization, we rely on:
+  // - User data from login response (which includes user info)
+  // - Explicit refetch() calls when needed
+  // This prevents race conditions where /me is called before cookie is stored.
   const {
     data: currentUser,
     isLoading,
     error,
     refetch,
   } = useGetCurrentUserQuery(undefined, {
-    skip: globalAuthInitialized && !authState.isAuthenticated, // Skip after init unless authenticated
+    skip: globalAuthInitialized, // After init, always skip - use login response data instead
   });
 
   // Initialize authentication state from server session cookie (runs once globally)
@@ -157,7 +158,7 @@ export const useAuth = () => {
       globalAuthInitialized = true;
       setInitComplete(true);
     }
-  }, [isLoading, currentUser, authState.isAuthenticated, dispatch]);
+  }, [isLoading, currentUser, authState.isAuthenticated, dispatch, error]);
 
   // CRITICAL: Redux state is the PRIMARY source of truth for authentication
   // Use cached/mock user data ONLY if Redux confirms we're authenticated

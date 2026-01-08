@@ -153,13 +153,11 @@ export const AssetStudioPage: React.FC = () => {
   };
 
   const handleSelectPortrait = () => {
-    // TODO: Open Smart Resource Picker modal
-    console.log('Open portrait picker');
+    throw new Error('Not implemented: Open Smart Resource Picker modal for portrait');
   };
 
   const handleSelectToken = () => {
-    // TODO: Open Smart Resource Picker modal
-    console.log('Open token picker');
+    throw new Error('Not implemented: Open Smart Resource Picker modal for token');
   };
 
   if (isLoading) {

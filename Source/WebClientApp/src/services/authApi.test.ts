@@ -510,9 +510,22 @@ describe('authApi', () => {
     });
 
     describe('cache tag invalidation logic', () => {
-        it('login should invalidate User tag', () => {
-            // The login mutation should invalidate User tag to refresh user state
-            expect(authApi.endpoints.login).toBeDefined();
+        it('login should NOT invalidate User tag to prevent race condition', () => {
+            // CRITICAL: Login mutation must NOT have invalidatesTags.
+            // If it does, RTK Query will immediately refetch getCurrentUser after login,
+            // but the browser hasn't stored the cookie yet, causing a 401 error.
+            // The login response already includes user data, so no refetch is needed.
+            //
+            // This test prevents regression of the authentication race condition bug.
+            const loginEndpoint = authApi.endpoints.login as unknown as {
+                invalidatesTags?: unknown[];
+            };
+
+            // The endpoint should not have invalidatesTags defined, or it should be undefined/empty
+            expect(
+                loginEndpoint.invalidatesTags === undefined ||
+                    (Array.isArray(loginEndpoint.invalidatesTags) && loginEndpoint.invalidatesTags.length === 0),
+            ).toBe(true);
         });
 
         it('logout should invalidate User tag', () => {

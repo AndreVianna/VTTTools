@@ -162,10 +162,7 @@ export const jobsService = {
 
     async getJobStatus(jobId: string): Promise<JobResponse> {
         const response = await apiClient.get<BackendJob>(`${JOBS_API_BASE}/${jobId}`);
-        console.log('[JobsService] Raw backend response:', JSON.stringify(response.data, null, 2));
-        const mapped = mapJobToResponse(response.data);
-        console.log('[JobsService] Mapped response:', JSON.stringify(mapped, null, 2));
-        return mapped;
+        return mapJobToResponse(response.data);
     },
 
     async cancelJob(jobId: string): Promise<void> {

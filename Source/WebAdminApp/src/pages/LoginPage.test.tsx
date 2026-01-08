@@ -19,7 +19,7 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LoginPage } from './LoginPage';
 
 // Mock react-router-dom
@@ -38,28 +38,35 @@ vi.mock('@store/hooks', () => ({
     useAppSelector: (selector: (state: unknown) => unknown) => mockUseAppSelector(selector),
 }));
 
-// Mock auth slice - mockLogin tracks what credentials were passed
+// Mock auth slice actions
+vi.mock('@store/slices/authSlice', () => ({
+    setAuthenticated: (payload: unknown) => ({ type: 'auth/setAuthenticated', payload }),
+    setAuthError: (payload: unknown) => ({ type: 'auth/setAuthError', payload }),
+    clearError: () => ({ type: 'auth/clearError' }),
+}));
+
+// Mock RTK Query hooks - use a getter pattern for dynamic loading state
 const mockLogin = vi.fn();
-const mockClearError = vi.fn();
+const mockGetCurrentUser = vi.fn();
+const mockUnwrap = vi.fn();
+const mockState = { isLoginLoading: false, isUserLoading: false };
 
-vi.mock('@store/slices/authSlice', () => {
-    // Define a mock login object that acts like an async thunk
-    const loginMock = Object.assign(
+vi.mock('@services/authApi', () => ({
+    useLoginMutation: () => [
         (credentials: unknown) => {
-            // Return an action object that dispatch will handle
-            return { type: 'login', payload: credentials, isLoginAction: true };
+            mockLogin(credentials);
+            return { unwrap: mockUnwrap };
         },
-        {
-            fulfilled: { match: (result: unknown) => (result as { type?: string } | undefined)?.type === 'fulfilled' },
-            rejected: { match: (result: unknown) => (result as { type?: string } | undefined)?.type === 'rejected' },
-        }
-    );
-
-    return {
-        login: loginMock,
-        clearError: () => ({ type: 'clearError' }),
-    };
-});
+        { isLoading: mockState.isLoginLoading },
+    ],
+    useLazyGetCurrentUserQuery: () => [
+        () => {
+            mockGetCurrentUser();
+            return { unwrap: () => Promise.resolve({ id: '1', email: 'admin@example.com', isAdmin: true }) };
+        },
+        { isLoading: mockState.isUserLoading },
+    ],
+}));
 
 // Mock UI slice
 const mockToggleTheme = vi.fn();
@@ -86,6 +93,8 @@ describe('LoginPage', () => {
 
     beforeEach(() => {
         vi.resetAllMocks();
+        mockState.isLoginLoading = false;
+        mockState.isUserLoading = false;
         mockUseLocation.mockReturnValue({ state: null });
         mockUseAppSelector.mockImplementation((selector: (state: unknown) => unknown) => {
             const mockState = {
@@ -94,14 +103,11 @@ describe('LoginPage', () => {
             };
             return selector(mockState);
         });
-        // Default dispatch implementation - tracks login calls and returns fulfilled
-        mockDispatch.mockImplementation((action: unknown) => {
-            const actionObj = action as { type?: string; payload?: unknown; isLoginAction?: boolean };
-            if (actionObj?.isLoginAction) {
-                mockLogin(actionObj.payload);
-                return Promise.resolve({ type: 'fulfilled' });
-            }
-            return Promise.resolve(action);
+        mockDispatch.mockImplementation((action: unknown) => action);
+        // Default: login succeeds with user in response
+        mockUnwrap.mockResolvedValue({
+            success: true,
+            user: { id: '1', email: 'admin@example.com', displayName: 'Admin', isAdmin: true },
         });
     });
 
@@ -198,7 +204,7 @@ describe('LoginPage', () => {
     });
 
     describe('Form submission', () => {
-        it('should call login action on form submit with valid password', async () => {
+        it('should call login mutation on form submit with valid password', async () => {
             // Arrange
             const user = userEvent.setup();
             render(<LoginPage />);
@@ -210,7 +216,6 @@ describe('LoginPage', () => {
 
             // Assert
             await waitFor(() => {
-                expect(mockDispatch).toHaveBeenCalled();
                 expect(mockLogin).toHaveBeenCalledWith({
                     email: 'admin@example.com',
                     password: 'validpassword123',
@@ -230,7 +235,7 @@ describe('LoginPage', () => {
 
             // Assert
             await waitFor(() => {
-                expect(mockDispatch).toHaveBeenCalled();
+                expect(mockDispatch).toHaveBeenCalledWith({ type: 'auth/clearError' });
             });
         });
     });
@@ -267,7 +272,6 @@ describe('LoginPage', () => {
         it('should redirect to dashboard on successful login', async () => {
             // Arrange
             const user = userEvent.setup();
-            mockDispatch.mockReturnValue(Promise.resolve({ type: 'fulfilled' }));
             render(<LoginPage />);
 
             // Act
@@ -287,7 +291,6 @@ describe('LoginPage', () => {
             mockUseLocation.mockReturnValue({
                 state: { from: { pathname: '/admin/users' } },
             });
-            mockDispatch.mockReturnValue(Promise.resolve({ type: 'fulfilled' }));
             render(<LoginPage />);
 
             // Act
@@ -304,10 +307,10 @@ describe('LoginPage', () => {
         it('should not navigate on failed login', async () => {
             // Arrange
             const user = userEvent.setup();
-            mockDispatch.mockReturnValue(Promise.resolve({
-                type: 'rejected',
-                payload: 'Invalid credentials',
-            }));
+            mockUnwrap.mockResolvedValue({
+                success: false,
+                error: 'Invalid credentials',
+            });
             render(<LoginPage />);
 
             // Act
@@ -323,13 +326,13 @@ describe('LoginPage', () => {
     });
 
     describe('Two-factor authentication', () => {
-        it('should show 2FA field when error contains "two-factor"', async () => {
+        it('should show 2FA field when response requires two-factor', async () => {
             // Arrange
             const user = userEvent.setup();
-            mockDispatch.mockReturnValue(Promise.resolve({
-                type: 'rejected',
-                payload: 'two-factor authentication required',
-            }));
+            mockUnwrap.mockResolvedValue({
+                success: false,
+                requiresTwoFactor: true,
+            });
             render(<LoginPage />);
 
             // Act
@@ -354,26 +357,16 @@ describe('LoginPage', () => {
         it('should handle 2FA submission', async () => {
             // Arrange
             const user = userEvent.setup();
-            let loginDispatchCount = 0;
-            // Mock dispatch to handle clearError and login calls
-            mockDispatch.mockImplementation((action: unknown) => {
-                const actionObj = action as { type?: string; payload?: unknown; isLoginAction?: boolean };
-                // Check if this is a login action
-                if (actionObj?.isLoginAction) {
-                    mockLogin(actionObj.payload);
-                    loginDispatchCount++;
-                    if (loginDispatchCount === 1) {
-                        // First login call - trigger 2FA
-                        return Promise.resolve({
-                            type: 'rejected',
-                            payload: 'two-factor authentication required',
-                        });
-                    }
-                    // Second and subsequent calls - success
-                    return Promise.resolve({ type: 'fulfilled' });
+            let loginCallCount = 0;
+            mockUnwrap.mockImplementation(() => {
+                loginCallCount++;
+                if (loginCallCount === 1) {
+                    return Promise.resolve({ success: false, requiresTwoFactor: true });
                 }
-                // Sync actions like clearError - just return the action
-                return Promise.resolve(action);
+                return Promise.resolve({
+                    success: true,
+                    user: { id: '1', email: 'admin@example.com', isAdmin: true },
+                });
             });
             render(<LoginPage />);
 
@@ -404,14 +397,8 @@ describe('LoginPage', () => {
 
     describe('Loading state', () => {
         it('should disable form fields during submission', () => {
-            // Arrange
-            mockUseAppSelector.mockImplementation((selector: (state: unknown) => unknown) => {
-                const mockState = {
-                    auth: { isLoading: true, error: null },
-                    ui: { theme: 'light' },
-                };
-                return selector(mockState);
-            });
+            // Arrange - set RTK Query loading state
+            mockState.isLoginLoading = true;
 
             // Act
             render(<LoginPage />);
@@ -425,14 +412,8 @@ describe('LoginPage', () => {
         });
 
         it('should show loading spinner during submission', () => {
-            // Arrange
-            mockUseAppSelector.mockImplementation((selector: (state: unknown) => unknown) => {
-                const mockState = {
-                    auth: { isLoading: true, error: null },
-                    ui: { theme: 'light' },
-                };
-                return selector(mockState);
-            });
+            // Arrange - set RTK Query loading state
+            mockState.isLoginLoading = true;
 
             // Act
             render(<LoginPage />);
