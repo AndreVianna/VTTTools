@@ -1,14 +1,14 @@
 import { Box, Button } from '@mui/material';
 import type React from 'react';
 import { getApiEndpoints } from '@/config/development';
-import type { Encounter } from '@/types/domain';
+import type { EncounterCard as EncounterCardType } from '@/types/domain';
 import { ContentType } from '../../types';
 import { ContentCard, PublishedBadge } from '../shared';
 
 const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 export interface EncounterCardProps {
-  encounter: Encounter;
+  encounter: EncounterCardType;
   onOpen: (id: string) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -27,8 +27,8 @@ export function EncounterCard({ encounter, onOpen, onDuplicate, onDelete }: Enco
 
   const apiEndpoints = getApiEndpoints();
 
-  const resourceUrl = encounter.stage?.settings?.mainBackground
-    ? `${apiEndpoints.media}/${encounter.stage.settings.mainBackground.id}`
+  const resourceUrl = encounter.backgroundId
+    ? `${apiEndpoints.media}/${encounter.backgroundId}/thumbnail`
     : null;
 
   const badges = encounter.isPublished ? <PublishedBadge /> : undefined;
@@ -63,6 +63,7 @@ export function EncounterCard({ encounter, onOpen, onDuplicate, onDelete }: Enco
       onClick={onOpen}
       badges={badges}
       actions={actions}
+      showNameOverlay
     />
   );
 }

@@ -9,9 +9,10 @@ export interface ContentCardProps {
   actions?: React.ReactNode;
   badges?: React.ReactNode;
   metadata?: React.ReactNode;
+  showNameOverlay?: boolean;
 }
 
-export function ContentCard({ item, onClick, actions, badges, metadata }: ContentCardProps) {
+export function ContentCard({ item, onClick, actions, badges, metadata, showNameOverlay }: ContentCardProps) {
   const { blobUrl, isLoading } = useAuthenticatedImageUrl(item.resourceUrl);
   const effectiveThumbnailUrl = blobUrl || item.thumbnailUrl;
   const handleClick = () => {
@@ -51,19 +52,51 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
       aria-label={`Open ${item.name}`}
     >
       {effectiveThumbnailUrl && (
-        <CardMedia
-          id={`thumbnail-${item.id}`}
-          component='img'
-          height='140'
-          image={effectiveThumbnailUrl}
-          alt={`${item.name} thumbnail`}
-          sx={{ objectFit: 'cover' }}
-        />
+        <Box sx={{ position: 'relative' }}>
+          <CardMedia
+            id={`thumbnail-${item.id}`}
+            component='img'
+            height='140'
+            image={effectiveThumbnailUrl}
+            alt={`${item.name} thumbnail`}
+            sx={{ objectFit: 'cover' }}
+          />
+          {showNameOverlay && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                p: 2,
+              }}
+            >
+              <Typography
+                variant='h6'
+                sx={{
+                  color: 'white',
+                  textAlign: 'center',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                }}
+              >
+                {item.name || 'Untitled'}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       )}
       {!effectiveThumbnailUrl && (
         <Box
           id={`placeholder-${item.id}`}
           sx={{
+            position: 'relative',
             height: 140,
             backgroundColor: 'action.hover',
             display: 'flex',
@@ -73,6 +106,18 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
         >
           {isLoading ? (
             <CircularProgress size={24} />
+          ) : showNameOverlay ? (
+            <Typography
+              variant='h6'
+              sx={{
+                textAlign: 'center',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                p: 2,
+              }}
+            >
+              {item.name || 'Untitled'}
+            </Typography>
           ) : (
             <Typography variant='h3' color='text.disabled'>
               🗺️
@@ -81,9 +126,11 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
         </Box>
       )}
       <CardContent id={`content-${item.id}`} sx={{ flexGrow: 1, pb: 1 }}>
-        <Typography id={`title-${item.id}`} variant='h6' component='h3' gutterBottom noWrap title={item.name}>
-          {item.name}
-        </Typography>
+        {!showNameOverlay && (
+          <Typography id={`title-${item.id}`} variant='h6' component='h3' gutterBottom noWrap title={item.name}>
+            {item.name}
+          </Typography>
+        )}
         {metadata && <Box sx={{ mt: 1 }}>{metadata}</Box>}
         {badges && <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>{badges}</Box>}
       </CardContent>

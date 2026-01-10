@@ -153,10 +153,11 @@ internal static class StageMapper {
             Description = model.Description ?? string.Empty,
             IsPublished = model.IsPublished,
             IsPublic = model.IsPublic,
-            MainBackground = model.Settings.MainBackground?.ToEntity(),
-            AlternateBackground = model.Settings.AlternateBackground?.ToEntity(),
+            // Only set FK IDs, NOT navigation properties - prevents corrupting Resource table
+            MainBackgroundId = model.Settings.MainBackground?.Id,
+            AlternateBackgroundId = model.Settings.AlternateBackground?.Id,
             AmbientLight = model.Settings.AmbientLight,
-            AmbientSound = model.Settings.AmbientSound?.ToEntity(),
+            AmbientSoundId = model.Settings.AmbientSound?.Id,
             AmbientSoundVolume = model.Settings.AmbientSoundVolume,
             AmbientSoundLoop = model.Settings.AmbientSoundLoop,
             AmbientSoundIsPlaying = model.Settings.AmbientSoundIsPlaying,
@@ -182,10 +183,11 @@ internal static class StageMapper {
         entity.Description = model.Description ?? string.Empty;
         entity.IsPublished = model.IsPublished;
         entity.IsPublic = model.IsPublic;
-        entity.MainBackground = model.Settings.MainBackground?.ToEntity();
-        entity.AlternateBackground = model.Settings.AlternateBackground?.ToEntity();
+        // Only update FK IDs, NOT navigation properties - prevents corrupting Resource table
+        entity.MainBackgroundId = model.Settings.MainBackground?.Id;
+        entity.AlternateBackgroundId = model.Settings.AlternateBackground?.Id;
         entity.AmbientLight = model.Settings.AmbientLight;
-        entity.AmbientSound = model.Settings.AmbientSound?.ToEntity();
+        entity.AmbientSoundId = model.Settings.AmbientSound?.Id;
         entity.AmbientSoundVolume = model.Settings.AmbientSoundVolume;
         entity.AmbientSoundLoop = model.Settings.AmbientSoundLoop;
         entity.AmbientSoundIsPlaying = model.Settings.AmbientSoundIsPlaying;

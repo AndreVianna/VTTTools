@@ -73,11 +73,13 @@ internal static class WorldHandlers {
     internal static async Task<IResult> GetCampaignsHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IWorldService worldService) {
         var userId = context.User.GetUserId();
         var world = await worldService.GetWorldByIdAsync(id);
-        return world is null
-            ? Results.NotFound()
-            : world.OwnerId != userId && world is not { IsPublic: true, IsPublished: true }
-                ? Results.Forbid()
-                : Results.Ok(await worldService.GetCampaignsAsync(id));
+        if (world is null)
+            return Results.NotFound();
+        if (world.OwnerId != userId && world is not { IsPublic: true, IsPublished: true })
+            return Results.Forbid();
+        var campaigns = await worldService.GetCampaignsAsync(id);
+        var response = campaigns.Select(CampaignCardResponse.FromCampaign);
+        return Results.Ok(response);
     }
 
     internal static async Task<IResult> AddNewCampaignHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IWorldService worldService) {

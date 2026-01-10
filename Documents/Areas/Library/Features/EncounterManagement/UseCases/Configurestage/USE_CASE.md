@@ -263,7 +263,7 @@ public interface ILibraryStorage
   - Media context: Resource entity for Background validation (external bounded context)
   - Identity context: User entity for ownership validation (OwnerId FK)
 - **External Dependencies**:
-  - SQL Server database with owned entity support for Stage value object
+  - PostgreSQL database with owned entity support for Stage value object
   - Azure Blob Storage for Background image resources (via IMediaStorage)
 
 ### Architectural Considerations

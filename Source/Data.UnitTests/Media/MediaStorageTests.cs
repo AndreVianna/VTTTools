@@ -10,7 +10,7 @@ public class MediaStorageTests
 
     public MediaStorageTests() {
         _context = DbContextHelper.CreateInMemoryContext(Guid.CreateVersion7());
-        _storage = new(_context);
+        _storage = new(_context, NullLogger<MediaStorage>.Instance);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -67,7 +67,8 @@ public class MediaStorageTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WithExistingResource_UpdatesInDatabase() {
+    public async Task UpdateAsync_WithExistingResource_ReturnsFalseWhenNoChanges() {
+        // UpdateFrom is now a no-op since all resource properties are immutable (set at creation time)
         var entity = CreateTestResource();
         await _context.Resources.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
@@ -86,10 +87,12 @@ public class MediaStorageTests
 
         var result = await _storage.UpdateAsync(resource, _ct);
 
-        result.Should().BeTrue();
+        // Returns false because UpdateFrom is a no-op (no rows affected)
+        result.Should().BeFalse();
         var dbResource = await _context.Resources.FindAsync([resource.Id], _ct);
         dbResource.Should().NotBeNull();
-        dbResource.FileName.Should().Be("updated-filename.png");
+        // FileName remains unchanged since UpdateFrom doesn't modify any fields
+        dbResource.FileName.Should().Be(entity.FileName);
     }
 
     [Fact]

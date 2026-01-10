@@ -106,6 +106,14 @@ public class StageStorage(ApplicationDbContext context)
         return result > 0;
     }
 
+    public Task<bool> IsResourceInUseAsync(Guid resourceId, Guid excludeStageId, CancellationToken ct = default)
+        => context.Stages
+            .Where(s => s.Id != excludeStageId)
+            .AnyAsync(s =>
+                s.MainBackgroundId == resourceId ||
+                s.AlternateBackgroundId == resourceId ||
+                s.AmbientSoundId == resourceId, ct);
+
     private static IQueryable<StageEntity> ApplySearchFilters(
         IQueryable<StageEntity> query,
         LibrarySearchFilter filter,

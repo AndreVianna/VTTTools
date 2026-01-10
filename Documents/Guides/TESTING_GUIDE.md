@@ -1138,7 +1138,7 @@ Then('image has Token role', async function() {
 - ✅ Payment gateways (use test mode)
 
 **VTTTools-Specific**:
-- ✅ Use Real: ASP.NET Core backend, SQL Server test DB, Redux, RTK Query, React Router
+- ✅ Use Real: ASP.NET Core backend, PostgreSQL test DB, Redux, RTK Query, React Router
 - ✅ Mock: Azure Blob → local filesystem, SignalR if backend not ready
 
 ### Implementation Checklist (Before Each Step)
@@ -1565,11 +1565,11 @@ await this.page.locator('#btn-browse-assets').click();
 **Cause**: Hard-coded headers override login cookies
 **Fix**: Remove `extraHTTPHeaders` from world.ts, let login set cookies
 
-#### 9. Database Connection Timeout (LocalDB)
-**Symptom**: "Failed to connect to localhost\MSSQLLocalDB"
-**Cause**: `mssql` library uses TCP/IP, LocalDB needs Named Pipes
-**Fix**: Use `msnodesqlv8` library + ODBC Driver 17
-**Connection String**: `Driver={ODBC Driver 17 for SQL Server};Server=(localdb)\...;Trusted_Connection=yes;`
+#### 9. Database Connection Timeout (PostgreSQL)
+**Symptom**: "Failed to connect to PostgreSQL"
+**Cause**: Connection string or firewall issues
+**Fix**: Check pg_hba.conf and ensure PostgreSQL is running
+**Connection String**: `Host=localhost;Database=vtttools;Username=postgres;Password=...`
 
 #### 10. Hardcoded Values
 **Symptom**: Passwords, IDs in code

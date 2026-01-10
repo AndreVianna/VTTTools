@@ -390,6 +390,40 @@ export interface Encounter {
   effects: EncounterEffect[];
 }
 
+// View model for encounter cards (flat structure from backend)
+export interface EncounterCard {
+  id: string;
+  name: string;
+  description: string;
+  isPublished: boolean;
+  isPublic: boolean;
+  backgroundId: string | null;
+}
+
+// View model for adventure cards (flat structure from backend)
+export interface AdventureCard {
+  id: string;
+  name: string;
+  description: string;
+  style: AdventureStyle;
+  isOneShot: boolean;
+  isPublished: boolean;
+  isPublic: boolean;
+  encounterCount: number;
+  backgroundId: string | null;
+}
+
+// View model for campaign cards (flat structure from backend)
+export interface CampaignCard {
+  id: string;
+  name: string;
+  description: string;
+  isPublished: boolean;
+  isPublic: boolean;
+  adventureCount: number;
+  backgroundId: string | null;
+}
+
 // Game Elements (remain on Encounter)
 
 export enum ObjectState {
@@ -630,6 +664,8 @@ export interface ResourceFilterResponse {
 
 // MediaResource - Pure media metadata (no business properties)
 // Business properties (ownerId, isPublished, isPublic) are inherited from parent entities
+// NOTE: ProcessingStatus was removed - backend now handles placeholder/error fallback automatically
+// The resource path always returns a valid image (primary, placeholder, or error-placeholder)
 export interface MediaResource {
   id: string;
   role: ResourceRole;

@@ -499,7 +499,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasColumnType("integer")
                                 .HasDefaultValue(1);
 
-                            b1.PrimitiveCollection<List<int>>("Days")
+                            b1.PrimitiveCollection<int[]>("Days")
                                 .IsRequired()
                                 .HasColumnType("integer[]");
 
@@ -1909,6 +1909,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("numeric(20,0)")
                         .HasDefaultValue(0m);
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Path")
                         .IsRequired()

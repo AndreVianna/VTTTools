@@ -10,13 +10,14 @@
 
 /**
  * Grid type enumeration matching backend GridType enum
+ * Backend uses JsonStringEnumConverter, so values are string names
  */
 export enum GridType {
-  NoGrid = 0,
-  Square = 1,
-  HexV = 2, // Hexagonal Vertical (backend order)
-  HexH = 3, // Hexagonal Horizontal (backend order)
-  Isometric = 4,
+  NoGrid = 'NoGrid',
+  Square = 'Square',
+  HexV = 'HexV', // Hexagonal Vertical
+  HexH = 'HexH', // Hexagonal Horizontal
+  Isometric = 'Isometric',
 }
 
 /**

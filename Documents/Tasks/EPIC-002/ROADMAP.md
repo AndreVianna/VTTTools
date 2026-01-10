@@ -500,7 +500,7 @@ All administrative actions will be logged for compliance and security review. Th
 
 **Backend Components** ✅:
 - **3 local health checks** via ASP.NET Core HealthCheckService:
-  1. Database (SQL Server connection pool)
+  1. Database (PostgreSQL connection pool)
   2. Redis (cache accessibility)
   3. BlobStorage (Azure Blob/AWS S3)
 - Aggregate health status (Healthy/Degraded/Unhealthy)

@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import type { Campaign, CreateCampaignRequest, CreateWorldRequest, UpdateWorldRequest, World } from '@/types/domain';
+import type { Campaign, CampaignCard, CreateCampaignRequest, CreateWorldRequest, UpdateWorldRequest, World } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 export const worldsApi = createApi({
@@ -52,7 +52,7 @@ export const worldsApi = createApi({
       invalidatesTags: ['World'],
     }),
 
-    getCampaigns: builder.query<Campaign[], string>({
+    getCampaigns: builder.query<CampaignCard[], string>({
       query: (worldId) => `/${worldId}/campaigns`,
       providesTags: (_result, _error, worldId) => [{ type: 'WorldCampaigns', id: worldId }],
     }),

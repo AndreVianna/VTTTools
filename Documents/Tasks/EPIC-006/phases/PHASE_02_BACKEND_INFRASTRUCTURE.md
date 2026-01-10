@@ -17,7 +17,7 @@ Create database schema, EF Core configuration, migrations, and repository implem
 
 - Phase 1 complete (all domain entities exist and compile)
 - EF Core infrastructure reviewed
-- SQL Server database accessible
+- PostgreSQL database accessible
 
 ---
 
@@ -289,7 +289,7 @@ Create database schema, EF Core configuration, migrations, and repository implem
 
 - **Validate after phase**:
   - Run all migrations successfully on local database
-  - Verify all tables exist with correct schema (use SQL Server Management Studio)
+  - Verify all tables exist with correct schema (use PostgreSQL Management Studio)
   - Run unit tests (30+ tests passing)
   - Code review by code-reviewer agent
   - Database schema review by devops-specialist

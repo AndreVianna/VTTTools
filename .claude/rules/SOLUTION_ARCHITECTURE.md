@@ -3,7 +3,7 @@
 Solution: `Source/VttTools.slnx` | Pattern: DDD Contracts + Service Implementation + Clean Architecture
 
 ## Stack
-Backend: C# 14/.NET 10 | Minimal APIs | EF Core 10 | SQL Server | xUnit+FluentAssertions+NSubstitute
+Backend: C# 14/.NET 10 | Minimal APIs | EF Core 10 | PostgreSQL | xUnit+FluentAssertions+NSubstitute
 Frontend: TS 5 strict | React 18 | Redux Toolkit 2.9+RTK Query | MUI | Vite | Vitest+Testing Library | Cucumber+Playwright
 Infra: Identity+JWT | SignalR | Azure Blob (filesystem fallback)
 

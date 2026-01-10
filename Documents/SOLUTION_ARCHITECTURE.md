@@ -6,7 +6,7 @@
 
 ## Technology Stack
 
-**Backend**: C# 14 / .NET 10 | ASP.NET Core Minimal APIs | EF Core 10 | SQL Server | xUnit + FluentAssertions (coverage: ≥95%)
+**Backend**: C# 14 / .NET 10 | ASP.NET Core Minimal APIs | EF Core 10 | PostgreSQL | xUnit + FluentAssertions (coverage: ≥95%)
 **Frontend**: TypeScript 5 (strict: 10 flags) | React 18 | Redux Toolkit 2.9 + RTK Query | Material-UI | Vite | Vitest + Testing Library (coverage: ≥95%) | Cucumber + Playwright
 **Infrastructure**: ASP.NET Identity + JWT | SignalR | Azure Blob Storage (filesystem fallback)
 

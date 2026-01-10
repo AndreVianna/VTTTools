@@ -8,6 +8,7 @@ global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.AspNetCore.Routing;
+global using Microsoft.Extensions.Logging;
 
 global using NSubstitute;
 
@@ -15,6 +16,8 @@ global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.PixelFormats;
 global using SixLabors.ImageSharp.Processing;
 
+global using VttTools.Common.Model;
+global using VttTools.Media.Authorization;
 global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;

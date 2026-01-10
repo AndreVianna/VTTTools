@@ -3,6 +3,7 @@ namespace VttTools.Library.Services;
 public class AdventureServiceTests {
     private readonly IAdventureStorage _adventureStorage;
     private readonly IEncounterStorage _encounterStorage;
+    private readonly IStageStorage _stageStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly AdventureService _service;
     private readonly Guid _userId = Guid.CreateVersion7();
@@ -11,8 +12,9 @@ public class AdventureServiceTests {
     public AdventureServiceTests() {
         _adventureStorage = Substitute.For<IAdventureStorage>();
         _encounterStorage = Substitute.For<IEncounterStorage>();
+        _stageStorage = Substitute.For<IStageStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new(_adventureStorage, _encounterStorage, _mediaStorage, NullLogger<AdventureService>.Instance);
+        _service = new(_adventureStorage, _encounterStorage, _stageStorage, _mediaStorage, NullLogger<AdventureService>.Instance);
         _ct = TestContext.Current.CancellationToken;
     }
 

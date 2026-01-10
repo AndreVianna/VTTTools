@@ -13,84 +13,6 @@ public class SimpleMediaProcessorServiceTests {
     }
 
     [Fact]
-    public async Task ProcessAsync_WithInvalidRole_ReturnsFailure() {
-        var input = new MemoryStream("test"u8.ToArray());
-
-        var result = await _service.ProcessAsync(ResourceRole.Undefined, "image/png", "test.png", input, _ct);
-
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("Invalid resource role");
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithInvalidContentType_ReturnsFailure() {
-        var input = new MemoryStream("test"u8.ToArray());
-
-        var result = await _service.ProcessAsync(ResourceRole.Background, "application/pdf", "test.pdf", input, _ct);
-
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("not allowed");
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithFileTooLarge_ReturnsFailure() {
-        var largeContent = new byte[51 * 1024 * 1024];
-        var input = new MemoryStream(largeContent);
-
-        var result = await _service.ProcessAsync(ResourceRole.Background, "image/png", "test.png", input, _ct);
-
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("exceeds maximum");
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithValidImageUnderMaxSize_ProcessesSuccessfully() {
-        var imageBytes = CreateValidPngImage(100, 100);
-        var input = new MemoryStream(imageBytes);
-
-        var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.ContentType.Should().Be("image/png");
-        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(1024);
-        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(1024);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithOversizedImage_ResizesImage() {
-        var imageBytes = CreateValidPngImage(2048, 2048);
-        var input = new MemoryStream(imageBytes);
-
-        var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(1024);
-        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(1024);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithImageRequiringThumbnail_GeneratesThumbnail() {
-        var imageBytes = CreateValidPngImage(256, 256);
-        var input = new MemoryStream(imageBytes);
-
-        var result = await _service.ProcessAsync(ResourceRole.Token, "image/png", "test.png", input, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Thumbnail.Should().NotBeNull();
-        result.Value.Thumbnail!.Length.Should().BeGreaterThan(0);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithInvalidImageData_ReturnsFailure() {
-        var input = new MemoryStream("not an image"u8.ToArray());
-
-        var result = await _service.ProcessAsync(ResourceRole.Background, "image/png", "test.png", input, _ct);
-
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Contain("Failed to process image");
-    }
-
-    [Fact]
     public async Task GenerateThumbnailAsync_WithValidImage_ReturnsThumbnail() {
         var imageBytes = CreateValidPngImage(512, 512);
         var input = new MemoryStream(imageBytes);
@@ -129,52 +51,67 @@ public class SimpleMediaProcessorServiceTests {
     }
 
     [Fact]
-    public async Task ProcessAsync_WithJpegImage_ConvertsToPng() {
-        var imageBytes = CreateValidJpegImage(256, 256);
+    public async Task GenerateThumbnailAsync_WithLandscapeImage_CropsFromCenter() {
+        // Arrange
+        var imageBytes = CreateValidPngImage(1920, 1080);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceRole.Token, "image/jpeg", "test.jpg", input, _ct);
+        // Act
+        var thumbnailBytes = await _service.GenerateThumbnailAsync("image/png", input, 256, _ct);
 
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.ContentType.Should().Be("image/png");
-        result.Value.FileName.Should().EndWith(".png");
+        // Assert
+        thumbnailBytes.Should().NotBeNull();
+        using var thumbnail = Image.Load(thumbnailBytes!);
+        thumbnail.Width.Should().Be(256);
+        thumbnail.Height.Should().Be(256);
     }
 
     [Fact]
-    public async Task ProcessAsync_WithGifImage_ConvertsToPng() {
-        var imageBytes = CreateValidGifImage(128, 128);
+    public async Task GenerateThumbnailAsync_WithPortraitImage_CropsFromCenter() {
+        // Arrange
+        var imageBytes = CreateValidPngImage(1080, 1920);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceRole.Token, "image/gif", "test.gif", input, _ct);
+        // Act
+        var thumbnailBytes = await _service.GenerateThumbnailAsync("image/png", input, 256, _ct);
 
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.ContentType.Should().Be("image/png");
+        // Assert
+        thumbnailBytes.Should().NotBeNull();
+        using var thumbnail = Image.Load(thumbnailBytes!);
+        thumbnail.Width.Should().Be(256);
+        thumbnail.Height.Should().Be(256);
     }
 
     [Fact]
-    public async Task ProcessAsync_WithWebPImage_ConvertsToPng() {
-        var imageBytes = CreateValidWebPImage(200, 200);
+    public async Task GenerateThumbnailAsync_WithSquareImage_ResizesWithoutCropping() {
+        // Arrange
+        var imageBytes = CreateValidPngImage(500, 500);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(ResourceRole.Illustration, "image/webp", "test.webp", input, _ct);
+        // Act
+        var thumbnailBytes = await _service.GenerateThumbnailAsync("image/png", input, 256, _ct);
 
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.ContentType.Should().Be("image/png");
+        // Assert
+        thumbnailBytes.Should().NotBeNull();
+        using var thumbnail = Image.Load(thumbnailBytes!);
+        thumbnail.Width.Should().Be(256);
+        thumbnail.Height.Should().Be(256);
     }
 
-    [Theory]
-    [InlineData(ResourceRole.Token, 1024, 1024)]
-    [InlineData(ResourceRole.Portrait, 1024, 1024)]
-    [InlineData(ResourceRole.Illustration, 1024, 1024)]
-    public async Task ProcessAsync_RespectsRoleConstraints(ResourceRole resourceType, int maxWidth, int maxHeight) {
-        var imageBytes = CreateValidPngImage(maxWidth * 2, maxHeight * 2);
+    [Fact]
+    public async Task GenerateThumbnailAsync_WithValidImage_ReturnsPngFormat() {
+        // Arrange
+        var imageBytes = CreateValidJpegImage(800, 600);
         var input = new MemoryStream(imageBytes);
 
-        var result = await _service.ProcessAsync(resourceType, "image/png", "test.png", input, _ct);
+        // Act
+        var thumbnailBytes = await _service.GenerateThumbnailAsync("image/jpeg", input, 256, _ct);
 
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Dimensions.Width.Should().BeLessThanOrEqualTo(maxWidth);
-        result.Value.Dimensions.Height.Should().BeLessThanOrEqualTo(maxHeight);
+        // Assert
+        thumbnailBytes.Should().NotBeNull();
+        using var thumbnail = Image.Load(thumbnailBytes!);
+        thumbnail.Metadata.DecodedImageFormat.Should().NotBeNull();
+        thumbnail.Metadata.DecodedImageFormat!.DefaultMimeType.Should().Be("image/png");
     }
 
     private static byte[] CreateValidPngImage(int width, int height) {
@@ -190,22 +127,6 @@ public class SimpleMediaProcessorServiceTests {
         image.Mutate(x => x.BackgroundColor(Color.Red));
         using var ms = new MemoryStream();
         image.SaveAsJpeg(ms);
-        return ms.ToArray();
-    }
-
-    private static byte[] CreateValidGifImage(int width, int height) {
-        using var image = new Image<Rgba32>(width, height);
-        image.Mutate(x => x.BackgroundColor(Color.Green));
-        using var ms = new MemoryStream();
-        image.SaveAsGif(ms);
-        return ms.ToArray();
-    }
-
-    private static byte[] CreateValidWebPImage(int width, int height) {
-        using var image = new Image<Rgba32>(width, height);
-        image.Mutate(x => x.BackgroundColor(Color.Yellow));
-        using var ms = new MemoryStream();
-        image.SaveAsWebp(ms);
         return ms.ToArray();
     }
 }

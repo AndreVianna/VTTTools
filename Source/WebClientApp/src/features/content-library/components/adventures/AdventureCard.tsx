@@ -1,14 +1,14 @@
 import { Box, Button, Chip, Typography } from '@mui/material';
 import type React from 'react';
 import { getApiEndpoints } from '@/config/development';
-import type { Adventure } from '../../types';
+import type { AdventureCard as AdventureCardType } from '@/types/domain';
 import { AdventureStyle, ContentType } from '../../types';
 import { ContentCard, PublishedBadge } from '../shared';
 
 const ADVENTURE_DEFAULT_BACKGROUND = '/assets/backgrounds/adventure.png';
 
 export interface AdventureCardProps {
-  adventure: Adventure;
+  adventure: AdventureCardType;
   onOpen: (id: string) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -82,11 +82,9 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
     </>
   );
 
-  const encounterCount = adventure.encounterCount ?? adventure.encounters?.length ?? 0;
-
   const metadata = (
     <Typography variant='body2' color='text.secondary'>
-      {encounterCount} {encounterCount === 1 ? 'encounter' : 'encounters'}
+      {adventure.encounterCount} {adventure.encounterCount === 1 ? 'encounter' : 'encounters'}
     </Typography>
   );
 
@@ -108,7 +106,7 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
   );
 
   const apiEndpoints = getApiEndpoints();
-  const resourceUrl = adventure.background ? `${apiEndpoints.media}/${adventure.background.id}` : null;
+  const resourceUrl = adventure.backgroundId ? `${apiEndpoints.media}/${adventure.backgroundId}` : null;
 
   return (
     <ContentCard

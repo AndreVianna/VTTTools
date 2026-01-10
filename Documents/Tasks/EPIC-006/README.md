@@ -162,7 +162,7 @@ Frontend:
 - Playwright (E2E testing)
 
 Database:
-- SQL Server
+- PostgreSQL
 - EF Core Code-First Migrations
 ```
 

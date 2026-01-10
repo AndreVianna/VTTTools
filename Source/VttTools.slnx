@@ -7,9 +7,7 @@
   <Folder Name="/Source/" />
   <Folder Name="/Source/0 Common/">
     <Project Path="Common/VttTools.Common.csproj" />
-    <Project Path="Core/VttTools.Core.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
+    <Project Path="Core/VttTools.Core.csproj" />
   </Folder>
   <Folder Name="/Source/0 Domain/">
     <Project Path="Admin.Domain/VttTools.Admin.Domain.csproj" Id="d3aadddf-47fc-471f-9f37-bdce7508e488" />
@@ -21,36 +19,28 @@
   </Folder>
   <Folder Name="/Source/2 Services/">
     <Project Path="Admin/VttTools.Admin.csproj" />
-    <Project Path="AI/VttTools.AI.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="Assets/VttTools.Assets.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
+    <Project Path="AI/VttTools.AI.csproj" />
+    <Project Path="Assets/VttTools.Assets.csproj" />
     <Project Path="Auth/VttTools.Auth.csproj" />
     <Project Path="Game/VttTools.Game.csproj" />
-    <Project Path="Jobs/VttTools.Jobs.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="Library/VttTools.Library.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="Media/VttTools.Media.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
+    <Project Path="Jobs/VttTools.Jobs.csproj" />
+    <Project Path="Library/VttTools.Library.csproj" />
+    <Project Path="Media/VttTools.Media.csproj" />
   </Folder>
   <Folder Name="/Source/3 CLIs/">
     <Project Path="MediaGenerator/VttTools.MediaGenerator.csproj" />
   </Folder>
   <Folder Name="/Source/3 WebApp/">
     <Project Path="WebAdminApp/VttTools.WebAdminApp.esproj">
-      <BuildType Project="Release" />
+      <BuildType Solution="Debug|x64" Project="Release" />
+      <BuildType Solution="Debug|x86" Project="Release" />
       <Platform Project="AnyCPU" />
       <Build />
       <Deploy />
     </Project>
     <Project Path="WebClientApp/VttTools.WebClientApp.esproj">
-      <BuildType Project="Release" />
+      <BuildType Solution="Debug|x64" Project="Release" />
+      <BuildType Solution="Debug|x86" Project="Release" />
       <Platform Project="AnyCPU" />
       <Build />
       <Deploy />
@@ -62,9 +52,7 @@
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/0 Common/">
     <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj" />
-    <Project Path="Core.UnitTests/VttTools.Core.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
+    <Project Path="Core.UnitTests/VttTools.Core.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests/0 Domain/">
     <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj" />
@@ -73,25 +61,13 @@
     <Project Path="Data.UnitTests/VttTools.Data.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests/2 Services/">
-    <Project Path="Admin.UnitTests/VttTools.Admin.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="AI.UnitTests/VttTools.AI.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="Assets.UnitTests/VttTools.Assets.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="Auth.UnitTests/VttTools.Auth.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
+    <Project Path="Admin.UnitTests/VttTools.Admin.UnitTests.csproj" />
+    <Project Path="AI.UnitTests/VttTools.AI.UnitTests.csproj" />
+    <Project Path="Assets.UnitTests/VttTools.Assets.UnitTests.csproj" />
+    <Project Path="Auth.UnitTests/VttTools.Auth.UnitTests.csproj" />
     <Project Path="Game.UnitTests/VttTools.Game.UnitTests.csproj" />
-    <Project Path="Library.UnitTests/VttTools.Library.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
-    <Project Path="Media.UnitTests/VttTools.Media.UnitTests.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-    </Project>
+    <Project Path="Library.UnitTests/VttTools.Library.UnitTests.csproj" />
+    <Project Path="Media.UnitTests/VttTools.Media.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests/3 CLIs/">
     <Project Path="MediaGenerator.UnitTests/VttTools.MediaGenerator.UnitTests.csproj" />

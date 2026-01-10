@@ -11,18 +11,18 @@
 
 ## Objective
 
-Migrate VTTTools from Microsoft SQL Server to PostgreSQL to eliminate SQL Server-specific limitations and reduce licensing costs.
+Migrate VTTTools from Microsoft PostgreSQL to PostgreSQL to eliminate PostgreSQL-specific limitations and reduce licensing costs.
 
-**From**: SQL Server (LocalDB for dev, SQL Server for prod)
+**From**: PostgreSQL (LocalDB for dev, PostgreSQL for prod)
 **To**: PostgreSQL (local/Docker for dev, managed PostgreSQL for prod)
 
 ---
 
 ## Problem Statement
 
-### SQL Server Limitation Encountered
+### PostgreSQL Limitation Encountered
 
-During EPIC-006 (Stage as First-Class Entity), we discovered that SQL Server has an **artificial limitation** on foreign key cascade behaviors:
+During EPIC-006 (Stage as First-Class Entity), we discovered that PostgreSQL has an **artificial limitation** on foreign key cascade behaviors:
 
 ```
 FK_Stages_Resources_AmbientSoundId on table 'Stages' may cause cycles
@@ -30,14 +30,14 @@ or multiple cascade paths. Specify ON DELETE NO ACTION or ON UPDATE NO ACTION,
 or modify other FOREIGN KEY constraints.
 ```
 
-**The Issue**: SQL Server does not allow multiple foreign keys from one table to another table when using `CASCADE` or `SET NULL` delete behaviors - even when there's no actual circular dependency.
+**The Issue**: PostgreSQL does not allow multiple foreign keys from one table to another table when using `CASCADE` or `SET NULL` delete behaviors - even when there's no actual circular dependency.
 
 **Example**: The `Stages` table has three FKs to `Resources`:
 - `MainBackgroundId` → Resources
 - `AlternateBackgroundId` → Resources
 - `AmbientSoundId` → Resources
 
-Logically, each FK points to a **different record**. If Resource #2 is deleted, only the column referencing it should be set to NULL. There's no conflict. But SQL Server rejects this at schema creation time.
+Logically, each FK points to a **different record**. If Resource #2 is deleted, only the column referencing it should be set to NULL. There's no conflict. But PostgreSQL rejects this at schema creation time.
 
 **Other databases handle this correctly**:
 - PostgreSQL
@@ -54,7 +54,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 
 ### Additional Benefits of Migration
 
-| Aspect | SQL Server | PostgreSQL |
+| Aspect | PostgreSQL | PostgreSQL |
 |--------|------------|------------|
 | Licensing | Paid (Express has limits) | Free & Open Source |
 | SET NULL on multiple FKs | Not supported | Supported |
@@ -73,7 +73,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 | Check | Status | Notes |
 |-------|--------|-------|
 | Raw SQL queries | None found | All queries via EF Core LINQ |
-| SQL Server-specific syntax | None found | No GETDATE(), NEWID(), etc. |
+| PostgreSQL-specific syntax | None found | No GETDATE(), NEWID(), etc. |
 | Aspire configuration | Database-agnostic | Uses `AddConnectionString("database")` |
 | EF Core abstraction | Complete | Standard LINQ throughout |
 
@@ -118,7 +118,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 ## Implementation Plan
 
 ### Phase 1: Package Updates (1-2h)
-1. Update all .csproj files to replace SQL Server packages with Npgsql
+1. Update all .csproj files to replace PostgreSQL packages with Npgsql
 2. Run `dotnet restore` to verify package compatibility
 3. Fix any package version conflicts
 
@@ -130,11 +130,11 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 
 ### Phase 3: Schema Builder Updates (1h)
 1. Revert `StageSchemaBuilder.cs` from `Restrict` to `SetNull`
-2. Review other schema builders for any SQL Server-specific configurations
+2. Review other schema builders for any PostgreSQL-specific configurations
 3. Verify EF Core model configurations are PostgreSQL-compatible
 
 ### Phase 4: Migration Regeneration (2-3h)
-1. Delete existing SQL Server migrations
+1. Delete existing PostgreSQL migrations
 2. Create fresh PostgreSQL migrations
 3. Test migration on clean database
 4. Verify all tables, indexes, and constraints created correctly
@@ -149,7 +149,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 1. Run application end-to-end
 2. Verify all CRUD operations work
 3. Test FK cascade behaviors (SET NULL should now work)
-4. Update any documentation referencing SQL Server
+4. Update any documentation referencing PostgreSQL
 5. Update README with PostgreSQL setup instructions
 
 ---
@@ -157,7 +157,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 ## Scope
 
 ### In Scope
-- Database provider migration (SQL Server → PostgreSQL)
+- Database provider migration (PostgreSQL → PostgreSQL)
 - Package updates
 - Migration regeneration
 - Test configuration updates
@@ -167,7 +167,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 ### Out of Scope
 - Production deployment changes (separate task)
 - Cloud infrastructure provisioning
-- Data migration from existing SQL Server databases
+- Data migration from existing PostgreSQL databases
 - Performance optimization
 - New features
 
@@ -189,7 +189,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 - Connection string examples for common scenarios
 
 ### Nice to Have
-- Performance benchmarks comparing SQL Server vs PostgreSQL
+- Performance benchmarks comparing PostgreSQL vs PostgreSQL
 - Automated database setup script
 
 ---
@@ -202,7 +202,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 
 ### Medium Risks (Possible)
 - **Test database behavior differences**: In-memory vs real PostgreSQL may have subtle differences
-- **DateTime handling**: PostgreSQL has stricter datetime handling than SQL Server
+- **DateTime handling**: PostgreSQL has stricter datetime handling than PostgreSQL
 
 ### Mitigation Strategies
 - Run full test suite early in migration
@@ -226,7 +226,7 @@ We changed `DeleteBehavior.SetNull` to `DeleteBehavior.Restrict` in `StageSchema
 
 If migration fails:
 1. Revert all code changes via git
-2. Restore SQL Server packages
+2. Restore PostgreSQL packages
 3. Restore original migrations
 4. Restore `Restrict` behavior in StageSchemaBuilder
 
@@ -249,7 +249,7 @@ If migration fails:
 
 ## Related Documentation
 
-- **EPIC-006**: Stage as First-Class Entity (discovered the SQL Server limitation)
+- **EPIC-006**: Stage as First-Class Entity (discovered the PostgreSQL limitation)
 - **EF Core PostgreSQL**: https://www.npgsql.org/efcore/
 - **.NET Aspire PostgreSQL**: https://learn.microsoft.com/en-us/dotnet/aspire/database/postgresql-component
 
@@ -276,7 +276,7 @@ If migration fails:
 
 **Phase 3: Schema Builder Updates (4 files)**
 - Reverted StageSchemaBuilder.cs: `DeleteBehavior.Restrict` → `DeleteBehavior.SetNull` (3 FKs)
-- Updated MaintenanceModeSchemaBuilder.cs: Removed SQL Server-specific `boolean` type
+- Updated MaintenanceModeSchemaBuilder.cs: Removed PostgreSQL-specific `boolean` type
 - Updated AssetSchemaBuilder.cs: `nvarchar(max)` → `jsonb`
 - Updated JobSchemaBuilder.cs: `nvarchar(max)` → `text` (3 places)
 

@@ -144,8 +144,8 @@ internal static class EncounterElementMapper {
             AssetId = model.Asset.Id,
             State = model.State,
             IsHidden = model.IsHidden,
+            // Only set FK ID, NOT navigation property - prevents corrupting Shape table
             TriggerShapeId = model.TriggerRegion?.Id,
-            TriggerShape = model.TriggerRegion?.ToEntity(),
             DisplayId = model.Display?.Id,
             EnabledDisplayId = model.EnabledDisplay?.Id,
             DisabledDisplayId = model.DisabledDisplay?.Id,
@@ -160,8 +160,8 @@ internal static class EncounterElementMapper {
         entity.AssetId = model.Asset.Id;
         entity.State = model.State;
         entity.IsHidden = model.IsHidden;
+        // Only set FK ID, NOT navigation property - prevents corrupting Shape table
         entity.TriggerShapeId = model.TriggerRegion?.Id;
-        entity.TriggerShape = model.TriggerRegion?.ToEntity();
         entity.DisplayId = model.Display?.Id;
         entity.EnabledDisplayId = model.EnabledDisplay?.Id;
         entity.DisabledDisplayId = model.DisabledDisplay?.Id;

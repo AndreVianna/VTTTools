@@ -116,7 +116,7 @@ const user = { email, userName: email, emailConfirmed: true, passwordHash: proce
 | "Undefined parameter {id}" | Use `{string}` |
 | "Alternative empty" | Escape `\/` in step text |
 | 401 after login | Remove `extraHTTPHeaders` |
-| LocalDB timeout | Use `msnodesqlv8` + ODBC 17 |
+| PostgreSQL timeout | Check connection string and pg_hba.conf |
 | about:blank redirect | Use clearCookies() not context.close() |
 | 0 scenarios | Add feature to both profiles in cucumber.cjs |
 

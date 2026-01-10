@@ -4,6 +4,7 @@ import type {
   CreateAdventureRequest,
   CreateEncounterRequest,
   Encounter,
+  EncounterCard,
   UpdateAdventureRequest,
 } from '@/types/domain';
 import { contentApi } from './contentApi';
@@ -78,7 +79,8 @@ export const adventuresApi = createApi({
 
     // Adventure-scoped Encounter endpoints (operations through Adventure aggregate)
     // Uses 'AdventureEncounters' tag to avoid conflict with encounterApi's 'Encounter' tag
-    getEncounters: builder.query<Encounter[], string>({
+    // Returns EncounterCard view model (flat structure with merged Name/Description)
+    getEncounters: builder.query<EncounterCard[], string>({
       query: (adventureId) => `/${adventureId}/encounters`,
       providesTags: (_result, _error, adventureId) => [{ type: 'AdventureEncounters', id: adventureId }],
     }),

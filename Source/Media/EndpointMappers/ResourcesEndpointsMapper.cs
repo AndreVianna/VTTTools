@@ -11,10 +11,9 @@ public static class ResourcesEndpointsMapper {
             .DisableAntiforgery();
         resources.MapDelete("/{id:Guid}", ResourcesHandlers.DeleteResourceHandler)
             .RequireAuthorization();
-        resources.MapGet("/{id:Guid}", ResourcesHandlers.ServeResourceHandler)
-            .RequireAuthorization();
-        resources.MapGet("/{id:Guid}/info", ResourcesHandlers.GetResourceInfoHandler)
-            .RequireAuthorization();
+        resources.MapGet("/{id:Guid}", ResourcesHandlers.ServeResourceHandler);
+        resources.MapGet("/{id:Guid}/thumbnail", ResourcesHandlers.ServeThumbnailHandler);
+        resources.MapGet("/{id:Guid}/info", ResourcesHandlers.GetResourceInfoHandler);
         resources.MapPut("/{id:Guid}", ResourcesHandlers.UpdateResourceHandler)
             .RequireAuthorization();
     }

@@ -260,7 +260,7 @@
   - Identity: User entity and authentication
   - Media: Resource entity for images
 - **External Dependencies**:
-  - Database (SQL Server or PostgreSQL)
+  - Database (PostgreSQL or PostgreSQL)
   - File storage for asset images (Azure Blob or S3)
 
 ---

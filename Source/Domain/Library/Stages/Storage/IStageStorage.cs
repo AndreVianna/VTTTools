@@ -8,4 +8,10 @@ public interface IStageStorage {
     Task AddAsync(Stage stage, CancellationToken ct = default);
     Task<bool> UpdateAsync(Stage stage, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Check if a resource is used by any stage other than the specified one.
+    /// Checks MainBackground, AlternateBackground, and AmbientSound settings.
+    /// </summary>
+    Task<bool> IsResourceInUseAsync(Guid resourceId, Guid excludeStageId, CancellationToken ct = default);
 }

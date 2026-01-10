@@ -3,15 +3,15 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 namespace VttTools.Library.Handlers;
 
 internal static class StageHandlers {
-    internal static async Task<IResult> GetStagesHandler([FromServices] StageService stageService)
+    internal static async Task<IResult> GetStagesHandler([FromServices] IStageService stageService)
         => Results.Ok(await stageService.GetAllAsync());
 
-    internal static async Task<IResult> GetStageByIdHandler([FromRoute] Guid id, [FromServices] StageService stageService)
+    internal static async Task<IResult> GetStageByIdHandler([FromRoute] Guid id, [FromServices] IStageService stageService)
         => await stageService.GetByIdAsync(id) is { } stage
                ? Results.Ok(stage)
                : Results.NotFound();
 
-    internal static async Task<IResult> CreateStageHandler(HttpContext context, [FromBody] CreateStageRequest request, [FromServices] StageService stageService) {
+    internal static async Task<IResult> CreateStageHandler(HttpContext context, [FromBody] CreateStageRequest request, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var data = new CreateStageData {
             Name = request.Name,
@@ -23,7 +23,7 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> CloneStageHandler(HttpContext context, [FromRoute] Guid id, [FromServices] StageService stageService) {
+    internal static async Task<IResult> CloneStageHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.CloneAsync(userId, id);
         return result.IsSuccessful
@@ -31,7 +31,7 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> UpdateStageHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateStageRequest request, [FromServices] StageService stageService) {
+    internal static async Task<IResult> UpdateStageHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateStageRequest request, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var data = new UpdateStageData {
             Name = request.Name,
@@ -47,13 +47,13 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> DeleteStageHandler(HttpContext context, [FromRoute] Guid id, [FromServices] StageService stageService) {
+    internal static async Task<IResult> DeleteStageHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.DeleteAsync(userId, id);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageWall wall, [FromServices] StageService stageService) {
+    internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageWall wall, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.AddWallAsync(userId, id, wall);
         return result.IsSuccessful
@@ -61,19 +61,19 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageWall wall, [FromServices] StageService stageService) {
+    internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageWall wall, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.UpdateWallAsync(userId, id, (ushort)index, wall);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> RemoveWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] StageService stageService) {
+    internal static async Task<IResult> RemoveWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.RemoveWallAsync(userId, id, (ushort)index);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> AddRegionHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageRegion region, [FromServices] StageService stageService) {
+    internal static async Task<IResult> AddRegionHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageRegion region, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.AddRegionAsync(userId, id, region);
         return result.IsSuccessful
@@ -81,19 +81,19 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageRegion region, [FromServices] StageService stageService) {
+    internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageRegion region, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.UpdateRegionAsync(userId, id, (ushort)index, region);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> RemoveRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] StageService stageService) {
+    internal static async Task<IResult> RemoveRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.RemoveRegionAsync(userId, id, (ushort)index);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> AddLightHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageLight light, [FromServices] StageService stageService) {
+    internal static async Task<IResult> AddLightHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageLight light, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.AddLightAsync(userId, id, light);
         return result.IsSuccessful
@@ -101,19 +101,19 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> UpdateLightHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageLight light, [FromServices] StageService stageService) {
+    internal static async Task<IResult> UpdateLightHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageLight light, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.UpdateLightAsync(userId, id, (ushort)index, light);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> RemoveLightHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] StageService stageService) {
+    internal static async Task<IResult> RemoveLightHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.RemoveLightAsync(userId, id, (ushort)index);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> AddDecorationHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageElement decoration, [FromServices] StageService stageService) {
+    internal static async Task<IResult> AddDecorationHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageElement decoration, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.AddDecorationAsync(userId, id, decoration);
         return result.IsSuccessful
@@ -121,19 +121,19 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> UpdateDecorationHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageElement decoration, [FromServices] StageService stageService) {
+    internal static async Task<IResult> UpdateDecorationHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageElement decoration, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.UpdateDecorationAsync(userId, id, (ushort)index, decoration);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> RemoveDecorationHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] StageService stageService) {
+    internal static async Task<IResult> RemoveDecorationHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.RemoveDecorationAsync(userId, id, (ushort)index);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> AddSoundHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageSound sound, [FromServices] StageService stageService) {
+    internal static async Task<IResult> AddSoundHandler(HttpContext context, [FromRoute] Guid id, [FromBody] StageSound sound, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.AddSoundAsync(userId, id, sound);
         return result.IsSuccessful
@@ -141,13 +141,13 @@ internal static class StageHandlers {
             : ToResult(result);
     }
 
-    internal static async Task<IResult> UpdateSoundHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageSound sound, [FromServices] StageService stageService) {
+    internal static async Task<IResult> UpdateSoundHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] StageSound sound, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.UpdateSoundAsync(userId, id, (ushort)index, sound);
         return ToResult(result);
     }
 
-    internal static async Task<IResult> RemoveSoundHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] StageService stageService) {
+    internal static async Task<IResult> RemoveSoundHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] IStageService stageService) {
         var userId = context.User.GetUserId();
         var result = await stageService.RemoveSoundAsync(userId, id, (ushort)index);
         return ToResult(result);

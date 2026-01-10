@@ -90,14 +90,17 @@ public class ResourcesHandlersTests {
     }
 
     [Fact]
-    public async Task ServeResourceHandler_WithNotFound_ReturnsNotFound() {
+    public async Task ServeResourceHandler_WithNotFound_ReturnsErrorPlaceholder() {
         var id = Guid.CreateVersion7();
         _resourceService.ServeResourceAsync(id, Arg.Any<CancellationToken>())
             .Returns((Resource?)null);
 
         var result = await ResourcesHandlers.ServeResourceHandler(id, _resourceService, _ct);
 
-        result.Should().BeOfType<NotFound>();
+        // Handler returns error placeholder image instead of NotFound
+        result.Should().BeOfType<FileStreamHttpResult>();
+        var fileResult = (FileStreamHttpResult)result;
+        fileResult.ContentType.Should().Be("image/png");
     }
 
     [Fact]

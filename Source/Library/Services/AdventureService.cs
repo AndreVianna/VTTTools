@@ -1,6 +1,6 @@
 namespace VttTools.Library.Services;
 
-public class AdventureService(IAdventureStorage adventureStorage, IEncounterStorage encounterStorage, IMediaStorage mediaStorage, ILogger<AdventureService> logger)
+public class AdventureService(IAdventureStorage adventureStorage, IEncounterStorage encounterStorage, IStageStorage stageStorage, IMediaStorage mediaStorage, ILogger<AdventureService> logger)
     : IAdventureService {
     public async Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default) {
         try {
@@ -126,7 +126,9 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
             return Result.Failure("NotFound");
         if (adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
-        var encounter = new Encounter();
+        var stage = new Stage { OwnerId = userId };
+        await stageStorage.AddAsync(stage, ct);
+        var encounter = new Encounter { OwnerId = userId, Stage = stage };
         await encounterStorage.AddAsync(encounter, id, ct);
         return encounter;
     }

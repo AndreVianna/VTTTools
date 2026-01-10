@@ -10,7 +10,7 @@ Coverage: ≥95% | Zero warnings | .editorconfig enforced
 
 ## Test Failures (CRITICAL)
 - **NEVER modify production code to make tests pass** - fix the tests or test setup, not the source
-- If tests fail due to test infrastructure limitations (e.g., In-Memory DB vs SQL Server), fix the test approach
+- If tests fail due to test infrastructure limitations (e.g., In-Memory DB vs PostgreSQL), fix the test approach
 - Tests should validate production code, not the other way around
 
 ## Principles

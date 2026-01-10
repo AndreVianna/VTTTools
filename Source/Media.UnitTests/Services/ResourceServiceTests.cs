@@ -5,46 +5,62 @@ namespace VttTools.Media.Services;
 public class ResourceServiceTests {
     private readonly IBlobStorage _blobStorage = Substitute.For<IBlobStorage>();
     private readonly IMediaStorage _mediaStorage = Substitute.For<IMediaStorage>();
-    private readonly IMediaProcessorService _mediaProcessor = Substitute.For<IMediaProcessorService>();
+    private readonly MediaProcessingQueue _processingQueue = new();
     private readonly ILogger<ResourceService> _logger = Substitute.For<ILogger<ResourceService>>();
     private readonly ResourceService _service;
     private readonly CancellationToken _ct;
 
     public ResourceServiceTests() {
-        _blobStorage.SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>())
+        _blobStorage.SaveOriginalAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success("uploaded-path"));
-        _service = new(_blobStorage, _mediaStorage, _mediaProcessor, _logger);
+        _service = new(_blobStorage, _mediaStorage, _processingQueue, _logger);
         _ct = TestContext.Current.CancellationToken;
     }
 
     [Fact]
-    public async Task UploadResourceAsync_WithValidData_UploadsAndReturnsResourceFile() {
+    public async Task UploadResourceAsync_WithValidData_SavesOriginalAndQueuesForProcessing() {
+        // Arrange
         var userId = Guid.CreateVersion7();
         var data = new UploadResourceData {
+            Role = ResourceRole.Portrait,
             ContentType = "image/png",
             FileName = "test-image.png",
             Stream = new MemoryStream("test content"u8.ToArray()),
         };
-        var processedMedia = new ProcessedMedia {
-            Stream = new MemoryStream("processed content"u8.ToArray()),
-            ContentType = "image/png",
-            FileName = "test-image.png",
-            FileSize = 100,
-            Dimensions = new(256, 256),
-            Duration = TimeSpan.Zero,
-            Thumbnail = null,
-        };
 
-        _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(processedMedia));
-
+        // Act
         var result = await _service.UploadResourceAsync(userId, data, _ct);
 
+        // Assert
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.ContentType.Should().Be("image/png");
-        await _blobStorage.Received(1).SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
+        result.Value.ContentType.Should().Be("image/png"); // PNG is already optimal, stays image/png
+        result.Value.FileName.Should().Be("test-image.png");
+        await _blobStorage.Received(1).SaveOriginalAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
         await _mediaStorage.Received(1).AddAsync(Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UploadResourceAsync_WithValidData_SetsOwnerIdFromUserId() {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var data = new UploadResourceData {
+            Role = ResourceRole.Portrait,
+            ContentType = "image/png",
+            FileName = "test-image.png",
+            Stream = new MemoryStream("test content"u8.ToArray()),
+        };
+
+        // Act
+        var result = await _service.UploadResourceAsync(userId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.OwnerId.Should().Be(userId);
+        await _mediaStorage.Received(1).AddAsync(
+            Arg.Is<ResourceMetadata>(r => r.OwnerId == userId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -60,7 +76,7 @@ public class ResourceServiceTests {
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Contain("Invalid upload data");
-        await _blobStorage.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
+        await _blobStorage.DidNotReceive().SaveOriginalAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -69,19 +85,19 @@ public class ResourceServiceTests {
         var ownerId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.RemoveAsync(resource.Path, Arg.Any<CancellationToken>())
+        _blobStorage.RemoveAsync(resource.Path, resource.FileName, resource.ContentType, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         var result = await _service.DeleteResourceAsync(ownerId, id, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        await _blobStorage.Received(1).RemoveAsync(resource.Path, Arg.Any<CancellationToken>());
+        await _blobStorage.Received(1).RemoveAsync(resource.Path, resource.FileName, resource.ContentType, Arg.Any<CancellationToken>());
         await _mediaStorage.Received(1).DeleteAsync(id, Arg.Any<CancellationToken>());
     }
 
@@ -96,7 +112,7 @@ public class ResourceServiceTests {
 
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Be("NotFound");
-        await _blobStorage.DidNotReceive().RemoveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _blobStorage.DidNotReceive().RemoveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -106,18 +122,18 @@ public class ResourceServiceTests {
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.RemoveAsync(resource.Path, Arg.Any<CancellationToken>()).Returns(Result.Success());
+        _blobStorage.RemoveAsync(resource.Path, resource.FileName, resource.ContentType, Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         var result = await _service.DeleteResourceAsync(requesterId, id, _ct);
 
         result.IsSuccessful.Should().BeTrue();
-        await _blobStorage.Received(1).RemoveAsync(resource.Path, Arg.Any<CancellationToken>());
+        await _blobStorage.Received(1).RemoveAsync(resource.Path, resource.FileName, resource.ContentType, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -126,7 +142,7 @@ public class ResourceServiceTests {
         var ownerId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -149,7 +165,7 @@ public class ResourceServiceTests {
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -168,7 +184,7 @@ public class ResourceServiceTests {
         var id = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path.png",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
             FileSize = 12345,
@@ -190,13 +206,13 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.GetAsync(resource.Path, Arg.Any<CancellationToken>()).Returns(downloadResult);
+        _blobStorage.GetResourceWithFallbackAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(downloadResult);
 
         var result = await _service.ServeResourceAsync(id, _ct);
 
         result.Should().NotBeNull();
         result.ContentType.Should().Be("image/png");
-        result.FileName.Should().Be("test.png");
+        result.FileName.Should().Be($"{id}.png");
     }
 
     [Fact]
@@ -204,7 +220,7 @@ public class ResourceServiceTests {
         var id = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path.png",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
             FileSize = 12345,
@@ -225,7 +241,7 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.GetAsync(resource.Path, Arg.Any<CancellationToken>()).Returns(downloadResult);
+        _blobStorage.GetResourceWithFallbackAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(downloadResult);
 
         var result = await _service.ServeResourceAsync(id, _ct);
 
@@ -239,7 +255,7 @@ public class ResourceServiceTests {
         var id = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path.png",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -257,12 +273,12 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.GetAsync(resource.Path, Arg.Any<CancellationToken>()).Returns(downloadResult);
+        _blobStorage.GetResourceWithFallbackAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(downloadResult);
 
         var result = await _service.ServeResourceAsync(id, _ct);
 
         result.Should().NotBeNull();
-        await _blobStorage.Received(1).GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _blobStorage.Received(1).GetResourceWithFallbackAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -271,7 +287,7 @@ public class ResourceServiceTests {
         var ownerId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path.png",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -292,7 +308,7 @@ public class ResourceServiceTests {
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path.png",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -327,45 +343,16 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task UploadResourceAsync_WithMediaProcessorFailure_ReturnsFailure() {
-        var userId = Guid.CreateVersion7();
-        var data = new UploadResourceData {
-            ContentType = "image/png",
-            FileName = "test.png",
-            Stream = new MemoryStream("test"u8.ToArray()),
-        };
-
-        _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure<ProcessedMedia>(null!, "DefaultDisplay processing failed"));
-
-        var result = await _service.UploadResourceAsync(userId, data, _ct);
-
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors[0].Message.Should().Be("DefaultDisplay processing failed");
-        await _blobStorage.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public async Task UploadResourceAsync_WithBlobStorageFailure_ReturnsFailure() {
         var userId = Guid.CreateVersion7();
         var data = new UploadResourceData {
+            Role = ResourceRole.Portrait,
             ContentType = "image/png",
             FileName = "test.png",
             Stream = new MemoryStream("test"u8.ToArray()),
         };
-        var processedMedia = new ProcessedMedia {
-            Stream = new MemoryStream("processed"u8.ToArray()),
-            ContentType = "image/png",
-            FileName = "test.png",
-            FileSize = 100,
-            Dimensions = new(256, 256),
-            Duration = TimeSpan.Zero,
-            Thumbnail = null,
-        };
 
-        _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(processedMedia));
-        _blobStorage.SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<ResourceMetadata>(), Arg.Any<CancellationToken>())
+        _blobStorage.SaveOriginalAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<string>(null!, "Blob storage error"));
 
         var result = await _service.UploadResourceAsync(userId, data, _ct);
@@ -376,71 +363,17 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task UploadResourceAsync_WithThumbnail_SavesThumbnail() {
-        var userId = Guid.CreateVersion7();
-        var data = new UploadResourceData {
-            ContentType = "image/png",
-            FileName = "test.png",
-            Stream = new MemoryStream("test"u8.ToArray()),
-        };
-        var thumbnail = "thumbnail data"u8.ToArray();
-        var processedMedia = new ProcessedMedia {
-            Stream = new MemoryStream("processed"u8.ToArray()),
-            ContentType = "image/png",
-            FileName = "test.png",
-            FileSize = 100,
-            Dimensions = new(256, 256),
-            Duration = TimeSpan.Zero,
-            Thumbnail = thumbnail,
-        };
-
-        _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(processedMedia));
-
-        var result = await _service.UploadResourceAsync(userId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        await _blobStorage.Received(1).SaveThumbnailAsync(Arg.Any<string>(), Arg.Is<byte[]>(b => b.Length == thumbnail.Length), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UploadResourceAsync_WithEmptyThumbnail_DoesNotSaveThumbnail() {
-        var userId = Guid.CreateVersion7();
-        var data = new UploadResourceData {
-            ContentType = "image/png",
-            FileName = "test.png",
-            Stream = new MemoryStream("test"u8.ToArray()),
-        };
-        var processedMedia = new ProcessedMedia {
-            Stream = new MemoryStream("processed"u8.ToArray()),
-            ContentType = "image/png",
-            FileName = "test.png",
-            FileSize = 100,
-            Dimensions = new(256, 256),
-            Duration = TimeSpan.Zero,
-            Thumbnail = [],
-        };
-
-        _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(processedMedia));
-
-        var result = await _service.UploadResourceAsync(userId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        await _blobStorage.DidNotReceive().SaveThumbnailAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public async Task UploadResourceAsync_WithException_ReturnsFailure() {
         var userId = Guid.CreateVersion7();
         var data = new UploadResourceData {
+            Role = ResourceRole.Portrait,
             ContentType = "image/png",
             FileName = "test.png",
             Stream = new MemoryStream("test"u8.ToArray()),
         };
 
-        _mediaProcessor.ProcessAsync(Arg.Any<ResourceRole>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<Result<ProcessedMedia>>(new("Unexpected error")));
+        _blobStorage.SaveOriginalAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<Result<string>>(new InvalidOperationException("Unexpected error")));
 
         var result = await _service.UploadResourceAsync(userId, data, _ct);
 
@@ -539,31 +472,10 @@ public class ResourceServiceTests {
     }
 
     [Fact]
-    public async Task ServeResourceAsync_WithNotFoundResource_ReturnsNull() {
-        var id = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-
-        _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns((ResourceMetadata?)null);
-
-        var result = await _service.ServeResourceAsync(id, _ct);
-
-        result.Should().BeNull();
-        await _blobStorage.DidNotReceive().GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public async Task ServeResourceAsync_WithBlobNotFound_ReturnsNull() {
         var id = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        var resource = new ResourceMetadata {
-            Id = id,
-            Path = "images/test/path",
-            FileName = "test.png",
-            ContentType = "image/png",
-        };
 
-        _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.GetAsync(resource.Path, Arg.Any<CancellationToken>()).Returns((ResourceDownloadResult?)null);
+        _blobStorage.GetResourceWithFallbackAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((ResourceDownloadResult?)null);
 
         var result = await _service.ServeResourceAsync(id, _ct);
 
@@ -573,11 +485,10 @@ public class ResourceServiceTests {
     [Fact]
     public async Task GetResourceAsync_WithPublicPublishedResourceAndNonOwner_ReturnsResource() {
         var id = Guid.CreateVersion7();
-        var ownerId = Guid.CreateVersion7();
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -597,7 +508,7 @@ public class ResourceServiceTests {
         var requesterId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -630,7 +541,7 @@ public class ResourceServiceTests {
         var ownerId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
@@ -651,13 +562,13 @@ public class ResourceServiceTests {
         var ownerId = Guid.CreateVersion7();
         var resource = new ResourceMetadata {
             Id = id,
-            Path = "images/test/path",
+            Path = "bcde/01234567890abcdef",
             FileName = "test.png",
             ContentType = "image/png",
         };
 
         _mediaStorage.FindByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
-        _blobStorage.RemoveAsync(resource.Path, Arg.Any<CancellationToken>())
+        _blobStorage.RemoveAsync(resource.Path, resource.FileName, resource.ContentType, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Blob deletion failed"));
 
         var result = await _service.DeleteResourceAsync(ownerId, id, _ct);
@@ -665,5 +576,47 @@ public class ResourceServiceTests {
         result.IsSuccessful.Should().BeFalse();
         result.Errors[0].Message.Should().Be("Blob deletion failed");
         await _mediaStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UploadResourceAsync_WithWebmVideo_SetsPrimaryContentTypeToMp4() {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var data = new UploadResourceData {
+            Role = ResourceRole.Background,
+            ContentType = "video/webm",
+            FileName = "test-video.webm",
+            Stream = new MemoryStream("test content"u8.ToArray()),
+        };
+
+        // Act
+        var result = await _service.UploadResourceAsync(userId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.ContentType.Should().Be("video/mp4"); // PRIMARY format
+        result.Value.FileName.Should().Be("test-video.webm"); // Original filename preserved
+    }
+
+    [Fact]
+    public async Task UploadResourceAsync_WithJpegImage_SetsPrimaryContentTypeToPng() {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var data = new UploadResourceData {
+            Role = ResourceRole.Portrait,
+            ContentType = "image/jpeg",
+            FileName = "test-image.jpg",
+            Stream = new MemoryStream("test content"u8.ToArray()),
+        };
+
+        // Act
+        var result = await _service.UploadResourceAsync(userId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.ContentType.Should().Be("image/png"); // PRIMARY format
+        result.Value.FileName.Should().Be("test-image.jpg"); // Original filename preserved
     }
 }

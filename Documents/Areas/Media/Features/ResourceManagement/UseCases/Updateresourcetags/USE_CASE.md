@@ -224,7 +224,7 @@
   - EF Core DbContext for database update
   - No external services required
 - **Area Dependencies**: None (self-contained update operation)
-- **External Dependencies**: Database (SQL Server via EF Core)
+- **External Dependencies**: Database (PostgreSQL via EF Core)
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Media area owns Resource.Tags property, no cross-context dependencies

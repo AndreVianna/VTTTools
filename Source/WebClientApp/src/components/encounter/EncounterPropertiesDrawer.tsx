@@ -142,9 +142,9 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
     onPublishedChange(e.target.checked);
   };
 
-  const handleLightChange = (e: SelectChangeEvent<number>) => {
+  const handleLightChange = (e: SelectChangeEvent<string>) => {
     if (onLightChange) {
-      onLightChange(Number(e.target.value) as AmbientLight);
+      onLightChange(e.target.value as AmbientLight);
     }
   };
 
@@ -154,9 +154,9 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
     }
   };
 
-  const handleGridTypeChange = (e: SelectChangeEvent<number>) => {
+  const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
     if (!onGridChange || !gridConfig) return;
-    const newType = Number(e.target.value) as GridType;
+    const newType = e.target.value as GridType;
 
     onGridChange({
       type: newType,

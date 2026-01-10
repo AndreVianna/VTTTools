@@ -28,9 +28,9 @@ export const mediaApi = createApi({
         entityId?: string;
       }
     >({
-      query: ({ file, resourceType = 'token', entityId }) => {
+      query: ({ file, resourceType = 'Token', entityId }) => {
         const formData = new FormData();
-        formData.append('resourceType', resourceType);
+        formData.append('role', resourceType);
         formData.append('file', file);
 
         if (entityId) {

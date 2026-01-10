@@ -183,7 +183,7 @@
   - EF Core DbContext for database access
   - No external services required (database only)
 - **Area Dependencies**: None (self-contained read operation)
-- **External Dependencies**: Database (SQL Server via EF Core)
+- **External Dependencies**: Database (PostgreSQL via EF Core)
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Media area owns Resource entity, exposes read-only access via IMediaStorage

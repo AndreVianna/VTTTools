@@ -73,11 +73,13 @@ internal static class CampaignHandlers {
     internal static async Task<IResult> GetAdventuresHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ICampaignService campaignService) {
         var userId = context.User.GetUserId();
         var campaign = await campaignService.GetCampaignByIdAsync(id);
-        return campaign is null
-            ? Results.NotFound()
-            : campaign.OwnerId != userId && campaign is not { IsPublic: true, IsPublished: true }
-                ? Results.Forbid()
-                : Results.Ok(await campaignService.GetAdventuresAsync(id));
+        if (campaign is null)
+            return Results.NotFound();
+        if (campaign.OwnerId != userId && campaign is not { IsPublic: true, IsPublished: true })
+            return Results.Forbid();
+        var adventures = await campaignService.GetAdventuresAsync(id);
+        var response = adventures.Select(AdventureCardResponse.FromAdventure);
+        return Results.Ok(response);
     }
 
     internal static async Task<IResult> AddNewAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ICampaignService campaignService) {

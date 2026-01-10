@@ -23,6 +23,8 @@ public interface IEncounterStorage {
 
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 
+    Task<int> CountByStageIdAsync(Guid stageId, CancellationToken ct = default);
+
     // === Game Element Operations ===
 
     // Actors

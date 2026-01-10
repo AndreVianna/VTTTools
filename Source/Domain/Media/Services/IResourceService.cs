@@ -8,4 +8,5 @@ public interface IResourceService {
     Task<Result> DeleteResourceAsync(Guid userId, Guid id, CancellationToken ct = default);
 
     Task<Resource?> ServeResourceAsync(Guid id, CancellationToken ct = default);
+    Task<Resource?> ServeThumbnailAsync(Guid id, CancellationToken ct = default);
 }

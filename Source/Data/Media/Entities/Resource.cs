@@ -2,6 +2,7 @@ namespace VttTools.Data.Media.Entities;
 
 public class Resource {
     public Guid Id { get; set; }
+    public Guid OwnerId { get; set; }
     [MaxLength(64)]
     public string ContentType { get; set; } = string.Empty;
     [MaxLength(512)]

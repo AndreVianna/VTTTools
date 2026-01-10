@@ -25,6 +25,24 @@ export default defineConfig(({ mode }) => {
         '@utils': resolve(__dirname, 'src/utils'),
         '@config': resolve(__dirname, 'src/config'),
       },
+      // Deduplicate packages to prevent multiple instances
+      dedupe: [
+        '@emotion/react',
+        '@emotion/styled',
+        '@emotion/cache',
+        'react',
+        'react-dom',
+        '@microsoft/signalr',
+      ],
+    },
+    // Optimize dependencies to use single instances
+    optimizeDeps: {
+      include: [
+        '@emotion/react',
+        '@emotion/styled',
+        '@emotion/cache',
+        '@vtttools/web-components',
+      ],
     },
     define: {
       __ASPIRE_HEALTH__: JSON.stringify(true),
@@ -113,6 +131,11 @@ export default defineConfig(({ mode }) => {
               changeOrigin: true,
               secure: false,
             },
+            '/api/stages': {
+              target: 'https://localhost:7172',
+              changeOrigin: true,
+              secure: false,
+            },
             '/api/sessions': {
               target: 'https://localhost:7173',
               changeOrigin: true,
@@ -120,6 +143,12 @@ export default defineConfig(({ mode }) => {
             },
             '/api/resources': {
               target: 'https://localhost:7174',
+              changeOrigin: true,
+              secure: false,
+            },
+            '/hubs/media': {
+              target: 'https://localhost:7174',
+              ws: true,
               changeOrigin: true,
               secure: false,
             },

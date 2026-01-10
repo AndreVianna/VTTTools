@@ -195,7 +195,7 @@
   - EF Core DbContext for filtered database query
   - No external services required
 - **Area Dependencies**: None (self-contained query operation)
-- **External Dependencies**: Database (SQL Server via EF Core)
+- **External Dependencies**: Database (PostgreSQL via EF Core)
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Media area owns Resource.Type property, exposes filtered query via IMediaStorage

@@ -102,7 +102,7 @@ This document describes the technical implementation structure of VTTTools, incl
 
 - **VttTools.AppHost** (Executable)
   - **Path**: Source/AppHost/VttTools.AppHost.csproj
-  - **Purpose**: .NET Aspire orchestration host for local development (coordinates all services, Redis, SQL Server, Azurite)
+  - **Purpose**: .NET Aspire orchestration host for local development (coordinates all services, Redis, PostgreSQL, Azurite)
   - **Layer**: Infrastructure (Orchestration)
   - **Implements Features**: Development environment orchestration
   - **Dependencies**: VttTools.Assets, VttTools.Data.MigrationService, VttTools.Library, VttTools.Game, VttTools.Media, VttTools.WebApp, VttTools.Auth
@@ -124,7 +124,7 @@ This document describes the technical implementation structure of VTTTools, incl
 
 - **VttTools.Data.MigrationService** (Executable)
   - **Path**: Source/Data.MigrationService/VttTools.Data.MigrationService.csproj
-  - **Purpose**: Database migration tool for applying EF Core migrations to SQL Server
+  - **Purpose**: Database migration tool for applying EF Core migrations to PostgreSQL
   - **Layer**: Infrastructure (Tooling)
   - **Implements Features**: Database schema management
   - **Dependencies**: VttTools.Data
@@ -191,13 +191,13 @@ This document describes the technical implementation structure of VTTTools, incl
 ### Infrastructure Layer
 
 - **VttTools.Data**: EF Core data access and repository implementations
-  - Contains: ApplicationDbContext with 6 DbSet entities, 7 Identity entities, repository pattern implementations for all storage interfaces, SQL Server integration, schema builders for owned types
+  - Contains: ApplicationDbContext with 6 DbSet entities, 7 Identity entities, repository pattern implementations for all storage interfaces, PostgreSQL integration, schema builders for owned types
 
 - **VttTools.Data.MigrationService**: Database migration tool
   - Contains: EF Core migration application logic, schema update handlers, database versioning
 
 - **VttTools.AppHost**: .NET Aspire orchestration host
-  - Contains: Service discovery configuration, Redis cache setup, SQL Server configuration, Azurite (local Azure Storage emulator), unified development environment startup logic
+  - Contains: Service discovery configuration, Redis cache setup, PostgreSQL configuration, Azurite (local Azure Storage emulator), unified development environment startup logic
 
 ### UI/Presentation Layer
 
@@ -283,7 +283,7 @@ This section provides bidirectional traceability between business features and t
   - All features: Core domain entities (15 total), value objects (11 total), enums (10 total), storage interface contracts, business rules and invariants
 
 **VttTools.Data** → Implements:
-  - All features: EF Core ApplicationDbContext, repository pattern implementations, SQL Server database access, entity persistence
+  - All features: EF Core ApplicationDbContext, repository pattern implementations, PostgreSQL database access, entity persistence
 
 **VttTools.Media** → Implements:
   - Media Resource Management: Media service with Azure Blob Storage adapter, file upload/retrieval, metadata extraction (images, animations, videos)
@@ -308,7 +308,7 @@ This section provides bidirectional traceability between business features and t
   - All features: Primary backend API hosting REST controllers, SignalR hubs, Identity integration, API Gateway pattern
 
 **VttTools.AppHost** → Implements:
-  - All features: .NET Aspire orchestration for local development (Redis, SQL Server, Azurite, service discovery)
+  - All features: .NET Aspire orchestration for local development (Redis, PostgreSQL, Azurite, service discovery)
 
 **VttTools.Auth** → Implements:
   - Authentication & User Management: Authentication API contracts (LoginRequest, RegisterRequest, AuthResponse), JWT token generation
@@ -388,7 +388,7 @@ This section provides bidirectional traceability between business features and t
 ### External Dependencies
 
 **Key .NET Dependencies:**
-- **Entity Framework Core 9.0.8**: ORM for SQL Server database access
+- **Entity Framework Core 9.0.8**: ORM for PostgreSQL database access
   - Used by: VttTools.Data, VttTools.Media, VttTools.Assets, VttTools.Library, VttTools.Game, VttTools.WebApp, VttTools.Auth, VttTools.Data.MigrationService
 
 - **ASP.NET Core Identity 9.0.8**: Authentication and authorization framework
@@ -490,7 +490,7 @@ This section provides bidirectional traceability between business features and t
 │                            ↓                                 │
 ├─────────────────────────────────────────────────────────────┤
 │                    External Systems                          │
-│   SQL Server | Redis | Azure Blob Storage | Azurite        │
+│   PostgreSQL | Redis | Azure Blob Storage | Azurite        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -532,45 +532,45 @@ This section provides bidirectional traceability between business features and t
 
 **VttTools.AppHost** (.NET Aspire Orchestrator):
   - **Type**: Development orchestration (local only)
-  - **Components**: All microservices, Redis, SQL Server, Azurite
+  - **Components**: All microservices, Redis, PostgreSQL, Azurite
   - **Entry Point**: Program.cs
-  - **Dependencies**: Docker Desktop (for Redis, SQL Server, Azurite containers)
+  - **Dependencies**: Docker Desktop (for Redis, PostgreSQL, Azurite containers)
 
 **VttTools.Auth** (Authentication Microservice):
   - **Type**: ASP.NET Core WebAPI
   - **Components**: VttTools.Auth, VttTools.Domain, VttTools.Data, VttTools.Common
   - **Entry Point**: Program.cs
-  - **Dependencies**: SQL Server, Redis (optional)
+  - **Dependencies**: PostgreSQL, Redis (optional)
 
 **VttTools.Media** (Media Microservice):
   - **Type**: ASP.NET Core WebAPI
   - **Components**: VttTools.Media, VttTools.Domain, VttTools.Data, VttTools.Common
   - **Entry Point**: Program.cs
-  - **Dependencies**: SQL Server, Azure Blob Storage, Redis (optional)
+  - **Dependencies**: PostgreSQL, Azure Blob Storage, Redis (optional)
 
 **VttTools.Assets** (Asset Microservice):
   - **Type**: ASP.NET Core WebAPI
   - **Components**: VttTools.Assets, VttTools.Domain, VttTools.Data, VttTools.Common
   - **Entry Point**: Program.cs
-  - **Dependencies**: SQL Server, Redis (optional)
+  - **Dependencies**: PostgreSQL, Redis (optional)
 
 **VttTools.Library** (Library Microservice):
   - **Type**: ASP.NET Core WebAPI
   - **Components**: VttTools.Library, VttTools.Domain, VttTools.Data, VttTools.Common
   - **Entry Point**: Program.cs
-  - **Dependencies**: SQL Server, Azure Blob Storage, Redis (optional)
+  - **Dependencies**: PostgreSQL, Azure Blob Storage, Redis (optional)
 
 **VttTools.Game** (Game Microservice):
   - **Type**: ASP.NET Core WebAPI
   - **Components**: VttTools.Game, VttTools.Domain, VttTools.Data, VttTools.Common
   - **Entry Point**: Program.cs
-  - **Dependencies**: SQL Server, Azure Blob Storage, Redis (optional)
+  - **Dependencies**: PostgreSQL, Azure Blob Storage, Redis (optional)
 
 **VttTools.WebApp** (API Gateway):
   - **Type**: ASP.NET Core WebAPI + SignalR
   - **Components**: VttTools.WebApp, VttTools.Domain, VttTools.Data, VttTools.Common, VttTools.WebApp.Common, VttTools.WebApp.WebAssembly
   - **Entry Point**: Program.cs
-  - **Dependencies**: SQL Server, Redis (output caching), all microservices (Auth, Media, Assets, Library, Game)
+  - **Dependencies**: PostgreSQL, Redis (output caching), all microservices (Auth, Media, Assets, Library, Game)
 
 **WebClientApp** (React SPA):
   - **Type**: Single Page Application (Vite build)
@@ -582,7 +582,7 @@ This section provides bidirectional traceability between business features and t
 
 - **Development**:
   - .NET Aspire orchestration via VttTools.AppHost
-  - Local SQL Server or SQL Server in Docker
+  - Local PostgreSQL or PostgreSQL in Docker
   - Azurite for local Azure Storage emulation
   - Redis in Docker for caching
   - WebClientApp dev server (Vite) on port 5173

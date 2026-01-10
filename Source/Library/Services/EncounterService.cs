@@ -1,6 +1,13 @@
+using VttTools.Library.Clients;
+
 namespace VttTools.Library.Services;
 
-public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage assetStorage)
+public class EncounterService(
+    IEncounterStorage encounterStorage,
+    IAssetStorage assetStorage,
+    IStageStorage stageStorage,
+    IMediaServiceClient mediaServiceClient,
+    ILogger<EncounterService> logger)
     : IEncounterService {
     public Task<Encounter[]> GetAllAsync(CancellationToken ct = default)
         => encounterStorage.GetAllAsync(ct);
@@ -56,8 +63,49 @@ public class EncounterService(IEncounterStorage encounterStorage, IAssetStorage 
             return Result.Failure("NotFound");
         if (encounter.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
+
+        var stageId = encounter.Stage.Id;
+
+        // Check if this is the only encounter referencing the stage BEFORE deletion
+        var encounterCount = await encounterStorage.CountByStageIdAsync(stageId, ct);
+        var isStageOrphaned = encounterCount == 1;
+
+        // Delete the Encounter first (FK constraint: Encounter -> Stage is RESTRICT)
         await encounterStorage.DeleteAsync(id, ct);
+
+        if (isStageOrphaned) {
+            var stage = await stageStorage.GetByIdAsync(stageId, ct);
+            if (stage is not null) {
+                await DeleteStageResourcesAsync(stage, ct);
+                var stageDeleted = await stageStorage.DeleteAsync(stageId, ct);
+                if (stageDeleted)
+                    logger.LogInformation("Deleted orphaned stage {StageId} after encounter {EncounterId}", stageId, id);
+            }
+        }
+
         return Result.Success();
+    }
+
+    private async Task DeleteStageResourcesAsync(Stage stage, CancellationToken ct) {
+        List<Guid> resourceIds = [];
+
+        if (stage.Settings.MainBackground is not null)
+            resourceIds.Add(stage.Settings.MainBackground.Id);
+        if (stage.Settings.AlternateBackground is not null)
+            resourceIds.Add(stage.Settings.AlternateBackground.Id);
+        if (stage.Settings.AmbientSound is not null)
+            resourceIds.Add(stage.Settings.AmbientSound.Id);
+
+        foreach (var resourceId in resourceIds) {
+            var isUsedByOthers = await stageStorage.IsResourceInUseAsync(resourceId, stage.Id, ct);
+            if (isUsedByOthers)
+                continue;
+
+            var result = await mediaServiceClient.DeleteResourceAsync(resourceId, ct);
+            if (!result.IsSuccessful)
+                logger.LogWarning("Failed to delete resource {ResourceId} during stage cleanup: {Error}",
+                    resourceId, result.Errors.FirstOrDefault()?.Message ?? "Unknown error");
+        }
     }
 
     public async Task<EncounterActor[]> GetActorsAsync(Guid encounterId, CancellationToken ct = default) {

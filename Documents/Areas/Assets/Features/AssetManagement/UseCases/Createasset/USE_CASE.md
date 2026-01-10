@@ -282,7 +282,7 @@
   - Identity: User entity for ownership validation
   - Media: Resource entity for display validation
 - **External Dependencies**:
-  - Database (SQL Server/PostgreSQL)
+  - Database (PostgreSQL/PostgreSQL)
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Assets owns Asset creation, queries Identity/Media only for validation

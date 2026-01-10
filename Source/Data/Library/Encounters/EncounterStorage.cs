@@ -181,6 +181,9 @@ public class EncounterStorage(ApplicationDbContext context)
         return result > 0;
     }
 
+    public Task<int> CountByStageIdAsync(Guid stageId, CancellationToken ct = default)
+        => context.Encounters.CountAsync(e => e.StageId == stageId, ct);
+
     public async Task<ushort> GetNextActorIndexAsync(Guid encounterId, CancellationToken ct = default) {
         var maxIndex = await context.Set<EncounterActorEntity>()
             .Where(a => a.EncounterId == encounterId)

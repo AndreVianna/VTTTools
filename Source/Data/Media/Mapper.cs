@@ -4,12 +4,10 @@ using ResourceMetadata = VttTools.Media.Model.ResourceMetadata;
 namespace VttTools.Data.Media;
 
 internal static class Mapper {
-    // With junction tables architecture, Role is stored in junction tables (AssetToken, etc.)
-    // not in the Display entity. Resources are pure media metadata.
-
     internal static Expression<Func<ResourceEntity, ResourceMetadata>> AsResource = entity
         => new() {
             Id = entity.Id,
+            OwnerId = entity.OwnerId,
             ContentType = entity.ContentType,
             Path = entity.Path,
             FileName = entity.FileName,
@@ -22,6 +20,7 @@ internal static class Mapper {
     internal static ResourceMetadata? ToModel(this ResourceEntity? entity)
         => entity == null ? null : new() {
             Id = entity.Id,
+            OwnerId = entity.OwnerId,
             ContentType = entity.ContentType,
             Path = entity.Path,
             FileName = entity.FileName,
@@ -33,6 +32,7 @@ internal static class Mapper {
     internal static ResourceEntity ToEntity(this ResourceMetadata model)
         => new() {
             Id = model.Id,
+            OwnerId = model.OwnerId,
             ContentType = model.ContentType,
             Path = model.Path,
             FileName = model.FileName,
@@ -42,6 +42,7 @@ internal static class Mapper {
         };
 
     internal static void UpdateFrom(this ResourceEntity entity, ResourceMetadata model) {
+        entity.OwnerId = model.OwnerId;
         entity.ContentType = model.ContentType;
         entity.Path = model.Path;
         entity.FileName = model.FileName;

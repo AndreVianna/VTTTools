@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type {
   Adventure,
+  AdventureCard,
   Campaign,
   CreateAdventureRequest,
   CreateCampaignRequest,
@@ -58,7 +59,7 @@ export const campaignsApi = createApi({
       invalidatesTags: ['Campaign'],
     }),
 
-    getAdventures: builder.query<Adventure[], string>({
+    getAdventures: builder.query<AdventureCard[], string>({
       query: (campaignId) => `/${campaignId}/adventures`,
       providesTags: (_result, _error, campaignId) => [{ type: 'CampaignAdventures', id: campaignId }],
     }),

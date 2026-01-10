@@ -38,10 +38,8 @@ internal static class ResourcesHandlers {
         Guid userId;
         if (context.IsInternalService()) {
             // Internal service calls must provide OwnerId
-            // Trust the calling service - user was already validated when original request was made
             if (string.IsNullOrWhiteSpace(ownerId) || !Guid.TryParse(ownerId, out var parsedOwnerId))
                 return Results.BadRequest(new { error = "OwnerId is required for internal service calls." });
-
             userId = parsedOwnerId;
         }
         else {
@@ -64,7 +62,6 @@ internal static class ResourcesHandlers {
             return Results.BadRequest(validationResult.Errors);
 
         var result = await resourceService.UploadResourceAsync(userId, data, ct);
-
         if (result.IsSuccessful)
             return Results.Ok(result.Value);
 
@@ -124,13 +121,41 @@ internal static class ResourcesHandlers {
         [FromServices] IResourceService resourceService,
         CancellationToken ct = default) {
         var download = await resourceService.ServeResourceAsync(id, ct);
-        if (download == null)
-            return Results.NotFound();
+        if (download is null) {
+            // Return error placeholder (resource ID exists but processing failed)
+            var assembly = typeof(ResourcesHandlers).Assembly;
+            var stream = assembly.GetManifestResourceStream("VttTools.Media.Resources.error-placeholder.png");
+            return stream is not null
+                ? Results.File(stream, "image/png")
+                : Results.NotFound();
+        }
 
         var isImage = download.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
         return isImage
             ? Results.File(download.Stream, download.ContentType)
             : Results.File(download.Stream, download.ContentType, download.FileName);
+    }
+
+    internal static async Task<IResult> ServeThumbnailHandler(
+        [FromRoute] Guid id,
+        [FromServices] IResourceService resourceService,
+        CancellationToken ct = default) {
+        var thumbnail = await resourceService.ServeThumbnailAsync(id, ct);
+        if (thumbnail is null) {
+            // Try the full resource as fallback (images don't have separate thumbnails)
+            var resource = await resourceService.ServeResourceAsync(id, ct);
+            if (resource is not null && resource.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                return Results.File(resource.Stream, resource.ContentType);
+
+            // Return placeholder if no thumbnail and not an image
+            var assembly = typeof(ResourcesHandlers).Assembly;
+            var stream = assembly.GetManifestResourceStream("VttTools.Media.Resources.error-placeholder.png");
+            return stream is not null
+                ? Results.File(stream, "image/png")
+                : Results.NotFound();
+        }
+
+        return Results.File(thumbnail.Stream, thumbnail.ContentType);
     }
 
     internal static async Task<IResult> GetResourceInfoHandler(

@@ -5,6 +5,16 @@ import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackgroundPanel, type BackgroundPanelProps } from './BackgroundPanel';
 
+// Mock MUI icons to avoid file handle exhaustion in tests
+vi.mock('@mui/icons-material', () => ({
+  Pause: () => <span data-testid="pause-icon">PauseIcon</span>,
+  PhotoCamera: () => <span data-testid="photo-camera-icon">PhotoCameraIcon</span>,
+  PlayArrow: () => <span data-testid="play-arrow-icon">PlayArrowIcon</span>,
+  Videocam: () => <span data-testid="videocam-icon">VideocamIcon</span>,
+  VolumeOff: () => <span data-testid="volume-off-icon">VolumeOffIcon</span>,
+  VolumeUp: () => <span data-testid="volume-up-icon">VolumeUpIcon</span>,
+}));
+
 // Mock video element methods
 beforeEach(() => {
   window.HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);

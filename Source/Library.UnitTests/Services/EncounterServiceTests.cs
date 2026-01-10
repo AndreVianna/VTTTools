@@ -3,6 +3,9 @@ namespace VttTools.Library.Services;
 public class EncounterServiceTests {
     private readonly IEncounterStorage _encounterStorage;
     private readonly IAssetStorage _assetStorage;
+    private readonly IStageStorage _stageStorage;
+    private readonly IMediaServiceClient _mediaServiceClient;
+    private readonly ILogger<EncounterService> _logger;
     private readonly EncounterService _service;
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
@@ -10,7 +13,10 @@ public class EncounterServiceTests {
     public EncounterServiceTests() {
         _encounterStorage = Substitute.For<IEncounterStorage>();
         _assetStorage = Substitute.For<IAssetStorage>();
-        _service = new(_encounterStorage, _assetStorage);
+        _stageStorage = Substitute.For<IStageStorage>();
+        _mediaServiceClient = Substitute.For<IMediaServiceClient>();
+        _logger = Substitute.For<ILogger<EncounterService>>();
+        _service = new(_encounterStorage, _assetStorage, _stageStorage, _mediaServiceClient, _logger);
         _ct = TestContext.Current.CancellationToken;
     }
 

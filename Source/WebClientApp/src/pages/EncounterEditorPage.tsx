@@ -52,6 +52,7 @@ import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { useSessionState } from '@/hooks/useSessionState';
 import { useUndoRedoContext } from '@/hooks/useUndoRedo';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
+import { useMediaHub } from '@/hooks/useMediaHub';
 import {
   useAddEncounterAssetMutation,
   useBulkAddEncounterAssetsMutation,
@@ -210,11 +211,12 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [bulkDeleteEncounterAssets] = useBulkDeleteEncounterAssetsMutation();
   const [bulkAddEncounterAssets] = useBulkAddEncounterAssetsMutation();
 
-  // Stage API mutations for walls (via useEncounterEditor)
+  // Stage API mutations (via useEncounterEditor)
   const {
     addWall: stageAddWall,
     updateWall: stageUpdateWall,
     deleteWall: stageDeleteWall,
+    updateStageSettings,
   } = useEncounterEditor({
     encounterId: encounterId ?? '',
     skip: !encounterId,
@@ -239,6 +241,35 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [updateSound] = useUpdateSoundMutation();
   const [deleteSound] = useDeleteSoundMutation();
 
+  // Track resources being processed for media hub subscriptions
+  const subscribedResourcesRef = useRef<Set<string>>(new Set());
+
+  // Media hub for real-time resource updates
+  // Backend now just notifies when a resource is updated - no status to check
+  const { connect: connectMediaHub, subscribeToResource, isConnected: isMediaHubConnected } = useMediaHub({
+    onResourceUpdated: useCallback((event) => {
+      // Resource was updated - unsubscribe and refetch to get latest data
+      subscribedResourcesRef.current.delete(event.resourceId);
+      refetch();
+    }, [refetch]),
+    autoConnect: false,
+  });
+
+  // Connect to media hub when component mounts
+  useEffect(() => {
+    let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        connectMediaHub().catch(() => {});
+      }
+    }, 100);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [connectMediaHub]);
+
   useEffect(() => {
     if (encounterId) {
       refetch();
@@ -256,6 +287,23 @@ const EncounterEditorPageInternal: React.FC = () => {
   useEffect(() => {
     encounterRef.current = encounter;
   }, [encounter]);
+
+  // Subscribe to updates for background resources
+  // Backend handles placeholder/error fallback automatically via the resource path
+  useEffect(() => {
+    const mainBackground = encounter?.stage?.settings?.mainBackground;
+    if (!mainBackground || !isMediaHubConnected) return;
+
+    const { id } = mainBackground;
+
+    // Subscribe to updates if not already subscribed
+    if (id && !subscribedResourcesRef.current.has(id)) {
+      subscribedResourcesRef.current.add(id);
+      subscribeToResource(id).catch(() => {
+        // Subscription errors handled by the hook
+      });
+    }
+  }, [encounter?.stage?.settings?.mainBackground, isMediaHubConnected, subscribeToResource]);
 
   const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
   const [stageSize, setStageSize] = useState({ width: DEFAULT_STAGE_WIDTH, height: DEFAULT_STAGE_HEIGHT });
@@ -717,8 +765,6 @@ const EncounterEditorPageInternal: React.FC = () => {
       setPlacedSoundSources(hydratedSoundSources);
     }
   }, [encounterData, isInitialized, encounterId]);
-
-
   useEffect(() => {
     if (!stage) return;
 
@@ -808,14 +854,20 @@ const EncounterEditorPageInternal: React.FC = () => {
           entityId: encounterId,
         }).unwrap();
 
-        // TODO: Need Stage API to update background. For now, just refetch after upload.
-        // The backend should handle associating the uploaded file with the encounter's stage.
+        // Link the uploaded resource to the Stage's mainBackground
+        await updateStageSettings({ mainBackgroundId: result.id });
+
+        // Subscribe to resource updates (backend will notify when processing completes)
+        if (isMediaHubConnected) {
+          await subscribeToResource(result.id);
+        }
+
         await refetch();
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to upload background:', error);
       }
     },
-    [encounterId, uploadFile, refetch],
+    [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
   );
 
   useEffect(() => {
@@ -1697,6 +1749,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                 stageWidth={stageSize.width}
                 stageHeight={stageSize.height}
                 onImageLoaded={handleBackgroundImageLoaded}
+                {...(backgroundContentType && { contentType: backgroundContentType })}
               />
 
               <GridRenderer
@@ -1837,8 +1890,6 @@ const EncounterEditorPageInternal: React.FC = () => {
                       })}
                 </Group>
               )}
-
-
               {/* Region Transformer */}
               {scopeVisibility.regions &&
                 encounter?.stage.regions &&

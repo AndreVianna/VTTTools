@@ -23,11 +23,27 @@ public class AzureBlobStorageTests {
     }
 
     [Fact]
-    public void AzureBlobStorage_SaveAsync_MethodExists() {
-        var method = typeof(AzureBlobStorage).GetMethod("SaveAsync");
+    public void AzureBlobStorage_SaveOriginalAsync_MethodExists() {
+        var method = typeof(AzureBlobStorage).GetMethod("SaveOriginalAsync");
 
         method.Should().NotBeNull();
-        method.ReturnType.Should().Be<Task<Result<string>>>();
+        method!.ReturnType.Should().Be<Task<Result<string>>>();
+    }
+
+    [Fact]
+    public void AzureBlobStorage_SavePrimaryAsync_MethodExists() {
+        var method = typeof(AzureBlobStorage).GetMethod("SavePrimaryAsync");
+
+        method.Should().NotBeNull();
+        method!.ReturnType.Should().Be<Task<Result<string>>>();
+    }
+
+    [Fact]
+    public void AzureBlobStorage_SavePlaceholderAsync_MethodExists() {
+        var method = typeof(AzureBlobStorage).GetMethod("SavePlaceholderAsync");
+
+        method.Should().NotBeNull();
+        method!.ReturnType.Should().Be<Task<Result<string>>>();
     }
 
     [Fact]
@@ -35,15 +51,23 @@ public class AzureBlobStorageTests {
         var method = typeof(AzureBlobStorage).GetMethod("SaveThumbnailAsync");
 
         method.Should().NotBeNull();
-        method.ReturnType.Should().Be<Task<Result<string>>>();
+        method!.ReturnType.Should().Be<Task<Result<string>>>();
     }
 
     [Fact]
-    public void AzureBlobStorage_GetAsync_MethodExists() {
-        var method = typeof(AzureBlobStorage).GetMethod("GetAsync");
+    public void AzureBlobStorage_GetOriginalAsync_MethodExists() {
+        var method = typeof(AzureBlobStorage).GetMethod("GetOriginalAsync");
 
         method.Should().NotBeNull();
-        method.ReturnType.Should().Be<Task<ResourceDownloadResult?>>();
+        method!.ReturnType.Should().Be<Task<ResourceDownloadResult?>>();
+    }
+
+    [Fact]
+    public void AzureBlobStorage_GetPrimaryAsync_MethodExists() {
+        var method = typeof(AzureBlobStorage).GetMethod("GetPrimaryAsync");
+
+        method.Should().NotBeNull();
+        method!.ReturnType.Should().Be<Task<ResourceDownloadResult?>>();
     }
 
     [Fact]
@@ -51,6 +75,6 @@ public class AzureBlobStorageTests {
         var method = typeof(AzureBlobStorage).GetMethod("RemoveAsync");
 
         method.Should().NotBeNull();
-        method.ReturnType.Should().Be<Task<Result>>();
+        method!.ReturnType.Should().Be<Task<Result>>();
     }
 }

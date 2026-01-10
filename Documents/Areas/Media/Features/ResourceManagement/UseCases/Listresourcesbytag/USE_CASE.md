@@ -205,10 +205,10 @@
 ### Dependencies
 - **Technical Dependencies**:
   - EF Core DbContext for array contains query
-  - SQL Server JSON support or array column type
+  - PostgreSQL JSON support or array column type
   - No external services required
 - **Area Dependencies**: None (self-contained query operation)
-- **External Dependencies**: Database (SQL Server via EF Core)
+- **External Dependencies**: Database (PostgreSQL via EF Core)
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Media area owns Resource.Tags property, exposes tag-based query via IMediaStorage
@@ -216,7 +216,7 @@
 - **Error Handling**: Return empty list for no results, validate tag before query
 - **Performance Considerations**:
   - **Indexing**: Consider full-text index or GIN index on Tags column for fast array contains queries
-  - **Query Optimization**: SQL Server: Use `OPENJSON` or array contains for JSON columns
+  - **Query Optimization**: PostgreSQL: Use `OPENJSON` or array contains for JSON columns
   - **Pagination**: Consider adding pagination parameters (skip, take) for large result sets (future enhancement)
   - **Caching**: Consider caching popular tags (e.g., "fantasy", "scifi") for 2-5 minutes
   - **Ordering**: Consider adding ORDER BY clause (e.g., by upload date DESC, path ASC)
@@ -229,10 +229,10 @@
 
 ### Database Schema Considerations
 - **Storage Format**: Store Tags as JSON array or SQL array column
-  - SQL Server: `nvarchar(max)` with JSON functions or SQL Server 2016+ JSON support
+  - PostgreSQL: `nvarchar(max)` with JSON functions or PostgreSQL 2016+ JSON support
   - PostgreSQL: `text[]` array column type with GIN index for fast contains queries
 - **Indexing Strategy**:
-  - SQL Server: Consider computed column with full-text index on Tags JSON
+  - PostgreSQL: Consider computed column with full-text index on Tags JSON
   - PostgreSQL: Create GIN index on Tags array column: `CREATE INDEX idx_resource_tags ON resource USING GIN (tags);`
 
 ---

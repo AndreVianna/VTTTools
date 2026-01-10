@@ -7,7 +7,9 @@ global using DotNetToolbox.Results;
 
 global using FFMpegCore;
 
+global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.SignalR;
 
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Formats.Png;
@@ -24,6 +26,7 @@ global using VttTools.HealthChecks;
 global using VttTools.Media.ApiContracts;
 global using VttTools.Media.EndpointMappers;
 global using VttTools.Media.Handlers;
+global using VttTools.Media.Hubs;
 global using VttTools.Media.Model;
 global using VttTools.Media.Options;
 global using VttTools.Media.ServiceContracts;

@@ -170,7 +170,7 @@ dotnet ef database drop --project Source/Data --startup-project Source/Assets
 dotnet ef dbcontext info --project Source/Data --startup-project Source/Assets
 
 # Scaffold DbContext from existing database (reverse engineering)
-dotnet ef dbcontext scaffold "ConnectionString" Microsoft.EntityFrameworkCore.SqlServer --project Source/Data --startup-project Source/Assets
+dotnet ef dbcontext scaffold "ConnectionString" Npgsql.EntityFrameworkCore.PostgreSQL --project Source/Data --startup-project Source/Assets
 ```
 
 ---

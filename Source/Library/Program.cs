@@ -1,3 +1,6 @@
+using VttTools.Http;
+using VttTools.Library.Clients;
+
 namespace VttTools.Library;
 
 [ExcludeFromCodeCoverage]
@@ -35,6 +38,13 @@ internal static class Program {
         builder.Services.AddScoped<IContentQueryService, ContentQueryService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
+        builder.Services.AddScoped<IMediaServiceClient, MediaServiceClient>();
+        builder.Services.AddTransient<InternalApiKeyHandler>();
+        builder.Services.AddHttpClient("MediaService", c => c.BaseAddress = new Uri("https+http://resources-api"))
+               .AddHttpMessageHandler<InternalApiKeyHandler>()
+               .AddStandardResilienceHandler();
+
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root

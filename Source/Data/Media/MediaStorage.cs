@@ -1,16 +1,11 @@
 namespace VttTools.Data.Media;
 
-public class MediaStorage(ApplicationDbContext context)
+public class MediaStorage(ApplicationDbContext context, ILogger<MediaStorage> logger)
     : IMediaStorage {
-    // With junction tables architecture, Resources are pure media metadata without Role.
-    // To filter by Role, query through parent entities (Asset, Campaign, etc.) or junction tables.
     public async Task<(ResourceMetadata[] Items, int TotalCount)> FilterAsync(
         ResourceFilterData filter,
         CancellationToken ct = default) {
         var query = context.Resources.AsNoTracking();
-
-        // Note: Role filtering is no longer available at Display level.
-        // Role is stored in junction tables (AssetResources, CampaignResources, etc.)
 
         if (!string.IsNullOrWhiteSpace(filter.SearchText)) {
             var search = $"%{filter.SearchText}%";
@@ -33,23 +28,37 @@ public class MediaStorage(ApplicationDbContext context)
         var entity = await context.Resources
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
+        if (entity is not null) {
+            logger.LogDebug("[DEBUG] MediaStorage.FindByIdAsync {Id}: OwnerId={OwnerId}, ContentType={ContentType}, FileName={FileName}",
+                entity.Id, entity.OwnerId, entity.ContentType, entity.FileName);
+        }
         return entity.ToModel();
     }
 
     public async Task AddAsync(ResourceMetadata resource, CancellationToken ct = default) {
+        logger.LogDebug("[DEBUG] MediaStorage.AddAsync BEFORE: Id={Id}, OwnerId={OwnerId}, ContentType={ContentType}, FileName={FileName}",
+            resource.Id, resource.OwnerId, resource.ContentType, resource.FileName);
         var entity = resource.ToEntity();
+        logger.LogDebug("[DEBUG] MediaStorage.AddAsync ENTITY: Id={Id}, OwnerId={OwnerId}, ContentType={ContentType}, FileName={FileName}",
+            entity.Id, entity.OwnerId, entity.ContentType, entity.FileName);
         await context.Resources.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
+        logger.LogDebug("[DEBUG] MediaStorage.AddAsync AFTER SaveChanges: Id={Id}, OwnerId={OwnerId}",
+            entity.Id, entity.OwnerId);
     }
 
     public async Task<bool> UpdateAsync(ResourceMetadata resource, CancellationToken ct = default) {
+        logger.LogDebug("[DEBUG] MediaStorage.UpdateAsync called for Id={Id}, incoming OwnerId={OwnerId}",
+            resource.Id, resource.OwnerId);
         var entity = await context.Resources
             .FirstOrDefaultAsync(e => e.Id == resource.Id, ct);
-
         if (entity is null)
             return false;
-
+        logger.LogDebug("[DEBUG] MediaStorage.UpdateAsync BEFORE update: DB OwnerId={OwnerId}",
+            entity.OwnerId);
         entity.UpdateFrom(resource);
+        logger.LogDebug("[DEBUG] MediaStorage.UpdateAsync AFTER update: entity OwnerId={OwnerId}",
+            entity.OwnerId);
 
         var result = await context.SaveChangesAsync(ct);
         return result > 0;

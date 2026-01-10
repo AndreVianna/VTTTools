@@ -78,8 +78,11 @@ internal static class AdventureHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> GetEncountersHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
-        => Results.Ok(await adventureService.GetEncountersAsync(id));
+    internal static async Task<IResult> GetEncountersHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
+        var encounters = await adventureService.GetEncountersAsync(id);
+        var response = encounters.Select(EncounterCardResponse.FromEncounter);
+        return Results.Ok(response);
+    }
 
     internal static async Task<IResult> AddNewEncounterHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();

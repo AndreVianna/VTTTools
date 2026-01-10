@@ -1,14 +1,14 @@
 import { Box, Button, Typography } from '@mui/material';
 import type React from 'react';
 import { getApiEndpoints } from '@/config/development';
-import type { Campaign } from '@/types/domain';
+import type { CampaignCard as CampaignCardType } from '@/types/domain';
 import { ContentType } from '../../types';
 import { ContentCard, PublishedBadge } from '../shared';
 
 const CAMPAIGN_DEFAULT_BACKGROUND = '/assets/backgrounds/campaign.png';
 
 export interface CampaignCardProps {
-  campaign: Campaign;
+  campaign: CampaignCardType;
   onOpen: (id: string) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -27,11 +27,9 @@ export function CampaignCard({ campaign, onOpen, onDuplicate, onDelete }: Campai
 
   const badges = <>{campaign.isPublished && <PublishedBadge />}</>;
 
-  const adventureCount = campaign.adventures?.length ?? 0;
-
   const metadata = (
     <Typography variant='body2' color='text.secondary'>
-      {adventureCount} {adventureCount === 1 ? 'adventure' : 'adventures'}
+      {campaign.adventureCount} {campaign.adventureCount === 1 ? 'adventure' : 'adventures'}
     </Typography>
   );
 
@@ -53,7 +51,7 @@ export function CampaignCard({ campaign, onOpen, onDuplicate, onDelete }: Campai
   );
 
   const apiEndpoints = getApiEndpoints();
-  const resourceUrl = campaign.background ? `${apiEndpoints.media}/${campaign.background.id}` : null;
+  const resourceUrl = campaign.backgroundId ? `${apiEndpoints.media}/${campaign.backgroundId}` : null;
 
   return (
     <ContentCard

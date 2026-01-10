@@ -247,7 +247,7 @@
 - **Area Dependencies**: None (Media is foundational storage)
 - **External Dependencies**:
   - Azure Blob Storage account (or local Azurite for development)
-  - Database (SQL Server via EF Core)
+  - Database (PostgreSQL via EF Core)
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Media area owns all storage operations, other areas only reference Resource.Id

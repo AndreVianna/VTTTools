@@ -172,7 +172,7 @@ Current implementation includes:
 ---
 
 ### Infrastructure Layer (External Concerns)
-- **EF Core Data Layer**: ApplicationDbContext with 6 DbSet entities, schema builders for owned types, SQL Server provider
+- **EF Core Data Layer**: ApplicationDbContext with 6 DbSet entities, schema builders for owned types, PostgreSQL provider
 - **Azure Blob Storage**: Production media storage adapter (IMediaStorage implementation)
 - **Local FileSystem Storage**: Development media storage adapter
 - **Redis Cache**: Output caching via Aspire StackExchange.Redis
@@ -217,7 +217,7 @@ Current implementation includes:
 ---
 
 ### Secondary Adapters (Outbound)
-- **EF Core Storage Adapters**: AssetStorage, MediaStorage, EncounterStorage, AdventureStorage, GameSessionStorage (SQL Server)
+- **EF Core Storage Adapters**: AssetStorage, MediaStorage, EncounterStorage, AdventureStorage, GameSessionStorage (PostgreSQL)
 - **Azure Blob Storage Adapter**: Production media file storage
 - **Local FileSystem Adapter**: Development media file storage
 - **Azurite Adapter**: Local Azure Storage emulation for development
@@ -248,8 +248,8 @@ Current implementation includes:
 ### Technology Stack
 - **ASP.NET Core 9.0**: Backend framework for API services and SignalR hubs
 - **C# 13 (preview)**: Backend language with latest features
-- **Entity Framework Core 9.0**: ORM for SQL Server database access
-- **SQL Server 2022**: Database for persistent data storage (Azure SQL Database in production)
+- **Entity Framework Core 9.0**: ORM for PostgreSQL database access
+- **PostgreSQL 2022**: Database for persistent data storage (Azure SQL Database in production)
 - **React 19.1.1**: Frontend UI framework for component-based interface
 - **TypeScript 5.9.2**: Type-safe frontend development
 - **Material-UI 7.3.2**: UI component library with Emotion styling
@@ -326,10 +326,10 @@ Current implementation includes:
 ---
 
 #### Storage Component (Infrastructure Layer)
-- **Technology**: SQL Server with Entity Framework Core 9.0
+- **Technology**: PostgreSQL with Entity Framework Core 9.0
 - **Purpose**: Persistent data storage implementing repository pattern
 - **Data Entities**: Resource (media files), Asset (game pieces), Adventure (game modules), Encounter (tactical maps), GameSession (active meetings), Schedule (meeting schedules), World (story arcs), Campaign (story collections), User (identity), Role (permissions)
-- **Storage Requirements**: SQL Server database for relational data, Azure Blob Storage for media files (production), local filesystem for media (development)
+- **Storage Requirements**: PostgreSQL database for relational data, Azure Blob Storage for media files (production), local filesystem for media (development)
 - **Architecture Role**: Secondary Adapter implementing outbound storage ports (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
 
 ---
@@ -360,7 +360,7 @@ Current implementation includes:
 
 ### Deployment Configuration
 - **Deployment Target**: Azure App Service (backend), Azure Static Web Apps or App Service (frontend), Azure SQL Database, Azure Blob Storage
-- **Infrastructure Requirements**: .NET 9 runtime, Node.js 18+ for build, SQL Server, Redis cache, blob storage
+- **Infrastructure Requirements**: .NET 9 runtime, Node.js 18+ for build, PostgreSQL, Redis cache, blob storage
 - **Architecture Considerations**: .NET Aspire orchestration for local development, containerization-ready, environment-specific configuration (appsettings.Development.json, appsettings.Production.json)
 - **Scalability**: Designed for horizontal scaling with stateless API, SignalR scale-out via Redis backplane (future), blob storage CDN integration (future)
 
@@ -510,7 +510,7 @@ Current implementation includes:
 
 ### Phase 3: Infrastructure Layer ✅ COMPLETE
 1. **Secondary Adapters**: EF Core storage implementations, Azure Blob adapter, local filesystem adapter
-2. **Configuration**: SQL Server via EF Core, Redis cache via Aspire, Azure Blob Storage for production
+2. **Configuration**: PostgreSQL via EF Core, Redis cache via Aspire, Azure Blob Storage for production
 3. **Repository Pattern**: Storage interfaces with EF Core implementations
 4. **External Integrations**: Azure Blob Storage connected for media files
 

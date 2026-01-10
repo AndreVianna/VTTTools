@@ -1,3 +1,4 @@
+using VttTools.Media.Authorization;
 using VttTools.Utilities;
 
 namespace VttTools.Media;
@@ -30,11 +31,16 @@ internal static class Program {
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.AddSignalR();
+        builder.Services.AddScoped<IAuthorizationHandler, ResourceOwnerAuthorizationHandler>();
         builder.Services.AddScoped<IBlobStorage, AzureBlobStorage>();
         builder.Services.AddScoped<IResourceService, ResourceService>();
         builder.Services.AddScoped<IMediaProcessorService, MediaProcessorService>();
+        builder.Services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+        builder.Services.AddSingleton<MediaProcessingQueue>();
+        builder.Services.AddHostedService<MediaProcessingWorker>();
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root
@@ -48,5 +54,6 @@ internal static class Program {
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
         app.MapResourcesEndpoints();
         app.MapConfigurationEndpoints();
+        app.MapHub<MediaHub>("/hubs/media");
     }
 }

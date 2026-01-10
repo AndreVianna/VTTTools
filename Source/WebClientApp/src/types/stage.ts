@@ -42,6 +42,8 @@ export interface StageSettings {
 }
 
 // Resource metadata for backgrounds and sounds
+// NOTE: ProcessingStatus was removed - backend now handles placeholder/error fallback automatically
+// The resource path always returns a valid image (primary, placeholder, or error-placeholder)
 export interface ResourceMetadata {
     id: string;
     contentType: string;
@@ -53,18 +55,19 @@ export interface ResourceMetadata {
 }
 
 // Ambient light levels (matches backend AmbientLight enum)
+// Backend uses JsonStringEnumConverter, so values are string names
 export enum AmbientLight {
-    Black = -10,
-    Darkness = -5,
-    Nighttime = -3,
-    Dim = -2,
-    Twilight = -1,
-    Default = 0,
-    Candlelight = 1,
-    Torchlight = 2,
-    Artificial = 3,
-    Daylight = 5,
-    Bright = 10,
+    Black = 'Black',
+    Darkness = 'Darkness',
+    Nighttime = 'Nighttime',
+    Dim = 'Dim',
+    Twilight = 'Twilight',
+    Default = 'Default',
+    Candlelight = 'Candlelight',
+    Torchlight = 'Torchlight',
+    Artificial = 'Artificial',
+    Daylight = 'Daylight',
+    Bright = 'Bright',
 }
 
 // =============================================================================

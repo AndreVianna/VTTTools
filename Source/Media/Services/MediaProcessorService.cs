@@ -6,40 +6,8 @@ namespace VttTools.Media.Services;
 public class MediaProcessorService(ILogger<MediaProcessorService> logger)
     : IMediaProcessorService {
 
-    public async Task<Result<ProcessedMedia>> ProcessAsync(
-        ResourceRole role,
-        string contentType,
-        string fileName,
-        Stream stream,
-        CancellationToken ct = default) {
-        if (!MediaConstraints.For.TryGetValue(role, out var constraints))
-            return Result.Failure($"Invalid resource role: '{role}'. Please specify a valid resource role.");
 
-        if (!MediaConstraints.IsValidContentType(role, contentType)) {
-            var allowedTypes = string.Join(", ", constraints.AllowedContentTypes);
-            return Result.Failure($"Content type '{contentType}' is not allowed for resource role '{role}'. Allowed types: {allowedTypes}");
-        }
-
-        if (stream.Length > constraints.MaxFileSize) {
-            var maxSizeMb = constraints.MaxFileSize / 1024.0 / 1024.0;
-            var actualSizeMb = stream.Length / 1024.0 / 1024.0;
-            return Result.Failure($"File size ({actualSizeMb:F2} MB) exceeds maximum ({maxSizeMb:F2} MB) for role '{role}'");
-        }
-
-        var category = MediaConstraints.GetMediaCategory(contentType);
-        return category switch {
-            "image" => await ProcessImageAsync(constraints, fileName, stream, ct),
-            "audio" => await ProcessAudioAsync(constraints, fileName, stream, ct),
-            "video" => await ProcessVideoAsync(constraints, fileName, stream, ct),
-            _ => Result.Failure($"Unsupported media category: {category}"),
-        };
-    }
-
-    public async Task<byte[]?> GenerateThumbnailAsync(
-        string contentType,
-        Stream stream,
-        int maxSize = 256,
-        CancellationToken ct = default) {
+    public async Task<byte[]?> GenerateThumbnailAsync(string contentType, Stream stream, int maxSize = 256, CancellationToken ct = default) {
         var category = MediaConstraints.GetMediaCategory(contentType);
 
         return category switch {
@@ -49,220 +17,76 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         };
     }
 
-    private async Task<Result<ProcessedMedia>> ProcessImageAsync(
-        TypeConstraints constraints,
-        string fileName,
-        Stream input,
-        CancellationToken ct) {
-        try {
-            using var image = await Image.LoadAsync(input, ct);
-            var originalSize = new Size(image.Width, image.Height);
+    public async Task<byte[]> ExtractPlaceholderAsync(string contentType, Stream stream, CancellationToken ct = default) {
+        var category = MediaConstraints.GetMediaCategory(contentType);
+        if (category != "video")
+            return [];
 
-            var needsResize = image.Width > constraints.MaxWidth || image.Height > constraints.MaxHeight;
-            if (needsResize) {
-                var scale = Math.Min(
-                    (double)constraints.MaxWidth / image.Width,
-                    (double)constraints.MaxHeight / image.Height);
-                var newWidth = (int)(image.Width * scale);
-                var newHeight = (int)(image.Height * scale);
-                image.Mutate(x => x.Resize(newWidth, newHeight));
+        var tempInputPath = Path.GetTempFileName();
+        var tempOutputPath = Path.ChangeExtension(tempInputPath, ".png");
+        try {
+            await using (var fileStream = File.Create(tempInputPath)) {
+                await stream.CopyToAsync(fileStream, ct);
             }
+
+            // Extract first frame at original dimensions
+            await FFMpegArguments
+                .FromFileInput(tempInputPath, verifyExists: false, options => options.Seek(TimeSpan.Zero))
+                .OutputToFile(tempOutputPath, overwrite: true, options => options
+                    .WithFrameOutputCount(1))
+                .ProcessAsynchronously();
+
+            return File.Exists(tempOutputPath)
+                ? await File.ReadAllBytesAsync(tempOutputPath, ct)
+                : [];
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to extract placeholder from video");
+            return [];
+        }
+        finally {
+            if (File.Exists(tempInputPath))
+                File.Delete(tempInputPath);
+            if (File.Exists(tempOutputPath))
+                File.Delete(tempOutputPath);
+        }
+    }
+
+    public async Task<Stream> ConvertVideoAsync(Stream stream, CancellationToken ct = default) {
+        var tempInputPath = Path.GetTempFileName();
+        var tempOutputPath = Path.ChangeExtension(tempInputPath, ".mp4");
+        try {
+            await using (var fileStream = File.Create(tempInputPath)) {
+                await stream.CopyToAsync(fileStream, ct);
+            }
+
+            await FFMpegArguments
+                .FromFileInput(tempInputPath)
+                .OutputToFile(tempOutputPath, overwrite: true, options => options.WithVideoCodec("libx264")
+                           .WithAudioCodec("aac")
+                           .WithFastStart())
+                .ProcessAsynchronously();
 
             var outputStream = new MemoryStream();
-            await image.SaveAsPngAsync(outputStream, new() {
-                CompressionLevel = PngCompressionLevel.BestCompression,
-                TransparentColorMode = PngTransparentColorMode.Preserve
-            }, ct);
-
+            await using (var fileStream = File.OpenRead(tempOutputPath)) {
+                await fileStream.CopyToAsync(outputStream, ct);
+            }
             outputStream.Position = 0;
-            var newFileName = Path.ChangeExtension(fileName, ".png");
-
-            byte[]? thumbnail = null;
-            if (constraints.GenerateThumbnail) {
-                input.Position = 0;
-                thumbnail = await GenerateImageThumbnailAsync(input, 256, ct);
-            }
-
-            return Result.Success(new ProcessedMedia {
-                Stream = outputStream,
-                ContentType = "image/png",
-                FileName = newFileName,
-                FileSize = (ulong)outputStream.Length,
-                Dimensions = new(image.Width, image.Height),
-                Duration = TimeSpan.Zero,
-                Thumbnail = thumbnail,
-            });
+            return outputStream;
         }
-        catch (Exception ex) {
-            logger.LogError(ex, "Failed to process image: {FileName}", fileName);
-            return Result.Failure($"Failed to process image: {ex.Message}");
+        finally {
+            if (File.Exists(tempInputPath))
+                File.Delete(tempInputPath);
+            if (File.Exists(tempOutputPath))
+                File.Delete(tempOutputPath);
         }
     }
 
-    private async Task<Result<ProcessedMedia>> ProcessAudioAsync(
-        TypeConstraints constraints,
-        string fileName,
-        Stream input,
-        CancellationToken ct) {
-        try {
-            var tempInputPath = Path.GetTempFileName();
-            var tempOutputPath = Path.ChangeExtension(tempInputPath, ".ogg");
 
-            try {
-                await using (var fileStream = File.Create(tempInputPath)) {
-                    await input.CopyToAsync(fileStream, ct);
-                }
-
-                var mediaInfo = await FFProbe.AnalyseAsync(tempInputPath, cancellationToken: ct);
-                var duration = mediaInfo.Duration;
-
-                if (constraints.MaxDuration > TimeSpan.Zero && duration > constraints.MaxDuration) {
-                    return Result.Failure($"Audio duration ({duration.TotalSeconds:F1}s) exceeds maximum ({constraints.MaxDuration.TotalSeconds:F1}s)");
-                }
-
-                await FFMpegArguments
-                    .FromFileInput(tempInputPath)
-                    .OutputToFile(tempOutputPath, overwrite: true, options => options
-                        .WithAudioCodec("libvorbis")
-                        .WithAudioBitrate(128))
-                    .ProcessAsynchronously();
-
-                var outputStream = new MemoryStream();
-                await using (var fileStream = File.OpenRead(tempOutputPath)) {
-                    await fileStream.CopyToAsync(outputStream, ct);
-                }
-                outputStream.Position = 0;
-
-                var newFileName = Path.ChangeExtension(fileName, ".ogg");
-
-                return Result.Success(new ProcessedMedia {
-                    Stream = outputStream,
-                    ContentType = "audio/ogg",
-                    FileName = newFileName,
-                    FileSize = (ulong)outputStream.Length,
-                    Dimensions = Size.Zero,
-                    Duration = duration,
-                    Thumbnail = null,
-                });
-            }
-            finally {
-                if (File.Exists(tempInputPath))
-                    File.Delete(tempInputPath);
-                if (File.Exists(tempOutputPath))
-                    File.Delete(tempOutputPath);
-            }
-        }
-        catch (Exception ex) {
-            logger.LogError(ex, "Failed to process audio: {FileName}", fileName);
-            return Result.Failure($"Failed to process audio: {ex.Message}");
-        }
-    }
-
-    private async Task<Result<ProcessedMedia>> ProcessVideoAsync(
-        TypeConstraints constraints,
-        string fileName,
-        Stream input,
-        CancellationToken ct) {
-        try {
-            var tempInputPath = Path.GetTempFileName();
-            var tempOutputPath = Path.ChangeExtension(tempInputPath, ".mp4");
-
-            try {
-                await using (var fileStream = File.Create(tempInputPath)) {
-                    await input.CopyToAsync(fileStream, ct);
-                }
-
-                var mediaInfo = await FFProbe.AnalyseAsync(tempInputPath, cancellationToken: ct);
-                var duration = mediaInfo.Duration;
-                var videoStream = mediaInfo.PrimaryVideoStream;
-
-                if (videoStream is null)
-                    return Result.Failure("Video file contains no video stream");
-
-                if (constraints.MaxDuration > TimeSpan.Zero && duration > constraints.MaxDuration) {
-                    return Result.Failure($"Video duration ({duration.TotalSeconds:F1}s) exceeds maximum ({constraints.MaxDuration.TotalSeconds:F1}s)");
-                }
-
-                var needsResize = videoStream.Width > constraints.MaxWidth || videoStream.Height > constraints.MaxHeight;
-                var scale = needsResize
-                    ? Math.Min(
-                        (double)constraints.MaxWidth / videoStream.Width,
-                        (double)constraints.MaxHeight / videoStream.Height)
-                    : 1.0;
-                var newWidth = (int)(videoStream.Width * scale);
-                var newHeight = (int)(videoStream.Height * scale);
-                if (newWidth % 2 != 0)
-                    newWidth--;
-                if (newHeight % 2 != 0)
-                    newHeight--;
-
-                var ffmpegArgs = FFMpegArguments
-                    .FromFileInput(tempInputPath)
-                    .OutputToFile(tempOutputPath, overwrite: true, options => {
-                        options.WithVideoCodec("libx264")
-                               .WithAudioCodec("aac")
-                               .WithFastStart();
-
-                        if (needsResize)
-                            options.WithVideoFilters(filter => filter.Scale(newWidth, newHeight));
-                    });
-
-                await ffmpegArgs.ProcessAsynchronously();
-
-                var outputStream = new MemoryStream();
-                await using (var fileStream = File.OpenRead(tempOutputPath)) {
-                    await fileStream.CopyToAsync(outputStream, ct);
-                }
-                outputStream.Position = 0;
-
-                byte[]? thumbnail = null;
-                if (constraints.GenerateThumbnail) {
-                    thumbnail = await GenerateVideoThumbnailFromFileAsync(tempInputPath, 256, ct);
-                }
-
-                var newFileName = Path.ChangeExtension(fileName, ".mp4");
-
-                return Result.Success(new ProcessedMedia {
-                    Stream = outputStream,
-                    ContentType = "video/mp4",
-                    FileName = newFileName,
-                    FileSize = (ulong)outputStream.Length,
-                    Dimensions = new(newWidth, newHeight),
-                    Duration = duration,
-                    Thumbnail = thumbnail,
-                });
-            }
-            finally {
-                if (File.Exists(tempInputPath))
-                    File.Delete(tempInputPath);
-                if (File.Exists(tempOutputPath))
-                    File.Delete(tempOutputPath);
-            }
-        }
-        catch (Exception ex) {
-            logger.LogError(ex, "Failed to process video: {FileName}", fileName);
-            return Result.Failure($"Failed to process video: {ex.Message}");
-        }
-    }
-
-    private async Task<byte[]?> GenerateImageThumbnailAsync(Stream input, int maxSize, CancellationToken ct) {
+    private async Task<byte[]?> GenerateImageThumbnailAsync(Stream input, int thumbnailSize, CancellationToken ct) {
         try {
             input.Position = 0;
-            using var image = await Image.LoadAsync(input, ct);
-
-            var scale = Math.Min((double)maxSize / image.Width, (double)maxSize / image.Height);
-            if (scale < 1.0) {
-                var newWidth = (int)(image.Width * scale);
-                var newHeight = (int)(image.Height * scale);
-                image.Mutate(x => x.Resize(newWidth, newHeight));
-            }
-
-            await using var outputStream = new MemoryStream();
-            await image.SaveAsJpegAsync(outputStream, new() {
-                Quality = 75
-            }, ct);
-
-            return outputStream.ToArray();
+            return await GenerateCenterCropThumbnailAsync(input, thumbnailSize, ct);
         }
         catch (Exception ex) {
             logger.LogWarning(ex, "Failed to generate image thumbnail");
@@ -270,13 +94,33 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         }
     }
 
-    private async Task<byte[]?> GenerateVideoThumbnailAsync(Stream input, int maxSize, CancellationToken ct) {
+    private static async Task<byte[]> GenerateCenterCropThumbnailAsync(Stream input, int thumbnailSize, CancellationToken ct = default) {
+        using var image = await Image.LoadAsync(input, ct);
+
+        var cropSize = Math.Min(image.Width, image.Height);
+        var x = (image.Width - cropSize) / 2;
+        var y = (image.Height - cropSize) / 2;
+
+        image.Mutate(ctx => ctx
+            .Crop(new Rectangle(x, y, cropSize, cropSize))
+            .Resize(thumbnailSize, thumbnailSize));
+
+        await using var outputStream = new MemoryStream();
+        await image.SaveAsPngAsync(outputStream, new() {
+            CompressionLevel = PngCompressionLevel.BestCompression,
+            TransparentColorMode = PngTransparentColorMode.Preserve
+        }, ct);
+
+        return outputStream.ToArray();
+    }
+
+    private async Task<byte[]?> GenerateVideoThumbnailAsync(Stream input, int thumbnailSize, CancellationToken ct) {
         var tempInputPath = Path.GetTempFileName();
         try {
             await using (var fileStream = File.Create(tempInputPath)) {
                 await input.CopyToAsync(fileStream, ct);
             }
-            return await GenerateVideoThumbnailFromFileAsync(tempInputPath, maxSize, ct);
+            return await GenerateVideoThumbnailFromFileAsync(tempInputPath, thumbnailSize, ct);
         }
         finally {
             if (File.Exists(tempInputPath))
@@ -284,13 +128,13 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
         }
     }
 
-    private async Task<byte[]?> GenerateVideoThumbnailFromFileAsync(string videoPath, int maxSize, CancellationToken ct) {
+    private async Task<byte[]?> GenerateVideoThumbnailFromFileAsync(string videoPath, int thumbnailSize, CancellationToken ct) {
         var tempThumbnailPath = Path.GetTempFileName() + ".jpg";
         try {
             await FFMpegArguments
                 .FromFileInput(videoPath, verifyExists: false, options => options.Seek(TimeSpan.FromSeconds(1)))
                 .OutputToFile(tempThumbnailPath, overwrite: true, options => options
-                    .WithVideoFilters(filter => filter.Scale(maxSize, -1))
+                    .WithVideoFilters(filter => filter.Scale(thumbnailSize, -1))
                     .WithFrameOutputCount(1))
                 .ProcessAsynchronously();
 
@@ -306,5 +150,88 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
             if (File.Exists(tempThumbnailPath))
                 File.Delete(tempThumbnailPath);
         }
+    }
+
+    public async Task<(Size Dimensions, TimeSpan Duration)> ExtractMediaInfoAsync(string contentType, Stream stream, CancellationToken ct = default) {
+        var category = MediaConstraints.GetMediaCategory(contentType);
+
+        return category switch {
+            "image" => await ExtractImageInfoAsync(stream, ct),
+            "video" => await ExtractVideoInfoAsync(stream, ct),
+            "audio" => await ExtractAudioInfoAsync(stream, ct),
+            _ => (Size.Zero, TimeSpan.Zero),
+        };
+    }
+
+    private async Task<(Size Dimensions, TimeSpan Duration)> ExtractImageInfoAsync(Stream stream, CancellationToken ct) {
+        try {
+            stream.Position = 0;
+            using var image = await Image.LoadAsync(stream, ct);
+            return (new Size(image.Width, image.Height), TimeSpan.Zero);
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to extract image info");
+            return (Size.Zero, TimeSpan.Zero);
+        }
+    }
+
+    private async Task<(Size Dimensions, TimeSpan Duration)> ExtractVideoInfoAsync(Stream stream, CancellationToken ct) {
+        var tempPath = Path.GetTempFileName();
+        try {
+            await using (var fileStream = File.Create(tempPath)) {
+                stream.Position = 0;
+                await stream.CopyToAsync(fileStream, ct);
+            }
+
+            var mediaInfo = await FFProbe.AnalyseAsync(tempPath, cancellationToken: ct);
+            var videoStream = mediaInfo.PrimaryVideoStream;
+
+            return videoStream is not null
+                ? (new Size(videoStream.Width, videoStream.Height), mediaInfo.Duration)
+                : (Size.Zero, mediaInfo.Duration);
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to extract video info");
+            return (Size.Zero, TimeSpan.Zero);
+        }
+        finally {
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
+    }
+
+    private async Task<(Size Dimensions, TimeSpan Duration)> ExtractAudioInfoAsync(Stream stream, CancellationToken ct) {
+        var tempPath = Path.GetTempFileName();
+        try {
+            await using (var fileStream = File.Create(tempPath)) {
+                stream.Position = 0;
+                await stream.CopyToAsync(fileStream, ct);
+            }
+
+            var mediaInfo = await FFProbe.AnalyseAsync(tempPath, cancellationToken: ct);
+            return (Size.Zero, mediaInfo.Duration);
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to extract audio info");
+            return (Size.Zero, TimeSpan.Zero);
+        }
+        finally {
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
+    }
+
+    public async Task<Stream> ConvertImageAsync(Stream stream, CancellationToken ct = default) {
+        stream.Position = 0;
+        using var image = await Image.LoadAsync(stream, ct);
+
+        var outputStream = new MemoryStream();
+        await image.SaveAsPngAsync(outputStream, new() {
+            CompressionLevel = PngCompressionLevel.BestCompression,
+            TransparentColorMode = PngTransparentColorMode.Preserve
+        }, ct);
+
+        outputStream.Position = 0;
+        return outputStream;
     }
 }

@@ -125,7 +125,7 @@
 - **Area Dependencies**: None (Media is foundational storage)
 - **External Dependencies**:
   - Blob storage infrastructure (Azure Blob Storage in production, local filesystem in development)
-  - Database infrastructure (SQL Server via EF Core)
+  - Database infrastructure (PostgreSQL via EF Core)
 
 ---
 
