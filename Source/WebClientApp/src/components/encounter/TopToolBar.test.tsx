@@ -47,6 +47,7 @@ describe('TopToolBar', () => {
         onClearSelection: vi.fn(),
         canUndo: false,
         canRedo: false,
+        hasGrid: false,
         gridVisible: true,
         layerVisibility: createDefaultLayerVisibility(),
         onLayerVisibilityToggle: vi.fn(),
@@ -98,7 +99,7 @@ describe('TopToolBar', () => {
 
         it('should render visibility control buttons when layer visibility is provided', () => {
             // Arrange
-            const props = createDefaultProps();
+            const props = createDefaultProps({ hasGrid: true });
 
             // Act
             render(<TopToolBar {...props} />);
@@ -341,7 +342,7 @@ describe('TopToolBar', () => {
         it('should call onGridToggle when grid button is clicked', async () => {
             // Arrange
             const onGridToggle = vi.fn();
-            const props = createDefaultProps({ onGridToggle });
+            const props = createDefaultProps({ onGridToggle, hasGrid: true });
             const user = userEvent.setup();
 
             // Act
@@ -354,7 +355,7 @@ describe('TopToolBar', () => {
 
         it('should show grid button with full opacity when gridVisible is true', () => {
             // Arrange
-            const props = createDefaultProps({ gridVisible: true });
+            const props = createDefaultProps({ hasGrid: true, gridVisible: true });
 
             // Act
             render(<TopToolBar {...props} />);
@@ -366,7 +367,7 @@ describe('TopToolBar', () => {
 
         it('should show grid button with reduced opacity when gridVisible is false', () => {
             // Arrange
-            const props = createDefaultProps({ gridVisible: false });
+            const props = createDefaultProps({ hasGrid: true, gridVisible: false });
 
             // Act
             render(<TopToolBar {...props} />);
@@ -374,6 +375,28 @@ describe('TopToolBar', () => {
             // Assert
             const gridButton = screen.getByLabelText('Toggle Grid').closest('button');
             expect(gridButton).toHaveStyle({ opacity: '0.4' });
+        });
+
+        it('should not render grid toggle button when hasGrid is false', () => {
+            // Arrange
+            const props = createDefaultProps({ hasGrid: false });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.queryByLabelText('Toggle Grid')).not.toBeInTheDocument();
+        });
+
+        it('should render grid toggle button when hasGrid is true', () => {
+            // Arrange
+            const props = createDefaultProps({ hasGrid: true });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.getByLabelText('Toggle Grid')).toBeInTheDocument();
         });
     });
 
@@ -591,7 +614,7 @@ describe('TopToolBar', () => {
 
         it('should update grid visibility when gridVisible prop changes', () => {
             // Arrange
-            const props = createDefaultProps({ gridVisible: true });
+            const props = createDefaultProps({ hasGrid: true, gridVisible: true });
 
             // Act
             const { rerender } = render(<TopToolBar {...props} />);

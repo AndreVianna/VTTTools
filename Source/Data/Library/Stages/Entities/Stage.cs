@@ -29,7 +29,7 @@ public class Stage {
     public bool AmbientSoundIsPlaying { get; set; }
     public Weather Weather { get; set; }
 
-    public GridType GridType { get; set; }
+    public GridType GridType { get; set; } = GridType.Square;
     public CellSize GridCellSize { get; set; } = CellSize.Default;
     public Offset GridOffset { get; set; } = Offset.Zero;
     public double GridScale { get; set; } = 5.0;

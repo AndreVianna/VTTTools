@@ -716,14 +716,14 @@ const EncounterEditorPageInternal: React.FC = () => {
     const hydratedSoundSources = hydratePlacedSoundSources(encounterData.stage.sounds || [], encounterId || '');
 
     setEncounter(encounterData);
+    const gridType = typeof encounterData.stage.grid.type === 'string'
+      ? GridType[encounterData.stage.grid.type as keyof typeof GridType]
+      : encounterData.stage.grid.type;
     setGridConfig({
-      type:
-        typeof encounterData.stage.grid.type === 'string'
-          ? GridType[encounterData.stage.grid.type as keyof typeof GridType]
-          : encounterData.stage.grid.type,
+      type: gridType,
       cellSize: encounterData.stage.grid.cellSize,
       offset: encounterData.stage.grid.offset,
-      snap: true, // snap is a UI-only setting, always default to true
+      snap: gridType !== GridType.NoGrid, // snap is UI-only, default to true only when grid exists
       scale: encounterData.stage.grid.scale ?? 1,
     });
     setPlacedWalls(hydratedWalls);
@@ -1635,6 +1635,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           onClearSelection={() => assetManagement.handleAssetSelected([])}
           canUndo={false}
           canRedo={false}
+          hasGrid={gridConfig.type !== GridType.NoGrid}
           gridVisible={gridConfig.type !== GridType.NoGrid}
           layerVisibility={scopeVisibility}
           onLayerVisibilityToggle={handleLayerVisibilityToggle}
@@ -2118,6 +2119,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           selectedCount={assetManagement.selectedAssetIds.length}
           zoomPercentage={viewportControls.viewport.scale * 100}
           {...(drawingMode && { activeTool: drawingMode })}
+          hasGrid={gridConfig.type !== GridType.NoGrid}
           gridSnapEnabled={gridConfig.snap}
         />
       </Box>

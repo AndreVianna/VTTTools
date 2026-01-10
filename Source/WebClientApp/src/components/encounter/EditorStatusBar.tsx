@@ -7,6 +7,8 @@ export interface EditorStatusBarProps {
   selectedCount?: number;
   zoomPercentage?: number;
   activeTool?: string;
+  /** Whether the encounter has a grid configured (not NoGrid) */
+  hasGrid?: boolean;
   gridSnapEnabled?: boolean;
 }
 
@@ -16,6 +18,7 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
   selectedCount = 0,
   zoomPercentage = 100,
   activeTool,
+  hasGrid = false,
   gridSnapEnabled,
 }) => {
   const theme = useTheme();
@@ -83,7 +86,7 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
         </Typography>
       )}
 
-      {gridSnapEnabled !== undefined && (
+      {hasGrid && gridSnapEnabled !== undefined && (
         <Typography
           variant='caption'
           sx={{

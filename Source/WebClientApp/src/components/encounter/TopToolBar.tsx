@@ -41,6 +41,8 @@ export interface TopToolBarProps {
   onClearSelection?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  /** Whether the encounter has a grid configured (not NoGrid) */
+  hasGrid?: boolean;
   gridVisible?: boolean;
   layerVisibility?: Record<LayerVisibilityType, boolean>;
   onLayerVisibilityToggle?: (layer: LayerVisibilityType) => void;
@@ -58,6 +60,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   onClearSelection,
   canUndo = false,
   canRedo = false,
+  hasGrid = false,
   gridVisible = true,
   layerVisibility,
   onLayerVisibilityToggle,
@@ -121,24 +124,26 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
                 </IconButton>
               </Tooltip>
 
-              <Tooltip title='Toggle Grid'>
-                <IconButton
-                  size='small'
-                  onClick={onGridToggle}
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 1,
-                    opacity: gridVisible ? 1 : 0.4,
-                    backgroundColor: gridVisible ? theme.palette.action.selected : 'transparent',
-                    '&:hover': {
-                      backgroundColor: gridVisible ? theme.palette.action.hover : theme.palette.action.hover,
-                    },
-                  }}
-                >
-                  <GridIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Tooltip>
+              {hasGrid && (
+                <Tooltip title='Toggle Grid'>
+                  <IconButton
+                    size='small'
+                    onClick={onGridToggle}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 1,
+                      opacity: gridVisible ? 1 : 0.4,
+                      backgroundColor: gridVisible ? theme.palette.action.selected : 'transparent',
+                      '&:hover': {
+                        backgroundColor: gridVisible ? theme.palette.action.hover : theme.palette.action.hover,
+                      },
+                    }}
+                  >
+                    <GridIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
 
               {visibilityLayers.map(({ key, icon: Icon, label }) => {
                 const isVisible = layerVisibility[key] ?? true;
