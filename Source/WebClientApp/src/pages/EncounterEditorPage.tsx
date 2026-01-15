@@ -40,7 +40,7 @@ import type { InteractionScope } from '@utils/scopeFiltering';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Group, Layer } from 'react-konva';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { SaveStatus } from '@/components/common';
 import { getApiEndpoints } from '@/config/development';
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
@@ -169,6 +169,7 @@ const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 const EncounterEditorPageInternal: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { encounterId } = useParams<{ encounterId: string }>();
   const canvasRef = useRef<EncounterCanvasHandle>(null);
   const [stage, setStage] = useState<Konva.Stage | null>(null);
@@ -1240,6 +1241,13 @@ const EncounterEditorPageInternal: React.FC = () => {
     setSoundContextMenuPosition(null);
   }, []);
 
+  /** Navigate to Game Session page to preview the encounter */
+  const handlePreviewClick = useCallback(() => {
+    if (encounterId) {
+      navigate(`/encounters/${encounterId}/play`);
+    }
+  }, [encounterId, navigate]);
+
   const handleCanvasClick = useCallback(() => {
     assetManagement.handleAssetSelected([]);
     setSelectedWallIndex(null);
@@ -1641,6 +1649,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           onLayerVisibilityToggle={handleLayerVisibilityToggle}
           onShowAllLayers={handleShowAllLayers}
           onHideAllLayers={handleHideAllLayers}
+          onPreviewClick={handlePreviewClick}
         />
 
         <Box

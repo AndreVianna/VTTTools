@@ -22,6 +22,7 @@ import { AssetStudioPage } from '@/pages/AssetStudioPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
 import { EncounterEditorPage } from '@/pages/EncounterEditorPage';
+import { GameSessionPage } from '@/pages/GameSessionPage';
 import { LandingPage } from '@/pages/LandingPage';
 import { ProfilePage } from '@/pages/settings/ProfilePage';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
@@ -185,11 +186,21 @@ function AppRoutes() {
             }
           />
 
+          {/* Encounter Routes - Mode-based */}
           <Route
-            path='/encounter-editor/:encounterId?'
+            path='/encounters/:encounterId/edit'
             element={
               <ProtectedRoute authLevel='authorized'>
                 <EncounterEditorPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='/encounters/:encounterId/play'
+            element={
+              <ProtectedRoute authLevel='authorized'>
+                <GameSessionPage />
               </ProtectedRoute>
             }
           />

@@ -13,6 +13,8 @@ export interface BackgroundLayerProps {
     stageHeight: number;
     onImageLoaded?: (dimensions: { width: number; height: number }) => void;
     contentType?: string;
+    /** Whether the video should be muted. Defaults to true for autoplay compatibility. */
+    muted?: boolean;
 }
 
 const isVideoContentType = (contentType?: string): boolean => {
@@ -26,6 +28,7 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
     stageHeight,
     onImageLoaded,
     contentType,
+    muted = true,
 }) => {
     const groupRef = useRef<Konva.Group>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -47,7 +50,7 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
             const video = document.createElement('video');
             video.src = blobUrl;
             video.crossOrigin = 'anonymous';
-            video.muted = true;
+            video.muted = muted;
             video.loop = true;
             video.playsInline = true;
             video.autoplay = true;
@@ -97,6 +100,13 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
             }
         };
     }, [videoElement]);
+
+    // Handle dynamic muted changes
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = muted;
+        }
+    }, [muted]);
 
     // Handle image loaded callback
     useEffect(() => {

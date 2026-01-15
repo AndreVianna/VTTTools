@@ -3,6 +3,7 @@ import {
   Pets as MonstersIcon,
   Cloud as FogOfWarIcon,
   GridOn as GridIcon,
+  PlayArrow as PlayArrowIcon,
   ViewInAr as ObjectsIcon,
   Person as CharactersIcon,
   Redo as RedoIcon,
@@ -39,6 +40,8 @@ export interface TopToolBarProps {
   onZoomReset?: () => void;
   onGridToggle?: () => void;
   onClearSelection?: () => void;
+  /** Called when the Preview button is clicked to open Game Session view */
+  onPreviewClick?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
   /** Whether the encounter has a grid configured (not NoGrid) */
@@ -58,6 +61,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   onZoomReset,
   onGridToggle,
   onClearSelection,
+  onPreviewClick,
   canUndo = false,
   canRedo = false,
   hasGrid = false,
@@ -249,6 +253,40 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
               <ClearIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
+
+          {/* Spacer to push Preview to the right */}
+          <Box sx={{ flexGrow: 1 }} />
+
+          {onPreviewClick && (
+            <>
+              <Box
+                sx={{
+                  width: 1,
+                  height: 20,
+                  backgroundColor: theme.palette.divider,
+                }}
+              />
+
+              <Tooltip title='Preview Encounter'>
+                <IconButton
+                  id='btn-preview'
+                  size='small'
+                  onClick={onPreviewClick}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    color: theme.palette.primary.main,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.contrastText,
+                    },
+                  }}
+                >
+                  <PlayArrowIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
         </Box>
       </Collapse>
     </Box>
