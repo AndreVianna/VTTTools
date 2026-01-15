@@ -14,6 +14,7 @@ public enum GeneratedContentType {
     TextStatBlock = 11,
     TextDialogue = 12,
     PromptEnhancement = 13,
+    MediaAnalysis = 14,
 }
 
 public static class GeneratedContentTypeExtensions {
@@ -32,6 +33,7 @@ public static class GeneratedContentTypeExtensions {
             GeneratedContentType.TextStatBlock => ("Text", "StatBlock"),
             GeneratedContentType.TextDialogue => ("Text", "Dialogue"),
             GeneratedContentType.PromptEnhancement => ("Prompt", "Enhancement"),
+            GeneratedContentType.MediaAnalysis => ("Vision", "Analysis"),
             _ => throw new ArgumentOutOfRangeException(nameof(contentType), contentType, "Unknown content type")
         };
 

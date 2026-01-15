@@ -55,7 +55,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     }, { skip: !open });
     const resources = data?.items ?? [];
     const { uploadState, uploadFile } = useFileUpload({
-        resourceType: ResourceRole[soundTypeFilter],
+        role: ResourceRole[soundTypeFilter],
         onSuccess: async (resource) => {
             await refetch();
             setSelectedResourceId(resource.id);

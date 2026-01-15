@@ -13,6 +13,8 @@ export interface BackgroundLayerProps {
     stageHeight: number;
     onImageLoaded?: (dimensions: { width: number; height: number }) => void;
     contentType?: string;
+    /** Whether video audio should be muted. Video always starts muted for autoplay, this controls post-start state. */
+    muted?: boolean;
 }
 
 const isVideoContentType = (contentType?: string): boolean => {
@@ -26,6 +28,7 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
     stageHeight,
     onImageLoaded,
     contentType,
+    muted = true,
 }) => {
     const groupRef = useRef<Konva.Group>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -97,6 +100,13 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
             }
         };
     }, [videoElement]);
+
+    // Sync video muted state with prop (video always starts muted for autoplay, user can unmute after)
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = muted;
+        }
+    }, [muted]);
 
     // Handle image loaded callback
     useEffect(() => {

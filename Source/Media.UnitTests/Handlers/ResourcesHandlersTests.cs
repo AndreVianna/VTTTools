@@ -30,7 +30,7 @@ public class ResourcesHandlersTests {
         };
 
         _resourceService.FindResourcesAsync(Arg.Any<Guid?>(), Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns((resources, 1));
+            .Returns(new ResourceFilterResponse { Items = resources, TotalCount = 1 });
 
         var result = await ResourcesHandlers.FilterResourcesHandler(_httpContext, request, _resourceService, _ct);
 

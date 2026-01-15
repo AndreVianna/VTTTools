@@ -1,7 +1,7 @@
 // Encounter editor components
 
 export { AssetContextMenu } from './AssetContextMenu';
-export type { BackgroundLayerProps } from './BackgroundLayer';
+export type { BackgroundLayerHandle, BackgroundLayerProps } from './BackgroundLayer';
 export { BackgroundLayer } from './BackgroundLayer';
 export type {
   RegionBucketFillToolProps,

@@ -8,6 +8,7 @@ public class MediaMapperTests {
         var entity = new Entities.Resource {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
+            Role = ResourceRole.Background,
             Path = "assets/backgrounds/cave.jpg",
             ContentType = "image/jpeg",
             FileName = "cave.jpg",
@@ -23,6 +24,7 @@ public class MediaMapperTests {
         result.Should().NotBeNull();
         result.Id.Should().Be(entity.Id);
         result.OwnerId.Should().Be(ownerId);
+        result.Role.Should().Be(ResourceRole.Background);
         result.Path.Should().Be("assets/backgrounds/cave.jpg");
         result.ContentType.Should().Be("image/jpeg");
         result.FileName.Should().Be("cave.jpg");
@@ -97,6 +99,7 @@ public class MediaMapperTests {
         var model = new ResourceMetadata {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
+            Role = ResourceRole.Illustration,
             Path = "assets/backgrounds/throne.jpg",
             ContentType = "image/jpeg",
             FileName = "throne.jpg",
@@ -112,6 +115,7 @@ public class MediaMapperTests {
         result.Should().NotBeNull();
         result.Id.Should().Be(model.Id);
         result.OwnerId.Should().Be(ownerId);
+        result.Role.Should().Be(ResourceRole.Illustration);
         result.Path.Should().Be("assets/backgrounds/throne.jpg");
         result.ContentType.Should().Be("image/jpeg");
         result.FileName.Should().Be("throne.jpg");
@@ -168,12 +172,13 @@ public class MediaMapperTests {
     }
 
     [Fact]
-    public void UpdateFrom_DoesNotModifyEntity() {
-        // Arrange - UpdateFrom currently has no mutable properties to update
+    public void UpdateFrom_UpdatesEntityFromModel() {
+        // Arrange
         var ownerId = Guid.CreateVersion7();
         var entity = new Entities.Resource {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
+            Role = ResourceRole.Token,
             Path = "old/path.jpg",
             ContentType = "image/jpeg",
             FileName = "old.jpg",
@@ -186,6 +191,7 @@ public class MediaMapperTests {
         var model = new ResourceMetadata {
             Id = entity.Id,
             OwnerId = newOwnerId,
+            Role = ResourceRole.Background,
             Path = "new/path.png",
             ContentType = "image/png",
             FileName = "new.png",
@@ -197,14 +203,15 @@ public class MediaMapperTests {
         // Act
         entity.UpdateFrom(model);
 
-        // Assert - UpdateFrom currently does nothing, so entity remains unchanged
-        entity.OwnerId.Should().Be(ownerId);
-        entity.Path.Should().Be("old/path.jpg");
-        entity.ContentType.Should().Be("image/jpeg");
-        entity.FileName.Should().Be("old.jpg");
-        entity.FileSize.Should().Be(100000);
-        entity.Dimensions.Should().Be(new Size(800, 600));
-        entity.Duration.Should().Be(TimeSpan.Zero);
+        // Assert - UpdateFrom updates all mutable properties from the model
+        entity.OwnerId.Should().Be(newOwnerId);
+        entity.Role.Should().Be(ResourceRole.Background);
+        entity.Path.Should().Be("new/path.png");
+        entity.ContentType.Should().Be("image/png");
+        entity.FileName.Should().Be("new.png");
+        entity.FileSize.Should().Be(200000UL);
+        entity.Dimensions.Should().Be(new Size(1024, 1024));
+        entity.Duration.Should().Be(TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -215,6 +222,7 @@ public class MediaMapperTests {
         var entity = new Entities.Resource {
             Id = id,
             OwnerId = ownerId,
+            Role = ResourceRole.Portrait,
             Path = "assets/test/file.png",
             ContentType = "image/png",
             FileName = "file.png",
@@ -231,6 +239,7 @@ public class MediaMapperTests {
         result.Should().NotBeNull();
         result.Id.Should().Be(id);
         result.OwnerId.Should().Be(ownerId);
+        result.Role.Should().Be(ResourceRole.Portrait);
         result.Path.Should().Be("assets/test/file.png");
         result.ContentType.Should().Be("image/png");
         result.FileName.Should().Be("file.png");

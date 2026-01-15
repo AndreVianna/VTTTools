@@ -1,9 +1,13 @@
+using VttTools.AI.ServiceContracts;
+using VttTools.AI.Services;
 
 using Size = VttTools.Common.Model.Size;
 
 namespace VttTools.Media.Services;
 
-public class MediaProcessorService(ILogger<MediaProcessorService> logger)
+public class MediaProcessorService(
+    ILogger<MediaProcessorService> logger,
+    IMediaAnalysisService? mediaAnalysisService = null)
     : IMediaProcessorService {
 
 
@@ -115,40 +119,19 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
     }
 
     private async Task<byte[]?> GenerateVideoThumbnailAsync(Stream input, int thumbnailSize, CancellationToken ct) {
-        var tempInputPath = Path.GetTempFileName();
         try {
-            await using (var fileStream = File.Create(tempInputPath)) {
-                await input.CopyToAsync(fileStream, ct);
-            }
-            return await GenerateVideoThumbnailFromFileAsync(tempInputPath, thumbnailSize, ct);
-        }
-        finally {
-            if (File.Exists(tempInputPath))
-                File.Delete(tempInputPath);
-        }
-    }
+            // Extract placeholder (first frame at original dimensions)
+            var placeholderBytes = await ExtractPlaceholderAsync("video/mp4", input, ct);
+            if (placeholderBytes.Length == 0)
+                return null;
 
-    private async Task<byte[]?> GenerateVideoThumbnailFromFileAsync(string videoPath, int thumbnailSize, CancellationToken ct) {
-        var tempThumbnailPath = Path.GetTempFileName() + ".jpg";
-        try {
-            await FFMpegArguments
-                .FromFileInput(videoPath, verifyExists: false, options => options.Seek(TimeSpan.FromSeconds(1)))
-                .OutputToFile(tempThumbnailPath, overwrite: true, options => options
-                    .WithVideoFilters(filter => filter.Scale(thumbnailSize, -1))
-                    .WithFrameOutputCount(1))
-                .ProcessAsynchronously();
-
-            return File.Exists(tempThumbnailPath)
-                ? await File.ReadAllBytesAsync(tempThumbnailPath, ct)
-                : null;
+            // Use same center-crop logic as images
+            using var placeholderStream = new MemoryStream(placeholderBytes);
+            return await GenerateCenterCropThumbnailAsync(placeholderStream, thumbnailSize, ct);
         }
         catch (Exception ex) {
             logger.LogWarning(ex, "Failed to generate video thumbnail");
             return null;
-        }
-        finally {
-            if (File.Exists(tempThumbnailPath))
-                File.Delete(tempThumbnailPath);
         }
     }
 
@@ -233,5 +216,124 @@ public class MediaProcessorService(ILogger<MediaProcessorService> logger)
 
         outputStream.Position = 0;
         return outputStream;
+    }
+
+    public async Task<MediaAnalysisResult?> AnalyzeContentAsync(
+        string contentType,
+        Stream stream,
+        string fileName,
+        CancellationToken ct = default) {
+        if (mediaAnalysisService is null) {
+            logger.LogWarning("Media analysis service is not available");
+            return null;
+        }
+
+        try {
+            var category = MediaConstraints.GetMediaCategory(contentType);
+            var request = category switch {
+                "image" => await CreateImageAnalysisRequestAsync(stream, fileName, ct),
+                "video" => await CreateVideoAnalysisRequestAsync(stream, fileName, ct),
+                "audio" => await CreateAudioAnalysisRequestAsync(stream, fileName, ct),
+                _ => null
+            };
+
+            if (request is null) {
+                logger.LogWarning("Unsupported media type for analysis: {ContentType}", contentType);
+                return null;
+            }
+
+            var result = await mediaAnalysisService.AnalyzeAsync(request, ct);
+            return result.IsSuccessful ? result.Value : null;
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to analyze media content for {FileName}", fileName);
+            return null;
+        }
+    }
+
+    private static async Task<MediaAnalysisRequest> CreateImageAnalysisRequestAsync(
+        Stream stream,
+        string fileName,
+        CancellationToken ct) {
+        stream.Position = 0;
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream, ct);
+        var imageBytes = memoryStream.ToArray();
+
+        return new MediaAnalysisRequest {
+            MediaType = "image",
+            FileName = fileName,
+            Frames = [imageBytes]
+        };
+    }
+
+    private async Task<MediaAnalysisRequest> CreateVideoAnalysisRequestAsync(
+        Stream stream,
+        string fileName,
+        CancellationToken ct) {
+        var tempInputPath = Path.GetTempFileName();
+        var frames = new List<byte[]>();
+
+        try {
+            await using (var fileStream = File.Create(tempInputPath)) {
+                stream.Position = 0;
+                await stream.CopyToAsync(fileStream, ct);
+            }
+
+            var mediaInfo = await FFProbe.AnalyseAsync(tempInputPath, cancellationToken: ct);
+            var duration = mediaInfo.Duration;
+
+            var framePositions = new[] { 0.0, 0.25, 0.50, 0.75 };
+
+            foreach (var position in framePositions) {
+                var seekTime = TimeSpan.FromTicks((long)(duration.Ticks * position));
+                var tempOutputPath = Path.GetTempFileName() + ".png";
+
+                try {
+                    await FFMpegArguments
+                        .FromFileInput(tempInputPath, verifyExists: false, options => options.Seek(seekTime))
+                        .OutputToFile(tempOutputPath, overwrite: true, options => options
+                            .WithFrameOutputCount(1)
+                            .Resize(512, 0))
+                        .ProcessAsynchronously();
+
+                    if (File.Exists(tempOutputPath)) {
+                        frames.Add(await File.ReadAllBytesAsync(tempOutputPath, ct));
+                    }
+                }
+                catch (Exception ex) {
+                    logger.LogDebug(ex, "Failed to extract frame at position {Position}", position);
+                }
+                finally {
+                    if (File.Exists(tempOutputPath))
+                        File.Delete(tempOutputPath);
+                }
+            }
+        }
+        finally {
+            if (File.Exists(tempInputPath))
+                File.Delete(tempInputPath);
+        }
+
+        return new MediaAnalysisRequest {
+            MediaType = "video",
+            FileName = fileName,
+            Frames = frames.Count > 0 ? frames : null
+        };
+    }
+
+    private static async Task<MediaAnalysisRequest> CreateAudioAnalysisRequestAsync(
+        Stream stream,
+        string fileName,
+        CancellationToken ct) {
+        stream.Position = 0;
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream, ct);
+
+        return new MediaAnalysisRequest {
+            MediaType = "audio",
+            FileName = fileName,
+            AudioData = memoryStream.ToArray()
+        };
     }
 }

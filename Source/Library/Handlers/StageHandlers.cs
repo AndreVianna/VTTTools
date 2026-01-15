@@ -161,7 +161,9 @@ internal static class StageHandlers {
         return new UpdateStageData.SettingsUpdate {
             MainBackgroundId = s.MainBackgroundId,
             AlternateBackgroundId = s.AlternateBackgroundId,
+            UseAlternateBackground = s.UseAlternateBackground,
             AmbientSoundId = s.AmbientSoundId,
+            AmbientSoundSource = s.AmbientSoundSource,
             AmbientSoundVolume = s.AmbientSoundVolume,
             AmbientSoundLoop = s.AmbientSoundLoop,
             AmbientSoundIsPlaying = s.AmbientSoundIsPlaying,

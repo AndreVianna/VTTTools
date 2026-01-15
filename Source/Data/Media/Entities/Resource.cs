@@ -1,8 +1,16 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Data.Media.Entities;
 
 public class Resource {
     public Guid Id { get; set; }
     public Guid OwnerId { get; set; }
+    public ResourceRole Role { get; set; } = ResourceRole.Undefined;
+    [MaxLength(256)]
+    public string Name { get; set; } = string.Empty;
+    [MaxLength(1024)]
+    public string? Description { get; set; }
+    public string[] Tags { get; set; } = [];
     [MaxLength(64)]
     public string ContentType { get; set; } = string.Empty;
     [MaxLength(512)]

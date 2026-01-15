@@ -67,32 +67,38 @@ public class MediaStorageTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WithExistingResource_ReturnsFalseWhenNoChanges() {
-        // UpdateFrom is now a no-op since all resource properties are immutable (set at creation time)
+    public async Task UpdateAsync_WithExistingResource_UpdatesProperties() {
+        // UpdateFrom updates mutable properties from the model
         var entity = CreateTestResource();
         await _context.Resources.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
         var resource = new ResourceMetadata {
             Id = entity.Id,
-            Path = entity.Path,
+            OwnerId = Guid.CreateVersion7(), // Different owner
+            Role = ResourceRole.Background, // Different role
+            Path = "updated/path.png",
             FileName = "updated-filename.png",
-            ContentType = entity.ContentType,
-            FileSize = entity.FileSize,
-            Dimensions = new(entity.Dimensions.Width, entity.Dimensions.Height),
-            Duration = entity.Duration,
+            ContentType = "image/png",
+            FileSize = 2000,
+            Dimensions = new(200, 200),
+            Duration = TimeSpan.FromSeconds(5),
         };
 
         _context.ChangeTracker.Clear();
 
         var result = await _storage.UpdateAsync(resource, _ct);
 
-        // Returns false because UpdateFrom is a no-op (no rows affected)
-        result.Should().BeFalse();
+        // Returns true because UpdateFrom updates properties
+        result.Should().BeTrue();
         var dbResource = await _context.Resources.FindAsync([resource.Id], _ct);
         dbResource.Should().NotBeNull();
-        // FileName remains unchanged since UpdateFrom doesn't modify any fields
-        dbResource.FileName.Should().Be(entity.FileName);
+        // Properties are updated
+        dbResource!.FileName.Should().Be("updated-filename.png");
+        dbResource.Role.Should().Be(ResourceRole.Background);
+        dbResource.OwnerId.Should().Be(resource.OwnerId);
+        dbResource.Path.Should().Be("updated/path.png");
+        dbResource.FileSize.Should().Be(2000);
     }
 
     [Fact]

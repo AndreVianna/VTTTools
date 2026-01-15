@@ -161,8 +161,8 @@ export function WorldDetailPage() {
       setSaveStatus('saving');
       const result = await uploadFile({
         file,
-        resourceType: 'Background',
-        entityId: worldId,
+        role: 'Background',
+        ownerId: worldId,
       }).unwrap();
 
       await updateWorld({

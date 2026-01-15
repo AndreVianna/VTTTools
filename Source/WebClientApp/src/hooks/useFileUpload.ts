@@ -10,8 +10,8 @@ export interface UploadState {
 }
 
 export interface UseFileUploadOptions {
-  resourceType?: string | undefined;
-  entityId?: string | undefined;
+  role?: string | undefined;
+  ownerId?: string | undefined;
   onSuccess?: (resource: MediaResource) => void;
   onError?: (error: string) => void;
 }
@@ -31,7 +31,7 @@ const initialState: UploadState = {
 };
 
 export const useFileUpload = (options: UseFileUploadOptions = {}): UseFileUploadReturn => {
-  const { resourceType, entityId, onSuccess, onError } = options;
+  const { role, ownerId, onSuccess, onError } = options;
   const [state, setState] = useState<UploadState>(initialState);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -57,8 +57,8 @@ export const useFileUpload = (options: UseFileUploadOptions = {}): UseFileUpload
         const result = await uploadFileWithProgress(
           {
             file,
-            resourceType,
-            entityId,
+            role,
+            ownerId,
             onProgress: handleProgress,
           },
           abortControllerRef.current.signal
@@ -90,7 +90,7 @@ export const useFileUpload = (options: UseFileUploadOptions = {}): UseFileUpload
         abortControllerRef.current = null;
       }
     },
-    [resourceType, entityId, onSuccess, onError, handleProgress]
+    [role, ownerId, onSuccess, onError, handleProgress]
   );
 
   const cancelUpload = useCallback(() => {

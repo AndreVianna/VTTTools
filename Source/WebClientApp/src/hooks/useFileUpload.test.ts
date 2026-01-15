@@ -95,8 +95,8 @@ describe('useFileUpload', () => {
 
     it('should call uploadFileWithProgress with correct parameters', async () => {
       const options: UseFileUploadOptions = {
-        resourceType: 'portrait',
-        entityId: 'entity-123',
+        role: 'portrait',
+        ownerId: 'entity-123',
       };
 
       const { result } = renderHook(() => useFileUpload(options));
@@ -110,8 +110,8 @@ describe('useFileUpload', () => {
       expect(mockUploadFileWithProgress).toHaveBeenCalledWith(
         expect.objectContaining({
           file,
-          resourceType: 'portrait',
-          entityId: 'entity-123',
+          role: 'portrait',
+          ownerId: 'entity-123',
           onProgress: expect.any(Function),
         }),
         expect.any(Object),
@@ -388,8 +388,8 @@ describe('useFileUpload', () => {
       expect(mockUploadFileWithProgress).toHaveBeenCalled();
     });
 
-    it('should pass resourceType to uploadFileWithProgress', async () => {
-      const { result } = renderHook(() => useFileUpload({ resourceType: 'portrait' }));
+    it('should pass role to uploadFileWithProgress', async () => {
+      const { result } = renderHook(() => useFileUpload({ role: 'portrait' }));
 
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
 
@@ -399,14 +399,14 @@ describe('useFileUpload', () => {
 
       expect(mockUploadFileWithProgress).toHaveBeenCalledWith(
         expect.objectContaining({
-          resourceType: 'portrait',
+          role: 'portrait',
         }),
         expect.any(Object),
       );
     });
 
-    it('should pass entityId to uploadFileWithProgress', async () => {
-      const { result } = renderHook(() => useFileUpload({ entityId: 'entity-456' }));
+    it('should pass ownerId to uploadFileWithProgress', async () => {
+      const { result } = renderHook(() => useFileUpload({ ownerId: 'entity-456' }));
 
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
 
@@ -416,7 +416,7 @@ describe('useFileUpload', () => {
 
       expect(mockUploadFileWithProgress).toHaveBeenCalledWith(
         expect.objectContaining({
-          entityId: 'entity-456',
+          ownerId: 'entity-456',
         }),
         expect.any(Object),
       );

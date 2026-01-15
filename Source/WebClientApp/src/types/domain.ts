@@ -653,13 +653,19 @@ export interface ResourceFilterData {
   searchText?: string;
   skip?: number;
   take?: number;
+  mediaTypes?: string[];
+  minWidth?: number;
+  maxWidth?: number;
+  minDurationMs?: number;
+  maxDurationMs?: number;
+  ownerId?: string;
 }
 
 export interface ResourceFilterResponse {
   items: MediaResource[];
   totalCount: number;
-  skip: number;
-  take: number;
+  maxVideoDurationMs?: number;
+  maxAudioDurationMs?: number;
 }
 
 // MediaResource - Pure media metadata (no business properties)
@@ -675,6 +681,9 @@ export interface MediaResource {
   fileSize: number;
   dimensions: { width: number; height: number };
   duration: string;
+  name: string;
+  description: string | null;
+  tags: string[];
 }
 
 // Authentication Types
