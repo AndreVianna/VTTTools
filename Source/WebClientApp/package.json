@@ -40,7 +40,7 @@
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/x-data-grid": "^8.20.0",
-    "@mui/x-tree-view": "^8.19.0",
+    "@mui/x-tree-view": "^8.25.0",
     "@reduxjs/toolkit": "^2.9.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
