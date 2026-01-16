@@ -41,6 +41,9 @@ export const GameSessionPage: React.FC = () => {
     const [showAutoplayHelp, setShowAutoplayHelp] = useState(false);
     const [hasEnteredEncounter, setHasEnteredEncounter] = useState(false);
 
+    // Track initial mount to prevent race conditions with sessionStorage
+    const isInitialMountRef = useRef(true);
+
     // Session state for tracking last visited encounter (for page refresh detection)
     // Note: encounterId is intentionally undefined to use global session storage key.
     // This tracks the LAST visited encounter across all encounters, enabling page refresh
@@ -71,12 +74,14 @@ export const GameSessionPage: React.FC = () => {
     });
 
     // Check if this is a page refresh (same encounter visited before)
+    // Only runs on initial mount to avoid re-triggering on state changes
     useEffect(() => {
-        if (lastEncounterId === encounterId) {
+        if (isInitialMountRef.current && lastEncounterId === encounterId) {
             // Page refresh - skip modal, use AUP (silent unlock on first interaction)
             setShowEntryModal(false);
             setHasEnteredEncounter(true);
         }
+        isInitialMountRef.current = false;
     }, [encounterId, lastEncounterId]);
 
     // Update grid config when encounter loads
