@@ -9,11 +9,12 @@ import { AutoplayHelpDialog } from '@/components/encounter/AutoplayHelpDialog';
 import { EncounterEntryModal } from '@/components/encounter/EncounterEntryModal';
 import { getApiEndpoints } from '@/config/development';
 import { useAudioUnlock } from '@/hooks/useAudioUnlock';
+import { useSessionState } from '@/hooks/useSessionState';
 import { useGetEncounterQuery } from '@/services/encounterApi';
 import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
 import { LayerName } from '@/services/layerManager';
 
-const ENCOUNTER_DEFAULT_BACKGROUND = '/images/default-encounter-bg.png';
+const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 /**
  * Game Session Page - Player/DM view of an encounter.
@@ -40,6 +41,13 @@ export const GameSessionPage: React.FC = () => {
     const [showAutoplayHelp, setShowAutoplayHelp] = useState(false);
     const [hasEnteredEncounter, setHasEnteredEncounter] = useState(false);
 
+    // Session state for tracking last visited encounter (for page refresh detection)
+    const [lastEncounterId, setLastEncounterId] = useSessionState<string | null>({
+        key: 'lastEncounterId',
+        defaultValue: null,
+        encounterId: undefined,
+    });
+
     // Viewport state
     const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
 
@@ -61,13 +69,12 @@ export const GameSessionPage: React.FC = () => {
 
     // Check if this is a page refresh (same encounter visited before)
     useEffect(() => {
-        const lastEncounterId = sessionStorage.getItem('lastEncounterId');
         if (lastEncounterId === encounterId) {
             // Page refresh - skip modal, use AUP (silent unlock on first interaction)
             setShowEntryModal(false);
             setHasEnteredEncounter(true);
         }
-    }, [encounterId]);
+    }, [encounterId, lastEncounterId]);
 
     // Update grid config when encounter loads
     useEffect(() => {
@@ -93,12 +100,12 @@ export const GameSessionPage: React.FC = () => {
 
         // Track this encounter for refresh detection
         if (encounterId) {
-            sessionStorage.setItem('lastEncounterId', encounterId);
+            setLastEncounterId(encounterId);
         }
 
         setHasEnteredEncounter(true);
         setShowEntryModal(false);
-    }, [encounterId, unlockAudio]);
+    }, [encounterId, setLastEncounterId, unlockAudio]);
 
     // Handle exit to editor
     const handleExitToEditor = useCallback(() => {

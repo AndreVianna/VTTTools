@@ -166,7 +166,7 @@ export const LandingPage: React.FC = () => {
                     id='btn-open-editor'
                     size='small'
                     variant='contained'
-                    onClick={() => navigate('/encounter-editor')}
+                    onClick={() => navigate('/encounters/new/edit')}
                   >
                     Open Editor
                   </Button>
