@@ -57,7 +57,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
     "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/ui": "^3.2.4",
+    "@vitest/ui": "^4.0.17",
     "axios-mock-adapter": "^2.1.0",
     "cross-env": "^10.0.0",
     "eslint": "^9.37.0",
