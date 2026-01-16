@@ -709,6 +709,21 @@ describe('TopToolBar', () => {
             expect(onPreviewClick).toHaveBeenCalledTimes(1);
         });
 
+        it('should call onPreviewClick multiple times when clicked multiple times', async () => {
+            // Arrange
+            const onPreviewClick = vi.fn();
+            const props = createDefaultProps({ onPreviewClick });
+            const user = userEvent.setup();
+
+            // Act
+            render(<TopToolBar {...props} />);
+            await user.click(screen.getByLabelText('Preview Encounter'));
+            await user.click(screen.getByLabelText('Preview Encounter'));
+
+            // Assert
+            expect(onPreviewClick).toHaveBeenCalledTimes(2);
+        });
+
         it('should have semantic id btn-preview for BDD testing', () => {
             // Arrange
             const onPreviewClick = vi.fn();
