@@ -30,6 +30,9 @@
     "test:bdd:debug:scenario": "cross-env DEBUG_MODE=true NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --profile debug --name",
     "health": "curl -f http://localhost:5173/health || exit 1"
   },
+  "overrides": {
+    "diff": "^8.0.3"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -39,10 +42,10 @@
     "@mui/x-data-grid": "^8.20.0",
     "@mui/x-tree-view": "^8.19.0",
     "@reduxjs/toolkit": "^2.9.0",
-    "@vtttools/web-components": "file:../WebComponents",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "@vtttools/web-components": "file:../WebComponents",
     "axios": "^1.12.1",
     "konva": "^10.2.0",
     "polygon-clipping": "^0.15.7",
