@@ -1,4 +1,4 @@
-import { VolumeOff, VolumeUp } from '@mui/icons-material';
+import { Pause, PlayArrow, VolumeOff, VolumeUp } from '@mui/icons-material';
 import { Box, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 
@@ -11,8 +11,12 @@ export interface EditorStatusBarProps {
   /** Whether the encounter has a grid configured (not NoGrid) */
   hasGrid?: boolean;
   gridSnapEnabled?: boolean;
-  /** Whether the background is a video (shows audio control) */
+  /** Whether the background is a video (shows video controls) */
   hasVideoBackground?: boolean;
+  /** Whether video is currently playing */
+  isVideoPlaying?: boolean;
+  /** Callback when video play/pause is toggled */
+  onVideoPlayPauseToggle?: () => void;
   /** Whether video audio is currently muted */
   isAudioMuted?: boolean;
   /** Callback when audio mute is toggled */
@@ -28,6 +32,8 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
   hasGrid = false,
   gridSnapEnabled,
   hasVideoBackground = false,
+  isVideoPlaying = true,
+  onVideoPlayPauseToggle,
   isAudioMuted = true,
   onAudioMuteToggle,
 }) => {
@@ -106,6 +112,24 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
         >
           Snap: {gridSnapEnabled ? 'ON' : 'OFF'}
         </Typography>
+      )}
+
+      {hasVideoBackground && onVideoPlayPauseToggle && (
+        <Tooltip title={isVideoPlaying ? 'Pause video' : 'Play video'}>
+          <IconButton
+            size='small'
+            onClick={onVideoPlayPauseToggle}
+            sx={{
+              padding: 0,
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                color: theme.palette.text.primary,
+              },
+            }}
+          >
+            {isVideoPlaying ? <Pause sx={{ fontSize: 14 }} /> : <PlayArrow sx={{ fontSize: 14 }} />}
+          </IconButton>
+        </Tooltip>
       )}
 
       {hasVideoBackground && onAudioMuteToggle && (

@@ -211,6 +211,8 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [isUploadingAmbientSound, setIsUploadingAmbientSound] = useState(false);
   // Video audio starts muted (browser autoplay policy), user can unmute via status bar
   const [isVideoAudioMuted, setIsVideoAudioMuted] = useState(true);
+  // Video starts playing (autoplay), user can pause via status bar
+  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [addEncounterAsset] = useAddEncounterAssetMutation();
   const [updateEncounterAsset] = useUpdateEncounterAssetMutation();
   const [bulkUpdateEncounterAssets] = useBulkUpdateEncounterAssetsMutation();
@@ -1733,6 +1735,16 @@ const EncounterEditorPageInternal: React.FC = () => {
     return filtered;
   }, [assetManagement.placedAssets, scopeVisibility.objects, scopeVisibility.monsters, scopeVisibility.characters]);
 
+  // Toggle video audio mute state - must be before early returns to satisfy Rules of Hooks
+  const handleAudioMuteToggle = useCallback(() => {
+    setIsVideoAudioMuted((prev) => !prev);
+  }, []);
+
+  // Toggle video play/pause state - must be before early returns to satisfy Rules of Hooks
+  const handleVideoPlayPauseToggle = useCallback(() => {
+    setIsVideoPlaying((prev) => !prev);
+  }, []);
+
   if (isLoadingEncounter) {
     return (
       <EditorLayout>
@@ -1785,11 +1797,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     : undefined;
   const backgroundContentType = encounter?.stage?.settings?.mainBackground?.contentType;
   const hasVideoBackground = backgroundContentType?.startsWith('video/') ?? false;
-
-  // Toggle video audio mute state
-  const handleAudioMuteToggle = useCallback(() => {
-    setIsVideoAudioMuted((prev) => !prev);
-  }, []);
 
   const alternateBackgroundUrl = encounter?.stage?.settings?.alternateBackground
     ? `${getApiEndpoints().media}/${encounter.stage.settings.alternateBackground.id}`
@@ -1977,6 +1984,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                 onImageLoaded={handleBackgroundImageLoaded}
                 {...(backgroundContentType && { contentType: backgroundContentType })}
                 muted={isVideoAudioMuted}
+                playing={isVideoPlaying}
               />
 
               <GridRenderer
@@ -2348,6 +2356,8 @@ const EncounterEditorPageInternal: React.FC = () => {
           hasGrid={gridConfig.type !== GridType.NoGrid}
           gridSnapEnabled={gridConfig.snap}
           hasVideoBackground={hasVideoBackground}
+          isVideoPlaying={isVideoPlaying}
+          onVideoPlayPauseToggle={handleVideoPlayPauseToggle}
           isAudioMuted={isVideoAudioMuted}
           onAudioMuteToggle={handleAudioMuteToggle}
         />

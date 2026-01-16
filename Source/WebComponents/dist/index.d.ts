@@ -14,7 +14,7 @@ import { TypographyProps } from '@mui/material';
 export declare interface AddResourceRequest {
     name: string;
     description: string;
-    resourceType: ResourceType;
+    role: ResourceRole;
     filePath: string;
     fileSize: number;
     mimeType: string;
@@ -1248,21 +1248,16 @@ export declare interface LoginResponse {
 
 export declare interface MediaResource {
     id: string;
-    description: string | null;
-    features: Record<string, string[]>;
-    type: ResourceType;
+    role: ResourceRole;
     path: string;
     contentType: string;
     fileName: string;
-    fileLength: number;
-    size: {
+    fileSize: number;
+    dimensions: {
         width: number;
         height: number;
     };
     duration: string;
-    ownerId: string;
-    isPublished: boolean;
-    isPublic: boolean;
 }
 
 export declare interface MediaUrlConfig {
@@ -1516,11 +1511,17 @@ export declare interface ResetPasswordRequest {
     confirmPassword: string;
 }
 
-export declare enum ResourceType {
-    Image = "Image",
-    Audio = "Audio",
-    Video = "Video",
-    Document = "Document"
+export declare enum ResourceRole {
+    Undefined = "Undefined",
+    Background = "Background",
+    Token = "Token",
+    Portrait = "Portrait",
+    Overlay = "Overlay",
+    Illustration = "Illustration",
+    SoundEffect = "SoundEffect",
+    AmbientSound = "AmbientSound",
+    CutScene = "CutScene",
+    UserAvatar = "UserAvatar"
 }
 
 export declare type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';

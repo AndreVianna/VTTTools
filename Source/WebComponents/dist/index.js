@@ -113,13 +113,19 @@ var GameSessionStatus = /* @__PURE__ */ ((GameSessionStatus2) => {
   GameSessionStatus2["Cancelled"] = "Cancelled";
   return GameSessionStatus2;
 })(GameSessionStatus || {});
-var ResourceType = /* @__PURE__ */ ((ResourceType2) => {
-  ResourceType2["Image"] = "Image";
-  ResourceType2["Audio"] = "Audio";
-  ResourceType2["Video"] = "Video";
-  ResourceType2["Document"] = "Document";
-  return ResourceType2;
-})(ResourceType || {});
+var ResourceRole = /* @__PURE__ */ ((ResourceRole2) => {
+  ResourceRole2["Undefined"] = "Undefined";
+  ResourceRole2["Background"] = "Background";
+  ResourceRole2["Token"] = "Token";
+  ResourceRole2["Portrait"] = "Portrait";
+  ResourceRole2["Overlay"] = "Overlay";
+  ResourceRole2["Illustration"] = "Illustration";
+  ResourceRole2["SoundEffect"] = "SoundEffect";
+  ResourceRole2["AmbientSound"] = "AmbientSound";
+  ResourceRole2["CutScene"] = "CutScene";
+  ResourceRole2["UserAvatar"] = "UserAvatar";
+  return ResourceRole2;
+})(ResourceRole || {});
 var LabelVisibility = /* @__PURE__ */ ((LabelVisibility2) => {
   LabelVisibility2["Default"] = "Default";
   LabelVisibility2["Always"] = "Always";
@@ -4390,6 +4396,10 @@ var isSet = (target) => target instanceof Set;
 var isObjectish = (target) => typeof target === "object";
 var isFunction$1 = (target) => typeof target === "function";
 var isBoolean = (target) => typeof target === "boolean";
+function isArrayIndex(value) {
+  const n = +value;
+  return Number.isInteger(n) && String(n) === value;
+}
 var getProxyDraft = (value) => {
   if (!isObjectish(value))
     return null;
@@ -4438,7 +4448,7 @@ function shallowCopy(base, strict) {
   }
 }
 function freeze(obj, deep = false) {
-  if (isFrozen(obj) || isDraft(obj))
+  if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj))
     return obj;
   if (getArchtype(obj) > 1) {
     O.defineProperties(obj, {
@@ -4474,6 +4484,7 @@ function isFrozen(obj) {
 // src/utils/plugins.ts
 var PluginMapSet = "MapSet";
 var PluginPatches = "Patches";
+var PluginArrayMethods = "ArrayMethods";
 var plugins = {};
 function getPlugin(pluginKey) {
   const plugin = plugins[pluginKey];
@@ -4501,7 +4512,8 @@ var createScope = (parent_, immer_) => ({
   unfinalizedDrafts_: 0,
   handledSet_: /* @__PURE__ */ new Set(),
   processedForPatches_: /* @__PURE__ */ new Set(),
-  mapSetPlugin_: isPluginLoaded(PluginMapSet) ? getPlugin(PluginMapSet) : void 0
+  mapSetPlugin_: isPluginLoaded(PluginMapSet) ? getPlugin(PluginMapSet) : void 0,
+  arrayMethodsPlugin_: isPluginLoaded(PluginArrayMethods) ? getPlugin(PluginArrayMethods) : void 0
 });
 function usePatchesInScope(scope, patchListener) {
   if (patchListener) {
@@ -4636,7 +4648,7 @@ function registerChildFinalizationCallback(parent, child, key) {
   });
 }
 function generatePatchesAndFinalize(state, rootScope) {
-  const shouldFinalize = state.modified_ && !state.finalized_ && (state.type_ === 3 /* Set */ || (state.assigned_?.size ?? 0) > 0);
+  const shouldFinalize = state.modified_ && !state.finalized_ && (state.type_ === 3 /* Set */ || state.type_ === 1 /* Array */ && state.allIndicesReassigned_ || (state.assigned_?.size ?? 0) > 0);
   if (shouldFinalize) {
     const { patchPlugin_ } = rootScope;
     if (patchPlugin_) {
@@ -4662,13 +4674,19 @@ function handleCrossReference(target, key, value) {
   } else if (isDraftable(value)) {
     target.callbacks_.push(function nestedDraftCleanup() {
       const targetCopy = latest(target);
-      if (get(targetCopy, key, target.type_) === value) {
-        if (scope_.drafts_.length > 1 && (target.assigned_.get(key) ?? false) === true && target.copy_) {
-          handleValue(
-            get(target.copy_, key, target.type_),
-            scope_.handledSet_,
-            scope_
-          );
+      if (target.type_ === 3 /* Set */) {
+        if (targetCopy.has(value)) {
+          handleValue(value, scope_.handledSet_, scope_);
+        }
+      } else {
+        if (get(targetCopy, key, target.type_) === value) {
+          if (scope_.drafts_.length > 1 && (target.assigned_.get(key) ?? false) === true && target.copy_) {
+            handleValue(
+              get(target.copy_, key, target.type_),
+              scope_.handledSet_,
+              scope_
+            );
+          }
         }
       }
     });
@@ -4741,12 +4759,24 @@ var objectTraps = {
   get(state, prop) {
     if (prop === DRAFT_STATE)
       return state;
+    let arrayPlugin = state.scope_.arrayMethodsPlugin_;
+    const isArrayWithStringProp = state.type_ === 1 /* Array */ && typeof prop === "string";
+    if (isArrayWithStringProp) {
+      if (arrayPlugin?.isArrayOperationMethod(prop)) {
+        return arrayPlugin.createMethodInterceptor(state, prop);
+      }
+    }
     const source = latest(state);
     if (!has$1(source, prop, state.type_)) {
       return readPropFromProto(state, source, prop);
     }
     const value = source[prop];
     if (state.finalized_ || !isDraftable(value)) {
+      return value;
+    }
+    if (isArrayWithStringProp && state.operationMethod && arrayPlugin?.isMutatingArrayMethod(
+      state.operationMethod
+    ) && isArrayIndex(prop)) {
       return value;
     }
     if (value === peek(state.base_, prop)) {
@@ -4829,13 +4859,14 @@ var objectTraps = {
   }
 };
 var arrayTraps = {};
-each(objectTraps, (key, fn) => {
+for (let key in objectTraps) {
+  let fn = objectTraps[key];
   arrayTraps[key] = function() {
     const args = arguments;
     args[0] = args[0][0];
     return fn.apply(this, args);
   };
-});
+}
 arrayTraps.deleteProperty = function(state, prop) {
   if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop)))
     die(13);
@@ -5121,7 +5152,7 @@ function enablePatches() {
     );
   }
   function getPath(state, path = []) {
-    if ("key_" in state && state.key_ !== void 0) {
+    if (state.key_ !== void 0) {
       const parentCopy = state.parent_.copy_ ?? state.parent_.base_;
       const proxyDraft = getProxyDraft(get(parentCopy, state.key_));
       const valueAtKey = get(parentCopy, state.key_);
@@ -5210,10 +5241,12 @@ function enablePatches() {
       [base_, copy_] = [copy_, base_];
       [patches, inversePatches] = [inversePatches, patches];
     }
+    const allReassigned = state.allIndicesReassigned_ === true;
     for (let i = 0; i < base_.length; i++) {
       const copiedItem = copy_[i];
       const baseItem = base_[i];
-      if (assigned_?.get(i.toString()) && copiedItem !== baseItem) {
+      const isAssigned = allReassigned || assigned_?.get(i.toString());
+      if (isAssigned && copiedItem !== baseItem) {
         const childState = copiedItem?.[DRAFT_STATE];
         if (childState && childState.modified_) {
           continue;
@@ -5851,6 +5884,33 @@ function getOrInsertComputed(map, key, compute) {
 }
 var createNewMap = () => /* @__PURE__ */ new Map();
 
+// src/query/utils/signals.ts
+var timeoutSignal = (milliseconds) => {
+  const abortController = new AbortController();
+  setTimeout(() => {
+    const message = "signal timed out";
+    const name = "TimeoutError";
+    abortController.abort(
+      // some environments (React Native, Node) don't have DOMException
+      typeof DOMException !== "undefined" ? new DOMException(message, name) : Object.assign(new Error(message), {
+        name
+      })
+    );
+  }, milliseconds);
+  return abortController.signal;
+};
+var anySignal = (...signals) => {
+  for (const signal of signals) if (signal.aborted) return AbortSignal.abort(signal.reason);
+  const abortController = new AbortController();
+  for (const signal of signals) {
+    signal.addEventListener("abort", () => abortController.abort(signal.reason), {
+      signal: abortController.signal,
+      once: true
+    });
+  }
+  return abortController.signal;
+};
+
 // src/query/fetchBaseQuery.ts
 var defaultFetchFn = (...args) => fetch(...args);
 var defaultValidateStatus = (response) => response.status >= 200 && response.status <= 299;
@@ -5907,15 +5967,9 @@ function fetchBaseQuery({
     } = typeof arg == "string" ? {
       url: arg
     } : arg;
-    let abortController, signal = api.signal;
-    if (timeout) {
-      abortController = new AbortController();
-      api.signal.addEventListener("abort", abortController.abort);
-      signal = abortController.signal;
-    }
     let config = {
       ...baseFetchOptions,
-      signal,
+      signal: timeout ? anySignal(api.signal, timeoutSignal(timeout)) : api.signal,
       ...rest
     };
     headers = new Headers(stripUndefined(headers));
@@ -5956,23 +6010,17 @@ function fetchBaseQuery({
     meta = {
       request: requestClone
     };
-    let response, timedOut = false, timeoutId = abortController && setTimeout(() => {
-      timedOut = true;
-      abortController.abort();
-    }, timeout);
+    let response;
     try {
       response = await fetchFn(request);
     } catch (e) {
       return {
         error: {
-          status: timedOut ? "TIMEOUT_ERROR" : "FETCH_ERROR",
+          status: (e instanceof Error || typeof DOMException !== "undefined" && e instanceof DOMException) && e.name === "TimeoutError" ? "TIMEOUT_ERROR" : "FETCH_ERROR",
           error: String(e)
         },
         meta
       };
-    } finally {
-      if (timeoutId) clearTimeout(timeoutId);
-      abortController?.signal.removeEventListener("abort", abortController.abort);
     }
     const responseClone = response.clone();
     meta.response = responseClone;
@@ -10863,7 +10911,7 @@ var propTypesExports = /*@__PURE__*/ requirePropTypes();
 const PropTypes = /*@__PURE__*/getDefaultExportFromCjs(propTypesExports);
 
 /**
- * @mui/styled-engine v7.3.5
+ * @mui/styled-engine v7.3.7
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -19091,5 +19139,5 @@ const getDefaultStage = () => ({
   panning: { x: 0, y: 0 }
 });
 
-export { AdventureCard, AdventureDetailPage, AdventureStyle, AssetCardCompact, AssetInspectorPanel, AssetKind, AttributeRangeSlider, BrowserToolbar, CampaignCard, CampaignDetailPage, ConfirmDialog, ContentCard, ContentEditorDialog, ContentType, DisplayPreview, EditableTitle, EditingBlocker, EncounterCard, GameSessionStatus, GridType, LabelPosition, LabelVisibility, LibraryProvider, Light, LoadingOverlay, OpeningOpacity, OpeningState, OpeningVisibility, PublishedBadge, ResourceType, SaveStatusIndicator, SizeName, SizeSelector, StatValueType, TaxonomyTree, TokenCarousel, TokenPreview, WallVisibility, Weather, WorldCard, WorldDetailPage, adventureTagTypes, applyAssetSnapshot, assetTagTypes, calculateAssetSize, campaignTagTypes, checkAssetOverlap, configureMediaUrls, createAdventureEndpoints, createApiBaseQuery, createAssetEndpoints, createAssetSnapshot, createBreakWallAction, createCampaignEndpoints, createDeletePoleAction, createDeleteVertexAction, createEncounterEndpoints, createInsertPoleAction, createInsertVertexAction, createMoveLineAction, createMovePoleAction, createMoveVertexAction, createMultiMovePoleAction, createMultiMoveVertexAction, createPlacePoleAction, createPlaceVertexAction, createRegionMoveLineAction, createWorldEndpoints, encounterTagTypes, getDefaultAssetImage, getDefaultGrid, getDefaultStage, getPlacementBehavior, getResourceUrl, snapAssetPosition, snapToGrid, useAutoSave, useDebounce, useInfiniteScroll, useLibrary, useLibraryOptional, useSignalRHub, validatePlacement, worldTagTypes };
+export { AdventureCard, AdventureDetailPage, AdventureStyle, AssetCardCompact, AssetInspectorPanel, AssetKind, AttributeRangeSlider, BrowserToolbar, CampaignCard, CampaignDetailPage, ConfirmDialog, ContentCard, ContentEditorDialog, ContentType, DisplayPreview, EditableTitle, EditingBlocker, EncounterCard, GameSessionStatus, GridType, LabelPosition, LabelVisibility, LibraryProvider, Light, LoadingOverlay, OpeningOpacity, OpeningState, OpeningVisibility, PublishedBadge, ResourceRole, SaveStatusIndicator, SizeName, SizeSelector, StatValueType, TaxonomyTree, TokenCarousel, TokenPreview, WallVisibility, Weather, WorldCard, WorldDetailPage, adventureTagTypes, applyAssetSnapshot, assetTagTypes, calculateAssetSize, campaignTagTypes, checkAssetOverlap, configureMediaUrls, createAdventureEndpoints, createApiBaseQuery, createAssetEndpoints, createAssetSnapshot, createBreakWallAction, createCampaignEndpoints, createDeletePoleAction, createDeleteVertexAction, createEncounterEndpoints, createInsertPoleAction, createInsertVertexAction, createMoveLineAction, createMovePoleAction, createMoveVertexAction, createMultiMovePoleAction, createMultiMoveVertexAction, createPlacePoleAction, createPlaceVertexAction, createRegionMoveLineAction, createWorldEndpoints, encounterTagTypes, getDefaultAssetImage, getDefaultGrid, getDefaultStage, getPlacementBehavior, getResourceUrl, snapAssetPosition, snapToGrid, useAutoSave, useDebounce, useInfiniteScroll, useLibrary, useLibraryOptional, useSignalRHub, validatePlacement, worldTagTypes };
 //# sourceMappingURL=index.js.map

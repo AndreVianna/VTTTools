@@ -15,6 +15,8 @@ export interface BackgroundLayerProps {
     contentType?: string;
     /** Whether the video should be muted. Defaults to true for autoplay compatibility. */
     muted?: boolean;
+    /** Whether the video should be playing. Defaults to true for autoplay. */
+    playing?: boolean;
 }
 
 const isVideoContentType = (contentType?: string): boolean => {
@@ -29,6 +31,7 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
     onImageLoaded,
     contentType,
     muted = true,
+    playing = true,
 }) => {
     const groupRef = useRef<Konva.Group>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -108,6 +111,19 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
             videoRef.current.muted = muted;
         }
     }, [muted, videoElement]);
+
+    // Handle dynamic play/pause changes
+    useEffect(() => {
+        if (videoRef.current && videoElement) {
+            if (playing) {
+                videoRef.current.play().catch(() => {
+                    // Play might be blocked, that's okay
+                });
+            } else {
+                videoRef.current.pause();
+            }
+        }
+    }, [playing, videoElement]);
 
     // Handle image loaded callback
     useEffect(() => {
