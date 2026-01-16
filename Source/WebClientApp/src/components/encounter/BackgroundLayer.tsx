@@ -50,7 +50,8 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
             const video = document.createElement('video');
             video.src = blobUrl;
             video.crossOrigin = 'anonymous';
-            video.muted = muted;
+            // Always start muted for autoplay compatibility, then update via useEffect on line 105
+            video.muted = true;
             video.loop = true;
             video.playsInline = true;
             video.autoplay = true;
@@ -101,12 +102,12 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
         };
     }, [videoElement]);
 
-    // Handle dynamic muted changes
+    // Handle dynamic muted changes (only after video is ready and playing)
     useEffect(() => {
-        if (videoRef.current) {
+        if (videoRef.current && videoElement) {
             videoRef.current.muted = muted;
         }
-    }, [muted]);
+    }, [muted, videoElement]);
 
     // Handle image loaded callback
     useEffect(() => {

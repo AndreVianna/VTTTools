@@ -256,7 +256,7 @@ export const GameSessionPage: React.FC = () => {
                             stageHeight={stageSize.height}
                             onImageLoaded={handleBackgroundImageLoaded}
                             {...(backgroundContentType && { contentType: backgroundContentType })}
-                            muted={!isAudioUnlocked}
+                            muted={!hasEnteredEncounter || !isAudioUnlocked}
                         />
 
                         <GridRenderer
