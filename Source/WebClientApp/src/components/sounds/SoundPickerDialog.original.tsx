@@ -90,7 +90,7 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
         try {
             const result = await uploadFile({
                 file,
-                resourceType: ResourceRole[soundTypeFilter],
+                role: ResourceRole[soundTypeFilter],
             }).unwrap();
             await refetch();
             setSelectedResourceId(result.id);

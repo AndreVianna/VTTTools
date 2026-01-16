@@ -8,8 +8,8 @@ export interface UploadProgressEvent {
 
 export interface UploadOptions {
   file: File;
-  resourceType?: string | undefined;
-  entityId?: string | undefined;
+  role?: string | undefined;
+  ownerId?: string | undefined;
   onProgress?: (event: UploadProgressEvent) => void;
   onAbort?: () => void;
 }
@@ -23,7 +23,7 @@ export const uploadFileWithProgress = (
   options: UploadOptions,
   signal?: AbortSignal
 ): Promise<UploadResult> => {
-  const { file, resourceType = 'token', entityId, onProgress, onAbort } = options;
+  const { file, role = 'Token', ownerId, onProgress, onAbort } = options;
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -72,11 +72,11 @@ export const uploadFileWithProgress = (
     });
 
     const formData = new FormData();
-    formData.append('resourceType', resourceType);
+    formData.append('role', role);
     formData.append('file', file);
 
-    if (entityId) {
-      formData.append('entityId', entityId);
+    if (ownerId) {
+      formData.append('ownerId', ownerId);
     }
 
     xhr.open('POST', '/api/resources');

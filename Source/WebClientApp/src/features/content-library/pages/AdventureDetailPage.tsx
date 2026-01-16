@@ -201,8 +201,8 @@ export function AdventureDetailPage() {
       setSaveStatus('saving');
       const result = await uploadFile({
         file,
-        resourceType: 'Background',
-        entityId: adventureId,
+        role: 'Background',
+        ownerId: adventureId,
       }).unwrap();
 
       await updateAdventure({

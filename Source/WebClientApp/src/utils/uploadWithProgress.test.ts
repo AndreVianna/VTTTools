@@ -66,7 +66,7 @@ describe('uploadWithProgress', () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
       const options: UploadOptions = {
         file,
-        resourceType: 'token',
+        role: 'token',
       };
 
       const uploadPromise = uploadFileWithProgress(options);
@@ -84,7 +84,7 @@ describe('uploadWithProgress', () => {
       const onProgress = vi.fn();
       const options: UploadOptions = {
         file,
-        resourceType: 'token',
+        role: 'token',
         onProgress,
       };
 
@@ -112,8 +112,8 @@ describe('uploadWithProgress', () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
       const options: UploadOptions = {
         file,
-        resourceType: 'portrait',
-        entityId: 'entity-123',
+        role: 'portrait',
+        ownerId: 'entity-123',
       };
 
       const uploadPromise = uploadFileWithProgress(options);
@@ -125,24 +125,24 @@ describe('uploadWithProgress', () => {
       const formData = (mockXhr.send as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as FormData;
       expect(formData).toBeInstanceOf(FormData);
       expect(formData.get('file')).toBe(file);
-      expect(formData.get('resourceType')).toBe('portrait');
-      expect(formData.get('entityId')).toBe('entity-123');
+      expect(formData.get('role')).toBe('portrait');
+      expect(formData.get('ownerId')).toBe('entity-123');
 
       xhrEventListeners['load']?.({} as Event);
       await uploadPromise;
     });
 
-    it('should not include entityId when not provided', async () => {
+    it('should not include ownerId when not provided', async () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
       const options: UploadOptions = {
         file,
-        resourceType: 'token',
+        role: 'token',
       };
 
       const uploadPromise = uploadFileWithProgress(options);
 
       const formData = (mockXhr.send as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as FormData;
-      expect(formData.get('entityId')).toBeNull();
+      expect(formData.get('ownerId')).toBeNull();
 
       xhrEventListeners['load']?.({} as Event);
       await uploadPromise;
@@ -347,7 +347,7 @@ describe('uploadWithProgress', () => {
   });
 
   describe('default values', () => {
-    it('should use default resourceType when not provided', async () => {
+    it('should use default role when not provided', async () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
       const options: UploadOptions = {
         file,
@@ -356,7 +356,7 @@ describe('uploadWithProgress', () => {
       const uploadPromise = uploadFileWithProgress(options);
 
       const formData = (mockXhr.send as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as FormData;
-      expect(formData.get('resourceType')).toBe('token');
+      expect(formData.get('role')).toBe('Token');
 
       xhrEventListeners['load']?.({} as Event);
       await uploadPromise;

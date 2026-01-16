@@ -2,15 +2,43 @@ namespace VttTools.Data.Media;
 
 public class MediaStorage(ApplicationDbContext context, ILogger<MediaStorage> logger)
     : IMediaStorage {
-    public async Task<(ResourceMetadata[] Items, int TotalCount)> FilterAsync(
+    public async Task<ResourceFilterResponse> FilterAsync(
         ResourceFilterData filter,
         CancellationToken ct = default) {
         var query = context.Resources.AsNoTracking();
 
+        if (filter.Role.HasValue)
+            query = query.Where(r => r.Role == filter.Role.Value);
+
+        // Enhanced search: Name, Description, FileName, Tags (jsonb array)
         if (!string.IsNullOrWhiteSpace(filter.SearchText)) {
             var search = $"%{filter.SearchText}%";
-            query = query.Where(r => EF.Functions.Like(r.FileName, search));
+            query = query.Where(r =>
+                EF.Functions.ILike(r.Name, search) ||
+                EF.Functions.ILike(r.Description ?? string.Empty, search) ||
+                EF.Functions.ILike(r.FileName, search) ||
+                r.Tags.Any(t => EF.Functions.ILike(t, search)));
         }
+
+        // Media type filter
+        if (filter.MediaTypes is { Length: > 0 })
+            query = query.Where(r => filter.MediaTypes.Any(mt => r.ContentType.StartsWith(mt + "/")));
+
+        // Dimension filters
+        if (filter.MinWidth.HasValue)
+            query = query.Where(r => r.Dimensions.Width >= filter.MinWidth.Value);
+        if (filter.MaxWidth.HasValue)
+            query = query.Where(r => r.Dimensions.Width <= filter.MaxWidth.Value);
+
+        // Duration filters (milliseconds)
+        if (filter.MinDurationMs.HasValue)
+            query = query.Where(r => r.Duration >= TimeSpan.FromMilliseconds(filter.MinDurationMs.Value));
+        if (filter.MaxDurationMs.HasValue)
+            query = query.Where(r => r.Duration <= TimeSpan.FromMilliseconds(filter.MaxDurationMs.Value));
+
+        // Ownership filter
+        if (filter.OwnerId.HasValue)
+            query = query.Where(r => r.OwnerId == filter.OwnerId.Value);
 
         var totalCount = await query.CountAsync(ct);
 
@@ -21,7 +49,21 @@ public class MediaStorage(ApplicationDbContext context, ILogger<MediaStorage> lo
             .Select(Mapper.AsResource)
             .ToArrayAsync(ct);
 
-        return (items, totalCount);
+        // Compute max durations for slider bounds
+        var maxVideoDurationMs = await context.Resources
+            .Where(r => r.ContentType.StartsWith("video/"))
+            .MaxAsync(r => (int?)r.Duration.TotalMilliseconds, ct);
+
+        var maxAudioDurationMs = await context.Resources
+            .Where(r => r.ContentType.StartsWith("audio/"))
+            .MaxAsync(r => (int?)r.Duration.TotalMilliseconds, ct);
+
+        return new ResourceFilterResponse {
+            Items = items,
+            TotalCount = totalCount,
+            MaxVideoDurationMs = maxVideoDurationMs,
+            MaxAudioDurationMs = maxAudioDurationMs,
+        };
     }
 
     public async Task<ResourceMetadata?> FindByIdAsync(Guid id, CancellationToken ct = default) {

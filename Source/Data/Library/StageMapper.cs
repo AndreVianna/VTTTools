@@ -28,8 +28,10 @@ internal static class StageMapper {
             Settings = new() {
                 MainBackground = entity.MainBackground.ToModel(),
                 AlternateBackground = entity.AlternateBackground.ToModel(),
+                UseAlternateBackground = entity.UseAlternateBackground,
                 AmbientLight = entity.AmbientLight,
                 AmbientSound = entity.AmbientSound.ToModel(),
+                AmbientSoundSource = entity.AmbientSoundSource,
                 AmbientSoundVolume = entity.AmbientSoundVolume,
                 AmbientSoundLoop = entity.AmbientSoundLoop,
                 AmbientSoundIsPlaying = entity.AmbientSoundIsPlaying,
@@ -122,8 +124,10 @@ internal static class StageMapper {
             Settings = new() {
                 MainBackground = entity.MainBackground.ToModel(),
                 AlternateBackground = entity.AlternateBackground.ToModel(),
+                UseAlternateBackground = entity.UseAlternateBackground,
                 AmbientLight = entity.AmbientLight,
                 AmbientSound = entity.AmbientSound.ToModel(),
+                AmbientSoundSource = entity.AmbientSoundSource,
                 AmbientSoundVolume = entity.AmbientSoundVolume,
                 AmbientSoundLoop = entity.AmbientSoundLoop,
                 AmbientSoundIsPlaying = entity.AmbientSoundIsPlaying,
@@ -156,8 +160,10 @@ internal static class StageMapper {
             // Only set FK IDs, NOT navigation properties - prevents corrupting Resource table
             MainBackgroundId = model.Settings.MainBackground?.Id,
             AlternateBackgroundId = model.Settings.AlternateBackground?.Id,
+            UseAlternateBackground = model.Settings.UseAlternateBackground,
             AmbientLight = model.Settings.AmbientLight,
             AmbientSoundId = model.Settings.AmbientSound?.Id,
+            AmbientSoundSource = model.Settings.AmbientSoundSource,
             AmbientSoundVolume = model.Settings.AmbientSoundVolume,
             AmbientSoundLoop = model.Settings.AmbientSoundLoop,
             AmbientSoundIsPlaying = model.Settings.AmbientSoundIsPlaying,
@@ -186,8 +192,10 @@ internal static class StageMapper {
         // Only update FK IDs, NOT navigation properties - prevents corrupting Resource table
         entity.MainBackgroundId = model.Settings.MainBackground?.Id;
         entity.AlternateBackgroundId = model.Settings.AlternateBackground?.Id;
+        entity.UseAlternateBackground = model.Settings.UseAlternateBackground;
         entity.AmbientLight = model.Settings.AmbientLight;
         entity.AmbientSoundId = model.Settings.AmbientSound?.Id;
+        entity.AmbientSoundSource = model.Settings.AmbientSoundSource;
         entity.AmbientSoundVolume = model.Settings.AmbientSoundVolume;
         entity.AmbientSoundLoop = model.Settings.AmbientSoundLoop;
         entity.AmbientSoundIsPlaying = model.Settings.AmbientSoundIsPlaying;

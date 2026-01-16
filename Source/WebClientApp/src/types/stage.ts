@@ -31,10 +31,12 @@ export interface Stage {
 export interface StageSettings {
     mainBackground?: ResourceMetadata | null;
     alternateBackground?: ResourceMetadata | null;
+    useAlternateBackground: boolean;
     zoomLevel: number;
     panning: Point;
     ambientLight: AmbientLight;
     ambientSound?: ResourceMetadata | null;
+    ambientSoundSource: AmbientSoundSource;
     ambientSoundVolume: number;
     ambientSoundLoop: boolean;
     ambientSoundIsPlaying: boolean;
@@ -52,6 +54,14 @@ export interface ResourceMetadata {
     fileSize: number;
     dimensions: { width: number; height: number };
     duration: string;
+}
+
+// Ambient sound source (matches backend AmbientSoundSource enum)
+// Backend uses JsonStringEnumConverter, so values are string names
+export enum AmbientSoundSource {
+    NotSet = 'NotSet',
+    FromResource = 'FromResource',
+    FromBackground = 'FromBackground',
 }
 
 // Ambient light levels (matches backend AmbientLight enum)
@@ -195,10 +205,12 @@ export interface UpdateStageRequest {
 export interface UpdateStageSettingsRequest {
     mainBackgroundId?: string | null;
     alternateBackgroundId?: string | null;
+    useAlternateBackground?: boolean;
     zoomLevel?: number;
     panning?: Point;
     ambientLight?: AmbientLight;
     ambientSoundId?: string | null;
+    ambientSoundSource?: AmbientSoundSource;
     ambientSoundVolume?: number;
     ambientSoundLoop?: boolean;
     ambientSoundIsPlaying?: boolean;

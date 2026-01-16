@@ -1,12 +1,29 @@
 namespace VttTools.AI.Mocks;
 
-public class MockHttpMessageHandler(HttpStatusCode statusCode)
-    : HttpMessageHandler {
-    protected override Task<HttpResponseMessage> SendAsync(
+public class MockHttpMessageHandler : HttpMessageHandler {
+    private readonly HttpStatusCode? _defaultStatusCode;
+
+    public HttpResponseMessage? ResponseToReturn { get; set; }
+    public string? LastRequestContent { get; private set; }
+
+    public MockHttpMessageHandler() { }
+
+    public MockHttpMessageHandler(HttpStatusCode statusCode) {
+        _defaultStatusCode = statusCode;
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken) {
-        var response = new HttpResponseMessage(statusCode);
-        return Task.FromResult(response);
+        if (request.Content is not null) {
+            LastRequestContent = await request.Content.ReadAsStringAsync(cancellationToken);
+        }
+
+        if (ResponseToReturn is not null) {
+            return ResponseToReturn;
+        }
+
+        return new HttpResponseMessage(_defaultStatusCode ?? HttpStatusCode.OK);
     }
 }
 

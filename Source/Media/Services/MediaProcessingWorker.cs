@@ -45,10 +45,10 @@ public sealed class MediaProcessingWorker(
         var category = MediaConstraints.GetMediaCategory(resource.ContentType);
         switch (category) {
             case "video":
-                await ProcessVideoAsync(resource, blobStorage, processor, eventPublisher, ct);
+                await ProcessVideoAsync(resource, mediaStorage, blobStorage, processor, eventPublisher, ct);
                 break;
             case "image":
-                await ProcessImageAsync(resource, blobStorage, processor, eventPublisher, ct);
+                await ProcessImageAsync(resource, mediaStorage, blobStorage, processor, eventPublisher, ct);
                 break;
             default:
                 logger.LogInformation("Resource {ResourceId} with category {Category} requires no background processing",
@@ -59,6 +59,7 @@ public sealed class MediaProcessingWorker(
 
     private async Task ProcessVideoAsync(
         ResourceMetadata resource,
+        IMediaStorage mediaStorage,
         IBlobStorage blobStorage,
         IMediaProcessorService processor,
         IMediaEventPublisher eventPublisher,
@@ -105,6 +106,20 @@ public sealed class MediaProcessingWorker(
             await blobStorage.SavePrimaryAsync(resource.Path, memoryStream, resource.ContentType, ct);
         }
 
+        // Step 4: AI content analysis
+        memoryStream.Position = 0;
+        var analysis = await processor.AnalyzeContentAsync(resource.ContentType, memoryStream, resource.FileName, ct);
+        if (analysis is not null) {
+            var updatedResource = resource with {
+                Name = analysis.SuggestedName ?? resource.Name,
+                Description = analysis.Description,
+                Tags = analysis.Tags ?? [],
+            };
+            await mediaStorage.UpdateAsync(updatedResource, ct);
+            logger.LogInformation("AI analysis complete for resource {ResourceId}: Name={Name}, Tags={TagCount}",
+                resource.Id, updatedResource.Name, updatedResource.Tags.Length);
+        }
+
         // Notify clients that the resource has been updated
         await eventPublisher.NotifyResourceUpdatedAsync(resource.Id, ct);
         logger.LogInformation("Video processing complete for resource {ResourceId}", resource.Id);
@@ -112,6 +127,7 @@ public sealed class MediaProcessingWorker(
 
     private async Task ProcessImageAsync(
         ResourceMetadata resource,
+        IMediaStorage mediaStorage,
         IBlobStorage blobStorage,
         IMediaProcessorService processor,
         IMediaEventPublisher eventPublisher,
@@ -154,6 +170,20 @@ public sealed class MediaProcessingWorker(
             // Original is already PNG, copy to primary location
             memoryStream.Position = 0;
             await blobStorage.SavePrimaryAsync(resource.Path, memoryStream, resource.ContentType, ct);
+        }
+
+        // Step 3: AI content analysis
+        memoryStream.Position = 0;
+        var analysis = await processor.AnalyzeContentAsync(resource.ContentType, memoryStream, resource.FileName, ct);
+        if (analysis is not null) {
+            var updatedResource = resource with {
+                Name = analysis.SuggestedName ?? resource.Name,
+                Description = analysis.Description,
+                Tags = analysis.Tags ?? [],
+            };
+            await mediaStorage.UpdateAsync(updatedResource, ct);
+            logger.LogInformation("AI analysis complete for resource {ResourceId}: Name={Name}, Tags={TagCount}",
+                resource.Id, updatedResource.Name, updatedResource.Tags.Length);
         }
 
         // Notify clients that the resource has been updated

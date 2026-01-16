@@ -1,3 +1,5 @@
+export type { AmbientSoundSectionProps } from './AmbientSoundSection';
+export { AmbientSoundSection } from './AmbientSoundSection';
 export type { BackgroundPanelProps } from './BackgroundPanel';
 export { BackgroundPanel } from './BackgroundPanel';
 export type { MonstersPanelProps } from './MonstersPanel';

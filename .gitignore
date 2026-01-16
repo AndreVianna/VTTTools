@@ -425,6 +425,7 @@ azurite-data/
 /**/logs
 
 # test coverage files
+test_run.txt
 /**/coverage/
 /**/obj/
 /**/test-output.txt/

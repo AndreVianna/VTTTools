@@ -11,9 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { EncounterPropertiesDrawer } from '@/components/encounter';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectTheme, toggleTheme } from '@/store/slices/uiSlice';
-import type { Encounter } from '@/types/domain';
+import type { Encounter, MediaResource } from '@/types/domain';
 import { Weather } from '@/types/domain';
-import { type AmbientLight } from '@/types/stage';
+import { type AmbientLight, type AmbientSoundSource } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 interface EditorLayoutProps {
@@ -26,10 +26,30 @@ interface EditorLayoutProps {
   onStageSettingsChange?: (updates: { ambientLight?: AmbientLight; weather?: Weather }) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
+  // Main (DM) Background
   backgroundUrl?: string;
   backgroundContentType?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
+  onBackgroundSelect?: (resource: MediaResource) => void;
+  onBackgroundRemove?: () => void;
+  // Alternate (Player) Background
+  useAlternateBackground?: boolean;
+  onUseAlternateBackgroundChange?: (enabled: boolean) => void;
+  alternateBackgroundUrl?: string;
+  alternateBackgroundContentType?: string;
+  isUploadingAlternateBackground?: boolean;
+  onAlternateBackgroundUpload?: (file: File) => void;
+  onAlternateBackgroundSelect?: (resource: MediaResource) => void;
+  onAlternateBackgroundRemove?: () => void;
+  // Ambient Sound
+  ambientSoundSource?: AmbientSoundSource;
+  onAmbientSoundSourceChange?: (source: AmbientSoundSource) => void;
+  ambientSoundUrl?: string;
+  isUploadingAmbientSound?: boolean;
+  onAmbientSoundUpload?: (file: File) => void;
+  onAmbientSoundSelect?: (resource: MediaResource) => void;
+  onAmbientSoundRemove?: () => void;
 }
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({
@@ -42,10 +62,30 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onStageSettingsChange,
   gridConfig,
   onGridChange,
+  // Main (DM) Background
   backgroundUrl,
   backgroundContentType,
   isUploadingBackground,
   onBackgroundUpload,
+  onBackgroundSelect,
+  onBackgroundRemove,
+  // Alternate (Player) Background
+  useAlternateBackground,
+  onUseAlternateBackgroundChange,
+  alternateBackgroundUrl,
+  alternateBackgroundContentType,
+  isUploadingAlternateBackground,
+  onAlternateBackgroundUpload,
+  onAlternateBackgroundSelect,
+  onAlternateBackgroundRemove,
+  // Ambient Sound
+  ambientSoundSource,
+  onAmbientSoundSourceChange,
+  ambientSoundUrl,
+  isUploadingAmbientSound,
+  onAmbientSoundUpload,
+  onAmbientSoundSelect,
+  onAmbientSoundRemove,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -144,7 +184,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
                 maxWidth: '300px',
               }}
             >
-              {encounter.name}
+              {encounter.name || encounter.stage?.name || 'New Encounter'}
             </Typography>
           ) : (
             <Typography
@@ -217,12 +257,30 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           })}
           {...(gridConfig && { gridConfig })}
           {...(onGridChange && { onGridChange })}
+          // Main (DM) Background
           {...(backgroundUrl && { backgroundUrl })}
           {...(backgroundContentType && { backgroundContentType })}
-          {...(isUploadingBackground !== undefined && {
-            isUploadingBackground,
-          })}
+          {...(isUploadingBackground !== undefined && { isUploadingBackground })}
           {...(onBackgroundUpload && { onBackgroundUpload })}
+          {...(onBackgroundSelect && { onBackgroundSelect })}
+          {...(onBackgroundRemove && { onBackgroundRemove })}
+          // Alternate (Player) Background
+          {...(useAlternateBackground !== undefined && { useAlternateBackground })}
+          {...(onUseAlternateBackgroundChange && { onUseAlternateBackgroundChange })}
+          {...(alternateBackgroundUrl && { alternateBackgroundUrl })}
+          {...(alternateBackgroundContentType && { alternateBackgroundContentType })}
+          {...(isUploadingAlternateBackground !== undefined && { isUploadingAlternateBackground })}
+          {...(onAlternateBackgroundUpload && { onAlternateBackgroundUpload })}
+          {...(onAlternateBackgroundSelect && { onAlternateBackgroundSelect })}
+          {...(onAlternateBackgroundRemove && { onAlternateBackgroundRemove })}
+          // Ambient Sound
+          {...(ambientSoundSource !== undefined && { ambientSoundSource })}
+          {...(onAmbientSoundSourceChange && { onAmbientSoundSourceChange })}
+          {...(ambientSoundUrl && { ambientSoundUrl })}
+          {...(isUploadingAmbientSound !== undefined && { isUploadingAmbientSound })}
+          {...(onAmbientSoundUpload && { onAmbientSoundUpload })}
+          {...(onAmbientSoundSelect && { onAmbientSoundSelect })}
+          {...(onAmbientSoundRemove && { onAmbientSoundRemove })}
         />
       )}
 

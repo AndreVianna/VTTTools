@@ -41,7 +41,7 @@ describe('AssetResourceManager', () => {
     onTokenChange: vi.fn(),
     tokenSize: { width: 1, height: 1 },
     readOnly: false,
-    entityId: 'test-entity-id',
+    ownerId: 'test-entity-id',
   } satisfies Partial<AssetResourceManagerProps>;
 
   beforeEach(() => {

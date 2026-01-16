@@ -39,11 +39,14 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     const isVideo = media.contentType.startsWith('video/');
     const isAudio = media.contentType.startsWith('audio/');
 
-    const thumbnailResourceUrl = `/api/resources/${media.path}`;
-    const videoResourceUrl = `/api/resources/${media.path}`;
+    // Use thumbnail endpoint for images and videos - it has fallback logic:
+    // - For images: returns the actual image
+    // - For videos: returns generated thumbnail or error placeholder
+    const thumbnailUrl = `/api/resources/${media.id}/thumbnail`;
+    const videoResourceUrl = `/api/resources/${media.id}`;
 
     const { blobUrl: thumbnailBlobUrl, isLoading: isThumbnailLoading } = useAuthenticatedImageUrl(
-        !isAudio ? thumbnailResourceUrl : null
+        !isAudio ? thumbnailUrl : null
     );
     const { url: videoBlobUrl } = useAuthenticatedResource(
         isVideo && isHovering ? videoResourceUrl : null

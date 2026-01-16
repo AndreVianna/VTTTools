@@ -80,6 +80,7 @@ import {
   AssetKind,
   type Encounter,
   type EncounterWall,
+  type MediaResource,
   type PlacedAsset,
   type PlacedRegion,
   type PlacedWall,
@@ -93,7 +94,7 @@ import {
   SegmentState,
   SegmentType,
 } from '@/types/domain';
-import type { CreateSoundRequest, ResourceMetadata, StageSound } from '@/types/stage';
+import { AmbientSoundSource, type CreateSoundRequest, type ResourceMetadata, type StageSound } from '@/types/stage';
 
 /**
  * Helper to convert a string type to RegionType.
@@ -204,7 +205,12 @@ const EncounterEditorPageInternal: React.FC = () => {
     skip: !encounterId,
   });
   const [patchEncounter] = usePatchEncounterMutation();
-  const [uploadFile, { isLoading: isUploadingBackground }] = useUploadFileMutation();
+  const [uploadFile] = useUploadFileMutation();
+  const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+  const [isUploadingAlternateBackground, setIsUploadingAlternateBackground] = useState(false);
+  const [isUploadingAmbientSound, setIsUploadingAmbientSound] = useState(false);
+  // Video audio starts muted (browser autoplay policy), user can unmute via status bar
+  const [isVideoAudioMuted, setIsVideoAudioMuted] = useState(true);
   const [addEncounterAsset] = useAddEncounterAssetMutation();
   const [updateEncounterAsset] = useUpdateEncounterAssetMutation();
   const [bulkUpdateEncounterAssets] = useBulkUpdateEncounterAssetsMutation();
@@ -848,11 +854,12 @@ const EncounterEditorPageInternal: React.FC = () => {
     async (file: File) => {
       if (!encounterId) return;
 
+      setIsUploadingBackground(true);
       try {
         const result = await uploadFile({
           file,
-          resourceType: 'Background',
-          entityId: encounterId,
+          role: 'Background',
+          ownerId: encounterId,
         }).unwrap();
 
         // Link the uploaded resource to the Stage's mainBackground
@@ -866,9 +873,182 @@ const EncounterEditorPageInternal: React.FC = () => {
         await refetch();
       } catch (error: unknown) {
         console.error('Failed to upload background:', error);
+      } finally {
+        setIsUploadingBackground(false);
       }
     },
     [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
+  );
+
+  const handleBackgroundRemove = useCallback(async () => {
+    if (!encounterId) return;
+    try {
+      await updateStageSettings({ mainBackgroundId: null });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to remove background:', error);
+    }
+  }, [encounterId, updateStageSettings, refetch]);
+
+  const handleBackgroundSelect = useCallback(
+    async (resource: MediaResource) => {
+      if (!encounterId) return;
+      try {
+        await updateStageSettings({ mainBackgroundId: resource.id });
+
+        if (isMediaHubConnected) {
+          await subscribeToResource(resource.id);
+        }
+
+        await refetch();
+      } catch (error: unknown) {
+        console.error('Failed to select background:', error);
+      }
+    },
+    [encounterId, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
+  );
+
+  const handleUseAlternateBackgroundChange = useCallback(async (enabled: boolean) => {
+    if (!encounterId) return;
+    try {
+      await updateStageSettings({ useAlternateBackground: enabled });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to update alternate background setting:', error);
+    }
+  }, [encounterId, updateStageSettings, refetch]);
+
+  const handleAlternateBackgroundUpload = useCallback(
+    async (file: File) => {
+      if (!encounterId) return;
+
+      setIsUploadingAlternateBackground(true);
+      try {
+        const result = await uploadFile({
+          file,
+          role: 'Background',
+          ownerId: encounterId,
+        }).unwrap();
+
+        await updateStageSettings({ alternateBackgroundId: result.id });
+
+        if (isMediaHubConnected) {
+          await subscribeToResource(result.id);
+        }
+
+        await refetch();
+      } catch (error: unknown) {
+        console.error('Failed to upload alternate background:', error);
+      } finally {
+        setIsUploadingAlternateBackground(false);
+      }
+    },
+    [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
+  );
+
+  const handleAlternateBackgroundRemove = useCallback(async () => {
+    if (!encounterId) return;
+    try {
+      await updateStageSettings({ alternateBackgroundId: null });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to remove alternate background:', error);
+    }
+  }, [encounterId, updateStageSettings, refetch]);
+
+  const handleAlternateBackgroundSelect = useCallback(
+    async (resource: MediaResource) => {
+      if (!encounterId) return;
+      try {
+        await updateStageSettings({ alternateBackgroundId: resource.id });
+
+        if (isMediaHubConnected) {
+          await subscribeToResource(resource.id);
+        }
+
+        await refetch();
+      } catch (error: unknown) {
+        console.error('Failed to select alternate background:', error);
+      }
+    },
+    [encounterId, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
+  );
+
+  const handleAmbientSoundSourceChange = useCallback(async (source: AmbientSoundSource) => {
+    if (!encounterId) return;
+    try {
+      await updateStageSettings({ ambientSoundSource: source });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to update ambient sound source:', error);
+    }
+  }, [encounterId, updateStageSettings, refetch]);
+
+  const handleAmbientSoundUpload = useCallback(
+    async (file: File) => {
+      if (!encounterId) return;
+
+      setIsUploadingAmbientSound(true);
+      try {
+        const result = await uploadFile({
+          file,
+          role: 'AmbientSound',
+          ownerId: encounterId,
+        }).unwrap();
+
+        // Set both the sound ID and change source to FromResource
+        await updateStageSettings({
+          ambientSoundId: result.id,
+          ambientSoundSource: AmbientSoundSource.FromResource,
+        });
+
+        if (isMediaHubConnected) {
+          await subscribeToResource(result.id);
+        }
+
+        await refetch();
+      } catch (error: unknown) {
+        console.error('Failed to upload ambient sound:', error);
+      } finally {
+        setIsUploadingAmbientSound(false);
+      }
+    },
+    [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
+  );
+
+  const handleAmbientSoundRemove = useCallback(async () => {
+    if (!encounterId) return;
+    try {
+      // Clear the sound ID and reset source to NotSet
+      await updateStageSettings({
+        ambientSoundId: null,
+        ambientSoundSource: AmbientSoundSource.NotSet,
+      });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to remove ambient sound:', error);
+    }
+  }, [encounterId, updateStageSettings, refetch]);
+
+  const handleAmbientSoundSelect = useCallback(
+    async (resource: MediaResource) => {
+      if (!encounterId) return;
+      try {
+        await updateStageSettings({
+          ambientSoundId: resource.id,
+          ambientSoundSource: AmbientSoundSource.FromResource,
+        });
+
+        if (isMediaHubConnected) {
+          await subscribeToResource(resource.id);
+        }
+
+        await refetch();
+      } catch (error: unknown) {
+        console.error('Failed to select ambient sound:', error);
+      }
+    },
+    [encounterId, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
   );
 
   useEffect(() => {
@@ -1603,6 +1783,21 @@ const EncounterEditorPageInternal: React.FC = () => {
     ? `${getApiEndpoints().media}/${encounter.stage.settings.mainBackground.id}`
     : undefined;
   const backgroundContentType = encounter?.stage?.settings?.mainBackground?.contentType;
+  const hasVideoBackground = backgroundContentType?.startsWith('video/') ?? false;
+
+  // Toggle video audio mute state
+  const handleAudioMuteToggle = useCallback(() => {
+    setIsVideoAudioMuted((prev) => !prev);
+  }, []);
+
+  const alternateBackgroundUrl = encounter?.stage?.settings?.alternateBackground
+    ? `${getApiEndpoints().media}/${encounter.stage.settings.alternateBackground.id}`
+    : undefined;
+  const alternateBackgroundContentType = encounter?.stage?.settings?.alternateBackground?.contentType;
+
+  const ambientSoundUrl = encounter?.stage?.settings?.ambientSound
+    ? `${getApiEndpoints().media}/${encounter.stage.settings.ambientSound.id}`
+    : undefined;
 
   return (
     <EditorLayout
@@ -1613,10 +1808,30 @@ const EncounterEditorPageInternal: React.FC = () => {
       onEncounterPublishedChange={encounterSettings.handleEncounterPublishedChange}
       gridConfig={gridConfig}
       onGridChange={gridHandlers.handleGridChange}
+      // Main (DM) Background
       {...(backgroundUrl && { backgroundUrl })}
       {...(backgroundContentType && { backgroundContentType })}
       isUploadingBackground={isUploadingBackground}
       onBackgroundUpload={handleBackgroundUpload}
+      onBackgroundSelect={handleBackgroundSelect}
+      onBackgroundRemove={handleBackgroundRemove}
+      // Alternate (Player) Background
+      useAlternateBackground={encounter?.stage?.settings?.useAlternateBackground ?? false}
+      onUseAlternateBackgroundChange={handleUseAlternateBackgroundChange}
+      {...(alternateBackgroundUrl && { alternateBackgroundUrl })}
+      {...(alternateBackgroundContentType && { alternateBackgroundContentType })}
+      isUploadingAlternateBackground={isUploadingAlternateBackground}
+      onAlternateBackgroundUpload={handleAlternateBackgroundUpload}
+      onAlternateBackgroundSelect={handleAlternateBackgroundSelect}
+      onAlternateBackgroundRemove={handleAlternateBackgroundRemove}
+      // Ambient Sound
+      ambientSoundSource={encounter?.stage?.settings?.ambientSoundSource ?? AmbientSoundSource.NotSet}
+      onAmbientSoundSourceChange={handleAmbientSoundSourceChange}
+      {...(ambientSoundUrl && { ambientSoundUrl })}
+      isUploadingAmbientSound={isUploadingAmbientSound}
+      onAmbientSoundUpload={handleAmbientSoundUpload}
+      onAmbientSoundSelect={handleAmbientSoundSelect}
+      onAmbientSoundRemove={handleAmbientSoundRemove}
     >
       <Box
         sx={{
@@ -1760,6 +1975,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                 stageHeight={stageSize.height}
                 onImageLoaded={handleBackgroundImageLoaded}
                 {...(backgroundContentType && { contentType: backgroundContentType })}
+                muted={isVideoAudioMuted}
               />
 
               <GridRenderer
@@ -2130,6 +2346,9 @@ const EncounterEditorPageInternal: React.FC = () => {
           {...(drawingMode && { activeTool: drawingMode })}
           hasGrid={gridConfig.type !== GridType.NoGrid}
           gridSnapEnabled={gridConfig.snap}
+          hasVideoBackground={hasVideoBackground}
+          isAudioMuted={isVideoAudioMuted}
+          onAudioMuteToggle={handleAudioMuteToggle}
         />
       </Box>
 

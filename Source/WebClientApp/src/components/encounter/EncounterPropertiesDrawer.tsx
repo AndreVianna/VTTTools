@@ -1,5 +1,6 @@
 import {
   Box,
+  Checkbox,
   Divider,
   Drawer,
   FormControl,
@@ -16,10 +17,10 @@ import { useTheme } from '@mui/material/styles';
 import type React from 'react';
 import { useCallback } from 'react';
 import { PrecisionNumberInput } from '@/components/common';
-import { BackgroundPanel } from '@/components/encounter/panels/BackgroundPanel';
-import type { Encounter } from '@/types/domain';
+import { AmbientSoundSection, BackgroundPanel } from '@/components/encounter/panels';
+import type { Encounter, MediaResource } from '@/types/domain';
 import { Weather } from '@/types/domain';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 
@@ -34,10 +35,30 @@ export interface EncounterPropertiesDrawerProps {
   onWeatherChange?: (weather: Weather) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
+  // Main (DM) Background
   backgroundUrl?: string;
   backgroundContentType?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
+  onBackgroundSelect?: (resource: MediaResource) => void;
+  onBackgroundRemove?: () => void;
+  // Alternate (Player) Background
+  useAlternateBackground?: boolean;
+  onUseAlternateBackgroundChange?: (enabled: boolean) => void;
+  alternateBackgroundUrl?: string;
+  alternateBackgroundContentType?: string;
+  isUploadingAlternateBackground?: boolean;
+  onAlternateBackgroundUpload?: (file: File) => void;
+  onAlternateBackgroundSelect?: (resource: MediaResource) => void;
+  onAlternateBackgroundRemove?: () => void;
+  // Ambient Sound
+  ambientSoundSource?: AmbientSoundSource;
+  onAmbientSoundSourceChange?: (source: AmbientSoundSource) => void;
+  ambientSoundUrl?: string;
+  isUploadingAmbientSound?: boolean;
+  onAmbientSoundUpload?: (file: File) => void;
+  onAmbientSoundSelect?: (resource: MediaResource) => void;
+  onAmbientSoundRemove?: () => void;
 }
 
 export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps> = ({
@@ -51,10 +72,30 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
   onWeatherChange,
   gridConfig,
   onGridChange,
+  // Main (DM) Background
   backgroundUrl,
   backgroundContentType,
   isUploadingBackground,
   onBackgroundUpload,
+  onBackgroundSelect,
+  onBackgroundRemove,
+  // Alternate (Player) Background
+  useAlternateBackground,
+  onUseAlternateBackgroundChange,
+  alternateBackgroundUrl,
+  alternateBackgroundContentType,
+  isUploadingAlternateBackground,
+  onAlternateBackgroundUpload,
+  onAlternateBackgroundSelect,
+  onAlternateBackgroundRemove,
+  // Ambient Sound
+  ambientSoundSource,
+  onAmbientSoundSourceChange,
+  ambientSoundUrl,
+  isUploadingAmbientSound,
+  onAmbientSoundUpload,
+  onAmbientSoundSelect,
+  onAmbientSoundRemove,
 }) => {
   const theme = useTheme();
 
@@ -265,7 +306,7 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
           <TextField
             id='encounter-name'
             label='Encounter Name'
-            defaultValue={encounter?.name ?? ''}
+            defaultValue={encounter?.name || encounter?.stage?.name || ''}
             onBlur={handleNameBlur}
             fullWidth
             variant='outlined'
@@ -289,19 +330,71 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
           />
         </Box>
 
-        {/* Background Image/Video */}
+        {/* Main (DM) Background Image/Video */}
         <BackgroundPanel
+          label='DM Background'
           {...(backgroundUrl !== null && backgroundUrl !== undefined ? { backgroundUrl } : {})}
           {...(backgroundContentType !== null && backgroundContentType !== undefined ? { backgroundContentType } : {})}
           {...(isUploadingBackground !== null && isUploadingBackground !== undefined ? { isUploadingBackground } : {})}
           {...(onBackgroundUpload !== null && onBackgroundUpload !== undefined ? { onBackgroundUpload } : {})}
+          {...(onBackgroundSelect !== null && onBackgroundSelect !== undefined ? { onBackgroundSelect } : {})}
+          {...(onBackgroundRemove !== null && onBackgroundRemove !== undefined ? { onRemove: onBackgroundRemove } : {})}
+          externalMuted={ambientSoundSource !== AmbientSoundSource.FromBackground}
         />
+
+        {/* Alternate (Player) Background Toggle and Panel - only show if main background exists */}
+        {backgroundUrl && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id='use-alternate-background'
+                  size='small'
+                  checked={useAlternateBackground ?? false}
+                  onChange={(e) => onUseAlternateBackgroundChange?.(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  Player's map
+                </Typography>
+              }
+              sx={{ m: 0 }}
+            />
+
+            {useAlternateBackground && (
+              <BackgroundPanel
+                label='Player Background'
+                backgroundUrl={alternateBackgroundUrl ?? backgroundUrl}
+                {...((alternateBackgroundContentType ?? backgroundContentType) !== undefined ? { backgroundContentType: alternateBackgroundContentType ?? backgroundContentType } : {})}
+                {...(isUploadingAlternateBackground !== null && isUploadingAlternateBackground !== undefined ? { isUploadingBackground: isUploadingAlternateBackground } : {})}
+                {...(onAlternateBackgroundUpload !== null && onAlternateBackgroundUpload !== undefined ? { onBackgroundUpload: onAlternateBackgroundUpload } : {})}
+                {...(onAlternateBackgroundSelect !== null && onAlternateBackgroundSelect !== undefined ? { onBackgroundSelect: onAlternateBackgroundSelect } : {})}
+                {...(onAlternateBackgroundRemove !== null && onAlternateBackgroundRemove !== undefined && alternateBackgroundUrl ? { onRemove: onAlternateBackgroundRemove } : {})}
+              />
+            )}
+          </Box>
+        )}
+
+        {/* Ambient Sound Section */}
+        {onAmbientSoundSourceChange && (
+          <AmbientSoundSection
+            source={ambientSoundSource ?? AmbientSoundSource.NotSet}
+            onSourceChange={onAmbientSoundSourceChange}
+            {...(ambientSoundUrl !== undefined ? { soundUrl: ambientSoundUrl } : {})}
+            {...(isUploadingAmbientSound !== undefined ? { isUploadingSound: isUploadingAmbientSound } : {})}
+            {...(onAmbientSoundUpload !== undefined ? { onSoundUpload: onAmbientSoundUpload } : {})}
+            {...(onAmbientSoundSelect !== undefined ? { onSoundSelect: onAmbientSoundSelect } : {})}
+            {...(onAmbientSoundRemove !== undefined ? { onSoundRemove: onAmbientSoundRemove } : {})}
+            mainBackgroundIsVideo={backgroundContentType?.startsWith('video/') ?? false}
+          />
+        )}
 
         {/* Description */}
         <TextField
           id='encounter-description'
           label='Description'
-          defaultValue={encounter?.description ?? ''}
+          defaultValue={encounter?.description || encounter?.stage?.description || ''}
           onBlur={handleDescriptionBlur}
           multiline
           rows={5}

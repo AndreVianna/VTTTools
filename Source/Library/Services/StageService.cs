@@ -46,7 +46,9 @@ public class StageService(IStageStorage stageStorage)
             Settings = new() {
                 MainBackground = template.Settings.MainBackground?.Clone(),
                 AlternateBackground = template.Settings.AlternateBackground?.Clone(),
+                UseAlternateBackground = template.Settings.UseAlternateBackground,
                 AmbientSound = template.Settings.AmbientSound?.Clone(),
+                AmbientSoundSource = template.Settings.AmbientSoundSource,
                 AmbientSoundVolume = template.Settings.AmbientSoundVolume,
                 AmbientSoundLoop = template.Settings.AmbientSoundLoop,
                 AmbientSoundIsPlaying = template.Settings.AmbientSoundIsPlaying,
@@ -100,11 +102,13 @@ public class StageService(IStageStorage stageStorage)
                           ? new ResourceMetadata { Id = data.Settings.Value.AlternateBackgroundId.Value.Value }
                           : null
                     : stage.Settings.AlternateBackground,
+                UseAlternateBackground = data.Settings.Value.UseAlternateBackground.IsSet ? data.Settings.Value.UseAlternateBackground.Value : stage.Settings.UseAlternateBackground,
                 AmbientSound = data.Settings.Value.AmbientSoundId.IsSet
                     ? data.Settings.Value.AmbientSoundId.Value.HasValue
                           ? new ResourceMetadata { Id = data.Settings.Value.AmbientSoundId.Value.Value }
                           : null
                     : stage.Settings.AmbientSound,
+                AmbientSoundSource = data.Settings.Value.AmbientSoundSource.IsSet ? data.Settings.Value.AmbientSoundSource.Value : stage.Settings.AmbientSoundSource,
                 AmbientSoundVolume = data.Settings.Value.AmbientSoundVolume.IsSet ? data.Settings.Value.AmbientSoundVolume.Value : stage.Settings.AmbientSoundVolume,
                 AmbientSoundLoop = data.Settings.Value.AmbientSoundLoop.IsSet ? data.Settings.Value.AmbientSoundLoop.Value : stage.Settings.AmbientSoundLoop,
                 AmbientSoundIsPlaying = data.Settings.Value.AmbientSoundIsPlaying.IsSet ? data.Settings.Value.AmbientSoundIsPlaying.Value : stage.Settings.AmbientSoundIsPlaying,

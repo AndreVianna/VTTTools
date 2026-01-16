@@ -15,7 +15,9 @@ public record UpdateStageRequest : Request {
 
         public Optional<Guid?> MainBackgroundId { get; init; }
         public Optional<Guid?> AlternateBackgroundId { get; init; }
+        public Optional<bool> UseAlternateBackground { get; init; }
         public Optional<Guid?> AmbientSoundId { get; init; }
+        public Optional<AmbientSoundSource> AmbientSoundSource { get; init; }
         public Optional<float> AmbientSoundVolume { get; init; }
         public Optional<bool> AmbientSoundLoop { get; init; }
         public Optional<bool> AmbientSoundIsPlaying { get; init; }

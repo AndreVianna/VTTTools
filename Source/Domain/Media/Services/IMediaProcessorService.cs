@@ -1,3 +1,4 @@
+using VttTools.AI.ServiceContracts;
 using VttTools.Common.Model;
 
 namespace VttTools.Media.Services;
@@ -25,5 +26,11 @@ public interface IMediaProcessorService {
 
     Task<Stream> ConvertImageAsync(
         Stream stream,
+        CancellationToken ct = default);
+
+    Task<MediaAnalysisResult?> AnalyzeContentAsync(
+        string contentType,
+        Stream stream,
+        string fileName,
         CancellationToken ct = default);
 }

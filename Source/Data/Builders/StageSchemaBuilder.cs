@@ -1,3 +1,5 @@
+using VttTools.Library.Stages.Model;
+
 using Stage = VttTools.Data.Library.Stages.Entities.Stage;
 using StageElement = VttTools.Data.Library.Stages.Entities.StageElement;
 using StageLight = VttTools.Data.Library.Stages.Entities.StageLight;
@@ -37,6 +39,8 @@ internal static class StageSchemaBuilder {
 
         entity.Property(e => e.AmbientLight).IsRequired().HasConversion<string>().HasDefaultValue(AmbientLight.Default);
         entity.Property(e => e.Weather).IsRequired().HasConversion<string>().HasDefaultValue(Weather.Clear);
+        entity.Property(e => e.UseAlternateBackground).IsRequired().HasDefaultValue(false);
+        entity.Property(e => e.AmbientSoundSource).IsRequired().HasConversion<string>().HasDefaultValue(AmbientSoundSource.NotSet);
         entity.Property(e => e.AmbientSoundVolume).IsRequired().HasDefaultValue(1f);
         entity.Property(e => e.AmbientSoundLoop).IsRequired().HasDefaultValue(false);
         entity.Property(e => e.AmbientSoundIsPlaying).IsRequired().HasDefaultValue(false);

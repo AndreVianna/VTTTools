@@ -1347,6 +1347,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<string>("AmbientSoundSource")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("NotSet");
+
                     b.Property<float>("AmbientSoundVolume")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("real")
@@ -1390,6 +1396,11 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("UseAlternateBackground")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Weather")
                         .IsRequired()
@@ -1895,6 +1906,10 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
                     b.Property<TimeSpan>("Duration")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("interval")
@@ -1910,6 +1925,13 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("numeric(20,0)")
                         .HasDefaultValue(0m);
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasDefaultValue("");
+
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
@@ -1918,7 +1940,25 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Role");
+
+                    b.HasIndex("Tags");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Tags"), "gin");
 
                     b.HasIndex("Path", "FileName");
 

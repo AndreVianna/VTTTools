@@ -1,3 +1,5 @@
+using VttTools.Library.Stages.Model;
+
 using Resource = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library.Stages.Entities;
@@ -21,9 +23,11 @@ public class Stage {
     public Resource? MainBackground { get; set; }
     public Guid? AlternateBackgroundId { get; set; }
     public Resource? AlternateBackground { get; set; }
+    public bool UseAlternateBackground { get; set; }
     public AmbientLight AmbientLight { get; set; }
     public Guid? AmbientSoundId { get; set; }
     public Resource? AmbientSound { get; set; }
+    public AmbientSoundSource AmbientSoundSource { get; set; } = AmbientSoundSource.NotSet;
     public float AmbientSoundVolume { get; set; } = 1.0f;
     public bool AmbientSoundLoop { get; set; } = true;
     public bool AmbientSoundIsPlaying { get; set; }

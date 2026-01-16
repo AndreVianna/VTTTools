@@ -37,15 +37,22 @@ public class ResourceService(
             // Determine PRIMARY content type (what we'll serve after conversion)
             var primaryContentType = GetPrimaryContentType(data.ContentType);
 
+            // Derive initial name from filename (AI may enhance later)
+            var name = Path.GetFileNameWithoutExtension(data.FileName);
+
             var resource = new ResourceMetadata {
                 Id = guidId,
                 OwnerId = userId,
+                Role = data.Role,                       // Resource role for filtering
                 Path = basePath,                        // "{suffix}/{id}" - no extension, no folder prefix
                 ContentType = primaryContentType,       // PRIMARY format (e.g., "video/mp4")
                 FileName = fileName,                    // Original filename with extension
                 FileSize = (ulong)data.Stream.Length,
                 Dimensions = Size.Zero,                 // Will be set during background processing
                 Duration = TimeSpan.Zero,               // Will be set during background processing
+                Name = name,                            // Default: derived from filename (AI may enhance later)
+                Description = null,                     // Default: null until AI generates
+                Tags = [],                              // Default: empty until AI generates
             };
 
             var uploadResult = await blobStorage.SaveOriginalAsync(basePath, fileName, data.Stream, ct);
@@ -66,7 +73,7 @@ public class ResourceService(
         }
     }
 
-    public Task<(ResourceMetadata[] Items, int TotalCount)> FindResourcesAsync(Guid? userId, ResourceFilterData data, CancellationToken ct = default) {
+    public Task<ResourceFilterResponse> FindResourcesAsync(Guid? userId, ResourceFilterData data, CancellationToken ct = default) {
         var effectiveFilter = data with {
             Skip = Math.Max(0, data.Skip),
             Take = Math.Clamp(data.Take, 1, 100),

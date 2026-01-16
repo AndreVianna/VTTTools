@@ -1,4 +1,5 @@
-import { Box, Typography, useTheme } from '@mui/material';
+import { VolumeOff, VolumeUp } from '@mui/icons-material';
+import { Box, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 
 export interface EditorStatusBarProps {
@@ -10,6 +11,12 @@ export interface EditorStatusBarProps {
   /** Whether the encounter has a grid configured (not NoGrid) */
   hasGrid?: boolean;
   gridSnapEnabled?: boolean;
+  /** Whether the background is a video (shows audio control) */
+  hasVideoBackground?: boolean;
+  /** Whether video audio is currently muted */
+  isAudioMuted?: boolean;
+  /** Callback when audio mute is toggled */
+  onAudioMuteToggle?: () => void;
 }
 
 export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
@@ -20,6 +27,9 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
   activeTool,
   hasGrid = false,
   gridSnapEnabled,
+  hasVideoBackground = false,
+  isAudioMuted = true,
+  onAudioMuteToggle,
 }) => {
   const theme = useTheme();
 
@@ -96,6 +106,24 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = ({
         >
           Snap: {gridSnapEnabled ? 'ON' : 'OFF'}
         </Typography>
+      )}
+
+      {hasVideoBackground && onAudioMuteToggle && (
+        <Tooltip title={isAudioMuted ? 'Unmute video audio' : 'Mute video audio'}>
+          <IconButton
+            size='small'
+            onClick={onAudioMuteToggle}
+            sx={{
+              padding: 0,
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                color: theme.palette.text.primary,
+              },
+            }}
+          >
+            {isAudioMuted ? <VolumeOff sx={{ fontSize: 14 }} /> : <VolumeUp sx={{ fontSize: 14 }} />}
+          </IconButton>
+        </Tooltip>
       )}
 
       <Typography

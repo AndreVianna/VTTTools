@@ -16,6 +16,12 @@ internal static class ResourcesHandlers {
         var filter = new ResourceFilterData {
             Role = request.Role,
             SearchText = request.SearchText,
+            MediaTypes = request.MediaTypes,
+            MinWidth = request.MinWidth,
+            MaxWidth = request.MaxWidth,
+            MinDurationMs = request.MinDurationMs,
+            MaxDurationMs = request.MaxDurationMs,
+            OwnerId = request.OwnerId,
             Skip = request.Skip ?? 0,
             Take = request.Take ?? 50,
         };
@@ -24,8 +30,15 @@ internal static class ResourcesHandlers {
         if (!validationResult.IsSuccessful)
             return Results.BadRequest(validationResult.Errors);
 
-        (var items, var totalCount) = await resourceService.FindResourcesAsync(userId, filter, ct);
-        return Results.Ok(new { items, totalCount, skip = Math.Max(0, filter.Skip), take = Math.Clamp(filter.Take, 1, 100) });
+        var response = await resourceService.FindResourcesAsync(userId, filter, ct);
+        return Results.Ok(new {
+            items = response.Items,
+            totalCount = response.TotalCount,
+            maxVideoDurationMs = response.MaxVideoDurationMs,
+            maxAudioDurationMs = response.MaxAudioDurationMs,
+            skip = Math.Max(0, filter.Skip),
+            take = Math.Clamp(filter.Take, 1, 100),
+        });
     }
 
     internal static async Task<IResult> UploadResourceHandler(

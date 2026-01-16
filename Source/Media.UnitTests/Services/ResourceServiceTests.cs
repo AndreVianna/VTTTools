@@ -334,12 +334,12 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns((resources, 2));
+            .Returns(new ResourceFilterResponse { Items = resources, TotalCount = 2 });
 
-        (var items, var totalCount) = await _service.FindResourcesAsync(userId, filter, _ct);
+        var response = await _service.FindResourcesAsync(userId, filter, _ct);
 
-        items.Should().HaveCount(2);
-        totalCount.Should().Be(2);
+        response.Items.Should().HaveCount(2);
+        response.TotalCount.Should().Be(2);
     }
 
     [Fact]
@@ -390,7 +390,7 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns(([], 0));
+            .Returns(new ResourceFilterResponse { Items = [], TotalCount = 0 });
 
         await _service.FindResourcesAsync(userId, filter, _ct);
 
@@ -408,7 +408,7 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns(([], 0));
+            .Returns(new ResourceFilterResponse { Items = [], TotalCount = 0 });
 
         await _service.FindResourcesAsync(userId, filter, _ct);
 
@@ -426,7 +426,7 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns(([], 0));
+            .Returns(new ResourceFilterResponse { Items = [], TotalCount = 0 });
 
         await _service.FindResourcesAsync(userId, filter, _ct);
 
@@ -444,7 +444,7 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns(([], 0));
+            .Returns(new ResourceFilterResponse { Items = [], TotalCount = 0 });
 
         await _service.FindResourcesAsync(userId, filter, _ct);
 
@@ -462,7 +462,7 @@ public class ResourceServiceTests {
         };
 
         _mediaStorage.FilterAsync(Arg.Any<ResourceFilterData>(), Arg.Any<CancellationToken>())
-            .Returns(([], 0));
+            .Returns(new ResourceFilterResponse { Items = [], TotalCount = 0 });
 
         await _service.FindResourcesAsync(userId, filter, _ct);
 

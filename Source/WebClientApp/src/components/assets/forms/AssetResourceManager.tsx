@@ -24,7 +24,7 @@ export interface AssetResourceManagerProps {
   onTokenChange: (id: string | undefined) => void;
   tokenSize?: NamedSize;
   readOnly?: boolean;
-  entityId?: string;
+  ownerId?: string;
 }
 
 export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
@@ -34,14 +34,14 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
   onTokenChange,
   tokenSize = { width: 1, height: 1 },
   readOnly = false,
-  entityId,
+  ownerId,
 }) => {
   const theme = useTheme();
   const [uploadError, setUploadError] = useState<string | null>(null);
   const pendingCallbackRef = useRef<((id: string) => void) | null>(null);
 
   const { uploadState, uploadFile, cancelUpload, resetState } = useFileUpload({
-    entityId,
+    ownerId,
     onSuccess: (resource) => {
       pendingCallbackRef.current?.(resource.id);
       pendingCallbackRef.current = null;

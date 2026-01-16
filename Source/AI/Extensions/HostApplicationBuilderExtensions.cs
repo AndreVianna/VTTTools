@@ -44,6 +44,7 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.AddScoped<IAudioGenerationService, AudioGenerationService>();
         builder.Services.AddScoped<IVideoGenerationService, VideoGenerationService>();
         builder.Services.AddScoped<ITextGenerationService, TextGenerationService>();
+        builder.Services.AddScoped<IMediaAnalysisService, MediaAnalysisService>();
 
         return builder;
     }

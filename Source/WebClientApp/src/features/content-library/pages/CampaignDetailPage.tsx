@@ -162,8 +162,8 @@ export function CampaignDetailPage() {
       setSaveStatus('saving');
       const result = await uploadFile({
         file,
-        resourceType: 'Background',
-        entityId: campaignId,
+        role: 'Background',
+        ownerId: campaignId,
       }).unwrap();
 
       await updateCampaign({
