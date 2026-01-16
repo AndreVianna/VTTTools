@@ -37,8 +37,9 @@ vi.mock('@/hooks/useAudioUnlock', () => ({
 
 // Mock useSessionState hook
 const mockSetLastEncounterId = vi.fn();
+let mockLastEncounterId: string | null = null;
 vi.mock('@/hooks/useSessionState', () => ({
-    useSessionState: () => [null, mockSetLastEncounterId],
+    useSessionState: () => [mockLastEncounterId, mockSetLastEncounterId],
 }));
 
 // Mock RTK Query hooks
@@ -164,6 +165,7 @@ describe('GameSessionPage', () => {
         mockUnlockAudio.mockClear();
         mockSetLastEncounterId.mockClear();
         mockUseGetEncounterQuery.mockReset();
+        mockLastEncounterId = null; // Reset to null for each test
 
         // Default: successful encounter load
         mockUseGetEncounterQuery.mockReturnValue({
@@ -308,6 +310,47 @@ describe('GameSessionPage', () => {
 
             // Assert
             expect(screen.queryByTestId('mock-autoplay-help-dialog')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Session state refresh detection', () => {
+        it('should skip entry modal on page refresh when returning to same encounter', () => {
+            // Arrange - simulate page refresh by setting lastEncounterId to match current encounter
+            mockLastEncounterId = 'test-encounter-id';
+
+            // Act
+            renderWithProviders('test-encounter-id');
+
+            // Assert - modal should not be shown
+            expect(screen.queryByTestId('mock-entry-modal')).not.toBeInTheDocument();
+            // Canvas should be rendered immediately
+            expect(screen.getByTestId('mock-encounter-canvas')).toBeInTheDocument();
+        });
+
+        it('should show entry modal when visiting different encounter', () => {
+            // Arrange - lastEncounterId is different from current encounter
+            mockLastEncounterId = 'previous-encounter-id';
+
+            // Act
+            renderWithProviders('test-encounter-id');
+
+            // Assert - modal should be shown
+            expect(screen.getByTestId('mock-entry-modal')).toBeInTheDocument();
+            // Canvas should not be rendered yet
+            expect(screen.queryByTestId('mock-encounter-canvas')).not.toBeInTheDocument();
+        });
+
+        it('should show entry modal on first visit when no previous encounter', () => {
+            // Arrange - no previous encounter (already default: mockLastEncounterId = null)
+            mockLastEncounterId = null;
+
+            // Act
+            renderWithProviders('test-encounter-id');
+
+            // Assert - modal should be shown
+            expect(screen.getByTestId('mock-entry-modal')).toBeInTheDocument();
+            // Canvas should not be rendered yet
+            expect(screen.queryByTestId('mock-encounter-canvas')).not.toBeInTheDocument();
         });
     });
 
