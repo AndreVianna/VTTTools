@@ -227,7 +227,9 @@ export function AdventureDetailPage() {
             description: '',
           },
         }).unwrap();
-        navigate(`/encounters/${encounter.id}/edit`);
+        if (encounter?.id) {
+          navigate(`/encounters/${encounter.id}/edit`);
+        }
       } catch (_error) {
         setSaveStatus('error');
       }

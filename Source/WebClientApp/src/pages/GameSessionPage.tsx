@@ -13,8 +13,7 @@ import { useSessionState } from '@/hooks/useSessionState';
 import { useGetEncounterQuery } from '@/services/encounterApi';
 import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
 import { LayerName } from '@/services/layerManager';
-
-const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
+import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
 
 /**
  * Game Session Page - Player/DM view of an encounter.
@@ -70,7 +69,7 @@ export const GameSessionPage: React.FC = () => {
         isError,
         error,
     } = useGetEncounterQuery(encounterId ?? '', {
-        skip: !encounterId,
+        skip: !encounterId || encounterId === '',
     });
 
     // Check if this is a page refresh (same encounter visited before)
@@ -255,7 +254,7 @@ export const GameSessionPage: React.FC = () => {
                     {/* Static Layer - Background + Grid */}
                     <Layer name={LayerName.Static} listening={false}>
                         <BackgroundLayer
-                            imageUrl={backgroundUrl ?? ENCOUNTER_DEFAULT_BACKGROUND}
+                            imageUrl={backgroundUrl ?? DEFAULT_BACKGROUNDS.ENCOUNTER}
                             backgroundColor={theme.palette.background.default}
                             stageWidth={stageSize.width}
                             stageHeight={stageSize.height}

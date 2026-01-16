@@ -42,6 +42,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Group, Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { SaveStatus } from '@/components/common';
+import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
 import { getApiEndpoints } from '@/config/development';
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
 import { UndoRedoProvider } from '@/contexts/UndoRedoContext';
@@ -166,7 +167,6 @@ import {
 
 const DEFAULT_STAGE_WIDTH = 2800;
 const DEFAULT_STAGE_HEIGHT = 2100;
-const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 const EncounterEditorPageInternal: React.FC = () => {
   const theme = useTheme();
@@ -202,7 +202,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     error: encounterError,
     refetch,
   } = useGetEncounterQuery(encounterId || '', {
-    skip: !encounterId,
+    skip: !encounterId || encounterId === 'new',
   });
   const [patchEncounter] = usePatchEncounterMutation();
   const [uploadFile] = useUploadFileMutation();
@@ -1423,7 +1423,8 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   /** Navigate to Game Session page to preview the encounter */
   const handlePreviewClick = useCallback(() => {
-    if (encounterId) {
+    // Don't allow preview for unsaved new encounters
+    if (encounterId && encounterId !== 'new') {
       navigate(`/encounters/${encounterId}/play`);
     }
   }, [encounterId, navigate]);
@@ -1969,7 +1970,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             {/* Layer 1: Static (background + grid) */}
             <Layer name={LayerName.Static} listening={false}>
               <BackgroundLayer
-                imageUrl={backgroundUrl || ENCOUNTER_DEFAULT_BACKGROUND}
+                imageUrl={backgroundUrl || DEFAULT_BACKGROUNDS.ENCOUNTER}
                 backgroundColor={theme.palette.background.default}
                 stageWidth={stageSize.width}
                 stageHeight={stageSize.height}

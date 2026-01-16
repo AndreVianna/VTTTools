@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Safari compatibility: webkitAudioContext type
+// Safari compatibility: webkitAudioContext
+// Declared at module level for type safety and potential reuse
 type WindowWithWebkitAudio = Window & { webkitAudioContext?: typeof AudioContext };
+
+/** Gets the AudioContext constructor, falling back to webkitAudioContext for Safari */
+const getAudioContextClass = (): typeof AudioContext | undefined => {
+    if (window.AudioContext) {
+        return window.AudioContext;
+    }
+    const webkitWindow = window as WindowWithWebkitAudio;
+    return webkitWindow.webkitAudioContext;
+};
 
 /**
  * Audio Unlock Pattern (AUP) hook for handling browser autoplay restrictions.
@@ -26,7 +36,7 @@ export function useAudioUnlock() {
             // Create AudioContext if not exists
             if (!audioContextRef.current) {
                 currentOperation = 'AudioContext creation';
-                const AudioContextClass = window.AudioContext || (window as WindowWithWebkitAudio).webkitAudioContext;
+                const AudioContextClass = getAudioContextClass();
                 if (!AudioContextClass) {
                     console.warn('AudioContext not supported in this browser');
                     return false;
