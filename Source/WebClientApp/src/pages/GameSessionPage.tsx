@@ -42,6 +42,9 @@ export const GameSessionPage: React.FC = () => {
     const [hasEnteredEncounter, setHasEnteredEncounter] = useState(false);
 
     // Session state for tracking last visited encounter (for page refresh detection)
+    // Note: encounterId is intentionally undefined to use global session storage key.
+    // This tracks the LAST visited encounter across all encounters, enabling page refresh
+    // detection. When user refreshes within the same encounter, we skip the entry modal.
     const [lastEncounterId, setLastEncounterId] = useSessionState<string | null>({
         key: 'lastEncounterId',
         defaultValue: null,

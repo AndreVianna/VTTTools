@@ -126,7 +126,7 @@ describe('useAudioUnlock', () => {
             expect(success).toBe(false);
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith('AudioContext not supported');
+        expect(consoleSpy).toHaveBeenCalledWith('AudioContext not supported in this browser');
         consoleSpy.mockRestore();
     });
 

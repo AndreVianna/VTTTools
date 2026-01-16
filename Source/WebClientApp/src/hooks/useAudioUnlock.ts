@@ -21,12 +21,14 @@ export function useAudioUnlock() {
     const unlockAudio = useCallback(async (): Promise<boolean> => {
         if (isUnlocked) return true;
 
+        let currentOperation = 'initialization';
         try {
             // Create AudioContext if not exists
             if (!audioContextRef.current) {
+                currentOperation = 'AudioContext creation';
                 const AudioContextClass = window.AudioContext || (window as WindowWithWebkitAudio).webkitAudioContext;
                 if (!AudioContextClass) {
-                    console.warn('AudioContext not supported');
+                    console.warn('AudioContext not supported in this browser');
                     return false;
                 }
                 audioContextRef.current = new AudioContextClass();
@@ -36,10 +38,12 @@ export function useAudioUnlock() {
 
             // Resume if suspended
             if (ctx.state === 'suspended') {
+                currentOperation = 'AudioContext resume';
                 await ctx.resume();
             }
 
             // Play a silent buffer to fully unlock
+            currentOperation = 'silent buffer playback';
             const buffer = ctx.createBuffer(1, 1, 22050);
             const source = ctx.createBufferSource();
             source.buffer = buffer;
@@ -49,7 +53,7 @@ export function useAudioUnlock() {
             setIsUnlocked(true);
             return true;
         } catch (error) {
-            console.error('Failed to unlock audio:', error);
+            console.error(`Failed to unlock audio during ${currentOperation}:`, error);
             return false;
         }
     }, [isUnlocked]);
