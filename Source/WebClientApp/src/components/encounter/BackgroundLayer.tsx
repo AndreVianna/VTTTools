@@ -13,7 +13,7 @@ export interface BackgroundLayerProps {
     stageHeight: number;
     onImageLoaded?: (dimensions: { width: number; height: number }) => void;
     contentType?: string;
-    /** Whether video audio should be muted. Video always starts muted for autoplay, this controls post-start state. */
+    /** Whether the video should be muted. Defaults to true for autoplay compatibility. */
     muted?: boolean;
 }
 
@@ -50,6 +50,7 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
             const video = document.createElement('video');
             video.src = blobUrl;
             video.crossOrigin = 'anonymous';
+            // Always start muted for autoplay compatibility, then update via useEffect on line 105
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
@@ -101,12 +102,12 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
         };
     }, [videoElement]);
 
-    // Sync video muted state with prop (video always starts muted for autoplay, user can unmute after)
+    // Handle dynamic muted changes (only after video is ready and playing)
     useEffect(() => {
-        if (videoRef.current) {
+        if (videoRef.current && videoElement) {
             videoRef.current.muted = muted;
         }
-    }, [muted]);
+    }, [muted, videoElement]);
 
     // Handle image loaded callback
     useEffect(() => {

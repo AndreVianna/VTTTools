@@ -9,6 +9,7 @@ vi.mock('@mui/icons-material', () => ({
     Pets: () => <span data-mock="icon-monsters">MonstersIcon</span>,
     Cloud: () => <span data-mock="icon-fogofwar">FogOfWarIcon</span>,
     GridOn: () => <span data-mock="icon-grid">GridIcon</span>,
+    PlayArrow: () => <span data-mock="icon-play">PlayArrowIcon</span>,
     ViewInAr: () => <span data-mock="icon-objects">ObjectsIcon</span>,
     Person: () => <span data-mock="icon-characters">CharactersIcon</span>,
     Redo: () => <span data-mock="icon-redo">RedoIcon</span>,
@@ -667,6 +668,72 @@ describe('TopToolBar', () => {
             // Assert - toolbar contains multiple buttons organized in groups
             const buttons = screen.getAllByRole('button');
             expect(buttons.length).toBeGreaterThan(5);
+        });
+    });
+
+    describe('Preview Button Functionality', () => {
+        it('should render preview button when onPreviewClick is provided', () => {
+            // Arrange
+            const onPreviewClick = vi.fn();
+            const props = createDefaultProps({ onPreviewClick });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.getByLabelText('Preview Encounter')).toBeInTheDocument();
+        });
+
+        it('should not render preview button when onPreviewClick is not provided', () => {
+            // Arrange
+            const props = createDefaultProps({ onPreviewClick: undefined });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.queryByLabelText('Preview Encounter')).not.toBeInTheDocument();
+        });
+
+        it('should call onPreviewClick when preview button is clicked', async () => {
+            // Arrange
+            const onPreviewClick = vi.fn();
+            const props = createDefaultProps({ onPreviewClick });
+            const user = userEvent.setup();
+
+            // Act
+            render(<TopToolBar {...props} />);
+            await user.click(screen.getByLabelText('Preview Encounter'));
+
+            // Assert
+            expect(onPreviewClick).toHaveBeenCalledTimes(1);
+        });
+
+        it('should have semantic id btn-preview for BDD testing', () => {
+            // Arrange
+            const onPreviewClick = vi.fn();
+            const props = createDefaultProps({ onPreviewClick });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            const previewButton = screen.getByLabelText('Preview Encounter');
+            expect(previewButton).toHaveAttribute('id', 'btn-preview');
+        });
+
+        it('should render preview button on the right side (after spacer)', () => {
+            // Arrange
+            const onPreviewClick = vi.fn();
+            const props = createDefaultProps({ onPreviewClick });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert - Preview button should exist alongside other buttons
+            const buttons = screen.getAllByRole('button');
+            const previewButton = screen.getByLabelText('Preview Encounter');
+            expect(buttons).toContain(previewButton);
         });
     });
 });

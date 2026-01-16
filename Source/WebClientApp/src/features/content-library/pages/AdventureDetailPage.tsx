@@ -227,7 +227,9 @@ export function AdventureDetailPage() {
             description: '',
           },
         }).unwrap();
-        navigate(`/encounter-editor/${encounter.id}`);
+        if (encounter?.id) {
+          navigate(`/encounters/${encounter.id}/edit`);
+        }
       } catch (_error) {
         setSaveStatus('error');
       }
@@ -235,7 +237,7 @@ export function AdventureDetailPage() {
   };
 
   const handleOpenEncounter = (encounterId: string) => {
-    navigate(`/encounter-editor/${encounterId}`);
+    navigate(`/encounters/${encounterId}/edit`);
   };
 
   const handleDuplicateEncounter = async (encounterId: string) => {

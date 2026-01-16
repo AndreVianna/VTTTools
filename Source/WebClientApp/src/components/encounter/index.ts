@@ -115,3 +115,7 @@ export { RegionContextMenu } from './RegionContextMenu';
 export type { SoundContextMenuProps, SoundSourceUpdatePayload } from './SoundContextMenu';
 export { SoundContextMenu } from './SoundContextMenu';
 export { WallContextMenu } from './WallContextMenu';
+export type { AutoplayHelpDialogProps } from './AutoplayHelpDialog';
+export { AutoplayHelpDialog } from './AutoplayHelpDialog';
+export type { EncounterEntryModalProps } from './EncounterEntryModal';
+export { EncounterEntryModal } from './EncounterEntryModal';

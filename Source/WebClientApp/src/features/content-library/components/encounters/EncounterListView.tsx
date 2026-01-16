@@ -34,11 +34,11 @@ export function EncounterListView() {
   const isLoading = false;
 
   const handleCreateEncounter = () => {
-    navigate('/encounter-editor');
+    navigate('/encounters/new/edit');
   };
 
   const handleOpenEncounter = (encounterId: string) => {
-    navigate(`/encounter-editor/${encounterId}`);
+    navigate(`/encounters/${encounterId}/edit`);
   };
 
   const handleDuplicateEncounter = (encounterId: string) => {

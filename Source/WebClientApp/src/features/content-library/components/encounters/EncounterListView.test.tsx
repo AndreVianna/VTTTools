@@ -190,7 +190,7 @@ describe('EncounterListView', () => {
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith('/encounter-editor');
+            expect(mockNavigate).toHaveBeenCalledWith('/encounters/new/edit');
         });
 
         it('should navigate to encounter editor from empty state create button', async () => {
@@ -208,7 +208,7 @@ describe('EncounterListView', () => {
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith('/encounter-editor');
+            expect(mockNavigate).toHaveBeenCalledWith('/encounters/new/edit');
         });
     });
 

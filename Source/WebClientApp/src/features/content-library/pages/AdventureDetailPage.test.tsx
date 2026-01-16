@@ -362,7 +362,7 @@ describe('AdventureDetailPage', () => {
                 });
             });
             await waitFor(() => {
-                expect(mockNavigate).toHaveBeenCalledWith('/encounter-editor/new-encounter-id');
+                expect(mockNavigate).toHaveBeenCalledWith('/encounters/new-encounter-id/edit');
             });
         });
 
@@ -381,7 +381,7 @@ describe('AdventureDetailPage', () => {
             await user.click(openButtons[0]);
 
             // Assert
-            expect(mockNavigate).toHaveBeenCalledWith('/encounter-editor/encounter-1');
+            expect(mockNavigate).toHaveBeenCalledWith('/encounters/encounter-1/edit');
         });
 
         it('should navigate back to library on back button click', async () => {

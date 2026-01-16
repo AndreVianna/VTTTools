@@ -234,8 +234,8 @@ describe('LandingPage', () => {
       // Act
       fireEvent.click(openEditorButton);
 
-      // Assert - BDD: Navigate to /encounter-editor
-      expect(mockNavigate).toHaveBeenCalledWith('/encounter-editor');
+      // Assert - BDD: Navigate to /encounters/new/edit
+      expect(mockNavigate).toHaveBeenCalledWith('/encounters/new/edit');
     });
 
     it('should navigate to Asset Library when Browse Assets is clicked', () => {
