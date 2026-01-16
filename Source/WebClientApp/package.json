@@ -35,7 +35,7 @@
     "@emotion/styled": "^11.14.1",
     "@microsoft/signalr": "^10.0.0",
     "@mui/icons-material": "^7.3.2",
-    "@mui/material": "^7.3.2",
+    "@mui/material": "^7.3.7",
     "@mui/x-data-grid": "^8.20.0",
     "@mui/x-tree-view": "^8.19.0",
     "@reduxjs/toolkit": "^2.9.0",
