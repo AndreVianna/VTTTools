@@ -3,7 +3,8 @@ import {
   Pets as MonstersIcon,
   Cloud as FogOfWarIcon,
   GridOn as GridIcon,
-  PlayArrow as PlayArrowIcon,
+  RocketLaunch as LaunchIcon,
+  SelectAll as SelectAllIcon,
   ViewInAr as ObjectsIcon,
   Person as CharactersIcon,
   Redo as RedoIcon,
@@ -18,9 +19,11 @@ import {
   ZoomOut as ZoomOutIcon,
   ZoomOutMap as ZoomResetIcon,
 } from '@mui/icons-material';
-import { Box, Collapse, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Box, Collapse, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip, useTheme } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
+
+export type SelectionCategory = 'all' | 'walls' | 'regions' | 'objects' | 'monsters' | 'characters' | 'lights' | 'sounds' | 'fogOfWar';
 
 export type LayerVisibilityType =
   | 'regions'
@@ -40,6 +43,7 @@ export interface TopToolBarProps {
   onZoomReset?: () => void;
   onGridToggle?: () => void;
   onClearSelection?: () => void;
+  onSelectAllByCategory?: (category: SelectionCategory) => void;
   /** Called when the Preview button is clicked to open Game Session view */
   onPreviewClick?: () => void;
   canUndo?: boolean;
@@ -61,6 +65,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   onZoomReset,
   onGridToggle,
   onClearSelection,
+  onSelectAllByCategory,
   onPreviewClick,
   canUndo = false,
   canRedo = false,
@@ -73,6 +78,20 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
 }) => {
   const theme = useTheme();
   const [expanded] = useState(true);
+  const [selectAllAnchor, setSelectAllAnchor] = useState<null | HTMLElement>(null);
+
+  const handleSelectAllClick = (event: React.MouseEvent<HTMLElement>) => {
+    setSelectAllAnchor(event.currentTarget);
+  };
+
+  const handleSelectAllClose = () => {
+    setSelectAllAnchor(null);
+  };
+
+  const handleSelectCategory = (category: SelectionCategory) => {
+    onSelectAllByCategory?.(category);
+    handleSelectAllClose();
+  };
 
   const visibilityLayers: Array<{
     key: LayerVisibilityType;
@@ -214,6 +233,85 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
             </span>
           </Tooltip>
 
+          <Tooltip title='Clear Selection (X)'>
+            <IconButton id='btn-clear-selection' size='small' onClick={onClearSelection} sx={{ width: 28, height: 28 }}>
+              <ClearIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title='Select All'>
+            <IconButton
+              id='btn-select-all'
+              size='small'
+              onClick={handleSelectAllClick}
+              sx={{ width: 28, height: 28 }}
+            >
+              <SelectAllIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={selectAllAnchor}
+            open={Boolean(selectAllAnchor)}
+            onClose={handleSelectAllClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          >
+            <MenuItem onClick={() => handleSelectCategory('all')}>
+              <ListItemIcon>
+                <SelectAllIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>All</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('walls')}>
+              <ListItemIcon>
+                <WallsIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Walls</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('regions')}>
+              <ListItemIcon>
+                <RegionsIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Regions</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('objects')}>
+              <ListItemIcon>
+                <ObjectsIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Objects</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('monsters')}>
+              <ListItemIcon>
+                <MonstersIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Monsters</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('characters')}>
+              <ListItemIcon>
+                <CharactersIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Characters</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('lights')}>
+              <ListItemIcon>
+                <LightsIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Lights</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('sounds')}>
+              <ListItemIcon>
+                <SoundsIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Sounds</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectCategory('fogOfWar')}>
+              <ListItemIcon>
+                <FogOfWarIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText>Fog of War</ListItemText>
+            </MenuItem>
+          </Menu>
+
           <Box
             sx={{
               width: 1,
@@ -240,20 +338,6 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
             </IconButton>
           </Tooltip>
 
-          <Box
-            sx={{
-              width: 1,
-              height: 20,
-              backgroundColor: theme.palette.divider,
-            }}
-          />
-
-          <Tooltip title='Clear Selection (X)'>
-            <IconButton size='small' onClick={onClearSelection} sx={{ width: 28, height: 28 }}>
-              <ClearIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-
           {/* Spacer to push Preview to the right */}
           <Box sx={{ flexGrow: 1 }} />
 
@@ -267,7 +351,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
                 }}
               />
 
-              <Tooltip title='Preview Encounter'>
+              <Tooltip title='Launch Preview'>
                 <IconButton
                   id='btn-preview'
                   size='small'
@@ -282,7 +366,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
                     },
                   }}
                 >
-                  <PlayArrowIcon sx={{ fontSize: 18 }} />
+                  <LaunchIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
             </>

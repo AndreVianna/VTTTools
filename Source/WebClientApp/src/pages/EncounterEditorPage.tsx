@@ -16,6 +16,7 @@ import {
   RegionDrawingTool,
   RegionRenderer,
   RegionTransformer,
+  type SelectionCategory,
   SourceDrawingTool,
   TokenDragHandle,
   TopToolBar,
@@ -353,6 +354,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedWallIndex, setSelectedWallIndex] = useSessionState<number | null>({ key: 'selectedWallIndex', defaultValue: null, encounterId });
+  const [selectedWallIndices, setSelectedWallIndices] = useState<number[]>([]);
   const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
   const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
   const [drawingWallSegmentType, setDrawingWallSegmentType] = useState<SegmentType>(SegmentType.Wall);
@@ -364,6 +366,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [, forcePreviewUpdate] = useState(0);
 
   const [selectedRegionIndex, setSelectedRegionIndex] = useSessionState<number | null>({ key: 'selectedRegionIndex', defaultValue: null, encounterId });
+  const [selectedRegionIndices, setSelectedRegionIndices] = useState<number[]>([]);
   const [drawingRegionIndex, setDrawingRegionIndex] = useState<number | null>(null);
   const [editingRegionIndex, setEditingRegionIndex] = useState<number | null>(null);
   const [isEditingRegionVertices, setIsEditingRegionVertices] = useState(false);
@@ -371,7 +374,9 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [regionPlacementMode, setRegionPlacementMode] = useState<'polygon' | 'bucketFill' | null>(null);
 
   const [selectedLightSourceIndex, setSelectedLightSourceIndex] = useSessionState<number | null>({ key: 'selectedLightSourceIndex', defaultValue: null, encounterId });
+  const [selectedLightSourceIndices, setSelectedLightSourceIndices] = useState<number[]>([]);
   const [selectedSoundSourceIndex, setSelectedSoundSourceIndex] = useSessionState<number | null>({ key: 'selectedSoundSourceIndex', defaultValue: null, encounterId });
+  const [selectedSoundSourceIndices, setSelectedSoundSourceIndices] = useState<number[]>([]);
   const [sourcePlacementProperties, setSourcePlacementProperties] = useState<
     (LightPlacementProperties | SoundPlacementProperties) & { sourceType: 'light' | 'sound' } | null
   >(null);
@@ -1863,7 +1868,49 @@ const EncounterEditorPageInternal: React.FC = () => {
               type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid,
             }))
           }
-          onClearSelection={() => assetManagement.handleAssetSelected([])}
+          onClearSelection={() => {
+            assetManagement.handleAssetSelected([]);
+            setSelectedWallIndices([]);
+            setSelectedRegionIndices([]);
+            setSelectedLightSourceIndices([]);
+            setSelectedSoundSourceIndices([]);
+          }}
+          onSelectAllByCategory={(category: SelectionCategory) => {
+            // Clear all selections first
+            assetManagement.handleAssetSelected([]);
+            setSelectedWallIndices([]);
+            setSelectedRegionIndices([]);
+            setSelectedLightSourceIndices([]);
+            setSelectedSoundSourceIndices([]);
+
+            if (category === 'all') {
+              // Select all assets
+              assetManagement.handleAssetSelected(assetManagement.placedAssets.map((a) => a.id));
+              // Select all walls, regions, lights, sounds
+              setSelectedWallIndices(placedWalls.map((_, i) => i));
+              setSelectedRegionIndices(placedRegions.map((_, i) => i));
+              setSelectedLightSourceIndices(placedLightSources.map((s) => s.index));
+              setSelectedSoundSourceIndices(placedSoundSources.map((s) => s.index));
+            } else if (category === 'walls') {
+              setSelectedWallIndices(placedWalls.map((_, i) => i));
+            } else if (category === 'regions') {
+              setSelectedRegionIndices(placedRegions.map((_, i) => i));
+            } else if (category === 'objects') {
+              const objects = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Object);
+              assetManagement.handleAssetSelected(objects.map((a) => a.id));
+            } else if (category === 'monsters') {
+              const monsters = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Creature);
+              assetManagement.handleAssetSelected(monsters.map((a) => a.id));
+            } else if (category === 'characters') {
+              const characters = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Character);
+              assetManagement.handleAssetSelected(characters.map((a) => a.id));
+            } else if (category === 'lights') {
+              setSelectedLightSourceIndices(placedLightSources.map((s) => s.index));
+            } else if (category === 'sounds') {
+              setSelectedSoundSourceIndices(placedSoundSources.map((s) => s.index));
+            }
+            // fogOfWar doesn't have individual selectable items
+          }}
           canUndo={false}
           canRedo={false}
           hasGrid={gridConfig.type !== GridType.NoGrid}

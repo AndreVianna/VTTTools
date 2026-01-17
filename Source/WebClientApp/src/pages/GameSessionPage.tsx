@@ -74,9 +74,19 @@ export const GameSessionPage: React.FC = () => {
         navigate(`/encounters/${encounterId}/edit`);
     }, [encounterId, navigate]);
 
-    // Handle background image loaded
+    // Handle background image loaded - center the view on the background
     const handleBackgroundImageLoaded = useCallback((dimensions: { width: number; height: number }) => {
         setStageSize(dimensions);
+
+        // Center the background in the viewport
+        const centeredX = (window.innerWidth - dimensions.width) / 2;
+        const centeredY = (window.innerHeight - dimensions.height) / 2;
+
+        canvasRef.current?.setViewport({
+            x: centeredX,
+            y: centeredY,
+            scale: 1,
+        });
     }, []);
 
     // Handle viewport change

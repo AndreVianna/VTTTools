@@ -106,7 +106,7 @@ export type { TokenDragHandleProps } from './TokenDragHandle';
 export { TokenDragHandle } from './TokenDragHandle';
 export type { EntityPlacementProps } from './EntityPlacement';
 export { EntityPlacement } from './EntityPlacement';
-export type { LayerVisibilityType, TopToolBarProps } from './TopToolBar';
+export type { LayerVisibilityType, SelectionCategory, TopToolBarProps } from './TopToolBar';
 export { TopToolBar } from './TopToolBar';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
 export type { LightContextMenuProps } from './LightContextMenu';
