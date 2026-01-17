@@ -921,6 +921,56 @@ const EncounterEditorPageInternal: React.FC = () => {
     [encounterId, encounter, assetManagement, updateEncounterAsset],
   );
 
+  // Selection handlers for TopToolBar
+  const handleClearSelection = useCallback(() => {
+    assetManagement.handleAssetSelected([]);
+    setSelectedWallIndices([]);
+    setSelectedRegionIndices([]);
+    setSelectedLightSourceIndices([]);
+    setSelectedSoundSourceIndices([]);
+  }, [assetManagement]);
+
+  const handleSelectAllByCategory = useCallback((category: SelectionCategory) => {
+    // Clear all selections first
+    assetManagement.handleAssetSelected([]);
+    setSelectedWallIndices([]);
+    setSelectedRegionIndices([]);
+    setSelectedLightSourceIndices([]);
+    setSelectedSoundSourceIndices([]);
+
+    if (category === 'all') {
+      assetManagement.handleAssetSelected(assetManagement.placedAssets.map((a) => a.id));
+      setSelectedWallIndices(placedWalls.map((_, i) => i));
+      setSelectedRegionIndices(placedRegions.map((_, i) => i));
+      setSelectedLightSourceIndices(placedLightSources.map((s) => s.index));
+      setSelectedSoundSourceIndices(placedSoundSources.map((s) => s.index));
+    } else if (category === 'walls') {
+      setSelectedWallIndices(placedWalls.map((_, i) => i));
+    } else if (category === 'regions') {
+      setSelectedRegionIndices(placedRegions.map((_, i) => i));
+    } else if (category === 'objects') {
+      const objects = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Object);
+      assetManagement.handleAssetSelected(objects.map((a) => a.id));
+    } else if (category === 'monsters') {
+      const monsters = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Creature);
+      assetManagement.handleAssetSelected(monsters.map((a) => a.id));
+    } else if (category === 'characters') {
+      const characters = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Character);
+      assetManagement.handleAssetSelected(characters.map((a) => a.id));
+    } else if (category === 'lights') {
+      setSelectedLightSourceIndices(placedLightSources.map((s) => s.index));
+    } else if (category === 'sounds') {
+      setSelectedSoundSourceIndices(placedSoundSources.map((s) => s.index));
+    }
+  }, [assetManagement, placedWalls, placedRegions, placedLightSources, placedSoundSources]);
+
+  const handleGridToggle = useCallback(() => {
+    setGridConfig((prev) => ({
+      ...prev,
+      type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid,
+    }));
+  }, []);
+
   const visibleAssets = useMemo(() => {
     const filtered = assetManagement.placedAssets.filter((asset) => {
       if (asset.asset.classification.kind === AssetKind.Object && !scopeVisibility.objects) {
@@ -1054,55 +1104,9 @@ const EncounterEditorPageInternal: React.FC = () => {
           onClearStartingView={canvasHandlers.handleClearStartingView}
           hasStartingView={!!savedStartingView}
           isStartingViewLoading={isStartingViewLoading}
-          onGridToggle={() =>
-            setGridConfig((prev) => ({
-              ...prev,
-              type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid,
-            }))
-          }
-          onClearSelection={() => {
-            assetManagement.handleAssetSelected([]);
-            setSelectedWallIndices([]);
-            setSelectedRegionIndices([]);
-            setSelectedLightSourceIndices([]);
-            setSelectedSoundSourceIndices([]);
-          }}
-          onSelectAllByCategory={(category: SelectionCategory) => {
-            // Clear all selections first
-            assetManagement.handleAssetSelected([]);
-            setSelectedWallIndices([]);
-            setSelectedRegionIndices([]);
-            setSelectedLightSourceIndices([]);
-            setSelectedSoundSourceIndices([]);
-
-            if (category === 'all') {
-              // Select all assets
-              assetManagement.handleAssetSelected(assetManagement.placedAssets.map((a) => a.id));
-              // Select all walls, regions, lights, sounds
-              setSelectedWallIndices(placedWalls.map((_, i) => i));
-              setSelectedRegionIndices(placedRegions.map((_, i) => i));
-              setSelectedLightSourceIndices(placedLightSources.map((s) => s.index));
-              setSelectedSoundSourceIndices(placedSoundSources.map((s) => s.index));
-            } else if (category === 'walls') {
-              setSelectedWallIndices(placedWalls.map((_, i) => i));
-            } else if (category === 'regions') {
-              setSelectedRegionIndices(placedRegions.map((_, i) => i));
-            } else if (category === 'objects') {
-              const objects = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Object);
-              assetManagement.handleAssetSelected(objects.map((a) => a.id));
-            } else if (category === 'monsters') {
-              const monsters = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Creature);
-              assetManagement.handleAssetSelected(monsters.map((a) => a.id));
-            } else if (category === 'characters') {
-              const characters = assetManagement.placedAssets.filter((a) => a.asset.classification.kind === AssetKind.Character);
-              assetManagement.handleAssetSelected(characters.map((a) => a.id));
-            } else if (category === 'lights') {
-              setSelectedLightSourceIndices(placedLightSources.map((s) => s.index));
-            } else if (category === 'sounds') {
-              setSelectedSoundSourceIndices(placedSoundSources.map((s) => s.index));
-            }
-            // fogOfWar doesn't have individual selectable items
-          }}
+          onGridToggle={handleGridToggle}
+          onClearSelection={handleClearSelection}
+          onSelectAllByCategory={handleSelectAllByCategory}
           canUndo={false}
           canRedo={false}
           hasGrid={gridConfig.type !== GridType.NoGrid}
