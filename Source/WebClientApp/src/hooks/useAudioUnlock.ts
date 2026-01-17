@@ -78,7 +78,7 @@ export function useAudioUnlock() {
             await unlockAudio();
         };
 
-        const events = ['click', 'touchend', 'keydown'] as const;
+        const events = ['mousedown', 'touchstart', 'pointerdown', 'keydown'] as const;
         events.forEach((event) => {
             document.addEventListener(event, handleInteraction, { once: true, passive: true });
         });

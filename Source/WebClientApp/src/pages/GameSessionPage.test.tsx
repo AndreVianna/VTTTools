@@ -1,16 +1,16 @@
 /**
  * GameSessionPage Component Tests
- * Tests game session page with entry modal, audio unlock, and navigation
+ * Tests game session page with audio unlock and navigation
  * Coverage: Game Session / DM Preview functionality
  */
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { configureStore } from '@reduxjs/toolkit';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type * as React from 'react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import authReducer from '@/store/slices/authSlice';
 import { GameSessionPage } from './GameSessionPage';
 
@@ -26,18 +26,13 @@ vi.mock('react-router-dom', async () => {
 
 // Mock useAudioUnlock hook
 const mockUnlockAudio = vi.fn();
+let mockIsAudioUnlocked = false;
 vi.mock('@/hooks/useAudioUnlock', () => ({
     useAudioUnlock: () => ({
-        isUnlocked: false,
+        isUnlocked: mockIsAudioUnlocked,
         unlockAudio: mockUnlockAudio,
         audioContext: null,
     }),
-}));
-
-// Mock useSessionState hook
-const mockSetLastEncounterId = vi.fn();
-vi.mock('@/hooks/useSessionState', () => ({
-    useSessionState: () => [null, mockSetLastEncounterId],
 }));
 
 // Mock RTK Query hooks
@@ -48,44 +43,16 @@ vi.mock('@/services/encounterApi', () => ({
 
 // Mock encounter components to avoid Konva rendering issues
 vi.mock('@/components/encounter', () => ({
-    BackgroundLayer: () => <div data-testid="mock-background-layer">BackgroundLayer</div>,
+    BackgroundLayer: ({ muted }: { muted: boolean }) => (
+        <div data-testid="mock-background-layer" data-muted={muted}>
+            BackgroundLayer
+        </div>
+    ),
     EncounterCanvas: ({ children }: { children: React.ReactNode }) => (
         <div data-testid="mock-encounter-canvas">{children}</div>
     ),
     GridRenderer: () => <div data-testid="mock-grid-renderer">GridRenderer</div>,
     EncounterCanvasHandle: {},
-}));
-
-vi.mock('@/components/encounter/AutoplayHelpDialog', () => ({
-    AutoplayHelpDialog: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
-        open ? (
-            <div data-testid="mock-autoplay-help-dialog">
-                <button onClick={onClose}>Close Help</button>
-            </div>
-        ) : null,
-}));
-
-vi.mock('@/components/encounter/EncounterEntryModal', () => ({
-    EncounterEntryModal: ({
-        open,
-        encounterName,
-        onEnter,
-        onHelpClick,
-    }: {
-        open: boolean;
-        encounterName: string;
-        onEnter: () => void;
-        onHelpClick: () => void;
-    }) =>
-        open ? (
-            <div data-testid="mock-entry-modal" role="dialog">
-                <span data-testid="encounter-name">{encounterName}</span>
-                <button onClick={onEnter} id="btn-enter-encounter">
-                    OK
-                </button>
-                <button onClick={onHelpClick}>Help</button>
-            </div>
-        ) : null,
 }));
 
 // Mock react-konva
@@ -161,8 +128,8 @@ describe('GameSessionPage', () => {
         store = createTestStore();
         mockNavigate.mockClear();
         mockUnlockAudio.mockClear();
-        mockSetLastEncounterId.mockClear();
         mockUseGetEncounterQuery.mockReset();
+        mockIsAudioUnlocked = false;
 
         // Default: successful encounter load
         mockUseGetEncounterQuery.mockReturnValue({
@@ -245,71 +212,6 @@ describe('GameSessionPage', () => {
         });
     });
 
-    describe('Entry modal', () => {
-        it('should display entry modal on initial load', () => {
-            // Act
-            renderWithProviders();
-
-            // Assert
-            expect(screen.getByTestId('mock-entry-modal')).toBeInTheDocument();
-            expect(screen.getByTestId('encounter-name')).toHaveTextContent("Dragon's Lair");
-        });
-
-        it('should display Unknown Encounter when name is not available', () => {
-            // Arrange
-            mockUseGetEncounterQuery.mockReturnValue({
-                data: { ...mockEncounter, name: undefined },
-                isLoading: false,
-                isError: false,
-                error: null,
-            });
-
-            // Act
-            renderWithProviders();
-
-            // Assert
-            expect(screen.getByTestId('encounter-name')).toHaveTextContent('Unknown Encounter');
-        });
-
-        it('should unlock audio and hide modal when OK is clicked', async () => {
-            // Arrange
-            mockUnlockAudio.mockResolvedValue(true);
-            renderWithProviders();
-
-            // Act
-            fireEvent.click(screen.getByRole('button', { name: /ok/i }));
-
-            // Assert
-            await waitFor(() => {
-                expect(mockUnlockAudio).toHaveBeenCalledTimes(1);
-            });
-            expect(mockSetLastEncounterId).toHaveBeenCalledWith('test-encounter-id');
-        });
-
-        it('should open autoplay help dialog when help is clicked', () => {
-            // Arrange
-            renderWithProviders();
-
-            // Act
-            fireEvent.click(screen.getByRole('button', { name: /help/i }));
-
-            // Assert
-            expect(screen.getByTestId('mock-autoplay-help-dialog')).toBeInTheDocument();
-        });
-
-        it('should close autoplay help dialog when close is clicked', () => {
-            // Arrange
-            renderWithProviders();
-            fireEvent.click(screen.getByRole('button', { name: /help/i }));
-
-            // Act
-            fireEvent.click(screen.getByRole('button', { name: /close help/i }));
-
-            // Assert
-            expect(screen.queryByTestId('mock-autoplay-help-dialog')).not.toBeInTheDocument();
-        });
-    });
-
     describe('Exit to Editor button', () => {
         it('should render exit to editor button', () => {
             // Act
@@ -343,26 +245,44 @@ describe('GameSessionPage', () => {
     });
 
     describe('Canvas rendering', () => {
-        it('should not render canvas before entering encounter', () => {
+        it('should render canvas immediately when encounter is loaded', () => {
             // Act
             renderWithProviders();
 
             // Assert
-            expect(screen.queryByTestId('mock-encounter-canvas')).not.toBeInTheDocument();
+            expect(screen.getByTestId('mock-encounter-canvas')).toBeInTheDocument();
         });
 
-        it('should render canvas after entering encounter', async () => {
+        it('should render background layer with muted=true when audio is not unlocked', () => {
             // Arrange
-            mockUnlockAudio.mockResolvedValue(true);
-            renderWithProviders();
+            mockIsAudioUnlocked = false;
 
             // Act
-            fireEvent.click(screen.getByRole('button', { name: /ok/i }));
+            renderWithProviders();
 
             // Assert
-            await waitFor(() => {
-                expect(screen.getByTestId('mock-encounter-canvas')).toBeInTheDocument();
-            });
+            const backgroundLayer = screen.getByTestId('mock-background-layer');
+            expect(backgroundLayer).toHaveAttribute('data-muted', 'true');
+        });
+
+        it('should render background layer with muted=false when audio is unlocked', () => {
+            // Arrange
+            mockIsAudioUnlocked = true;
+
+            // Act
+            renderWithProviders();
+
+            // Assert
+            const backgroundLayer = screen.getByTestId('mock-background-layer');
+            expect(backgroundLayer).toHaveAttribute('data-muted', 'false');
+        });
+
+        it('should render grid renderer', () => {
+            // Act
+            renderWithProviders();
+
+            // Assert
+            expect(screen.getByTestId('mock-grid-renderer')).toBeInTheDocument();
         });
     });
 
@@ -372,7 +292,7 @@ describe('GameSessionPage', () => {
             renderWithProviders('test-encounter-id', { themeMode: 'light' });
 
             // Assert
-            expect(screen.getByTestId('mock-entry-modal')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-encounter-canvas')).toBeInTheDocument();
         });
 
         it('should render correctly in dark mode', () => {
@@ -380,7 +300,7 @@ describe('GameSessionPage', () => {
             renderWithProviders('test-encounter-id', { themeMode: 'dark' });
 
             // Assert
-            expect(screen.getByTestId('mock-entry-modal')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-encounter-canvas')).toBeInTheDocument();
         });
     });
 
@@ -448,14 +368,6 @@ describe('GameSessionPage', () => {
             // Assert
             expect(screen.getByText('Failed to load encounter')).toBeInTheDocument();
             expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
-        });
-
-        it('should have entry modal with dialog role', () => {
-            // Act
-            renderWithProviders();
-
-            // Assert
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
     });
 });

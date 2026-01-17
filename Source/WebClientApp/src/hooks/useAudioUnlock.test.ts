@@ -146,25 +146,37 @@ describe('useAudioUnlock', () => {
     });
 
     describe('automatic unlock on user interaction', () => {
-        it('should set up event listeners for click', async () => {
+        it('should set up event listeners for mousedown', async () => {
             const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
 
             renderHook(() => useAudioUnlock());
 
             expect(addEventListenerSpy).toHaveBeenCalledWith(
-                'click',
+                'mousedown',
                 expect.any(Function),
                 expect.objectContaining({ once: true, passive: true })
             );
         });
 
-        it('should set up event listeners for touchend', async () => {
+        it('should set up event listeners for touchstart', async () => {
             const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
 
             renderHook(() => useAudioUnlock());
 
             expect(addEventListenerSpy).toHaveBeenCalledWith(
-                'touchend',
+                'touchstart',
+                expect.any(Function),
+                expect.objectContaining({ once: true, passive: true })
+            );
+        });
+
+        it('should set up event listeners for pointerdown', async () => {
+            const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+
+            renderHook(() => useAudioUnlock());
+
+            expect(addEventListenerSpy).toHaveBeenCalledWith(
+                'pointerdown',
                 expect.any(Function),
                 expect.objectContaining({ once: true, passive: true })
             );
@@ -189,8 +201,9 @@ describe('useAudioUnlock', () => {
 
             unmount();
 
-            expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
-            expect(removeEventListenerSpy).toHaveBeenCalledWith('touchend', expect.any(Function));
+            expect(removeEventListenerSpy).toHaveBeenCalledWith('mousedown', expect.any(Function));
+            expect(removeEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
+            expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function));
             expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
         });
     });

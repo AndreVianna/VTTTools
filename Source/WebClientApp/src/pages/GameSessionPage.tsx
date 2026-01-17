@@ -5,11 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BackgroundLayer, EncounterCanvas, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
-import { AutoplayHelpDialog } from '@/components/encounter/AutoplayHelpDialog';
-import { EncounterEntryModal } from '@/components/encounter/EncounterEntryModal';
 import { getApiEndpoints } from '@/config/development';
 import { useAudioUnlock } from '@/hooks/useAudioUnlock';
-import { useSessionState } from '@/hooks/useSessionState';
 import { useGetEncounterQuery } from '@/services/encounterApi';
 import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
 import { LayerName } from '@/services/layerManager';
@@ -23,8 +20,7 @@ import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
  * 2. Game Session - Players view this page during live gameplay
  *
  * Key features:
- * - Entry modal that unlocks audio on first visit
- * - Audio Unlock Pattern (AUP) for page refresh scenarios
+ * - Audio Unlock Pattern (AUP) - audio unlocks on first user interaction
  * - Clean view without editor toolbars
  * - DM can exit back to editor
  */
@@ -34,24 +30,8 @@ export const GameSessionPage: React.FC = () => {
     const theme = useTheme();
     const canvasRef = useRef<EncounterCanvasHandle>(null);
 
-    // Audio unlock state
-    const { isUnlocked: isAudioUnlocked, unlockAudio } = useAudioUnlock();
-    const [showEntryModal, setShowEntryModal] = useState(true);
-    const [showAutoplayHelp, setShowAutoplayHelp] = useState(false);
-    const [hasEnteredEncounter, setHasEnteredEncounter] = useState(false);
-
-    // Track initial mount to prevent race conditions with sessionStorage
-    const isInitialMountRef = useRef(true);
-
-    // Session state for tracking last visited encounter (for page refresh detection)
-    // Note: encounterId is intentionally undefined to use global session storage key.
-    // This tracks the LAST visited encounter across all encounters, enabling page refresh
-    // detection. When user refreshes within the same encounter, we skip the entry modal.
-    const [lastEncounterId, setLastEncounterId] = useSessionState<string | null>({
-        key: 'lastEncounterId',
-        defaultValue: null,
-        encounterId: undefined,
-    });
+    // Audio unlock state - unlocks on first user interaction (mousedown, touchstart, pointerdown, keydown)
+    const { isUnlocked: isAudioUnlocked } = useAudioUnlock();
 
     // Viewport state
     const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
@@ -72,17 +52,6 @@ export const GameSessionPage: React.FC = () => {
         skip: !encounterId || encounterId === '',
     });
 
-    // Check if this is a page refresh (same encounter visited before)
-    // Only runs on initial mount to avoid re-triggering on state changes
-    useEffect(() => {
-        if (isInitialMountRef.current && lastEncounterId === encounterId) {
-            // Page refresh - skip modal, use AUP (silent unlock on first interaction)
-            setShowEntryModal(false);
-            setHasEnteredEncounter(true);
-        }
-        isInitialMountRef.current = false;
-    }, [encounterId, lastEncounterId]);
-
     // Update grid config when encounter loads
     useEffect(() => {
         if (encounter?.stage?.grid) {
@@ -99,20 +68,6 @@ export const GameSessionPage: React.FC = () => {
             });
         }
     }, [encounter]);
-
-    // Handle entering the encounter (from modal)
-    const handleEnterEncounter = useCallback(async () => {
-        // Unlock audio
-        await unlockAudio();
-
-        // Track this encounter for refresh detection
-        if (encounterId) {
-            setLastEncounterId(encounterId);
-        }
-
-        setHasEnteredEncounter(true);
-        setShowEntryModal(false);
-    }, [encounterId, setLastEncounterId, unlockAudio]);
 
     // Handle exit to editor
     const handleExitToEditor = useCallback(() => {
@@ -138,9 +93,6 @@ export const GameSessionPage: React.FC = () => {
     }, [encounter]);
 
     const backgroundContentType = encounter?.stage?.settings?.mainBackground?.contentType;
-
-    // Encounter name for the modal
-    const encounterName = encounter?.name ?? 'Unknown Encounter';
 
     // Loading state
     if (isLoading) {
@@ -200,20 +152,6 @@ export const GameSessionPage: React.FC = () => {
                 bgcolor: 'background.default',
             }}
         >
-            {/* Entry Modal - shown on first visit to unlock audio */}
-            <EncounterEntryModal
-                open={showEntryModal}
-                encounterName={encounterName}
-                onEnter={handleEnterEncounter}
-                onHelpClick={() => setShowAutoplayHelp(true)}
-            />
-
-            {/* Autoplay Help Dialog */}
-            <AutoplayHelpDialog
-                open={showAutoplayHelp}
-                onClose={() => setShowAutoplayHelp(false)}
-            />
-
             {/* Exit to Editor button (DM only - for now always visible) */}
             <Box
                 sx={{
@@ -240,40 +178,38 @@ export const GameSessionPage: React.FC = () => {
                 </Button>
             </Box>
 
-            {/* Main Canvas - only render after entering encounter */}
-            {hasEnteredEncounter && (
-                <EncounterCanvas
-                    ref={canvasRef}
-                    width={window.innerWidth}
-                    height={window.innerHeight}
-                    initialPosition={{ x: viewport.x, y: viewport.y }}
-                    initialScale={viewport.scale}
-                    backgroundColor={theme.palette.background.default}
-                    onViewportChange={handleViewportChange}
-                >
-                    {/* Static Layer - Background + Grid */}
-                    <Layer name={LayerName.Static} listening={false}>
-                        <BackgroundLayer
-                            imageUrl={backgroundUrl ?? DEFAULT_BACKGROUNDS.ENCOUNTER}
-                            backgroundColor={theme.palette.background.default}
-                            stageWidth={stageSize.width}
-                            stageHeight={stageSize.height}
-                            onImageLoaded={handleBackgroundImageLoaded}
-                            {...(backgroundContentType && { contentType: backgroundContentType })}
-                            muted={!hasEnteredEncounter || !isAudioUnlocked}
-                        />
+            {/* Main Canvas */}
+            <EncounterCanvas
+                ref={canvasRef}
+                width={window.innerWidth}
+                height={window.innerHeight}
+                initialPosition={{ x: viewport.x, y: viewport.y }}
+                initialScale={viewport.scale}
+                backgroundColor={theme.palette.background.default}
+                onViewportChange={handleViewportChange}
+            >
+                {/* Static Layer - Background + Grid */}
+                <Layer name={LayerName.Static} listening={false}>
+                    <BackgroundLayer
+                        imageUrl={backgroundUrl ?? DEFAULT_BACKGROUNDS.ENCOUNTER}
+                        backgroundColor={theme.palette.background.default}
+                        stageWidth={stageSize.width}
+                        stageHeight={stageSize.height}
+                        onImageLoaded={handleBackgroundImageLoaded}
+                        {...(backgroundContentType && { contentType: backgroundContentType })}
+                        muted={!isAudioUnlocked}
+                    />
 
-                        <GridRenderer
-                            grid={gridConfig}
-                            stageWidth={stageSize.width}
-                            stageHeight={stageSize.height}
-                            visible={gridConfig.type !== GridType.NoGrid}
-                        />
-                    </Layer>
+                    <GridRenderer
+                        grid={gridConfig}
+                        stageWidth={stageSize.width}
+                        stageHeight={stageSize.height}
+                        visible={gridConfig.type !== GridType.NoGrid}
+                    />
+                </Layer>
 
-                    {/* TODO: Add game world layer with tokens, walls, etc. */}
-                </EncounterCanvas>
-            )}
+                {/* TODO: Add game world layer with tokens, walls, etc. */}
+            </EncounterCanvas>
         </Box>
     );
 };
