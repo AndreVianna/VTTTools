@@ -161,6 +161,7 @@ import {
   useGridHandlers,
   useKeyboardState,
   useLayerVisibility,
+  useMediaManagement,
   useRegionHandlers,
   useVideoControls,
   useViewportControls,
@@ -208,9 +209,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   });
   const [patchEncounter] = usePatchEncounterMutation();
   const [uploadFile] = useUploadFileMutation();
-  const [isUploadingBackground, setIsUploadingBackground] = useState(false);
-  const [isUploadingAlternateBackground, setIsUploadingAlternateBackground] = useState(false);
-  const [isUploadingAmbientSound, setIsUploadingAmbientSound] = useState(false);
   const {
     isVideoAudioMuted,
     isVideoPlaying,
@@ -282,6 +280,31 @@ const EncounterEditorPageInternal: React.FC = () => {
       clearTimeout(timeoutId);
     };
   }, [connectMediaHub]);
+
+  // Media management hook for background/sound uploads
+  const {
+    isUploadingBackground,
+    isUploadingAlternateBackground,
+    isUploadingAmbientSound,
+    handleBackgroundUpload,
+    handleBackgroundRemove,
+    handleBackgroundSelect,
+    handleAlternateBackgroundUpload,
+    handleAlternateBackgroundRemove,
+    handleAlternateBackgroundSelect,
+    handleUseAlternateBackgroundChange,
+    handleAmbientSoundUpload,
+    handleAmbientSoundRemove,
+    handleAmbientSoundSelect,
+    handleAmbientSoundSourceChange,
+  } = useMediaManagement({
+    encounterId: encounterId || '',
+    uploadFile,
+    updateStageSettings,
+    refetch: async () => { await refetch(); },
+    isMediaHubConnected,
+    subscribeToResource,
+  });
 
   useEffect(() => {
     if (encounterId) {
@@ -857,207 +880,6 @@ const EncounterEditorPageInternal: React.FC = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [saveStatus]);
-
-  const handleBackgroundUpload = useCallback(
-    async (file: File) => {
-      if (!encounterId) return;
-
-      setIsUploadingBackground(true);
-      try {
-        const result = await uploadFile({
-          file,
-          role: 'Background',
-          ownerId: encounterId,
-        }).unwrap();
-
-        // Link the uploaded resource to the Stage's mainBackground
-        await updateStageSettings({ mainBackgroundId: result.id });
-
-        // Subscribe to resource updates (backend will notify when processing completes)
-        if (isMediaHubConnected) {
-          await subscribeToResource(result.id);
-        }
-
-        await refetch();
-      } catch (error: unknown) {
-        console.error('Failed to upload background:', error);
-      } finally {
-        setIsUploadingBackground(false);
-      }
-    },
-    [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
-  );
-
-  const handleBackgroundRemove = useCallback(async () => {
-    if (!encounterId) return;
-    try {
-      await updateStageSettings({ mainBackgroundId: null });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to remove background:', error);
-    }
-  }, [encounterId, updateStageSettings, refetch]);
-
-  const handleBackgroundSelect = useCallback(
-    async (resource: MediaResource) => {
-      if (!encounterId) return;
-      try {
-        await updateStageSettings({ mainBackgroundId: resource.id });
-
-        if (isMediaHubConnected) {
-          await subscribeToResource(resource.id);
-        }
-
-        await refetch();
-      } catch (error: unknown) {
-        console.error('Failed to select background:', error);
-      }
-    },
-    [encounterId, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
-  );
-
-  const handleUseAlternateBackgroundChange = useCallback(async (enabled: boolean) => {
-    if (!encounterId) return;
-    try {
-      await updateStageSettings({ useAlternateBackground: enabled });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to update alternate background setting:', error);
-    }
-  }, [encounterId, updateStageSettings, refetch]);
-
-  const handleAlternateBackgroundUpload = useCallback(
-    async (file: File) => {
-      if (!encounterId) return;
-
-      setIsUploadingAlternateBackground(true);
-      try {
-        const result = await uploadFile({
-          file,
-          role: 'Background',
-          ownerId: encounterId,
-        }).unwrap();
-
-        await updateStageSettings({ alternateBackgroundId: result.id });
-
-        if (isMediaHubConnected) {
-          await subscribeToResource(result.id);
-        }
-
-        await refetch();
-      } catch (error: unknown) {
-        console.error('Failed to upload alternate background:', error);
-      } finally {
-        setIsUploadingAlternateBackground(false);
-      }
-    },
-    [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
-  );
-
-  const handleAlternateBackgroundRemove = useCallback(async () => {
-    if (!encounterId) return;
-    try {
-      await updateStageSettings({ alternateBackgroundId: null });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to remove alternate background:', error);
-    }
-  }, [encounterId, updateStageSettings, refetch]);
-
-  const handleAlternateBackgroundSelect = useCallback(
-    async (resource: MediaResource) => {
-      if (!encounterId) return;
-      try {
-        await updateStageSettings({ alternateBackgroundId: resource.id });
-
-        if (isMediaHubConnected) {
-          await subscribeToResource(resource.id);
-        }
-
-        await refetch();
-      } catch (error: unknown) {
-        console.error('Failed to select alternate background:', error);
-      }
-    },
-    [encounterId, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
-  );
-
-  const handleAmbientSoundSourceChange = useCallback(async (source: AmbientSoundSource) => {
-    if (!encounterId) return;
-    try {
-      await updateStageSettings({ ambientSoundSource: source });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to update ambient sound source:', error);
-    }
-  }, [encounterId, updateStageSettings, refetch]);
-
-  const handleAmbientSoundUpload = useCallback(
-    async (file: File) => {
-      if (!encounterId) return;
-
-      setIsUploadingAmbientSound(true);
-      try {
-        const result = await uploadFile({
-          file,
-          role: 'AmbientSound',
-          ownerId: encounterId,
-        }).unwrap();
-
-        // Set both the sound ID and change source to FromResource
-        await updateStageSettings({
-          ambientSoundId: result.id,
-          ambientSoundSource: AmbientSoundSource.FromResource,
-        });
-
-        if (isMediaHubConnected) {
-          await subscribeToResource(result.id);
-        }
-
-        await refetch();
-      } catch (error: unknown) {
-        console.error('Failed to upload ambient sound:', error);
-      } finally {
-        setIsUploadingAmbientSound(false);
-      }
-    },
-    [encounterId, uploadFile, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
-  );
-
-  const handleAmbientSoundRemove = useCallback(async () => {
-    if (!encounterId) return;
-    try {
-      // Clear the sound ID and reset source to NotSet
-      await updateStageSettings({
-        ambientSoundId: null,
-        ambientSoundSource: AmbientSoundSource.NotSet,
-      });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to remove ambient sound:', error);
-    }
-  }, [encounterId, updateStageSettings, refetch]);
-
-  const handleAmbientSoundSelect = useCallback(
-    async (resource: MediaResource) => {
-      if (!encounterId) return;
-      try {
-        await updateStageSettings({
-          ambientSoundId: resource.id,
-          ambientSoundSource: AmbientSoundSource.FromResource,
-        });
-
-        if (isMediaHubConnected) {
-          await subscribeToResource(resource.id);
-        }
-
-        await refetch();
-      } catch (error: unknown) {
-        console.error('Failed to select ambient sound:', error);
-      }
-    },
-    [encounterId, updateStageSettings, refetch, isMediaHubConnected, subscribeToResource],
-  );
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {

@@ -7,6 +7,7 @@ export { useFogOfWarManagement } from './useFogOfWarManagement';
 export { useGridHandlers } from './useGridHandlers';
 export { useKeyboardState } from './useKeyboardState';
 export { useLayerVisibility } from './useLayerVisibility';
+export { useMediaManagement } from './useMediaManagement';
 export { useRegionHandlers } from './useRegionHandlers';
 export { useVideoControls } from './useVideoControls';
 export { useViewportControls } from './useViewportControls';
