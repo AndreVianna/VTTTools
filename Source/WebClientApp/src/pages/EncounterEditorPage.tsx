@@ -169,7 +169,7 @@ import {
   useVideoControls,
   useViewportControls,
   useWallHandlers,
-} from './EncounterEditor/hooks';
+} from '@/hooks/encounter';
 
 const DEFAULT_STAGE_WIDTH = 2800;
 const DEFAULT_STAGE_HEIGHT = 2100;
