@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
-import { type Encounter, type EncounterRegion, type PlacedRegion, type Point, RegionType } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type PlacedRegion, type Point } from '@/types/domain';
 import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { CreateRegionCommand, EditRegionCommand } from '@/utils/commands/regionCommands';
+import { toRegionType } from '@/utils/encounter';
 import { getDomIdByIndex, removeEntityMapping } from '@/utils/encounterEntityMapping';
 import { hydratePlacedRegions } from '@/utils/encounterMappers';
 import {
@@ -14,17 +15,6 @@ import {
 import type { GridConfig } from '@/utils/gridCalculator';
 import { useClipRegions } from './useClipRegions';
 import { useMergeRegions } from './useMergeRegions';
-
-/**
- * Helper to convert a string type to RegionType.
- * Falls back to Terrain if the type is not a valid RegionType.
- */
-const toRegionType = (type: string): RegionType => {
-  if (Object.values(RegionType).includes(type as RegionType)) {
-    return type as RegionType;
-  }
-  return RegionType.Terrain;
-};
 
 /**
  * Helper to convert Partial<EncounterRegion> to UpdateRegionRequest.

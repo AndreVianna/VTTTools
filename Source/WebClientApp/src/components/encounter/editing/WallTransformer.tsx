@@ -12,6 +12,7 @@ import {
   createMultiMovePoleAction,
 } from '@/types/wallUndoActions';
 import { getCrosshairPlusCursor, getGrabbingCursor, getMoveCursor, getPointerCursor } from '@/utils/customCursors';
+import { getMarqueeRect, isPointInRect, projectPointToLineSegment } from '@/utils/geometry';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { SnapMode, createDragBoundFunc, getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
 
@@ -20,65 +21,6 @@ type SelectionMode = 'pole' | 'line' | 'marquee';
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 const LINE_HIT_AREA_WIDTH = 16;
-
-/**
- * Projects a point onto a line segment (not infinite line)
- * Returns closest point on segment to the given point
- *
- * @param point - The point to project
- * @param lineStart - Start of line segment
- * @param lineEnd - End of line segment
- * @returns Projected point on line segment
- * @throws Error if inputs are invalid
- */
-function projectPointToLineSegment(
-  point: { x: number; y: number },
-  lineStart: { x: number; y: number },
-  lineEnd: { x: number; y: number },
-): { x: number; y: number } {
-  if (
-    !point ||
-    typeof point.x !== 'number' ||
-    typeof point.y !== 'number' ||
-    !Number.isFinite(point.x) ||
-    !Number.isFinite(point.y)
-  ) {
-    throw new Error('projectPointToLineSegment: Invalid point object');
-  }
-  if (
-    !lineStart ||
-    typeof lineStart.x !== 'number' ||
-    typeof lineStart.y !== 'number' ||
-    !Number.isFinite(lineStart.x) ||
-    !Number.isFinite(lineStart.y)
-  ) {
-    throw new Error('projectPointToLineSegment: Invalid lineStart object');
-  }
-  if (
-    !lineEnd ||
-    typeof lineEnd.x !== 'number' ||
-    typeof lineEnd.y !== 'number' ||
-    !Number.isFinite(lineEnd.x) ||
-    !Number.isFinite(lineEnd.y)
-  ) {
-    throw new Error('projectPointToLineSegment: Invalid lineEnd object');
-  }
-
-  const dx = lineEnd.x - lineStart.x;
-  const dy = lineEnd.y - lineStart.y;
-
-  const lengthSquared = dx * dx + dy * dy;
-  if (lengthSquared < Number.EPSILON) {
-    return { x: lineStart.x, y: lineStart.y };
-  }
-
-  const t = Math.max(0, Math.min(1, ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / lengthSquared));
-
-  return {
-    x: lineStart.x + t * dx,
-    y: lineStart.y + t * dy,
-  };
-}
 
 export interface WallBreakData {
   breakPoleIndex: number;
@@ -155,21 +97,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
   } | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState<boolean>(false);
 
-  const isPointInRect = (
-    point: { x: number; y: number },
-    rect: { x: number; y: number; width: number; height: number },
-  ): boolean => {
-    return point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height;
-  };
-
-  const getMarqueeRect = () => {
-    if (!marqueeStart || !marqueeEnd) return null;
-    const x = Math.min(marqueeStart.x, marqueeEnd.x);
-    const y = Math.min(marqueeStart.y, marqueeEnd.y);
-    const width = Math.abs(marqueeEnd.x - marqueeStart.x);
-    const height = Math.abs(marqueeEnd.y - marqueeStart.y);
-    return { x, y, width, height };
-  };
+  const marqueeRect = marqueeStart && marqueeEnd ? getMarqueeRect(marqueeStart, marqueeEnd) : null;
 
   const handleBreakWall = useCallback(() => {
     let breakPoleIndex: number;
@@ -563,8 +491,6 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const pole2 = lineIndex + 1;
     setSelectedPoles(new Set([pole1, pole2]));
   };
-
-  const marqueeRect = getMarqueeRect();
 
   return (
     <Group>

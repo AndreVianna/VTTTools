@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { type Encounter, type EncounterRegion, type Point, RegionType } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
+import { toRegionType } from '@/utils/encounter';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
 import {
   type ClipResult,
@@ -13,16 +14,6 @@ import {
   mergePolygons,
 } from '@/utils/regionMergeUtils';
 import { useUndoHistory } from './useUndoHistory';
-
-/**
- * Helper to convert a string type to RegionType.
- */
-const toRegionType = (type: string): RegionType => {
-  if (Object.values(RegionType).includes(type as RegionType)) {
-    return type as RegionType;
-  }
-  return RegionType.Terrain;
-};
 
 export type TransactionType = 'placement' | 'editing' | 'modification' | null;
 

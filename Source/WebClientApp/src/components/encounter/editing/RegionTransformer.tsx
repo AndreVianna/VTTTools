@@ -13,6 +13,7 @@ import {
   type LocalAction,
 } from '@/types/regionUndoActions';
 import { getCrosshairPlusCursor, getGrabbingCursor, getMoveCursor, getPointerCursor } from '@/utils/customCursors';
+import { getMarqueeRect, isPointInPolygon, isPointInRect, projectPointToLineSegment } from '@/utils/geometry';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { getRegionColor, getRegionFillOpacity, isTransparentRegion } from '@/utils/regionColorUtils';
 import { SnapMode, createDragBoundFunc, getSnapModeFromEvent, screenToWorld, snap } from '@/utils/snapping';
@@ -20,72 +21,6 @@ import { SnapMode, createDragBoundFunc, getSnapModeFromEvent, screenToWorld, sna
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 const LINE_HIT_AREA_WIDTH = 100;
-
-function isPointInPolygon(point: Point, vertices: Point[]): boolean {
-  if (vertices.length < 3) return false;
-  let inside = false;
-  for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-    const vi = vertices[i];
-    const vj = vertices[j];
-    if (!vi || !vj) continue;
-    const xi = vi.x, yi = vi.y;
-    const xj = vj.x, yj = vj.y;
-    if (((yi > point.y) !== (yj > point.y)) &&
-        (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-function projectPointToLineSegment(
-  point: { x: number; y: number },
-  lineStart: { x: number; y: number },
-  lineEnd: { x: number; y: number },
-): { x: number; y: number } {
-  if (
-    !point ||
-    typeof point.x !== 'number' ||
-    typeof point.y !== 'number' ||
-    !Number.isFinite(point.x) ||
-    !Number.isFinite(point.y)
-  ) {
-    throw new Error('projectPointToLineSegment: Invalid point object');
-  }
-  if (
-    !lineStart ||
-    typeof lineStart.x !== 'number' ||
-    typeof lineStart.y !== 'number' ||
-    !Number.isFinite(lineStart.x) ||
-    !Number.isFinite(lineStart.y)
-  ) {
-    throw new Error('projectPointToLineSegment: Invalid lineStart object');
-  }
-  if (
-    !lineEnd ||
-    typeof lineEnd.x !== 'number' ||
-    typeof lineEnd.y !== 'number' ||
-    !Number.isFinite(lineEnd.x) ||
-    !Number.isFinite(lineEnd.y)
-  ) {
-    throw new Error('projectPointToLineSegment: Invalid lineEnd object');
-  }
-
-  const dx = lineEnd.x - lineStart.x;
-  const dy = lineEnd.y - lineStart.y;
-
-  const lengthSquared = dx * dx + dy * dy;
-  if (lengthSquared < Number.EPSILON) {
-    return { x: lineStart.x, y: lineStart.y };
-  }
-
-  const t = Math.max(0, Math.min(1, ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / lengthSquared));
-
-  return {
-    x: lineStart.x + t * dx,
-    y: lineStart.y + t * dy,
-  };
-}
 
 export interface RegionTransformerProps {
   encounterId: string;
@@ -421,25 +356,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
       [segment.vertices.length],
     );
 
-    const isPointInRect = (
-      point: { x: number; y: number },
-      rect: { x: number; y: number; width: number; height: number },
-    ): boolean => {
-      return (
-        point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height
-      );
-    };
-
-    const getMarqueeRect = () => {
-      if (!marqueeStart || !marqueeEnd) return null;
-      const x = Math.min(marqueeStart.x, marqueeEnd.x);
-      const y = Math.min(marqueeStart.y, marqueeEnd.y);
-      const width = Math.abs(marqueeEnd.x - marqueeStart.x);
-      const height = Math.abs(marqueeEnd.y - marqueeStart.y);
-      return { x, y, width, height };
-    };
-
-    const marqueeRect = getMarqueeRect();
+    const marqueeRect = marqueeStart && marqueeEnd ? getMarqueeRect(marqueeStart, marqueeEnd) : null;
     const verticesToUse = previewVertices;
 
     const segmentAsRegion = useMemo(
