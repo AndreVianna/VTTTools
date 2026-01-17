@@ -1,5 +1,4 @@
-import { AssetPicker, EditingBlocker } from '@components/common';
-import { SoundPickerDialog } from '@/components/sounds';
+import { EditingBlocker } from '@components/common';
 import {
   BackgroundLayer,
   type DrawingMode,
@@ -26,12 +25,8 @@ import {
 } from '@components/encounter';
 import type { LightPlacementProperties, SoundPlacementProperties } from '@components/encounter/panels';
 import { EntityPlacement } from '@/components/encounter/EntityPlacement';
-import {
-  LightContextMenu,
-  SoundContextMenu,
-  SoundSourceRenderer,
-  type SoundSourceUpdatePayload,
-} from '@components/encounter';
+import { SoundSourceRenderer } from '@components/encounter';
+import { SourceContextMenus } from './EncounterEditor/components';
 import { EditorLayout } from '@components/layout';
 import { Alert, Box, CircularProgress, Typography, useTheme } from '@mui/material';
 import { GroupName, LayerName, layerManager } from '@services/layerManager';
@@ -1629,51 +1624,28 @@ const EncounterEditorPageInternal: React.FC = () => {
         onErrorMessageClose={() => setErrorMessage(null)}
       />
 
-      <LightContextMenu
-        anchorPosition={lightContextMenuPosition}
-        open={lightContextMenuPosition !== null}
-        onClose={handleLightContextMenuClose}
-        lightSource={
-          selectedLightSourceIndex !== null
-            ? placedLightSources.find((s) => s.index === selectedLightSourceIndex) || null
-            : null
-        }
+      <SourceContextMenus
+        lightContextMenuPosition={lightContextMenuPosition}
+        selectedLightSourceIndex={selectedLightSourceIndex}
+        placedLightSources={placedLightSources}
+        onLightContextMenuClose={handleLightContextMenuClose}
         onLightSourceUpdate={handleLightSourceUpdate}
         onLightSourceDelete={handleLightSourceDelete}
-      />
-
-      <SoundContextMenu
-        anchorPosition={soundContextMenuPosition}
-        open={soundContextMenuPosition !== null}
-        onClose={handleSoundContextMenuClose}
-        encounterSoundSource={
-          selectedSoundSourceIndex !== null
-            ? placedSoundSources.find((s) => s.index === selectedSoundSourceIndex) || null
-            : null
-        }
+        soundContextMenuPosition={soundContextMenuPosition}
+        selectedSoundSourceIndex={selectedSoundSourceIndex}
+        placedSoundSources={placedSoundSources}
+        onSoundContextMenuClose={handleSoundContextMenuClose}
         onSoundSourceUpdate={handleSoundSourceUpdate}
         onSoundSourceDelete={handleSoundSourceDelete}
-      />
-
-      {assetPickerOpen.kind && (
-        <AssetPicker
-          open={assetPickerOpen.open}
-          onClose={() => setAssetPickerOpen({ open: false })}
-          onSelect={(asset) => {
-            setAssetPickerOpen({ open: false });
-            assetManagement.setDraggedAsset(asset);
-          }}
-          kind={assetPickerOpen.kind}
-        />
-      )}
-
-      <SoundPickerDialog
-        open={soundPickerOpen}
-        onClose={() => setSoundPickerOpen(false)}
-        onSelect={(resourceId) => {
-          setSoundPickerOpen(false);
-          handlePlaceSound({ resourceId, isPlaying: false });
+        assetPickerOpen={assetPickerOpen}
+        onAssetPickerClose={() => setAssetPickerOpen({ open: false })}
+        onAssetSelect={(asset) => {
+          setAssetPickerOpen({ open: false });
+          assetManagement.setDraggedAsset(asset);
         }}
+        soundPickerOpen={soundPickerOpen}
+        onSoundPickerClose={() => setSoundPickerOpen(false)}
+        onSoundSelect={handlePlaceSound}
       />
     </EditorLayout>
   );
