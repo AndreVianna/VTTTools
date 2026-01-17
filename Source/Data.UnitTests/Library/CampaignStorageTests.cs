@@ -1,4 +1,5 @@
 using VttTools.Data.Library.Campaigns;
+
 using CampaignEntity = VttTools.Data.Library.Campaigns.Entities.Campaign;
 using CampaignModel = VttTools.Library.Campaigns.Model.Campaign;
 

@@ -1,5 +1,3 @@
-using VttTools.Library.Stages.Model;
-
 using Stage = VttTools.Data.Library.Stages.Entities.Stage;
 using StageElement = VttTools.Data.Library.Stages.Entities.StageElement;
 using StageLight = VttTools.Data.Library.Stages.Entities.StageLight;

@@ -50,7 +50,6 @@ global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
-global using VttTools.HealthChecks;
 global using VttTools.Http;
 global using VttTools.Jobs.ApiContracts;
 global using VttTools.Jobs.Model;

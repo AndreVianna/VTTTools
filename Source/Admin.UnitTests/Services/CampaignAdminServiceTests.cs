@@ -341,7 +341,7 @@ public sealed class CampaignAdminServiceTests : IAsyncLifetime {
             .Returns(callInfo => {
                 var ids = callInfo.Arg<IEnumerable<Guid>>().ToList();
                 return users.Where(u => ids.Contains(u.Id))
-                    .ToDictionary(u => u.Id, u => (string?)u.DisplayName) as IReadOnlyDictionary<Guid, string?>;
+                    .ToDictionary(u => u.Id, u => (string?)u.DisplayName);
             });
         _mockUserStorage.FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(callInfo => {

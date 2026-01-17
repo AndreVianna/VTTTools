@@ -10,7 +10,6 @@ public class MediaProcessorService(
     IMediaAnalysisService? mediaAnalysisService = null)
     : IMediaProcessorService {
 
-
     public async Task<byte[]?> GenerateThumbnailAsync(string contentType, Stream stream, int maxSize = 256, CancellationToken ct = default) {
         var category = MediaConstraints.GetMediaCategory(contentType);
 
@@ -86,7 +85,6 @@ public class MediaProcessorService(
         }
     }
 
-
     private async Task<byte[]?> GenerateImageThumbnailAsync(Stream input, int thumbnailSize, CancellationToken ct) {
         try {
             input.Position = 0;
@@ -126,7 +124,7 @@ public class MediaProcessorService(
                 return null;
 
             // Use same center-crop logic as images
-            using var placeholderStream = new MemoryStream(placeholderBytes);
+            await using var placeholderStream = new MemoryStream(placeholderBytes);
             return await GenerateCenterCropThumbnailAsync(placeholderStream, thumbnailSize, ct);
         }
         catch (Exception ex) {
@@ -256,7 +254,7 @@ public class MediaProcessorService(
         string fileName,
         CancellationToken ct) {
         stream.Position = 0;
-        using var memoryStream = new MemoryStream();
+        await using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream, ct);
         var imageBytes = memoryStream.ToArray();
 
@@ -327,7 +325,7 @@ public class MediaProcessorService(
         string fileName,
         CancellationToken ct) {
         stream.Position = 0;
-        using var memoryStream = new MemoryStream();
+        await using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream, ct);
 
         return new MediaAnalysisRequest {

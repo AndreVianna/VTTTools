@@ -1,4 +1,3 @@
-global using System.ComponentModel.DataAnnotations;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.Security.Claims;
 global using System.Text;
@@ -11,7 +10,6 @@ global using DotNetToolbox.Results;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;
-global using Microsoft.AspNetCore.Identity;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.IdentityModel.Tokens;
@@ -27,9 +25,6 @@ global using VttTools.Identity.Model;
 global using VttTools.Identity.Services;
 global using VttTools.Identity.Storage;
 global using VttTools.Media.Model;
-
-global using UserEntity = VttTools.Data.Identity.Entities.User;
-global using RoleEntity = VttTools.Data.Identity.Entities.Role;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Media.Services;
 global using VttTools.Services;

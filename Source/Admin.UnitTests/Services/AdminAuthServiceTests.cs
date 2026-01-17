@@ -1,5 +1,3 @@
-using SignInResult = VttTools.Identity.Model.SignInResult;
-
 namespace VttTools.Admin.Services;
 
 public class AdminAuthServiceTests {

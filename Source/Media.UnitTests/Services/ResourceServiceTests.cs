@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace VttTools.Media.Services;
 
 public class ResourceServiceTests {

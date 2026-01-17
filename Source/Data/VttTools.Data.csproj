@@ -9,6 +9,7 @@
     <UserSecretsId>a7da29ff-2b87-4d83-8e0f-56e167d923c0</UserSecretsId>
     <Configurations>Debug;Release</Configurations>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <NoWarn>1701;1702;CA1873</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

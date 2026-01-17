@@ -102,9 +102,10 @@ public class EncounterService(
                 continue;
 
             var result = await mediaServiceClient.DeleteResourceAsync(resourceId, ct);
-            if (!result.IsSuccessful)
+            if (!result.IsSuccessful) {
                 logger.LogWarning("Failed to delete resource {ResourceId} during stage cleanup: {Error}",
-                    resourceId, result.Errors.FirstOrDefault()?.Message ?? "Unknown error");
+                    resourceId, result.Errors[0].Message ?? "Unknown error");
+            }
         }
     }
 

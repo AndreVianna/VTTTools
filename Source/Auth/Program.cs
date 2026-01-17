@@ -66,9 +66,9 @@ internal static class Program {
         // IMPORTANT: AddIdentity() sets cookie authentication as default scheme.
         // We must explicitly override it to use JWT Bearer for API endpoints.
         builder.Services.AddAuthentication(options => {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(options => {
                 var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
                 options.TokenValidationParameters = new() {

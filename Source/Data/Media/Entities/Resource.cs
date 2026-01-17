@@ -1,5 +1,3 @@
-using VttTools.Media.Model;
-
 namespace VttTools.Data.Media.Entities;
 
 public class Resource {

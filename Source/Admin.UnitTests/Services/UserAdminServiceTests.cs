@@ -1,9 +1,5 @@
 using DotNetToolbox;
 
-using VttTools.Common.Model;
-using VttTools.Identity.Model;
-using VttTools.Identity.Storage;
-
 namespace VttTools.Admin.Services;
 
 public class UserAdminServiceTests
@@ -760,16 +756,16 @@ public class UserAdminServiceTests
         bool lockoutEnabled = false,
         DateTimeOffset? lockoutEnd = null,
         IReadOnlyList<string>? roles = null) => new() {
-        Id = Guid.CreateVersion7(),
-        Email = email,
-        Name = name,
-        DisplayName = name,
-        EmailConfirmed = emailConfirmed,
-        LockoutEnabled = lockoutEnabled,
-        LockoutEnd = lockoutEnd,
-        TwoFactorEnabled = false,
-        Roles = roles ?? ["User"]
-    };
+            Id = Guid.CreateVersion7(),
+            Email = email,
+            Name = name,
+            DisplayName = name,
+            EmailConfirmed = emailConfirmed,
+            LockoutEnabled = lockoutEnabled,
+            LockoutEnd = lockoutEnd,
+            TwoFactorEnabled = false,
+            Roles = roles ?? ["User"]
+        };
 
     private static List<User> CreateTestUsers(int count) {
         var users = new List<User>();

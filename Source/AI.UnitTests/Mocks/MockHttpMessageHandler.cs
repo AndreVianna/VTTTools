@@ -19,11 +19,7 @@ public class MockHttpMessageHandler : HttpMessageHandler {
             LastRequestContent = await request.Content.ReadAsStringAsync(cancellationToken);
         }
 
-        if (ResponseToReturn is not null) {
-            return ResponseToReturn;
-        }
-
-        return new HttpResponseMessage(_defaultStatusCode ?? HttpStatusCode.OK);
+        return ResponseToReturn is not null ? ResponseToReturn : new HttpResponseMessage(_defaultStatusCode ?? HttpStatusCode.OK);
     }
 }
 

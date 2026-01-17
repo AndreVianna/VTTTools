@@ -1,5 +1,3 @@
-using VttTools.Library.Stages.Model;
-
 using Resource = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library.Stages.Entities;

@@ -22,7 +22,7 @@ public class ResourceOwnerAuthorizationHandler(
                 context.Succeed(requirement);
         }
         catch (UnauthorizedAccessException ex) {
-            logger.LogWarning(ex, "Unauthorized access attempt to resource '{resourceID}'!", resourceId);
+            logger.LogWarning(ex, "Unauthorized access attempt to resource '{ResourceID}'!", resourceId);
         }
     }
 }

@@ -17,13 +17,9 @@ global using Microsoft.Extensions.Logging.Abstractions;
 
 global using NSubstitute;
 
-global using VttTools.Library.Clients;
-
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
 global using VttTools.Common.Model;
-global using VttTools.Data;
-global using VttTools.Data.Library;
 global using VttTools.Extensions;
 global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
@@ -35,6 +31,7 @@ global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Campaigns.ServiceContracts;
 global using VttTools.Library.Campaigns.Services;
 global using VttTools.Library.Campaigns.Storage;
+global using VttTools.Library.Clients;
 global using VttTools.Library.Content.ApiContracts;
 global using VttTools.Library.Content.Model;
 global using VttTools.Library.Content.ServiceContracts;
@@ -44,7 +41,6 @@ global using VttTools.Library.Encounters.Model;
 global using VttTools.Library.Encounters.ServiceContracts;
 global using VttTools.Library.Encounters.Services;
 global using VttTools.Library.Encounters.Storage;
-global using VttTools.Library.Handlers;
 global using VttTools.Library.Services;
 global using VttTools.Library.Stages.ApiContracts;
 global using VttTools.Library.Stages.Model;

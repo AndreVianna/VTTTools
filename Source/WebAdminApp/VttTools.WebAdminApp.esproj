@@ -9,4 +9,10 @@
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="coverage\**" />
+    <None Remove="dist\**" />
+    <TypeScriptConfiguration Remove="coverage\**" />
+    <TypeScriptConfiguration Remove="dist\**" />
+  </ItemGroup>
 </Project>

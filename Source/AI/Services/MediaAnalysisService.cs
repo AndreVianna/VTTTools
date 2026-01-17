@@ -93,13 +93,13 @@ public class MediaAnalysisService(
         return client;
     }
 
-    private object CreateVisionRequest(string model, MediaAnalysisRequest request) {
-        var userContent = new List<object>();
-
-        userContent.Add(new {
-            type = "text",
-            text = $"Analyze this {request.MediaType} file named '{request.FileName}' and provide metadata for organizing it in a VTT asset library."
-        });
+    private static object CreateVisionRequest(string model, MediaAnalysisRequest request) {
+        var userContent = new List<object> {
+            new {
+                type = "text",
+                text = $"Analyze this {request.MediaType} file named '{request.FileName}' and provide metadata for organizing it in a VTT asset library."
+            }
+        };
 
         if (request.MediaType is "image" or "video" && request.Frames is { Count: > 0 }) {
             foreach (var frame in request.Frames) {
@@ -151,7 +151,7 @@ public class MediaAnalysisService(
                 SuggestedName = parsed.TryGetProperty("suggestedName", out var name) ? name.GetString() : null,
                 Description = parsed.TryGetProperty("description", out var desc) ? desc.GetString() : null,
                 Tags = parsed.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array
-                    ? tags.EnumerateArray().Select(t => t.GetString()!).Where(t => t is not null).ToArray()
+                    ? [.. tags.EnumerateArray().Select(t => t.GetString()!).Where(t => t is not null)]
                     : null
             };
         }

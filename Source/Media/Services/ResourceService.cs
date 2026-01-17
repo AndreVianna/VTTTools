@@ -86,34 +86,32 @@ public class ResourceService(
         var basePath = ComputeBasePath(id);
         var download = await blobStorage.GetResourceWithFallbackAsync(basePath, ct);
 
-        if (download is null)
-            return null;
-
-        return new Resource {
-            Stream = download.Content,
-            ContentType = download.ContentType,
-            FileName = $"{id}{GetExtensionFromContentType(download.ContentType)}",
-            FileSize = download.Content.CanSeek ? (ulong)download.Content.Length : 0,
-            Dimensions = Size.Zero,
-            Duration = TimeSpan.Zero,
-        };
+        return download is null
+            ? null
+            : new Resource {
+                Stream = download.Content,
+                ContentType = download.ContentType,
+                FileName = $"{id}{GetExtensionFromContentType(download.ContentType)}",
+                FileSize = download.Content.CanSeek ? (ulong)download.Content.Length : 0,
+                Dimensions = Size.Zero,
+                Duration = TimeSpan.Zero,
+            };
     }
 
     public async Task<Resource?> ServeThumbnailAsync(Guid id, CancellationToken ct = default) {
         var basePath = ComputeBasePath(id);
         var download = await blobStorage.GetThumbnailAsync(basePath, ct);
 
-        if (download is null)
-            return null;
-
-        return new Resource {
-            Stream = download.Content,
-            ContentType = download.ContentType,
-            FileName = $"{id}_thumbnail.png",
-            FileSize = download.Content.CanSeek ? (ulong)download.Content.Length : 0,
-            Dimensions = Size.Zero,
-            Duration = TimeSpan.Zero,
-        };
+        return download is null
+            ? null
+            : new Resource {
+                Stream = download.Content,
+                ContentType = download.ContentType,
+                FileName = $"{id}_thumbnail.png",
+                FileSize = download.Content.CanSeek ? (ulong)download.Content.Length : 0,
+                Dimensions = Size.Zero,
+                Duration = TimeSpan.Zero,
+            };
     }
 
     public Task<ResourceMetadata?> GetResourceAsync(Guid userId, Guid id, CancellationToken ct = default)

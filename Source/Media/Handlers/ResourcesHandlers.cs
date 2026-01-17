@@ -1,4 +1,3 @@
-
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Media.Handlers;
@@ -157,7 +156,7 @@ internal static class ResourcesHandlers {
         if (thumbnail is null) {
             // Try the full resource as fallback (images don't have separate thumbnails)
             var resource = await resourceService.ServeResourceAsync(id, ct);
-            if (resource is not null && resource.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            if (resource?.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)
                 return Results.File(resource.Stream, resource.ContentType);
 
             // Return placeholder if no thumbnail and not an image

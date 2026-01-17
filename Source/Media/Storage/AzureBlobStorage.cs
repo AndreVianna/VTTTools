@@ -158,10 +158,7 @@ public class AzureBlobStorage(BlobServiceClient blobClient, ILogger<AzureBlobSto
             var blobPath = $"thumbnails/{basePath}";
             var blob = containerClient.GetBlobClient(blobPath);
 
-            if (!await blob.ExistsAsync(ct))
-                return null;
-
-            return await DownloadBlobAsync(blob, ct);
+            return !await blob.ExistsAsync(ct) ? null : await DownloadBlobAsync(blob, ct);
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to download thumbnail blob {Path}", basePath);

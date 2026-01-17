@@ -7,12 +7,9 @@ global using DotNetToolbox.Results;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;
-global using Microsoft.AspNetCore.Identity;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
-
-global using MockQueryable;
 
 global using NSubstitute;
 global using NSubstitute.ExceptionExtensions;
@@ -54,9 +51,6 @@ global using VttTools.Identity.Model;
 global using VttTools.Identity.Services;
 global using VttTools.Identity.Storage;
 global using VttTools.Json;
-
-global using UserEntity = VttTools.Data.Identity.Entities.User;
-global using RoleEntity = VttTools.Data.Identity.Entities.Role;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Campaigns.Storage;
 global using VttTools.Library.Common;

@@ -20,6 +20,5 @@ global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Game.Sessions.Services;
 global using VttTools.Game.Sessions.Storage;
-global using VttTools.HealthChecks;
 global using VttTools.Services;
 global using VttTools.Utilities;
