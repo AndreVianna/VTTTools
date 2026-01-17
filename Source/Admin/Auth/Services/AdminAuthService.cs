@@ -11,38 +11,38 @@ public class AdminAuthService(
         try {
             var user = await userStorage.FindByEmailAsync(request.Email, ct);
             if (user is null) {
-                logger.LogWarning("Admin login attempt with non-existent email: {Email}", request.Email);
+                logger.LogWarning("Admin login attempt with non-existent account");
                 return new AdminLoginResponse { Success = false };
             }
 
             if (!user.EmailConfirmed) {
-                logger.LogWarning("Admin login attempt with unconfirmed email: {Email}", request.Email);
+                logger.LogWarning("Admin login attempt with unconfirmed account: {UserId}", user.Id);
                 return new AdminLoginResponse { Success = false };
             }
 
             var isLockedOut = user is { LockoutEnabled: true, LockoutEnd: not null } &&
                               user.LockoutEnd.Value > DateTimeOffset.UtcNow;
             if (isLockedOut) {
-                logger.LogWarning("Admin login attempt for locked account: {Email}", request.Email);
+                logger.LogWarning("Admin login attempt for locked account: {UserId}", user.Id);
                 return new AdminLoginResponse { Success = false };
             }
 
             if (!user.Roles.Contains("Administrator")) {
-                logger.LogWarning("Non-admin user attempted admin login: {Email}", request.Email);
+                logger.LogWarning("Non-admin user attempted admin login: {UserId}", user.Id);
                 return new AdminLoginResponse { Success = false };
             }
 
             var passwordValid = await userStorage.CheckPasswordAsync(user.Id, request.Password, ct);
             if (!passwordValid) {
                 await userStorage.RecordAccessFailedAsync(user.Id, ct);
-                logger.LogWarning("Admin login attempt with invalid password: {Email}", request.Email);
+                logger.LogWarning("Admin login attempt with invalid password: {UserId}", user.Id);
                 return new AdminLoginResponse { Success = false };
             }
 
             await signInService.SignInAsync(user.Id, isPersistent: false, ct);
             await userStorage.ResetAccessFailedCountAsync(user.Id, ct);
 
-            logger.LogInformation("Admin user logged in successfully: {Email}", request.Email);
+            logger.LogInformation("Admin user logged in successfully: {UserId}", user.Id);
 
             var token = jwtTokenService.GenerateToken(user, user.Roles, rememberMe: false);
 
@@ -59,7 +59,7 @@ public class AdminAuthService(
             };
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Error during admin login for email: {Email}", request.Email);
+            logger.LogError(ex, "Error during admin login");
             return new AdminLoginResponse { Success = false };
         }
     }
