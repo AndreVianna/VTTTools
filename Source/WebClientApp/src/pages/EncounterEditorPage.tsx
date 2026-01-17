@@ -161,6 +161,7 @@ import {
   useEncounterSettings,
   useGridHandlers,
   useKeyboardState,
+  useLayerVisibility,
   useRegionHandlers,
   useViewportControls,
   useWallHandlers,
@@ -390,15 +391,14 @@ const EncounterEditorPageInternal: React.FC = () => {
 
   const [activeScope, setActiveScope] = useSessionState<InteractionScope>({ key: 'activeScope', defaultValue: null, encounterId });
 
-  const [scopeVisibility, setScopeVisibility] = useState<Record<LayerVisibilityType, boolean>>({
-    regions: true,
-    walls: true,
-    objects: true,
-    monsters: true,
-    characters: true,
-    lights: true,
-    sounds: true,
-    fogOfWar: true,
+  const {
+    scopeVisibility,
+    handleLayerVisibilityToggle,
+    handleShowAllLayers,
+    handleHideAllLayers,
+  } = useLayerVisibility({
+    currentGridType: gridConfig.type,
+    onGridTypeChange: (type) => setGridConfig((prev) => ({ ...prev, type })),
   });
 
   const [activePanel, setActivePanel] = useState<string | null>(() => activeScope);
@@ -424,47 +424,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const setPreviewWallPoles = useCallback((poles: Pole[] | null) => {
     previewWallPolesRef.current = poles;
     forcePreviewUpdate((c) => c + 1);
-  }, []);
-
-  const handleLayerVisibilityToggle = useCallback((layer: LayerVisibilityType) => {
-    setScopeVisibility((prev) => ({
-      ...prev,
-      [layer]: !prev[layer],
-    }));
-  }, []);
-
-  const handleShowAllLayers = useCallback(() => {
-    setScopeVisibility({
-      regions: true,
-      walls: true,
-      objects: true,
-      monsters: true,
-      characters: true,
-      lights: true,
-      sounds: true,
-      fogOfWar: true,
-    });
-    setGridConfig((prev) => ({
-      ...prev,
-      type: prev.type === GridType.NoGrid ? GridType.Square : prev.type,
-    }));
-  }, []);
-
-  const handleHideAllLayers = useCallback(() => {
-    setScopeVisibility({
-      regions: false,
-      walls: false,
-      objects: false,
-      monsters: false,
-      characters: false,
-      lights: false,
-      sounds: false,
-      fogOfWar: false,
-    });
-    setGridConfig((prev) => ({
-      ...prev,
-      type: GridType.NoGrid,
-    }));
   }, []);
 
   const saveChanges = useCallback(

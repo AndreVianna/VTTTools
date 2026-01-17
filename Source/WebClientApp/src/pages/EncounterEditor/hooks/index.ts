@@ -5,6 +5,7 @@ export { useEncounterEditor } from './useEncounterEditor';
 export { useEncounterSettings } from './useEncounterSettings';
 export { useGridHandlers } from './useGridHandlers';
 export { useKeyboardState } from './useKeyboardState';
+export { useLayerVisibility } from './useLayerVisibility';
 export { useRegionHandlers } from './useRegionHandlers';
 export { useViewportControls } from './useViewportControls';
 export { useWallHandlers } from './useWallHandlers';
