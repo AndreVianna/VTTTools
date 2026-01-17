@@ -19,107 +19,14 @@ import {
   useVerifyTwoFactorMutation,
 } from '@/services/authApi';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { clearAuthError, logout as logoutAction, setAuthError, setAuthenticated } from '@/store/slices/authSlice';
+import { clearAuthError, logout as logoutAction, setAuthenticated } from '@/store/slices/authSlice';
 import { addError } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
 import type { User } from '@/types/domain';
+import { AuthErrorHandler } from '@/utils/auth';
 
 // Global flag to track if we've checked for existing session (shared across all hook instances)
 let globalAuthInitialized = false;
-
-// Map backend error codes to user-friendly messages
-const mapToUserFriendlyMessage = (backendMessage: string): string => {
-  // Map backend message codes to user-friendly messages
-  switch (backendMessage) {
-    case 'FailedLogin':
-      return 'Invalid email or password.';
-
-    case 'LockedAccount':
-      return 'Your account is temporarely locked. Please try again later.';
-
-    case 'NotAllowed':
-      return 'You need to confirm your email before proceeding.';
-
-    case 'InternalServerError':
-      return 'An unexpected error has occurred. Please try again in a few minutes.';
-
-    case 'DuplicatedUser':
-      return 'Email address already registered';
-
-    case 'NotFound':
-      return 'User not found.';
-
-    case 'Success':
-      return 'Login successful.';
-
-    case 'RegistrationSuccess':
-      return 'Registration successful.';
-
-    case 'LogoutSuccess':
-      return 'Logout successful.';
-
-    default:
-      return 'An unexpected error has occurred. Please try again in a few minutes.';
-  }
-};
-
-interface RTKQueryError {
-  status?: number;
-  data?: {
-    errors?: Record<string, string[]>;
-    message?: string;
-    error?: string;
-  };
-  message?: string;
-}
-
-const isRTKQueryError = (error: unknown): error is RTKQueryError => {
-  if (typeof error !== 'object' || error === null) return false;
-  const err = error as Partial<RTKQueryError>;
-  return 'status' in err || 'data' in err || 'message' in err;
-};
-
-const extractErrorMessage = (error: unknown, defaultMessage: string = 'Operation failed'): string => {
-  let backendMessage: string | null = null;
-
-  if (!isRTKQueryError(error)) {
-    return mapToUserFriendlyMessage(defaultMessage);
-  }
-
-  if (error.data?.errors) {
-    const errors = error.data.errors;
-    const allErrors: string[] = [];
-
-    for (const key of Object.keys(errors)) {
-      const fieldErrors = errors[key];
-      if (Array.isArray(fieldErrors)) {
-        allErrors.push(...fieldErrors);
-      }
-    }
-
-    if (allErrors.length > 0) {
-      backendMessage = allErrors[0] ?? null;
-    }
-  }
-
-  if (!backendMessage && error.data?.message) {
-    backendMessage = error.data.message;
-  }
-
-  if (!backendMessage && error.data?.error) {
-    backendMessage = error.data.error;
-  }
-
-  if (!backendMessage && error.message) {
-    backendMessage = error.message;
-  }
-
-  if (!backendMessage) {
-    backendMessage = defaultMessage;
-  }
-
-  return mapToUserFriendlyMessage(backendMessage);
-};
 
 // Authentication hook integrating with existing WebApp Identity system
 export const useAuth = () => {
@@ -249,20 +156,12 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, 'Login failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'login',
-              data: { email },
-            },
-            userFriendlyMessage: 'Unable to sign in. Please check your credentials and try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'login',
+          defaultMessage: 'Login failed',
+          userFriendlyMessage: 'Unable to sign in. Please check your credentials and try again.',
+          context: { email },
+        });
         throw error;
       }
     },
@@ -297,24 +196,16 @@ export const useAuth = () => {
         return result;
       } catch (error: unknown) {
         console.error('useAuth.register caught error:', error);
-        if (isRTKQueryError(error)) {
+        if (AuthErrorHandler.isRTKQueryError(error)) {
           console.error('Error details - status:', error.status, 'data:', error.data);
         }
 
-        const errorMessage = extractErrorMessage(error, 'Registration failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'register',
-              data: { email, displayName },
-            },
-            userFriendlyMessage: 'Unable to create account. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'register',
+          defaultMessage: 'Registration failed',
+          userFriendlyMessage: 'Unable to create account. Please try again.',
+          context: { email, displayName },
+        });
         throw error;
       }
     },
@@ -373,20 +264,12 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, 'Password reset request failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'resetPassword',
-              data: { email },
-            },
-            userFriendlyMessage: 'Unable to send password reset email. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'resetPassword',
+          defaultMessage: 'Password reset request failed',
+          userFriendlyMessage: 'Unable to send password reset email. Please try again.',
+          context: { email },
+        });
         throw error;
       }
     },
@@ -462,20 +345,12 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, 'Password reset failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'confirmResetPassword',
-              data: { email },
-            },
-            userFriendlyMessage: 'Unable to reset password. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'confirmResetPassword',
+          defaultMessage: 'Password reset failed',
+          userFriendlyMessage: 'Unable to reset password. Please try again.',
+          context: { email },
+        });
         throw error;
       }
     },
@@ -488,19 +363,11 @@ export const useAuth = () => {
       const result = await setupTwoFactorMutation().unwrap();
       return result;
     } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error, '2FA setup failed');
-      dispatch(setAuthError(errorMessage));
-      dispatch(
-        addError({
-          type: 'authentication',
-          message: errorMessage,
-          context: {
-            component: 'useAuth',
-            operation: 'setupTwoFactor',
-          },
-          userFriendlyMessage: 'Unable to set up two-factor authentication. Please try again.',
-        }),
-      );
+      AuthErrorHandler.handle(dispatch, error, {
+        operation: 'setupTwoFactor',
+        defaultMessage: '2FA setup failed',
+        userFriendlyMessage: 'Unable to set up two-factor authentication. Please try again.',
+      });
       throw error;
     }
   }, [setupTwoFactorMutation, dispatch]);
@@ -525,19 +392,11 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, '2FA enable failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'enableTwoFactor',
-            },
-            userFriendlyMessage: 'Unable to enable two-factor authentication. Please verify the code and try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'enableTwoFactor',
+          defaultMessage: '2FA enable failed',
+          userFriendlyMessage: 'Unable to enable two-factor authentication. Please verify the code and try again.',
+        });
         throw error;
       }
     },
@@ -564,20 +423,11 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, '2FA disable failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'disableTwoFactor',
-            },
-            userFriendlyMessage:
-              'Unable to disable two-factor authentication. Please verify your password and try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'disableTwoFactor',
+          defaultMessage: '2FA disable failed',
+          userFriendlyMessage: 'Unable to disable two-factor authentication. Please verify your password and try again.',
+        });
         throw error;
       }
     },
@@ -618,19 +468,11 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, '2FA verification failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'verifyTwoFactor',
-            },
-            userFriendlyMessage: 'Unable to verify two-factor code. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'verifyTwoFactor',
+          defaultMessage: '2FA verification failed',
+          userFriendlyMessage: 'Unable to verify two-factor code. Please try again.',
+        });
         throw error;
       }
     },
@@ -670,19 +512,11 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, 'Recovery code verification failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'verifyRecoveryCode',
-            },
-            userFriendlyMessage: 'Unable to verify recovery code. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'verifyRecoveryCode',
+          defaultMessage: 'Recovery code verification failed',
+          userFriendlyMessage: 'Unable to verify recovery code. Please try again.',
+        });
         throw error;
       }
     },
@@ -703,19 +537,11 @@ export const useAuth = () => {
 
       return result;
     } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error, 'Failed to generate recovery codes');
-      dispatch(setAuthError(errorMessage));
-      dispatch(
-        addError({
-          type: 'authentication',
-          message: errorMessage,
-          context: {
-            component: 'useAuth',
-            operation: 'generateRecoveryCodes',
-          },
-          userFriendlyMessage: 'Unable to generate new recovery codes. Please try again.',
-        }),
-      );
+      AuthErrorHandler.handle(dispatch, error, {
+        operation: 'generateRecoveryCodes',
+        defaultMessage: 'Failed to generate recovery codes',
+        userFriendlyMessage: 'Unable to generate new recovery codes. Please try again.',
+      });
       throw error;
     }
   }, [generateRecoveryCodesMutation, dispatch]);
@@ -741,19 +567,11 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, 'Password change failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'changePassword',
-            },
-            userFriendlyMessage: 'Unable to change password. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'changePassword',
+          defaultMessage: 'Password change failed',
+          userFriendlyMessage: 'Unable to change password. Please try again.',
+        });
         throw error;
       }
     },
@@ -776,19 +594,11 @@ export const useAuth = () => {
 
         return result;
       } catch (error: unknown) {
-        const errorMessage = extractErrorMessage(error, 'Profile update failed');
-        dispatch(setAuthError(errorMessage));
-        dispatch(
-          addError({
-            type: 'authentication',
-            message: errorMessage,
-            context: {
-              component: 'useAuth',
-              operation: 'updateProfile',
-            },
-            userFriendlyMessage: 'Unable to update profile. Please try again.',
-          }),
-        );
+        AuthErrorHandler.handle(dispatch, error, {
+          operation: 'updateProfile',
+          defaultMessage: 'Profile update failed',
+          userFriendlyMessage: 'Unable to update profile. Please try again.',
+        });
         throw error;
       }
     },
