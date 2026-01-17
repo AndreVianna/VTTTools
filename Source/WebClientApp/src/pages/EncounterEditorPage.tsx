@@ -113,14 +113,12 @@ import {
   hydratePlacedWalls,
 } from '@/utils/encounterMappers';
 import {
-  addWallOptimistic,
-  removeRegionOptimistic,
-  removeWallOptimistic,
   updateRegionOptimistic,
   updateWallOptimistic,
 } from '@/utils/encounterStateUtils';
 import { polesToSegments, isWallClosed } from '@/utils/wallUtils';
 import { segmentsToPoles } from '@/utils/wallSegmentUtils';
+import { createStructureHandlers, createCanvasHandlers } from './EncounterEditor/handlers';
 import {
   useAssetManagement,
   useCanvasReadyState,
@@ -352,6 +350,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [_isHydrating, setIsHydrating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isStartingViewLoading, setIsStartingViewLoading] = useState(false);
   const [selectedWallIndex, setSelectedWallIndex] = useSessionState<number | null>({ key: 'selectedWallIndex', defaultValue: null, encounterId });
   const [selectedWallIndices, setSelectedWallIndices] = useState<number[]>([]);
   const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
@@ -812,129 +811,88 @@ const EncounterEditorPageInternal: React.FC = () => {
     redo,
   });
 
-  const handleVerticesChange = useCallback(
-    async (wallIndex: number, newPoles: Pole[], newIsClosed?: boolean) => {
-      if (!wallTransaction.transaction.isActive) {
-        console.warn('[handleVerticesChange] No active transaction');
-        return;
-      }
-
-      if (newPoles.length < 2) {
-        console.warn('[handleVerticesChange] Wall must have at least 2 poles');
-        return;
-      }
-
-      const segments = wallTransaction.getActiveSegments();
-      const segment = segments.find((s) => s.wallIndex === wallIndex || s.tempId === wallIndex);
-
-      if (!segment) {
-        console.warn(`[handleVerticesChange] Segment not found for wallIndex ${wallIndex}`);
-        return;
-      }
-
-      const wall = encounter?.stage.walls?.find((w) => w.index === wallIndex);
-      const effectiveIsClosed = newIsClosed !== undefined ? newIsClosed : (wall ? isWallClosed(wall as EncounterWall) : false);
-      const newSegments = polesToSegments(newPoles, effectiveIsClosed);
-
-      wallTransaction.updateSegment(segment.tempId, {
-        segments: newSegments,
-      });
-
-      setEncounter((prev) => {
-        if (!prev) return prev;
-
-        const wall = prev.stage.walls?.find((w) => w.index === wallIndex);
-        if (!wall) return prev;
-
-        return updateWallOptimistic(prev, wallIndex, {
-          segments: newSegments,
-        });
-      });
-    },
-    [wallTransaction, encounter],
+  // Structure handlers (wall/region placement) - extracted to handlers/structureHandlers.ts
+  const structureHandlers = useMemo(
+    () => createStructureHandlers({
+      encounterId,
+      encounter,
+      wallTransaction,
+      regionTransaction,
+      setEncounter,
+      setDrawingWallIndex,
+      setDrawingWallDefaultHeight,
+      setDrawingWallSegmentType,
+      setDrawingWallIsOpaque,
+      setDrawingWallState,
+      setDrawingRegionIndex,
+      setErrorMessage,
+      activePanel,
+      regionHandlers,
+      wallHandlers,
+    }),
+    [
+      encounterId,
+      encounter,
+      wallTransaction,
+      regionTransaction,
+      setEncounter,
+      setDrawingWallIndex,
+      setDrawingWallDefaultHeight,
+      setDrawingWallSegmentType,
+      setDrawingWallIsOpaque,
+      setDrawingWallState,
+      setDrawingRegionIndex,
+      setErrorMessage,
+      activePanel,
+      regionHandlers,
+      wallHandlers,
+    ],
   );
 
-  const handlePoleInserted = useCallback(
-    (_wallIndex: number, _insertedAtIndex: number) => {
-    },
-    [],
+  // Canvas handlers (viewport, preview, starting view) - extracted to handlers/canvasHandlers.ts
+  const canvasHandlers = useMemo(
+    () => createCanvasHandlers({
+      encounterId,
+      stageSize,
+      canvasRef,
+      updateStageSettings,
+      refetch: async () => { await refetch(); },
+      setIsStartingViewLoading,
+      assetManagement,
+      wallTransaction,
+      regionTransaction,
+      setSelectedWallIndex,
+      setSelectedRegionIndex,
+      setSelectedLightSourceIndex,
+      setSelectedSoundSourceIndex,
+      setIsEditingVertices,
+      setPreviewWallPoles,
+      setIsEditingRegionVertices,
+      setEditingRegionIndex,
+      navigate,
+    }),
+    [
+      encounterId,
+      stageSize,
+      canvasRef,
+      updateStageSettings,
+      refetch,
+      setIsStartingViewLoading,
+      assetManagement,
+      wallTransaction,
+      regionTransaction,
+      setSelectedWallIndex,
+      setSelectedRegionIndex,
+      setSelectedLightSourceIndex,
+      setSelectedSoundSourceIndex,
+      setIsEditingVertices,
+      setPreviewWallPoles,
+      setIsEditingRegionVertices,
+      setEditingRegionIndex,
+      navigate,
+    ],
   );
 
-  const handlePoleDeleted = useCallback(
-    (_wallIndex: number, _deletedIndices: number[]) => {
-    },
-    [],
-  );
-
-  const handleRegionVerticesChange = useCallback(
-    async (regionIndex: number, newVertices: Point[]) => {
-      if (!encounter) return;
-
-      if (!regionTransaction.transaction.isActive) {
-        console.warn('[handleRegionVerticesChange] No active transaction');
-        return;
-      }
-
-      if (newVertices.length < 3) {
-        console.warn('[handleRegionVerticesChange] Region must have at least 3 vertices');
-        return;
-      }
-
-      const region = encounter.stage.regions?.find((r) => r.index === regionIndex);
-      if (!region) return;
-
-      const segment = regionTransaction.transaction.segment;
-      if (!segment) {
-        console.warn(`[handleRegionVerticesChange] Segment not found for regionIndex ${regionIndex}`);
-        return;
-      }
-
-      regionTransaction.updateVertices(newVertices);
-
-      const updatedEncounter = updateRegionOptimistic(encounter, regionIndex, {
-        vertices: newVertices,
-      });
-      setEncounter(updatedEncounter);
-    },
-    [encounter, regionTransaction],
-  );
-
-  const handleRegionPlacementCancel = useCallback(async () => {
-    if (!encounter) return;
-
-    regionTransaction.rollbackTransaction();
-
-    const cleanEncounter = removeRegionOptimistic(encounter, -1);
-    setEncounter(cleanEncounter);
-
-    setDrawingRegionIndex(null);
-  }, [encounter, regionTransaction]);
-
-  const handleStructurePlacementFinish = useCallback(async () => {
-    try {
-      if (activePanel === 'regions') {
-        await regionHandlers.handleStructurePlacementFinish();
-      } else if (activePanel === 'walls') {
-        await wallHandlers.handleWallPlacementFinish();
-      } else {
-        console.warn('[EncounterEditorPage] activePanel is not regions or walls:', activePanel);
-      }
-    } catch (error) {
-      console.error('Failed to finish structure placement:', error);
-      setErrorMessage('Failed to complete structure placement. Please try again.');
-    }
-  }, [activePanel, regionHandlers, wallHandlers]);
-
-  const handleStructurePlacementCancel = useCallback(async () => {
-    if (!encounter) return;
-
-    wallTransaction.rollbackTransaction();
-
-    const cleanEncounter = removeWallOptimistic(encounter, -1);
-    setEncounter(cleanEncounter);
-
-    setDrawingWallIndex(null);
-  }, [encounter, wallTransaction]);
 
   const handlePlacedAssetUpdate = useCallback(
     async (assetId: string, updates: Partial<PlacedAsset>) => {
@@ -962,134 +920,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     },
     [encounterId, encounter, assetManagement, updateEncounterAsset],
   );
-
-  const handlePlaceWall = useCallback(
-    async (properties: {
-      type: SegmentType;
-      isOpaque: boolean;
-      state: SegmentState;
-      defaultHeight: number;
-    }) => {
-      if (!encounterId || !encounter) return;
-
-      const existingWalls = encounter.stage.walls || [];
-
-      const wallNumbers = existingWalls
-        .map((w) => {
-          if (!w.name) return null;
-          const match = w.name.match(/^Wall (\d+)$/);
-          return match?.[1] ? parseInt(match[1], 10) : null;
-        })
-        .filter((n): n is number => n !== null);
-
-      const nextNumber = wallNumbers.length > 0 ? Math.max(...wallNumbers) + 1 : 1;
-      const wallName = `Wall ${nextNumber}`;
-
-      wallTransaction.startTransaction('placement', undefined, {
-        name: wallName,
-      });
-
-      const tempWall: EncounterWall = {
-        index: -1,
-        name: wallName,
-        segments: [],
-      };
-
-      const updatedEncounter = addWallOptimistic(encounter, tempWall);
-      setEncounter(updatedEncounter);
-
-      setDrawingWallIndex(-1);
-      setDrawingWallDefaultHeight(properties.defaultHeight);
-      setDrawingWallSegmentType(properties.type);
-      setDrawingWallIsOpaque(properties.isOpaque);
-      setDrawingWallState(properties.state);
-    },
-    [encounterId, encounter, wallTransaction],
-  );
-
-
-  /** Navigate to Game Session page to preview the encounter */
-  const handlePreviewClick = useCallback(() => {
-    // Don't allow preview for unsaved new encounters
-    if (encounterId && encounterId !== 'new') {
-      navigate(`/encounters/${encounterId}/play`);
-    }
-  }, [encounterId, navigate]);
-
-  // State for starting view operations
-  const [isStartingViewLoading, setIsStartingViewLoading] = useState(false);
-
-  // Constants for layout offsets (matches useViewportControls)
-  const HEADER_HEIGHT = 28;
-  const TOP_TOOLBAR_HEIGHT = 36;
-  const LEFT_TOOLBAR_WIDTH = 32;
-
-  /** Save current viewport as starting view for Preview */
-  const handleSaveStartingView = useCallback(async () => {
-    if (!encounterId) return;
-
-    const viewport = canvasRef.current?.getViewport();
-    if (!viewport) return;
-
-    setIsStartingViewLoading(true);
-    try {
-      // Calculate centered position
-      const canvasWidth = window.innerWidth - LEFT_TOOLBAR_WIDTH;
-      const canvasHeight = window.innerHeight - (HEADER_HEIGHT + TOP_TOOLBAR_HEIGHT);
-      const centeredX = LEFT_TOOLBAR_WIDTH + (canvasWidth - stageSize.width) / 2;
-      const centeredY = HEADER_HEIGHT + TOP_TOOLBAR_HEIGHT + (canvasHeight - stageSize.height) / 2;
-
-      // Store offset from center
-      const offsetX = viewport.x - centeredX;
-      const offsetY = viewport.y - centeredY;
-
-      await updateStageSettings({
-        zoomLevel: viewport.scale,
-        panning: { x: offsetX, y: offsetY },
-      });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to save starting view:', error);
-    } finally {
-      setIsStartingViewLoading(false);
-    }
-  }, [encounterId, stageSize, updateStageSettings, refetch]);
-
-  /** Clear saved starting view (resets to centered) */
-  const handleClearStartingView = useCallback(async () => {
-    if (!encounterId) return;
-
-    setIsStartingViewLoading(true);
-    try {
-      await updateStageSettings({
-        zoomLevel: 1,
-        panning: { x: 0, y: 0 },
-      });
-      await refetch();
-    } catch (error: unknown) {
-      console.error('Failed to clear starting view:', error);
-    } finally {
-      setIsStartingViewLoading(false);
-    }
-  }, [encounterId, updateStageSettings, refetch]);
-
-  const handleCanvasClick = useCallback(() => {
-    assetManagement.handleAssetSelected([]);
-    setSelectedWallIndex(null);
-    setSelectedRegionIndex(null);
-    setSelectedLightSourceIndex(null);
-    setSelectedSoundSourceIndex(null);
-    if (wallTransaction.transaction.isActive) {
-      wallTransaction.rollbackTransaction();
-    }
-    setIsEditingVertices(false);
-    setPreviewWallPoles(null);
-    if (regionTransaction.transaction.isActive) {
-      regionTransaction.rollbackTransaction();
-    }
-    setIsEditingRegionVertices(false);
-    setEditingRegionIndex(null);
-  }, [assetManagement, setPreviewWallPoles, setSelectedLightSourceIndex, setSelectedRegionIndex, setSelectedSoundSourceIndex, setSelectedWallIndex, wallTransaction, regionTransaction]);
 
   const visibleAssets = useMemo(() => {
     const filtered = assetManagement.placedAssets.filter((asset) => {
@@ -1220,8 +1050,8 @@ const EncounterEditorPageInternal: React.FC = () => {
           onZoomIn={viewportControls.handleZoomIn}
           onZoomOut={viewportControls.handleZoomOut}
           onZoomReset={viewportControls.handleZoomReset}
-          onSaveStartingView={handleSaveStartingView}
-          onClearStartingView={handleClearStartingView}
+          onSaveStartingView={canvasHandlers.handleSaveStartingView}
+          onClearStartingView={canvasHandlers.handleClearStartingView}
           hasStartingView={!!savedStartingView}
           isStartingViewLoading={isStartingViewLoading}
           onGridToggle={() =>
@@ -1281,7 +1111,7 @@ const EncounterEditorPageInternal: React.FC = () => {
           onLayerVisibilityToggle={handleLayerVisibilityToggle}
           onShowAllLayers={handleShowAllLayers}
           onHideAllLayers={handleHideAllLayers}
-          onPreviewClick={handlePreviewClick}
+          onPreviewClick={canvasHandlers.handlePreviewClick}
         />
 
         <Box
@@ -1309,7 +1139,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             originalWallPoles={originalWallPoles}
             onWallSelect={wallHandlers.handleWallSelect}
             onWallDelete={wallHandlers.handleWallDelete}
-            onPlaceWall={handlePlaceWall}
+            onPlaceWall={structureHandlers.handlePlaceWall}
             onEditVertices={wallHandlers.handleEditVertices}
             onCancelEditing={wallHandlers.handleCancelEditing}
             encounterRegions={placedRegions}
@@ -1358,7 +1188,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             backgroundColor={theme.palette.background.default}
             onViewportChange={viewportControls.handleViewportChange}
             stageCallbackRef={stageCallbackRef}
-            onClick={handleCanvasClick}
+            onClick={canvasHandlers.handleCanvasClick}
           >
             {/* ===== KONVA LAYER HIERARCHY (Z-ORDER) =====
               *
@@ -1509,7 +1339,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                             poles={poles}
                             isClosed={isClosed}
                             onPolesChange={(newPoles, newIsClosed) =>
-                              handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
+                              structureHandlers.handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
                             }
                             onPolesPreview={setPreviewWallPoles}
                             gridConfig={gridConfig}
@@ -1523,10 +1353,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                             enableBackgroundRect={false}
                             wallTransaction={wallTransaction}
                             onPoleInserted={(insertedAtIndex) =>
-                              handlePoleInserted(segment.wallIndex ?? -1, insertedAtIndex)
+                              structureHandlers.handlePoleInserted(segment.wallIndex ?? -1, insertedAtIndex)
                             }
                             onPoleDeleted={(deletedIndices) =>
-                              handlePoleDeleted(segment.wallIndex ?? -1, deletedIndices)
+                              structureHandlers.handlePoleDeleted(segment.wallIndex ?? -1, deletedIndices)
                             }
                             defaultHeight={drawingWallDefaultHeight}
                           />
@@ -1550,7 +1380,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                       gridConfig={gridConfig}
                       viewport={viewportControls.viewport}
                       onVerticesChange={(newVertices: Point[]) =>
-                        handleRegionVerticesChange(editingRegionIndex, newVertices)
+                        structureHandlers.handleRegionVerticesChange(editingRegionIndex, newVertices)
                       }
                       onClearSelections={regionHandlers.handleFinishEditingRegion}
                       onSwitchToRegion={regionHandlers.handleSwitchToRegion}
@@ -1609,8 +1439,8 @@ const EncounterEditorPageInternal: React.FC = () => {
                     segmentType={drawingWallSegmentType}
                     isOpaque={drawingWallIsOpaque}
                     segmentState={drawingWallState}
-                    onCancel={handleStructurePlacementCancel}
-                    onFinish={handleStructurePlacementFinish}
+                    onCancel={structureHandlers.handleStructurePlacementCancel}
+                    onFinish={structureHandlers.handleStructurePlacementFinish}
                     onPolesChange={(newPoles) => {
                       const newSegments = polesToSegments(newPoles, false);
                       wallTransaction.updateSegment(-1, { segments: newSegments });
@@ -1632,8 +1462,8 @@ const EncounterEditorPageInternal: React.FC = () => {
                     {...(regionTransaction.transaction.segment?.color && {
                       regionColor: regionTransaction.transaction.segment.color,
                     })}
-                    onCancel={handleRegionPlacementCancel}
-                    onFinish={handleStructurePlacementFinish}
+                    onCancel={structureHandlers.handleRegionPlacementCancel}
+                    onFinish={structureHandlers.handleStructurePlacementFinish}
                     onVerticesChange={(newVertices: Point[]) => {
                       regionTransaction.updateVertices(newVertices);
                       if (encounter) {
@@ -1648,7 +1478,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                   <RegionBucketFillTool
                     encounterId={encounterId}
                     gridConfig={gridConfig}
-                    onCancel={handleRegionPlacementCancel}
+                    onCancel={structureHandlers.handleRegionPlacementCancel}
                     onFinish={regionHandlers.handleBucketFillFinish}
                     regionType={regionTransaction.transaction.segment?.type || 'Elevation'}
                     {...(regionTransaction.transaction.segment?.color && {
