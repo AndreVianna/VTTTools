@@ -4,17 +4,8 @@ import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { createBatchCommand } from '@/utils/commands';
 import { DeleteRegionCommand, EditRegionCommand } from '@/utils/commands/regionCommands';
+import { toRegionType } from '@/utils/encounter';
 import { removeRegionOptimistic, removeTempRegions, updateRegionOptimistic } from '@/utils/encounterStateUtils';
-
-/**
- * Helper to convert a string type to RegionType.
- */
-const toRegionType = (type: string): RegionType => {
-  if (Object.values(RegionType).includes(type as RegionType)) {
-    return type as RegionType;
-  }
-  return RegionType.Terrain;
-};
 
 /**
  * Helper to convert Partial<EncounterRegion> to UpdateRegionRequest.

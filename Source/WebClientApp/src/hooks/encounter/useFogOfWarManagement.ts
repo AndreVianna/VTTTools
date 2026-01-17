@@ -1,18 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
-import type { Encounter, PlacedRegion, Point, RegionType } from '@/types/domain';
+import type { Encounter, PlacedRegion, Point } from '@/types/domain';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
+import { toRegionType } from '@/utils/encounter';
 import { hydratePlacedRegions } from '@/utils/encounterMappers';
-
-/**
- * Helper to convert a string type to RegionType.
- */
-const toRegionType = (type: string): RegionType => {
-    if (Object.values(RegionType).includes(type as RegionType)) {
-        return type as RegionType;
-    }
-    return 'Terrain' as RegionType;
-};
 
 export interface UseFogOfWarManagementProps {
     /** Current encounter ID */

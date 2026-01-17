@@ -96,16 +96,7 @@ import {
   SegmentType,
 } from '@/types/domain';
 import { AmbientSoundSource, type CreateSoundRequest, type ResourceMetadata, type StageSound } from '@/types/stage';
-
-/**
- * Helper to convert a string type to RegionType.
- */
-const toRegionType = (type: string): RegionType => {
-  if (Object.values(RegionType).includes(type as RegionType)) {
-    return type as RegionType;
-  }
-  return RegionType.Terrain;
-};
+import { toRegionType } from '@/utils/encounter';
 
 /**
  * Convert StageSound data to CreateSoundRequest for the Stage API.
