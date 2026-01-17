@@ -49,7 +49,6 @@ import { ClipboardProvider } from '@/contexts/ClipboardContext';
 import { UndoRedoProvider } from '@/contexts/UndoRedoContext';
 import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
-import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { useSessionState } from '@/hooks/useSessionState';
 import { useUndoRedoContext } from '@/hooks/useUndoRedo';
@@ -124,7 +123,6 @@ function toCreateSoundRequest(source: Omit<StageSound, 'index'>): CreateSoundReq
 }
 
 import type { LocalAction } from '@/types/regionUndoActions';
-import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
 import {
   DeleteLightSourceCommand,
   DeleteSoundSourceCommand,
@@ -159,10 +157,12 @@ import {
   useContextMenus,
   useEncounterEditor,
   useEncounterSettings,
+  useFogOfWarManagement,
   useGridHandlers,
   useKeyboardState,
   useLayerVisibility,
   useRegionHandlers,
+  useVideoControls,
   useViewportControls,
   useWallHandlers,
 } from './EncounterEditor/hooks';
@@ -211,10 +211,12 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
   const [isUploadingAlternateBackground, setIsUploadingAlternateBackground] = useState(false);
   const [isUploadingAmbientSound, setIsUploadingAmbientSound] = useState(false);
-  // Video audio starts muted (browser autoplay policy), user can unmute via status bar
-  const [isVideoAudioMuted, setIsVideoAudioMuted] = useState(true);
-  // Video starts playing (autoplay), user can pause via status bar
-  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+  const {
+    isVideoAudioMuted,
+    isVideoPlaying,
+    handleAudioMuteToggle,
+    handleVideoPlayPauseToggle,
+  } = useVideoControls();
   const [addEncounterAsset] = useAddEncounterAssetMutation();
   const [updateEncounterAsset] = useUpdateEncounterAssetMutation();
   const [bulkUpdateEncounterAssets] = useBulkUpdateEncounterAssetsMutation();
@@ -385,10 +387,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [lightContextMenuPosition, setLightContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
   const [soundContextMenuPosition, setSoundContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
 
-  const [fogMode, setFogMode] = useState<'add' | 'subtract'>('add');
-  const [fogDrawingTool, setFogDrawingTool] = useState<'polygon' | 'bucketFill' | null>(null);
-  const [fogDrawingVertices, setFogDrawingVertices] = useState<Point[]>([]);
-
   const [activeScope, setActiveScope] = useSessionState<InteractionScope>({ key: 'activeScope', defaultValue: null, encounterId });
 
   const {
@@ -399,6 +397,35 @@ const EncounterEditorPageInternal: React.FC = () => {
   } = useLayerVisibility({
     currentGridType: gridConfig.type,
     onGridTypeChange: (type) => setGridConfig((prev) => ({ ...prev, type })),
+  });
+
+  const {
+    fogMode,
+    fogDrawingTool,
+    fogDrawingVertices,
+    setFogDrawingTool,
+    fowRegions,
+    handleFogModeChange,
+    handleFogDrawPolygon,
+    handleFogBucketFill,
+    handleFogHideAll,
+    handleFogRevealAll,
+    handlePolygonComplete,
+    handleBucketFillComplete,
+  } = useFogOfWarManagement({
+    encounterId: encounterId || '',
+    placedRegions,
+    stageSize,
+    setPlacedRegions,
+    setEncounter,
+    setErrorMessage,
+    refetch: async () => {
+      const result = await refetch();
+      return { data: result.data };
+    },
+    execute,
+    addRegion,
+    deleteRegion,
   });
 
   const [activePanel, setActivePanel] = useState<string | null>(() => activeScope);
@@ -1594,166 +1621,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
   }, []);
 
-  const fowRegions = useMemo(() => {
-    return placedRegions?.filter((r) => r.type === 'FogOfWar') || [];
-  }, [placedRegions]);
-
-  const { handlePolygonComplete, handleBucketFillComplete } = useFogOfWarPlacement({
-    encounterId: encounterId || '',
-    existingRegions: placedRegions || [],
-    mode: fogMode,
-    onRegionCreated: async (region) => {
-      try {
-        const command = new CreateFogOfWarRegionCommand({
-          encounterId: encounterId || '',
-          region,
-          onAdd: async (encId, regionData) => {
-            const result = await addRegion({
-              stageId: encId,
-              data: {
-                type: toRegionType(regionData.type),
-                name: regionData.name,
-                ...(regionData.label !== undefined && { label: regionData.label }),
-                ...(regionData.value !== undefined && { value: regionData.value }),
-                vertices: regionData.vertices,
-              },
-            }).unwrap();
-            return result;
-          },
-          onRemove: async (encId, regionIndex) => {
-            await deleteRegion({
-              stageId: encId,
-              index: regionIndex,
-            }).unwrap();
-          },
-          onRefetch: async () => {
-            const { data } = await refetch();
-            if (data) {
-              setEncounter(data);
-              const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
-              setPlacedRegions(hydratedRegions);
-            }
-          },
-        });
-
-        await execute(command);
-        setFogDrawingTool(null);
-      } catch (error) {
-        console.error('Failed to create FoW region:', error);
-        setErrorMessage('Failed to create fog region. Please try again.');
-      }
-    },
-    onRegionsDeleted: async (regionIndices) => {
-      try {
-        for (const regionIndex of regionIndices) {
-          await deleteRegion({
-            stageId: encounterId || '',
-            index: regionIndex,
-          }).unwrap();
-        }
-        const { data } = await refetch();
-        if (data) {
-          setEncounter(data);
-          const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
-          setPlacedRegions(hydratedRegions);
-        }
-      } catch (error) {
-        console.error('Failed to delete old FoW regions:', error);
-        setErrorMessage('Failed to merge fog regions. Please try again.');
-      }
-    },
-  });
-
-  const handleFogModeChange = useCallback((mode: 'add' | 'subtract') => {
-    setFogMode(mode);
-  }, []);
-
-  const handleFogDrawPolygon = useCallback(() => {
-    setFogDrawingTool('polygon');
-  }, []);
-
-  const handleFogBucketFill = useCallback(() => {
-    setFogDrawingTool('bucketFill');
-  }, []);
-
-  const handleFogHideAll = useCallback(async () => {
-    try {
-      if (fogMode !== 'add') {
-        setFogMode('add');
-        return;
-      }
-
-      const fullStageVertices: Point[] = [
-        { x: 0, y: 0 },
-        { x: stageSize.width, y: 0 },
-        { x: stageSize.width, y: stageSize.height },
-        { x: 0, y: stageSize.height },
-      ];
-
-      await handlePolygonComplete(fullStageVertices);
-    } catch (error) {
-      console.error('Failed to hide all areas:', error);
-      setErrorMessage('Failed to hide all areas. Please try again.');
-    }
-  }, [fogMode, stageSize, handlePolygonComplete]);
-
-  const handleFogRevealAll = useCallback(async () => {
-    try {
-      const fowRegionsToReveal = (placedRegions || [])
-        .filter((region) => region.type === 'FogOfWar')
-        .map((pr) => ({
-          encounterId: pr.encounterId,
-          index: pr.index,
-          name: pr.name,
-          type: pr.type,
-          vertices: pr.vertices,
-          ...(pr.value !== undefined && { value: pr.value }),
-          ...(pr.label !== undefined && { label: pr.label }),
-        }));
-
-      if (fowRegionsToReveal.length === 0) {
-        return;
-      }
-
-      const command = new RevealAllFogOfWarCommand({
-        encounterId: encounterId || '',
-        fogRegions: fowRegionsToReveal,
-        onAdd: async (encId, regionData) => {
-          const result = await addRegion({
-            stageId: encId,
-            data: {
-              type: toRegionType(regionData.type),
-              name: regionData.name,
-              ...(regionData.label !== undefined && { label: regionData.label }),
-              ...(regionData.value !== undefined && { value: regionData.value }),
-              vertices: regionData.vertices,
-            },
-          }).unwrap();
-          return result;
-        },
-        onRemove: async (encId, regionIndex) => {
-          await deleteRegion({
-            stageId: encId,
-            index: regionIndex,
-          }).unwrap();
-        },
-        onRefetch: async () => {
-          const { data } = await refetch();
-          if (data) {
-            setEncounter(data);
-            const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
-            setPlacedRegions(hydratedRegions);
-          }
-        },
-      });
-
-      await execute(command);
-    } catch (error) {
-      console.error('Failed to reveal all areas:', error);
-      setErrorMessage('Failed to reveal all areas. Please try again.');
-    }
-  }, [placedRegions, encounterId, addRegion, deleteRegion, refetch, execute]);
-
   const visibleAssets = useMemo(() => {
     const filtered = assetManagement.placedAssets.filter((asset) => {
       if (asset.asset.classification.kind === AssetKind.Object && !scopeVisibility.objects) {
@@ -1770,16 +1637,6 @@ const EncounterEditorPageInternal: React.FC = () => {
 
     return filtered;
   }, [assetManagement.placedAssets, scopeVisibility.objects, scopeVisibility.monsters, scopeVisibility.characters]);
-
-  // Toggle video audio mute state - must be before early returns to satisfy Rules of Hooks
-  const handleAudioMuteToggle = useCallback(() => {
-    setIsVideoAudioMuted((prev) => !prev);
-  }, []);
-
-  // Toggle video play/pause state - must be before early returns to satisfy Rules of Hooks
-  const handleVideoPlayPauseToggle = useCallback(() => {
-    setIsVideoPlaying((prev) => !prev);
-  }, []);
 
   if (isLoadingEncounter) {
     return (
