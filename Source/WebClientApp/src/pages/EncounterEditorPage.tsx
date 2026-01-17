@@ -159,10 +159,13 @@ import {
   useEncounterSettings,
   useFogOfWarManagement,
   useGridHandlers,
+  useKeyboardShortcuts,
   useKeyboardState,
   useLayerVisibility,
   useMediaManagement,
   useRegionHandlers,
+  useSaveChanges,
+  useSourceSelection,
   useVideoControls,
   useViewportControls,
   useWallHandlers,
@@ -476,100 +479,16 @@ const EncounterEditorPageInternal: React.FC = () => {
     forcePreviewUpdate((c) => c + 1);
   }, []);
 
-  const saveChanges = useCallback(
-    async (
-      overrides?: Partial<{
-        name: string;
-        description: string;
-        isPublished: boolean;
-        grid: {
-          type: GridType;
-          cellSize: { width: number; height: number };
-          offset: { left: number; top: number };
-          snap: boolean;
-        };
-      }>,
-    ) => {
-      if (!encounterId || !encounter || !isInitialized) {
-        return;
-      }
-
-      const currentData = {
-        name: encounter.name,
-        description: encounter.description,
-        isPublished: encounter.isPublished,
-        grid: {
-          type: gridConfig.type,
-          cellSize: gridConfig.cellSize,
-          offset: gridConfig.offset,
-          scale: gridConfig.scale,
-        },
-        ...overrides,
-      };
-
-      const hasChanges =
-        currentData.name !== encounter.name ||
-        currentData.description !== encounter.description ||
-        currentData.isPublished !== encounter.isPublished ||
-        JSON.stringify(currentData.grid) !==
-        JSON.stringify({
-          type:
-            typeof encounter.stage.grid.type === 'string'
-              ? GridType[encounter.stage.grid.type as keyof typeof GridType]
-              : encounter.stage.grid.type,
-          cellSize: encounter.stage.grid.cellSize,
-          offset: encounter.stage.grid.offset,
-          scale: encounter.stage.grid.scale,
-        });
-
-      if (!hasChanges) {
-        return;
-      }
-
-      setSaveStatus('saving');
-
-      const requestPayload: Record<string, unknown> = {};
-
-      if (currentData.name !== encounter.name) {
-        requestPayload.name = currentData.name;
-      }
-      if (currentData.description !== encounter.description) {
-        requestPayload.description = currentData.description;
-      }
-      if (currentData.isPublished !== encounter.isPublished) {
-        requestPayload.isPublished = currentData.isPublished;
-      }
-      if (overrides?.grid || JSON.stringify(currentData.grid) !== JSON.stringify({
-        type: typeof encounter.stage.grid.type === 'string'
-          ? GridType[encounter.stage.grid.type as keyof typeof GridType]
-          : encounter.stage.grid.type,
-        cellSize: encounter.stage.grid.cellSize,
-        offset: encounter.stage.grid.offset,
-        scale: encounter.stage.grid.scale,
-      })) {
-        requestPayload.grid = currentData.grid;
-      }
-
-      try {
-        const result = await patchEncounter({
-          id: encounterId,
-          request: requestPayload as UpdateEncounterRequest,
-        }).unwrap();
-
-        if (result) {
-          setEncounter(result);
-        } else {
-          await refetch();
-        }
-
-        setSaveStatus('saved');
-      } catch (error) {
-        console.error('Failed to save encounter:', error);
-        setSaveStatus('error');
-      }
-    },
-    [encounterId, encounter, isInitialized, gridConfig, patchEncounter, refetch],
-  );
+  const { saveChanges } = useSaveChanges({
+    encounterId,
+    encounter,
+    isInitialized,
+    gridConfig,
+    patchEncounter,
+    refetch: async () => { await refetch(); },
+    setSaveStatus,
+    setEncounter,
+  });
 
   const encounterSettings = useEncounterSettings({
     encounterId,
@@ -881,52 +800,13 @@ const EncounterEditorPageInternal: React.FC = () => {
     };
   }, [saveStatus]);
 
-  useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      const isWallTransactionActive = wallTransaction.transaction.isActive;
-      const isRegionTransactionActive = regionTransaction.transaction.isActive;
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const modifier = isMac ? e.metaKey : e.ctrlKey;
-
-      if (modifier && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-
-        if (isWallTransactionActive && wallTransaction.canUndoLocal()) {
-          wallTransaction.undoLocal();
-        } else if (isRegionTransactionActive && regionTransaction.canUndoLocal()) {
-          regionTransaction.undoLocal();
-        } else {
-          await undo();
-        }
-        return;
-      }
-
-      if (modifier && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-
-        if (isWallTransactionActive && wallTransaction.canRedoLocal()) {
-          wallTransaction.redoLocal();
-        } else if (isRegionTransactionActive && regionTransaction.canRedoLocal()) {
-          regionTransaction.redoLocal();
-        } else {
-          await redo();
-        }
-        return;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown, { capture: true });
-    };
-  }, [wallTransaction, regionTransaction, undo, redo, encounterId, selectedWallIndex, drawingRegionIndex]);
+  // Keyboard shortcuts for undo/redo
+  useKeyboardShortcuts({
+    wallTransaction,
+    regionTransaction,
+    undo,
+    redo,
+  });
 
   const handleVerticesChange = useCallback(
     async (wallIndex: number, newPoles: Pole[], newIsClosed?: boolean) => {
