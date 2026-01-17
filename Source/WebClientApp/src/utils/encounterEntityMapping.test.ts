@@ -392,7 +392,9 @@ describe('encounterEntityMapping', () => {
       expect(stored).toBeTruthy();
 
       const parsed = JSON.parse(stored ?? '{}');
-      expect(parsed[testEncounterId][testEntityType]).toEqual({
+      // Keys are prefixed with '$' to prevent prototype pollution
+      const safeKey = `$${testEncounterId}`;
+      expect(parsed[safeKey][testEntityType]).toEqual({
         'dom-1': 0,
         'dom-2': 1,
       });

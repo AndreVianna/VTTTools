@@ -10,6 +10,11 @@ export type EncounterEntityType =
 
 const STORAGE_KEY = 'encounter-mappings';
 const MAX_ID_GENERATION_ATTEMPTS = 10;
+const SAFE_KEY_PREFIX = '$'; // Prevents prototype pollution by making __proto__ become $__proto__
+
+function toSafeKey(encounterId: string): string {
+  return `${SAFE_KEY_PREFIX}${encounterId}`;
+}
 
 const usedIds = new Set<string>();
 
@@ -122,8 +127,10 @@ function setStoredMappings(mappings: EncounterMappings): void {
 function getEncounterMappings(encounterId: string): EntityTypeMappings {
   validateId(encounterId, 'encounterId');
   const allMappings = getStoredMappings();
+  const safeKey = toSafeKey(encounterId);
+  // Check safe key first, fall back to non-prefixed for backward compatibility
   return (
-    allMappings[encounterId] ?? {
+    allMappings[safeKey] ?? allMappings[encounterId] ?? {
       assets: {},
       actors: {},
       objects: {},
@@ -139,7 +146,8 @@ function getEncounterMappings(encounterId: string): EntityTypeMappings {
 function setEncounterMappings(encounterId: string, mappings: EntityTypeMappings): void {
   validateId(encounterId, 'encounterId');
   const allMappings = getStoredMappings();
-  allMappings[encounterId] = mappings;
+  const safeKey = toSafeKey(encounterId);
+  allMappings[safeKey] = mappings;
   setStoredMappings(allMappings);
 }
 
@@ -201,7 +209,9 @@ export function getAllMappings(encounterId: string, entityType: EncounterEntityT
 export function clearEncounterMappings(encounterId: string): void {
   validateId(encounterId, 'encounterId');
   const allMappings = getStoredMappings();
-  delete allMappings[encounterId];
+  const safeKey = toSafeKey(encounterId);
+  delete allMappings[safeKey];
+  delete allMappings[encounterId]; // Also delete non-prefixed for backward compatibility cleanup
   setStoredMappings(allMappings);
 }
 
