@@ -1,4 +1,6 @@
 import {
+  CenterFocusStrong as SaveViewIcon,
+  CenterFocusWeak as ClearViewIcon,
   Clear as ClearIcon,
   Pets as MonstersIcon,
   Cloud as FogOfWarIcon,
@@ -41,6 +43,14 @@ export interface TopToolBarProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onZoomReset?: () => void;
+  /** Saves the current viewport as the starting view for Preview */
+  onSaveStartingView?: () => void;
+  /** Clears the saved starting view (resets to centered) */
+  onClearStartingView?: () => void;
+  /** Whether a starting view is currently saved */
+  hasStartingView?: boolean;
+  /** Whether a starting view operation is in progress */
+  isStartingViewLoading?: boolean;
   onGridToggle?: () => void;
   onClearSelection?: () => void;
   onSelectAllByCategory?: (category: SelectionCategory) => void;
@@ -63,6 +73,10 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   onZoomIn,
   onZoomOut,
   onZoomReset,
+  onSaveStartingView,
+  onClearStartingView,
+  hasStartingView = false,
+  isStartingViewLoading = false,
   onGridToggle,
   onClearSelection,
   onSelectAllByCategory,
@@ -312,6 +326,9 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
             </MenuItem>
           </Menu>
 
+          {/* Spacer to push zoom/preview controls to the right */}
+          <Box sx={{ flexGrow: 1 }} />
+
           <Box
             sx={{
               width: 1,
@@ -332,44 +349,63 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
             </IconButton>
           </Tooltip>
 
-          <Tooltip title='Reset Zoom'>
+          <Tooltip title='Reset View'>
             <IconButton size='small' onClick={onZoomReset} sx={{ width: 28, height: 28 }}>
               <ZoomResetIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
 
-          {/* Spacer to push Preview to the right */}
-          <Box sx={{ flexGrow: 1 }} />
-
-          {onPreviewClick && (
+          {onSaveStartingView && (
             <>
-              <Box
-                sx={{
-                  width: 1,
-                  height: 20,
-                  backgroundColor: theme.palette.divider,
-                }}
-              />
+              <Tooltip title='Save Starting View'>
+                <span>
+                  <IconButton
+                    id='btn-save-starting-view'
+                    size='small'
+                    onClick={onSaveStartingView}
+                    disabled={isStartingViewLoading}
+                    sx={{ width: 28, height: 28 }}
+                  >
+                    <SaveViewIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
 
-              <Tooltip title='Launch Preview'>
-                <IconButton
-                  id='btn-preview'
-                  size='small'
-                  onClick={onPreviewClick}
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    color: theme.palette.primary.main,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.main,
-                      color: theme.palette.primary.contrastText,
-                    },
-                  }}
-                >
-                  <LaunchIcon sx={{ fontSize: 18 }} />
-                </IconButton>
+              <Tooltip title='Clear Starting View'>
+                <span>
+                  <IconButton
+                    id='btn-clear-starting-view'
+                    size='small'
+                    onClick={onClearStartingView}
+                    disabled={!hasStartingView || isStartingViewLoading}
+                    sx={{ width: 28, height: 28 }}
+                  >
+                    <ClearViewIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </span>
               </Tooltip>
             </>
+          )}
+
+          {onPreviewClick && (
+            <Tooltip title='Launch Preview'>
+              <IconButton
+                id='btn-preview'
+                size='small'
+                onClick={onPreviewClick}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  color: theme.palette.primary.main,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
+                  },
+                }}
+              >
+                <LaunchIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
           )}
         </Box>
       </Collapse>

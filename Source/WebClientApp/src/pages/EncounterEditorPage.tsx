@@ -676,6 +676,20 @@ const EncounterEditorPageInternal: React.FC = () => {
   // Determine effective background size for centering - use actual backgroundSize, or fallback to stageSize after image loads
   const effectiveBackgroundSize = backgroundSize ?? (imageDimensionsLoaded ? stageSize : undefined);
 
+  // Get saved starting view from stage settings (panning is offset from center)
+  const savedStartingView = useMemo(() => {
+    const settings = encounter?.stage?.settings;
+    if (!settings) return undefined;
+    // Only consider it a "saved" view if either zoomLevel or panning differs from defaults
+    const hasNonDefaultZoom = settings.zoomLevel !== 1;
+    const hasNonDefaultPanning = settings.panning?.x !== 0 || settings.panning?.y !== 0;
+    if (!hasNonDefaultZoom && !hasNonDefaultPanning) return undefined;
+    return {
+      zoomLevel: settings.zoomLevel,
+      panning: settings.panning,
+    };
+  }, [encounter?.stage?.settings]);
+
   const viewportControls = useViewportControls({
     initialViewport,
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
@@ -683,6 +697,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     encounterId,
     // Pass backgroundSize directly for centering calculation to avoid timing issues with stageSize state
     ...(effectiveBackgroundSize && { backgroundSize: effectiveBackgroundSize }),
+    savedStartingView,
   });
 
   const contextMenus = useContextMenus({
@@ -1436,6 +1451,63 @@ const EncounterEditorPageInternal: React.FC = () => {
     }
   }, [encounterId, navigate]);
 
+  // State for starting view operations
+  const [isStartingViewLoading, setIsStartingViewLoading] = useState(false);
+
+  // Constants for layout offsets (matches useViewportControls)
+  const HEADER_HEIGHT = 28;
+  const TOP_TOOLBAR_HEIGHT = 36;
+  const LEFT_TOOLBAR_WIDTH = 32;
+
+  /** Save current viewport as starting view for Preview */
+  const handleSaveStartingView = useCallback(async () => {
+    if (!encounterId) return;
+
+    const viewport = canvasRef.current?.getViewport();
+    if (!viewport) return;
+
+    setIsStartingViewLoading(true);
+    try {
+      // Calculate centered position
+      const canvasWidth = window.innerWidth - LEFT_TOOLBAR_WIDTH;
+      const canvasHeight = window.innerHeight - (HEADER_HEIGHT + TOP_TOOLBAR_HEIGHT);
+      const centeredX = LEFT_TOOLBAR_WIDTH + (canvasWidth - stageSize.width) / 2;
+      const centeredY = HEADER_HEIGHT + TOP_TOOLBAR_HEIGHT + (canvasHeight - stageSize.height) / 2;
+
+      // Store offset from center
+      const offsetX = viewport.x - centeredX;
+      const offsetY = viewport.y - centeredY;
+
+      await updateStageSettings({
+        zoomLevel: viewport.scale,
+        panning: { x: offsetX, y: offsetY },
+      });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to save starting view:', error);
+    } finally {
+      setIsStartingViewLoading(false);
+    }
+  }, [encounterId, stageSize, updateStageSettings, refetch]);
+
+  /** Clear saved starting view (resets to centered) */
+  const handleClearStartingView = useCallback(async () => {
+    if (!encounterId) return;
+
+    setIsStartingViewLoading(true);
+    try {
+      await updateStageSettings({
+        zoomLevel: 1,
+        panning: { x: 0, y: 0 },
+      });
+      await refetch();
+    } catch (error: unknown) {
+      console.error('Failed to clear starting view:', error);
+    } finally {
+      setIsStartingViewLoading(false);
+    }
+  }, [encounterId, updateStageSettings, refetch]);
+
   const handleCanvasClick = useCallback(() => {
     assetManagement.handleAssetSelected([]);
     setSelectedWallIndex(null);
@@ -1862,6 +1934,10 @@ const EncounterEditorPageInternal: React.FC = () => {
           onZoomIn={viewportControls.handleZoomIn}
           onZoomOut={viewportControls.handleZoomOut}
           onZoomReset={viewportControls.handleZoomReset}
+          onSaveStartingView={handleSaveStartingView}
+          onClearStartingView={handleClearStartingView}
+          hasStartingView={!!savedStartingView}
+          isStartingViewLoading={isStartingViewLoading}
           onGridToggle={() =>
             setGridConfig((prev) => ({
               ...prev,

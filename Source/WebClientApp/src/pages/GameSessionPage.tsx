@@ -74,20 +74,26 @@ export const GameSessionPage: React.FC = () => {
         navigate(`/encounters/${encounterId}/edit`);
     }, [encounterId, navigate]);
 
-    // Handle background image loaded - center the view on the background
+    // Handle background image loaded - center the view on the background (with saved offset if available)
     const handleBackgroundImageLoaded = useCallback((dimensions: { width: number; height: number }) => {
         setStageSize(dimensions);
 
-        // Center the background in the viewport
+        // Calculate centered position
         const centeredX = (window.innerWidth - dimensions.width) / 2;
         const centeredY = (window.innerHeight - dimensions.height) / 2;
 
+        // Apply saved offset from stage settings (default 0,0 = centered)
+        const settings = encounter?.stage?.settings;
+        const offsetX = settings?.panning?.x ?? 0;
+        const offsetY = settings?.panning?.y ?? 0;
+        const scale = settings?.zoomLevel ?? 1;
+
         canvasRef.current?.setViewport({
-            x: centeredX,
-            y: centeredY,
-            scale: 1,
+            x: centeredX + offsetX,
+            y: centeredY + offsetY,
+            scale,
         });
-    }, []);
+    }, [encounter?.stage?.settings]);
 
     // Handle viewport change
     const handleViewportChange = useCallback((newViewport: { x: number; y: number; scale: number }) => {

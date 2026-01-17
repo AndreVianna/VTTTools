@@ -1,6 +1,11 @@
 import type { EncounterCanvasHandle, Viewport } from '@components/encounter';
 import { type MouseEvent, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
+interface SavedStartingView {
+  zoomLevel: number;
+  panning: { x: number; y: number };
+}
+
 interface UseViewportControlsProps {
   initialViewport: Viewport;
   canvasRef: RefObject<EncounterCanvasHandle>;
@@ -9,6 +14,8 @@ interface UseViewportControlsProps {
   encounterId: string | undefined;
   /** The actual background size from encounter data - used for centering calculation */
   backgroundSize?: { width: number; height: number };
+  /** Saved starting view from stage settings - panning is offset from centered position */
+  savedStartingView?: SavedStartingView;
 }
 
 const HEADER_HEIGHT = 28;
@@ -31,7 +38,7 @@ const storeViewport = (encounterId: string | undefined, viewport: Viewport) => {
   } catch { /* ignore */ }
 };
 
-export const useViewportControls = ({ initialViewport, canvasRef, stageSize, containerOffset, encounterId, backgroundSize }: UseViewportControlsProps) => {
+export const useViewportControls = ({ initialViewport, canvasRef, stageSize, containerOffset, encounterId, backgroundSize, savedStartingView }: UseViewportControlsProps) => {
   const offsetLeft = containerOffset?.left ?? LEFT_TOOLBAR_WIDTH;
   const offsetTop = containerOffset?.top ?? (HEADER_HEIGHT + TOP_TOOLBAR_HEIGHT);
 
@@ -93,17 +100,27 @@ export const useViewportControls = ({ initialViewport, canvasRef, stageSize, con
     if (stageSize && stageSize.width > 0 && stageSize.height > 0) {
       const canvasWidth = window.innerWidth - offsetLeft;
       const canvasHeight = window.innerHeight - offsetTop;
+
+      // Calculate centered position
+      const centeredX = offsetLeft + (canvasWidth - stageSize.width) / 2;
+      const centeredY = offsetTop + (canvasHeight - stageSize.height) / 2;
+
+      // Apply saved offset (default 0,0 = centered)
+      const offsetX = savedStartingView?.panning?.x ?? 0;
+      const offsetY = savedStartingView?.panning?.y ?? 0;
+      const scale = savedStartingView?.zoomLevel ?? 1;
+
       const newViewport = {
-        x: offsetLeft + (canvasWidth - stageSize.width) / 2,
-        y: offsetTop + (canvasHeight - stageSize.height) / 2,
-        scale: 1,
+        x: centeredX + offsetX,
+        y: centeredY + offsetY,
+        scale,
       };
       setViewport(newViewport);
       canvasRef.current?.setViewport(newViewport);
     } else {
       canvasRef.current?.resetView();
     }
-  }, [stageSize, offsetLeft, offsetTop, canvasRef]);
+  }, [stageSize, offsetLeft, offsetTop, savedStartingView, canvasRef]);
 
   const handleCanvasMouseMove = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {

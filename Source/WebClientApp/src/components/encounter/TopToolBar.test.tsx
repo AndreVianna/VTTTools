@@ -5,6 +5,8 @@ import { TopToolBar, type TopToolBarProps, type LayerVisibilityType } from './To
 
 // Mock MUI icons to avoid file handle exhaustion
 vi.mock('@mui/icons-material', () => ({
+    CenterFocusStrong: () => <span data-mock="icon-save-view">SaveViewIcon</span>,
+    CenterFocusWeak: () => <span data-mock="icon-clear-view">ClearViewIcon</span>,
     Clear: () => <span data-mock="icon-clear">ClearIcon</span>,
     Pets: () => <span data-mock="icon-monsters">MonstersIcon</span>,
     Cloud: () => <span data-mock="icon-fogofwar">FogOfWarIcon</span>,
@@ -72,7 +74,7 @@ describe('TopToolBar', () => {
             // Assert
             expect(screen.getByLabelText('Zoom In')).toBeInTheDocument();
             expect(screen.getByLabelText('Zoom Out')).toBeInTheDocument();
-            expect(screen.getByLabelText('Reset Zoom')).toBeInTheDocument();
+            expect(screen.getByLabelText('Reset View')).toBeInTheDocument();
         });
 
         it('should render undo and redo buttons', () => {
@@ -232,7 +234,7 @@ describe('TopToolBar', () => {
         });
     });
 
-    describe('Reset Zoom Button Functionality', () => {
+    describe('Reset View Button Functionality', () => {
         it('should call onZoomReset when reset zoom button is clicked', async () => {
             // Arrange
             const onZoomReset = vi.fn();
@@ -241,7 +243,7 @@ describe('TopToolBar', () => {
 
             // Act
             render(<TopToolBar {...props} />);
-            await user.click(screen.getByLabelText('Reset Zoom'));
+            await user.click(screen.getByLabelText('Reset View'));
 
             // Assert
             expect(onZoomReset).toHaveBeenCalledTimes(1);
@@ -256,7 +258,7 @@ describe('TopToolBar', () => {
             render(<TopToolBar {...props} />);
 
             // Assert - should not throw
-            await expect(user.click(screen.getByLabelText('Reset Zoom'))).resolves.not.toThrow();
+            await expect(user.click(screen.getByLabelText('Reset View'))).resolves.not.toThrow();
         });
     });
 
@@ -535,7 +537,7 @@ describe('TopToolBar', () => {
             // Act
             render(<TopToolBar {...props} />);
             await user.click(screen.getByLabelText('Zoom In'));
-            await user.click(screen.getByLabelText('Reset Zoom'));
+            await user.click(screen.getByLabelText('Reset View'));
             await user.click(screen.getByLabelText('Zoom Out'));
 
             // Assert
@@ -556,7 +558,7 @@ describe('TopToolBar', () => {
             // Assert
             expect(screen.getByLabelText('Zoom In')).toBeInTheDocument();
             expect(screen.getByLabelText('Zoom Out')).toBeInTheDocument();
-            expect(screen.getByLabelText('Reset Zoom')).toBeInTheDocument();
+            expect(screen.getByLabelText('Reset View')).toBeInTheDocument();
         });
 
         it('should have button role for all interactive elements', () => {
@@ -734,6 +736,145 @@ describe('TopToolBar', () => {
             const buttons = screen.getAllByRole('button');
             const previewButton = screen.getByLabelText('Preview Encounter');
             expect(buttons).toContain(previewButton);
+        });
+    });
+
+    describe('Starting View Buttons', () => {
+        it('should render save and clear starting view buttons when onSaveStartingView is provided', () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const props = createDefaultProps({ onSaveStartingView });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.getByLabelText('Save Starting View')).toBeInTheDocument();
+            expect(screen.getByLabelText('Clear Starting View')).toBeInTheDocument();
+        });
+
+        it('should not render starting view buttons when onSaveStartingView is not provided', () => {
+            // Arrange
+            const props = createDefaultProps({ onSaveStartingView: undefined });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.queryByLabelText('Save Starting View')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Clear Starting View')).not.toBeInTheDocument();
+        });
+
+        it('should call onSaveStartingView when save button is clicked', async () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const props = createDefaultProps({ onSaveStartingView });
+            const user = userEvent.setup();
+
+            // Act
+            render(<TopToolBar {...props} />);
+            await user.click(screen.getByLabelText('Save Starting View'));
+
+            // Assert
+            expect(onSaveStartingView).toHaveBeenCalledTimes(1);
+        });
+
+        it('should call onClearStartingView when clear button is clicked', async () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const onClearStartingView = vi.fn();
+            const props = createDefaultProps({
+                onSaveStartingView,
+                onClearStartingView,
+                hasStartingView: true,
+            });
+            const user = userEvent.setup();
+
+            // Act
+            render(<TopToolBar {...props} />);
+            await user.click(screen.getByLabelText('Clear Starting View'));
+
+            // Assert
+            expect(onClearStartingView).toHaveBeenCalledTimes(1);
+        });
+
+        it('should disable clear button when hasStartingView is false', () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const onClearStartingView = vi.fn();
+            const props = createDefaultProps({
+                onSaveStartingView,
+                onClearStartingView,
+                hasStartingView: false,
+            });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.getByLabelText('Clear Starting View').closest('button')).toBeDisabled();
+        });
+
+        it('should enable clear button when hasStartingView is true', () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const onClearStartingView = vi.fn();
+            const props = createDefaultProps({
+                onSaveStartingView,
+                onClearStartingView,
+                hasStartingView: true,
+            });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.getByLabelText('Clear Starting View').closest('button')).not.toBeDisabled();
+        });
+
+        it('should disable both buttons when isStartingViewLoading is true', () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const onClearStartingView = vi.fn();
+            const props = createDefaultProps({
+                onSaveStartingView,
+                onClearStartingView,
+                hasStartingView: true,
+                isStartingViewLoading: true,
+            });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            expect(screen.getByLabelText('Save Starting View').closest('button')).toBeDisabled();
+            expect(screen.getByLabelText('Clear Starting View').closest('button')).toBeDisabled();
+        });
+
+        it('should have semantic id btn-save-starting-view for BDD testing', () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const props = createDefaultProps({ onSaveStartingView });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            const saveButton = screen.getByLabelText('Save Starting View').closest('button');
+            expect(saveButton).toHaveAttribute('id', 'btn-save-starting-view');
+        });
+
+        it('should have semantic id btn-clear-starting-view for BDD testing', () => {
+            // Arrange
+            const onSaveStartingView = vi.fn();
+            const props = createDefaultProps({ onSaveStartingView });
+
+            // Act
+            render(<TopToolBar {...props} />);
+
+            // Assert
+            const clearButton = screen.getByLabelText('Clear Starting View').closest('button');
+            expect(clearButton).toHaveAttribute('id', 'btn-clear-starting-view');
         });
     });
 });
