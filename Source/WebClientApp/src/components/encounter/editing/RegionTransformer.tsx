@@ -2,6 +2,7 @@ import { useTheme } from '@mui/material';
 import type Konva from 'konva';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Group, Line, Rect } from 'react-konva';
+import { InsertPreviewMarker, MarqueeRect } from '@/components/encounter/konva';
 import type { RegionSegment } from '@/hooks/useRegionTransaction';
 import type { PlacedRegion, Point } from '@/types/domain';
 import {
@@ -588,18 +589,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
           }}
         >
           {marqueeRect && (
-            <Rect
-              x={marqueeRect.x}
-              y={marqueeRect.y}
-              width={marqueeRect.width}
-              height={marqueeRect.height}
-              stroke={theme.palette.primary.main}
-              strokeWidth={1}
-              dash={[5, 5]}
-              fill={theme.palette.primary.main}
-              opacity={0.1}
-              listening={false}
-            />
+            <MarqueeRect rect={marqueeRect} />
           )}
 
           {/* Filled region polygon */}
@@ -836,17 +826,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(
           })}
 
           {insertPreviewPos && (
-            <Circle
-              x={insertPreviewPos.x}
-              y={insertPreviewPos.y}
-              radius={5}
-              fill='transparent'
-              stroke={theme.palette.warning.main}
-              strokeWidth={2}
-              dash={[4, 4]}
-              listening={false}
-              opacity={0.8}
-            />
+            <InsertPreviewMarker position={insertPreviewPos} />
           )}
         </Group>
       </Group>

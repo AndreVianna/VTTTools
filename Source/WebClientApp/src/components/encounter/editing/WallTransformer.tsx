@@ -2,6 +2,7 @@ import { useTheme } from '@mui/material';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Line, Rect } from 'react-konva';
+import { InsertPreviewMarker, MarqueeRect } from '@/components/encounter/konva';
 import type { useWallTransaction } from '@/hooks/useWallTransaction';
 import type { EncounterWall, Pole } from '@/types/domain';
 import {
@@ -727,18 +728,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
         }}
       >
         {marqueeRect && (
-          <Rect
-            x={marqueeRect.x}
-            y={marqueeRect.y}
-            width={marqueeRect.width}
-            height={marqueeRect.height}
-            stroke={theme.palette.primary.main}
-            strokeWidth={1}
-            dash={[5, 5]}
-            fill={theme.palette.primary.main}
-            opacity={0.1}
-            listening={false}
-          />
+          <MarqueeRect rect={marqueeRect} />
         )}
 
         {polesToUse.slice(0, -1).map((pole, index) => {
@@ -1042,17 +1032,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
         {/* Pole insertion preview circle */}
         {insertPreviewPos && (
-          <Circle
-            x={insertPreviewPos.x}
-            y={insertPreviewPos.y}
-            radius={5}
-            fill='transparent'
-            stroke={theme.palette.warning.main}
-            strokeWidth={2}
-            dash={[4, 4]}
-            listening={false}
-            opacity={0.8}
-          />
+          <InsertPreviewMarker position={insertPreviewPos} />
         )}
 
         {/* Closing line segment for closed walls (last to first pole) - interactive - rendered AFTER poles for proper z-order */}

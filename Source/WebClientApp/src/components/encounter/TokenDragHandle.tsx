@@ -1,7 +1,7 @@
-import { useTheme } from '@mui/material/styles';
 import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Circle, Group, Layer, Line, Rect } from 'react-konva';
+import { Layer } from 'react-konva';
+import { InvalidPlacementIndicator, MarqueeRect, RotationHandle, SelectionBorder } from '@/components/encounter/konva';
 import { LayerName } from '@/services/layerManager';
 import type { PlacedAsset } from '@/types/domain';
 import { getPlacementBehavior } from '@/types/placement';
@@ -11,17 +11,6 @@ import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 import type { InteractionScope } from '@/utils/scopeFiltering';
 import { isAssetInScope } from '@/utils/scopeFiltering';
 import { SnapMode } from '@/utils/snapping';
-
-/**
- * Render invalid placement indicator (red X)
- */
-const renderInvalidIndicator = (position: { x: number; y: number }) => (
-  <Group x={position.x} y={position.y}>
-    <Circle radius={12} fill='rgba(220, 38, 38, 0.9)' stroke='white' strokeWidth={1} />
-    <Line points={[-6, -6, 6, 6]} stroke='white' strokeWidth={2} lineCap='round' />
-    <Line points={[6, -6, -6, 6]} stroke='white' strokeWidth={2} lineCap='round' />
-  </Group>
-);
 
 /**
  * Snap position to grid based on asset size and snap mode
@@ -149,7 +138,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
   onRotationEnd,
   activeScope,
 }) => {
-  const theme = useTheme();
   const transformerRef = useRef<Konva.Transformer>(null);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const allDragStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
@@ -816,15 +804,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         if (!renderPos) return null;
 
         return (
-          <Rect
+          <SelectionBorder
             key={`selection-${assetId}`}
-            x={renderPos.x}
-            y={renderPos.y}
-            width={renderPos.width}
-            height={renderPos.height}
-            stroke={theme.palette.primary.main}
-            strokeWidth={2}
-            listening={false}
+            bounds={renderPos}
           />
         );
       })}
@@ -841,64 +823,40 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const renderPos = getAssetRenderPosition(asset.id);
         if (!renderPos) return null;
 
-        const centerX = renderPos.x + renderPos.width / 2;
-        const centerY = renderPos.y + renderPos.height / 2;
-
-        const longestDimension = Math.max(asset.size.width, asset.size.height);
-        const handleLength = longestDimension * 0.75;
-        const rotation = asset.rotation;
-        const angleRadians = ((rotation - 90) * Math.PI) / 180;
-        const lineEndX = Math.cos(angleRadians) * handleLength;
-        const lineEndY = Math.sin(angleRadians) * handleLength;
-        const strokeWidth = 1 / scale;
-        const arrowSize = Math.max(4, Math.min(6, 5 / scale));
-        const lineColor = theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280';
-
-        const groupKey = `rotation-handle-${centerX.toFixed(1)}-${centerY.toFixed(1)}`;
+        const center = {
+          x: renderPos.x + renderPos.width / 2,
+          y: renderPos.y + renderPos.height / 2,
+        };
 
         return (
-          <Group key={groupKey} name={groupKey} x={centerX} y={centerY}>
-            <Line
-              points={[0, 0, lineEndX, lineEndY]}
-              stroke={lineColor}
-              strokeWidth={strokeWidth}
-              dash={[5, 5]}
-              opacity={0.8}
-              listening={false}
-            />
-            <Circle
-              x={lineEndX}
-              y={lineEndY}
-              radius={arrowSize}
-              fill={lineColor}
-              stroke={lineColor}
-              strokeWidth={1}
-              cursor={isRotating ? 'grabbing' : 'grab'}
-              hitStrokeWidth={20}
-              onMouseDown={(e) => handleRotationMouseDown(e, asset.id, asset.position)}
-            />
-          </Group>
+          <RotationHandle
+            center={center}
+            rotation={asset.rotation}
+            assetSize={asset.size}
+            scale={scale}
+            isRotating={isRotating}
+            onMouseDown={(e) => handleRotationMouseDown(e, asset.id, asset.position)}
+          />
         );
       })()}
 
       {/* Marquee selection rectangle */}
       {marqueeSelection && (
-        <Rect
-          x={Math.min(marqueeSelection.start.x, marqueeSelection.end.x)}
-          y={Math.min(marqueeSelection.start.y, marqueeSelection.end.y)}
-          width={Math.abs(marqueeSelection.end.x - marqueeSelection.start.x)}
-          height={Math.abs(marqueeSelection.end.y - marqueeSelection.start.y)}
-          fill='rgba(33, 150, 243, 0.2)'
-          stroke={theme.palette.primary.main}
-          strokeWidth={1}
+        <MarqueeRect
+          rect={{
+            x: Math.min(marqueeSelection.start.x, marqueeSelection.end.x),
+            y: Math.min(marqueeSelection.start.y, marqueeSelection.end.y),
+            width: Math.abs(marqueeSelection.end.x - marqueeSelection.start.x),
+            height: Math.abs(marqueeSelection.end.y - marqueeSelection.start.y),
+          }}
+          fillOpacity={0.2}
           dash={[4, 4]}
-          listening={false}
         />
       )}
 
       {/* Invalid placement indicators - show on each colliding asset */}
       {invalidAssetPositions.map((pos) => (
-        <React.Fragment key={`invalid-${pos.x}-${pos.y}`}>{renderInvalidIndicator(pos)}</React.Fragment>
+        <InvalidPlacementIndicator key={`invalid-${pos.x}-${pos.y}`} position={pos} />
       ))}
     </Layer>
   );
