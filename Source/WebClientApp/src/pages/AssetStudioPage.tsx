@@ -261,5 +261,3 @@ export const AssetStudioPage: React.FC = () => {
         />
     );
 };
-
-export default AssetStudioPage;

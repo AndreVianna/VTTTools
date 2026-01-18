@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Box, Button, Card, CardContent, Container, Divider, Stack, Typography, useTheme } from '@mui/material';
+import { alpha, Box, Button, Card, CardContent, Container, Divider, Stack, Typography, useTheme } from '@mui/material';
 import {
     Cancel as CancelIcon,
     CheckCircle as CheckCircleIcon,
@@ -186,9 +186,10 @@ const TwoFactorStatus: React.FC<TwoFactorStatusProps> = ({ theme, enabled }) => 
             gap: 1,
             padding: theme.spacing(1.5),
             borderRadius: 1,
-            backgroundColor: enabled
-                ? theme.palette.success.main + (theme.palette.mode === 'dark' ? '26' : '1A')
-                : theme.palette.grey[500] + (theme.palette.mode === 'dark' ? '26' : '1A'),
+            backgroundColor: alpha(
+                enabled ? theme.palette.success.main : theme.palette.grey[500],
+                0.15
+            ),
         }}
     >
         {enabled ? (

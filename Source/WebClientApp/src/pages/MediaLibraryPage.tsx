@@ -18,15 +18,15 @@ const isAudioCategory = (category: ResourceRole): boolean => {
 
 export const MediaLibraryPage: React.FC = () => {
     // ═══════════════════════════════════════════════════════════════════════════
-    // QUERIES & MUTATIONS
-    // ═══════════════════════════════════════════════════════════════════════════
-    const { data, isLoading, isFetching, error, refetch } = useFilterResourcesQuery({});
-    const [deleteResource] = useDeleteResourceMutation();
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DOMAIN HOOKS
+    // DOMAIN HOOKS (before queries - provides queryParams for server-side filtering)
     // ═══════════════════════════════════════════════════════════════════════════
     const browser = useMediaBrowser();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // QUERIES & MUTATIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+    const { data, isLoading, isFetching, error, refetch } = useFilterResourcesQuery(browser.queryParams);
+    const [deleteResource] = useDeleteResourceMutation();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // DERIVED STATE
@@ -145,5 +145,3 @@ export const MediaLibraryPage: React.FC = () => {
         />
     );
 };
-
-export default MediaLibraryPage;

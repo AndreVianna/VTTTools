@@ -303,7 +303,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
                 id={buttonId}
                 size="small"
                 variant={disabled ? 'outlined' : 'contained'}
-                onClick={onClick}
+                onClick={disabled ? undefined : onClick}
                 disabled={disabled}
             >
                 {buttonText}
@@ -311,5 +311,3 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
         </CardActions>
     </Card>
 );
-
-export default LandingPage;

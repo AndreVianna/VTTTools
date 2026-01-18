@@ -14,16 +14,16 @@ export const AssetLibraryPage: React.FC = () => {
     const navigate = useNavigate();
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // QUERIES & MUTATIONS
-    // ═══════════════════════════════════════════════════════════════════════════
-    const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery({});
-    const [deleteAsset] = useDeleteAssetMutation();
-    const [cloneAsset] = useCloneAssetMutation();
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DOMAIN HOOKS
+    // DOMAIN HOOKS (before queries - provides queryParams for server-side filtering)
     // ═══════════════════════════════════════════════════════════════════════════
     const browser = useAssetBrowser();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // QUERIES & MUTATIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+    const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(browser.queryParams);
+    const [deleteAsset] = useDeleteAssetMutation();
+    const [cloneAsset] = useCloneAssetMutation();
 
     const { availableLetters } = useLetterFilter({
         items: allAssets,
@@ -155,5 +155,3 @@ export const AssetLibraryPage: React.FC = () => {
         />
     );
 };
-
-export default AssetLibraryPage;
