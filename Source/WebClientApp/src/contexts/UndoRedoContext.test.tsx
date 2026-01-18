@@ -1,4 +1,5 @@
-import { act, render, waitFor } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
+import React, { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type UndoRedoContextValue, useUndoRedoContext } from '@/hooks/useUndoRedo';
 import type { Command } from '@/utils/commands';
@@ -10,15 +11,28 @@ const TestComponent = ({ onRender }: { onRender: (context: UndoRedoContextValue)
   return null;
 };
 
-// Helper that keeps a reference to the latest context value
-const createContextRef = () => {
-  const ref: { current: UndoRedoContextValue | null } = { current: null };
-  const Component = () => {
-    const context = useUndoRedoContext();
-    ref.current = context;
-    return null;
+// Helper component that captures context using a callback pattern
+// Uses useEffect to propagate values, which satisfies the react-hooks/immutability rule
+interface ContextCaptureProps {
+  onCapture: (context: UndoRedoContextValue) => void;
+}
+
+const ContextCaptureComponent: React.FC<ContextCaptureProps> = ({ onCapture }) => {
+  const context = useUndoRedoContext();
+  useEffect(() => {
+    onCapture(context);
+  }, [context, onCapture]);
+  return null;
+};
+
+// Factory that creates a context capture setup with a holder ref
+const createContextCapture = () => {
+  const holder: { current: UndoRedoContextValue | null } = { current: null };
+  const onCapture = (context: UndoRedoContextValue) => {
+    holder.current = context;
   };
-  return { ref, Component };
+  const ContextCapture = () => <ContextCaptureComponent onCapture={onCapture} />;
+  return { holder, ContextCapture };
 };
 
 describe('UndoRedoContext', () => {
@@ -87,11 +101,7 @@ describe('UndoRedoContext', () => {
   });
 
   it('undoes command and moves to future', async () => {
-    let capturedContext: UndoRedoContextValue | null = null;
-    const ContextCapture = () => {
-      capturedContext = useUndoRedoContext();
-      return null;
-    };
+    const { holder, ContextCapture } = createContextCapture();
 
     const { rerender } = render(
       <UndoRedoProvider>
@@ -108,7 +118,7 @@ describe('UndoRedoContext', () => {
     };
 
     await act(async () => {
-      await capturedContext?.execute(command);
+      await holder.current?.execute(command);
     });
 
     // Force rerender to get fresh context
@@ -118,13 +128,13 @@ describe('UndoRedoContext', () => {
       </UndoRedoProvider>,
     );
 
-    expect(capturedContext).not.toBeNull();
-    expect(capturedContext!.canUndo).toBe(true);
-    expect(capturedContext!.canRedo).toBe(false);
+    expect(holder.current).not.toBeNull();
+    expect(holder.current!.canUndo).toBe(true);
+    expect(holder.current!.canRedo).toBe(false);
     expect(mockExecute).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      await capturedContext?.undo();
+      await holder.current?.undo();
     });
 
     // Force rerender to get fresh context
@@ -134,17 +144,13 @@ describe('UndoRedoContext', () => {
       </UndoRedoProvider>,
     );
 
-    expect(capturedContext!.canUndo).toBe(false);
-    expect(capturedContext!.canRedo).toBe(true);
+    expect(holder.current!.canUndo).toBe(false);
+    expect(holder.current!.canRedo).toBe(true);
     expect(undoSpy).toHaveBeenCalledTimes(1);
   });
 
   it('redoes command and moves back to past', async () => {
-    let capturedContext: UndoRedoContextValue | null = null;
-    const ContextCapture = () => {
-      capturedContext = useUndoRedoContext();
-      return null;
-    };
+    const { holder, ContextCapture } = createContextCapture();
 
     const { rerender } = render(
       <UndoRedoProvider>
@@ -160,7 +166,7 @@ describe('UndoRedoContext', () => {
     };
 
     await act(async () => {
-      await capturedContext?.execute(command);
+      await holder.current?.execute(command);
     });
 
     rerender(
@@ -170,7 +176,7 @@ describe('UndoRedoContext', () => {
     );
 
     await act(async () => {
-      await capturedContext?.undo();
+      await holder.current?.undo();
     });
 
     rerender(
@@ -182,7 +188,7 @@ describe('UndoRedoContext', () => {
     executeSpy.mockClear();
 
     await act(async () => {
-      await capturedContext?.redo();
+      await holder.current?.redo();
     });
 
     rerender(
@@ -192,9 +198,9 @@ describe('UndoRedoContext', () => {
     );
 
     expect(executeSpy).toHaveBeenCalledTimes(1);
-    expect(capturedContext).not.toBeNull();
-    expect(capturedContext!.canUndo).toBe(true);
-    expect(capturedContext!.canRedo).toBe(false);
+    expect(holder.current).not.toBeNull();
+    expect(holder.current!.canUndo).toBe(true);
+    expect(holder.current!.canRedo).toBe(false);
   });
 
   it('clears future when new command executed', async () => {
@@ -233,11 +239,7 @@ describe('UndoRedoContext', () => {
   });
 
   it('limits history size to maxHistorySize', async () => {
-    let capturedContext: UndoRedoContextValue | null = null;
-    const ContextCapture = () => {
-      capturedContext = useUndoRedoContext();
-      return null;
-    };
+    const { holder, ContextCapture } = createContextCapture();
 
     const undoSpies = [vi.fn(), vi.fn(), vi.fn(), vi.fn()];
     const commands = undoSpies.map((spy, i) => ({
@@ -254,7 +256,7 @@ describe('UndoRedoContext', () => {
 
     for (const command of commands) {
       await act(async () => {
-        await capturedContext?.execute(command);
+        await holder.current?.execute(command);
       });
       rerender(
         <UndoRedoProvider maxHistorySize={3}>
@@ -268,7 +270,7 @@ describe('UndoRedoContext', () => {
     // Undo 3 times - should only be able to undo 3 due to maxHistorySize
     for (let i = 0; i < 3; i++) {
       await act(async () => {
-        await capturedContext?.undo();
+        await holder.current?.undo();
       });
       rerender(
         <UndoRedoProvider maxHistorySize={3}>
@@ -281,8 +283,8 @@ describe('UndoRedoContext', () => {
     expect(undoSpies[1]).toHaveBeenCalledTimes(1);
     expect(undoSpies[2]).toHaveBeenCalledTimes(1);
     expect(undoSpies[3]).toHaveBeenCalledTimes(1);
-    expect(capturedContext).not.toBeNull();
-    expect(capturedContext!.canUndo).toBe(false);
+    expect(holder.current).not.toBeNull();
+    expect(holder.current!.canUndo).toBe(false);
   });
 
   it('does nothing when undo called with empty past', () => {
@@ -370,11 +372,9 @@ describe('UndoRedoContext', () => {
 
 describe('UndoRedoContext keyboard shortcuts', () => {
   let mockExecute: ReturnType<typeof vi.fn>;
-  let mockUndo: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockExecute = vi.fn();
-    mockUndo = vi.fn();
     Object.defineProperty(navigator, 'platform', {
       writable: true,
       value: 'Win32',
@@ -388,21 +388,8 @@ describe('UndoRedoContext keyboard shortcuts', () => {
     });
   });
 
-  const createMockCommand = (id: string): Command => ({
-    description: `Command ${id}`,
-    execute: mockExecute,
-    undo: () => {
-      mockUndo();
-      return Promise.resolve();
-    },
-  });
-
   it('handles Ctrl+Z for undo on Windows', async () => {
-    let capturedContext: UndoRedoContextValue | null = null;
-    const ContextCapture = () => {
-      capturedContext = useUndoRedoContext();
-      return null;
-    };
+    const { holder, ContextCapture } = createContextCapture();
 
     const undoSpy = vi.fn().mockResolvedValue(undefined);
     const command: Command = {
@@ -418,7 +405,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
     );
 
     await act(async () => {
-      await capturedContext?.execute(command);
+      await holder.current?.execute(command);
     });
 
     rerender(
@@ -447,11 +434,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
   });
 
   it('handles Ctrl+Y for redo on Windows', async () => {
-    let capturedContext: UndoRedoContextValue | null = null;
-    const ContextCapture = () => {
-      capturedContext = useUndoRedoContext();
-      return null;
-    };
+    const { holder, ContextCapture } = createContextCapture();
 
     const executeSpy = vi.fn();
     const command: Command = {
@@ -467,7 +450,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
     );
 
     await act(async () => {
-      await capturedContext?.execute(command);
+      await holder.current?.execute(command);
     });
 
     rerender(
@@ -477,7 +460,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
     );
 
     await act(async () => {
-      await capturedContext?.undo();
+      await holder.current?.undo();
     });
 
     rerender(

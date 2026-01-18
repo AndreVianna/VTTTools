@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useState } from 'react';
 import type { LayerVisibilityType } from '@/components/encounter';
 import { GridType } from '@/utils/gridCalculator';
@@ -41,7 +42,7 @@ export interface UseLayerVisibilityReturn {
     /** Hide all layers and disable grid */
     handleHideAllLayers: () => void;
     /** Set visibility state directly */
-    setScopeVisibility: React.Dispatch<React.SetStateAction<LayerVisibilityState>>;
+    setScopeVisibility: Dispatch<SetStateAction<LayerVisibilityState>>;
 }
 
 /**

@@ -10,7 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { DisplayPreview } from '@/components/common/DisplayPreview';
 import { ResourceImage } from '@/components/common/ResourceImage';
 import { TokenPreview } from '@/components/common/TokenPreview';
@@ -53,14 +53,28 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     },
   });
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>, onChange: (id: string) => void) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setUploadError(null);
-    pendingCallbackRef.current = onChange;
-    await uploadFile(file);
-    event.target.value = '';
-  };
+  const handleUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>, onChange: (id: string) => void) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      setUploadError(null);
+      pendingCallbackRef.current = onChange;
+      await uploadFile(file);
+      event.target.value = '';
+    },
+    [uploadFile]
+  );
+
+  // Pre-bound handlers - ref access is deferred to event handler execution, not render
+  const handlePortraitUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => handleUpload(event, onPortraitChange),
+    [handleUpload, onPortraitChange]
+  );
+
+  const handleTokenUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => handleUpload(event, onTokenChange),
+    [handleUpload, onTokenChange]
+  );
 
   const renderImageSection = (
     title: string,
@@ -230,7 +244,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
             'Full image for asset details and library views',
             portraitId,
             () => onPortraitChange(undefined),
-            (e) => handleUpload(e, onPortraitChange),
+            handlePortraitUpload, // eslint-disable-line react-hooks/refs -- ref accessed in event handler, not render
             false,
           )}
         </Grid>
@@ -241,7 +255,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
             'Visual representation for encounter placement',
             tokenId,
             () => onTokenChange(undefined),
-            (e) => handleUpload(e, onTokenChange),
+            handleTokenUpload, // eslint-disable-line react-hooks/refs -- ref accessed in event handler, not render
             true,
           )}
         </Grid>

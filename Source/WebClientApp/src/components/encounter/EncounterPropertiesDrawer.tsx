@@ -356,7 +356,7 @@ export const EncounterPropertiesDrawer: React.FC<EncounterPropertiesDrawerProps>
               }
               label={
                 <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
-                  Player's map
+                  Player&apos;s map
                 </Typography>
               }
               sx={{ m: 0 }}

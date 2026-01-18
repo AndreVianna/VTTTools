@@ -43,8 +43,7 @@ vi.mock('./enhancedBaseQuery', () => ({
 }));
 
 describe('stageApi', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let store: ReturnType<typeof configureStore> & { dispatch: (action: any) => any };
+    let store: ReturnType<typeof configureStore>;
 
     beforeEach(() => {
         capturedRequest = null;

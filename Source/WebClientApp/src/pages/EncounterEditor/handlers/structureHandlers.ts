@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import type { Encounter, EncounterWall, Point, Pole, SegmentState, SegmentType } from '@/types/domain';
 import type { WallTransaction } from '@/hooks/useWallTransaction';
 import type { RegionTransaction } from '@/hooks/useRegionTransaction';
@@ -9,13 +10,13 @@ export interface StructureHandlerDeps {
     encounter: Encounter | null;
     wallTransaction: WallTransaction;
     regionTransaction: RegionTransaction;
-    setEncounter: React.Dispatch<React.SetStateAction<Encounter | null>>;
-    setDrawingWallIndex: React.Dispatch<React.SetStateAction<number | null>>;
-    setDrawingWallDefaultHeight: React.Dispatch<React.SetStateAction<number>>;
-    setDrawingWallSegmentType: React.Dispatch<React.SetStateAction<SegmentType>>;
-    setDrawingWallIsOpaque: React.Dispatch<React.SetStateAction<boolean>>;
-    setDrawingWallState: React.Dispatch<React.SetStateAction<SegmentState>>;
-    setDrawingRegionIndex: React.Dispatch<React.SetStateAction<number | null>>;
+    setEncounter: Dispatch<SetStateAction<Encounter | null>>;
+    setDrawingWallIndex: Dispatch<SetStateAction<number | null>>;
+    setDrawingWallDefaultHeight: Dispatch<SetStateAction<number>>;
+    setDrawingWallSegmentType: Dispatch<SetStateAction<SegmentType>>;
+    setDrawingWallIsOpaque: Dispatch<SetStateAction<boolean>>;
+    setDrawingWallState: Dispatch<SetStateAction<SegmentState>>;
+    setDrawingRegionIndex: Dispatch<SetStateAction<number | null>>;
     setErrorMessage: (message: string | null) => void;
     activePanel: string | null;
     regionHandlers: {

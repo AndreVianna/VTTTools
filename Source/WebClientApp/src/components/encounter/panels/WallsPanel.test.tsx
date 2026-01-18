@@ -418,7 +418,7 @@ describe('WallsPanel', () => {
             expect(listItem).toBeInTheDocument();
 
             // Get all IconButtons (excludes the ListItemButton)
-            const iconButtons = within(listItem!).getAllByRole('button').filter((btn) =>
+            const _iconButtons = within(listItem!).getAllByRole('button').filter((btn) =>
                 btn.classList.contains('MuiIconButton-root'),
             );
 

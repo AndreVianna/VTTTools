@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useCallback } from 'react';
 import type { SelectionCategory } from '@components/encounter';
 import { AssetKind, type PlacedAsset, type PlacedWall, type PlacedRegion, type PlacedLightSource, type PlacedSoundSource } from '@/types/domain';
@@ -17,13 +18,13 @@ export interface UseSelectionHandlersProps {
     /** Placed sound sources */
     placedSoundSources: PlacedSoundSource[];
     /** Setter for selected wall indices */
-    setSelectedWallIndices: React.Dispatch<React.SetStateAction<number[]>>;
+    setSelectedWallIndices: Dispatch<SetStateAction<number[]>>;
     /** Setter for selected region indices */
-    setSelectedRegionIndices: React.Dispatch<React.SetStateAction<number[]>>;
+    setSelectedRegionIndices: Dispatch<SetStateAction<number[]>>;
     /** Setter for selected light source indices */
-    setSelectedLightSourceIndices: React.Dispatch<React.SetStateAction<number[]>>;
+    setSelectedLightSourceIndices: Dispatch<SetStateAction<number[]>>;
     /** Setter for selected sound source indices */
-    setSelectedSoundSourceIndices: React.Dispatch<React.SetStateAction<number[]>>;
+    setSelectedSoundSourceIndices: Dispatch<SetStateAction<number[]>>;
 }
 
 export interface UseSelectionHandlersReturn {

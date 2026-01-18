@@ -6,7 +6,6 @@ import {
   EncounterCanvas,
   type EncounterCanvasHandle,
   LeftToolBar,
-  type SelectionCategory,
   TokenDragHandle,
   TopToolBar,
 } from '@components/encounter';
@@ -60,16 +59,11 @@ import {
   type PlacedAsset,
   type PlacedRegion,
   type PlacedWall,
-  type Point,
   type Pole,
   type PlacedLightSource,
   type PlacedSoundSource,
-  SegmentState,
-  SegmentType,
 } from '@/types/domain';
 import { AmbientSoundSource } from '@/types/stage';
-
-import type { LocalAction } from '@/types/regionUndoActions';
 import {
   hydrateGameElements,
   hydratePlacedRegions,
@@ -227,15 +221,15 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isStartingViewLoading, setIsStartingViewLoading] = useState(false);
   const [selectedWallIndex, setSelectedWallIndex] = useSessionState<number | null>({ key: 'selectedWallIndex', defaultValue: null, encounterId });
-  const [selectedWallIndices, setSelectedWallIndices] = useState<number[]>([]);
+  const [_selectedWallIndices, setSelectedWallIndices] = useState<number[]>([]);
   const [isEditingVertices, setIsEditingVertices] = useState(false);
   const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
   const [selectedRegionIndex, setSelectedRegionIndex] = useSessionState<number | null>({ key: 'selectedRegionIndex', defaultValue: null, encounterId });
-  const [selectedRegionIndices, setSelectedRegionIndices] = useState<number[]>([]);
+  const [_selectedRegionIndices, setSelectedRegionIndices] = useState<number[]>([]);
   const [selectedLightSourceIndex, setSelectedLightSourceIndex] = useSessionState<number | null>({ key: 'selectedLightSourceIndex', defaultValue: null, encounterId });
-  const [selectedLightSourceIndices, setSelectedLightSourceIndices] = useState<number[]>([]);
+  const [_selectedLightSourceIndices, setSelectedLightSourceIndices] = useState<number[]>([]);
   const [selectedSoundSourceIndex, setSelectedSoundSourceIndex] = useSessionState<number | null>({ key: 'selectedSoundSourceIndex', defaultValue: null, encounterId });
-  const [selectedSoundSourceIndices, setSelectedSoundSourceIndices] = useState<number[]>([]);
+  const [_selectedSoundSourceIndices, setSelectedSoundSourceIndices] = useState<number[]>([]);
   const [activeScope, setActiveScope] = useSessionState<InteractionScope>({ key: 'activeScope', defaultValue: null, encounterId });
   const [activePanel, setActivePanel] = useState<string | null>(() => activeScope);
   const [assetPickerOpen, setAssetPickerOpen] = useState<{ open: boolean; kind?: AssetKind }>({ open: false });
@@ -273,7 +267,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     setDrawingWallSegmentType,
     setDrawingWallIsOpaque,
     setDrawingWallState,
-    previewWallPolesRef,
+    previewWallPolesRef: _previewWallPolesRef,
     setPreviewWallPoles,
   } = useDrawingWallState();
 
@@ -517,9 +511,13 @@ const EncounterEditorPageInternal: React.FC = () => {
     refetch: wrappedRefetch,
   });
 
-  // Update ref after assetManagement is available
+  // Ref to hold the latest setPlacedAssets function for use in effects
   const setPlacedAssetsRef = useRef(assetManagement.setPlacedAssets);
-  setPlacedAssetsRef.current = assetManagement.setPlacedAssets;
+
+  // Update ref in effect to avoid ref access during render
+  useEffect(() => {
+    setPlacedAssetsRef.current = assetManagement.setPlacedAssets;
+  }, [assetManagement.setPlacedAssets]);
 
   const keyboardState = useKeyboardState({
     gridConfig,
@@ -596,6 +594,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     ],
   );
 
+  /* eslint-disable react-hooks/refs -- canvasRef is passed for later use in handlers, not read during render */
   const canvasHandlers = useMemo(
     () => createCanvasHandlers({
       encounterId,
@@ -625,6 +624,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       setIsEditingRegionVertices, setEditingRegionIndex, navigate,
     ],
   );
+  /* eslint-enable react-hooks/refs */
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4.11 DERIVED STATE
@@ -833,7 +833,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         }).unwrap();
 
         assetManagement.setPlacedAssets((prev) => prev.map((a) => (a.id === assetId ? updatedAsset : a)));
-      } catch (error) {
+      } catch (_error) {
         setErrorMessage('Failed to update asset. Please try again.');
       }
     },

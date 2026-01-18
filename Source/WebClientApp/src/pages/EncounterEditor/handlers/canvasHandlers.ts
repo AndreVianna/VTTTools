@@ -1,4 +1,4 @@
-import type { Encounter } from '@/types/domain';
+import type { Dispatch, RefObject, SetStateAction } from 'react';
 import type { EncounterCanvasHandle } from '@/components/encounter';
 import type { WallTransaction } from '@/hooks/useWallTransaction';
 import type { RegionTransaction } from '@/hooks/useRegionTransaction';
@@ -6,10 +6,10 @@ import type { RegionTransaction } from '@/hooks/useRegionTransaction';
 export interface CanvasHandlerDeps {
     encounterId: string | undefined;
     stageSize: { width: number; height: number };
-    canvasRef: React.RefObject<EncounterCanvasHandle>;
+    canvasRef: RefObject<EncounterCanvasHandle>;
     updateStageSettings: (settings: { zoomLevel?: number; panning?: { x: number; y: number } }) => Promise<void>;
     refetch: () => Promise<void>;
-    setIsStartingViewLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsStartingViewLoading: Dispatch<SetStateAction<boolean>>;
     assetManagement: {
         handleAssetSelected: (ids: string[]) => void;
     };
@@ -19,10 +19,10 @@ export interface CanvasHandlerDeps {
     setSelectedRegionIndex: (index: number | null) => void;
     setSelectedLightSourceIndex: (index: number | null) => void;
     setSelectedSoundSourceIndex: (index: number | null) => void;
-    setIsEditingVertices: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsEditingVertices: Dispatch<SetStateAction<boolean>>;
     setPreviewWallPoles: (poles: null) => void;
-    setIsEditingRegionVertices: React.Dispatch<React.SetStateAction<boolean>>;
-    setEditingRegionIndex: React.Dispatch<React.SetStateAction<number | null>>;
+    setIsEditingRegionVertices: Dispatch<SetStateAction<boolean>>;
+    setEditingRegionIndex: Dispatch<SetStateAction<number | null>>;
     navigate: (path: string) => void;
 }
 

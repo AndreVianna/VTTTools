@@ -40,7 +40,7 @@ interface UseAssetManagementProps {
   isOnline: boolean;
   setEncounter: (encounter: Encounter) => void;
   execute: (command: Command) => void | Promise<void>;
-  dispatch: AppDispatch;
+  _dispatch: AppDispatch;
 
   copyAssets: (assets: PlacedAsset[], encounterId: string) => void;
   cutAssets: (assets: PlacedAsset[], encounterId: string) => void;
@@ -64,7 +64,7 @@ export const useAssetManagement = ({
   isOnline,
   setEncounter,
   execute,
-  dispatch,
+  _dispatch,
   copyAssets,
   cutAssets,
   canPaste,
@@ -490,7 +490,6 @@ export const useAssetManagement = ({
     bulkAddEncounterAssets,
     refetch,
     execute,
-    dispatch,
     setEncounter,
   ]);
 
@@ -590,7 +589,6 @@ export const useAssetManagement = ({
     bulkAddEncounterAssets,
     refetch,
     execute,
-    dispatch,
     placedAssets,
     setEncounter,
   ]);
@@ -698,7 +696,6 @@ export const useAssetManagement = ({
     bulkDeleteEncounterAssets,
     refetch,
     execute,
-    dispatch,
     setEncounter,
   ]);
 

@@ -50,6 +50,23 @@ describe('useAudioUnlock', () => {
         expect(typeof result.current.unlockAudio).toBe('function');
     });
 
+    it('should return getAudioContext function that returns null initially', () => {
+        const { result } = renderHook(() => useAudioUnlock());
+
+        expect(typeof result.current.getAudioContext).toBe('function');
+        expect(result.current.getAudioContext()).toBe(null);
+    });
+
+    it('should return AudioContext from getAudioContext after unlock', async () => {
+        const { result } = renderHook(() => useAudioUnlock());
+
+        await act(async () => {
+            await result.current.unlockAudio();
+        });
+
+        expect(result.current.getAudioContext()).toBeInstanceOf(MockAudioContext);
+    });
+
     it('should unlock audio when unlockAudio is called', async () => {
         const { result } = renderHook(() => useAudioUnlock());
 

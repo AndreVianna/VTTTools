@@ -18,7 +18,7 @@ type AuthMode = 'login' | 'register' | 'reset-request' | 'reset-confirm' | 'two-
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-const getInitialMode = (pathname: string): AuthMode => {
+const getModeFromPathname = (pathname: string): AuthMode => {
     if (pathname === '/reset-password') return 'reset-confirm';
     if (pathname === '/register') return 'register';
     return 'login';
@@ -38,49 +38,61 @@ export const LoginPage: React.FC = () => {
     // ═══════════════════════════════════════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════════════════════════════════════
-    const [mode, setMode] = useState<AuthMode>(() => getInitialMode(location.pathname));
+    // modeOverride: internal transitions (two-factor, recovery-code) that don't change URL
+    // trackedPathname: tracks pathname to detect URL navigation
+    const [modeOverride, setModeOverride] = useState<AuthMode | null>(null);
+    const [trackedPathname, setTrackedPathname] = useState(location.pathname);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DERIVED STATE (with render-time sync - getDerivedStateFromProps pattern)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // When URL changes, reset internal mode override to follow the URL
+    if (location.pathname !== trackedPathname) {
+        setTrackedPathname(location.pathname);
+        setModeOverride(null);
+    }
+
+    // Effective mode: override takes precedence, otherwise derive from URL
+    const mode = modeOverride ?? getModeFromPathname(location.pathname);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EFFECTS
     // ═══════════════════════════════════════════════════════════════════════════
+    // Display success message from navigation state (e.g., after registration redirect)
     useEffect(() => {
-        if (location.pathname === '/reset-password') {
-            setMode('reset-confirm');
-        } else if (location.pathname === '/register') {
-            setMode('register');
-        } else if (location.pathname === '/login') {
-            setMode('login');
-        }
-
         const message = location.state?.successMessage;
         if (message) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: display message from navigation state
             setSuccessMessage(message);
             window.history.replaceState({}, document.title);
         }
-    }, [location.pathname, location.state]);
+    }, [location.state]);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // HANDLERS
     // ═══════════════════════════════════════════════════════════════════════════
     const handleSwitchToLogin = useCallback(() => {
+        setModeOverride(null); // Clear override before navigating
         navigate('/login');
     }, [navigate]);
 
     const handleSwitchToRegister = useCallback(() => {
+        setModeOverride(null);
         navigate('/register');
     }, [navigate]);
 
     const handleSwitchToResetPassword = useCallback(() => {
+        setModeOverride(null);
         navigate('/forgot-password');
     }, [navigate]);
 
     const handleSwitchToRecoveryCode = useCallback(() => {
-        setMode('recovery-code');
+        setModeOverride('recovery-code');
     }, []);
 
     const handleSwitchToTwoFactor = useCallback(() => {
-        setMode('two-factor');
+        setModeOverride('two-factor');
     }, []);
 
     const handleDismissSuccess = useCallback(() => {

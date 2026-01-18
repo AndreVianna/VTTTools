@@ -2,10 +2,11 @@
 // Tests viewport management, pan/zoom controls, and mouse interactions
 // TARGET_COVERAGE: 70%+
 
+import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { createRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type Konva from 'konva';
+import type { Stage as _KonvaStage } from 'konva/lib/Stage';
 import type { EncounterCanvasHandle, EncounterCanvasProps, Viewport } from './EncounterCanvas';
 
 // Store event handlers for testing interactions
@@ -696,7 +697,7 @@ describe('EncounterCanvas', () => {
             );
 
             // Keep ref before unmount
-            const handle = ref.current;
+            const _handle = ref.current;
 
             // Act
             unmount();
@@ -860,7 +861,7 @@ describe('EncounterCanvas', () => {
             });
 
             // Move mouse - need to re-render to get the onMouseMove handler
-            const { rerender } = render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
+            const { rerender: _rerender } = render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
             // Check if onMouseMove is now available (after panning started)
             if (mockStageHandlers.onMouseMove) {

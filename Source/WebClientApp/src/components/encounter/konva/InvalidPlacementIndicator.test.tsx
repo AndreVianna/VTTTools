@@ -1,3 +1,4 @@
+import React from 'react';
 import { render } from '@testing-library/react';
 import { Stage, Layer } from 'react-konva';
 import { describe, expect, it } from 'vitest';

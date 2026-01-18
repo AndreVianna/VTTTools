@@ -31,7 +31,7 @@ vi.mock('@/hooks/useAudioUnlock', () => ({
     useAudioUnlock: () => ({
         isUnlocked: mockIsAudioUnlocked,
         unlockAudio: mockUnlockAudio,
-        audioContext: null,
+        getAudioContext: () => null,
     }),
 }));
 

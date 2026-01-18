@@ -27,8 +27,7 @@ vi.mock('@/services/enhancedBaseQuery', () => ({
 }));
 
 describe('profileApi', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let store: ReturnType<typeof configureStore> & { dispatch: (action: any) => any };
+    let store: ReturnType<typeof configureStore>;
 
     beforeEach(() => {
         capturedRequest = null;

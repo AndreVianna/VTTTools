@@ -15,7 +15,7 @@ import {
     createMockAsset,
 } from '@/tests/utils/mockFactories';
 import { hydrateGameElements } from '@/utils/encounterMappers';
-import { getIndexByDomId, removeEntityMapping, setEntityMapping } from '@/utils/encounterEntityMapping';
+import { setEntityMapping } from '@/utils/encounterEntityMapping';
 
 // Mock dependencies
 vi.mock('@/utils/encounterMappers', () => ({

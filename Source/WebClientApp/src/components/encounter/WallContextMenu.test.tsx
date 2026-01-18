@@ -372,7 +372,7 @@ describe('WallContextMenu', () => {
 
         it('should not call onSegmentUpdate when segmentIndex is null', async () => {
             // Arrange
-            const user = userEvent.setup();
+            const _user = userEvent.setup();
             const onSegmentUpdate = vi.fn();
             const wall = createMockWall([createMockSegment()]);
             // Force render with valid wall but null segmentIndex - segment won't render

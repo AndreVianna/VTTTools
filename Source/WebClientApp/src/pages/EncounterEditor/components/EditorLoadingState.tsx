@@ -67,6 +67,7 @@ export const EditorLoadingState: React.FC<EditorLoadingStateProps> = ({
  * Hook to check if we should show loading/error state
  * Returns the component to render if in loading/error state, or null if ready to render main content
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useEditorLoadingState = (props: EditorLoadingStateProps): React.ReactNode | null => {
     const { isLoading, hasError, hasNoData } = props;
 

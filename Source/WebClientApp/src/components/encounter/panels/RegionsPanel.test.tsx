@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PlacedRegion } from '@/types/domain';
@@ -379,7 +379,7 @@ describe('RegionsPanel', () => {
 
         it('should show region count in header', async () => {
             // Arrange
-            const user = userEvent.setup();
+            const _user = userEvent.setup();
             const multipleElevationRegions: PlacedRegion[] = [
                 mockElevationRegion,
                 { ...mockElevationRegion, id: 'region-4', index: 3, name: 'Valley' },
@@ -508,7 +508,7 @@ describe('RegionsPanel', () => {
             renderComponent({ encounterRegions: [mockElevationRegion] });
 
             // Act - Click the expand button
-            const expandButton = screen.getAllByRole('button').find(
+            const _expandButton = screen.getAllByRole('button').find(
                 (b) => b.querySelector('[data-testid="ExpandMoreIcon"]') !== null
                     || b.getAttribute('aria-label')?.includes('expand'),
             );

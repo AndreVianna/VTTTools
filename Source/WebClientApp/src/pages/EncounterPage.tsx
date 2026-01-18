@@ -129,12 +129,12 @@ export const EncounterPage: React.FC = () => {
     // 4.9 DOMAIN HOOKS
     // ═══════════════════════════════════════════════════════════════════════════
     // Audio unlock state - unlocks on first user interaction
-    const { isUnlocked: isAudioUnlocked, audioContext } = useAudioUnlock();
+    const { isUnlocked: isAudioUnlocked, getAudioContext } = useAudioUnlock();
 
     // Positional audio for encounter sounds
     // TODO: Wire up updateListenerPosition when character selection is implemented
     const { playSound, stopSound, stopAllSounds } = usePositionalAudio({
-        audioContext,
+        getAudioContext,
         isEnabled: isAudioUnlocked,
         walls: encounter?.stage?.walls ?? [],
         gridConfig,
@@ -158,21 +158,25 @@ export const EncounterPage: React.FC = () => {
     );
 
     // Hydrate placed entities from encounter data
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: only re-compute when walls/encounterId change
     const placedWalls = useMemo(() => {
         if (!encounter?.stage?.walls || !encounterId) return [];
         return hydratePlacedWalls(encounter.stage.walls, encounterId);
     }, [encounter?.stage?.walls, encounterId]);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: only re-compute when lights/encounterId change
     const placedLightSources = useMemo(() => {
         if (!encounter?.stage?.lights || !encounterId) return [];
         return hydratePlacedLightSources(encounter.stage.lights, encounterId);
     }, [encounter?.stage?.lights, encounterId]);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: only re-compute when sounds/encounterId change
     const placedSoundSources = useMemo((): PlacedSoundSource[] => {
         if (!encounter?.stage?.sounds || !encounterId) return [];
         return hydratePlacedSoundSources(encounter.stage.sounds, encounterId);
     }, [encounter?.stage?.sounds, encounterId]);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: only re-compute when regions/encounterId change
     const placedRegions = useMemo(() => {
         if (!encounter?.stage?.regions || !encounterId) return [];
         return hydratePlacedRegions(encounter.stage.regions, encounterId);
@@ -259,6 +263,7 @@ export const EncounterPage: React.FC = () => {
             const gridType = typeof stageGrid.type === 'string'
                 ? GridType[stageGrid.type as keyof typeof GridType]
                 : stageGrid.type;
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: hydrate grid config from server data
             setGridConfig({
                 type: gridType,
                 cellSize: stageGrid.cellSize,

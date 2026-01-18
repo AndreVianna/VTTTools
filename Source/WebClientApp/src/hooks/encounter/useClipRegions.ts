@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { type Encounter, type EncounterRegion, type Point, RegionType } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type Point } from '@/types/domain';
 import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { createBatchCommand } from '@/utils/commands';
@@ -173,7 +173,7 @@ export const useClipRegions = ({
         }
 
         // Track created region indices for undo/redo
-        let createdRegionCount = 0;
+        let _createdRegionCount = 0;
 
         for (const { baseRegion, vertices, nameSuffix } of regionsToCreate) {
           const newRegionData: CreateRegionRequest = {
@@ -184,7 +184,7 @@ export const useClipRegions = ({
           };
 
           await addRegion(newRegionData);
-          createdRegionCount++;
+          _createdRegionCount++;
 
           // Refetch to get the created region index
           const { data: refreshedEncounter } = await refetch();

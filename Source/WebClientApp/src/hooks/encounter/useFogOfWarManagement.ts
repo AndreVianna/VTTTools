@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
 import type { Encounter, PlacedRegion, Point, RegionType } from '@/types/domain';
@@ -13,9 +14,9 @@ export interface UseFogOfWarManagementProps {
     /** Stage dimensions for full-stage fog operations */
     stageSize: { width: number; height: number };
     /** Callback to update placed regions state */
-    setPlacedRegions: React.Dispatch<React.SetStateAction<PlacedRegion[]>>;
+    setPlacedRegions: Dispatch<SetStateAction<PlacedRegion[]>>;
     /** Callback to update encounter state */
-    setEncounter: React.Dispatch<React.SetStateAction<Encounter | null>>;
+    setEncounter: Dispatch<SetStateAction<Encounter | null>>;
     /** Callback to set error message */
     setErrorMessage: (message: string | null) => void;
     /** RTK Query refetch function */
@@ -45,9 +46,9 @@ export interface UseFogOfWarManagementReturn {
     /** Current fog drawing vertices */
     fogDrawingVertices: Point[];
     /** Setter for fog drawing vertices */
-    setFogDrawingVertices: React.Dispatch<React.SetStateAction<Point[]>>;
+    setFogDrawingVertices: Dispatch<SetStateAction<Point[]>>;
     /** Setter for fog drawing tool */
-    setFogDrawingTool: React.Dispatch<React.SetStateAction<'polygon' | 'bucketFill' | null>>;
+    setFogDrawingTool: Dispatch<SetStateAction<'polygon' | 'bucketFill' | null>>;
     /** Computed fog of war regions */
     fowRegions: PlacedRegion[];
     /** Handler for fog mode change */

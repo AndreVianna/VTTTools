@@ -101,12 +101,16 @@ export function useAudioUnlock() {
         };
     }, []);
 
+    // Provide a getter function to access the AudioContext
+    // This avoids reading the ref during render
+    const getAudioContext = useCallback(() => audioContextRef.current, []);
+
     return {
         /** Whether audio has been unlocked */
         isUnlocked,
         /** Manually trigger audio unlock (e.g., from a button click) */
         unlockAudio,
-        /** The AudioContext instance (if created) */
-        audioContext: audioContextRef.current,
+        /** Get the AudioContext instance (if created) */
+        getAudioContext,
     };
 }

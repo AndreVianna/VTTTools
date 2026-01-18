@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useState } from 'react';
 import type { Point } from '@/types/domain';
 
@@ -10,11 +11,11 @@ export interface UseDrawingRegionStateReturn {
     regionPlacementMode: 'polygon' | 'bucketFill' | null;
 
     // State setters
-    setDrawingRegionIndex: React.Dispatch<React.SetStateAction<number | null>>;
-    setEditingRegionIndex: React.Dispatch<React.SetStateAction<number | null>>;
-    setIsEditingRegionVertices: React.Dispatch<React.SetStateAction<boolean>>;
-    setOriginalRegionVertices: React.Dispatch<React.SetStateAction<Point[] | null>>;
-    setRegionPlacementMode: React.Dispatch<React.SetStateAction<'polygon' | 'bucketFill' | null>>;
+    setDrawingRegionIndex: Dispatch<SetStateAction<number | null>>;
+    setEditingRegionIndex: Dispatch<SetStateAction<number | null>>;
+    setIsEditingRegionVertices: Dispatch<SetStateAction<boolean>>;
+    setOriginalRegionVertices: Dispatch<SetStateAction<Point[] | null>>;
+    setRegionPlacementMode: Dispatch<SetStateAction<'polygon' | 'bucketFill' | null>>;
 }
 
 export const useDrawingRegionState = (): UseDrawingRegionStateReturn => {

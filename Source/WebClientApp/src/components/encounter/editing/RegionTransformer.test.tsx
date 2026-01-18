@@ -5,12 +5,12 @@ import type { PlacedRegion, Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { GridType } from '@/utils/gridCalculator';
 import type { GridConfig } from '@/utils/gridCalculator';
-import { RegionTransformer, type RegionTransformerProps } from './RegionTransformer';
+import { RegionTransformer } from './RegionTransformer';
 
 describe('RegionTransformer', () => {
     // Arrange - Default test fixtures
     const mockEncounterId = 'encounter-123';
-    const mockRegionIndex = 0;
+    const _mockRegionIndex = 0;
     const mockGridConfig: GridConfig = {
         type: GridType.Square,
         cellSize: { width: 50, height: 50 },
@@ -350,7 +350,7 @@ describe('RegionTransformer', () => {
 
         it('should clear selections on background click', () => {
             // Arrange
-            const selectedVertices = new Set<number>([0, 1, 2]);
+            const _selectedVertices = new Set<number>([0, 1, 2]);
 
             // Act - Simulate clearing selections
             const clearedVertices = new Set<number>();
@@ -568,7 +568,7 @@ describe('RegionTransformer', () => {
         it('should project click point to line segment', () => {
             // Arrange - Line from (0,0) to (100,0)
             const lineStart = { x: 0, y: 0 };
-            const lineEnd = { x: 100, y: 0 };
+            const _lineEnd = { x: 100, y: 0 };
             const clickPoint = { x: 50, y: 10 }; // Point 10 units above the line
 
             // Act - Project to line (simplified)
@@ -732,7 +732,7 @@ describe('RegionTransformer', () => {
     describe('region switching', () => {
         it('should allow switching to another region on click', () => {
             // Arrange
-            const allRegions: PlacedRegion[] = [
+            const _allRegions: PlacedRegion[] = [
                 createMockPlacedRegion({ index: 0 }),
                 createMockPlacedRegion({
                     index: 1,
@@ -916,7 +916,7 @@ describe('RegionTransformer', () => {
     describe('point in polygon detection', () => {
         it('should detect point inside polygon', () => {
             // Arrange
-            const vertices: Point[] = [
+            const _vertices: Point[] = [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
                 { x: 100, y: 100 },
@@ -933,7 +933,7 @@ describe('RegionTransformer', () => {
 
         it('should detect point outside polygon', () => {
             // Arrange
-            const vertices: Point[] = [
+            const _vertices: Point[] = [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
                 { x: 100, y: 100 },

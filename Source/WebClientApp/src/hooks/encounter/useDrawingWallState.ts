@@ -1,3 +1,4 @@
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useState, useRef, useCallback } from 'react';
 import type { Pole } from '@/types/domain';
 import { SegmentState, SegmentType } from '@/types/domain';
@@ -20,14 +21,14 @@ export interface UseDrawingWallStateReturn {
     drawingWallState: SegmentState;
 
     // State setters
-    setDrawingWallIndex: React.Dispatch<React.SetStateAction<number | null>>;
-    setDrawingWallDefaultHeight: React.Dispatch<React.SetStateAction<number>>;
-    setDrawingWallSegmentType: React.Dispatch<React.SetStateAction<SegmentType>>;
-    setDrawingWallIsOpaque: React.Dispatch<React.SetStateAction<boolean>>;
-    setDrawingWallState: React.Dispatch<React.SetStateAction<SegmentState>>;
+    setDrawingWallIndex: Dispatch<SetStateAction<number | null>>;
+    setDrawingWallDefaultHeight: Dispatch<SetStateAction<number>>;
+    setDrawingWallSegmentType: Dispatch<SetStateAction<SegmentType>>;
+    setDrawingWallIsOpaque: Dispatch<SetStateAction<boolean>>;
+    setDrawingWallState: Dispatch<SetStateAction<SegmentState>>;
 
     // Preview poles (ref-based for performance)
-    previewWallPolesRef: React.MutableRefObject<Pole[] | null>;
+    previewWallPolesRef: MutableRefObject<Pole[] | null>;
     setPreviewWallPoles: (poles: Pole[] | null) => void;
 }
 

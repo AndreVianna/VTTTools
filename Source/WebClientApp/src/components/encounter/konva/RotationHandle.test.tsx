@@ -1,3 +1,4 @@
+import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render } from '@testing-library/react';
 import { Stage, Layer } from 'react-konva';

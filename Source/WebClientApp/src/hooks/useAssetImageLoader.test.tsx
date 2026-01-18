@@ -92,9 +92,11 @@ const createMockStore = (isAuthenticated = true) => configureStore({
 // Wrapper factory
 const createWrapper = (isAuthenticated = true) => {
     const store = createMockStore(isAuthenticated);
-    return ({ children }: { children: React.ReactNode }) => (
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
         <Provider store={store}>{children}</Provider>
     );
+    Wrapper.displayName = 'TestWrapper';
+    return Wrapper;
 };
 
 // Mock Image and fetch
@@ -812,7 +814,7 @@ describe('useAssetImageLoader', () => {
             const placedAsset = createMockPlacedAsset();
 
             // Start unauthenticated
-            const { rerender } = renderHook(
+            const { rerender: _rerender } = renderHook(
                 () => useAssetImageLoader({
                     placedAssets: [placedAsset],
                     draggedAsset: null,

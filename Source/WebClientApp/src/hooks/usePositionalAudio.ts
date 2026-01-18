@@ -11,7 +11,7 @@ export interface PositionalAudioOptions {
 }
 
 export interface UsePositionalAudioProps {
-    audioContext: AudioContext | null;
+    getAudioContext: () => AudioContext | null;
     isEnabled: boolean;
     walls: EncounterWall[];
     gridConfig: GridConfig;
@@ -36,7 +36,7 @@ export interface UsePositionalAudioReturn {
  * @returns Controls for managing audio playback
  */
 export function usePositionalAudio({
-    audioContext,
+    getAudioContext: _getAudioContext,
     isEnabled,
 }: UsePositionalAudioProps): UsePositionalAudioReturn {
     const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());

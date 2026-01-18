@@ -2,6 +2,7 @@
 // Tests grid rendering behavior for all grid types
 // TARGET_COVERAGE: 70%+
 
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GridType, type GridConfig } from '@utils/gridCalculator';

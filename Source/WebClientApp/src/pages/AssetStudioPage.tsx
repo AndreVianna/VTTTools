@@ -95,8 +95,12 @@ export const AssetStudioPage: React.FC = () => {
     // ═══════════════════════════════════════════════════════════════════════════
     // EFFECTS
     // ═══════════════════════════════════════════════════════════════════════════
+
+    // Sync form state when existingAsset changes (e.g., after navigation or refetch)
+    // This is an intentional pattern to hydrate local form state from server data
     useEffect(() => {
         if (existingAsset && !isNew && prevAssetIdRef.current !== existingAsset.id) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: hydrate form state from server data
             setFormState({
                 name: existingAsset.name,
                 description: existingAsset.description,

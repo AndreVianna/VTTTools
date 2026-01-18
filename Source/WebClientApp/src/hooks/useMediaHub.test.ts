@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import * as signalR from '@microsoft/signalr';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMediaHub, type ResourceUpdatedEvent } from './useMediaHub';

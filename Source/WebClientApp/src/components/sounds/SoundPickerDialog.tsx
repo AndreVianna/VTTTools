@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     AudioFile as AudioFileIcon,
     Close as CloseIcon,
@@ -45,8 +45,10 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'all'>('mine');
     const [soundTypeFilter, setSoundTypeFilter] = useState<ResourceRole.SoundEffect | ResourceRole.AmbientSound>(defaultResourceType);
-    const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
-
+    const [selectedResourceId, setSelectedResourceId] = useState<string | null>(
+        () => (currentResourceId ?? null)
+    );
+    const [trackedOpen, setTrackedOpen] = useState(open);
 
     const { data, isLoading, refetch } = useFilterResourcesQuery({
         role: soundTypeFilter,
@@ -67,11 +69,14 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
 
     const filteredResources = resources;
 
-    useEffect(() => {
-        if (open && currentResourceId) {
-            setSelectedResourceId(currentResourceId);
-        }
-    }, [open, currentResourceId]);
+    // Sync selectedResourceId when dialog transitions from closed to open
+    // Uses getDerivedStateFromProps pattern (setState during render)
+    if (open && !trackedOpen && currentResourceId) {
+        setSelectedResourceId(currentResourceId);
+    }
+    if (open !== trackedOpen) {
+        setTrackedOpen(open);
+    }
 
     const handleClose = () => {
         setSearchQuery('');

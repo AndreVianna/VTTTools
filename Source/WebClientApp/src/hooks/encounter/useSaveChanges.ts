@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useCallback } from 'react';
 import type { SaveStatus } from '@/components/common';
 import type { Encounter, UpdateEncounterRequest } from '@/types/domain';
@@ -34,7 +35,7 @@ export interface UseSaveChangesProps {
     /** Set the save status indicator */
     setSaveStatus: (status: SaveStatus) => void;
     /** Update encounter state */
-    setEncounter: React.Dispatch<React.SetStateAction<Encounter | null>>;
+    setEncounter: Dispatch<SetStateAction<Encounter | null>>;
 }
 
 export interface UseSaveChangesReturn {
