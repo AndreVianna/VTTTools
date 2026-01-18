@@ -1,183 +1,210 @@
-import {
-  Cancel as CancelIcon,
-  CheckCircle as CheckCircleIcon,
-  LockOutlined as LockIcon,
-  Security as SecurityIcon,
-} from '@mui/icons-material';
+import React, { useCallback } from 'react';
 import { Box, Button, Card, CardContent, Container, Divider, Stack, Typography, useTheme } from '@mui/material';
-import type React from 'react';
+import {
+    Cancel as CancelIcon,
+    CheckCircle as CheckCircleIcon,
+    LockOutlined as LockIcon,
+    Security as SecurityIcon,
+} from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
 
 export const SecuritySettingsPage: React.FC = () => {
-  const theme = useTheme();
-  const { user } = useAuth();
+    // ═══════════════════════════════════════════════════════════════════════════
+    // THEME
+    // ═══════════════════════════════════════════════════════════════════════════
+    const theme = useTheme();
 
-  const handleChangePassword = () => {
-    alert('Change password coming soon');
-  };
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTEXT HOOKS
+    // ═══════════════════════════════════════════════════════════════════════════
+    const { user } = useAuth();
 
-  const handleEnableTwoFactor = () => {
-    alert('2FA setup coming soon');
-  };
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DERIVED STATE
+    // ═══════════════════════════════════════════════════════════════════════════
+    const twoFactorEnabled = user?.twoFactorEnabled ?? false;
 
-  const handleDisableTwoFactor = () => {
-    alert('Disable 2FA coming soon');
-  };
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HANDLERS
+    // ═══════════════════════════════════════════════════════════════════════════
+    const handleChangePassword = useCallback(() => {
+        alert('Change password coming soon');
+    }, []);
 
-  const twoFactorEnabled = user?.twoFactorEnabled ?? false;
+    const handleEnableTwoFactor = useCallback(() => {
+        alert('2FA setup coming soon');
+    }, []);
 
-  return (
-    <Container maxWidth='md' sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant='h4' component='h1' gutterBottom>
-          Security Settings
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          Manage your account security and authentication preferences
-        </Typography>
-      </Box>
+    const handleDisableTwoFactor = useCallback(() => {
+        alert('Disable 2FA coming soon');
+    }, []);
 
-      <Stack spacing={3}>
-        <Card
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            boxShadow: theme.shadows[2],
-          }}
-        >
-          <CardContent>
-            <Stack spacing={2}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <LockIcon color='primary' />
-                <Typography variant='h6' component='h2'>
-                  Password
+    // ═══════════════════════════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════════════════════════
+    return (
+        <Container maxWidth="md" sx={{ py: 4 }}>
+            <Box sx={{ mb: 4 }}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Security Settings
                 </Typography>
-              </Box>
-
-              <Typography variant='body2' color='text.secondary'>
-                Keep your account secure with a strong password. We recommend changing your password regularly and using
-                a unique password that you don&apos;t use elsewhere.
-              </Typography>
-
-              <Divider />
-
-              <Box>
-                <Button
-                  variant='contained'
-                  startIcon={<LockIcon />}
-                  onClick={handleChangePassword}
-                  sx={{ textTransform: 'none' }}
-                >
-                  Change Password
-                </Button>
-              </Box>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        <Card
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            boxShadow: theme.shadows[2],
-          }}
-        >
-          <CardContent>
-            <Stack spacing={2}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SecurityIcon color='primary' />
-                <Typography variant='h6' component='h2'>
-                  Two-Factor Authentication
+                <Typography variant="body2" color="text.secondary">
+                    Manage your account security and authentication preferences
                 </Typography>
-              </Box>
+            </Box>
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  padding: theme.spacing(1.5),
-                  borderRadius: 1,
-                  backgroundColor: twoFactorEnabled
-                    ? theme.palette.mode === 'dark'
-                      ? 'rgba(76, 175, 80, 0.15)'
-                      : 'rgba(76, 175, 80, 0.1)'
-                    : theme.palette.mode === 'dark'
-                      ? 'rgba(158, 158, 158, 0.15)'
-                      : 'rgba(158, 158, 158, 0.1)',
-                }}
-              >
-                {twoFactorEnabled ? (
-                  <>
-                    <CheckCircleIcon
-                      sx={{
-                        color: theme.palette.success.main,
-                        fontSize: 20,
-                      }}
-                    />
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 600,
-                        color: theme.palette.success.main,
-                      }}
-                    >
-                      2FA Enabled
-                    </Typography>
-                  </>
-                ) : (
-                  <>
-                    <CancelIcon
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        fontSize: 20,
-                      }}
-                    />
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 600,
-                        color: theme.palette.text.secondary,
-                      }}
-                    >
-                      2FA Disabled
-                    </Typography>
-                  </>
-                )}
-              </Box>
-
-              <Typography variant='body2' color='text.secondary'>
-                Two-factor authentication adds an extra layer of security to your account by requiring a verification
-                code from your mobile device in addition to your password when signing in.
-              </Typography>
-
-              <Divider />
-
-              <Box>
-                {twoFactorEnabled ? (
-                  <Button
-                    variant='outlined'
-                    color='error'
-                    startIcon={<CancelIcon />}
-                    onClick={handleDisableTwoFactor}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Disable 2FA
-                  </Button>
-                ) : (
-                  <Button
-                    variant='contained'
-                    color='success'
-                    startIcon={<SecurityIcon />}
-                    onClick={handleEnableTwoFactor}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Enable 2FA
-                  </Button>
-                )}
-              </Box>
+            <Stack spacing={3}>
+                <PasswordCard theme={theme} onChangePassword={handleChangePassword} />
+                <TwoFactorCard
+                    theme={theme}
+                    twoFactorEnabled={twoFactorEnabled}
+                    onEnable={handleEnableTwoFactor}
+                    onDisable={handleDisableTwoFactor}
+                />
             </Stack>
-          </CardContent>
-        </Card>
-      </Stack>
-    </Container>
-  );
+        </Container>
+    );
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHILD COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface PasswordCardProps {
+    theme: ReturnType<typeof useTheme>;
+    onChangePassword: () => void;
+}
+
+const PasswordCard: React.FC<PasswordCardProps> = ({ theme, onChangePassword }) => (
+    <Card
+        sx={{
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[2],
+        }}
+    >
+        <CardContent>
+            <Stack spacing={2}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LockIcon color="primary" />
+                    <Typography variant="h6" component="h2">
+                        Password
+                    </Typography>
+                </Box>
+
+                <Typography variant="body2" color="text.secondary">
+                    Keep your account secure with a strong password. We recommend changing your password regularly and using
+                    a unique password that you don&apos;t use elsewhere.
+                </Typography>
+
+                <Divider />
+
+                <Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<LockIcon />}
+                        onClick={onChangePassword}
+                        sx={{ textTransform: 'none' }}
+                    >
+                        Change Password
+                    </Button>
+                </Box>
+            </Stack>
+        </CardContent>
+    </Card>
+);
+
+interface TwoFactorCardProps {
+    theme: ReturnType<typeof useTheme>;
+    twoFactorEnabled: boolean;
+    onEnable: () => void;
+    onDisable: () => void;
+}
+
+const TwoFactorCard: React.FC<TwoFactorCardProps> = ({ theme, twoFactorEnabled, onEnable, onDisable }) => (
+    <Card
+        sx={{
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[2],
+        }}
+    >
+        <CardContent>
+            <Stack spacing={2}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <SecurityIcon color="primary" />
+                    <Typography variant="h6" component="h2">
+                        Two-Factor Authentication
+                    </Typography>
+                </Box>
+
+                <TwoFactorStatus theme={theme} enabled={twoFactorEnabled} />
+
+                <Typography variant="body2" color="text.secondary">
+                    Two-factor authentication adds an extra layer of security to your account by requiring a verification
+                    code from your mobile device in addition to your password when signing in.
+                </Typography>
+
+                <Divider />
+
+                <Box>
+                    {twoFactorEnabled ? (
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            startIcon={<CancelIcon />}
+                            onClick={onDisable}
+                            sx={{ textTransform: 'none' }}
+                        >
+                            Disable 2FA
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<SecurityIcon />}
+                            onClick={onEnable}
+                            sx={{ textTransform: 'none' }}
+                        >
+                            Enable 2FA
+                        </Button>
+                    )}
+                </Box>
+            </Stack>
+        </CardContent>
+    </Card>
+);
+
+interface TwoFactorStatusProps {
+    theme: ReturnType<typeof useTheme>;
+    enabled: boolean;
+}
+
+const TwoFactorStatus: React.FC<TwoFactorStatusProps> = ({ theme, enabled }) => (
+    <Box
+        sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            padding: theme.spacing(1.5),
+            borderRadius: 1,
+            backgroundColor: enabled
+                ? theme.palette.success.main + (theme.palette.mode === 'dark' ? '26' : '1A')
+                : theme.palette.grey[500] + (theme.palette.mode === 'dark' ? '26' : '1A'),
+        }}
+    >
+        {enabled ? (
+            <>
+                <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />
+                <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
+                    2FA Enabled
+                </Typography>
+            </>
+        ) : (
+            <>
+                <CancelIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />
+                <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
+                    2FA Disabled
+                </Typography>
+            </>
+        )}
+    </Box>
+);

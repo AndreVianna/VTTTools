@@ -1,7 +1,7 @@
 /**
- * GameSessionPage Component Tests
- * Tests game session page with audio unlock and navigation
- * Coverage: Game Session / DM Preview functionality
+ * EncounterPage Component Tests
+ * Tests encounter page with audio unlock, navigation, and visibility rules
+ * Coverage: Encounter preview / DM Preview functionality
  */
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -12,7 +12,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import authReducer from '@/store/slices/authSlice';
-import { GameSessionPage } from './GameSessionPage';
+import { EncounterPage } from './EncounterPage';
 
 // Mock react-router-dom hooks
 const mockNavigate = vi.fn();
@@ -32,6 +32,16 @@ vi.mock('@/hooks/useAudioUnlock', () => ({
         isUnlocked: mockIsAudioUnlocked,
         unlockAudio: mockUnlockAudio,
         audioContext: null,
+    }),
+}));
+
+// Mock usePositionalAudio hook
+vi.mock('@/hooks/usePositionalAudio', () => ({
+    usePositionalAudio: () => ({
+        updateListenerPosition: vi.fn(),
+        playSound: vi.fn(),
+        stopSound: vi.fn(),
+        stopAllSounds: vi.fn(),
     }),
 }));
 
@@ -55,9 +65,27 @@ vi.mock('@/components/encounter', () => ({
     EncounterCanvasHandle: {},
 }));
 
+// Mock rendering components
+vi.mock('@/components/encounter/rendering/FogOfWarRenderer', () => ({
+    FogOfWarRenderer: () => <div data-testid="mock-fog-renderer">FogOfWarRenderer</div>,
+}));
+
+vi.mock('@/components/encounter/rendering/SourceRenderer', () => ({
+    LightSourceRenderer: () => <div data-testid="mock-light-renderer">LightSourceRenderer</div>,
+}));
+
+vi.mock('@/components/encounter/rendering/WallRenderer', () => ({
+    WallRenderer: () => <div data-testid="mock-wall-renderer">WallRenderer</div>,
+}));
+
+vi.mock('@/components/encounter/EntityPlacement', () => ({
+    EntityPlacement: () => <div data-testid="mock-entity-placement">EntityPlacement</div>,
+}));
+
 // Mock react-konva
 vi.mock('react-konva', () => ({
-    Layer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Layer: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-layer">{children}</div>,
+    Group: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     Stage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
@@ -66,7 +94,7 @@ vi.mock('@mui/icons-material/ArrowBack', () => ({
     default: () => <span data-testid="arrow-back-icon">ArrowBackIcon</span>,
 }));
 
-describe('GameSessionPage', () => {
+describe('EncounterPage', () => {
     let store: ReturnType<typeof configureStore>;
 
     const mockEncounter = {
@@ -75,7 +103,7 @@ describe('GameSessionPage', () => {
         stage: {
             grid: {
                 type: 'Square',
-                cellSize: 50,
+                cellSize: { width: 50, height: 50 },
                 offset: { x: 0, y: 0 },
                 scale: 1,
             },
@@ -85,6 +113,10 @@ describe('GameSessionPage', () => {
                     contentType: 'image/png',
                 },
             },
+            walls: [],
+            lights: [],
+            regions: [],
+            sounds: [],
         },
     };
 
@@ -116,7 +148,7 @@ describe('GameSessionPage', () => {
                 <MemoryRouter initialEntries={[`/encounters/${encounterId}/play`]}>
                     <ThemeProvider theme={theme}>
                         <Routes>
-                            <Route path="/encounters/:encounterId/play" element={<GameSessionPage />} />
+                            <Route path="/encounters/:encounterId/play" element={<EncounterPage />} />
                         </Routes>
                     </ThemeProvider>
                 </MemoryRouter>
@@ -324,7 +356,7 @@ describe('GameSessionPage', () => {
                     <MemoryRouter initialEntries={['/encounters//play']}>
                         <ThemeProvider theme={theme}>
                             <Routes>
-                                <Route path="/encounters/:encounterId/play" element={<GameSessionPage />} />
+                                <Route path="/encounters/:encounterId/play" element={<EncounterPage />} />
                             </Routes>
                         </ThemeProvider>
                     </MemoryRouter>

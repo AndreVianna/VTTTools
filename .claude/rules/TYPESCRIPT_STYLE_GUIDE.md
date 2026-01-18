@@ -39,8 +39,10 @@ Extract when a file violates these principles, not based on arbitrary line count
 - Sub-components → `{Feature}/components/{Name}.tsx`
 - Types → `{Feature}/types.ts`
 
-## Component File Organization (REQUIRED)
-Files MUST follow this section order with blank lines between sections:
+## Component File Organization
+**IMPORTANT:** Only include sections your component actually needs. The 14-section model is a framework for ordering, not a checklist to complete. A simple component might only have STATE, HANDLERS, and RENDER. Complex orchestrator components may use all 14 sections.
+
+When a section IS used, it MUST appear in this order (with blank lines between sections):
 
 ```typescript
 // 1. IMPORTS (grouped: external → aliases → relative)
@@ -212,7 +214,6 @@ ROUTING → THEME → QUERIES → QUERY ADAPTERS → CONTEXT → TRANSACTIONS
 - **DERIVED STATE** (4.11): Pure computations from props/state. No side effects.
 
 **Notes:**
-- Skip sections that don't apply to your component (simple components may only need STATE, HANDLERS, RENDER)
 - Section comments with `═══` separators are recommended for complex components with many sections
 - Dependencies flow downward - never reference a later section from an earlier one
 - STATE and REFS must come before DOMAIN HOOKS if hooks need them as parameters
