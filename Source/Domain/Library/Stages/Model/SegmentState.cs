@@ -6,4 +6,5 @@ public enum SegmentState {
     Locked = 2,
     Visible = Locked, // valid only for barriers
     Secret = 3,
+    Hidden = Secret, // valid only for barriers
 }

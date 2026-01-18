@@ -16,30 +16,40 @@ tsconfig strict (10 flags) + ESLint | Coverage ≥95%
 
 Strict: `strict` | `noImplicitAny` | `strictNullChecks` | `strictFunctionTypes` | `noImplicitReturns` | `noFallthroughCasesInSwitch` | `noUncheckedIndexedAccess` | `exactOptionalPropertyTypes` | `noUnusedLocals` | `noUnusedParameters`
 
-## File Size Limits (CRITICAL for Agentic Coding)
-Small, focused files reduce AI context consumption and enable faster, safer edits.
+## Agentic Compatibility (CRITICAL)
+File structure impacts AI agent effectiveness. Optimize for these principles:
 
-| File Type | Target | Max | Action if Exceeded |
-|-----------|--------|-----|-------------------|
-| Component | ≤300 | 500 | Extract handlers/hooks |
-| Hook | ≤200 | 400 | Split by concern |
-| Utility | ≤150 | 300 | Split by domain |
-| Handler file | ≤200 | 300 | Group by entity |
+| Principle | Description | Why It Matters |
+|-----------|-------------|----------------|
+| **Cognitive Load** | Can the file structure be held in working memory? | Agents need to understand relationships between sections |
+| **Change Safety** | Can edits be made without unintended side effects? | Single-responsibility sections enable surgical changes |
+| **Navigation Speed** | Can relevant sections be found quickly? | Consistent section ordering enables fast lookup |
+| **Dependency Clarity** | Are dependencies between sections obvious? | Downward-only flow prevents circular reference bugs |
 
-**When files exceed limits:**
-1. Extract handlers → `{Feature}/handlers/{entity}Handlers.ts`
-2. Extract hooks → `{Feature}/hooks/use{Concern}.ts`
-3. Extract sub-components → `{Feature}/components/{Name}.tsx`
-4. Extract types → `{Feature}/types.ts`
+**When to Extract:**
+Extract when a file violates these principles, not based on arbitrary line counts:
+1. **Multiple responsibilities** → Extract to separate hooks/handlers
+2. **Tangled dependencies** → Split by concern to clarify flow
+3. **Difficult navigation** → Add section headers or extract sub-components
+4. **Risky edits** → Isolate volatile logic into dedicated files
+
+**Extraction Patterns:**
+- Handlers → `{Feature}/handlers/{entity}Handlers.ts`
+- Hooks → `{Feature}/hooks/use{Concern}.ts`
+- Sub-components → `{Feature}/components/{Name}.tsx`
+- Types → `{Feature}/types.ts`
 
 ## Component File Organization (REQUIRED)
 Files MUST follow this section order with blank lines between sections:
 
 ```typescript
 // 1. IMPORTS (grouped: external → aliases → relative)
-import React, { useCallback, useState } from 'react';
-import { Box } from '@mui/material';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Box, useTheme } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch } from '@/store';
+import { useGetDataQuery } from '@/services/api';
+import { useCustomHook } from '@/hooks';
 import { localHelper } from './helpers';
 
 // 2. TYPES (if not imported)
@@ -54,35 +64,112 @@ const DEFAULT_OPTIONS = ['a', 'b', 'c'];
 
 // 4. COMPONENT
 export const MyComponent: React.FC<MyComponentProps> = ({ value, onChange }) => {
-    // 4.1 STATE (useState, useReducer, useContext - grouped together)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.1 ROUTING
+    // Router hooks: useNavigate, useParams, useLocation, useSearchParams
+    // ═══════════════════════════════════════════════════════════════════════════
+    const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.2 THEME
+    // Theme/UI hooks: useTheme, useMediaQuery
+    // ═══════════════════════════════════════════════════════════════════════════
+    const theme = useTheme();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.3 QUERIES & MUTATIONS
+    // RTK Query hooks for data fetching and mutations
+    // ═══════════════════════════════════════════════════════════════════════════
+    const { data, isLoading, refetch } = useGetDataQuery(id);
+    const [updateData] = useUpdateDataMutation();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.4 QUERY ADAPTERS
+    // Wrappers that transform query results for hook consumption
+    // ═══════════════════════════════════════════════════════════════════════════
+    const wrappedRefetch = useMemo(() => createRefetchWrapper(refetch), [refetch]);
+    const mutations = useMemo(() => ({ update: updateData }), [updateData]);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.5 CONTEXT HOOKS
+    // App-level context: useUndoRedoContext, useClipboard, useConnectionStatus
+    // ═══════════════════════════════════════════════════════════════════════════
+    const { undo, redo } = useUndoRedoContext();
+    const { isOnline } = useConnectionStatus();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.6 TRANSACTIONS
+    // Transaction management hooks
+    // ═══════════════════════════════════════════════════════════════════════════
+    const transaction = useTransaction();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.7 STATE
+    // Local component state: useState, useReducer
+    // ═══════════════════════════════════════════════════════════════════════════
     const [isOpen, setIsOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const dispatch = useAppDispatch();
+    const [data, setData] = useState<Data | null>(null);
 
-    // 4.2 REFS (useRef - grouped together)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.8 REFS
+    // References: useRef
+    // ═══════════════════════════════════════════════════════════════════════════
     const inputRef = useRef<HTMLInputElement>(null);
+    const dataRef = useRef<Data | null>(null);
 
-    // 4.3 DERIVED STATE (useMemo for computed values)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.9 DOMAIN HOOKS
+    // Feature-specific composed hooks that encapsulate business logic
+    // Domain hooks may depend on state/refs declared above
+    // ═══════════════════════════════════════════════════════════════════════════
+    const featureHandlers = useFeatureHandlers({ id, data, setData, refetch: wrappedRefetch });
+    const otherHandlers = useOtherHandlers({ mutations, inputRef });
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.10 COMPOSED HANDLERS
+    // Memoized factories that combine multiple domain hooks into cohesive bundles
+    // ═══════════════════════════════════════════════════════════════════════════
+    const combinedHandlers = useMemo(
+        () => createCombinedHandlers({ featureHandlers, otherHandlers }),
+        [featureHandlers, otherHandlers]
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.11 DERIVED STATE
+    // Pure computed values from props/state: useMemo
+    // ═══════════════════════════════════════════════════════════════════════════
     const isValid = useMemo(() => value.length <= MAX_LENGTH, [value]);
+    const sortedItems = useMemo(() => [...items].sort(), [items]);
 
-    // 4.4 EFFECTS (useEffect - grouped together)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.12 EFFECTS
+    // Side effects: useEffect
+    // ═══════════════════════════════════════════════════════════════════════════
     useEffect(() => {
         // side effect
     }, [dependency]);
 
-    // 4.5 HANDLERS (useCallback - grouped together, alphabetized)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.13 HANDLERS
+    // Event handlers: useCallback (including callback refs)
+    // ═══════════════════════════════════════════════════════════════════════════
     const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         onChange(e.target.value);
     }, [onChange]);
 
-    const handleSubmit = useCallback(() => {
-        // submit logic
+    const inputCallbackRef = useCallback((node: HTMLInputElement | null) => {
+        if (node) node.focus();
     }, []);
 
-    // 4.6 RENDER
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.14 RENDER
+    // JSX output
+    // ═══════════════════════════════════════════════════════════════════════════
     return (
         <Box>
-            <input ref={inputRef} value={value} onChange={handleChange} />
+            <input ref={inputCallbackRef} value={value} onChange={handleChange} />
         </Box>
     );
 };
@@ -93,15 +180,54 @@ const HelperComponent: React.FC<{ label: string }> = ({ label }) => (
 );
 ```
 
+**Section Summary (inside component):**
+| # | Section | Contents |
+|---|---------|----------|
+| 4.1 | ROUTING | `useNavigate`, `useParams`, `useLocation`, `useSearchParams` |
+| 4.2 | THEME | `useTheme`, `useMediaQuery` |
+| 4.3 | QUERIES & MUTATIONS | RTK Query hooks (`useGetXQuery`, `useXMutation`) |
+| 4.4 | QUERY ADAPTERS | Wrappers transforming query results (`wrappedRefetch`, `mutations`) |
+| 4.5 | CONTEXT HOOKS | App context (`useUndoRedoContext`, `useClipboard`, `useConnectionStatus`) |
+| 4.6 | TRANSACTIONS | Transaction hooks (`useWallTransaction`, `useRegionTransaction`) |
+| 4.7 | STATE | `useState`, `useReducer` |
+| 4.8 | REFS | `useRef` |
+| 4.9 | DOMAIN HOOKS | Feature hooks that may depend on state/refs (`useWallHandlers`, `useAssetManagement`) |
+| 4.10 | COMPOSED HANDLERS | Memoized factories combining domain hooks (`createStructureHandlers`) |
+| 4.11 | DERIVED STATE | Pure computations (`useMemo` for filtering, sorting, transforming) |
+| 4.12 | EFFECTS | `useEffect` |
+| 4.13 | HANDLERS | `useCallback` (including callback refs) |
+| 4.14 | RENDER | `return (...)` |
+
+**Dependency Flow:**
+```
+ROUTING → THEME → QUERIES → QUERY ADAPTERS → CONTEXT → TRANSACTIONS
+    → STATE → REFS → DOMAIN HOOKS → COMPOSED HANDLERS → DERIVED → EFFECTS → HANDLERS → RENDER
+```
+
+**Key Distinctions:**
+- **QUERY ADAPTERS** (4.4): Transform API layer for hook consumption. Depend only on QUERIES.
+- **STATE/REFS** (4.7-4.8): Declared early so DOMAIN HOOKS can use them as parameters.
+- **DOMAIN HOOKS** (4.9): Feature hooks that encapsulate business logic. May depend on state/refs.
+- **COMPOSED HANDLERS** (4.10): Combine multiple domain hooks into handler bundles.
+- **DERIVED STATE** (4.11): Pure computations from props/state. No side effects.
+
+**Notes:**
+- Skip sections that don't apply to your component (simple components may only need STATE, HANDLERS, RENDER)
+- Section comments with `═══` separators are recommended for complex components with many sections
+- Dependencies flow downward - never reference a later section from an earlier one
+- STATE and REFS must come before DOMAIN HOOKS if hooks need them as parameters
+
 ❌ **Anti-patterns:**
 - Imports after component definition
 - Helper functions before component
-- Mixed useState/useEffect/useCallback (not grouped)
+- Mixed hook types (not grouped by section)
 - Handlers defined inside render
 - Constants inside component (causes re-creation)
+- Query adapters mixed with derived state
+- Domain hooks before state they depend on
 
 ## Handler Extraction Pattern
-For components >300 lines, extract handlers to separate files:
+When components have multiple handler concerns, extract to separate files:
 
 ```typescript
 // handlers/userHandlers.ts
@@ -128,7 +254,7 @@ export const createUserHandlers = (deps: UserHandlerDeps) => ({
     },
 });
 
-// Component usage:
+// Component usage (in COMPOSED HANDLERS section):
 const handlers = useMemo(
     () => createUserHandlers({ setUser, setError, onSuccess }),
     [setUser, setError, onSuccess]
@@ -153,7 +279,7 @@ Files: `PascalCase.tsx` | `use{Name}.ts` | `{Name}.test.tsx`
 src/
 ├── components/{category}/
 ├── pages/{Feature}/
-│   ├── {Feature}Page.tsx        # Main component (<500 lines)
+│   ├── {Feature}Page.tsx        # Main component (follows 14-section model)
 │   ├── handlers/                 # Extracted handlers
 │   │   ├── {entity}Handlers.ts
 │   │   └── index.ts
@@ -250,14 +376,14 @@ catch (err) { setError(err instanceof Error ? err.message : 'Unexpected'); }
 ## Review Checklist
 **File Organization:**
 - [ ] Sections in order: Imports → Types → Constants → Component → Child Components
-- [ ] Inside component: State → Refs → Derived → Effects → Handlers → Render
+- [ ] Inside component (14 sections): Routing → Theme → Queries → Query Adapters → Context → Transactions → State → Refs → Domain Hooks → Composed Handlers → Derived → Effects → Handlers → Render
 - [ ] No imports after helper functions
-- [ ] No mixed useState/useEffect/useCallback
+- [ ] No mixed hook types (grouped by section)
 
-**File Size (Agentic):**
-- [ ] Component ≤500 lines (target ≤300)
-- [ ] Hook ≤400 lines (target ≤200)
-- [ ] Handlers extracted if component >300 lines
+**Agentic Compatibility:**
+- [ ] Single responsibility per file | Clear section boundaries
+- [ ] Dependencies flow downward | No circular references
+- [ ] Extractable concerns isolated | Navigation is fast
 
 **TypeScript:**
 - [ ] Strict mode zero errors | No `any` | Null handled | Array access checked
