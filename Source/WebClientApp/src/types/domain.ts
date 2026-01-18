@@ -812,6 +812,7 @@ export enum SegmentState {
   Locked = 'Locked',
   Visible = 'Locked', // Alias for Locked, used for barriers (walls/fences)
   Secret = 'Secret',
+  Hidden = 'Secret', // Alias for Secret, used for barriers (walls/fences)
 }
 
 export enum LightSourceType {

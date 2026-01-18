@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
-import type { Encounter, PlacedRegion, Point } from '@/types/domain';
+import type { Encounter, PlacedRegion, Point, RegionType } from '@/types/domain';
 import { CreateFogOfWarRegionCommand, RevealAllFogOfWarCommand } from '@/utils/commands/fogOfWarCommands';
 import { toRegionType } from '@/utils/encounter';
 import { hydratePlacedRegions } from '@/utils/encounterMappers';
