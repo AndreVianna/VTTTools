@@ -1,19 +1,33 @@
-import { Box, Button, CircularProgress, Typography, useTheme } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+// React
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+// External libraries
+import { Box, Button, CircularProgress, Typography, useTheme } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Group, Image as KonvaImage, Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
+
+// Aliases - components
 import { BackgroundLayer, EncounterCanvas, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
 import { FogOfWarRenderer } from '@/components/encounter/rendering/FogOfWarRenderer';
 import { LightSourceRenderer } from '@/components/encounter/rendering/SourceRenderer';
 import { WallRenderer } from '@/components/encounter/rendering/WallRenderer';
-import { getApiEndpoints } from '@/config/development';
-import { useAudioUnlock } from '@/hooks/useAudioUnlock';
-import { useGetEncounterQuery } from '@/services/encounterApi';
-import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
-import { LayerName, GroupName } from '@/services/layerManager';
+
+// Aliases - config
 import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
+import { getApiEndpoints } from '@/config/development';
+
+// Aliases - hooks
+import { useAssetImageLoader } from '@/hooks/useAssetImageLoader';
+import { useAudioUnlock } from '@/hooks/useAudioUnlock';
+import { usePositionalAudio } from '@/hooks/usePositionalAudio';
+
+// Aliases - services
+import { useGetEncounterQuery } from '@/services/encounterApi';
+import { GroupName, LayerName } from '@/services/layerManager';
+
+// Aliases - types
 import {
     type EncounterWall,
     type EncounterWallSegment,
@@ -24,6 +38,8 @@ import {
     SegmentState,
     SegmentType,
 } from '@/types/domain';
+
+// Aliases - utils
 import {
     hydrateGameElements,
     hydratePlacedLightSources,
@@ -31,8 +47,28 @@ import {
     hydratePlacedSoundSources,
     hydratePlacedWalls,
 } from '@/utils/encounterMappers';
-import { useAssetImageLoader } from '@/hooks/useAssetImageLoader';
-import { usePositionalAudio } from '@/hooks/usePositionalAudio';
+import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Slight transparency for placed assets to provide visual distinction from background */
+const ASSET_DEFAULT_OPACITY = 0.9;
+
+/** Default window dimensions for SSR or when window is unavailable */
+const DEFAULT_WINDOW_SIZE = { width: 1920, height: 1080 };
+
+/**
+ * Safely extracts an error message from an unknown error object.
+ */
+const getErrorMessage = (error: unknown): string => {
+    if (error && typeof error === 'object' && 'message' in error) {
+        const msg = (error as { message: unknown }).message;
+        return typeof msg === 'string' ? msg : 'An unexpected error occurred';
+    }
+    return 'An unexpected error occurred';
+};
 
 /**
  * Encounter Page - Player/DM preview view of an encounter.
@@ -77,7 +113,11 @@ export const EncounterPage: React.FC = () => {
     // 4.7 STATE
     // ═══════════════════════════════════════════════════════════════════════════
     const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
-    const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+    const [windowSize, setWindowSize] = useState(() =>
+        typeof window !== 'undefined'
+            ? { width: window.innerWidth, height: window.innerHeight }
+            : DEFAULT_WINDOW_SIZE
+    );
     const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -92,7 +132,8 @@ export const EncounterPage: React.FC = () => {
     const { isUnlocked: isAudioUnlocked, audioContext } = useAudioUnlock();
 
     // Positional audio for encounter sounds
-    const { updateListenerPosition, playSound, stopAllSounds } = usePositionalAudio({
+    // TODO: Wire up updateListenerPosition when character selection is implemented
+    const { playSound, stopSound, stopAllSounds } = usePositionalAudio({
         audioContext,
         isEnabled: isAudioUnlocked,
         walls: encounter?.stage?.walls ?? [],
@@ -111,7 +152,10 @@ export const EncounterPage: React.FC = () => {
         return undefined;
     }, [encounter]);
 
-    const backgroundContentType = encounter?.stage?.settings?.mainBackground?.contentType;
+    const backgroundContentType = useMemo(
+        () => encounter?.stage?.settings?.mainBackground?.contentType,
+        [encounter?.stage?.settings?.mainBackground?.contentType]
+    );
 
     // Hydrate placed entities from encounter data
     const placedWalls = useMemo(() => {
@@ -263,9 +307,11 @@ export const EncounterPage: React.FC = () => {
     useEffect(() => {
         if (!isAudioUnlocked || activeSounds.length === 0) return;
 
+        const soundUrls: string[] = [];
         activeSounds.forEach((sound) => {
             if (sound.media?.id) {
                 const soundUrl = `${getApiEndpoints().media}/${sound.media.id}`;
+                soundUrls.push(soundUrl);
                 playSound(soundUrl, {
                     isAmbient: false,
                     volume: sound.volume,
@@ -275,7 +321,12 @@ export const EncounterPage: React.FC = () => {
                 });
             }
         });
-    }, [isAudioUnlocked, activeSounds, playSound]);
+
+        // Cleanup: stop sounds started in this effect when dependencies change or unmount
+        return () => {
+            soundUrls.forEach((url) => stopSound(url));
+        };
+    }, [isAudioUnlocked, activeSounds, playSound, stopSound]);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.13 HANDLERS
@@ -318,6 +369,7 @@ export const EncounterPage: React.FC = () => {
     if (isLoading) {
         return (
             <Box
+                id="encounter-loading-state"
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -327,8 +379,8 @@ export const EncounterPage: React.FC = () => {
                     bgcolor: 'background.default',
                 }}
             >
-                <CircularProgress size={60} />
-                <Typography variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
+                <CircularProgress id="encounter-loading-spinner" size={60} />
+                <Typography id="encounter-loading-text" variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
                     Loading encounter...
                 </Typography>
             </Box>
@@ -339,6 +391,7 @@ export const EncounterPage: React.FC = () => {
     if (isError || !encounter) {
         return (
             <Box
+                id="encounter-error-state"
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -349,13 +402,13 @@ export const EncounterPage: React.FC = () => {
                     p: 3,
                 }}
             >
-                <Typography variant="h5" color="error" sx={{ mb: 2 }}>
+                <Typography id="encounter-error-title" variant="h5" color="error" sx={{ mb: 2 }}>
                     Failed to load encounter
                 </Typography>
-                <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-                    {error && 'message' in error ? String(error.message) : 'An unexpected error occurred'}
+                <Typography id="encounter-error-message" variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+                    {getErrorMessage(error)}
                 </Typography>
-                <Button variant="contained" onClick={() => navigate(-1)}>
+                <Button id="btn-go-back" variant="contained" onClick={() => navigate(-1)}>
                     Go Back
                 </Button>
             </Box>
@@ -408,17 +461,18 @@ export const EncounterPage: React.FC = () => {
                     </Button>
                 </Box>
 
-                {/* Main Canvas - key forces remount on resize */}
-            <EncounterCanvas
-                key={`canvas-${windowSize.width}-${windowSize.height}`}
-                ref={canvasRef}
-                width={windowSize.width}
-                height={windowSize.height}
-                initialPosition={{ x: viewport.x, y: viewport.y }}
-                initialScale={viewport.scale}
-                backgroundColor={theme.palette.background.default}
-                onViewportChange={handleViewportChange}
-            >
+                {/* Main Canvas - key forces remount on resize because Konva Stage
+                    cannot dynamically resize canvas dimensions without visual artifacts */}
+                <EncounterCanvas
+                    key={`canvas-${windowSize.width}-${windowSize.height}`}
+                    ref={canvasRef}
+                    width={windowSize.width}
+                    height={windowSize.height}
+                    initialPosition={{ x: viewport.x, y: viewport.y }}
+                    initialScale={viewport.scale}
+                    backgroundColor={theme.palette.background.default}
+                    onViewportChange={handleViewportChange}
+                >
                 {/* Static Layer - Background + Grid */}
                 <Layer name={LayerName.Static} listening={false}>
                     <BackgroundLayer
@@ -489,7 +543,7 @@ export const EncounterPage: React.FC = () => {
                                         height={asset.size.height}
                                         rotation={asset.rotation}
                                         listening={false}
-                                        opacity={0.9}
+                                        opacity={ASSET_DEFAULT_OPACITY}
                                     />
                                 );
                             })}
@@ -498,10 +552,10 @@ export const EncounterPage: React.FC = () => {
                 </Layer>
 
                 {/* Fog of War Layer */}
-                {fogOfWarRegions.length > 0 && (
+                {fogOfWarRegions.length > 0 && encounterId && (
                     <Layer name={LayerName.FogOfWar} listening={false}>
                         <FogOfWarRenderer
-                            encounterId={encounterId ?? ''}
+                            encounterId={encounterId}
                             regions={fogOfWarRegions}
                             visible={true}
                         />
