@@ -4,10 +4,10 @@
  * Coverage: Campaign editing, adventures management, navigation
  */
 
+import type React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type * as React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Adventure, Campaign } from '@/types/domain';
 import { AdventureStyle, ContentType } from '@/types/domain';

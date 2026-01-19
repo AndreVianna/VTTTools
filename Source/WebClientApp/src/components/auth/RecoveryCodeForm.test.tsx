@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RecoveryCodeForm } from './RecoveryCodeForm';
 
 // Mock useAuth hook
-const mockVerifyRecoveryCode = vi.fn();
+const mockVerifyRecoveryCode = vi.fn<(code: string) => Promise<unknown>>();
 const mockVerifyRecoveryCodeReturnValue = {
   user: null,
   isLoading: false,
@@ -439,7 +439,7 @@ describe('RecoveryCodeForm', () => {
     it('should call onSwitchToTwoFactor when authenticator link is clicked', async () => {
       // Arrange
       const user = userEvent.setup();
-      const mockOnSwitchToTwoFactor = vi.fn();
+      const mockOnSwitchToTwoFactor = vi.fn<() => void>();
       render(<RecoveryCodeForm onSwitchToTwoFactor={mockOnSwitchToTwoFactor} />);
 
       // Act
@@ -452,7 +452,7 @@ describe('RecoveryCodeForm', () => {
     it('should call onBack when back to login link is clicked', async () => {
       // Arrange
       const user = userEvent.setup();
-      const mockOnBack = vi.fn();
+      const mockOnBack = vi.fn<() => void>();
       render(<RecoveryCodeForm onBack={mockOnBack} />);
 
       // Act

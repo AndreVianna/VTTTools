@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useCallback } from 'react';
 import type { SelectionCategory } from '@components/encounter';
 import { AssetKind, type PlacedAsset, type PlacedWall, type PlacedRegion, type PlacedLightSource, type PlacedSoundSource } from '@/types/domain';

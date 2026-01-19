@@ -2,10 +2,9 @@
 // Tests viewport management, pan/zoom controls, and mouse interactions
 // TARGET_COVERAGE: 70%+
 
+import React, { createRef } from 'react';
 import { act, render, screen } from '@testing-library/react';
-import { createRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type Konva from 'konva';
 import type { EncounterCanvasHandle, EncounterCanvasProps, Viewport } from './EncounterCanvas';
 
 // Store event handlers for testing interactions

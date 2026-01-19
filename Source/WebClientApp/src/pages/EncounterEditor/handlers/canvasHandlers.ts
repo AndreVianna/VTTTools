@@ -1,4 +1,4 @@
-import type { Encounter } from '@/types/domain';
+import type React from 'react';
 import type { EncounterCanvasHandle } from '@/components/encounter';
 import type { WallTransaction } from '@/hooks/useWallTransaction';
 import type { RegionTransaction } from '@/hooks/useRegionTransaction';

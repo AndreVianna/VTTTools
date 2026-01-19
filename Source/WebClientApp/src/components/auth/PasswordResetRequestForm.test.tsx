@@ -1,12 +1,13 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PasswordResetRequestForm } from './PasswordResetRequestForm';
 
 // Mock useAuth hook
-const mockResetPassword = vi.fn();
-const mockClearError = vi.fn();
+const mockResetPassword = vi.fn<(email: string) => Promise<unknown>>();
+const mockClearError = vi.fn<() => void>();
 const mockAuthReturnValue = {
     isLoading: false,
     error: null as string | null,
@@ -300,7 +301,7 @@ describe('PasswordResetRequestForm', () => {
         it('should disable "Back to login" link during loading', async () => {
             // Arrange
             mockAuthReturnValue.isLoading = true;
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
             const user = userEvent.setup();
 
             // Act
@@ -397,7 +398,7 @@ describe('PasswordResetRequestForm', () => {
         it('should call onSwitchToLogin when "Back to login" is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
             renderWithTheme(<PasswordResetRequestForm onSwitchToLogin={mockOnSwitchToLogin} />);
 
             // Act

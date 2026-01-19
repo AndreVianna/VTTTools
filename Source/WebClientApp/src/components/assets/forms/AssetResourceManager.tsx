@@ -10,7 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import { useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DisplayPreview } from '@/components/common/DisplayPreview';
 import { ResourceImage } from '@/components/common/ResourceImage';
 import { TokenPreview } from '@/components/common/TokenPreview';
@@ -38,29 +38,38 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 }) => {
   const theme = useTheme();
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const pendingCallbackRef = useRef<((id: string) => void) | null>(null);
+  const [pendingCallback, setPendingCallback] = useState<((id: string) => void) | null>(null);
 
   const { uploadState, uploadFile, cancelUpload, resetState } = useFileUpload({
     ownerId,
     onSuccess: (resource) => {
-      pendingCallbackRef.current?.(resource.id);
-      pendingCallbackRef.current = null;
+      pendingCallback?.(resource.id);
+      setPendingCallback(null);
       setTimeout(resetState, 1500);
     },
     onError: (error) => {
       setUploadError(`Failed to upload image: ${error}`);
-      pendingCallbackRef.current = null;
+      setPendingCallback(null);
     },
   });
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>, onChange: (id: string) => void) => {
+  const handlePortraitUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploadError(null);
-    pendingCallbackRef.current = onChange;
+    setPendingCallback(() => onPortraitChange);
     await uploadFile(file);
     event.target.value = '';
-  };
+  }, [onPortraitChange, uploadFile]);
+
+  const handleTokenUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    setPendingCallback(() => onTokenChange);
+    await uploadFile(file);
+    event.target.value = '';
+  }, [onTokenChange, uploadFile]);
 
   const renderImageSection = (
     title: string,
@@ -230,7 +239,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
             'Full image for asset details and library views',
             portraitId,
             () => onPortraitChange(undefined),
-            (e) => handleUpload(e, onPortraitChange),
+            handlePortraitUpload,
             false,
           )}
         </Grid>
@@ -241,7 +250,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
             'Visual representation for encounter placement',
             tokenId,
             () => onTokenChange(undefined),
-            (e) => handleUpload(e, onTokenChange),
+            handleTokenUpload,
             true,
           )}
         </Grid>

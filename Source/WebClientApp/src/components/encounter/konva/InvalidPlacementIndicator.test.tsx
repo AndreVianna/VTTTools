@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react';
+import React from 'react';
 import { Stage, Layer } from 'react-konva';
 import { describe, expect, it } from 'vitest';
 import { InvalidPlacementIndicator } from './InvalidPlacementIndicator';

@@ -69,7 +69,9 @@ export const SoundPickerDialog: React.FC<SoundPickerDialogProps> = ({
 
     useEffect(() => {
         if (open && currentResourceId) {
-            setSelectedResourceId(currentResourceId);
+            queueMicrotask(() => {
+                setSelectedResourceId(currentResourceId);
+            });
         }
     }, [open, currentResourceId]);
 

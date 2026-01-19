@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useFogOfWarPlacement } from '@/hooks/useFogOfWarPlacement';
 import type { Encounter, PlacedRegion, Point, RegionType } from '@/types/domain';

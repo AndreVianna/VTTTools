@@ -57,8 +57,7 @@ describe('uploadWithProgress', () => {
       removeEventListener: vi.fn(),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.XMLHttpRequest = vi.fn(() => mockXhr) as any;
+    global.XMLHttpRequest = vi.fn(() => mockXhr) as unknown as typeof XMLHttpRequest;
   });
 
   describe('successful upload', () => {

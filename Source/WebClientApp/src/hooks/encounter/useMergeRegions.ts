@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { type Encounter, type EncounterRegion, type Point, RegionType } from '@/types/domain';
+import { type Encounter, type EncounterRegion, type Point } from '@/types/domain';
 import type { CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import { createBatchCommand } from '@/utils/commands';

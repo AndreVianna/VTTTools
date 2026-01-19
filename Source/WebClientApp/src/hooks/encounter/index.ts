@@ -1,7 +1,10 @@
 export { useAssetManagement } from './useAssetManagement';
-export { useDrawingWallState } from './useDrawingWallState';
-export { useDrawingRegionState } from './useDrawingRegionState';
+export { useBackgroundMedia, type UseBackgroundMediaProps, type UseBackgroundMediaResult } from './useBackgroundMedia';
 export { useCanvasReadyState } from './useCanvasReadyState';
+export { useDrawingRegionState } from './useDrawingRegionState';
+export { useDrawingWallState } from './useDrawingWallState';
+export { useEncounterLoadingState, EncounterLoadingState, type EncounterLoadingStateProps, type UseEncounterLoadingStateOptions } from './useEncounterLoadingState';
+export { useGridConfigSync, type UseGridConfigSyncProps, type UseGridConfigSyncResult } from './useGridConfigSync';
 export { useClipRegions } from './useClipRegions';
 export { useContextMenus } from './useContextMenus';
 export { useEncounterEditor } from './useEncounterEditor';

@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { EditingBlocker } from './EditingBlocker';
 
@@ -26,7 +26,7 @@ describe('EditingBlocker', () => {
 
   it('should prevent click propagation', async () => {
     const user = userEvent.setup();
-    const handleClick = vi.fn();
+    const handleClick = vi.fn<() => void>();
 
     renderWithTheme(
       <button type='button' onClick={handleClick}>

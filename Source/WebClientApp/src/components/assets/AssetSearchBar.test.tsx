@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetSearchBar, type AssetSearchBarProps } from './AssetSearchBar';
 
@@ -14,7 +14,7 @@ TestWrapper.displayName = 'TestWrapper';
 describe('AssetSearchBar', () => {
   const defaultProps: AssetSearchBarProps = {
     value: '',
-    onChange: vi.fn(),
+    onChange: vi.fn<(value: string) => void>(),
     placeholder: 'Search assets by name or description...',
     fullWidth: false,
   };
@@ -89,7 +89,7 @@ describe('AssetSearchBar', () => {
   describe('user interactions', () => {
     it('should call onChange when user types in search field', async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
+      const onChange = vi.fn<(value: string) => void>();
 
       render(
         <TestWrapper>
@@ -107,7 +107,7 @@ describe('AssetSearchBar', () => {
 
     it('should call onChange with empty string when clear button is clicked', async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
+      const onChange = vi.fn<(value: string) => void>();
 
       render(
         <TestWrapper>
@@ -123,7 +123,7 @@ describe('AssetSearchBar', () => {
 
     it('should handle multiple character inputs', async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
+      const onChange = vi.fn<(value: string) => void>();
 
       render(
         <TestWrapper>
@@ -174,7 +174,7 @@ describe('AssetSearchBar', () => {
   describe('clear functionality', () => {
     it('should clear input and hide clear button after clicking clear', async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
+      const onChange = vi.fn<(value: string) => void>();
 
       const { rerender } = render(
         <TestWrapper>

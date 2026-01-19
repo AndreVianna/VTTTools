@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider } from '@mui/material';
 import { render } from '@testing-library/react';
-import type React from 'react';
+import React from 'react';
 import { describe, expect, it } from 'vitest';
 import type { Point } from '@/types/domain';
 import { SourceRangeDisplay, type SourceRangeDisplayProps } from './SourceRangeDisplay';

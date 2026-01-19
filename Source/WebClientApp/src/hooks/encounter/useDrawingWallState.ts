@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState, useRef, useCallback } from 'react';
 import type { Pole } from '@/types/domain';
 import { SegmentState, SegmentType } from '@/types/domain';

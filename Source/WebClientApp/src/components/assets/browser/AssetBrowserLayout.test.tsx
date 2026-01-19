@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
-import type React from 'react';
+import React from 'react';
 import { describe, expect, it } from 'vitest';
 import { AssetBrowserLayout, type AssetBrowserLayoutProps } from './AssetBrowserLayout';
 

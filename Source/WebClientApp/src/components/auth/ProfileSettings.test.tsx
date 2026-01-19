@@ -4,11 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProfileSettings } from './ProfileSettings';
 
 // Mock profile API hooks
-const mockGetProfileQuery = vi.fn();
-const mockUpdateProfile = vi.fn();
-const mockUploadAvatar = vi.fn();
-const mockDeleteAvatar = vi.fn();
-const mockResendEmailConfirmation = vi.fn();
+const mockGetProfileQuery = vi.fn<() => { data: unknown; isLoading: boolean; error: unknown }>();
+const mockUpdateProfile = vi.fn<(data: unknown) => { unwrap: () => Promise<unknown> }>();
+const mockUploadAvatar = vi.fn<(data: unknown) => { unwrap: () => Promise<unknown> }>();
+const mockDeleteAvatar = vi.fn<() => { unwrap: () => Promise<unknown> }>();
+const mockResendEmailConfirmation = vi.fn<() => { unwrap: () => Promise<unknown> }>();
 
 vi.mock('@/api/profileApi', () => ({
     useGetProfileQuery: () => mockGetProfileQuery(),
@@ -55,7 +55,7 @@ vi.mock('@/config/development', () => ({
 
 // Mock error handling utilities
 vi.mock('@/utils/errorHandling', () => ({
-    handleValidationError: vi.fn(),
+    handleValidationError: vi.fn<(error: unknown, context: unknown) => void>(),
 }));
 
 vi.mock('@/utils/renderError', () => ({
@@ -96,10 +96,10 @@ describe('ProfileSettings', () => {
         });
 
         // Default mutation setups
-        mockUpdateProfile.mockReturnValue({ unwrap: vi.fn().mockResolvedValue({ success: true }) });
-        mockUploadAvatar.mockReturnValue({ unwrap: vi.fn().mockResolvedValue({ success: true, avatarId: 'new-avatar-id' }) });
-        mockDeleteAvatar.mockReturnValue({ unwrap: vi.fn().mockResolvedValue({ success: true }) });
-        mockResendEmailConfirmation.mockReturnValue({ unwrap: vi.fn().mockResolvedValue({ success: true }) });
+        mockUpdateProfile.mockReturnValue({ unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true }) });
+        mockUploadAvatar.mockReturnValue({ unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true, avatarId: 'new-avatar-id' }) });
+        mockDeleteAvatar.mockReturnValue({ unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true }) });
+        mockResendEmailConfirmation.mockReturnValue({ unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true }) });
     });
 
     // ========================================
@@ -243,7 +243,7 @@ describe('ProfileSettings', () => {
             // Arrange
             const user = userEvent.setup();
             mockAuthReturnValue.user = { ...mockUser, emailConfirmed: false };
-            const mockUnwrap = vi.fn().mockResolvedValue({ success: true });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true });
             mockResendEmailConfirmation.mockReturnValue({ unwrap: mockUnwrap });
 
             render(<ProfileSettings />);
@@ -262,7 +262,7 @@ describe('ProfileSettings', () => {
             // Arrange
             const user = userEvent.setup();
             mockAuthReturnValue.user = { ...mockUser, emailConfirmed: false };
-            const mockUnwrap = vi.fn().mockResolvedValue({ success: true });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true });
             mockResendEmailConfirmation.mockReturnValue({ unwrap: mockUnwrap });
 
             render(<ProfileSettings />);
@@ -458,7 +458,7 @@ describe('ProfileSettings', () => {
         it('should call updateProfile when save is clicked with valid data', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockUnwrap = vi.fn().mockResolvedValue({ success: true });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true });
             mockUpdateProfile.mockReturnValue({ unwrap: mockUnwrap });
 
             render(<ProfileSettings />);
@@ -481,7 +481,7 @@ describe('ProfileSettings', () => {
         it('should exit edit mode after successful save', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockUnwrap = vi.fn().mockResolvedValue({ success: true });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true });
             mockUpdateProfile.mockReturnValue({ unwrap: mockUnwrap });
 
             render(<ProfileSettings />);
@@ -503,7 +503,7 @@ describe('ProfileSettings', () => {
         it('should show error when save fails', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockUnwrap = vi.fn().mockRejectedValue({ data: { message: 'Failed to update profile' } });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockRejectedValue({ data: { message: 'Failed to update profile' } });
             mockUpdateProfile.mockReturnValue({ unwrap: mockUnwrap });
 
             render(<ProfileSettings />);
@@ -583,7 +583,7 @@ describe('ProfileSettings', () => {
         it('should call uploadAvatar when valid image is selected', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockUnwrap = vi.fn().mockResolvedValue({ success: true, avatarId: 'new-avatar-id' });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true, avatarId: 'new-avatar-id' });
             mockUploadAvatar.mockReturnValue({ unwrap: mockUnwrap });
 
             const { container } = render(<ProfileSettings />);
@@ -629,7 +629,7 @@ describe('ProfileSettings', () => {
         it('should call deleteAvatar when remove button is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockUnwrap = vi.fn().mockResolvedValue({ success: true });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockResolvedValue({ success: true });
             mockDeleteAvatar.mockReturnValue({ unwrap: mockUnwrap });
             mockGetProfileQuery.mockReturnValue({
                 data: { ...mockProfileData, avatarId: 'existing-avatar-id' },
@@ -686,7 +686,7 @@ describe('ProfileSettings', () => {
         it('should show error when avatar delete fails', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockUnwrap = vi.fn().mockRejectedValue({ data: { message: 'Failed to delete avatar' } });
+            const mockUnwrap = vi.fn<() => Promise<unknown>>().mockRejectedValue({ data: { message: 'Failed to delete avatar' } });
             mockDeleteAvatar.mockReturnValue({ unwrap: mockUnwrap });
             mockGetProfileQuery.mockReturnValue({
                 data: { ...mockProfileData, avatarId: 'existing-avatar-id' },

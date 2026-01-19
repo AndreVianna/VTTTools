@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TwoFactorSetupForm } from './TwoFactorSetupForm';
 
 // Mock useAuth hook
-const mockSetupTwoFactor = vi.fn();
-const mockEnableTwoFactor = vi.fn();
+const mockSetupTwoFactor = vi.fn<() => Promise<unknown>>();
+const mockEnableTwoFactor = vi.fn<(code: string) => Promise<unknown>>();
 const mockAuthReturnValue = { user: null, isLoading: false, error: null };
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -152,7 +152,7 @@ describe('TwoFactorSetupForm', () => {
     it('should call onCancel when Cancel is clicked', async () => {
       // Arrange
       const user = userEvent.setup();
-      const mockOnCancel = vi.fn();
+      const mockOnCancel = vi.fn<() => void>();
       render(<TwoFactorSetupForm onCancel={mockOnCancel} />);
 
       await waitFor(() => {
@@ -240,7 +240,7 @@ describe('TwoFactorSetupForm', () => {
       // Arrange
       const user = userEvent.setup();
       const mockClipboard = {
-        writeText: vi.fn().mockResolvedValue(undefined),
+        writeText: vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined),
       };
       Object.assign(navigator, { clipboard: mockClipboard });
 
@@ -604,15 +604,15 @@ describe('TwoFactorSetupForm', () => {
       // Arrange
       const user = userEvent.setup();
       const createElementSpy = vi.spyOn(document, 'createElement');
-      const clickSpy = vi.fn();
+      const clickSpy = vi.fn<() => void>();
 
       createElementSpy.mockReturnValue({
         click: clickSpy,
         href: '',
         download: '',
         style: {},
-        appendChild: vi.fn(),
-        removeChild: vi.fn(),
+        appendChild: vi.fn<(node: Node) => Node>(),
+        removeChild: vi.fn<(node: Node) => Node>(),
       } as unknown as HTMLAnchorElement);
 
       // Act
@@ -632,7 +632,7 @@ describe('TwoFactorSetupForm', () => {
     it('should call onComplete when complete setup is clicked', async () => {
       // Arrange
       const user = userEvent.setup();
-      const mockOnComplete = vi.fn();
+      const mockOnComplete = vi.fn<() => void>();
       mockEnableTwoFactor.mockResolvedValue({
         success: true,
         recoveryCodes: mockRecoveryCodes,

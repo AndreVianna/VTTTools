@@ -6,7 +6,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetKind } from '@/types/domain';
 import { AssetFilterPanel, type AssetFilters } from './AssetFilterPanel';
@@ -32,7 +32,7 @@ describe('AssetFilterPanel', () => {
   let mockOnFiltersChange: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    mockOnFiltersChange = vi.fn();
+    mockOnFiltersChange = vi.fn<(filters: AssetFilters) => void>();
   });
 
   describe('rendering', () => {

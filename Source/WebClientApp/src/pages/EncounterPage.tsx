@@ -1,19 +1,26 @@
-import { Box, Button, CircularProgress, Typography, useTheme } from '@mui/material';
+import { Box, Button, useTheme } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BackgroundLayer, EncounterCanvas, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
-import { getApiEndpoints } from '@/config/development';
-import { useAudioUnlock } from '@/hooks/useAudioUnlock';
-import { useGetEncounterQuery } from '@/services/encounterApi';
-import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
-import { LayerName } from '@/services/layerManager';
+import { WallRenderer } from '@/components/encounter/rendering/WallRenderer';
 import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
+import { useAudioUnlock } from '@/hooks/useAudioUnlock';
+import {
+    useBackgroundMedia,
+    useEncounterLoadingState,
+    useGridConfigSync,
+} from '@/hooks/encounter';
+import { useGetEncounterQuery } from '@/services/encounterApi';
+import { LayerName } from '@/services/layerManager';
+import { type PlacedWall, SegmentState } from '@/types/domain';
+import { hydratePlacedWalls } from '@/utils/encounterMappers';
+import { GridType } from '@/utils/gridCalculator';
 
 /**
- * Game Session Page - Player/DM view of an encounter.
+ * Encounter Page - Player/DM view of an encounter.
  *
  * This page serves two purposes:
  * 1. DM Preview - DM can preview the encounter from the player's perspective
@@ -23,26 +30,26 @@ import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
  * - Audio Unlock Pattern (AUP) - audio unlocks on first user interaction
  * - Clean view without editor toolbars
  * - DM can exit back to editor
+ * - Walls rendered with secret walls hidden from view
  */
-export const GameSessionPage: React.FC = () => {
-    const { encounterId } = useParams<{ encounterId: string }>();
+export const EncounterPage: React.FC = () => {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.1 ROUTING
+    // Router hooks: useNavigate, useParams, useLocation, useSearchParams
+    // ═══════════════════════════════════════════════════════════════════════════
     const navigate = useNavigate();
+    const { encounterId } = useParams<{ encounterId: string }>();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.2 THEME
+    // Theme/UI hooks: useTheme, useMediaQuery
+    // ═══════════════════════════════════════════════════════════════════════════
     const theme = useTheme();
-    const canvasRef = useRef<EncounterCanvasHandle>(null);
 
-    // Audio unlock state - unlocks on first user interaction (mousedown, touchstart, pointerdown, keydown)
-    const { isUnlocked: isAudioUnlocked } = useAudioUnlock();
-
-    // Viewport state
-    const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
-
-    // Stage size state
-    const [stageSize, setStageSize] = useState({ width: 1920, height: 1080 });
-
-    // Grid configuration
-    const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
-
-    // Fetch encounter data
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.3 QUERIES & MUTATIONS
+    // RTK Query hooks for data fetching and mutations
+    // ═══════════════════════════════════════════════════════════════════════════
     const {
         data: encounter,
         isLoading,
@@ -52,29 +59,61 @@ export const GameSessionPage: React.FC = () => {
         skip: !encounterId || encounterId === '',
     });
 
-    // Update grid config when encounter loads
-    useEffect(() => {
-        if (encounter?.stage?.grid) {
-            const stageGrid = encounter.stage.grid;
-            const gridType = typeof stageGrid.type === 'string'
-                ? GridType[stageGrid.type as keyof typeof GridType]
-                : stageGrid.type;
-            setGridConfig({
-                type: gridType,
-                cellSize: stageGrid.cellSize,
-                offset: stageGrid.offset,
-                snap: gridType !== GridType.NoGrid, // snap is UI-only
-                scale: stageGrid.scale ?? 1,
-            });
-        }
-    }, [encounter]);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.5 CONTEXT HOOKS
+    // App-level context: useUndoRedoContext, useClipboard, useConnectionStatus
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Audio unlock state - unlocks on first user interaction (mousedown, touchstart, pointerdown, keydown)
+    const { isUnlocked: isAudioUnlocked } = useAudioUnlock();
 
-    // Handle exit to editor
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.7 STATE
+    // Local component state: useState, useReducer
+    // ═══════════════════════════════════════════════════════════════════════════
+    const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
+    const [stageSize, setStageSize] = useState({ width: 1920, height: 1080 });
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.8 REFS
+    // References: useRef
+    // ═══════════════════════════════════════════════════════════════════════════
+    const canvasRef = useRef<EncounterCanvasHandle>(null);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.9 DOMAIN HOOKS
+    // Feature-specific composed hooks that encapsulate business logic
+    // ═══════════════════════════════════════════════════════════════════════════
+    const { gridConfig } = useGridConfigSync({ encounter });
+    const { backgroundUrl, backgroundContentType } = useBackgroundMedia({ encounter });
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.11 DERIVED STATE
+    // Pure computed values from props/state: useMemo
+    // ═══════════════════════════════════════════════════════════════════════════
+    /**
+     * Filter walls to only show non-secret segments.
+     * Secret walls are hidden from player view during gameplay.
+     * Filter rule: Hide segments where segment.state === SegmentState.Secret
+     */
+    const visibleWalls = useMemo((): PlacedWall[] => {
+        if (!encounter?.stage?.walls || !encounterId) return [];
+        const hydrated = hydratePlacedWalls(encounter.stage.walls, encounterId);
+        return hydrated
+            .map(wall => ({
+                ...wall,
+                segments: wall.segments.filter(s => s.state !== SegmentState.Secret),
+            }))
+            .filter(wall => wall.segments.length > 0);
+    }, [encounter?.stage?.walls, encounterId]);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.13 HANDLERS
+    // Event handlers: useCallback (including callback refs)
+    // ═══════════════════════════════════════════════════════════════════════════
     const handleExitToEditor = useCallback(() => {
         navigate(`/encounters/${encounterId}/edit`);
     }, [encounterId, navigate]);
 
-    // Handle background image loaded - center the view on the background (with saved offset if available)
     const handleBackgroundImageLoaded = useCallback((dimensions: { width: number; height: number }) => {
         setStageSize(dimensions);
 
@@ -95,68 +134,26 @@ export const GameSessionPage: React.FC = () => {
         });
     }, [encounter?.stage?.settings]);
 
-    // Handle viewport change
     const handleViewportChange = useCallback((newViewport: { x: number; y: number; scale: number }) => {
         setViewport(newViewport);
     }, []);
 
-    // Background URL
-    const backgroundUrl = useMemo(() => {
-        if (encounter?.stage?.settings?.mainBackground) {
-            return `${getApiEndpoints().media}/${encounter.stage.settings.mainBackground.id}`;
-        }
-        return undefined;
-    }, [encounter]);
+    const handleGoBack = useCallback(() => {
+        navigate(-1);
+    }, [navigate]);
 
-    const backgroundContentType = encounter?.stage?.settings?.mainBackground?.contentType;
-
-    // Loading state
-    if (isLoading) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh',
-                    bgcolor: 'background.default',
-                }}
-            >
-                <CircularProgress size={60} />
-                <Typography variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
-                    Loading encounter...
-                </Typography>
-            </Box>
-        );
-    }
-
-    // Error state
-    if (isError || !encounter) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh',
-                    bgcolor: 'background.default',
-                    p: 3,
-                }}
-            >
-                <Typography variant="h5" color="error" sx={{ mb: 2 }}>
-                    Failed to load encounter
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-                    {error && 'message' in error ? String(error.message) : 'An unexpected error occurred'}
-                </Typography>
-                <Button variant="contained" onClick={() => navigate(-1)}>
-                    Go Back
-                </Button>
-            </Box>
-        );
-    }
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.14 RENDER
+    // JSX output
+    // ═══════════════════════════════════════════════════════════════════════════
+    const loadingState = useEncounterLoadingState({
+        isLoading,
+        isError,
+        error,
+        hasNoData: !encounter,
+        onGoBack: handleGoBack,
+    });
+    if (loadingState) return loadingState;
 
     return (
         <Box
@@ -224,7 +221,16 @@ export const GameSessionPage: React.FC = () => {
                     />
                 </Layer>
 
-                {/* TODO: Add game world layer with tokens, walls, etc. */}
+                {/* GameWorld Layer - Walls, tokens, etc. */}
+                <Layer name={LayerName.GameWorld} listening={false}>
+                    {visibleWalls.map(wall => (
+                        <WallRenderer
+                            key={`wall-${wall.index}`}
+                            encounterWall={wall}
+                            activeScope="none"
+                        />
+                    ))}
+                </Layer>
             </EncounterCanvas>
         </Box>
     );

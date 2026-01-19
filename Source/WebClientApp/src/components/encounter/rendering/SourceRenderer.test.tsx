@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider } from '@mui/material';
 import { render } from '@testing-library/react';
-import type React from 'react';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { LightSourceType, SegmentType, SegmentState, type EncounterLightSource, type EncounterWall } from '@/types/domain';
 import { GridType, type GridConfig } from '@/utils/gridCalculator';

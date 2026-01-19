@@ -1,12 +1,13 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SimpleLoginForm } from './SimpleLoginForm';
 
 // Mock useAuth hook
-const mockLogin = vi.fn();
-const mockClearError = vi.fn();
+const mockLogin = vi.fn<(email: string, password: string, rememberMe: boolean) => Promise<unknown>>();
+const mockClearError = vi.fn<() => void>();
 let mockAuthState = { isLoading: false, error: null as string | null };
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -80,7 +81,7 @@ describe('SimpleLoginForm', () => {
 
         it('should render "Forgot password?" link when onSwitchToResetPassword is provided', () => {
             // Arrange
-            const mockOnSwitchToResetPassword = vi.fn();
+            const mockOnSwitchToResetPassword = vi.fn<() => void>();
 
             // Act
             renderWithTheme(<SimpleLoginForm onSwitchToResetPassword={mockOnSwitchToResetPassword} />);
@@ -91,7 +92,7 @@ describe('SimpleLoginForm', () => {
 
         it('should render "Create your account" link when onSwitchToRegister is provided', () => {
             // Arrange
-            const mockOnSwitchToRegister = vi.fn();
+            const mockOnSwitchToRegister = vi.fn<() => void>();
 
             // Act
             renderWithTheme(<SimpleLoginForm onSwitchToRegister={mockOnSwitchToRegister} />);
@@ -304,7 +305,7 @@ describe('SimpleLoginForm', () => {
         it('should call onSwitchToRegister when "Create your account" is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockOnSwitchToRegister = vi.fn();
+            const mockOnSwitchToRegister = vi.fn<() => void>();
             renderWithTheme(<SimpleLoginForm onSwitchToRegister={mockOnSwitchToRegister} />);
 
             // Act
@@ -317,7 +318,7 @@ describe('SimpleLoginForm', () => {
         it('should call onSwitchToResetPassword when "Forgot password?" is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockOnSwitchToResetPassword = vi.fn();
+            const mockOnSwitchToResetPassword = vi.fn<() => void>();
             renderWithTheme(<SimpleLoginForm onSwitchToResetPassword={mockOnSwitchToResetPassword} />);
 
             // Act

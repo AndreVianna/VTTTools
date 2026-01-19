@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RecoveryCodesManager } from './RecoveryCodesManager';
 
 // Mock useAuth hook
-const mockGenerateRecoveryCodes = vi.fn();
+const mockGenerateRecoveryCodes = vi.fn<() => Promise<unknown>>();
 let mockAuthError: string | null | undefined = null;
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -80,7 +80,7 @@ describe('RecoveryCodesManager', () => {
 
     it('should display close button when onClose is provided', () => {
       // Arrange
-      const mockOnClose = vi.fn();
+      const mockOnClose = vi.fn<() => void>();
 
       // Act
       render(<RecoveryCodesManager onClose={mockOnClose} />);
@@ -356,7 +356,7 @@ describe('RecoveryCodesManager', () => {
         recoveryCodes: mockRecoveryCodes,
       });
       const createElementSpy = vi.spyOn(document, 'createElement');
-      const clickSpy = vi.fn();
+      const clickSpy = vi.fn<() => void>();
 
       createElementSpy.mockReturnValue({
         click: clickSpy,
@@ -400,7 +400,7 @@ describe('RecoveryCodesManager', () => {
       vi.spyOn(document, 'createElement').mockImplementation((tag) => {
         if (tag === 'a') {
           return {
-            click: vi.fn(),
+            click: vi.fn<() => void>(),
             href: '',
             download: '',
             style: {},
@@ -627,7 +627,7 @@ describe('RecoveryCodesManager', () => {
     it('should call onClose when close button is clicked', async () => {
       // Arrange
       const user = userEvent.setup();
-      const mockOnClose = vi.fn();
+      const mockOnClose = vi.fn<() => void>();
       render(<RecoveryCodesManager onClose={mockOnClose} />);
 
       // Act

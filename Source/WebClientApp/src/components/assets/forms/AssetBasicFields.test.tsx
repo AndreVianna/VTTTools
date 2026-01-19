@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetBasicFields, type AssetBasicFieldsProps } from './AssetBasicFields';
 
@@ -15,12 +15,12 @@ describe('AssetBasicFields', () => {
   const defaultProps: AssetBasicFieldsProps = {
     name: 'Test Asset',
     description: 'Test description',
-    onNameChange: vi.fn(),
-    onDescriptionChange: vi.fn(),
+    onNameChange: vi.fn<(value: string) => void>(),
+    onDescriptionChange: vi.fn<(value: string) => void>(),
     isPublic: true,
     isPublished: true,
-    onIsPublicChange: vi.fn(),
-    onIsPublishedChange: vi.fn(),
+    onIsPublicChange: vi.fn<(value: boolean) => void>(),
+    onIsPublishedChange: vi.fn<(value: boolean) => void>(),
     readOnly: false,
   };
 
@@ -132,7 +132,7 @@ describe('AssetBasicFields', () => {
   describe('user interactions in edit mode', () => {
     it('should call onNameChange when name field is edited', async () => {
       const user = userEvent.setup();
-      const onNameChange = vi.fn();
+      const onNameChange = vi.fn<(value: string) => void>();
 
       render(
         <TestWrapper>
@@ -149,7 +149,7 @@ describe('AssetBasicFields', () => {
 
     it('should call onDescriptionChange when description field is edited', async () => {
       const user = userEvent.setup();
-      const onDescriptionChange = vi.fn();
+      const onDescriptionChange = vi.fn<(value: string) => void>();
 
       render(
         <TestWrapper>
@@ -166,7 +166,7 @@ describe('AssetBasicFields', () => {
 
     it('should call onIsPublicChange when private checkbox is toggled', async () => {
       const user = userEvent.setup();
-      const onIsPublicChange = vi.fn();
+      const onIsPublicChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -182,7 +182,7 @@ describe('AssetBasicFields', () => {
 
     it('should call onIsPublishedChange when draft checkbox is toggled', async () => {
       const user = userEvent.setup();
-      const onIsPublishedChange = vi.fn();
+      const onIsPublishedChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>

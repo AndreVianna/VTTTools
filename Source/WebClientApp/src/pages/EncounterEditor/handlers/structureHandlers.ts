@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { Encounter, EncounterWall, Point, Pole, SegmentState, SegmentType } from '@/types/domain';
 import type { WallTransaction } from '@/hooks/useWallTransaction';
 import type { RegionTransaction } from '@/hooks/useRegionTransaction';

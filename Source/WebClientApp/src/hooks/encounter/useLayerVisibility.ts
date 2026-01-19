@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useCallback, useState } from 'react';
 import type { LayerVisibilityType } from '@/components/encounter';
 import { GridType } from '@/utils/gridCalculator';

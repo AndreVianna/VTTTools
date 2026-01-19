@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetVisibilityFields, type AssetVisibilityFieldsProps } from './AssetVisibilityFields';
 
@@ -15,8 +15,8 @@ describe('AssetVisibilityFields', () => {
   const defaultProps: AssetVisibilityFieldsProps = {
     isPublic: true,
     isPublished: true,
-    onIsPublicChange: vi.fn(),
-    onIsPublishedChange: vi.fn(),
+    onIsPublicChange: vi.fn<(value: boolean) => void>(),
+    onIsPublishedChange: vi.fn<(value: boolean) => void>(),
     readOnly: false,
     inline: false,
   };
@@ -231,7 +231,7 @@ describe('AssetVisibilityFields', () => {
   describe('user interactions in standard mode', () => {
     it('should call onIsPublicChange with false when Private checkbox is checked', async () => {
       const user = userEvent.setup();
-      const onIsPublicChange = vi.fn();
+      const onIsPublicChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -247,7 +247,7 @@ describe('AssetVisibilityFields', () => {
 
     it('should call onIsPublicChange with true when Private checkbox is unchecked', async () => {
       const user = userEvent.setup();
-      const onIsPublicChange = vi.fn();
+      const onIsPublicChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -263,7 +263,7 @@ describe('AssetVisibilityFields', () => {
 
     it('should call onIsPublishedChange with false when Draft checkbox is checked', async () => {
       const user = userEvent.setup();
-      const onIsPublishedChange = vi.fn();
+      const onIsPublishedChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -279,7 +279,7 @@ describe('AssetVisibilityFields', () => {
 
     it('should call onIsPublishedChange with true when Draft checkbox is unchecked', async () => {
       const user = userEvent.setup();
-      const onIsPublishedChange = vi.fn();
+      const onIsPublishedChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -297,7 +297,7 @@ describe('AssetVisibilityFields', () => {
   describe('user interactions in inline mode', () => {
     it('should call onIsPublicChange in inline mode', async () => {
       const user = userEvent.setup();
-      const onIsPublicChange = vi.fn();
+      const onIsPublicChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -313,7 +313,7 @@ describe('AssetVisibilityFields', () => {
 
     it('should call onIsPublishedChange in inline mode', async () => {
       const user = userEvent.setup();
-      const onIsPublishedChange = vi.fn();
+      const onIsPublishedChange = vi.fn<(value: boolean) => void>();
 
       render(
         <TestWrapper>

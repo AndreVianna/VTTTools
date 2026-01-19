@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useCallback } from 'react';
 import type { SaveStatus } from '@/components/common';
 import type { Encounter, UpdateEncounterRequest } from '@/types/domain';

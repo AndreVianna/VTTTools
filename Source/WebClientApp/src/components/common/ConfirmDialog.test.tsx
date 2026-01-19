@@ -1,5 +1,6 @@
+import React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
@@ -16,8 +17,8 @@ const DarkThemeWrapper: React.FC<{ children: React.ReactNode }> = ({ children })
 
 const defaultProps: ConfirmDialogProps = {
     open: true,
-    onClose: vi.fn(),
-    onConfirm: vi.fn(),
+    onClose: vi.fn<() => void>(),
+    onConfirm: vi.fn<() => void>(),
     title: 'Confirm Action',
     message: 'Are you sure you want to proceed?',
 };
@@ -128,7 +129,7 @@ describe('ConfirmDialog', () => {
     describe('User interactions', () => {
         it('should call onConfirm when confirm button is clicked', async () => {
             // Arrange
-            const onConfirm = vi.fn();
+            const onConfirm = vi.fn<() => void>();
             const user = userEvent.setup();
             renderDialog({ onConfirm });
 
@@ -141,7 +142,7 @@ describe('ConfirmDialog', () => {
 
         it('should call onClose when cancel button is clicked', async () => {
             // Arrange
-            const onClose = vi.fn();
+            const onClose = vi.fn<() => void>();
             const user = userEvent.setup();
             renderDialog({ onClose });
 
@@ -154,7 +155,7 @@ describe('ConfirmDialog', () => {
 
         it('should call onClose when escape key is pressed', async () => {
             // Arrange
-            const onClose = vi.fn();
+            const onClose = vi.fn<() => void>();
             const user = userEvent.setup();
             renderDialog({ onClose });
 
@@ -167,7 +168,7 @@ describe('ConfirmDialog', () => {
 
         it('should not call onClose when backdrop is clicked', async () => {
             // Arrange
-            const onClose = vi.fn();
+            const onClose = vi.fn<() => void>();
             const user = userEvent.setup();
             renderDialog({ onClose });
 
@@ -209,7 +210,7 @@ describe('ConfirmDialog', () => {
 
         it('should not call onClose when escape is pressed during loading', async () => {
             // Arrange
-            const onClose = vi.fn();
+            const onClose = vi.fn<() => void>();
             const user = userEvent.setup();
             renderDialog({ onClose, isLoading: true });
 

@@ -25,6 +25,7 @@ const getAudioContextClass = (): typeof AudioContext | undefined => {
  */
 export function useAudioUnlock() {
     const [isUnlocked, setIsUnlocked] = useState(false);
+    const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const hasAttemptedUnlock = useRef(false);
 
@@ -42,6 +43,7 @@ export function useAudioUnlock() {
                     return false;
                 }
                 audioContextRef.current = new AudioContextClass();
+                setAudioContext(audioContextRef.current);
             }
 
             const ctx = audioContextRef.current;
@@ -107,6 +109,6 @@ export function useAudioUnlock() {
         /** Manually trigger audio unlock (e.g., from a button click) */
         unlockAudio,
         /** The AudioContext instance (if created) */
-        audioContext: audioContextRef.current,
+        audioContext,
     };
 }

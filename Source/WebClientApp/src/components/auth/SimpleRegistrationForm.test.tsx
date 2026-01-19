@@ -1,12 +1,13 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SimpleRegistrationForm } from './SimpleRegistrationForm';
 
 // Mock useAuth hook
-const mockRegister = vi.fn();
-const mockClearError = vi.fn();
+const mockRegister = vi.fn<(name: string, email: string, password: string) => Promise<unknown>>();
+const mockClearError = vi.fn<() => void>();
 let mockAuthState = { isLoading: false, error: null as string | null };
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -86,7 +87,7 @@ describe('SimpleRegistrationForm', () => {
 
         it('should render "Sign in here" link when onSwitchToLogin is provided', () => {
             // Arrange
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
 
             // Act
             renderWithTheme(<SimpleRegistrationForm onSwitchToLogin={mockOnSwitchToLogin} />);
@@ -454,7 +455,7 @@ describe('SimpleRegistrationForm', () => {
         it('should call onSwitchToLogin when "Sign in here" is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
             renderWithTheme(<SimpleRegistrationForm onSwitchToLogin={mockOnSwitchToLogin} />);
 
             // Act

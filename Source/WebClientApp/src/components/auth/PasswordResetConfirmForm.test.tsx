@@ -1,6 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PasswordResetConfirmForm } from './PasswordResetConfirmForm';
 
@@ -11,7 +12,7 @@ vi.mock('react-router-dom', () => ({
 }));
 
 // Mock useAuth hook
-const mockConfirmResetPassword = vi.fn();
+const mockConfirmResetPassword = vi.fn<(email: string, token: string, password: string) => Promise<unknown>>();
 const mockAuthReturnValue = {
     isLoading: false,
     error: null,
@@ -31,7 +32,7 @@ vi.mock('@/hooks/useAuth', () => ({
 
 // Mock error handling utilities
 vi.mock('@/utils/errorHandling', () => ({
-    handleValidationError: vi.fn(),
+    handleValidationError: vi.fn<(error: unknown, context: unknown) => void>(),
 }));
 
 vi.mock('@/utils/renderError', () => ({
@@ -95,7 +96,7 @@ describe('PasswordResetConfirmForm', () => {
         it('should call onSwitchToLogin when "Back to Login" button is clicked on invalid screen', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
 
             // Act
             renderWithTheme(<PasswordResetConfirmForm onSwitchToLogin={mockOnSwitchToLogin} />);
@@ -521,7 +522,7 @@ describe('PasswordResetConfirmForm', () => {
         it('should call onSwitchToLogin when "Back to login" is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
             renderWithTheme(<PasswordResetConfirmForm onSwitchToLogin={mockOnSwitchToLogin} />);
 
             // Act
@@ -534,7 +535,7 @@ describe('PasswordResetConfirmForm', () => {
         it('should disable navigation link during loading', async () => {
             // Arrange
             mockAuthReturnValue.isLoading = true;
-            const mockOnSwitchToLogin = vi.fn();
+            const mockOnSwitchToLogin = vi.fn<() => void>();
             const user = userEvent.setup();
 
             // Act

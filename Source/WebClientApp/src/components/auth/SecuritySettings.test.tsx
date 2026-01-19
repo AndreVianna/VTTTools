@@ -1,7 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SecuritySettings } from './SecuritySettings';
 
@@ -22,20 +22,20 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 // Mock useAuth hook
-const mockUseAuth = vi.fn();
+const mockUseAuth = vi.fn<() => unknown>();
 vi.mock('@/hooks/useAuth', () => ({
     useAuth: () => mockUseAuth(),
 }));
 
 // Mock useDisableTwoFactorMutation from twoFactorApi
-const mockDisableTwoFactor = vi.fn();
+const mockDisableTwoFactor = vi.fn<(data: unknown) => { unwrap: () => Promise<unknown> }>();
 let mockIsDisabling2FA = false;
 vi.mock('@/api/twoFactorApi', () => ({
     useDisableTwoFactorMutation: () => [mockDisableTwoFactor, { isLoading: mockIsDisabling2FA }],
 }));
 
 // Mock useResetPasswordMutation from authApi
-const mockResetPassword = vi.fn();
+const mockResetPassword = vi.fn<(data: unknown) => { unwrap: () => Promise<unknown> }>();
 let mockIsResettingPassword = false;
 vi.mock('@/services/authApi', () => ({
     useResetPasswordMutation: () => [mockResetPassword, { isLoading: mockIsResettingPassword }],
@@ -43,7 +43,7 @@ vi.mock('@/services/authApi', () => ({
 
 // Mock error rendering utilities
 vi.mock('@/utils/errorHandling', () => ({
-    handleValidationError: vi.fn(),
+    handleValidationError: vi.fn<(error: unknown, context: unknown) => void>(),
 }));
 
 vi.mock('@/utils/renderError', () => ({

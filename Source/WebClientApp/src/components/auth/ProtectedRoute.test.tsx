@@ -1,6 +1,6 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render, screen } from '@testing-library/react';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -22,7 +22,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 // Mock react-router-dom
-const mockNavigate = vi.fn();
+const mockNavigate = vi.fn<(to: string) => void>();
 const mockLocation = {
     pathname: '/dashboard',
     search: '',

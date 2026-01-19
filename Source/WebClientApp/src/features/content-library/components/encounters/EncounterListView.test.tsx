@@ -1,7 +1,7 @@
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type React from 'react';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
@@ -71,7 +71,7 @@ const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
     ...overrides,
 });
 
-const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => ({
+const _createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => ({
     id: 'encounter-123',
     ownerId: 'owner-1',
     name: 'Dragon Lair',

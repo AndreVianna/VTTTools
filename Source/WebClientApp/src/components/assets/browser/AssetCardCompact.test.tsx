@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetKind, ResourceRole, StatValueType, type Asset } from '@/types/domain';
 import { AssetCardCompact, type AssetCardCompactProps } from './AssetCardCompact';
@@ -105,9 +105,9 @@ describe('AssetCardCompact', () => {
     isSelected: false,
     isMultiSelectMode: false,
     isChecked: false,
-    onClick: vi.fn(),
-    onDoubleClick: vi.fn(),
-    onCheckChange: vi.fn(),
+    onClick: vi.fn<(asset: Asset) => void>(),
+    onDoubleClick: vi.fn<(asset: Asset) => void>(),
+    onCheckChange: vi.fn<(assetId: string, checked: boolean) => void>(),
     size: 'small',
   };
 
@@ -316,7 +316,7 @@ describe('AssetCardCompact', () => {
   describe('interactions', () => {
     it('should call onClick when card is clicked', async () => {
       const user = userEvent.setup({ delay: null });
-      const onClick = vi.fn();
+      const onClick = vi.fn<(asset: Asset) => void>();
 
       render(
         <TestWrapper>
@@ -333,7 +333,7 @@ describe('AssetCardCompact', () => {
 
     it('should call onDoubleClick when card is double-clicked', async () => {
       const user = userEvent.setup({ delay: null });
-      const onDoubleClick = vi.fn();
+      const onDoubleClick = vi.fn<(asset: Asset) => void>();
 
       render(
         <TestWrapper>
@@ -350,7 +350,7 @@ describe('AssetCardCompact', () => {
 
     it('should call onCheckChange when checkbox is clicked', async () => {
       const user = userEvent.setup({ delay: null });
-      const onCheckChange = vi.fn();
+      const onCheckChange = vi.fn<(checked: boolean) => void>();
 
       render(
         <TestWrapper>
@@ -366,7 +366,7 @@ describe('AssetCardCompact', () => {
 
     it('should toggle checkbox state on click', async () => {
       const user = userEvent.setup({ delay: null });
-      const onCheckChange = vi.fn();
+      const onCheckChange = vi.fn<(checked: boolean) => void>();
 
       render(
         <TestWrapper>

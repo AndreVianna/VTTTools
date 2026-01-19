@@ -1,3 +1,4 @@
+import React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -18,7 +19,7 @@ const defaultProps: PrecisionNumberInputProps = {
     id: 'test-input',
     label: 'Test Value',
     value: 5,
-    onChange: vi.fn(),
+    onChange: vi.fn<(value: number) => void>(),
 };
 
 const renderComponent = (props: Partial<PrecisionNumberInputProps> = {}, darkMode = false) => {
@@ -92,7 +93,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should call onChange with parsed value on blur', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -108,7 +109,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should revert to original value on blur when input is invalid', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 10 });
             const input = screen.getByRole('spinbutton');
@@ -125,7 +126,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should not call onChange on blur when value is unchanged', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -145,7 +146,7 @@ describe('PrecisionNumberInput', () => {
     describe('Precision/Step Behavior', () => {
         it('should increment by 1 with ArrowUp key', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -160,7 +161,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should decrement by 1 with ArrowDown key', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -175,7 +176,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should increment by 10 with Shift+ArrowUp', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -190,7 +191,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should increment by 0.1 with Ctrl+ArrowUp', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -205,7 +206,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should increment by 0.01 with Alt+ArrowUp', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -220,7 +221,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should increment by 0.001 with Ctrl+Alt+ArrowUp', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5 });
             const input = screen.getByRole('spinbutton');
@@ -240,7 +241,7 @@ describe('PrecisionNumberInput', () => {
     describe('Min/Max Constraints', () => {
         it('should clamp value to min on ArrowDown', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 1, min: 0 });
             const input = screen.getByRole('spinbutton');
@@ -256,7 +257,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should clamp value to max on ArrowUp', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 9, max: 10 });
             const input = screen.getByRole('spinbutton');
@@ -272,7 +273,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should clamp typed value to min on blur', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5, min: 0 });
             const input = screen.getByRole('spinbutton');
@@ -288,7 +289,7 @@ describe('PrecisionNumberInput', () => {
 
         it('should clamp typed value to max on blur', async () => {
             // Arrange
-            const onChange = vi.fn();
+            const onChange = vi.fn<(value: number) => void>();
             const user = userEvent.setup();
             renderComponent({ onChange, value: 5, max: 100 });
             const input = screen.getByRole('spinbutton');

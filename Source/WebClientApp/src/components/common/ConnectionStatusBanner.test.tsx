@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { act, render, screen } from '@testing-library/react';
-import type React from 'react';
+import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as useConnectionStatusModule from '@/hooks/useConnectionStatus';
 import { ConnectionStatusBanner } from './ConnectionStatusBanner';
@@ -29,7 +29,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: true,
       lastSync: new Date(),
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />);
@@ -41,7 +41,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />);
@@ -59,7 +59,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     const { rerender } = renderWithTheme(<ConnectionStatusBanner />);
@@ -71,7 +71,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: true,
       lastSync: new Date(),
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     rerender(
@@ -91,7 +91,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />);
@@ -109,7 +109,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />);
@@ -125,7 +125,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />);
@@ -143,7 +143,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />, 'light');
@@ -159,7 +159,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     renderWithTheme(<ConnectionStatusBanner />, 'dark');
@@ -175,7 +175,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     const { rerender } = renderWithTheme(<ConnectionStatusBanner />);
@@ -189,7 +189,7 @@ describe('ConnectionStatusBanner', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: true,
       lastSync: new Date(),
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<void>>(),
     });
 
     rerender(

@@ -1,18 +1,18 @@
 /**
- * GameSessionPage Component Tests
- * Tests game session page with audio unlock and navigation
+ * EncounterPage Component Tests
+ * Tests encounter page with audio unlock and navigation
  * Coverage: Game Session / DM Preview functionality
  */
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render, screen } from '@testing-library/react';
-import type * as React from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import authReducer from '@/store/slices/authSlice';
-import { GameSessionPage } from './GameSessionPage';
+import { EncounterPage } from './EncounterPage';
 
 // Mock react-router-dom hooks
 const mockNavigate = vi.fn();
@@ -66,7 +66,16 @@ vi.mock('@mui/icons-material/ArrowBack', () => ({
     default: () => <span data-testid="arrow-back-icon">ArrowBackIcon</span>,
 }));
 
-describe('GameSessionPage', () => {
+// Mock WallRenderer component
+vi.mock('@/components/encounter/rendering/WallRenderer', () => ({
+    WallRenderer: ({ encounterWall }: { encounterWall: { index: number } }) => (
+        <div data-testid={`mock-wall-${encounterWall.index}`}>
+            Wall {encounterWall.index}
+        </div>
+    ),
+}));
+
+describe('EncounterPage', () => {
     let store: ReturnType<typeof configureStore>;
 
     const mockEncounter = {
@@ -85,6 +94,55 @@ describe('GameSessionPage', () => {
                     contentType: 'image/png',
                 },
             },
+            walls: [],
+        },
+    };
+
+    const mockEncounterWithWalls = {
+        ...mockEncounter,
+        stage: {
+            ...mockEncounter.stage,
+            walls: [
+                {
+                    index: 0,
+                    segments: [
+                        {
+                            index: 0,
+                            startPole: { x: 0, y: 0, h: 10 },
+                            endPole: { x: 100, y: 0, h: 10 },
+                            type: 'Wall',
+                            state: 'Closed',
+                            isOpaque: true,
+                        },
+                    ],
+                },
+                {
+                    index: 1,
+                    segments: [
+                        {
+                            index: 0,
+                            startPole: { x: 200, y: 0, h: 10 },
+                            endPole: { x: 300, y: 0, h: 10 },
+                            type: 'Wall',
+                            state: 'Secret', // This wall should be hidden
+                            isOpaque: true,
+                        },
+                    ],
+                },
+                {
+                    index: 2,
+                    segments: [
+                        {
+                            index: 0,
+                            startPole: { x: 400, y: 0, h: 10 },
+                            endPole: { x: 500, y: 0, h: 10 },
+                            type: 'Door',
+                            state: 'Closed',
+                            isOpaque: true,
+                        },
+                    ],
+                },
+            ],
         },
     };
 
@@ -116,7 +174,7 @@ describe('GameSessionPage', () => {
                 <MemoryRouter initialEntries={[`/encounters/${encounterId}/play`]}>
                     <ThemeProvider theme={theme}>
                         <Routes>
-                            <Route path="/encounters/:encounterId/play" element={<GameSessionPage />} />
+                            <Route path="/encounters/:encounterId/play" element={<EncounterPage />} />
                         </Routes>
                     </ThemeProvider>
                 </MemoryRouter>
@@ -324,7 +382,7 @@ describe('GameSessionPage', () => {
                     <MemoryRouter initialEntries={['/encounters//play']}>
                         <ThemeProvider theme={theme}>
                             <Routes>
-                                <Route path="/encounters/:encounterId/play" element={<GameSessionPage />} />
+                                <Route path="/encounters/:encounterId/play" element={<EncounterPage />} />
                             </Routes>
                         </ThemeProvider>
                     </MemoryRouter>
@@ -368,6 +426,59 @@ describe('GameSessionPage', () => {
             // Assert
             expect(screen.getByText('Failed to load encounter')).toBeInTheDocument();
             expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
+        });
+    });
+
+    describe('Wall rendering', () => {
+        it('should render non-secret walls', () => {
+            // Arrange
+            mockUseGetEncounterQuery.mockReturnValue({
+                data: mockEncounterWithWalls,
+                isLoading: false,
+                isError: false,
+                error: null,
+            });
+
+            // Act
+            renderWithProviders();
+
+            // Assert - walls with index 0 (Closed) and 2 (Door, Closed) should be rendered
+            expect(screen.getByTestId('mock-wall-0')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-wall-2')).toBeInTheDocument();
+        });
+
+        it('should not render secret walls', () => {
+            // Arrange
+            mockUseGetEncounterQuery.mockReturnValue({
+                data: mockEncounterWithWalls,
+                isLoading: false,
+                isError: false,
+                error: null,
+            });
+
+            // Act
+            renderWithProviders();
+
+            // Assert - wall with index 1 (Secret) should not be rendered
+            expect(screen.queryByTestId('mock-wall-1')).not.toBeInTheDocument();
+        });
+
+        it('should not render walls when encounter has no walls', () => {
+            // Arrange
+            mockUseGetEncounterQuery.mockReturnValue({
+                data: mockEncounter,
+                isLoading: false,
+                isError: false,
+                error: null,
+            });
+
+            // Act
+            renderWithProviders();
+
+            // Assert
+            expect(screen.queryByTestId('mock-wall-0')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('mock-wall-1')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('mock-wall-2')).not.toBeInTheDocument();
         });
     });
 });

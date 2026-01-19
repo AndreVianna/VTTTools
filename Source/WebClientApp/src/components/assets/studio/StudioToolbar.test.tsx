@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type React from 'react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudioToolbar } from './StudioToolbar';
 
@@ -19,11 +19,11 @@ describe('StudioToolbar', () => {
   let mockOnUnpublish: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    mockOnBack = vi.fn();
-    mockOnSave = vi.fn();
-    mockOnDelete = vi.fn();
-    mockOnPublish = vi.fn();
-    mockOnUnpublish = vi.fn();
+    mockOnBack = vi.fn<() => void>();
+    mockOnSave = vi.fn<() => void>();
+    mockOnDelete = vi.fn<() => void>();
+    mockOnPublish = vi.fn<() => void>();
+    mockOnUnpublish = vi.fn<() => void>();
   });
 
   describe('rendering', () => {
