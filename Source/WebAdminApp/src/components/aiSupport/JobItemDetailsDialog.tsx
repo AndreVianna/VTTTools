@@ -61,7 +61,7 @@ export function JobItemDetailsDialog({ item, open, onClose }: JobItemDetailsDial
     const parsedResult = useMemo(() => {
         if (!item?.result) return null;
         return parseResult(item.result);
-    }, [item?.result]);
+    }, [item]);
 
     if (!item) return null;
 

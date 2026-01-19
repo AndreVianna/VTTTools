@@ -33,7 +33,7 @@ describe('AuditLog Export Utilities', () => {
         global.document.body.appendChild = mockAppendChild as unknown as typeof document.body.appendChild;
         global.document.body.removeChild = mockRemoveChild as unknown as typeof document.body.removeChild;
         global.URL.createObjectURL = mockCreateObjectURL as unknown as typeof URL.createObjectURL;
-        global.URL.revokeObjectURL = mockRevokeObjectURL;
+        global.URL.revokeObjectURL = mockRevokeObjectURL as unknown as typeof URL.revokeObjectURL;
     });
 
     afterEach(() => {

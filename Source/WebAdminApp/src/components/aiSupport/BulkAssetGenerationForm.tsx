@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
     Paper,
     Typography,
@@ -125,8 +125,10 @@ export function BulkAssetGenerationForm({
 
     // Validate items whenever they change
     useEffect(() => {
-        const result = validateItems(items);
-        setValidation(result);
+        queueMicrotask(() => {
+            const result = validateItems(items);
+            setValidation(result);
+        });
     }, [items]);
 
     // Save to localStorage whenever state changes

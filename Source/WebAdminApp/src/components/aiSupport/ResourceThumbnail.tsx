@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Card,
     CardContent,
@@ -109,7 +109,7 @@ function AudioPlayer({ resource }: { resource: GeneratedResource }) {
 
     const handleSeek = (_: Event, value: number | number[]) => {
         if (!audioRef.current) return;
-        const newTime = Array.isArray(value) ? value[0] : value;
+        const newTime = Array.isArray(value) ? (value[0] ?? 0) : value;
         audioRef.current.currentTime = newTime;
         setProgress(newTime);
     };

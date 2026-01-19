@@ -55,7 +55,6 @@ const createMockUser = (overrides: Partial<UserDetailResponse> = {}): UserDetail
     id: 'user-1',
     email: 'test@example.com',
     displayName: 'Test User',
-    phoneNumber: undefined,
     emailConfirmed: true,
     phoneNumberConfirmed: false,
     twoFactorEnabled: false,
@@ -199,7 +198,7 @@ describe('UserDetailModal', () => {
 
         it('should show N/A for missing phone number', async () => {
             // Arrange
-            mockGetUserById.mockResolvedValue(createMockUser({ phoneNumber: undefined }));
+            mockGetUserById.mockResolvedValue(createMockUser());
 
             // Act
             render(<UserDetailModal {...defaultProps} />);
@@ -578,7 +577,7 @@ describe('UserDetailModal', () => {
 
         it('should display N/A for missing last login date', async () => {
             // Arrange
-            mockGetUserById.mockResolvedValue(createMockUser({ lastLoginDate: undefined }));
+            mockGetUserById.mockResolvedValue(createMockUser());
 
             // Act
             render(<UserDetailModal {...defaultProps} />);

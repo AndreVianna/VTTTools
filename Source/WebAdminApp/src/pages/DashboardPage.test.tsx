@@ -190,11 +190,8 @@ describe('DashboardPage', () => {
         });
 
         it('should display loading skeletons while loading', async () => {
-            // Arrange
-            let resolveHealth: (value: AllServicesHealth) => void = () => {};
-            mockGetAllHealth.mockImplementation(() => new Promise((resolve) => {
-                resolveHealth = resolve;
-            }));
+            // Arrange - Create promises that never resolve to keep component in loading state
+            mockGetAllHealth.mockImplementation(() => new Promise(() => {}));
             mockGetStats.mockImplementation(() => new Promise(() => {}));
             mockGetMetrics.mockImplementation(() => new Promise(() => {}));
 

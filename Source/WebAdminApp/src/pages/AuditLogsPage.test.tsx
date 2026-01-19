@@ -14,6 +14,7 @@
  * - Error handling
  */
 
+import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
@@ -98,7 +99,7 @@ vi.mock('@mui/x-data-grid', () => ({
         rows: unknown[];
         columns: unknown[];
         loading: boolean;
-        slots?: { noRowsOverlay?: () => JSX.Element };
+        slots?: { noRowsOverlay?: () => React.JSX.Element };
     }) => (
         <div role="grid">
             {loading && <div>Loading...</div>}

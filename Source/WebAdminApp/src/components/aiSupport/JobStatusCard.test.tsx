@@ -162,7 +162,7 @@ describe('JobStatusCard', () => {
 
         it('should not render Started date when not available', () => {
             // Arrange
-            const job = createMockJob({ startedAt: undefined });
+            const job = createMockJob();
 
             // Act
             render(<JobStatusCard job={job} />);
@@ -184,7 +184,7 @@ describe('JobStatusCard', () => {
 
         it('should not render Completed date when not available', () => {
             // Arrange
-            const job = createMockJob({ completedAt: undefined });
+            const job = createMockJob();
 
             // Act
             render(<JobStatusCard job={job} />);
@@ -206,7 +206,7 @@ describe('JobStatusCard', () => {
 
         it('should not render Duration when not available', () => {
             // Arrange
-            const job = createMockJob({ actualDurationMs: undefined });
+            const job = createMockJob();
 
             // Act
             render(<JobStatusCard job={job} />);
@@ -713,7 +713,7 @@ describe('JobStatusCard', () => {
 
         it('should show dash when duration is undefined', () => {
             // Arrange
-            const job = createMockJob({ actualDurationMs: undefined });
+            const job = createMockJob();
 
             // Act
             render(<JobStatusCard job={job} />);

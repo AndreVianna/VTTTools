@@ -61,4 +61,16 @@ export const resourcesAdminService = {
     async rejectResource(resourceId: string): Promise<void> {
         await apiClient.post(`${RESOURCES_ADMIN_API}/reject`, { resourceId });
     },
+
+    async updateResource(resourceId: string, update: {
+        description?: string | null;
+        classification?: {
+            kind: string;
+            category: string;
+            type: string;
+            subtype: string | null;
+        };
+    }): Promise<void> {
+        await apiClient.patch(`${RESOURCES_ADMIN_API}/${resourceId}`, update);
+    },
 };

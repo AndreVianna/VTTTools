@@ -17,7 +17,7 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ResourcesPage } from './ResourcesPage';
 import { resourcesAdminService } from '@/services/resourcesAdminService';
 import type { ResourceInfo, ResourceListResponse } from '@/types/resourcesAdmin';

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -223,7 +223,7 @@ export function BulkAssetGenerationPage() {
         if (currentJob?.jobId) {
             dispatch(fetchJobStatus(currentJob.jobId));
         }
-    }, [dispatch, page, rowsPerPage, currentJob?.jobId]);
+    }, [dispatch, page, rowsPerPage, currentJob]);
 
     const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);

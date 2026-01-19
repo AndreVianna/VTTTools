@@ -295,7 +295,7 @@ export function useSignalRHub<TEvents extends Record<string, unknown> = Record<s
 
     useEffect(() => {
         if (autoConnect) {
-            connect().catch(console.error);
+            queueMicrotask(() => connect().catch(console.error));
         }
 
         // Clean up on unmount

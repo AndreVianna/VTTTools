@@ -571,7 +571,6 @@ describe('RoleManagement', () => {
     describe('Edge Cases', () => {
         it('should not call assignRole when selectedRole is empty', async () => {
             // Arrange
-            const user = userEvent.setup();
             const roles: string[] = [];
 
             render(<RoleManagement {...defaultProps} currentRoles={roles} />);

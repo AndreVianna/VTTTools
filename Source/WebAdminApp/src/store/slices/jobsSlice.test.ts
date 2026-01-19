@@ -22,7 +22,7 @@ import reducer, {
     selectItemUpdates,
     type JobsState,
 } from './jobsSlice';
-import { jobsService } from '@services/jobsService';
+import { jobsService as _jobsService } from '@services/jobsService';
 import { JobStatus, JobItemStatus, JobType } from '@/types/jobs';
 import type { JobResponse, JobItemResponse } from '@/types/jobs';
 
@@ -134,7 +134,7 @@ describe('jobsSlice', () => {
                 const result = reducer(state, addItemStarted(event));
 
                 // Assert
-                const updates = result.itemUpdates['job-123'];
+                const updates = result.itemUpdates['job-123']!;
                 expect(updates).toHaveLength(1);
                 expect(updates[0]).toEqual({
                     jobId: 'job-123',
@@ -168,10 +168,10 @@ describe('jobsSlice', () => {
                 const result = reducer(state, addItemStarted(event));
 
                 // Assert
-                const updates = result.itemUpdates['job-123'];
+                const updates = result.itemUpdates['job-123']!;
                 expect(updates).toHaveLength(1);
-                expect(updates[0]?.status).toBe(JobItemStatus.InProgress);
-                expect(updates[0]?.occurredAt).toBe('2024-01-01T00:00:02Z');
+                expect(updates[0]!.status).toBe(JobItemStatus.InProgress);
+                expect(updates[0]!.occurredAt).toBe('2024-01-01T00:00:02Z');
             });
 
             it('should ignore older events by occurredAt', () => {
@@ -198,8 +198,8 @@ describe('jobsSlice', () => {
                 const result = reducer(state, addItemStarted(olderEvent));
 
                 // Assert
-                const updates = result.itemUpdates['job-123'];
-                expect(updates[0]?.occurredAt).toBe('2024-01-01T00:00:05Z');
+                const updates = result.itemUpdates['job-123']!;
+                expect(updates[0]!.occurredAt).toBe('2024-01-01T00:00:05Z');
             });
 
             it('should update currentJob status to InProgress when job matches', () => {
@@ -238,7 +238,7 @@ describe('jobsSlice', () => {
                 const result = reducer(state, addItemCompleted(event));
 
                 // Assert
-                const updates = result.itemUpdates['job-123'];
+                const updates = result.itemUpdates['job-123']!;
                 expect(updates).toHaveLength(1);
                 expect(updates[0]).toEqual({
                     jobId: 'job-123',
@@ -275,10 +275,10 @@ describe('jobsSlice', () => {
                 const result = reducer(state, addItemCompleted(event));
 
                 // Assert
-                const updates = result.itemUpdates['job-123'];
-                expect(updates[0]?.status).toBe(JobItemStatus.Success);
-                expect(updates[0]?.startedAt).toBe('2024-01-01T00:00:01Z');
-                expect(updates[0]?.completedAt).toBe('2024-01-01T00:00:05Z');
+                const updates = result.itemUpdates['job-123']!;
+                expect(updates[0]!.status).toBe(JobItemStatus.Success);
+                expect(updates[0]!.startedAt).toBe('2024-01-01T00:00:01Z');
+                expect(updates[0]!.completedAt).toBe('2024-01-01T00:00:05Z');
             });
 
             it('should update completed and failed counts on currentJob', () => {
@@ -553,10 +553,11 @@ describe('jobsSlice', () => {
                 // Assert
                 expect(result.isLoading).toBe(false);
                 expect(result.currentJob).toEqual(mockJob);
-                expect(result.itemUpdates['job-123']).toHaveLength(3);
-                expect(result.itemUpdates['job-123'][0]?.status).toBe(JobItemStatus.Success);
-                expect(result.itemUpdates['job-123'][1]?.status).toBe(JobItemStatus.InProgress);
-                expect(result.itemUpdates['job-123'][2]?.status).toBe(JobItemStatus.Pending);
+                const updates = result.itemUpdates['job-123']!;
+                expect(updates).toHaveLength(3);
+                expect(updates[0]!.status).toBe(JobItemStatus.Success);
+                expect(updates[1]!.status).toBe(JobItemStatus.InProgress);
+                expect(updates[2]!.status).toBe(JobItemStatus.Pending);
             });
 
             it('should preserve existing SignalR updates on fulfilled', () => {
@@ -589,7 +590,7 @@ describe('jobsSlice', () => {
                 const result = reducer(state, action);
 
                 // Assert
-                expect(result.itemUpdates['job-123'][0]).toEqual(existingUpdate);
+                expect(result.itemUpdates['job-123']![0]).toEqual(existingUpdate);
             });
 
             it('should set error on rejected', () => {
@@ -638,10 +639,11 @@ describe('jobsSlice', () => {
                 expect(result.jobs).toHaveLength(1);
                 expect(result.jobs[0]).toEqual(mockJob);
                 expect(result.totalCount).toBe(1);
-                expect(result.itemUpdates['job-123']).toHaveLength(3);
-                expect(result.itemUpdates['job-123'][0]?.status).toBe(JobItemStatus.Pending);
-                expect(result.itemUpdates['job-123'][1]?.status).toBe(JobItemStatus.Pending);
-                expect(result.itemUpdates['job-123'][2]?.status).toBe(JobItemStatus.Pending);
+                const updates = result.itemUpdates['job-123']!;
+                expect(updates).toHaveLength(3);
+                expect(updates[0]!.status).toBe(JobItemStatus.Pending);
+                expect(updates[1]!.status).toBe(JobItemStatus.Pending);
+                expect(updates[2]!.status).toBe(JobItemStatus.Pending);
             });
 
             it('should prepend new job to existing jobs list', () => {

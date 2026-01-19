@@ -218,11 +218,11 @@ describe('RecentActivityFeed', () => {
 
         it('should display Anonymous for missing user email', async () => {
             // Arrange
-            const mockLog = createMockLog({
-                userEmail: undefined,
+            const { userEmail: _, ...logWithoutEmail } = createMockLog({
                 action: 'System:Action:ByUser',
                 payload: createHttpPayload('GET', '/api/health', 200),
             });
+            const mockLog = logWithoutEmail as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -236,11 +236,11 @@ describe('RecentActivityFeed', () => {
 
         it('should display non-HTTP action description', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 userEmail: 'admin@example.com',
                 action: 'System:Startup',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -326,11 +326,11 @@ describe('RecentActivityFeed', () => {
 
         it('should display Error chip when errorMessage is present', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'System:Action',
-                payload: undefined,
                 errorMessage: 'Something went wrong',
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -362,10 +362,10 @@ describe('RecentActivityFeed', () => {
 
         it('should not display duration when not available', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'System:Startup',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -467,10 +467,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display JobIcon for Job actions', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'Job:Created',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -484,10 +484,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display JobIcon for JobItem actions', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'JobItem:Completed',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -501,10 +501,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display GeneratedIcon for ViaJob actions', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'Asset:Created:ViaJob',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -518,10 +518,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display LoginIcon for default/unknown actions', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'Unknown:Action',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -698,11 +698,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display Success chip for non-HTTP actions without error', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _p, errorMessage: _e, ...logWithoutOptionals } = createMockLog({
                 action: 'System:Startup',
-                payload: undefined,
-                errorMessage: undefined,
             });
+            const mockLog = logWithoutOptionals as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -717,10 +716,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display Job chip with info color for Job actions', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'Job:Started',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act
@@ -735,10 +734,10 @@ describe('RecentActivityFeed', () => {
 
         it('should display Generated chip with secondary color for ViaJob actions', async () => {
             // Arrange
-            const mockLog = createMockLog({
+            const { payload: _, ...logWithoutPayload } = createMockLog({
                 action: 'Asset:Created:ViaJob',
-                payload: undefined,
             });
+            const mockLog = logWithoutPayload as AuditLog;
             mockQueryAuditLogs.mockResolvedValue({ items: [mockLog], totalCount: 1 });
 
             // Act

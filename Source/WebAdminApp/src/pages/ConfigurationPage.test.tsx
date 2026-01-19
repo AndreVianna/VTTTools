@@ -40,22 +40,29 @@ vi.mock('@mui/icons-material', () => {
 
 // Mock configurationService
 const mockGetConfiguration = vi.fn();
+
+// Import the actual enum type for proper typing
+import type { ConfigSourceType as ConfigSourceTypeEnum } from '@services/configurationService';
+
+// Define mock enum values that match the real ConfigSourceType
+const MockConfigSourceType = {
+    EnvironmentVariable: 'EnvironmentVariable' as ConfigSourceTypeEnum,
+    JsonFile: 'JsonFile' as ConfigSourceTypeEnum,
+    UserSecrets: 'UserSecrets' as ConfigSourceTypeEnum,
+    AzureKeyVault: 'AzureKeyVault' as ConfigSourceTypeEnum,
+    AzureAppConfiguration: 'AzureAppConfiguration' as ConfigSourceTypeEnum,
+    CommandLine: 'CommandLine' as ConfigSourceTypeEnum,
+    InMemory: 'InMemory' as ConfigSourceTypeEnum,
+    FrontendEnvFile: 'FrontendEnvFile' as ConfigSourceTypeEnum,
+    Unknown: 'Unknown' as ConfigSourceTypeEnum,
+    NotFound: 'NotFound' as ConfigSourceTypeEnum,
+};
+
 vi.mock('@services/configurationService', () => ({
     configurationService: {
         getConfiguration: (serviceName: string) => mockGetConfiguration(serviceName),
     },
-    ConfigSourceType: {
-        EnvironmentVariable: 'EnvironmentVariable',
-        JsonFile: 'JsonFile',
-        UserSecrets: 'UserSecrets',
-        AzureKeyVault: 'AzureKeyVault',
-        AzureAppConfiguration: 'AzureAppConfiguration',
-        CommandLine: 'CommandLine',
-        InMemory: 'InMemory',
-        FrontendEnvFile: 'FrontendEnvFile',
-        Unknown: 'Unknown',
-        NotFound: 'NotFound',
-    },
+    ConfigSourceType: MockConfigSourceType,
 }));
 
 // Mock RevealValueModal component
@@ -73,21 +80,21 @@ describe('ConfigurationPage', () => {
                 value: 'Server=localhost;Database=Test',
                 isRedacted: false,
                 category: 'Database',
-                source: { type: 'JsonFile' as const, path: 'appsettings.json' },
+                source: { type: MockConfigSourceType.JsonFile, path: 'appsettings.json' },
             },
             {
                 key: 'JwtSettings:Secret',
                 value: '',
                 isRedacted: true,
                 category: 'Security',
-                source: { type: 'UserSecrets' as const, path: null },
+                source: { type: MockConfigSourceType.UserSecrets, path: null },
             },
             {
                 key: 'Logging:LogLevel:Default',
                 value: 'Information',
                 isRedacted: false,
                 category: 'Logging',
-                source: { type: 'JsonFile' as const, path: 'appsettings.json' },
+                source: { type: MockConfigSourceType.JsonFile, path: 'appsettings.json' },
             },
         ],
         ...overrides,
@@ -209,7 +216,7 @@ describe('ConfigurationPage', () => {
                         value: '3600',
                         isRedacted: false,
                         category: 'Cache',
-                        source: { type: 'JsonFile' as const, path: 'appsettings.json' },
+                        source: { type: MockConfigSourceType.JsonFile, path: 'appsettings.json' },
                     },
                 ],
             });

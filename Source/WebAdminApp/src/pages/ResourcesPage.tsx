@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     Box,
     Typography,
@@ -125,7 +125,7 @@ export function ResourcesPage() {
                 ...prev,
                 [params.role ?? '']: response.totalCount,
             }));
-        } catch (err) {
+        } catch (_err) {
             if (signal?.aborted) return;
             setError('Failed to load resources');
         } finally {

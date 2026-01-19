@@ -9,6 +9,11 @@
 ## Context
 Solution: `Source/VttTools.slnx` | Hot Reload enabled | Rules auto-loaded from `.claude/rules/`
 
+## Environment
+- **Shell**: Git Bash on Windows 11
+- **PowerShell**: Use `pwsh` (PowerShell Core), NOT `powershell`
+- **Paths**: Use forward slashes `/c/Projects/...` or quoted Windows paths `"C:/Projects/..."`
+
 ## Commands
 ```
 Build:    dotnet build Source/VttTools.slnx

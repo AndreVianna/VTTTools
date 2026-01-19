@@ -336,7 +336,7 @@ export function PublicLibraryPage() {
   const [taxonomy, setTaxonomy] = useState<AssetTaxonomyNode[]>([]);
   const [taxonomyLoading, setTaxonomyLoading] = useState(false);
 
-  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -866,7 +866,7 @@ export function PublicLibraryPage() {
           onChange={(_, newValue) => {
             setActiveTab(newValue);
             setPaginationModel({ ...paginationModel, page: 0 });
-            setSelectedRows([]);
+            setSelectedRows({ type: 'include', ids: new Set() });
           }}
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
