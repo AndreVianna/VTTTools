@@ -827,6 +827,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         await updateEncounterAsset({
           encounterId,
           assetNumber: asset.index,
+          kind: asset.asset.classification.kind,
           position: updatedAsset.position,
           size: updatedAsset.size,
           rotation: updatedAsset.rotation,

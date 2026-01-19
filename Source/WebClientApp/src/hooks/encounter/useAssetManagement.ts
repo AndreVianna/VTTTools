@@ -118,6 +118,7 @@ export const useAssetManagement = ({
               await addEncounterAsset({
                 encounterId,
                 libraryAssetId: placedAsset.assetId,
+                kind: placedAsset.asset.classification.kind,
                 position: placedAsset.position,
                 size: {
                   width: placedAsset.size.width,
@@ -168,6 +169,8 @@ export const useAssetManagement = ({
         },
         onRemove: async (assetId) => {
           const backendIndex = getIndexByDomId(encounterId || '', 'assets', assetId);
+          // Find the asset before filtering to get its kind
+          const assetToRemove = placedAssets.find((a) => a.id === assetId);
 
           if (backendIndex === undefined) {
             console.warn('[PlaceAssetCommand] No backend index found for asset:', assetId);
@@ -179,11 +182,12 @@ export const useAssetManagement = ({
           setPlacedAssets((prev) => prev.filter((a) => a.id !== assetId));
           setSelectedAssetIds((prev) => prev.filter((id) => id !== assetId));
 
-          if (encounterId && isOnline) {
+          if (encounterId && isOnline && assetToRemove) {
             try {
               await removeEncounterAsset({
                 encounterId,
                 assetNumber: backendIndex,
+                kind: assetToRemove.asset.classification.kind,
               }).unwrap();
 
               removeEntityMapping(encounterId, 'assets', assetId);
@@ -200,7 +204,7 @@ export const useAssetManagement = ({
       });
       execute(command);
     },
-    [encounterId, isOnline, encounter, addEncounterAsset, removeEncounterAsset, refetch, setEncounter, execute],
+    [encounterId, isOnline, encounter, placedAssets, addEncounterAsset, removeEncounterAsset, refetch, setEncounter, execute],
   );
 
   const handleAssetMoved = useCallback(
@@ -221,24 +225,22 @@ export const useAssetManagement = ({
           newPosition: { x: number; y: number };
         };
 
+        // Find the asset before the move to get its index and kind
+        const assetToMove = placedAssets.find((a) => a.id === assetId);
         const command = createMoveAssetCommand({
           assetId,
           oldPosition,
           newPosition,
           onMove: async (id, position) => {
-            let assetIndex: number | undefined;
-            setPlacedAssets((prev) => {
-              const asset = prev.find((a) => a.id === id);
-              assetIndex = asset?.index;
-              return prev.map((a) => (a.id === id ? { ...a, position } : a));
-            });
+            setPlacedAssets((prev) => prev.map((a) => (a.id === id ? { ...a, position } : a)));
             setSelectedAssetIds([id]);
 
-            if (encounterId && isOnline && encounter && assetIndex !== undefined) {
+            if (encounterId && isOnline && encounter && assetToMove) {
               try {
                 await updateEncounterAsset({
                   encounterId,
-                  assetNumber: assetIndex,
+                  assetNumber: assetToMove.index,
+                  kind: assetToMove.asset.classification.kind,
                   position,
                 }).unwrap();
               } catch (error) {
@@ -373,6 +375,7 @@ export const useAssetManagement = ({
         await updateEncounterAsset({
           encounterId,
           assetNumber: asset.index,
+          kind: asset.asset.classification.kind,
           rotation: backendRotation,
           position: asset.position,
         }).unwrap();
@@ -730,6 +733,7 @@ export const useAssetManagement = ({
         await updateEncounterAsset({
           encounterId,
           assetNumber: asset.index,
+          kind: asset.asset.classification.kind,
           name: newName,
         }).unwrap();
       } catch (error) {

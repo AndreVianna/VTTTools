@@ -5,7 +5,23 @@ import type {
     EncounterAsset,
     UpdateEncounterRequest,
 } from '@/types/domain';
+import { AssetKind } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
+
+// Helper to map AssetKind to API endpoint path
+function getAssetEndpointPath(kind: AssetKind): string {
+    switch (kind) {
+        case AssetKind.Character:
+        case AssetKind.Creature:
+            return 'actors';
+        case AssetKind.Object:
+            return 'objects';
+        case AssetKind.Effect:
+            return 'effects';
+        default:
+            return 'actors'; // Default to actors for safety
+    }
+}
 
 export interface UpdateEncounterWithVersionRequest extends UpdateEncounterRequest {
     id: string;
@@ -124,6 +140,7 @@ export const encounterApi = createApi({
             {
                 encounterId: string;
                 libraryAssetId: string;
+                kind: AssetKind;
                 position: { x: number; y: number };
                 size: { width: number; height: number };
                 rotation?: number;
@@ -133,8 +150,8 @@ export const encounterApi = createApi({
                 isVisible?: boolean;
             }
         >({
-            query: ({ encounterId, libraryAssetId, position, size, rotation, tokenId, portraitId, notes, isVisible }) => ({
-                url: `/${encounterId}/assets/${libraryAssetId}`,
+            query: ({ encounterId, libraryAssetId, kind, position, size, rotation, tokenId, portraitId, notes, isVisible }) => ({
+                url: `/${encounterId}/${getAssetEndpointPath(kind)}/${libraryAssetId}`,
                 method: 'POST',
                 body: {
                     position: { x: position.x, y: position.y },
@@ -150,10 +167,10 @@ export const encounterApi = createApi({
                     },
                     rotation: rotation || 0,
                     elevation: 0,
-                    ...(tokenId && { tokenId }),
+                    ...(tokenId && { displayId: tokenId }),
                     ...(portraitId && { portraitId }),
                     ...(notes && { notes }),
-                    ...(isVisible !== undefined && { isVisible }),
+                    ...(isVisible !== undefined && { isHidden: !isVisible }),
                 },
             }),
             invalidatesTags: (_result, _error, { encounterId }) => [encounterId ? { type: 'Encounter' as const, id: encounterId } : { type: 'Encounter' as const, id: 'unknown' }],
@@ -164,6 +181,7 @@ export const encounterApi = createApi({
             {
                 encounterId: string;
                 assetNumber: number;
+                kind: AssetKind;
                 position?: { x: number; y: number };
                 size?: { width: number; height: number };
                 rotation?: number;
@@ -178,6 +196,7 @@ export const encounterApi = createApi({
             query: ({
                 encounterId,
                 assetNumber,
+                kind,
                 position,
                 size,
                 rotation,
@@ -188,7 +207,7 @@ export const encounterApi = createApi({
                 visible,
                 locked,
             }) => ({
-                url: `/${encounterId}/assets/${assetNumber}`,
+                url: `/${encounterId}/${getAssetEndpointPath(kind)}/${assetNumber}`,
                 method: 'PATCH',
                 body: {
                     ...(position && { position: { x: position.x, y: position.y } }),
@@ -200,11 +219,11 @@ export const encounterApi = createApi({
                     }),
                     ...(rotation !== undefined && { rotation }),
                     ...(name !== undefined && { name }),
-                    ...(tokenId && { tokenId }),
+                    ...(tokenId && { displayId: tokenId }),
                     ...(portraitId && { portraitId }),
                     ...(notes !== undefined && { notes }),
-                    ...(visible !== undefined && { visible }),
-                    ...(locked !== undefined && { locked }),
+                    ...(visible !== undefined && { isHidden: !visible }),
+                    ...(locked !== undefined && { isLocked: locked }),
                 },
             }),
             invalidatesTags: (_result, _error, { encounterId }) => [encounterId ? { type: 'Encounter' as const, id: encounterId } : { type: 'Encounter' as const, id: 'unknown' }],
@@ -236,9 +255,9 @@ export const encounterApi = createApi({
             invalidatesTags: (_result, _error, { encounterId }) => [encounterId ? { type: 'Encounter' as const, id: encounterId } : { type: 'Encounter' as const, id: 'unknown' }],
         }),
 
-        removeEncounterAsset: builder.mutation<void, { encounterId: string; assetNumber: number }>({
-            query: ({ encounterId, assetNumber }) => ({
-                url: `/${encounterId}/assets/${assetNumber}`,
+        removeEncounterAsset: builder.mutation<void, { encounterId: string; assetNumber: number; kind: AssetKind }>({
+            query: ({ encounterId, assetNumber, kind }) => ({
+                url: `/${encounterId}/${getAssetEndpointPath(kind)}/${assetNumber}`,
                 method: 'DELETE',
             }),
             invalidatesTags: (_result, _error, { encounterId }) => [encounterId ? { type: 'Encounter' as const, id: encounterId } : { type: 'Encounter' as const, id: 'unknown' }],

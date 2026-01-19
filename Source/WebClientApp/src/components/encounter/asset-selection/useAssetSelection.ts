@@ -138,7 +138,7 @@ export function useAssetSelection(options: UseAssetSelectionOptions = {}) {
     }
 
     return assets.map((asset): AssetSelectionResult => {
-      const statBlock = asset.statBlocks[0];
+      const statBlock = asset.statBlocks?.[0];
       const cr = statBlock?.['CR']?.value;
       const ac = statBlock?.['AC']?.value;
       const hp = statBlock?.['HP']?.value;
