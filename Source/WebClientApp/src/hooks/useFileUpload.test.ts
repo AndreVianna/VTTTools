@@ -13,6 +13,8 @@ describe('useFileUpload', () => {
 
   const mockResource: MediaResource = {
     id: 'resource-123',
+    name: 'test',
+    description: null,
     fileName: 'test.png',
     contentType: 'image/png',
     fileSize: 1024,
@@ -20,6 +22,7 @@ describe('useFileUpload', () => {
     path: 'resource-123',
     dimensions: { width: 256, height: 256 },
     duration: '',
+    tags: [],
   };
 
   beforeEach(async () => {

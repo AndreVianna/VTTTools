@@ -36,12 +36,15 @@ export interface RegionSegment {
  * Transaction state for region placement and editing operations.
  * Manages the lifecycle of a region operation with local undo/redo support.
  */
-export interface RegionTransaction {
+export interface RegionTransactionState {
   type: TransactionType;
   originalRegion: EncounterRegion | null;
   segment: RegionSegment | null;
   isActive: boolean;
 }
+
+// Legacy alias for backwards compatibility
+export type RegionTransaction = ReturnType<typeof useRegionTransaction>;
 
 export interface CommitResult {
   success: boolean;
@@ -64,7 +67,7 @@ interface ApiHooks {
   updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void>;
 }
 
-const INITIAL_TRANSACTION: RegionTransaction = {
+const INITIAL_TRANSACTION: RegionTransactionState = {
   type: null,
   originalRegion: null,
   segment: null,
@@ -81,7 +84,7 @@ const INITIAL_TRANSACTION: RegionTransaction = {
  * @returns Transaction state and mutation functions for region operations
  */
 export const useRegionTransaction = () => {
-  const [transaction, setTransaction] = useState<RegionTransaction>(INITIAL_TRANSACTION);
+  const [transaction, setTransaction] = useState<RegionTransactionState>(INITIAL_TRANSACTION);
   const [_nextTempId, setNextTempId] = useState<number>(0);
   const history = useUndoHistory<LocalAction>();
 

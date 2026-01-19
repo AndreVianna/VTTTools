@@ -341,6 +341,9 @@ describe('AssetResourceManager', () => {
         path: 'new-portrait-id',
         dimensions: { width: 256, height: 256 },
         duration: '',
+        name: 'Portrait',
+        description: null,
+        tags: [],
       };
 
       let onSuccessCallback: ((resource: MediaResource) => void) | undefined;

@@ -6,7 +6,7 @@ describe('toRegionType', () => {
     it('should return valid RegionType for valid string', () => {
         expect(toRegionType('Terrain')).toBe(RegionType.Terrain);
         expect(toRegionType('Elevation')).toBe(RegionType.Elevation);
-        expect(toRegionType('Light')).toBe(RegionType.Light);
+        expect(toRegionType('Illumination')).toBe(RegionType.Illumination);
     });
 
     it('should return Terrain for invalid string', () => {
@@ -18,8 +18,8 @@ describe('toRegionType', () => {
 describe('castRegionsWithEncounterId', () => {
     it('should add encounterId to all regions', () => {
         const regions = [
-            { name: 'Region 1', type: RegionType.Terrain, vertices: [{ x: 0, y: 0 }] },
-            { name: 'Region 2', type: RegionType.Elevation, vertices: [{ x: 10, y: 10 }] },
+            { index: 0, name: 'Region 1', type: RegionType.Terrain, vertices: [{ x: 0, y: 0 }] },
+            { index: 1, name: 'Region 2', type: RegionType.Elevation, vertices: [{ x: 10, y: 10 }] },
         ];
         const result = castRegionsWithEncounterId(regions, 'encounter-123');
         expect(result).toHaveLength(2);
@@ -29,12 +29,13 @@ describe('castRegionsWithEncounterId', () => {
 
     it('should preserve all original properties', () => {
         const regions = [
-            { name: 'Test', type: RegionType.Light, vertices: [{ x: 5, y: 5 }], value: 42 },
+            { index: 0, name: 'Test', type: RegionType.Illumination, vertices: [{ x: 5, y: 5 }], value: 42 },
         ];
         const result = castRegionsWithEncounterId(regions, 'enc-456');
         expect(result[0]).toEqual({
+            index: 0,
             name: 'Test',
-            type: RegionType.Light,
+            type: RegionType.Illumination,
             vertices: [{ x: 5, y: 5 }],
             value: 42,
             encounterId: 'enc-456',

@@ -20,7 +20,7 @@ import { useTheme } from '@mui/material/styles';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Encounter } from '@/types/domain';
-import type { GridConfig, GridType } from '@/utils/gridCalculator';
+import { type GridConfig, GridType } from '@/utils/gridCalculator';
 
 const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
@@ -166,9 +166,9 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
     }
   };
 
-  const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
+  const handleGridTypeChange = (e: SelectChangeEvent<GridType>) => {
     if (!encounter?.stage.grid || !onGridChange) return;
-    const newType = Number.parseInt(e.target.value, 10) as GridType;
+    const newType = e.target.value;
 
     onGridChange({
       type: newType,
@@ -414,27 +414,27 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
               <InputLabel id='label-grid-type' sx={compactStyles.inputLabel}>
                 Type
               </InputLabel>
-              <Select<string>
+              <Select<GridType>
                 id='select-grid-type'
                 labelId='label-grid-type'
-                value={(encounter?.stage.grid?.type ?? 'NoGrid') as string}
+                value={encounter?.stage.grid?.type ?? GridType.NoGrid}
                 label='Type'
                 onChange={handleGridTypeChange}
                 sx={compactStyles.select}
               >
-                <MenuItem sx={compactStyles.menuItem} value='NoGrid'>
+                <MenuItem sx={compactStyles.menuItem} value={GridType.NoGrid}>
                   No Grid
                 </MenuItem>
-                <MenuItem sx={compactStyles.menuItem} value='Square'>
+                <MenuItem sx={compactStyles.menuItem} value={GridType.Square}>
                   Square
                 </MenuItem>
-                <MenuItem sx={compactStyles.menuItem} value='HexV'>
+                <MenuItem sx={compactStyles.menuItem} value={GridType.HexV}>
                   Hex (V)
                 </MenuItem>
-                <MenuItem sx={compactStyles.menuItem} value='HexH'>
+                <MenuItem sx={compactStyles.menuItem} value={GridType.HexH}>
                   Hex (H)
                 </MenuItem>
-                <MenuItem sx={compactStyles.menuItem} value='Isometric'>
+                <MenuItem sx={compactStyles.menuItem} value={GridType.Isometric}>
                   Isometric
                 </MenuItem>
               </Select>

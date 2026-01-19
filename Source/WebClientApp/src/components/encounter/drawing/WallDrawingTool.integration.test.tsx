@@ -8,6 +8,7 @@ import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { encounterApi } from '@/services/encounterApi';
 import type { Encounter, EncounterWall, Pole } from '@/types/domain';
 import { GridType as DomainGridType, Weather } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import { WallDrawingTool } from './WallDrawingTool';
 
@@ -75,9 +76,9 @@ vi.mock('@/utils/snapping', () => ({
 }));
 
 describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
-  let onPolesChangeSpy: ReturnType<typeof vi.fn>;
-  let onCancelSpy: ReturnType<typeof vi.fn>;
-  let onFinishSpy: ReturnType<typeof vi.fn>;
+  let onPolesChangeSpy: (poles: Pole[]) => void;
+  let onCancelSpy: () => void;
+  let onFinishSpy: () => void;
 
   const defaultGridConfig: GridConfig = {
     type: GridType.Square,
@@ -100,11 +101,13 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       settings: {
         zoomLevel: 1,
         panning: { x: 0, y: 0 },
-        ambientLight: 0,
+        ambientLight: AmbientLight.Default,
+        ambientSoundSource: AmbientSoundSource.NotSet,
         ambientSoundVolume: 1,
         ambientSoundLoop: false,
         ambientSoundIsPlaying: false,
         weather: Weather.Clear,
+        useAlternateBackground: false,
       },
       grid: {
         type: DomainGridType.Square,

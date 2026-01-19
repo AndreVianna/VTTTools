@@ -664,6 +664,7 @@ export interface ResourceFilterData {
 export interface ResourceFilterResponse {
   items: MediaResource[];
   totalCount: number;
+  skip: number;
   maxVideoDurationMs?: number;
   maxAudioDurationMs?: number;
 }

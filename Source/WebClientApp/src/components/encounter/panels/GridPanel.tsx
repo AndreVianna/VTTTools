@@ -76,9 +76,9 @@ export const GridPanel: React.FC<GridPanelProps> = ({ gridConfig, onGridChange }
     },
   };
 
-  const handleGridTypeChange = (e: SelectChangeEvent<number>) => {
+  const handleGridTypeChange = (e: SelectChangeEvent<GridType>) => {
     if (!onGridChange) return;
-    const newType = Number(e.target.value) as GridType;
+    const newType = e.target.value;
 
     onGridChange({
       ...gridConfig,

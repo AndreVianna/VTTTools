@@ -77,6 +77,9 @@ describe('AssetTableView', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'Dragon Token 1',
+        description: null,
+        tags: [],
       },
       {
         id: 'token-2',
@@ -87,6 +90,9 @@ describe('AssetTableView', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'Dragon Token 2',
+        description: null,
+        tags: [],
       },
     ],
     statBlocks: {

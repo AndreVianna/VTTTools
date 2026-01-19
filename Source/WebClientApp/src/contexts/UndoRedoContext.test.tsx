@@ -1,9 +1,11 @@
 import { act, render } from '@testing-library/react';
 import React, { useEffect } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { type UndoRedoContextValue, useUndoRedoContext } from '@/hooks/useUndoRedo';
 import type { Command } from '@/utils/commands';
 import { UndoRedoProvider } from './UndoRedoContext';
+
+type VoidFnMock = Mock<() => void>;
 
 const TestComponent = ({ onRender }: { onRender: (context: UndoRedoContextValue) => void }) => {
   const context = useUndoRedoContext();
@@ -36,8 +38,8 @@ const createContextCapture = () => {
 };
 
 describe('UndoRedoContext', () => {
-  let mockExecute: ReturnType<typeof vi.fn>;
-  let mockUndo: ReturnType<typeof vi.fn>;
+  let mockExecute: VoidFnMock;
+  let mockUndo: VoidFnMock;
 
   beforeEach(() => {
     mockExecute = vi.fn();
@@ -371,7 +373,7 @@ describe('UndoRedoContext', () => {
 });
 
 describe('UndoRedoContext keyboard shortcuts', () => {
-  let mockExecute: ReturnType<typeof vi.fn>;
+  let mockExecute: VoidFnMock;
 
   beforeEach(() => {
     mockExecute = vi.fn();

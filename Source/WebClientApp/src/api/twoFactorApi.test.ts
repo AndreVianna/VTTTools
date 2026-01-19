@@ -93,7 +93,7 @@ describe('twoFactorApi', () => {
             // Arrange - store is already set up
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate());
+            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate() as any);
 
             // Assert
             expect(capturedRequest?.url).toBe('/two-factor/setup');
@@ -104,7 +104,7 @@ describe('twoFactorApi', () => {
             // Arrange - store is already set up
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate());
+            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate() as any);
 
             // Assert - body is null or undefined (void parameter)
             expect(capturedRequest?.body).toBeFalsy();
@@ -138,7 +138,7 @@ describe('twoFactorApi', () => {
             };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData));
+            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData) as any);
 
             // Assert
             expect(capturedRequest?.url).toBe('/two-factor/setup');
@@ -153,7 +153,7 @@ describe('twoFactorApi', () => {
             };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData));
+            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData) as any);
 
             // Assert
             expect(capturedRequest?.body).toEqual({ code: '654321' });
@@ -187,7 +187,7 @@ describe('twoFactorApi', () => {
             };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData));
+            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData) as any);
 
             // Assert
             expect(capturedRequest?.url).toBe('/two-factor');
@@ -202,7 +202,7 @@ describe('twoFactorApi', () => {
             };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData));
+            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData) as any);
 
             // Assert
             expect(capturedRequest?.body).toEqual({ password: 'mySecretPassword' });
@@ -424,7 +424,7 @@ describe('twoFactorApi', () => {
     describe('endpoint HTTP methods', () => {
         it('initiateSetup should use POST method', async () => {
             // Arrange & Act
-            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate());
+            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate() as any);
 
             // Assert
             expect(capturedRequest?.method).toBe('POST');
@@ -435,7 +435,7 @@ describe('twoFactorApi', () => {
             const verifyData: VerifySetupRequest = { code: '000000' };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData));
+            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData) as any);
 
             // Assert
             expect(capturedRequest?.method).toBe('PUT');
@@ -446,7 +446,7 @@ describe('twoFactorApi', () => {
             const disableData: DisableTwoFactorRequest = { password: 'test' };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData));
+            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData) as any);
 
             // Assert
             expect(capturedRequest?.method).toBe('DELETE');
@@ -456,7 +456,7 @@ describe('twoFactorApi', () => {
     describe('endpoint URL paths', () => {
         it('initiateSetup should call /two-factor/setup', async () => {
             // Arrange & Act
-            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate());
+            await store.dispatch(twoFactorApi.endpoints.initiateSetup.initiate() as any);
 
             // Assert
             expect(capturedRequest?.url).toBe('/two-factor/setup');
@@ -467,7 +467,7 @@ describe('twoFactorApi', () => {
             const verifyData: VerifySetupRequest = { code: '111111' };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData));
+            await store.dispatch(twoFactorApi.endpoints.verifySetup.initiate(verifyData) as any);
 
             // Assert
             expect(capturedRequest?.url).toBe('/two-factor/setup');
@@ -478,7 +478,7 @@ describe('twoFactorApi', () => {
             const disableData: DisableTwoFactorRequest = { password: 'pwd' };
 
             // Act
-            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData));
+            await store.dispatch(twoFactorApi.endpoints.disableTwoFactor.initiate(disableData) as any);
 
             // Assert
             expect(capturedRequest?.url).toBe('/two-factor');

@@ -6,7 +6,7 @@ import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { GridType, Weather } from '@/types/domain';
 import type { Stage, StageRegion } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { useMergeRegions } from '../useMergeRegions';
 import { useRegionHandlers } from '../useRegionHandlers';
@@ -22,10 +22,15 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
+    ambientSound: null,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 1,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    mainBackground: null,
+    alternateBackground: null,
+    useAlternateBackground: false,
   },
   grid: {
     type: GridType.Square,
@@ -80,7 +85,7 @@ describe('Region Workflows - Integration Tests', () => {
     mockEncounter = createMockEncounter();
 
     gridConfig = {
-      type: 1,
+      type: GridType.Square,
       cellSize: { width: 50, height: 50 },
       offset: { left: 0, top: 0 },
       snap: true,

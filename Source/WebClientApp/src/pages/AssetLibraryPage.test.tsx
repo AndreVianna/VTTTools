@@ -9,7 +9,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type * as React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Asset } from '@/types/domain';
+import type { Asset, AssetClassification } from '@/types/domain';
+import { AssetKind, SizeName } from '@/types/domain';
 import { AssetLibraryPage } from './AssetLibraryPage';
 
 // Mock react-router-dom
@@ -143,23 +144,29 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 // Test data factory
-const createMockAsset = (overrides: Partial<Asset> = {}): Asset => ({
-    id: overrides.id ?? 'asset-1',
-    name: overrides.name ?? 'Test Asset',
-    kind: overrides.kind ?? 'Creature',
-    classification: overrides.classification ?? {
+const createMockAsset = (overrides: Partial<Asset> = {}): Asset => {
+    const classification: AssetClassification = overrides.classification ?? {
+        kind: AssetKind.Creature,
         category: 'Monster',
         type: 'Beast',
         subtype: 'Wolf',
-    },
-    description: overrides.description ?? 'A test asset',
-    isPublished: overrides.isPublished ?? true,
-    ownerId: overrides.ownerId ?? 'owner-1',
-    tags: overrides.tags ?? [],
-    statBlocks: overrides.statBlocks ?? [],
-    createdAt: overrides.createdAt ?? '2024-01-01T00:00:00Z',
-    updatedAt: overrides.updatedAt ?? '2024-01-01T00:00:00Z',
-});
+    };
+    return {
+        id: overrides.id ?? 'asset-1',
+        name: overrides.name ?? 'Test Asset',
+        classification,
+        description: overrides.description ?? 'A test asset',
+        thumbnail: overrides.thumbnail ?? null,
+        portrait: overrides.portrait ?? null,
+        size: overrides.size ?? { name: SizeName.Medium, customWidthFeet: null, customHeightFeet: null },
+        tokens: overrides.tokens ?? [],
+        isPublished: overrides.isPublished ?? true,
+        isPublic: overrides.isPublic ?? false,
+        ownerId: overrides.ownerId ?? 'owner-1',
+        tags: overrides.tags ?? [],
+        statBlocks: overrides.statBlocks ?? {},
+    };
+};
 
 describe('AssetLibraryPage', () => {
     beforeEach(() => {
@@ -417,7 +424,7 @@ describe('AssetLibraryPage', () => {
                 refetch: mockRefetch,
             } as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
-            mockBrowser.viewMode = 'table';
+            mockBrowser.viewMode = 'table' as 'grid-large' | 'grid-small' | 'table';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
 
             // Act
@@ -490,7 +497,7 @@ describe('AssetLibraryPage', () => {
                 refetch: mockRefetch,
             } as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
-            mockBrowser.viewMode = 'table';
+            mockBrowser.viewMode = 'table' as 'grid-large' | 'grid-small' | 'table';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
 
             render(

@@ -63,8 +63,8 @@ export interface UseFogOfWarManagementReturn {
     handleFogRevealAll: () => Promise<void>;
     /** Handler for polygon completion from drawing tool */
     handlePolygonComplete: (vertices: Point[]) => Promise<void>;
-    /** Handler for bucket fill completion */
-    handleBucketFillComplete: (cellsToFill: Point[][]) => Promise<void>;
+    /** Handler for bucket fill completion (uses same logic as polygon complete) */
+    handleBucketFillComplete: (vertices: Point[]) => Promise<void>;
 }
 
 /**
@@ -108,13 +108,21 @@ export function useFogOfWarManagement({
                             stageId: encId,
                             data: {
                                 type: toRegionType(regionData.type),
-                                name: regionData.name,
+                                name: regionData.name ?? '',
                                 ...(regionData.label !== undefined && { label: regionData.label }),
                                 ...(regionData.value !== undefined && { value: regionData.value }),
                                 vertices: regionData.vertices,
                             },
                         }).unwrap();
-                        return result;
+                        // Return a full EncounterRegion as expected by the command
+                        return {
+                            index: result.index,
+                            name: regionData.name,
+                            type: regionData.type,
+                            vertices: regionData.vertices,
+                            value: regionData.value,
+                            label: regionData.label,
+                        };
                     },
                     onRemove: async (encId, regionIndex) => {
                         await deleteRegion({
@@ -220,13 +228,21 @@ export function useFogOfWarManagement({
                         stageId: encId,
                         data: {
                             type: toRegionType(regionData.type),
-                            name: regionData.name,
+                            name: regionData.name ?? '',
                             ...(regionData.label !== undefined && { label: regionData.label }),
                             ...(regionData.value !== undefined && { value: regionData.value }),
                             vertices: regionData.vertices,
                         },
                     }).unwrap();
-                    return result;
+                    // Return a full EncounterRegion as expected by the command
+                    return {
+                        index: result.index,
+                        name: regionData.name,
+                        type: regionData.type,
+                        vertices: regionData.vertices,
+                        value: regionData.value,
+                        label: regionData.label,
+                    };
                 },
                 onRemove: async (encId, regionIndex) => {
                     await deleteRegion({

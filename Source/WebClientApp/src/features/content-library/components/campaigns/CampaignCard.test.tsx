@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Campaign } from '@/types/domain';
+import type { CampaignCard as CampaignCardType } from '@/types/domain';
 import { CampaignCard, type CampaignCardProps } from './CampaignCard';
 
 vi.mock('../shared', () => ({
@@ -47,14 +47,14 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('CampaignCard', () => {
-    const createMockCampaign = (overrides: Partial<Campaign> = {}): Campaign => ({
+    const createMockCampaign = (overrides: Partial<CampaignCardType> = {}): CampaignCardType => ({
         id: 'campaign-1',
-        ownerId: 'owner-1',
         name: 'Dragon Campaign',
         description: 'An epic adventure',
         isPublished: false,
         isPublic: false,
-        adventures: [],
+        adventureCount: 0,
+        backgroundId: null,
         ...overrides,
     });
 
@@ -120,16 +120,7 @@ describe('CampaignCard', () => {
         it('should show singular adventure count when campaign has 1 adventure', () => {
             // Arrange
             const campaign = createMockCampaign({
-                adventures: [
-                    {
-                        id: 'adv-1',
-                        name: 'Adventure 1',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                ],
+                adventureCount: 1,
             });
 
             // Act
@@ -146,32 +137,7 @@ describe('CampaignCard', () => {
         it('should show plural adventure count when campaign has multiple adventures', () => {
             // Arrange
             const campaign = createMockCampaign({
-                adventures: [
-                    {
-                        id: 'adv-1',
-                        name: 'Adventure 1',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                    {
-                        id: 'adv-2',
-                        name: 'Adventure 2',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                    {
-                        id: 'adv-3',
-                        name: 'Adventure 3',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                ],
+                adventureCount: 3,
             });
 
             // Act
@@ -187,7 +153,7 @@ describe('CampaignCard', () => {
 
         it('should show 0 adventures when campaign has no adventures', () => {
             // Arrange
-            const campaign = createMockCampaign({ adventures: [] });
+            const campaign = createMockCampaign({ adventureCount: 0 });
 
             // Act
             render(
@@ -200,20 +166,6 @@ describe('CampaignCard', () => {
             expect(screen.getByText('0 adventures')).toBeInTheDocument();
         });
 
-        it('should show 0 adventures when adventures is undefined', () => {
-            // Arrange
-            const campaign = createMockCampaign({ adventures: undefined });
-
-            // Act
-            render(
-                <TestWrapper>
-                    <CampaignCard {...defaultProps} campaign={campaign} />
-                </TestWrapper>,
-            );
-
-            // Assert
-            expect(screen.getByText('0 adventures')).toBeInTheDocument();
-        });
     });
 
     describe('user interactions', () => {

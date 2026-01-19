@@ -8,7 +8,6 @@ import type {
   useRemoveEncounterAssetMutation,
   useUpdateEncounterAssetMutation,
 } from '@/services/encounterApi';
-import type { AppDispatch } from '@/store';
 import type {
   Asset,
   Encounter,
@@ -40,7 +39,6 @@ interface UseAssetManagementProps {
   isOnline: boolean;
   setEncounter: (encounter: Encounter) => void;
   execute: (command: Command) => void | Promise<void>;
-  _dispatch: AppDispatch;
 
   copyAssets: (assets: PlacedAsset[], encounterId: string) => void;
   cutAssets: (assets: PlacedAsset[], encounterId: string) => void;
@@ -64,7 +62,6 @@ export const useAssetManagement = ({
   isOnline,
   setEncounter,
   execute,
-  _dispatch,
   copyAssets,
   cutAssets,
   canPaste,

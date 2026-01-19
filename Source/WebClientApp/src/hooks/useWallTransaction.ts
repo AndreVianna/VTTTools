@@ -13,12 +13,15 @@ export interface WallSegment {
   segments: EncounterWallSegment[];
 }
 
-export interface WallTransaction {
+export interface WallTransactionState {
   type: TransactionType;
   originalWall: EncounterWall | null;
   segments: WallSegment[];
   isActive: boolean;
 }
+
+// Legacy alias for backwards compatibility
+export type WallTransaction = ReturnType<typeof useWallTransaction>;
 
 export interface CommitResult {
   success: boolean;
@@ -38,7 +41,7 @@ export interface WallMutationHooks {
   deleteWall: (index: number) => Promise<void>;
 }
 
-const INITIAL_TRANSACTION: WallTransaction = {
+const INITIAL_TRANSACTION: WallTransactionState = {
   type: null,
   originalWall: null,
   segments: [],
@@ -68,7 +71,7 @@ function generateBrokenWallNames(originalName: string, segmentCount: number): st
 }
 
 export const useWallTransaction = () => {
-  const [transaction, setTransaction] = useState<WallTransaction>(INITIAL_TRANSACTION);
+  const [transaction, setTransaction] = useState<WallTransactionState>(INITIAL_TRANSACTION);
   const segmentsRef = useRef<WallSegment[]>([]);
   const history = useUndoHistory<LocalAction>();
 

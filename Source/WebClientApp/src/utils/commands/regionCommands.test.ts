@@ -1,13 +1,21 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { EncounterRegion } from '@/types/domain';
 import {
     CreateRegionCommand,
     DeleteRegionCommand,
     EditRegionCommand,
     type CreateRegionCommandParams,
+    type CreateRegionResult,
     type DeleteRegionCommandParams,
     type EditRegionCommandParams,
 } from './regionCommands';
+
+// Type aliases for mock functions to match command param signatures
+type OnCreateMock = Mock<(encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<CreateRegionResult>>;
+type OnAddMock = Mock<(encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<CreateRegionResult>>;
+type OnRemoveMock = Mock<(encounterId: string, regionIndex: number) => Promise<void>>;
+type OnUpdateMock = Mock<(encounterId: string | undefined, regionIndex: number, updates: Partial<EncounterRegion>) => Promise<void>>;
+type OnRefetchMock = Mock<() => Promise<void>>;
 
 const createMockEncounterRegion = (overrides: Partial<EncounterRegion> = {}): EncounterRegion => ({
     encounterId: 'encounter-1',
@@ -23,9 +31,9 @@ const createMockEncounterRegion = (overrides: Partial<EncounterRegion> = {}): En
 });
 
 describe('CreateRegionCommand', () => {
-    let mockOnCreate: ReturnType<typeof vi.fn>;
-    let mockOnRemove: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnCreate: OnCreateMock;
+    let mockOnRemove: OnRemoveMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnCreate = vi.fn().mockResolvedValue({ index: 10 });
@@ -163,8 +171,8 @@ describe('CreateRegionCommand', () => {
 });
 
 describe('EditRegionCommand', () => {
-    let mockOnUpdate: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnUpdate: OnUpdateMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnUpdate = vi.fn().mockResolvedValue(undefined);
@@ -316,9 +324,9 @@ describe('EditRegionCommand', () => {
 });
 
 describe('DeleteRegionCommand', () => {
-    let mockOnAdd: ReturnType<typeof vi.fn>;
-    let mockOnRemove: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnAdd: OnAddMock;
+    let mockOnRemove: OnRemoveMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnAdd = vi.fn().mockResolvedValue({ index: 15 });

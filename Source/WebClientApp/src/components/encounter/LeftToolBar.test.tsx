@@ -388,12 +388,11 @@ describe('LeftToolBar', () => {
     });
 
     describe('Internal State Management', () => {
-        it('should manage internal panel state when activePanel prop is undefined', async () => {
+        it('should manage internal panel state when activePanel prop is omitted', async () => {
             // Arrange
             const onScopeChange = vi.fn();
             const user = userEvent.setup();
             renderComponent({
-                activePanel: undefined,
                 onScopeChange,
             });
 

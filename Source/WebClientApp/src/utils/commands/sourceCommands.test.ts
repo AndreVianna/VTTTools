@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { EncounterLightSource } from '@/types/domain';
 import type { StageSound, ResourceMetadata } from '@/types/stage';
 import { LightSourceType } from '@/types/domain';
@@ -16,6 +16,20 @@ import {
     type UpdateLightSourceCommandParams,
     type UpdateSoundSourceCommandParams,
 } from './sourceCommands';
+
+// Type aliases for mock functions - Light Source commands
+type OnCreateLightMock = Mock<(encounterId: string, source: Omit<EncounterLightSource, 'index'>) => Promise<EncounterLightSource>>;
+type OnAddLightMock = Mock<(encounterId: string, source: Omit<EncounterLightSource, 'index'>) => Promise<EncounterLightSource>>;
+type OnRemoveLightMock = Mock<(encounterId: string, sourceIndex: number) => Promise<void>>;
+type OnUpdateLightMock = Mock<(encounterId: string, sourceIndex: number, updates: Partial<EncounterLightSource>) => Promise<void>>;
+
+// Type aliases for mock functions - Sound Source commands
+type OnCreateSoundMock = Mock<(encounterId: string, source: Omit<StageSound, 'index'>) => Promise<StageSound>>;
+type OnAddSoundMock = Mock<(encounterId: string, source: Omit<StageSound, 'index'>) => Promise<StageSound>>;
+type OnRemoveSoundMock = Mock<(encounterId: string, sourceIndex: number) => Promise<void>>;
+type OnUpdateSoundMock = Mock<(encounterId: string, sourceIndex: number, updates: Partial<StageSound>) => Promise<void>>;
+
+type OnRefetchMock = Mock<() => Promise<void>>;
 
 const createMockLightSource = (overrides: Partial<EncounterLightSource> = {}): EncounterLightSource => ({
     index: 1,
@@ -48,9 +62,9 @@ const createMockSoundSource = (overrides: Partial<StageSound> = {}): StageSound 
 });
 
 describe('CreateLightSourceCommand', () => {
-    let mockOnCreate: ReturnType<typeof vi.fn>;
-    let mockOnRemove: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnCreate: OnCreateLightMock;
+    let mockOnRemove: OnRemoveLightMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnCreate = vi.fn().mockResolvedValue(createMockLightSource({ index: 10 }));
@@ -179,8 +193,8 @@ describe('CreateLightSourceCommand', () => {
 });
 
 describe('UpdateLightSourceCommand', () => {
-    let mockOnUpdate: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnUpdate: OnUpdateLightMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnUpdate = vi.fn().mockResolvedValue(undefined);
@@ -313,9 +327,9 @@ describe('UpdateLightSourceCommand', () => {
 });
 
 describe('DeleteLightSourceCommand', () => {
-    let mockOnAdd: ReturnType<typeof vi.fn>;
-    let mockOnRemove: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnAdd: OnAddLightMock;
+    let mockOnRemove: OnRemoveLightMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnAdd = vi.fn().mockResolvedValue(createMockLightSource({ index: 15 }));
@@ -432,9 +446,9 @@ describe('DeleteLightSourceCommand', () => {
 });
 
 describe('CreateSoundSourceCommand', () => {
-    let mockOnCreate: ReturnType<typeof vi.fn>;
-    let mockOnRemove: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnCreate: OnCreateSoundMock;
+    let mockOnRemove: OnRemoveSoundMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnCreate = vi.fn().mockResolvedValue(createMockSoundSource({ index: 10 }));
@@ -557,8 +571,8 @@ describe('CreateSoundSourceCommand', () => {
 });
 
 describe('UpdateSoundSourceCommand', () => {
-    let mockOnUpdate: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnUpdate: OnUpdateSoundMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnUpdate = vi.fn().mockResolvedValue(undefined);
@@ -661,9 +675,9 @@ describe('UpdateSoundSourceCommand', () => {
 });
 
 describe('DeleteSoundSourceCommand', () => {
-    let mockOnAdd: ReturnType<typeof vi.fn>;
-    let mockOnRemove: ReturnType<typeof vi.fn>;
-    let mockOnRefetch: ReturnType<typeof vi.fn>;
+    let mockOnAdd: OnAddSoundMock;
+    let mockOnRemove: OnRemoveSoundMock;
+    let mockOnRefetch: OnRefetchMock;
 
     beforeEach(() => {
         mockOnAdd = vi.fn().mockResolvedValue(createMockSoundSource({ index: 15 }));

@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import type { Stage, StageSettings, StageGrid, StageListItem, StageWall, StageRegion, StageLight, StageSound } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import { GridType, Weather } from '@/types/domain';
 import { TEST_USER_ID, reindexArray } from '@/tests/utils/mockFactories';
 
@@ -15,10 +15,12 @@ type PartialSoundData = Partial<StageSound> & { index: number };
 const mockStageSettings: StageSettings = {
     mainBackground: null,
     alternateBackground: null,
+    useAlternateBackground: false,
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
     ambientSound: null,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 0.5,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,

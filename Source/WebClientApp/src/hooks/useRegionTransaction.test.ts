@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
 import type { Stage, StageRegion } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
 import { useRegionTransaction } from './useRegionTransaction';
@@ -25,6 +25,8 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    useAlternateBackground: false,
+    ambientSoundSource: AmbientSoundSource.NotSet,
   },
   grid: {
     type: GridType.Square,

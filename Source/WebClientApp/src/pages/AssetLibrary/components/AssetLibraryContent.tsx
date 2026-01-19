@@ -1,10 +1,13 @@
 import React from 'react';
+import type { Theme } from '@mui/material';
 import { Alert, Box, Button, CircularProgress, Grid, Typography, useTheme } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import {
     AssetCardCompact,
     AssetTableView,
     BrowserToolbar,
+    type SortField,
+    type SortDirection,
 } from '@/components/assets/browser';
 import { LetterFilterBar } from '@/components/common/LetterFilterBar';
 import type { Asset } from '@/types/domain';
@@ -16,9 +19,9 @@ export interface AssetLibraryContentProps {
     onRefetch: () => void;
     searchQuery: string;
     onSearchChange: (query: string) => void;
-    sortField: string;
-    sortDirection: 'asc' | 'desc';
-    onSortChange: (field: string, direction: 'asc' | 'desc') => void;
+    sortField: SortField;
+    sortDirection: SortDirection;
+    onSortChange: (field: SortField, direction: SortDirection) => void;
     viewMode: 'grid-small' | 'grid-large' | 'table';
     onViewModeChange: (mode: 'grid-small' | 'grid-large' | 'table') => void;
     selectedAssetId: string | null;
@@ -150,7 +153,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ onRetry }) => (
 );
 
 interface EmptyStateProps {
-    theme: ReturnType<typeof useTheme>;
+    theme: Theme;
     onCreateNew: () => void;
 }
 

@@ -67,9 +67,9 @@ export const EncounterMenu: React.FC<EncounterMenuProps> = ({
     onPublishedChange(e.target.checked);
   };
 
-  const handleGridTypeChange = (e: SelectChangeEvent<number>) => {
+  const handleGridTypeChange = (e: SelectChangeEvent<GridType>) => {
     if (!onGridChange || !gridConfig) return;
-    const newType = Number(e.target.value) as GridType;
+    const newType = e.target.value;
 
     onGridChange({
       type: newType,

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
 import type { Stage, StageRegion } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import * as commands from '@/utils/commands';
 import * as regionCommands from '@/utils/commands/regionCommands';
@@ -30,10 +30,15 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
+    ambientSound: null,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 1,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    mainBackground: null,
+    alternateBackground: null,
+    useAlternateBackground: false,
   },
   grid: {
     type: GridType.Square,

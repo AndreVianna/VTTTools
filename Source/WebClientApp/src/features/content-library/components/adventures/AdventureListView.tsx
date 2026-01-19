@@ -30,7 +30,6 @@ import {
 } from '@/services/adventuresApi';
 import { useGetContentQuery } from '@/services/contentApi';
 import { useDebounce, useInfiniteScroll } from '../../hooks';
-import type { Adventure } from '../../types';
 import { AdventureStyle } from '../../types';
 import { AdventureCard } from './AdventureCard';
 
@@ -89,7 +88,7 @@ export function AdventureListView() {
   }
 
   const { data, isLoading, isFetching, error } = useGetContentQuery(filters);
-  const adventures: Adventure[] = data?.data || [];
+  const adventures = data?.data ?? [];
   const hasMore = data?.hasMore || false;
   const nextCursor = data?.nextCursor;
 

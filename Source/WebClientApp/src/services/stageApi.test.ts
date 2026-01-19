@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { stageApi } from './stageApi';
 import type {
@@ -43,7 +43,7 @@ vi.mock('./enhancedBaseQuery', () => ({
 }));
 
 describe('stageApi', () => {
-    let store: ReturnType<typeof configureStore>;
+    let store: EnhancedStore;
 
     beforeEach(() => {
         capturedRequest = null;

@@ -106,7 +106,7 @@ describe('DimensionSlider', () => {
 
             // Simulate slider change by triggering change event on the input
             const sliderInputs = slider?.querySelectorAll('input[type="range"]');
-            if (sliderInputs && sliderInputs.length > 0) {
+            if (sliderInputs && sliderInputs.length > 0 && sliderInputs[0]) {
                 fireEvent.change(sliderInputs[0], { target: { value: 1920 } });
             }
         });

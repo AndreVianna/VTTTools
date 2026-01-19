@@ -8,6 +8,7 @@ import {
     AssetKind,
     LabelVisibility,
     LabelPosition,
+    ResourceRole,
     type PlacedAsset,
     type Asset,
     type MediaResource,
@@ -25,11 +26,15 @@ vi.mock('@/config/development', () => ({
 const createMockMediaResource = (id: string): MediaResource => ({
     id,
     name: `media-${id}`,
-    path: `/media/${id}`,
-    mimeType: 'image/png',
-    size: 1000,
-    width: 100,
-    height: 100,
+    description: null,
+    path: id, // path is relative, becomes URL when fetched
+    role: ResourceRole.Token,
+    contentType: 'image/png',
+    fileName: `${id}.png`,
+    fileSize: 1000,
+    dimensions: { width: 100, height: 100 },
+    duration: '',
+    tags: [],
 });
 
 const createMockAsset = (overrides?: Partial<Asset>): Asset => ({

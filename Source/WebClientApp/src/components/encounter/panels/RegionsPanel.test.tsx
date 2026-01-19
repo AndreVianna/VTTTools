@@ -665,8 +665,8 @@ describe('RegionsPanel', () => {
 
     describe('Edge Cases', () => {
         it('should handle undefined encounterRegions', () => {
-            // Arrange & Act
-            renderComponent({ encounterRegions: undefined });
+            // Arrange & Act - omit encounterRegions
+            renderComponent({});
 
             // Assert
             expect(screen.getByText(/no elevation regions placed/i)).toBeInTheDocument();
@@ -689,7 +689,6 @@ describe('RegionsPanel', () => {
             const user = userEvent.setup();
             renderComponent({
                 encounterRegions: [mockElevationRegion],
-                encounterId: undefined,
             });
 
             // Act - Try to expand and update
@@ -713,13 +712,11 @@ describe('RegionsPanel', () => {
             expect(mockUpdateRegionMutation).not.toHaveBeenCalled();
         });
 
-        it('should not call callbacks when they are undefined', async () => {
+        it('should not call callbacks when they are omitted', async () => {
             // Arrange
             const user = userEvent.setup();
             renderComponent({
                 encounterRegions: [mockElevationRegion],
-                onRegionSelect: undefined,
-                onPresetSelect: undefined,
             });
 
             // Act - Try to select preset (this switches to Terrain which has no regions)

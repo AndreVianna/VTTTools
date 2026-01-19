@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { useEncounterEditor } from './useEncounterEditor';
 import { Weather, GridType, RegionType, LightSourceType, type Encounter } from '@/types/domain';
 import type { Stage } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 
 // Mock encounterApi hooks
 const mockUseGetEncounterQuery = vi.fn();
@@ -79,11 +80,16 @@ const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
     settings: {
         zoomLevel: 1,
         panning: { x: 0, y: 0 },
-        ambientLight: 0,
-        ambientSoundVolume: 50,
+        ambientLight: AmbientLight.Default,
+        ambientSound: null,
+        ambientSoundSource: AmbientSoundSource.NotSet,
+        ambientSoundVolume: 0.5,
         ambientSoundLoop: false,
         ambientSoundIsPlaying: false,
         weather: Weather.Clear,
+        mainBackground: null,
+        alternateBackground: null,
+        useAlternateBackground: false,
     },
     grid: {
         type: GridType.Square,

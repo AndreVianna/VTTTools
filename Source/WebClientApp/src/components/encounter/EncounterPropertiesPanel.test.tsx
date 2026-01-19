@@ -8,6 +8,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter } from '@/types/domain';
+import { AdventureStyle, ContentType, GridType as DomainGridType, Weather } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { EncounterPropertiesPanel, type EncounterPropertiesPanelProps } from './EncounterPropertiesPanel';
@@ -28,16 +30,12 @@ const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => (
     adventure: {
         id: 'adventure-1',
         ownerId: 'user-1',
+        type: ContentType.Adventure,
         name: 'Test Adventure',
         description: 'Adventure description',
-        style: 'Fantasy',
+        style: AdventureStyle.Fantasy,
         isOneShot: false,
-        campaignId: null,
-        campaign: null,
-        cover: null,
         isPublished: false,
-        isPublic: false,
-        encounters: [],
     },
     stage: {
         id: 'stage-1',
@@ -49,16 +47,18 @@ const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => (
         settings: {
             mainBackground: null,
             alternateBackground: null,
+            useAlternateBackground: false,
             zoomLevel: 1,
             panning: { x: 0, y: 0 },
-            ambientLight: 0,
+            ambientLight: AmbientLight.Default,
+            ambientSoundSource: AmbientSoundSource.NotSet,
             ambientSoundVolume: 0.5,
             ambientSoundLoop: true,
             ambientSoundIsPlaying: false,
-            weather: 'Clear',
+            weather: Weather.Clear,
         },
         grid: {
-            type: 'Square',
+            type: DomainGridType.Square,
             cellSize: { width: 50, height: 50 },
             offset: { left: 0, top: 0 },
             scale: 1,
@@ -159,16 +159,12 @@ describe('EncounterPropertiesPanel', () => {
                 adventure: {
                     id: 'adventure-1',
                     ownerId: 'user-1',
+                    type: ContentType.Adventure,
                     name: 'Epic Quest',
                     description: '',
-                    style: 'Fantasy',
+                    style: AdventureStyle.Fantasy,
                     isOneShot: false,
-                    campaignId: null,
-                    campaign: null,
-                    cover: null,
                     isPublished: false,
-                    isPublic: false,
-                    encounters: [],
                 },
             });
 

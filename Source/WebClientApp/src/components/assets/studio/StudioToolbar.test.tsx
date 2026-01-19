@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { StudioToolbar } from './StudioToolbar';
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -12,11 +12,11 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('StudioToolbar', () => {
-  let mockOnBack: ReturnType<typeof vi.fn>;
-  let mockOnSave: ReturnType<typeof vi.fn>;
-  let mockOnDelete: ReturnType<typeof vi.fn>;
-  let mockOnPublish: ReturnType<typeof vi.fn>;
-  let mockOnUnpublish: ReturnType<typeof vi.fn>;
+  let mockOnBack: Mock<() => void>;
+  let mockOnSave: Mock<() => void>;
+  let mockOnDelete: Mock<() => void>;
+  let mockOnPublish: Mock<() => void>;
+  let mockOnUnpublish: Mock<() => void>;
 
   beforeEach(() => {
     mockOnBack = vi.fn();

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { AssetKind, type Asset } from '@/types/domain';
+import { AssetKind, StatValueType, type Asset, type StatBlockValue } from '@/types/domain';
 import { useAssetBrowser } from './useAssetBrowser';
 
 // Mock getFirstLetter
@@ -396,22 +396,28 @@ describe('useAssetBrowser', () => {
             options: {
                 isPublished?: boolean;
                 tags?: string[];
-                statBlocks?: Record<string, { value: string }>[];
-                classification?: { kind: AssetKind; category?: string; type?: string };
+                statBlocks?: Record<number, Record<string, StatBlockValue>>;
+                classification?: { kind: AssetKind; category?: string; type?: string; subtype?: string | null };
             } = {}
         ): Asset => ({
             id,
             name,
             description: '',
             isPublished: options.isPublished ?? true,
+            isPublic: false,
             tags: options.tags ?? [],
-            statBlocks: options.statBlocks ?? [],
-            classification: options.classification ?? { kind: AssetKind.Creature },
-            tokenId: null,
-            tokenSize: 1,
-            source: null,
-            createdAt: new Date().toISOString(),
-            modifiedAt: new Date().toISOString(),
+            statBlocks: options.statBlocks ?? {},
+            classification: {
+                kind: options.classification?.kind ?? AssetKind.Creature,
+                category: options.classification?.category ?? '',
+                type: options.classification?.type ?? '',
+                subtype: options.classification?.subtype ?? null,
+            },
+            thumbnail: null,
+            portrait: null,
+            size: { width: 1, height: 1 },
+            tokens: [],
+            ownerId: 'test-owner',
         });
 
         it('should filter by published status', () => {
@@ -458,9 +464,9 @@ describe('useAssetBrowser', () => {
             });
 
             const assets: Asset[] = [
-                createMockAsset('1', 'Low HP', { statBlocks: [{ hitPoints: { value: '25' } }] }),
-                createMockAsset('2', 'Medium HP', { statBlocks: [{ hitPoints: { value: '75' } }] }),
-                createMockAsset('3', 'High HP', { statBlocks: [{ hitPoints: { value: '150' } }] }),
+                createMockAsset('1', 'Low HP', { statBlocks: { 0: { hitPoints: { key: 'hitPoints', value: '25', type: StatValueType.Number } } } }),
+                createMockAsset('2', 'Medium HP', { statBlocks: { 0: { hitPoints: { key: 'hitPoints', value: '75', type: StatValueType.Number } } } }),
+                createMockAsset('3', 'High HP', { statBlocks: { 0: { hitPoints: { key: 'hitPoints', value: '150', type: StatValueType.Number } } } }),
             ];
 
             const filtered = result.current.filterAssets(assets);

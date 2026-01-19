@@ -14,6 +14,7 @@ import { mediaApi } from '@/services/mediaApi';
 import { stageApi } from '@/services/stageApi';
 import { worldsApi } from '@/services/worldsApi';
 import authSlice from '@/store/slices/authSlice';
+import encounterSlice from '@/store/slices/encounterSlice';
 import errorSlice from '@/store/slices/errorSlice';
 import uiSlice from '@/store/slices/uiSlice';
 import type { RootState } from '@/store';
@@ -29,6 +30,7 @@ export const createTestStore = (options: TestStoreOptions = {}) => {
         reducer: {
             // Feature slices
             auth: authSlice,
+            encounter: encounterSlice,
             ui: uiSlice,
             error: errorSlice,
 

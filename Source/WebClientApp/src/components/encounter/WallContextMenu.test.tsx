@@ -8,7 +8,6 @@ describe('WallContextMenu', () => {
     // Arrange: Create mock wall segments for tests
     const createMockSegment = (overrides: Partial<EncounterWallSegment> = {}): EncounterWallSegment => ({
         index: 0,
-        name: undefined,
         startPole: { x: 0, y: 0, h: 10 },
         endPole: { x: 100, y: 100, h: 10 },
         type: SegmentType.Wall,
@@ -260,16 +259,25 @@ describe('WallContextMenu', () => {
             });
         });
 
-        it('should not call onSegmentUpdate when onSegmentUpdate is undefined', async () => {
+        it('should not call onSegmentUpdate when onSegmentUpdate is omitted', async () => {
             // Arrange
             const user = userEvent.setup();
-            render(<WallContextMenu {...defaultProps} onSegmentUpdate={undefined} />);
+            const propsWithoutUpdate = {
+                anchorPosition: { left: 100, top: 100 },
+                open: true,
+                onClose: vi.fn(),
+                encounterWall: createMockWall(),
+                segmentIndex: 0,
+            };
+            render(<WallContextMenu {...propsWithoutUpdate} />);
 
             // Act
             const typeCombobox = screen.getAllByRole('combobox')[0];
-            await user.click(typeCombobox);
-            const listbox = await screen.findByRole('listbox');
-            await user.click(within(listbox).getByRole('option', { name: 'Door' }));
+            if (typeCombobox) {
+                await user.click(typeCombobox);
+                const listbox = await screen.findByRole('listbox');
+                await user.click(within(listbox).getByRole('option', { name: 'Door' }));
+            }
 
             // Assert - no error should be thrown
             expect(true).toBe(true);

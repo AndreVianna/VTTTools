@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Theme } from '@mui/material';
 import {
     Box,
     Button,
@@ -174,7 +175,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => (
 
 interface DashboardSectionProps {
     user: { displayName: string } | null;
-    theme: ReturnType<typeof useTheme>;
+    theme: Theme;
     navigate: ReturnType<typeof useNavigate>;
 }
 

@@ -417,18 +417,7 @@ describe('WallsPanel', () => {
             const listItem = screen.getByText('Stone Wall').closest('li');
             expect(listItem).toBeInTheDocument();
 
-            // Get all IconButtons (excludes the ListItemButton)
-            const _iconButtons = within(listItem!).getAllByRole('button').filter((btn) =>
-                btn.classList.contains('MuiIconButton-root'),
-            );
-
-            // IconButtons order: expand (no aria-label), edit (no aria-label), delete (no aria-label)
-            // The edit button is the second IconButton with MuiIconButton-root class
-            // In secondaryAction: edit first, then delete
-            // So we have: expand (index 0), edit (index 1), delete (index 2) among IconButtons
-
-            // Actually, let's be more precise - get all buttons and use the second one
-            // that's an IconButton without aria-label after the expand button
+            // Get all buttons and filter to small icon buttons
             const allButtons = within(listItem!).getAllByRole('button');
             // Filter to get only small icon buttons (the ones in secondary action and expand)
             const smallIconButtons = allButtons.filter((btn) =>

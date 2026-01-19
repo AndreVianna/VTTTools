@@ -15,6 +15,8 @@ interface MockCanvasRef {
         zoomIn: ReturnType<typeof vi.fn>;
         zoomOut: ReturnType<typeof vi.fn>;
         resetView: ReturnType<typeof vi.fn>;
+        getViewport: ReturnType<typeof vi.fn>;
+        getStage: ReturnType<typeof vi.fn>;
         setViewport: ReturnType<typeof vi.fn>;
     };
 }
@@ -24,6 +26,8 @@ const createMockCanvasRef = (): MockCanvasRef => ({
         zoomIn: vi.fn(),
         zoomOut: vi.fn(),
         resetView: vi.fn(),
+        getViewport: vi.fn().mockReturnValue({ x: 0, y: 0, scale: 1 }),
+        getStage: vi.fn().mockReturnValue(null),
         setViewport: vi.fn(),
     },
 });

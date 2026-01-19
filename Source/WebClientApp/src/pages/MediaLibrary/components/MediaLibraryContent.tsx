@@ -1,6 +1,7 @@
 import React from 'react';
+import type { Theme } from '@mui/material';
 import { Alert, Box, Button, CircularProgress, Typography, useTheme } from '@mui/material';
-import { BrowserToolbar } from '@/components/assets/browser';
+import { BrowserToolbar, type SortField, type SortDirection } from '@/components/assets/browser';
 import { MediaGrid } from '@/components/media/MediaGrid';
 import { MediaList } from '@/components/media/MediaList';
 import type { MediaResource } from '@/types/domain';
@@ -13,9 +14,9 @@ export interface MediaLibraryContentProps {
     onRefetch: () => void;
     searchQuery: string;
     onSearchChange: (query: string) => void;
-    sortField: string;
-    sortDirection: 'asc' | 'desc';
-    onSortChange: (field: string, direction: 'asc' | 'desc') => void;
+    sortField: SortField;
+    sortDirection: SortDirection;
+    onSortChange: (field: SortField, direction: SortDirection) => void;
     viewMode: 'grid-small' | 'grid-large' | 'table';
     onViewModeChange: (mode: 'grid-small' | 'grid-large' | 'table') => void;
     selectedMediaId: string | null;
@@ -140,7 +141,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ onRetry }) => (
 );
 
 interface EmptyStateProps {
-    theme: ReturnType<typeof useTheme>;
+    theme: Theme;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ theme }) => (

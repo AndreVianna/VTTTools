@@ -417,10 +417,10 @@ describe('RegionContextMenu', () => {
             expect(screen.getByRole('combobox')).toBeInTheDocument();
         });
 
-        it('should not call onRegionUpdate when onRegionUpdate is undefined', async () => {
+        it('should not call onRegionUpdate when onRegionUpdate is omitted', async () => {
             // Arrange
             const user = userEvent.setup();
-            renderComponent({ onRegionUpdate: undefined });
+            renderComponent({});
 
             // Act - should not throw
             await user.click(screen.getByRole('combobox'));

@@ -54,6 +54,7 @@ export interface ResourceMetadata {
     fileSize: number;
     dimensions: { width: number; height: number };
     duration: string;
+    volume?: number;
 }
 
 // Ambient sound source (matches backend AmbientSoundSource enum)

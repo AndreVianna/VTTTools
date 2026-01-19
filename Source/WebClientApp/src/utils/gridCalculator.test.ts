@@ -75,7 +75,7 @@ describe('gridCalculator', () => {
     it('should reject invalid grid type', () => {
       // Arrange
       const invalidGrid: GridConfig = {
-        type: 999 as GridType,
+        type: 999 as unknown as GridType,
         cellSize: { width: 50, height: 50 },
         offset: { left: 0, top: 0 },
         snap: true,

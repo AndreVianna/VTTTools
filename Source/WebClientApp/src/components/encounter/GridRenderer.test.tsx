@@ -25,7 +25,6 @@ vi.mock('react-konva', () => ({
     Group: ({
         children,
         name,
-        ...props
     }: {
         children?: React.ReactNode;
         name?: string;
@@ -34,7 +33,6 @@ vi.mock('react-konva', () => ({
             role="group"
             aria-label={name === GroupName.Grid ? 'Grid Overlay' : name}
             data-group-name={name}
-            {...props}
         >
             {children}
         </div>
@@ -45,7 +43,6 @@ vi.mock('react-konva', () => ({
         strokeWidth,
         closed,
         listening,
-        ...props
     }: MockLineProps) => {
         // Track rendered lines for assertions
         renderedLines.push({ points, stroke, strokeWidth, closed, listening });
@@ -58,7 +55,6 @@ vi.mock('react-konva', () => ({
                 data-stroke-width={strokeWidth}
                 data-closed={closed}
                 data-listening={listening}
-                {...props}
             />
         );
     },

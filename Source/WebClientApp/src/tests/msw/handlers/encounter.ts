@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 import type { Encounter, Adventure, EncounterActor } from '@/types/domain';
 import { ContentType, AdventureStyle, GridType, Weather } from '@/types/domain';
 import type { Stage, StageSettings, StageGrid } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import { TEST_USER_ID, reindexArray } from '@/tests/utils/mockFactories';
 
 // Type for partial actor data received from API requests
@@ -13,10 +13,12 @@ type PartialActorData = Partial<EncounterActor> & { index: number };
 const mockStageSettings: StageSettings = {
     mainBackground: null,
     alternateBackground: null,
+    useAlternateBackground: false,
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
     ambientSound: null,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 0.5,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,

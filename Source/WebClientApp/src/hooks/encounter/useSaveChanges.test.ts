@@ -135,7 +135,7 @@ describe('useSaveChanges', () => {
         await act(async () => {
             await result.current.saveChanges({
                 grid: {
-                    type: GridType.Hex,
+                    type: GridType.HexV,
                     cellSize: { width: 60, height: 60 },
                     offset: { left: 10, top: 10 },
                 },
@@ -146,7 +146,7 @@ describe('useSaveChanges', () => {
             id: 'test-encounter-id',
             request: {
                 grid: {
-                    type: GridType.Hex,
+                    type: GridType.HexV,
                     cellSize: { width: 60, height: 60 },
                     offset: { left: 10, top: 10 },
                 },

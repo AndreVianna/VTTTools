@@ -3,6 +3,7 @@ import type {
   Adventure,
   AdventureCard,
   Campaign,
+  CampaignCard,
   CreateAdventureRequest,
   CreateCampaignRequest,
   UpdateCampaignRequest,
@@ -14,7 +15,7 @@ export const campaignsApi = createApi({
   baseQuery: createEnhancedBaseQuery('/api/campaigns'),
   tagTypes: ['Campaign', 'CampaignAdventures'],
   endpoints: (builder) => ({
-    getCampaigns: builder.query<Campaign[], void>({
+    getCampaigns: builder.query<CampaignCard[], void>({
       query: () => '',
       providesTags: ['Campaign'],
     }),

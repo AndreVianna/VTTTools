@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { StatValueType } from '@/types/domain';
 import { DataPanel } from './DataPanel';
 import type { StatBlockValue } from '@/types/domain';
@@ -35,7 +35,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('DataPanel', () => {
-  let mockOnChange: ReturnType<typeof vi.fn>;
+  let mockOnChange: Mock<(statBlocks: Record<number, Record<string, StatBlockValue>>) => void>;
 
   beforeEach(() => {
     mockOnChange = vi.fn();

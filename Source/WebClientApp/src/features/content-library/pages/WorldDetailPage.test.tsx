@@ -424,7 +424,9 @@ describe('WorldDetailPage', () => {
 
             // Act
             const openButtons = screen.getAllByRole('button', { name: /^open$/i });
-            await user.click(openButtons[0]);
+            const firstOpenButton = openButtons[0];
+            expect(firstOpenButton).toBeDefined();
+            await user.click(firstOpenButton!);
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledWith('/campaigns/campaign-1');
@@ -491,7 +493,9 @@ describe('WorldDetailPage', () => {
 
             // Act
             const duplicateButtons = screen.getAllByRole('button', { name: /duplicate/i });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            expect(firstDuplicateButton).toBeDefined();
+            await user.click(firstDuplicateButton!);
 
             // Assert
             await waitFor(() => {
@@ -514,7 +518,9 @@ describe('WorldDetailPage', () => {
 
             // Act
             const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             // Assert
             expect(screen.getByText('Delete Campaign')).toBeInTheDocument();
@@ -533,7 +539,9 @@ describe('WorldDetailPage', () => {
 
             // Open dialog
             const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             // Act
             const cancelButton = screen.getByRole('button', { name: /cancel/i });
@@ -558,7 +566,9 @@ describe('WorldDetailPage', () => {
 
             // Open dialog
             const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             // Act
             const confirmButton = screen.getByRole('button', { name: /confirm/i });

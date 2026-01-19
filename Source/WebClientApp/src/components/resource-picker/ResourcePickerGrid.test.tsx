@@ -49,6 +49,9 @@ const createMockResource = (overrides: Partial<MediaResource> = {}): MediaResour
     fileSize: 1024 * 100,
     dimensions: { width: 800, height: 600 },
     duration: '',
+    name: 'Test Resource',
+    description: null,
+    tags: [],
     ...overrides,
 });
 

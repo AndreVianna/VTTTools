@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { EncounterRegion, PlacedRegion } from '@/types/domain';
 import {
   CreateFogOfWarRegionCommand,
@@ -8,6 +8,11 @@ import {
   type DeleteFogOfWarRegionCommandParams,
   type RevealAllFogOfWarCommandParams,
 } from './fogOfWarCommands';
+
+// Type aliases for mock functions to match command param signatures
+type OnAddMock = Mock<(encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<EncounterRegion>>;
+type OnRemoveMock = Mock<(encounterId: string, regionIndex: number) => Promise<void>>;
+type OnRefetchMock = Mock<() => Promise<void>>;
 
 const createMockPlacedRegion = (name: string, value: number): PlacedRegion => ({
   id: `region-${name}`,
@@ -39,9 +44,9 @@ const createMockEncounterRegion = (name: string, index: number, value: number): 
 });
 
 describe('CreateFogOfWarRegionCommand', () => {
-  let mockOnAdd: ReturnType<typeof vi.fn>;
-  let mockOnRemove: ReturnType<typeof vi.fn>;
-  let mockOnRefetch: ReturnType<typeof vi.fn>;
+  let mockOnAdd: OnAddMock;
+  let mockOnRemove: OnRemoveMock;
+  let mockOnRefetch: OnRefetchMock;
 
   beforeEach(() => {
     mockOnAdd = vi.fn().mockResolvedValue(createMockEncounterRegion('1', 5, 1));
@@ -184,9 +189,9 @@ describe('CreateFogOfWarRegionCommand', () => {
 });
 
 describe('DeleteFogOfWarRegionCommand', () => {
-  let mockOnAdd: ReturnType<typeof vi.fn>;
-  let mockOnRemove: ReturnType<typeof vi.fn>;
-  let mockOnRefetch: ReturnType<typeof vi.fn>;
+  let mockOnAdd: OnAddMock;
+  let mockOnRemove: OnRemoveMock;
+  let mockOnRefetch: OnRefetchMock;
 
   beforeEach(() => {
     mockOnAdd = vi.fn().mockResolvedValue(createMockEncounterRegion('1', 10, 1));
@@ -274,9 +279,9 @@ describe('DeleteFogOfWarRegionCommand', () => {
 });
 
 describe('RevealAllFogOfWarCommand', () => {
-  let mockOnAdd: ReturnType<typeof vi.fn>;
-  let mockOnRemove: ReturnType<typeof vi.fn>;
-  let mockOnRefetch: ReturnType<typeof vi.fn>;
+  let mockOnAdd: OnAddMock;
+  let mockOnRemove: OnRemoveMock;
+  let mockOnRefetch: OnRefetchMock;
 
   beforeEach(() => {
     mockOnAdd = vi.fn();

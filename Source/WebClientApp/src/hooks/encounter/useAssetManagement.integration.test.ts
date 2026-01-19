@@ -12,7 +12,7 @@ import type { AppDispatch } from '@/store';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
 import { AssetKind, GridType, LabelPosition, LabelVisibility, ResourceRole, Weather } from '@/types/domain';
 import type { Stage } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import {
   clearEncounterMappings,
@@ -33,10 +33,15 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
+    ambientSound: null,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 1,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    mainBackground: null,
+    alternateBackground: null,
+    useAlternateBackground: false,
   },
   grid: {
     type: GridType.Square,

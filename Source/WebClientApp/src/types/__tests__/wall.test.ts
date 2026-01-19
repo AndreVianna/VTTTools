@@ -2,15 +2,13 @@ import { describe, it, expect } from 'vitest';
 import type {
     StageWall,
     StageWallSegment,
-    Pole,
-} from '../stage';
-import { SegmentType, SegmentState } from '../domain';
-import type {
     CreateWallRequest,
     UpdateWallRequest,
     CreateWallSegmentRequest,
     UpdateWallSegmentRequest,
 } from '../stage';
+import type { Pole } from '../domain';
+import { SegmentType, SegmentState } from '../domain';
 
 describe('Wall Types', () => {
     describe('StageWall', () => {

@@ -232,8 +232,8 @@ describe('uiSlice', () => {
             const result = uiReducer(state, closeModal('testModal'));
 
             // Assert
-            expect(result.modals['testModal'].open).toBe(false);
-            expect(result.modals['testModal'].data).toEqual({ test: 'data' });
+            expect(result.modals['testModal']?.open).toBe(false);
+            expect(result.modals['testModal']?.data).toEqual({ test: 'data' });
         });
 
         it('should handle closing non-existent modal gracefully', () => {

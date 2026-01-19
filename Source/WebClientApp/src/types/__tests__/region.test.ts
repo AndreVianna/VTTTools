@@ -1,50 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type {
-    Region,
     EncounterRegion,
-    CreateRegionRequest,
-    UpdateRegionRequest,
-    PlaceEncounterRegionRequest,
-    UpdateEncounterRegionRequest,
-    Point
+    PlacedRegion,
+    Point,
 } from '../domain';
+import { RegionType } from '../domain';
 
 describe('Region Types', () => {
-    it('should allow valid Region object', () => {
-        const region: Region = {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            ownerId: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Illumination Zone',
-            description: 'A region that defines lighting levels',
-            regionType: 'Illumination',
-            labelMap: {
-                0: 'dark',
-                1: 'dim',
-                2: 'bright',
-            },
-            createdAt: '2025-10-28T00:00:00Z',
-        };
-        expect(region.name).toBe('Illumination Zone');
-        expect(region.regionType).toBe('Illumination');
-        expect(region.labelMap[1]).toBe('dim');
-    });
-
-    it('should allow Region with extensible regionType', () => {
-        const region: Region = {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            ownerId: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Weather Zone',
-            regionType: 'Weather',
-            labelMap: {
-                0: 'clear',
-                1: 'rainy',
-                2: 'stormy',
-            },
-            createdAt: '2025-10-28T00:00:00Z',
-        };
-        expect(region.regionType).toBe('Weather');
-    });
-
     it('should allow valid EncounterRegion object', () => {
         const vertices: Point[] = [
             { x: 0, y: 0 },
@@ -53,9 +15,8 @@ describe('Region Types', () => {
         ];
 
         const encounterRegion: EncounterRegion = {
-            id: '789e4567-e89b-12d3-a456-426614174000',
-            encounterId: 'abc-def-ghi',
-            regionId: '123e4567-e89b-12d3-a456-426614174000',
+            index: 0,
+            type: RegionType.Terrain,
             vertices,
             value: 1,
         };
@@ -63,53 +24,55 @@ describe('Region Types', () => {
         expect(encounterRegion.value).toBe(1);
     });
 
-    it('should allow valid CreateRegionRequest', () => {
-        const request: CreateRegionRequest = {
-            name: 'Elevation Map',
-            description: 'Defines terrain elevation',
-            regionType: 'Elevation',
-            labelMap: {
-                0: 'ground',
-                1: 'elevated',
-                2: 'high',
-            },
-        };
-        expect(request.name).toBe('Elevation Map');
-        expect(request.regionType).toBe('Elevation');
-    });
-
-    it('should allow UpdateRegionRequest with partial updates', () => {
-        const request: UpdateRegionRequest = {
-            name: 'Updated Region',
-            labelMap: {
-                0: 'none',
-                1: 'some',
-            },
-        };
-        expect(request.name).toBe('Updated Region');
-        expect(request.description).toBeUndefined();
-    });
-
-    it('should allow valid PlaceEncounterRegionRequest', () => {
-        const request: PlaceEncounterRegionRequest = {
-            regionId: '123e4567-e89b-12d3-a456-426614174000',
+    it('should allow EncounterRegion with optional properties', () => {
+        const encounterRegion: EncounterRegion = {
+            index: 1,
+            type: RegionType.Illumination,
             vertices: [
                 { x: 0, y: 0 },
                 { x: 50, y: 0 },
                 { x: 25, y: 50 },
             ],
-            value: 2,
+            name: 'Light Zone',
+            label: 'Bright',
+            color: '#ffff00',
         };
-        expect(request.regionId).toBeDefined();
-        expect(request.vertices).toHaveLength(3);
-        expect(request.value).toBe(2);
+        expect(encounterRegion.name).toBe('Light Zone');
+        expect(encounterRegion.label).toBe('Bright');
+        expect(encounterRegion.color).toBe('#ffff00');
     });
 
-    it('should allow UpdateEncounterRegionRequest with partial updates', () => {
-        const request: UpdateEncounterRegionRequest = {
-            value: 1,
+    it('should allow PlacedRegion extending EncounterRegion', () => {
+        const placedRegion: PlacedRegion = {
+            id: 'region-123',
+            index: 2,
+            type: RegionType.FogOfWar,
+            vertices: [
+                { x: 0, y: 0 },
+                { x: 100, y: 0 },
+                { x: 100, y: 100 },
+                { x: 0, y: 100 },
+            ],
         };
-        expect(request.value).toBe(1);
-        expect(request.vertices).toBeUndefined();
+        expect(placedRegion.id).toBe('region-123');
+        expect(placedRegion.index).toBe(2);
+        expect(placedRegion.vertices).toHaveLength(4);
+    });
+
+    it('should support all RegionType enum values', () => {
+        expect(RegionType.Undefined).toBe('Undefined');
+        expect(RegionType.Terrain).toBe('Terrain');
+        expect(RegionType.Illumination).toBe('Illumination');
+        expect(RegionType.FogOfWar).toBe('FogOfWar');
+    });
+
+    it('should allow EncounterRegion with backward compat encounterId', () => {
+        const region: EncounterRegion = {
+            encounterId: 'enc-123', // Optional for backwards compat
+            index: 0,
+            type: RegionType.Terrain,
+            vertices: [{ x: 0, y: 0 }],
+        };
+        expect(region.encounterId).toBe('enc-123');
     });
 });

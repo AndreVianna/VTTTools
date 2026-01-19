@@ -354,7 +354,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             // Assert
             expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -377,7 +379,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             const confirmButton = screen.getByRole('button', { name: /^delete$/i });
             await user.click(confirmButton);
@@ -400,7 +404,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             const cancelButton = screen.getByRole('button', { name: /cancel/i });
             await user.click(cancelButton);
@@ -426,7 +432,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             const confirmButton = screen.getByRole('button', { name: /^delete$/i });
             await user.click(confirmButton);
@@ -452,7 +460,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            expect(firstDeleteButton).toBeDefined();
+            await user.click(firstDeleteButton!);
 
             const confirmButton = screen.getByRole('button', { name: /^delete$/i });
             await user.click(confirmButton);
@@ -480,7 +490,9 @@ describe('AdventureListView', () => {
             );
 
             const duplicateButtons = screen.getAllByRole('button', { name: 'Duplicate' });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            expect(firstDuplicateButton).toBeDefined();
+            await user.click(firstDuplicateButton!);
 
             // Assert
             await waitFor(() => {
@@ -503,7 +515,9 @@ describe('AdventureListView', () => {
             );
 
             const duplicateButtons = screen.getAllByRole('button', { name: 'Duplicate' });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            expect(firstDuplicateButton).toBeDefined();
+            await user.click(firstDuplicateButton!);
 
             // Assert
             await waitFor(() => {
@@ -526,7 +540,9 @@ describe('AdventureListView', () => {
             );
 
             const duplicateButtons = screen.getAllByRole('button', { name: 'Duplicate' });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            expect(firstDuplicateButton).toBeDefined();
+            await user.click(firstDuplicateButton!);
 
             // Assert
             await waitFor(() => {
@@ -548,7 +564,9 @@ describe('AdventureListView', () => {
             );
 
             const openButtons = screen.getAllByRole('button', { name: 'Open' });
-            await user.click(openButtons[0]);
+            const firstOpenButton = openButtons[0];
+            expect(firstOpenButton).toBeDefined();
+            await user.click(firstOpenButton!);
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledWith('/adventures/adventure-1');

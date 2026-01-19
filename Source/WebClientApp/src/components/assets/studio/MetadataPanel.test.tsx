@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { AssetKind } from '@/types/domain';
 import { MetadataPanel } from './MetadataPanel';
 import type { AssetClassification, NamedSize } from '@/types/domain';
@@ -37,11 +37,11 @@ describe('MetadataPanel', () => {
     height: 1,
   };
 
-  let mockOnNameChange: ReturnType<typeof vi.fn>;
-  let mockOnDescriptionChange: ReturnType<typeof vi.fn>;
-  let mockOnClassificationChange: ReturnType<typeof vi.fn>;
-  let mockOnTokenSizeChange: ReturnType<typeof vi.fn>;
-  let mockOnIsPublicChange: ReturnType<typeof vi.fn>;
+  let mockOnNameChange: Mock<(name: string) => void>;
+  let mockOnDescriptionChange: Mock<(description: string) => void>;
+  let mockOnClassificationChange: Mock<(classification: AssetClassification) => void>;
+  let mockOnTokenSizeChange: Mock<(size: NamedSize) => void>;
+  let mockOnIsPublicChange: Mock<(isPublic: boolean) => void>;
 
   beforeEach(() => {
     mockOnNameChange = vi.fn();

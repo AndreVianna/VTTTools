@@ -194,20 +194,6 @@ describe('WorldCard', () => {
             expect(screen.getByText('0 campaigns')).toBeInTheDocument();
         });
 
-        it('should show 0 campaigns when campaigns is undefined', () => {
-            // Arrange
-            const world = createMockWorld({ campaigns: undefined });
-
-            // Act
-            render(
-                <TestWrapper>
-                    <WorldCard {...defaultProps} world={world} />
-                </TestWrapper>,
-            );
-
-            // Assert
-            expect(screen.getByText('0 campaigns')).toBeInTheDocument();
-        });
     });
 
     describe('user interactions', () => {

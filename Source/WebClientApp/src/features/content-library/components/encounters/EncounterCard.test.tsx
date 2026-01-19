@@ -3,10 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Encounter } from '@/types/domain';
-import { GridType, Weather } from '@/types/domain';
-import type { Stage } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import type { EncounterCard as EncounterCardType } from '@/types/domain';
 import { EncounterCard, type EncounterCardProps } from './EncounterCard';
 
 vi.mock('@/config/development', () => ({
@@ -41,52 +38,14 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 TestWrapper.displayName = 'TestWrapper';
 
-const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
-    id: 'stage-1',
-    ownerId: 'owner-1',
-    name: 'Test Stage',
-    description: 'A test stage',
-    isPublished: false,
-    isPublic: false,
-    settings: {
-        mainBackground: null,
-        alternateBackground: null,
-        zoomLevel: 1,
-        panning: { x: 0, y: 0 },
-        ambientLight: AmbientLight.Default,
-        ambientSound: null,
-        ambientSoundVolume: 1,
-        ambientSoundLoop: false,
-        ambientSoundIsPlaying: false,
-        weather: Weather.Clear,
-    },
-    grid: {
-        type: GridType.Square,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        scale: 1,
-    },
-    walls: [],
-    regions: [],
-    lights: [],
-    elements: [],
-    sounds: [],
-    ...overrides,
-});
-
 describe('EncounterCard', () => {
-    const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => ({
+    const createMockEncounter = (overrides: Partial<EncounterCardType> = {}): EncounterCardType => ({
         id: 'encounter-123',
-        ownerId: 'owner-1',
         name: 'Dragon Lair',
         description: 'A dangerous encounter',
         isPublished: false,
         isPublic: false,
-        adventure: null,
-        stage: createMockStage(),
-        actors: [],
-        objects: [],
-        effects: [],
+        backgroundId: null,
         ...overrides,
     });
 
@@ -227,32 +186,10 @@ describe('EncounterCard', () => {
         });
     });
 
-    describe('stage background', () => {
-        it('should handle encounter with stage background', () => {
+    describe('background', () => {
+        it('should handle encounter with background', () => {
             // Arrange
-            const stageWithBackground = createMockStage({
-                settings: {
-                    mainBackground: {
-                        id: 'bg-resource-1',
-                        contentType: 'image/png',
-                        path: '/media/backgrounds/dungeon.png',
-                        fileName: 'dungeon.png',
-                        fileSize: 1024,
-                        dimensions: { width: 800, height: 600 },
-                        duration: '',
-                    },
-                    alternateBackground: null,
-                    zoomLevel: 1,
-                    panning: { x: 0, y: 0 },
-                    ambientLight: AmbientLight.Default,
-                    ambientSound: null,
-                    ambientSoundVolume: 1,
-                    ambientSoundLoop: false,
-                    ambientSoundIsPlaying: false,
-                    weather: Weather.Clear,
-                },
-            });
-            const encounter = createMockEncounter({ stage: stageWithBackground });
+            const encounter = createMockEncounter({ backgroundId: 'bg-resource-1' });
 
             // Act
             render(

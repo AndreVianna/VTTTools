@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { Pole, EncounterWallSegment } from '@/types/domain';
 import { SegmentType, SegmentState } from '@/types/domain';
+import type { UpdateStageWallRequest } from '@/types/stage';
 import {
     createPlacePoleAction,
     createMovePoleAction,
@@ -11,11 +12,18 @@ import {
     createBreakWallAction,
 } from './wallUndoActions';
 
+// Type aliases for mock functions
+type OnPolesChangeMock = Mock<(poles: Pole[]) => void>;
+type GetCurrentPolesMock = Mock<() => Pole[]>;
+type OnRemoveSegmentMock = Mock<(tempId: number) => void>;
+type OnUpdateSegmentMock = Mock<(tempId: number, data: UpdateStageWallRequest) => void>;
+type OnAddSegmentMock = Mock<(data: { wallIndex: number | null; name: string; segments: EncounterWallSegment[] }) => number>;
+
 describe('wallUndoActions', () => {
     describe('createPlacePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: OnPolesChangeMock;
+        let mockGetCurrentPoles: GetCurrentPolesMock;
 
         beforeEach(() => {
             mockPoles = [
@@ -155,8 +163,8 @@ describe('wallUndoActions', () => {
 
     describe('createMovePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: OnPolesChangeMock;
+        let mockGetCurrentPoles: GetCurrentPolesMock;
 
         beforeEach(() => {
             mockPoles = [
@@ -234,8 +242,8 @@ describe('wallUndoActions', () => {
 
     describe('createInsertPoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: OnPolesChangeMock;
+        let mockGetCurrentPoles: GetCurrentPolesMock;
 
         beforeEach(() => {
             mockPoles = [
@@ -329,8 +337,8 @@ describe('wallUndoActions', () => {
 
     describe('createDeletePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: OnPolesChangeMock;
+        let mockGetCurrentPoles: GetCurrentPolesMock;
 
         beforeEach(() => {
             mockPoles = [
@@ -488,8 +496,8 @@ describe('wallUndoActions', () => {
 
     describe('createMultiMovePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: OnPolesChangeMock;
+        let mockGetCurrentPoles: GetCurrentPolesMock;
 
         beforeEach(() => {
             mockPoles = [
@@ -599,8 +607,8 @@ describe('wallUndoActions', () => {
 
     describe('createMoveLineAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: OnPolesChangeMock;
+        let mockGetCurrentPoles: GetCurrentPolesMock;
 
         beforeEach(() => {
             mockPoles = [
@@ -719,9 +727,9 @@ describe('wallUndoActions', () => {
     });
 
     describe('createBreakWallAction', () => {
-        let mockOnRemoveSegment: ReturnType<typeof vi.fn>;
-        let mockOnUpdateSegment: ReturnType<typeof vi.fn>;
-        let mockOnAddSegment: ReturnType<typeof vi.fn>;
+        let mockOnRemoveSegment: OnRemoveSegmentMock;
+        let mockOnUpdateSegment: OnUpdateSegmentMock;
+        let mockOnAddSegment: OnAddSegmentMock;
         let tempIdCounter: number;
 
         const createMockSegment = (index: number, startX: number, endX: number): EncounterWallSegment => ({

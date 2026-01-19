@@ -22,6 +22,9 @@ const createMockMedia = (overrides: Partial<MediaResource> = {}): MediaResource 
     fileSize: 102400,
     dimensions: { width: 256, height: 256 },
     duration: 'PT0S',
+    name: 'Dragon Token',
+    description: null,
+    tags: [],
     ...overrides,
 });
 
@@ -45,7 +48,7 @@ const mockRefetch = vi.fn();
 const mockBrowserState = {
     selectedCategory: ResourceRole.Undefined,
     searchQuery: '',
-    ownershipFilter: 'all' as const,
+    ownershipFilter: 'all' as 'mine' | 'others' | 'all',
     statusFilter: 'all' as const,
     viewMode: 'grid-large' as 'grid-large' | 'grid-small' | 'table',
     sortField: 'name' as const,

@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { VisualIdentityPanel } from './VisualIdentityPanel';
 import { ResourceRole, type MediaResource } from '@/types/domain';
 
@@ -53,10 +53,10 @@ describe('VisualIdentityPanel', () => {
     },
   ];
 
-  let mockOnPortraitChange: ReturnType<typeof vi.fn>;
-  let mockOnTokensChange: ReturnType<typeof vi.fn>;
-  let mockOnSelectPortrait: ReturnType<typeof vi.fn>;
-  let mockOnSelectToken: ReturnType<typeof vi.fn>;
+  let mockOnPortraitChange: Mock<(resource: MediaResource | null) => void>;
+  let mockOnTokensChange: Mock<(tokens: MediaResource[]) => void>;
+  let mockOnSelectPortrait: Mock<() => void>;
+  let mockOnSelectToken: Mock<() => void>;
 
   beforeEach(() => {
     mockOnPortraitChange = vi.fn();

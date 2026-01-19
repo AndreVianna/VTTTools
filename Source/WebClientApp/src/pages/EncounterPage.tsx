@@ -35,6 +35,7 @@ import {
     type PlacedLightSource,
     type PlacedRegion,
     type PlacedSoundSource,
+    type PlacedWall,
     SegmentState,
     SegmentType,
 } from '@/types/domain';
@@ -207,7 +208,7 @@ export const EncounterPage: React.FC = () => {
     // Filter walls for play mode visibility
     // - Hidden segments: not rendered
     // - Secret doors (unrevealed): rendered as normal walls
-    const filteredWalls = useMemo((): EncounterWall[] => {
+    const filteredWalls = useMemo((): PlacedWall[] => {
         return placedWalls.map((wall) => {
             const filteredSegments = wall.segments
                 .filter((segment: EncounterWallSegment) => {
@@ -509,7 +510,7 @@ export const EncounterPage: React.FC = () => {
                                     encounterLightSource={lightSource}
                                     walls={encounter.stage.walls ?? []}
                                     gridConfig={gridConfig}
-                                    activeScope="none"
+                                    activeScope={null}
                                     isSelected={false}
                                 />
                             ))}
@@ -523,7 +524,7 @@ export const EncounterPage: React.FC = () => {
                                 <WallRenderer
                                     key={wall.id}
                                     encounterWall={wall}
-                                    activeScope="none"
+                                    activeScope={null}
                                 />
                             ))}
                         </Group>

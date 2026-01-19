@@ -26,7 +26,7 @@ import type {
     StageGrid,
     ResourceMetadata,
 } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 
 // ============ Test Constants ============
 
@@ -68,10 +68,12 @@ export const createMockUser = (overrides: Partial<{
 export const createMockStageSettings = (overrides: Partial<StageSettings> = {}): StageSettings => ({
     mainBackground: null,
     alternateBackground: null,
+    useAlternateBackground: false,
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
     ambientSound: null,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 0.5,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,

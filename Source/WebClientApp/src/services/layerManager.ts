@@ -20,6 +20,7 @@ export enum LayerName {
   Static = 'static',
   GameWorld = 'game-world',
   Assets = 'assets',
+  FogOfWar = 'fog-of-war',
   DrawingTools = 'drawing-tools',
   SelectionHandles = 'selection-handles',
 }
@@ -52,8 +53,9 @@ export const LayerZIndex = {
   STATIC: 0,
   GAME_WORLD: 1,
   ASSETS: 2,
-  DRAWING_TOOLS: 3,
-  SELECTION_HANDLES: 4,
+  FOG_OF_WAR: 3,
+  DRAWING_TOOLS: 4,
+  SELECTION_HANDLES: 5,
 } as const;
 
 /**
@@ -69,6 +71,7 @@ export const LAYER_Z_INDEX = {
   [LayerName.Static]: LayerZIndex.STATIC,
   [LayerName.GameWorld]: LayerZIndex.GAME_WORLD,
   [LayerName.Assets]: LayerZIndex.ASSETS,
+  [LayerName.FogOfWar]: LayerZIndex.FOG_OF_WAR,
   [LayerName.DrawingTools]: LayerZIndex.DRAWING_TOOLS,
   [LayerName.SelectionHandles]: LayerZIndex.SELECTION_HANDLES,
 } as const;

@@ -38,7 +38,6 @@ vi.mock('react-konva', () => ({
         onClick,
         onContextMenu,
         style,
-        ...props
     }: {
         children?: React.ReactNode;
         width?: number;
@@ -69,7 +68,6 @@ vi.mock('react-konva', () => ({
                 data-scale-x={scaleX}
                 data-scale-y={scaleY}
                 style={style}
-                {...props}
             >
                 {children}
             </div>
@@ -696,8 +694,8 @@ describe('EncounterCanvas', () => {
                 <EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />
             );
 
-            // Keep ref before unmount
-            const _handle = ref.current;
+            // Keep ref before unmount to verify it was set
+            expect(ref.current).toBeDefined();
 
             // Act
             unmount();

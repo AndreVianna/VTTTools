@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import type { Theme } from '@mui/material';
 import { alpha, Box, Button, Card, CardContent, Container, Divider, Stack, Typography, useTheme } from '@mui/material';
 import {
     Cancel as CancelIcon,
@@ -71,7 +72,7 @@ export const SecuritySettingsPage: React.FC = () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 interface PasswordCardProps {
-    theme: ReturnType<typeof useTheme>;
+    theme: Theme;
     onChangePassword: () => void;
 }
 
@@ -114,7 +115,7 @@ const PasswordCard: React.FC<PasswordCardProps> = ({ theme, onChangePassword }) 
 );
 
 interface TwoFactorCardProps {
-    theme: ReturnType<typeof useTheme>;
+    theme: Theme;
     twoFactorEnabled: boolean;
     onEnable: () => void;
     onDisable: () => void;
@@ -174,7 +175,7 @@ const TwoFactorCard: React.FC<TwoFactorCardProps> = ({ theme, twoFactorEnabled, 
 );
 
 interface TwoFactorStatusProps {
-    theme: ReturnType<typeof useTheme>;
+    theme: Theme;
     enabled: boolean;
 }
 

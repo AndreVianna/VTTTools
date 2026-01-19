@@ -31,6 +31,9 @@ describe('uploadWithProgress', () => {
     path: 'resource-123',
     dimensions: { width: 256, height: 256 },
     duration: '',
+    name: 'test.png',
+    description: null,
+    tags: [],
   };
 
   beforeEach(() => {

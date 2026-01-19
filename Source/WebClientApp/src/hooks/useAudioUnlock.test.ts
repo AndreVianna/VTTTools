@@ -242,7 +242,6 @@ describe('useAudioUnlock', () => {
             expect(result.current.isUnlocked).toBe(true);
 
             // Cleanup
-            // @ts-expect-error - Cleanup webkitAudioContext
             delete (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         });
     });

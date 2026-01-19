@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PlacedWall, Point } from '@/types/domain';
-import { SegmentType } from '@/types/domain';
+import { SegmentState, SegmentType } from '@/types/domain';
 import { GridType } from '@/utils/gridCalculator';
 import type { GridConfig } from '@/utils/gridCalculator';
 import * as regionBoundaryUtils from '@/utils/regionBoundaryUtils';
@@ -63,8 +63,8 @@ describe('RegionBucketFillTool', () => {
         },
     });
 
-    let onCancel: ReturnType<typeof vi.fn>;
-    let onFinish: ReturnType<typeof vi.fn>;
+    let onCancel: () => void;
+    let onFinish: (vertices: Point[]) => void;
     let mockRegionTransaction: ReturnType<typeof createMockRegionTransaction>;
 
     beforeEach(() => {
@@ -416,7 +416,7 @@ describe('RegionBucketFillTool', () => {
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -437,7 +437,7 @@ describe('RegionBucketFillTool', () => {
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -450,7 +450,7 @@ describe('RegionBucketFillTool', () => {
                             startPole: { x: 200, y: 100, h: 10 },
                             endPole: { x: 200, y: 200, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -470,7 +470,7 @@ describe('RegionBucketFillTool', () => {
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 150, y: 100, h: 10 },
                             type: SegmentType.Door,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -490,7 +490,7 @@ describe('RegionBucketFillTool', () => {
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 150, y: 100, h: 10 },
                             type: SegmentType.Window,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: false,
                         },
                     ],
@@ -662,7 +662,7 @@ describe('RegionBucketFillTool', () => {
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],

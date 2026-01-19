@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import type { Adventure } from '@/types/domain';
+import type { AdventureCard } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 export interface ContentFilters {
@@ -16,7 +16,7 @@ export interface ContentFilters {
 }
 
 export interface PagedContentResponse {
-  data: Adventure[];
+  data: AdventureCard[];
   nextCursor: string | null;
   hasMore: boolean;
 }

@@ -35,7 +35,6 @@ describe('EditorDialogs', () => {
 
     const mockWall: EncounterWall = {
         index: 0,
-        isComplete: true,
         segments: [
             {
                 index: 0,
@@ -444,9 +443,12 @@ describe('EditorDialogs', () => {
             render(<EditorDialogs {...props} />);
 
             // Find the type select - it shows "Wall" currently
-            const typeCombobox = screen.getAllByRole('combobox')[0];
-            expect(typeCombobox).toBeInTheDocument();
-            await user.click(typeCombobox);
+            const comboboxes = screen.getAllByRole('combobox');
+            const typeCombobox = comboboxes[0];
+            expect(typeCombobox).toBeDefined();
+            if (typeCombobox) {
+                await user.click(typeCombobox);
+            }
 
             // Select "Door" from the dropdown
             const doorOption = screen.getByRole('option', { name: 'Door' });
@@ -978,15 +980,18 @@ describe('EditorDialogs', () => {
             // Arrange
             const user = userEvent.setup();
             const onWallSegmentUpdate = vi.fn();
+            const firstSegment = mockWall.segments[0];
             const doorWall: EncounterWall = {
                 ...mockWall,
-                segments: [
-                    {
-                        ...mockWall.segments[0],
-                        type: SegmentType.Door,
-                        state: SegmentState.Closed,
-                    },
-                ],
+                segments: firstSegment
+                    ? [
+                          {
+                              ...firstSegment,
+                              type: SegmentType.Door,
+                              state: SegmentState.Closed,
+                          },
+                      ]
+                    : [],
             };
             const props = {
                 ...defaultProps,
@@ -1002,7 +1007,10 @@ describe('EditorDialogs', () => {
             // Find the state select (second combobox)
             const comboboxes = screen.getAllByRole('combobox');
             const stateCombobox = comboboxes[1];
-            await user.click(stateCombobox);
+            expect(stateCombobox).toBeDefined();
+            if (stateCombobox) {
+                await user.click(stateCombobox);
+            }
 
             // Select "Open" state
             const openOption = screen.getByRole('option', { name: 'Open' });

@@ -47,6 +47,9 @@ describe('AssetInspectorPanel', () => {
       fileSize: 2048,
       dimensions: { width: 512, height: 512 },
       duration: '0',
+      name: 'Goblin Portrait',
+      description: null,
+      tags: [],
     },
     size: { width: 1, height: 1 },
     tokens: [
@@ -59,6 +62,9 @@ describe('AssetInspectorPanel', () => {
         fileSize: 1024,
         dimensions: { width: 128, height: 128 },
         duration: '0',
+        name: 'Goblin Token',
+        description: null,
+        tags: [],
       },
     ],
     statBlocks: {

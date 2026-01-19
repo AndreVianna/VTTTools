@@ -80,8 +80,10 @@ describe('ContentCard', () => {
         it('should render placeholder when no thumbnail', () => {
             // Arrange
             const itemWithoutThumbnail: ContentCardProps['item'] = {
-                ...mockItem,
-                thumbnailUrl: undefined,
+                id: mockItem.id,
+                type: mockItem.type,
+                name: mockItem.name,
+                isPublished: mockItem.isPublished,
                 resourceUrl: null,
             };
 
@@ -99,8 +101,10 @@ describe('ContentCard', () => {
         it('should render loading indicator while image loads', () => {
             // Arrange
             const itemWithResourceUrl: ContentCardProps['item'] = {
-                ...mockItem,
-                thumbnailUrl: undefined,
+                id: mockItem.id,
+                type: mockItem.type,
+                name: mockItem.name,
+                isPublished: mockItem.isPublished,
                 resourceUrl: '/api/resources/123',
             };
             mockUseAuthenticatedImageUrl.mockReturnValue({

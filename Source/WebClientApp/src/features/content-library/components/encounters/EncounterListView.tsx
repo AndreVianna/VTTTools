@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Encounter, GridType } from '@/types/domain';
+import { type EncounterCard as EncounterCardType, GridType } from '@/types/domain';
 import { EncounterCard } from './EncounterCard';
 
 export function EncounterListView() {
@@ -30,7 +30,8 @@ export function EncounterListView() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [encounterToDelete, setEncounterToDelete] = useState<string | null>(null);
 
-  const encounters: Encounter[] = [];
+  // TODO: Replace with actual API call when available
+  const encounters: EncounterCardType[] = [];
   const isLoading = false;
 
   const handleCreateEncounter = () => {
@@ -63,9 +64,11 @@ export function EncounterListView() {
     setEncounterToDelete(null);
   };
 
+  // TODO: Grid filtering requires additional API support to include grid type in EncounterCard
   const filteredEncounters = encounters.filter((encounter) => {
     const matchesSearch = encounter.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGrid = gridFilter === 'all' || encounter.stage.grid.type === gridFilter;
+    // Grid filter temporarily disabled until API returns grid type
+    const matchesGrid = gridFilter === 'all';
     const matchesPublished =
       publishedFilter === 'all' ||
       (publishedFilter === 'published' && encounter.isPublished) ||

@@ -114,11 +114,22 @@ describe('TopToolBar', () => {
         });
 
         it('should not render visibility controls when layer visibility is not provided', () => {
-            // Arrange
-            const props = createDefaultProps({
-                layerVisibility: undefined,
-                onLayerVisibilityToggle: undefined,
-            });
+            // Arrange - create props without layerVisibility and onLayerVisibilityToggle
+            const props: TopToolBarProps = {
+                onUndoClick: vi.fn(),
+                onRedoClick: vi.fn(),
+                onZoomIn: vi.fn(),
+                onZoomOut: vi.fn(),
+                onZoomReset: vi.fn(),
+                onGridToggle: vi.fn(),
+                onClearSelection: vi.fn(),
+                canUndo: false,
+                canRedo: false,
+                hasGrid: false,
+                gridVisible: true,
+                onShowAllLayers: vi.fn(),
+                onHideAllLayers: vi.fn(),
+            };
 
             // Act
             render(<TopToolBar {...props} />);

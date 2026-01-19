@@ -29,7 +29,7 @@ describe('AssetFilterPanel', () => {
     showDraft: true,
   };
 
-  let mockOnFiltersChange: ReturnType<typeof vi.fn>;
+  let mockOnFiltersChange: (filters: AssetFilters) => void;
 
   beforeEach(() => {
     mockOnFiltersChange = vi.fn();
