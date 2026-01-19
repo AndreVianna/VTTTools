@@ -413,6 +413,7 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
@@ -434,6 +435,7 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
@@ -447,6 +449,7 @@ describe('RegionBucketFillTool', () => {
                     index: 1,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 200, y: 100, h: 10 },
                             endPole: { x: 200, y: 200, h: 10 },
                             type: SegmentType.Wall,
@@ -467,6 +470,7 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 150, y: 100, h: 10 },
                             type: SegmentType.Door,
@@ -487,6 +491,7 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 150, y: 100, h: 10 },
                             type: SegmentType.Window,
@@ -659,6 +664,7 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,

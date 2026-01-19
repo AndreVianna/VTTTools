@@ -153,7 +153,7 @@ describe('CampaignDetailPage', () => {
 
         vi.mocked(useRemoveAdventureMutation).mockReturnValue([
             mockRemoveAdventure,
-            { isLoading: false },
+            { isLoading: false, reset: vi.fn() },
         ] as ReturnType<typeof useRemoveAdventureMutation>);
 
         mockCreateAdventure.mockResolvedValue({ unwrap: () => Promise.resolve({ id: 'new-adventure-id' }) });

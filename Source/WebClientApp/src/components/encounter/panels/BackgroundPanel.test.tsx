@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { BackgroundPanel, type BackgroundPanelProps } from './BackgroundPanel';
 
 // Mock MUI icons to avoid file handle exhaustion in tests
@@ -31,7 +31,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode; mode?: 'light' | 'dark'
 TestWrapper.displayName = 'TestWrapper';
 
 describe('BackgroundPanel', () => {
-  let mockOnBackgroundUpload: ReturnType<typeof vi.fn>;
+  let mockOnBackgroundUpload: Mock<(file: File) => void>;
 
   beforeEach(() => {
     vi.clearAllMocks();

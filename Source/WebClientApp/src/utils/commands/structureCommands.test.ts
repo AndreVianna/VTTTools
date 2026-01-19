@@ -32,7 +32,7 @@ type UpdateWallFnMock = Mock<(encounterId: string, wallId: string, vertices: Poi
 const createMockPole = (x: number, y: number): Pole => ({
     x,
     y,
-    isLocked: false,
+    h: 0,
 });
 
 const createMockEncounterWall = (overrides: Partial<EncounterWall> = {}): EncounterWall => ({
@@ -176,7 +176,7 @@ describe('PlaceWallCommand', () => {
     });
 
     it('should not call removeWallFn if id is undefined', async () => {
-        mockPlaceWallFn.mockResolvedValue({ index: undefined });
+        mockPlaceWallFn.mockResolvedValue({ index: undefined } as unknown as EncounterWall);
         const params: PlaceWallCommandParams = {
             encounterId: 'encounter-1',
             id: 1,
@@ -349,7 +349,7 @@ describe('PlaceRegionCommand', () => {
     });
 
     it('should not call removeRegionFn if id is falsy', async () => {
-        mockPlaceRegionFn.mockResolvedValue({ index: 0 });
+        mockPlaceRegionFn.mockResolvedValue({ index: 0 } as unknown as EncounterRegion);
         const params: PlaceRegionCommandParams = {
             encounterId: 'encounter-1',
             id: 1,
@@ -542,7 +542,7 @@ describe('PlaceSourceCommand', () => {
     });
 
     it('should not call removeSourceFn if id is falsy', async () => {
-        mockPlaceSourceFn.mockResolvedValue({ index: 0 });
+        mockPlaceSourceFn.mockResolvedValue({ index: 0 } as unknown as EncounterLightSource);
         const params: PlaceSourceCommandParams = {
             encounterId: 'encounter-1',
             id: 1,

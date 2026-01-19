@@ -204,7 +204,7 @@ export const useWallTransaction = () => {
       const { addWall, updateWall } = wallMutations;
       const results: CommitResult['segmentResults'] = [];
 
-      let currentTransaction: WallTransaction;
+      let currentTransaction: WallTransactionState;
       if (segmentsOverride) {
         currentTransaction = {
           ...transaction,

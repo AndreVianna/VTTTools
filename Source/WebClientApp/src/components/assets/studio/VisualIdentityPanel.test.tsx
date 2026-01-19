@@ -28,6 +28,9 @@ describe('VisualIdentityPanel', () => {
     fileSize: 1024,
     dimensions: { width: 512, height: 512 },
     duration: '',
+    name: 'Portrait Image',
+    description: null,
+    tags: [],
   };
 
   const mockTokens: MediaResource[] = [
@@ -40,6 +43,9 @@ describe('VisualIdentityPanel', () => {
       fileSize: 512,
       dimensions: { width: 256, height: 256 },
       duration: '',
+      name: 'Token 1',
+      description: null,
+      tags: [],
     },
     {
       id: 'token-2',
@@ -50,6 +56,9 @@ describe('VisualIdentityPanel', () => {
       fileSize: 512,
       dimensions: { width: 256, height: 256 },
       duration: '',
+      name: 'Token 2',
+      description: null,
+      tags: [],
     },
   ];
 

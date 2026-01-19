@@ -191,7 +191,7 @@ describe('TopToolBar', () => {
 
         it('should not throw when onZoomIn is not provided', async () => {
             // Arrange
-            const props = createDefaultProps({ onZoomIn: undefined });
+            const { onZoomIn: _, ...props } = createDefaultProps();
             const user = userEvent.setup();
 
             // Act
@@ -234,7 +234,7 @@ describe('TopToolBar', () => {
 
         it('should not throw when onZoomOut is not provided', async () => {
             // Arrange
-            const props = createDefaultProps({ onZoomOut: undefined });
+            const { onZoomOut: _, ...props } = createDefaultProps();
             const user = userEvent.setup();
 
             // Act
@@ -262,7 +262,7 @@ describe('TopToolBar', () => {
 
         it('should not throw when onZoomReset is not provided', async () => {
             // Arrange
-            const props = createDefaultProps({ onZoomReset: undefined });
+            const { onZoomReset: _, ...props } = createDefaultProps();
             const user = userEvent.setup();
 
             // Act
@@ -698,8 +698,8 @@ describe('TopToolBar', () => {
         });
 
         it('should not render preview button when onPreviewClick is not provided', () => {
-            // Arrange
-            const props = createDefaultProps({ onPreviewClick: undefined });
+            // Arrange - createDefaultProps doesn't include onPreviewClick by default
+            const props = createDefaultProps();
 
             // Act
             render(<TopToolBar {...props} />);
@@ -765,8 +765,8 @@ describe('TopToolBar', () => {
         });
 
         it('should not render starting view buttons when onSaveStartingView is not provided', () => {
-            // Arrange
-            const props = createDefaultProps({ onSaveStartingView: undefined });
+            // Arrange - createDefaultProps doesn't include onSaveStartingView by default
+            const props = createDefaultProps();
 
             // Act
             render(<TopToolBar {...props} />);

@@ -565,7 +565,7 @@ describe('useEncounterEditor', () => {
             );
             const settingsData = {
                 zoomLevel: 1.5,
-                ambientLight: 3,
+                ambientLight: AmbientLight.Dim,
             };
 
             // Act

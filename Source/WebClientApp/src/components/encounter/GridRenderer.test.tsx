@@ -14,7 +14,7 @@ interface MockLineProps {
     points: number[];
     stroke: string;
     strokeWidth: number;
-    closed?: boolean;
+    closed: boolean | undefined;
     listening: boolean;
 }
 
@@ -610,7 +610,7 @@ describe('GridRenderer', () => {
             expect(verticalLines.length).toBeGreaterThan(0);
             // Lines should not be at multiples of 100 exactly (due to offset)
             const linePositions = verticalLines.map((line) => line.points[0]);
-            const hasOffset = linePositions.some((pos) => pos % 100 !== 0);
+            const hasOffset = linePositions.some((pos) => pos !== undefined && pos % 100 !== 0);
             expect(hasOffset).toBe(true);
         });
 

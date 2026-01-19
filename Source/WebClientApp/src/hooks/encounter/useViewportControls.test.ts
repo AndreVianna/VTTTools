@@ -269,7 +269,6 @@ describe('useViewportControls', () => {
                     initialViewport: defaultViewport,
                     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
                     encounterId: 'test-encounter',
-                    stageSize: undefined,
                 })
             );
 
@@ -514,7 +513,6 @@ describe('useViewportControls', () => {
                     initialViewport,
                     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
                     encounterId: 'undefined-bg-test',
-                    backgroundSize: undefined,
                 })
             );
 

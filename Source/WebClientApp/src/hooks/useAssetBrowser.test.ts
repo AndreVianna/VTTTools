@@ -175,10 +175,10 @@ describe('useAssetBrowser', () => {
             const { result } = renderHook(() => useAssetBrowser());
 
             act(() => {
-                result.current.setViewMode('list');
+                result.current.setViewMode('table');
             });
 
-            expect(result.current.viewMode).toBe('list');
+            expect(result.current.viewMode).toBe('table');
         });
 
         it('should set sort field and direction', () => {
@@ -301,7 +301,7 @@ describe('useAssetBrowser', () => {
             const { result } = renderHook(() => useAssetBrowser());
 
             act(() => {
-                result.current.setViewMode('list');
+                result.current.setViewMode('table');
                 result.current.setSort('category', 'desc');
                 result.current.setSelectedAssetId('asset-123');
             });
@@ -310,7 +310,7 @@ describe('useAssetBrowser', () => {
                 result.current.resetFilters();
             });
 
-            expect(result.current.viewMode).toBe('list');
+            expect(result.current.viewMode).toBe('table');
             expect(result.current.sortField).toBe('category');
             expect(result.current.sortDirection).toBe('desc');
             expect(result.current.selectedAssetId).toBe('asset-123');

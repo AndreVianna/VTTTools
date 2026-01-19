@@ -6,7 +6,7 @@ import type { RegionTransaction } from '@/hooks/useRegionTransaction';
 export interface CanvasHandlerDeps {
     encounterId: string | undefined;
     stageSize: { width: number; height: number };
-    canvasRef: RefObject<EncounterCanvasHandle>;
+    canvasRef: RefObject<EncounterCanvasHandle | null>;
     updateStageSettings: (settings: { zoomLevel?: number; panning?: { x: number; y: number } }) => Promise<void>;
     refetch: () => Promise<void>;
     setIsStartingViewLoading: Dispatch<SetStateAction<boolean>>;

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { Pole, EncounterWallSegment } from '@/types/domain';
 import { SegmentType, SegmentState } from '@/types/domain';
-import type { UpdateStageWallRequest } from '@/types/stage';
 import {
     createPlacePoleAction,
     createMovePoleAction,
@@ -16,7 +15,7 @@ import {
 type OnPolesChangeMock = Mock<(poles: Pole[]) => void>;
 type GetCurrentPolesMock = Mock<() => Pole[]>;
 type OnRemoveSegmentMock = Mock<(tempId: number) => void>;
-type OnUpdateSegmentMock = Mock<(tempId: number, data: UpdateStageWallRequest) => void>;
+type OnUpdateSegmentMock = Mock<(tempId: number, changes: { wallIndex: number; segments: EncounterWallSegment[] }) => void>;
 type OnAddSegmentMock = Mock<(data: { wallIndex: number | null; name: string; segments: EncounterWallSegment[] }) => number>;
 
 describe('wallUndoActions', () => {

@@ -90,7 +90,7 @@ export const AssetLibraryContent: React.FC<AssetLibraryContentProps> = ({
             <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
                 {isLoading && <LoadingState />}
 
-                {error && <ErrorState onRetry={onRefetch} />}
+                {error != null && <ErrorState onRetry={onRefetch} />}
 
                 {!isLoading && !error && assets.length === 0 && (
                     <EmptyState theme={theme} onCreateNew={onCreateNew} />

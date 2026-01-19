@@ -77,7 +77,7 @@ export const MediaLibraryContent: React.FC<MediaLibraryContentProps> = ({
             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
                 {isLoading && items.length === 0 && <LoadingState />}
 
-                {error && <ErrorState onRetry={onRefetch} />}
+                {error != null && <ErrorState onRetry={onRefetch} />}
 
                 {!isLoading && !error && items.length === 0 && (
                     <EmptyState theme={theme} />

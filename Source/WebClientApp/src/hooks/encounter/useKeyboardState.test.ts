@@ -480,7 +480,7 @@ describe('useKeyboardState', () => {
             // Arrange
             const { result, rerender } = renderHook(
                 ({ gridConfig }) => useKeyboardState({ gridConfig }),
-                { initialProps: { gridConfig: createMockGridConfig({ type: 'square' }) } }
+                { initialProps: { gridConfig: createMockGridConfig({ type: GridType.Square }) } }
             );
 
             // Initial state

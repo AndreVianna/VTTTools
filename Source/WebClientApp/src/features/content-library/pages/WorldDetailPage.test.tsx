@@ -157,7 +157,7 @@ describe('WorldDetailPage', () => {
 
         vi.mocked(useRemoveCampaignMutation).mockReturnValue([
             mockRemoveCampaign,
-            { isLoading: false },
+            { isLoading: false, reset: vi.fn() },
         ] as ReturnType<typeof useRemoveCampaignMutation>);
 
         mockCreateCampaign.mockReturnValue({ unwrap: () => Promise.resolve({ id: 'new-campaign-id' }) });
@@ -748,7 +748,7 @@ describe('WorldDetailPage', () => {
             expect(addButtons.length).toBe(2); // Header button + empty state button
 
             // Act - click the empty state button (second one)
-            await user.click(addButtons[1]);
+            await user.click(addButtons[1]!);
 
             // Assert
             await waitFor(() => {

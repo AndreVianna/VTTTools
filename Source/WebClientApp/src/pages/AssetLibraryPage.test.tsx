@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import type * as React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Asset, AssetClassification } from '@/types/domain';
-import { AssetKind, SizeName } from '@/types/domain';
+import { AssetKind } from '@/types/domain';
 import { AssetLibraryPage } from './AssetLibraryPage';
 
 // Mock react-router-dom
@@ -28,7 +28,7 @@ const mockBrowser = {
     letterFilter: null as string | null,
     ownershipFilter: 'all' as const,
     statusFilter: 'all' as const,
-    viewMode: 'grid-large' as const,
+    viewMode: 'grid-large' as 'grid-large' | 'grid-small' | 'table',
     sortField: 'name' as const,
     sortDirection: 'asc' as const,
     selectedAssetId: null as string | null,
@@ -158,7 +158,7 @@ const createMockAsset = (overrides: Partial<Asset> = {}): Asset => {
         description: overrides.description ?? 'A test asset',
         thumbnail: overrides.thumbnail ?? null,
         portrait: overrides.portrait ?? null,
-        size: overrides.size ?? { name: SizeName.Medium, customWidthFeet: null, customHeightFeet: null },
+        size: overrides.size ?? { width: 5, height: 5 },
         tokens: overrides.tokens ?? [],
         isPublished: overrides.isPublished ?? true,
         isPublic: overrides.isPublic ?? false,
@@ -424,7 +424,7 @@ describe('AssetLibraryPage', () => {
                 refetch: mockRefetch,
             } as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
-            mockBrowser.viewMode = 'table' as 'grid-large' | 'grid-small' | 'table';
+            mockBrowser.viewMode = 'table';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
 
             // Act
@@ -497,7 +497,7 @@ describe('AssetLibraryPage', () => {
                 refetch: mockRefetch,
             } as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
-            mockBrowser.viewMode = 'table' as 'grid-large' | 'grid-small' | 'table';
+            mockBrowser.viewMode = 'table';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
 
             render(

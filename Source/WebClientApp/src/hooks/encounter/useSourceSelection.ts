@@ -43,7 +43,7 @@ export interface UseSourceSelectionProps {
     /** Refetch encounter data */
     refetch: () => void;
     /** Add light mutation */
-    addLight: (params: { stageId: string; data: unknown }) => {
+    addLight: (params: { stageId: string; data: Record<string, unknown> }) => {
         unwrap: () => Promise<{ index: number }>;
     };
     /** Delete light mutation */
@@ -51,7 +51,7 @@ export interface UseSourceSelectionProps {
         unwrap: () => Promise<void>;
     };
     /** Update light mutation */
-    updateLight: (params: { stageId: string; index: number; data: unknown }) => {
+    updateLight: (params: { stageId: string; index: number; data: Record<string, unknown> }) => {
         unwrap: () => Promise<void>;
     };
     /** Add sound mutation */
@@ -63,7 +63,7 @@ export interface UseSourceSelectionProps {
         unwrap: () => Promise<void>;
     };
     /** Update sound mutation */
-    updateSound: (params: { stageId: string; index: number; data: unknown }) => {
+    updateSound: (params: { stageId: string; index: number; data: Record<string, unknown> }) => {
         unwrap: () => Promise<void>;
     };
 }
@@ -98,10 +98,10 @@ export interface UseSourceSelectionReturn {
 
     // Update handlers
     handleLightSourceUpdate: (sourceIndex: number, updates: Partial<EncounterLightSource>) => Promise<void>;
-    handleLightSourcePositionChange: (sourceIndex: number, position: { x: number; y: number }) => void;
-    handleLightSourceDirectionChange: (sourceIndex: number, direction: number) => void;
+    handleLightSourcePositionChange: (sourceIndex: number, position: { x: number; y: number }) => Promise<void>;
+    handleLightSourceDirectionChange: (sourceIndex: number, direction: number) => Promise<void>;
     handleSoundSourceUpdate: (sourceIndex: number, updates: SoundSourceUpdatePayload) => Promise<void>;
-    handleSoundSourcePositionChange: (sourceIndex: number, position: { x: number; y: number }) => void;
+    handleSoundSourcePositionChange: (sourceIndex: number, position: { x: number; y: number }) => Promise<void>;
 }
 
 /**
@@ -325,15 +325,15 @@ export function useSourceSelection({
     );
 
     const handleLightSourcePositionChange = useCallback(
-        (sourceIndex: number, position: { x: number; y: number }) => {
-            handleLightSourceUpdate(sourceIndex, { position });
+        async (sourceIndex: number, position: { x: number; y: number }) => {
+            await handleLightSourceUpdate(sourceIndex, { position });
         },
         [handleLightSourceUpdate],
     );
 
     const handleLightSourceDirectionChange = useCallback(
-        (sourceIndex: number, direction: number) => {
-            handleLightSourceUpdate(sourceIndex, { direction });
+        async (sourceIndex: number, direction: number) => {
+            await handleLightSourceUpdate(sourceIndex, { direction });
         },
         [handleLightSourceUpdate],
     );
@@ -393,8 +393,8 @@ export function useSourceSelection({
     );
 
     const handleSoundSourcePositionChange = useCallback(
-        (sourceIndex: number, position: { x: number; y: number }) => {
-            handleSoundSourceUpdate(sourceIndex, { position });
+        async (sourceIndex: number, position: { x: number; y: number }) => {
+            await handleSoundSourceUpdate(sourceIndex, { position });
         },
         [handleSoundSourceUpdate],
     );

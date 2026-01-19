@@ -60,7 +60,7 @@ describe('Region Types', () => {
     });
 
     it('should support all RegionType enum values', () => {
-        expect(RegionType.Undefined).toBe('Undefined');
+        expect(RegionType.Elevation).toBe('Elevation');
         expect(RegionType.Terrain).toBe('Terrain');
         expect(RegionType.Illumination).toBe('Illumination');
         expect(RegionType.FogOfWar).toBe('FogOfWar');

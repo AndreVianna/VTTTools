@@ -8,7 +8,6 @@ import type {
   useRemoveEncounterAssetMutation,
   useUpdateEncounterAssetMutation,
 } from '@/services/encounterApi';
-import type { AppDispatch } from '@/store';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
 import { AssetKind, GridType, LabelPosition, LabelVisibility, ResourceRole, Weather } from '@/types/domain';
 import type { Stage } from '@/types/stage';
@@ -99,7 +98,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
   let mockRefetch: () => Promise<{ data?: Encounter }>;
   let mockSetEncounter: (encounter: Encounter) => void;
   let mockExecute: (command: unknown) => void;
-  let mockDispatch: AppDispatch;
   let mockCopyAssets: (assets: PlacedAsset[], encounterId: string) => void;
   let mockCutAssets: (assets: PlacedAsset[], encounterId: string) => void;
   let mockGetClipboardAssets: () => PlacedAsset[];
@@ -132,6 +130,9 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           fileSize: 1024,
           dimensions: { width: 100, height: 100 },
           duration: '',
+          name: 'Test Token',
+          description: null,
+          tags: [],
         },
       ],
       thumbnail: null,
@@ -190,7 +191,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
     mockRefetch = vi.fn().mockResolvedValue({ data: mockEncounter });
     mockSetEncounter = vi.fn();
     mockExecute = vi.fn((command) => command.execute());
-    mockDispatch = vi.fn() as unknown as AppDispatch;
     mockCopyAssets = vi.fn();
     mockCutAssets = vi.fn();
     mockGetClipboardAssets = vi.fn().mockReturnValue([]);
@@ -213,7 +213,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: localSetEncounter,
           execute: mockExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,
@@ -272,7 +271,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: mockSetEncounter,
           execute: mockExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,
@@ -366,7 +364,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: mockSetEncounter,
           execute: mockExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,
@@ -468,7 +465,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: mockSetEncounter,
           execute: mockExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,
@@ -494,7 +490,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: mockSetEncounter,
           execute: mockExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,
@@ -591,7 +586,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: mockSetEncounter,
           execute: mockExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,
@@ -646,7 +640,6 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           isOnline: true,
           setEncounter: mockSetEncounter,
           execute: trackingExecute,
-          dispatch: mockDispatch,
           copyAssets: mockCopyAssets,
           cutAssets: mockCutAssets,
           canPaste: false,

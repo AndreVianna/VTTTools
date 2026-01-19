@@ -52,7 +52,6 @@ import {
   useUpdateSoundMutation,
 } from '@/services/stageApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { useAppDispatch } from '@/store';
 import {
   AssetKind,
   type Encounter,
@@ -72,6 +71,7 @@ import {
   hydratePlacedWalls,
 } from '@/utils/encounterMappers';
 import { createStructureHandlers, createCanvasHandlers } from './EncounterEditor/handlers';
+import type { Command } from '@/utils/commands';
 import { getDrawingMode, isDrawingToolActive } from './EncounterEditor/utils';
 import { createEncounterRefetch } from '@/utils/queryHelpers';
 import {
@@ -164,7 +164,10 @@ const EncounterEditorPageInternal: React.FC = () => {
   // 4.4 QUERY ADAPTERS
   // Wrappers that transform query results for hook consumption
   // ═══════════════════════════════════════════════════════════════════════════
-  const wrappedRefetch = useMemo(() => createEncounterRefetch(refetch), [refetch]);
+  const wrappedRefetch = useMemo(() => createEncounterRefetch(async (): Promise<{ data?: Encounter }> => {
+    const result = await refetch();
+    return result.data !== undefined ? { data: result.data } : {};
+  }), [refetch]);
 
   const wallMutations = useMemo(() => ({
     addWall: stageAddWall,
@@ -194,7 +197,6 @@ const EncounterEditorPageInternal: React.FC = () => {
   const { execute, recordAction, undo, redo } = useUndoRedoContext();
   const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
   const { isOnline } = useConnectionStatus();
-  const dispatch = useAppDispatch();
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4.6 TRANSACTIONS
@@ -348,7 +350,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     setEncounter,
     setErrorMessage,
     refetch: wrappedRefetch,
-    execute,
+    execute: async (command: unknown) => { await execute(command as Command); },
     addRegion,
     deleteRegion,
   });
@@ -382,14 +384,17 @@ const EncounterEditorPageInternal: React.FC = () => {
     selectedSoundSourceIndex,
     setSelectedLightSourceIndex,
     setSelectedSoundSourceIndex,
-    execute,
-    refetch,
-    addLight,
-    deleteLight,
-    updateLight,
-    addSound,
-    deleteSound,
-    updateSound,
+    execute: async (command: unknown) => { await execute(command as Command); },
+    refetch: () => { void refetch(); },
+    addLight: (params: { stageId: string; data: Record<string, unknown> }) =>
+      addLight(params as unknown as Parameters<typeof addLight>[0]),
+    deleteLight: (params) => deleteLight(params),
+    updateLight: (params: { stageId: string; index: number; data: Record<string, unknown> }) =>
+      updateLight(params as unknown as Parameters<typeof updateLight>[0]),
+    addSound: (params) => addSound(params),
+    deleteSound: (params) => deleteSound(params),
+    updateSound: (params: { stageId: string; index: number; data: Record<string, unknown> }) =>
+      updateSound(params as unknown as Parameters<typeof updateSound>[0]),
   });
 
   const { saveChanges } = useSaveChanges({
@@ -438,7 +443,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   };
 
   // Domain hooks that need drawingMode
-  const drawingMode: DrawingMode = getDrawingMode(activeScope, regionPlacementMode);
+  const drawingMode: DrawingMode = getDrawingMode(activeScope, regionPlacementMode ?? 'polygon');
   const isUsingDrawingTool = isDrawingToolActive(drawingMode, drawingWallIndex, drawingRegionIndex, null);
 
   const wallHandlers = useWallHandlers({
@@ -495,7 +500,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     isOnline,
     setEncounter,
     execute,
-    dispatch,
     copyAssets,
     cutAssets,
     canPaste,
@@ -546,8 +550,8 @@ const EncounterEditorPageInternal: React.FC = () => {
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
     stageSize,
     encounterId,
-    ...(effectiveBackgroundSize && { backgroundSize: effectiveBackgroundSize }),
-    savedStartingView,
+    ...(effectiveBackgroundSize !== undefined && { backgroundSize: effectiveBackgroundSize }),
+    ...(savedStartingView !== undefined && { savedStartingView }),
   });
 
   const contextMenus = useContextMenus({ encounter });
@@ -1108,7 +1112,7 @@ const EncounterEditorPageInternal: React.FC = () => {
                 onBucketFillFinish={regionHandlers.handleBucketFillFinish}
                 activeTool={activeTool}
                 sourcePlacementProperties={sourcePlacementProperties}
-                execute={execute}
+                execute={async (command: unknown) => { await execute(command as Command); }}
                 refetch={async () => { await refetch(); }}
                 onSourcePlacementFinish={handleSourcePlacementFinish}
                 onSourcePlacementCancel={() => handleSourcePlacementFinish(false)}

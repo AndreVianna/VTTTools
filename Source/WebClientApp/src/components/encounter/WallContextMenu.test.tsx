@@ -101,7 +101,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             expect(typeCombobox).toHaveTextContent('Wall');
         });
 
@@ -113,7 +113,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             expect(typeCombobox).toHaveTextContent('Fence');
         });
 
@@ -125,7 +125,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             expect(typeCombobox).toHaveTextContent('Door');
         });
 
@@ -137,7 +137,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             expect(typeCombobox).toHaveTextContent('Passage');
         });
 
@@ -149,7 +149,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             expect(typeCombobox).toHaveTextContent('Window');
         });
 
@@ -161,7 +161,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             expect(typeCombobox).toHaveTextContent('Opening');
         });
     });
@@ -173,7 +173,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
 
             // Assert
@@ -193,7 +193,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Door' }));
@@ -215,7 +215,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Fence' }));
@@ -244,7 +244,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Wall' }));
@@ -272,7 +272,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...propsWithoutUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             if (typeCombobox) {
                 await user.click(typeCombobox);
                 const listbox = await screen.findByRole('listbox');
@@ -293,7 +293,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             expect(stateCombobox).toHaveTextContent('Locked');
         });
 
@@ -306,7 +306,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
 
             // Assert - Wall only allows Closed and Secret
@@ -326,7 +326,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
 
             // Assert - Door allows all states
@@ -349,7 +349,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Locked' }));
@@ -367,7 +367,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Secret' }));
@@ -380,7 +380,6 @@ describe('WallContextMenu', () => {
 
         it('should not call onSegmentUpdate when segmentIndex is null', async () => {
             // Arrange
-            const _user = userEvent.setup();
             const onSegmentUpdate = vi.fn();
             const wall = createMockWall([createMockSegment()]);
             // Force render with valid wall but null segmentIndex - segment won't render
@@ -421,7 +420,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} segmentIndex={3} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Open' }));
@@ -480,7 +479,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert - should display Closed (normalized)
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             expect(stateCombobox).toHaveTextContent('Closed');
         });
 
@@ -496,7 +495,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert - should display Closed (normalized)
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             expect(stateCombobox).toHaveTextContent('Closed');
         });
 
@@ -512,7 +511,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert - should display Secret
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             expect(stateCombobox).toHaveTextContent('Secret');
         });
 
@@ -528,7 +527,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Assert - should display Open
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             expect(stateCombobox).toHaveTextContent('Open');
         });
     });

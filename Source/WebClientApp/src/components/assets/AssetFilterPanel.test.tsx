@@ -282,7 +282,7 @@ describe('AssetFilterPanel', () => {
       await user.click(resetButton);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const calledFilters = mockOnFiltersChange.mock.calls[0]?.[0];
+      const calledFilters = (mockOnFiltersChange as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as AssetFilters | undefined;
       expect(calledFilters).toBeDefined();
       expect(calledFilters?.kind).toBe(AssetKind.Creature);
     });

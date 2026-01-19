@@ -9,7 +9,7 @@ import type { Encounter, EncounterRegion, PlacedRegion, Point } from '@/types/do
 import { RegionType } from '@/types/domain';
 import type { StageRegion } from '@/types/stage';
 import { useRegionHandlers } from './useRegionHandlers';
-import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
+import type { useRegionTransaction, RegionSegment } from '@/hooks/useRegionTransaction';
 import {
     createMockEncounter,
     createMockRegion,
@@ -53,6 +53,16 @@ vi.mock('./useClipRegions', () => ({
     }),
 }));
 
+// Helper to create a mock RegionSegment
+const createMockSegment = (overrides: Partial<RegionSegment> = {}): RegionSegment => ({
+    tempId: 0,
+    regionIndex: null,
+    name: 'Test Region',
+    type: RegionType.Terrain,
+    vertices: [],
+    ...overrides,
+});
+
 // Mock region transaction factory
 const createMockRegionTransaction = (): ReturnType<typeof useRegionTransaction> => ({
     transaction: {
@@ -62,11 +72,29 @@ const createMockRegionTransaction = (): ReturnType<typeof useRegionTransaction> 
         isActive: false,
     },
     startTransaction: vi.fn(),
-    updateSegment: vi.fn(),
+    addVertex: vi.fn(),
+    updateVertices: vi.fn(),
+    updateSegmentProperties: vi.fn(),
     commitTransaction: vi.fn().mockResolvedValue({ success: true, regionIndex: 0 }),
     rollbackTransaction: vi.fn(),
     clearTransaction: vi.fn(),
     getActiveSegment: vi.fn().mockReturnValue(null),
+    pushLocalAction: vi.fn(),
+    undoLocal: vi.fn(),
+    redoLocal: vi.fn(),
+    canUndoLocal: vi.fn().mockReturnValue(false),
+    canRedoLocal: vi.fn().mockReturnValue(false),
+    clearLocalStacks: vi.fn(),
+    history: {
+        push: vi.fn(),
+        undo: vi.fn(),
+        redo: vi.fn(),
+        clear: vi.fn(),
+        canUndo: false,
+        canRedo: false,
+        undoStackSize: 0,
+        redoStackSize: 0,
+    },
 });
 
 // Create mock props factory
@@ -82,7 +110,6 @@ const createMockProps = (overrides: Partial<Parameters<typeof useRegionHandlers>
         encounterId: 'test-encounter-id',
         encounter: encounter as Encounter,
         regionTransaction: createMockRegionTransaction(),
-        gridConfig: undefined,
         selectedRegionIndex: null as number | null,
         editingRegionIndex: null as number | null,
         originalRegionVertices: null as Point[] | null,
@@ -525,7 +552,7 @@ describe('useRegionHandlers', () => {
             act(() => {
                 result.current.handleBucketFillRegion({
                     name: 'Fill Region',
-                    type: RegionType.Difficult,
+                    type: RegionType.Terrain,
                     value: 2,
                 });
             });
@@ -536,7 +563,7 @@ describe('useRegionHandlers', () => {
                 undefined,
                 expect.objectContaining({
                     name: 'Fill Region',
-                    type: RegionType.Difficult,
+                    type: RegionType.Terrain,
                     value: 2,
                 }),
             );
@@ -581,12 +608,12 @@ describe('useRegionHandlers', () => {
         it('should call addRegion with vertices', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
                 value: 5,
-            };
+            });
             const props = createMockProps({
                 drawingRegionIndex: -1,
                 regionTransaction,
@@ -615,11 +642,11 @@ describe('useRegionHandlers', () => {
         it('should refetch after adding region', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
-            };
+            });
             const props = createMockProps({
                 drawingRegionIndex: -1,
                 regionTransaction,
@@ -638,11 +665,11 @@ describe('useRegionHandlers', () => {
         it('should clear drawing index after completion', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
-            };
+            });
             const props = createMockProps({
                 drawingRegionIndex: -1,
                 regionTransaction,
@@ -958,16 +985,17 @@ describe('useRegionHandlers', () => {
                 regionIndex: 0,
             });
             regionTransaction.transaction.originalRegion = {
+                encounterId: 'test-encounter-id',
                 index: 0,
                 name: 'Region 0',
                 type: RegionType.Terrain,
                 vertices: [],
             };
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Region 0',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
-            };
+            });
             const props = createMockProps({
                 editingRegionIndex: 0,
                 regionTransaction,
@@ -991,16 +1019,17 @@ describe('useRegionHandlers', () => {
                 regionIndex: 0,
             });
             regionTransaction.transaction.originalRegion = {
+                encounterId: 'test-encounter-id',
                 index: 0,
                 name: 'Region 0',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
             };
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Updated Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
-            };
+            });
             const props = createMockProps({
                 editingRegionIndex: 0,
                 regionTransaction,
@@ -1023,11 +1052,11 @@ describe('useRegionHandlers', () => {
                 success: true,
                 regionIndex: 0,
             });
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Region 0',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
-            };
+            });
             const props = createMockProps({
                 editingRegionIndex: 0,
                 regionTransaction,
@@ -1099,12 +1128,12 @@ describe('useRegionHandlers', () => {
                 success: true,
                 regionIndex: 0,
             });
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Updated Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
                 value: 5,
-            };
+            });
             const props = createMockProps({
                 editingRegionIndex: 0,
                 regionTransaction,
@@ -1348,7 +1377,8 @@ describe('useRegionHandlers', () => {
 
         it('should use transaction.originalRegion when editing the target region in merge', async () => {
             // Arrange
-            const originalRegion = {
+            const originalRegion: EncounterRegion = {
+                encounterId: 'test-encounter-id',
                 index: 0,
                 name: 'Original Region',
                 type: RegionType.Terrain,
@@ -1409,29 +1439,24 @@ describe('useRegionHandlers', () => {
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const regionTransaction = createMockRegionTransaction();
             regionTransaction.transaction.originalRegion = {
+                encounterId: 'test-encounter-id',
                 index: 0,
                 name: 'Original',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
             };
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Edited Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
-            };
+            });
             regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
                 success: false,
                 action: 'clip',
                 clipResults: [{ regionIndex: 1, clippedVertices: [[{ x: 0, y: 0 }]] }],
             });
 
-            // Mock executeClip to call onSuccess immediately
-            const mockExecuteClip = vi.fn().mockImplementation(async ({ onSuccess }) => {
-                if (onSuccess) await onSuccess();
-            });
-            vi.mocked(await import('./useClipRegions')).useClipRegions = () => ({
-                executeClip: mockExecuteClip,
-            });
+            // Note: The executeClip mock behavior is controlled through the hook mock setup above
 
             const props = createMockProps({
                 editingRegionIndex: 0,
@@ -1453,11 +1478,11 @@ describe('useRegionHandlers', () => {
         it('should handle nullClip action with empty clipResults but valid segment', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Test Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
-            };
+            });
             regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
                 success: false,
                 action: 'nullClip',
@@ -1546,24 +1571,18 @@ describe('useRegionHandlers', () => {
             // Arrange
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'New Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
-            };
+            });
             regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
                 success: false,
                 action: 'clip',
                 clipResults: [{ regionIndex: 0, clippedVertices: [[{ x: 0, y: 0 }]] }],
             });
 
-            // Mock executeClip to call onSuccess
-            const mockExecuteClip = vi.fn().mockImplementation(async ({ onSuccess }) => {
-                if (onSuccess) await onSuccess();
-            });
-            vi.mocked(await import('./useClipRegions')).useClipRegions = () => ({
-                executeClip: mockExecuteClip,
-            });
+            // Note: The executeClip mock behavior is controlled through the hook mock setup above
 
             const props = createMockProps({
                 drawingMode: 'region',
@@ -1586,11 +1605,11 @@ describe('useRegionHandlers', () => {
         it('should handle region not found after refetch in clip action', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'New Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
-            };
+            });
             regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
                 success: false,
                 action: 'clip',
@@ -1602,12 +1621,7 @@ describe('useRegionHandlers', () => {
                 stage: { ...createMockEncounter().stage, regions: [] },
             });
 
-            const mockExecuteClip = vi.fn().mockImplementation(async ({ onSuccess }) => {
-                if (onSuccess) await onSuccess();
-            });
-            vi.mocked(await import('./useClipRegions')).useClipRegions = () => ({
-                executeClip: mockExecuteClip,
-            });
+            // Note: The executeClip mock behavior is controlled through the hook mock setup above
 
             const props = createMockProps({
                 drawingMode: 'region',
@@ -1718,11 +1732,11 @@ describe('useRegionHandlers', () => {
             // Arrange
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
-            };
+            });
             const props = createMockProps({
                 drawingRegionIndex: -1,
                 regionTransaction,
@@ -1744,11 +1758,11 @@ describe('useRegionHandlers', () => {
         it('should handle refetch returning no data after bucket fill', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
-            };
+            });
             const props = createMockProps({
                 drawingRegionIndex: -1,
                 regionTransaction,
@@ -1769,11 +1783,11 @@ describe('useRegionHandlers', () => {
         it('should handle created region not found after refetch', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
-            };
+            });
             // Return encounter without matching region
             const encounterWithoutMatch = createMockEncounter({
                 stage: {
@@ -1802,11 +1816,11 @@ describe('useRegionHandlers', () => {
             // Arrange
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Fill Region',
                 type: RegionType.Terrain,
                 vertices: [],
-            };
+            });
             // Return encounter with matching region
             const encounterWithRegion = createMockEncounter({
                 stage: {
@@ -1846,27 +1860,23 @@ describe('useRegionHandlers', () => {
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const regionTransaction = createMockRegionTransaction();
             regionTransaction.transaction.originalRegion = {
+                encounterId: 'test-encounter-id',
                 index: 0,
                 name: 'Original',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
             };
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'Edited',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
-            };
+            });
             regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
                 action: 'clip',
                 clipResults: [{ regionIndex: 1, clippedVertices: [[{ x: 50, y: 50 }]] }],
             });
 
-            const mockExecuteClip = vi.fn().mockImplementation(async ({ onSuccess }) => {
-                if (onSuccess) await onSuccess();
-            });
-            vi.mocked(await import('./useClipRegions')).useClipRegions = () => ({
-                executeClip: mockExecuteClip,
-            });
+            // Note: The executeClip mock behavior is controlled through the hook mock setup above
 
             const props = createMockProps({
                 editingRegionIndex: 0,
@@ -1892,22 +1902,17 @@ describe('useRegionHandlers', () => {
             // Arrange
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.transaction.segment = {
+            regionTransaction.transaction.segment = createMockSegment({
                 name: 'New Region',
                 type: RegionType.Terrain,
                 vertices: [{ x: 0, y: 0 }],
-            };
+            });
             regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
                 action: 'clip',
                 clipResults: [{ regionIndex: 0, clippedVertices: [[{ x: 0, y: 0 }]] }],
             });
 
-            const mockExecuteClip = vi.fn().mockImplementation(async ({ onSuccess }) => {
-                if (onSuccess) await onSuccess();
-            });
-            vi.mocked(await import('./useClipRegions')).useClipRegions = () => ({
-                executeClip: mockExecuteClip,
-            });
+            // Note: The executeClip mock behavior is controlled through the hook mock setup above
 
             const props = createMockProps({
                 drawingMode: 'region',

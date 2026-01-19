@@ -2,11 +2,12 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CommitResult } from '@/hooks/useRegionTransaction';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
-import type { Encounter, EncounterRegion, Point } from '@/types/domain';
+import type { Encounter, EncounterRegion, PlacedRegion, Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { GridType, Weather } from '@/types/domain';
-import type { Stage, StageRegion } from '@/types/stage';
+import type { CreateRegionRequest, Stage, StageRegion, UpdateRegionRequest } from '@/types/stage';
 import { AmbientLight, AmbientSoundSource } from '@/types/stage';
+import type { Command } from '@/utils/commands';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { useMergeRegions } from '../useMergeRegions';
 import { useRegionHandlers } from '../useRegionHandlers';
@@ -62,19 +63,19 @@ const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
 
 describe('Region Workflows - Integration Tests', () => {
   let mockEncounter: Encounter;
-  let mockSetEncounter: ReturnType<typeof vi.fn>;
-  let mockSetPlacedRegions: ReturnType<typeof vi.fn>;
-  let mockSetSelectedRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetEditingRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetIsEditingRegionVertices: ReturnType<typeof vi.fn>;
-  let mockSetOriginalRegionVertices: ReturnType<typeof vi.fn>;
-  let mockSetDrawingRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetErrorMessage: ReturnType<typeof vi.fn>;
-  let mockRecordAction: ReturnType<typeof vi.fn>;
-  let mockRefetch: ReturnType<typeof vi.fn>;
-  let mockAddEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn>;
+  let mockSetEncounter: (encounter: Encounter) => void;
+  let mockSetPlacedRegions: (regions: PlacedRegion[]) => void;
+  let mockSetSelectedRegionIndex: (index: number | null) => void;
+  let mockSetEditingRegionIndex: (index: number | null) => void;
+  let mockSetIsEditingRegionVertices: (editing: boolean) => void;
+  let mockSetOriginalRegionVertices: (vertices: Point[] | null) => void;
+  let mockSetDrawingRegionIndex: (index: number | null) => void;
+  let mockSetErrorMessage: (message: string | null) => void;
+  let mockRecordAction: (command: Command) => void;
+  let mockRefetch: () => Promise<{ data?: Encounter }>;
+  let mockAddEncounterRegion: (data: CreateRegionRequest) => Promise<void>;
+  let mockUpdateEncounterRegion: (index: number, data: UpdateRegionRequest) => Promise<void>;
+  let mockRemoveEncounterRegion: (index: number) => Promise<void>;
   let gridConfig: GridConfig;
 
   const encounterId = 'test-encounter-123';
@@ -101,16 +102,10 @@ describe('Region Workflows - Integration Tests', () => {
     mockSetDrawingRegionIndex = vi.fn();
     mockSetErrorMessage = vi.fn();
     mockRecordAction = vi.fn();
-    mockRefetch = vi.fn().mockResolvedValue({ data: mockEncounter });
-    mockAddEncounterRegion = vi.fn().mockImplementation(() => ({
-      unwrap: vi.fn().mockResolvedValue({ index: 1 }),
-    }));
-    mockUpdateEncounterRegion = vi.fn().mockImplementation(() => ({
-      unwrap: vi.fn().mockResolvedValue({}),
-    }));
-    mockRemoveEncounterRegion = vi.fn().mockImplementation(() => ({
-      unwrap: vi.fn().mockResolvedValue({}),
-    }));
+    mockRefetch = vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: mockEncounter });
+    mockAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<void>>().mockResolvedValue(undefined);
+    mockUpdateEncounterRegion = vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>().mockResolvedValue(undefined);
+    mockRemoveEncounterRegion = vi.fn<(index: number) => Promise<void>>().mockResolvedValue(undefined);
   });
 
   describe('1. Region Placement Workflow', () => {
@@ -780,16 +775,10 @@ describe('Region Workflows - Integration Tests', () => {
       mockEncounter.stage.regions = [regionToDelete];
 
       await act(async () => {
-        await mockRemoveEncounterRegion({
-          encounterId,
-          regionIndex: 5,
-        }).unwrap();
+        await mockRemoveEncounterRegion(5);
       });
 
-      expect(mockRemoveEncounterRegion).toHaveBeenCalledWith({
-        encounterId,
-        regionIndex: 5,
-      });
+      expect(mockRemoveEncounterRegion).toHaveBeenCalledWith(5);
     });
 
     it('should not delete region if region not found', async () => {

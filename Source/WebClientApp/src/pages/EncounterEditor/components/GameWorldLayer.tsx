@@ -25,6 +25,7 @@ import type {
 import type { LocalAction } from '@/types/regionUndoActions';
 import type { RegionTransaction } from '@/hooks/useRegionTransaction';
 import type { WallTransaction } from '@/hooks/useWallTransaction';
+import type { WallBreakData } from '@components/encounter/editing/WallTransformer';
 import { isWallClosed } from '@/utils/wallUtils';
 import { segmentsToPoles } from '@/utils/wallSegmentUtils';
 
@@ -74,23 +75,23 @@ export interface GameWorldLayerProps {
 
     // Callbacks for regions
     onRegionSelect: (regionIndex: number) => void;
-    onRegionContextMenu: (region: PlacedRegion, position: { x: number; y: number }) => void;
+    onRegionContextMenu: (regionIndex: number, position: { x: number; y: number }) => void;
 
     // Callbacks for lights
     onLightSourceSelect: (index: number) => void;
-    onLightSourceContextMenu: (index: number, position: { left: number; top: number }) => void;
+    onLightSourceContextMenu: (index: number, position: { x: number; y: number }) => void;
     onLightSourcePositionChange: (index: number, position: Point) => Promise<void>;
     onLightSourceDirectionChange: (index: number, direction: number) => Promise<void>;
 
     // Callbacks for sounds
     onSoundSourceSelect: (index: number) => void;
-    onSoundSourceContextMenu: (index: number, position: { left: number; top: number }) => void;
+    onSoundSourceContextMenu: (index: number, position: { x: number; y: number }) => void;
     onSoundSourcePositionChange: (index: number, position: Point) => Promise<void>;
 
     // Callbacks for walls
     onWallClick: (wallIndex: number) => void;
-    onWallContextMenu: (wall: PlacedWall, segmentIndex: number, position: { x: number; y: number }) => void;
-    onWallBreak: (wallIndex: number, poleIndex: number) => Promise<void>;
+    onWallContextMenu: (wallIndex: number, segmentIndex: number, position: { x: number; y: number }) => void;
+    onWallBreak: (breakData: WallBreakData) => void | Promise<void>;
     onFinishEditing: () => void;
     setPreviewWallPoles: (poles: Pole[] | null) => void;
 
@@ -258,11 +259,11 @@ export const GameWorldLayer: React.FC<GameWorldLayerProps> = ({
                                         poles={poles}
                                         isClosed={isClosed}
                                         onPolesChange={(newPoles, newIsClosed) =>
-                                            handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
+                                            handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed ?? false)
                                         }
                                         onPolesPreview={setPreviewWallPoles}
                                         gridConfig={gridConfig}
-                                        snapEnabled={gridConfig.snap}
+                                        snapEnabled={gridConfig.snap ?? true}
                                         onClearSelections={onFinishEditing}
                                         isAltPressed={isAltPressed}
                                         encounterId={encounterId}

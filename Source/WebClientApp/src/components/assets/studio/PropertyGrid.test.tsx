@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PropertyGrid } from './PropertyGrid';
 import type { PropertyGridSection } from './PropertyGrid';
 
@@ -30,7 +30,7 @@ describe('PropertyGrid', () => {
     },
   ];
 
-  let mockOnChange: Mock<(sections: PropertyGridSection[]) => void>;
+  let mockOnChange: ReturnType<typeof vi.fn<(sections: PropertyGridSection[]) => void>>;
 
   beforeEach(() => {
     mockOnChange = vi.fn();
@@ -170,7 +170,7 @@ describe('PropertyGrid', () => {
       await user.type(hpField, '150');
 
       expect(mockOnChange).toHaveBeenCalled();
-      const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0];
+      const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0] ?? [];
       expect(updatedSections[0]?.properties[0]?.value).toBe('150');
     });
 
@@ -187,7 +187,7 @@ describe('PropertyGrid', () => {
       await user.clear(hpField);
       await user.type(hpField, '150');
 
-      const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0];
+      const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0] ?? [];
       expect(updatedSections[0]?.properties[1]?.value).toBe('15');
     });
 
@@ -204,7 +204,7 @@ describe('PropertyGrid', () => {
       await user.clear(hpField);
       await user.type(hpField, '150');
 
-      const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0];
+      const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0] ?? [];
       expect(updatedSections[1]?.properties[0]?.value).toBe('18');
     });
 
@@ -274,7 +274,7 @@ describe('PropertyGrid', () => {
       await user.click(addButtons[0]!);
 
       expect(mockOnChange).toHaveBeenCalled();
-      const updatedSections = mockOnChange.mock.calls[0]?.[0];
+      const updatedSections = mockOnChange.mock.calls[0]?.[0] ?? [];
       expect(updatedSections[0]?.properties).toHaveLength(3);
       expect(updatedSections[0]?.properties[2]?.key).toBe('New Property');
     });
@@ -291,7 +291,7 @@ describe('PropertyGrid', () => {
       const addButtons = screen.getAllByRole('button');
       await user.click(addButtons[1]!);
 
-      const updatedSections = mockOnChange.mock.calls[0]?.[0];
+      const updatedSections = mockOnChange.mock.calls[0]?.[0] ?? [];
       expect(updatedSections[1]?.properties).toHaveLength(3);
     });
 
@@ -349,7 +349,7 @@ describe('PropertyGrid', () => {
       await user.click(deleteButtons[0]!);
 
       expect(mockOnChange).toHaveBeenCalled();
-      const updatedSections = mockOnChange.mock.calls[0]?.[0];
+      const updatedSections = mockOnChange.mock.calls[0]?.[0] ?? [];
       expect(updatedSections[0]?.properties).toHaveLength(1);
       expect(updatedSections[0]?.properties[0]?.key).toBe('AC');
     });
@@ -366,7 +366,7 @@ describe('PropertyGrid', () => {
       const deleteButtons = screen.getAllByRole('button');
       await user.click(deleteButtons[0]!);
 
-      const updatedSections = mockOnChange.mock.calls[0]?.[0];
+      const updatedSections = mockOnChange.mock.calls[0]?.[0] ?? [];
       expect(updatedSections[1]?.properties).toHaveLength(2);
     });
   });
@@ -395,7 +395,7 @@ describe('PropertyGrid', () => {
       const initialButtons = screen.getAllByRole('button');
       await user.click(initialButtons[0]!);
 
-      let updatedSections = mockOnChange.mock.calls[0]?.[0];
+      let updatedSections = mockOnChange.mock.calls[0]?.[0] ?? [];
       expect(updatedSections[0]?.properties).toHaveLength(3);
 
       render(
@@ -407,7 +407,7 @@ describe('PropertyGrid', () => {
       const deleteButtons = screen.getAllByRole('button');
       await user.click(deleteButtons[deleteButtons.length - 1]!);
 
-      updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0];
+      updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0] ?? [];
       expect(updatedSections[0]?.properties).toHaveLength(2);
     });
   });
@@ -503,7 +503,7 @@ describe('PropertyGrid', () => {
       const deleteButton = screen.getByRole('button');
       await user.click(deleteButton);
 
-      const updatedSections = mockOnChange.mock.calls[0]?.[0];
+      const updatedSections = mockOnChange.mock.calls[0]?.[0] ?? [];
       expect(updatedSections[0]?.properties).toHaveLength(0);
     });
   });

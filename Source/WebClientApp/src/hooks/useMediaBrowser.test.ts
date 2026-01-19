@@ -333,6 +333,9 @@ describe('useMediaBrowser', () => {
             fileSize: 1000,
             dimensions: { width: 100, height: 100 },
             duration: '',
+            name: fileName,
+            description: null,
+            tags: [],
         });
 
         it('should sort media by name ascending', () => {

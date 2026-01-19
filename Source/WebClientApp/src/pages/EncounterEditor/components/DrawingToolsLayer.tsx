@@ -50,7 +50,7 @@ export interface DrawingToolsLayerProps {
     onStructurePlacementCancel: () => Promise<void>;
     onStructurePlacementFinish: () => Promise<void>;
     onRegionPlacementCancel: () => Promise<void>;
-    onBucketFillFinish: () => Promise<void>;
+    onBucketFillFinish: (vertices: Point[]) => Promise<void>;
 
     // Source drawing
     activeTool: string | null;
@@ -67,7 +67,7 @@ export interface DrawingToolsLayerProps {
     setFogDrawingVertices: React.Dispatch<React.SetStateAction<Point[]>>;
     setFogDrawingTool: React.Dispatch<React.SetStateAction<'polygon' | 'bucketFill' | null>>;
     onPolygonComplete: (vertices: Point[]) => Promise<void>;
-    onBucketFillComplete: (cellsToFill: Point[][]) => Promise<void>;
+    onBucketFillComplete: (vertices: Point[]) => Promise<void>;
 
     // Stage data
     placedWalls: PlacedWall[];
@@ -233,7 +233,9 @@ export const DrawingToolsLayer: React.FC<DrawingToolsLayerProps> = ({
                     gridConfig={gridConfig}
                     cursor={fogMode === 'add' ? getBucketPlusCursor() : getBucketMinusCursor()}
                     onCancel={() => setFogDrawingTool(null)}
-                    onFinish={onBucketFillComplete}
+                    onFinish={(vertices: Point[]) => {
+                        void onBucketFillComplete(vertices);
+                    }}
                     regionType='FogOfWar'
                     regionTransaction={regionTransaction}
                     walls={placedWalls}

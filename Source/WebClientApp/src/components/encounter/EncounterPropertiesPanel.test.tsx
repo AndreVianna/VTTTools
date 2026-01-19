@@ -33,7 +33,7 @@ const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => (
         type: ContentType.Adventure,
         name: 'Test Adventure',
         description: 'Adventure description',
-        style: AdventureStyle.Fantasy,
+        style: AdventureStyle.Generic,
         isOneShot: false,
         isPublished: false,
     },
@@ -86,18 +86,23 @@ const createMockGridConfig = (overrides: Partial<GridConfig> = {}): GridConfig =
 });
 
 // Default props factory
-const createDefaultProps = (overrides: Partial<EncounterPropertiesPanelProps> = {}): EncounterPropertiesPanelProps => ({
-    open: true,
-    encounter: createMockEncounter(),
-    gridConfig: createMockGridConfig(),
-    onDescriptionChange: vi.fn(),
-    onPublishedChange: vi.fn(),
-    onBackgroundUpload: vi.fn(),
-    onGridChange: vi.fn(),
-    backgroundUrl: undefined,
-    isUploadingBackground: false,
-    ...overrides,
-});
+const createDefaultProps = (overrides: Partial<EncounterPropertiesPanelProps> = {}): EncounterPropertiesPanelProps => {
+    const baseProps: EncounterPropertiesPanelProps = {
+        open: true,
+        encounter: createMockEncounter(),
+        gridConfig: createMockGridConfig(),
+        onDescriptionChange: vi.fn(),
+        onPublishedChange: vi.fn(),
+        onBackgroundUpload: vi.fn(),
+        onGridChange: vi.fn(),
+        isUploadingBackground: false,
+    };
+    // Filter out undefined values from overrides to avoid exactOptionalPropertyTypes issues
+    const filteredOverrides = Object.fromEntries(
+        Object.entries(overrides).filter(([, v]) => v !== undefined),
+    ) as Partial<EncounterPropertiesPanelProps>;
+    return { ...baseProps, ...filteredOverrides };
+};
 
 // Render helper with required providers
 const renderComponent = (props: Partial<EncounterPropertiesPanelProps> = {}) => {
@@ -162,7 +167,7 @@ describe('EncounterPropertiesPanel', () => {
                     type: ContentType.Adventure,
                     name: 'Epic Quest',
                     description: '',
-                    style: AdventureStyle.Fantasy,
+                    style: AdventureStyle.Generic,
                     isOneShot: false,
                     isPublished: false,
                 },
@@ -197,7 +202,7 @@ describe('EncounterPropertiesPanel', () => {
 
         it('should display "Default" badge when no custom background', () => {
             // Arrange & Act
-            renderComponent({ backgroundUrl: undefined });
+            renderComponent({});
 
             // Assert
             expect(screen.getByText('Default')).toBeInTheDocument();
@@ -601,16 +606,12 @@ describe('EncounterPropertiesPanel', () => {
                 adventure: {
                     id: 'adventure-123',
                     ownerId: 'user-1',
+                    type: ContentType.Adventure,
                     name: 'Navigate Adventure',
                     description: '',
-                    style: 'Fantasy',
+                    style: AdventureStyle.Generic,
                     isOneShot: false,
-                    campaignId: null,
-                    campaign: null,
-                    cover: null,
                     isPublished: false,
-                    isPublic: false,
-                    encounters: [],
                 },
             });
 
@@ -732,16 +733,12 @@ describe('EncounterPropertiesPanel', () => {
                 adventure: {
                     id: 'adventure-theme-test',
                     ownerId: 'user-1',
+                    type: ContentType.Adventure,
                     name: 'Theme Test Adventure',
                     description: '',
-                    style: 'Fantasy',
+                    style: AdventureStyle.Generic,
                     isOneShot: false,
-                    campaignId: null,
-                    campaign: null,
-                    cover: null,
                     isPublished: false,
-                    isPublic: false,
-                    encounters: [],
                 },
             });
 
@@ -776,8 +773,22 @@ describe('EncounterPropertiesPanel', () => {
             // Arrange
             const user = userEvent.setup();
 
-            // Act - Render without onGridChange callback
-            renderComponent({ onGridChange: undefined });
+            // Act - Render without onGridChange callback (props without onGridChange)
+            const propsWithoutGridChange: EncounterPropertiesPanelProps = {
+                open: true,
+                encounter: createMockEncounter(),
+                gridConfig: createMockGridConfig(),
+                onDescriptionChange: vi.fn(),
+                onPublishedChange: vi.fn(),
+                isUploadingBackground: false,
+            };
+            render(
+                <MemoryRouter>
+                    <ThemeProvider theme={theme}>
+                        <EncounterPropertiesPanel {...propsWithoutGridChange} />
+                    </ThemeProvider>
+                </MemoryRouter>,
+            );
             const widthInput = screen.getByLabelText('W');
 
             // Assert - No crash when changing value
@@ -787,8 +798,23 @@ describe('EncounterPropertiesPanel', () => {
         });
 
         it('should handle missing onBackgroundUpload gracefully', async () => {
-            // Arrange
-            const { container } = renderComponent({ onBackgroundUpload: undefined });
+            // Arrange - Render without onBackgroundUpload callback
+            const propsWithoutBackgroundUpload: EncounterPropertiesPanelProps = {
+                open: true,
+                encounter: createMockEncounter(),
+                gridConfig: createMockGridConfig(),
+                onDescriptionChange: vi.fn(),
+                onPublishedChange: vi.fn(),
+                onGridChange: vi.fn(),
+                isUploadingBackground: false,
+            };
+            const { container } = render(
+                <MemoryRouter>
+                    <ThemeProvider theme={theme}>
+                        <EncounterPropertiesPanel {...propsWithoutBackgroundUpload} />
+                    </ThemeProvider>
+                </MemoryRouter>,
+            );
 
             // Act
             const file = new File(['test'], 'background.png', { type: 'image/png' });

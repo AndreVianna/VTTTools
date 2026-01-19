@@ -11,15 +11,22 @@ import type { EncounterCanvasHandle, EncounterCanvasProps, Viewport } from './En
 
 // Store event handlers for testing interactions
 interface MockStageHandlers {
-    onWheel?: (e: unknown) => void;
-    onMouseDown?: (e: unknown) => void;
-    onMouseMove?: (e: unknown) => void;
-    onMouseUp?: (e: unknown) => void;
-    onClick?: (e: unknown) => void;
-    onContextMenu?: (e: unknown) => void;
+    onWheel: ((e: unknown) => void) | undefined;
+    onMouseDown: ((e: unknown) => void) | undefined;
+    onMouseMove: ((e: unknown) => void) | undefined;
+    onMouseUp: ((e: unknown) => void) | undefined;
+    onClick: ((e: unknown) => void) | undefined;
+    onContextMenu: ((e: unknown) => void) | undefined;
 }
 
-let mockStageHandlers: MockStageHandlers = {};
+let mockStageHandlers: MockStageHandlers = {
+    onWheel: undefined,
+    onMouseDown: undefined,
+    onMouseMove: undefined,
+    onMouseUp: undefined,
+    onClick: undefined,
+    onContextMenu: undefined,
+};
 
 // Mock Konva Stage to render a testable DOM element
 vi.mock('react-konva', () => ({
@@ -92,7 +99,14 @@ describe('EncounterCanvas', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockStageHandlers = {};
+        mockStageHandlers = {
+            onWheel: undefined,
+            onMouseDown: undefined,
+            onMouseMove: undefined,
+            onMouseUp: undefined,
+            onClick: undefined,
+            onContextMenu: undefined,
+        };
     });
 
     // Helper to create mock Konva event object

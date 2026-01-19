@@ -3,7 +3,7 @@ import { AssetPicker } from '@components/common';
 import { SoundPickerDialog } from '@/components/sounds';
 import { LightContextMenu, SoundContextMenu, type SoundSourceUpdatePayload } from '@components/encounter';
 import type { SoundPlacementProperties } from '@components/encounter/panels';
-import type { EncounterLightSource, PlacedLightSource, PlacedSoundSource } from '@/types/domain';
+import type { Asset, EncounterLightSource, PlacedLightSource, PlacedSoundSource } from '@/types/domain';
 import type { AssetKind } from '@/types/domain';
 
 export interface SourceContextMenusProps {
@@ -26,7 +26,7 @@ export interface SourceContextMenusProps {
     // Asset picker
     assetPickerOpen: { open: boolean; kind?: AssetKind };
     onAssetPickerClose: () => void;
-    onAssetSelect: (asset: unknown) => void;
+    onAssetSelect: (asset: Asset) => void;
 
     // Sound picker
     soundPickerOpen: boolean;

@@ -161,10 +161,10 @@ const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
 });
 
 describe('EntityPlacement', () => {
-  let mockOnAssetPlaced: ReturnType<typeof vi.fn>;
-  let mockOnAssetMoved: ReturnType<typeof vi.fn>;
-  let mockOnAssetDeleted: ReturnType<typeof vi.fn>;
-  let mockOnDragComplete: ReturnType<typeof vi.fn>;
+  let mockOnAssetPlaced: (asset: PlacedAsset) => void;
+  let mockOnAssetMoved: (moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => void;
+  let mockOnAssetDeleted: (assetId: string) => void;
+  let mockOnDragComplete: () => void;
   const mockEncounter: Encounter = {
     id: 'encounter-1',
     ownerId: 'owner-1',

@@ -29,7 +29,6 @@ import { GroupName, LayerName } from '@/services/layerManager';
 
 // Aliases - types
 import {
-    type EncounterWall,
     type EncounterWallSegment,
     type PlacedAsset,
     type PlacedLightSource,

@@ -327,7 +327,7 @@ describe('DataPanel', () => {
       expect(mockOnChange).toHaveBeenCalled();
       const updatedStatBlocks = mockOnChange.mock.calls[0]?.[0];
       expect(updatedStatBlocks).toBeDefined();
-      expect(updatedStatBlocks[5]).toBeDefined();
+      expect(updatedStatBlocks![5]).toBeDefined();
     });
   });
 
