@@ -417,18 +417,7 @@ describe('WallsPanel', () => {
             const listItem = screen.getByText('Stone Wall').closest('li');
             expect(listItem).toBeInTheDocument();
 
-            // Get all IconButtons (excludes the ListItemButton)
-            const _iconButtons = within(listItem!).getAllByRole('button').filter((btn) =>
-                btn.classList.contains('MuiIconButton-root'),
-            );
-
-            // IconButtons order: expand (no aria-label), edit (no aria-label), delete (no aria-label)
-            // The edit button is the second IconButton with MuiIconButton-root class
-            // In secondaryAction: edit first, then delete
-            // So we have: expand (index 0), edit (index 1), delete (index 2) among IconButtons
-
-            // Actually, let's be more precise - get all buttons and use the second one
-            // that's an IconButton without aria-label after the expand button
+            // Get all buttons and find the edit button
             const allButtons = within(listItem!).getAllByRole('button');
             // Filter to get only small icon buttons (the ones in secondary action and expand)
             const smallIconButtons = allButtons.filter((btn) =>
@@ -453,7 +442,7 @@ describe('WallsPanel', () => {
             const listItem = screen.getByText('Stone Wall').closest('li');
             expect(listItem).toBeInTheDocument();
             const buttons = within(listItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1]; // Last button is delete
+            const deleteButton = buttons[buttons.length - 1]!; // Last button is delete
             await user.click(deleteButton);
 
             // Assert
@@ -471,7 +460,7 @@ describe('WallsPanel', () => {
             // Act - Click delete button
             const listItem = screen.getByText('Stone Wall').closest('li');
             const buttons = within(listItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1];
+            const deleteButton = buttons[buttons.length - 1]!;
             await user.click(deleteButton);
 
             // Confirm deletion
@@ -492,7 +481,7 @@ describe('WallsPanel', () => {
             // Act - Click delete button
             const listItem = screen.getByText('Stone Wall').closest('li');
             const buttons = within(listItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1];
+            const deleteButton = buttons[buttons.length - 1]!;
             await user.click(deleteButton);
 
             // Cancel deletion
@@ -638,7 +627,7 @@ describe('WallsPanel', () => {
             // Act - Delete Wall 2 (different from the one being edited)
             const wall2ListItem = screen.getByText('Wall 2').closest('li');
             const buttons = within(wall2ListItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1];
+            const deleteButton = buttons[buttons.length - 1]!;
             await user.click(deleteButton);
 
             // Assert - Should show edit conflict dialog first

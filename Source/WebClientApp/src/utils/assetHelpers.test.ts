@@ -12,6 +12,9 @@ const createMockResource = (id: string, role: ResourceRole = ResourceRole.Token)
   fileSize: 1024,
   dimensions: { width: 100, height: 100 },
   duration: '',
+  name: `${id}.png`,
+  description: null,
+  tags: [],
 });
 
 const createMockAsset = (overrides?: Partial<Asset>): Asset => ({

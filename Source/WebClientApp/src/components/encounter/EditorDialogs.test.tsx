@@ -35,7 +35,6 @@ describe('EditorDialogs', () => {
 
     const mockWall: EncounterWall = {
         index: 0,
-        isComplete: true,
         segments: [
             {
                 index: 0,
@@ -444,9 +443,10 @@ describe('EditorDialogs', () => {
             render(<EditorDialogs {...props} />);
 
             // Find the type select - it shows "Wall" currently
-            const typeCombobox = screen.getAllByRole('combobox')[0];
-            expect(typeCombobox).toBeInTheDocument();
-            await user.click(typeCombobox);
+            const comboboxes = screen.getAllByRole('combobox');
+            const typeCombobox = comboboxes[0];
+            expect(typeCombobox).toBeDefined();
+            await user.click(typeCombobox!);
 
             // Select "Door" from the dropdown
             const doorOption = screen.getByRole('option', { name: 'Door' });
@@ -982,9 +982,12 @@ describe('EditorDialogs', () => {
                 ...mockWall,
                 segments: [
                     {
-                        ...mockWall.segments[0],
+                        index: 0,
+                        startPole: { x: 0, y: 0, h: 10 },
+                        endPole: { x: 100, y: 0, h: 10 },
                         type: SegmentType.Door,
                         state: SegmentState.Closed,
+                        isOpaque: true,
                     },
                 ],
             };
@@ -1002,7 +1005,8 @@ describe('EditorDialogs', () => {
             // Find the state select (second combobox)
             const comboboxes = screen.getAllByRole('combobox');
             const stateCombobox = comboboxes[1];
-            await user.click(stateCombobox);
+            expect(stateCombobox).toBeDefined();
+            await user.click(stateCombobox!);
 
             // Select "Open" state
             const openOption = screen.getByRole('option', { name: 'Open' });

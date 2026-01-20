@@ -2,8 +2,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Adventure } from '../../types';
-import { AdventureStyle, ContentType } from '../../types';
+import type { AdventureCard as AdventureCardData } from '@/types/domain';
+import { AdventureStyle } from '../../types';
 import { AdventureCard, type AdventureCardProps } from './AdventureCard';
 
 vi.mock('../shared', () => ({
@@ -32,17 +32,16 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('AdventureCard', () => {
-    const mockAdventure: Adventure = {
+    const mockAdventure: AdventureCardData = {
         id: 'adventure-1',
-        type: ContentType.Adventure,
         name: 'Dragon Lair Adventure',
         description: 'An epic adventure in the dragon lair',
         isPublished: false,
-        ownerId: 'user-1',
+        isPublic: false,
         style: AdventureStyle.DungeonCrawl,
         isOneShot: false,
         encounterCount: 5,
-        background: null,
+        backgroundId: null,
     };
 
     const defaultProps: AdventureCardProps = {
@@ -71,7 +70,7 @@ describe('AdventureCard', () => {
 
         it('should show One-Shot badge when adventure.isOneShot is true', () => {
             // Arrange
-            const oneShotAdventure: Adventure = {
+            const oneShotAdventure: AdventureCardData = {
                 ...mockAdventure,
                 isOneShot: true,
             };
@@ -89,7 +88,7 @@ describe('AdventureCard', () => {
 
         it('should not show One-Shot badge when adventure.isOneShot is false', () => {
             // Arrange
-            const regularAdventure: Adventure = {
+            const regularAdventure: AdventureCardData = {
                 ...mockAdventure,
                 isOneShot: false,
             };
@@ -107,7 +106,7 @@ describe('AdventureCard', () => {
 
         it('should show adventure style badge with correct label for DungeonCrawl', () => {
             // Arrange
-            const dungeonCrawlAdventure: Adventure = {
+            const dungeonCrawlAdventure: AdventureCardData = {
                 ...mockAdventure,
                 style: AdventureStyle.DungeonCrawl,
             };
@@ -125,7 +124,7 @@ describe('AdventureCard', () => {
 
         it('should show adventure style badge with correct label for OpenWorld', () => {
             // Arrange
-            const openWorldAdventure: Adventure = {
+            const openWorldAdventure: AdventureCardData = {
                 ...mockAdventure,
                 style: AdventureStyle.OpenWorld,
             };
@@ -143,7 +142,7 @@ describe('AdventureCard', () => {
 
         it('should show adventure style badge with correct label for HackNSlash', () => {
             // Arrange
-            const hackNSlashAdventure: Adventure = {
+            const hackNSlashAdventure: AdventureCardData = {
                 ...mockAdventure,
                 style: AdventureStyle.HackNSlash,
             };
@@ -161,7 +160,7 @@ describe('AdventureCard', () => {
 
         it('should show Published badge when adventure.isPublished is true', () => {
             // Arrange
-            const publishedAdventure: Adventure = {
+            const publishedAdventure: AdventureCardData = {
                 ...mockAdventure,
                 isPublished: true,
             };
@@ -179,7 +178,7 @@ describe('AdventureCard', () => {
 
         it('should not show Published badge when adventure.isPublished is false', () => {
             // Arrange
-            const unpublishedAdventure: Adventure = {
+            const unpublishedAdventure: AdventureCardData = {
                 ...mockAdventure,
                 isPublished: false,
             };
@@ -197,7 +196,7 @@ describe('AdventureCard', () => {
 
         it('should show correct encounter count in metadata', () => {
             // Arrange
-            const adventureWith5Encounters: Adventure = {
+            const adventureWith5Encounters: AdventureCardData = {
                 ...mockAdventure,
                 encounterCount: 5,
             };
@@ -215,7 +214,7 @@ describe('AdventureCard', () => {
 
         it('should show singular encounter when count is 1', () => {
             // Arrange
-            const adventureWith1Encounter: Adventure = {
+            const adventureWith1Encounter: AdventureCardData = {
                 ...mockAdventure,
                 encounterCount: 1,
             };
@@ -231,12 +230,11 @@ describe('AdventureCard', () => {
             expect(screen.getByText('1 encounter')).toBeInTheDocument();
         });
 
-        it('should show 0 encounters when encounterCount is null and encounters array is missing', () => {
+        it('should show 0 encounters when encounterCount is 0', () => {
             // Arrange
-            const adventureWithNoEncounters: Adventure = {
+            const adventureWithNoEncounters: AdventureCardData = {
                 ...mockAdventure,
-                encounterCount: null,
-                encounters: undefined,
+                encounterCount: 0,
             };
 
             // Act
@@ -355,7 +353,7 @@ describe('AdventureCard', () => {
     describe('adventure style labels', () => {
         it('should show Generic label for Generic style', () => {
             // Arrange
-            const adventure: Adventure = { ...mockAdventure, style: AdventureStyle.Generic };
+            const adventure: AdventureCardData = { ...mockAdventure, style: AdventureStyle.Generic };
 
             // Act
             render(
@@ -370,7 +368,7 @@ describe('AdventureCard', () => {
 
         it('should show Survival label for Survival style', () => {
             // Arrange
-            const adventure: Adventure = { ...mockAdventure, style: AdventureStyle.Survival };
+            const adventure: AdventureCardData = { ...mockAdventure, style: AdventureStyle.Survival };
 
             // Act
             render(
@@ -385,7 +383,7 @@ describe('AdventureCard', () => {
 
         it('should show Goal Driven label for GoalDriven style', () => {
             // Arrange
-            const adventure: Adventure = { ...mockAdventure, style: AdventureStyle.GoalDriven };
+            const adventure: AdventureCardData = { ...mockAdventure, style: AdventureStyle.GoalDriven };
 
             // Act
             render(
@@ -400,7 +398,7 @@ describe('AdventureCard', () => {
 
         it('should show Randomly Generated label for RandomlyGenerated style', () => {
             // Arrange
-            const adventure: Adventure = { ...mockAdventure, style: AdventureStyle.RandomlyGenerated };
+            const adventure: AdventureCardData = { ...mockAdventure, style: AdventureStyle.RandomlyGenerated };
 
             // Act
             render(
@@ -413,9 +411,9 @@ describe('AdventureCard', () => {
             expect(screen.getByText('Randomly Generated')).toBeInTheDocument();
         });
 
-        it('should not show style badge when style is null', () => {
-            // Arrange
-            const adventure: Adventure = { ...mockAdventure, style: null };
+        it('should not show style badge when style is null (defensive behavior)', () => {
+            // Arrange - testing defensive behavior for potentially malformed data
+            const adventure = { ...mockAdventure, style: null } as unknown as AdventureCardData;
 
             // Act
             render(

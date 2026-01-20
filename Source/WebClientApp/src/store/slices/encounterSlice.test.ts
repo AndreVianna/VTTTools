@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Encounter, EncounterActor, Point } from '@/types/domain';
+import { AssetKind, GridType, type Encounter, type EncounterActor, type Point } from '@/types/domain';
 import encounterReducer, {
     type EncounterState,
     clearEncounter,
@@ -87,7 +87,7 @@ describe('encounterSlice', () => {
         mockActor = {
             asset: {
                 id: 'asset-1',
-                classification: { kind: 'Character' as const, category: 'Humanoid', type: 'Human', subtype: null },
+                classification: { kind: AssetKind.Character, category: 'Humanoid', type: 'Human', subtype: null },
                 name: 'Test Asset',
                 description: 'A test asset',
                 thumbnail: null,
@@ -122,7 +122,7 @@ describe('encounterSlice', () => {
             stage: {
                 id: 'stage-1',
                 background: null,
-                grid: { type: 1, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true, scale: 1 },
+                grid: { type: GridType.Square, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true, scale: 1 },
                 walls: [],
                 regions: [],
                 lights: [],

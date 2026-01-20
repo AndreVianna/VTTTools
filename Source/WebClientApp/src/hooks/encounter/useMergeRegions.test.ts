@@ -2,13 +2,13 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
-import type { CreateRegionRequest, Stage, StageRegion, UpdateRegionRequest } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import type { Stage, StageRegion } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import * as commands from '@/utils/commands';
 import * as regionCommands from '@/utils/commands/regionCommands';
 import * as encounterStateUtils from '@/utils/encounterStateUtils';
-import { useMergeRegions } from './useMergeRegions';
+import { useMergeRegions, type UseMergeRegionsParams } from './useMergeRegions';
 
 vi.mock('@/utils/encounterStateUtils');
 vi.mock('@/utils/commands');
@@ -34,6 +34,8 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    useAlternateBackground: false,
+    ambientSoundSource: AmbientSoundSource.NotSet,
   },
   grid: {
     type: GridType.Square,
@@ -64,28 +66,44 @@ const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
 });
 
 describe('useMergeRegions', () => {
-  let mockAddEncounterRegion: ReturnType<typeof vi.fn<(data: CreateRegionRequest) => Promise<void>>>;
-  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>>;
-  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn<(index: number) => Promise<void>>>;
-  let mockSetEncounter: ReturnType<typeof vi.fn<(encounter: Encounter) => void>>;
-  let mockSetErrorMessage: ReturnType<typeof vi.fn<(message: string | null) => void>>;
-  let mockRecordAction: ReturnType<typeof vi.fn<(command: Command) => void>>;
-  let mockRefetch: ReturnType<typeof vi.fn<() => Promise<{ data?: Encounter }>>>;
+  // Using ReturnType<typeof vi.fn> allows us to call mock methods like mockResolvedValue
+  // while still passing them to the hook (hook params accept the broader function type)
+  let mockAddEncounterRegion: ReturnType<typeof vi.fn>;
+  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn>;
+  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn>;
+  let mockSetEncounter: ReturnType<typeof vi.fn>;
+  let mockSetErrorMessage: ReturnType<typeof vi.fn>;
+  let mockRecordAction: ReturnType<typeof vi.fn>;
+  let mockRefetch: ReturnType<typeof vi.fn>;
 
   let testEncounter: Encounter;
   let targetRegion: StageRegion;
   let regionToDelete: StageRegion;
 
+  // Helper to create hook params with proper typing
+  const createHookParams = (overrides?: Partial<UseMergeRegionsParams>): UseMergeRegionsParams => ({
+    encounterId: 'encounter-1',
+    encounter: testEncounter,
+    addRegion: mockAddEncounterRegion as UseMergeRegionsParams['addRegion'],
+    updateRegion: mockUpdateEncounterRegion as UseMergeRegionsParams['updateRegion'],
+    deleteRegion: mockRemoveEncounterRegion as UseMergeRegionsParams['deleteRegion'],
+    setEncounter: mockSetEncounter as UseMergeRegionsParams['setEncounter'],
+    setErrorMessage: mockSetErrorMessage as UseMergeRegionsParams['setErrorMessage'],
+    recordAction: mockRecordAction as UseMergeRegionsParams['recordAction'],
+    refetch: mockRefetch as UseMergeRegionsParams['refetch'],
+    ...overrides,
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<void>>();
-    mockUpdateEncounterRegion = vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>();
-    mockRemoveEncounterRegion = vi.fn<(index: number) => Promise<void>>();
-    mockSetEncounter = vi.fn<(encounter: Encounter) => void>();
-    mockSetErrorMessage = vi.fn<(message: string | null) => void>();
-    mockRecordAction = vi.fn<(command: Command) => void>();
-    mockRefetch = vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: {} as Encounter });
+    mockAddEncounterRegion = vi.fn();
+    mockUpdateEncounterRegion = vi.fn();
+    mockRemoveEncounterRegion = vi.fn();
+    mockSetEncounter = vi.fn();
+    mockSetErrorMessage = vi.fn();
+    mockRecordAction = vi.fn();
+    mockRefetch = vi.fn().mockResolvedValue({ data: {} as Encounter });
 
     targetRegion = {
       index: 1,
@@ -139,26 +157,14 @@ describe('useMergeRegions', () => {
 
     mockCreateBatchCommand.mockImplementation(({ commands: cmds }) => ({
       description: `Batch (${cmds.length} operations)`,
-      execute: vi.fn<() => Promise<void>>(),
-      undo: vi.fn<() => Promise<void>>(),
+      execute: vi.fn(),
+      undo: vi.fn(),
     }));
   });
 
   describe('executeMerge - Successful Merges', () => {
     it('should merge with single target region successfully', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -167,24 +173,28 @@ describe('useMergeRegions', () => {
         { x: 50, y: 100 },
       ];
 
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       mockUpdateEncounterRegion.mockResolvedValue(undefined);
       mockRemoveEncounterRegion.mockResolvedValue(undefined);
 
       const mockEditCommand = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
       const mockDeleteCommand = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Delete region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () => mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand,
+        function () { return mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand; },
       );
 
       await act(async () => {
@@ -226,17 +236,7 @@ describe('useMergeRegions', () => {
       const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: encounterWith3Regions,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
+        useMergeRegions(createHookParams({ encounter: encounterWith3Regions })),
       );
 
       const mergedVertices: Point[] = [
@@ -244,28 +244,30 @@ describe('useMergeRegions', () => {
         { x: 150, y: 0 },
         { x: 125, y: 150 },
       ];
-
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
-
-      mockUpdateEncounterRegion.mockResolvedValue(undefined);
-      mockRemoveEncounterRegion.mockResolvedValue(undefined);
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       const mockEditCommand = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
       const mockDeleteCommand1 = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Delete region 1',
       };
       const mockDeleteCommand2 = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Delete region 2',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
       let deleteCallCount = 0;
-      vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(() => {
+      vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(function () {
         deleteCallCount++;
         return (deleteCallCount === 1
           ? mockDeleteCommand1
@@ -293,19 +295,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should handle merge with no regions to delete', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -314,17 +304,19 @@ describe('useMergeRegions', () => {
         { x: 0, y: 100 },
       ];
 
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       mockUpdateEncounterRegion.mockResolvedValue(undefined);
 
       const mockEditCommand = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
 
       await act(async () => {
@@ -348,21 +340,11 @@ describe('useMergeRegions', () => {
   describe('executeMerge - Error Handling', () => {
     it('should return early when encounterId is undefined', async () => {
       const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: undefined,
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
+        useMergeRegions(createHookParams({ encounterId: undefined })),
       );
 
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       await act(async () => {
         await result.current.executeMerge({
@@ -382,21 +364,11 @@ describe('useMergeRegions', () => {
 
     it('should return early when encounter is null', async () => {
       const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: null,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
+        useMergeRegions(createHookParams({ encounter: null })),
       );
 
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       await act(async () => {
         await result.current.executeMerge({
@@ -415,22 +387,10 @@ describe('useMergeRegions', () => {
     });
 
     it('should handle target region not found', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       await act(async () => {
         await result.current.executeMerge({
@@ -450,34 +410,24 @@ describe('useMergeRegions', () => {
     });
 
     it('should handle EditRegionCommand execution failure', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
         { x: 100, y: 0 },
         { x: 50, y: 100 },
       ];
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       const mockEditCommand = {
-        execute: vi.fn<() => Promise<void>>().mockRejectedValue(new Error('Update failed')),
+        execute: vi.fn().mockRejectedValue(new Error('Update failed')),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
 
       await act(async () => {
@@ -499,40 +449,32 @@ describe('useMergeRegions', () => {
     });
 
     it('should handle DeleteRegionCommand execution failure', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
         { x: 100, y: 0 },
         { x: 50, y: 100 },
       ];
-      const onSuccess = vi.fn<() => void>();
-      const onError = vi.fn<() => void>();
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
 
       const mockEditCommand = {
-        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
       const mockDeleteCommand = {
-        execute: vi.fn<() => Promise<void>>().mockRejectedValue(new Error('Delete failed')),
+        execute: vi.fn().mockRejectedValue(new Error('Delete failed')),
+        undo: vi.fn(),
+        description: 'Delete region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () => mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand,
+        function () { return mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand; },
       );
 
       await act(async () => {
@@ -555,19 +497,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should skip delete command when region to delete not found', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -582,10 +512,12 @@ describe('useMergeRegions', () => {
 
       const mockEditCommand = {
         execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
 
       const deleteCommandSpy = vi.spyOn(regionCommands, 'DeleteRegionCommand');
@@ -610,19 +542,7 @@ describe('useMergeRegions', () => {
 
   describe('executeMerge - Command Creation', () => {
     it('should create EditRegionCommand with correct parameters', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -638,11 +558,13 @@ describe('useMergeRegions', () => {
 
       const mockEditCommand = {
         execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
 
       const editCommandSpy = vi
         .spyOn(regionCommands, 'EditRegionCommand')
-        .mockImplementation(() => mockEditCommand as unknown as regionCommands.EditRegionCommand);
+        .mockImplementation(function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; });
 
       await act(async () => {
         await result.current.executeMerge({
@@ -685,17 +607,7 @@ describe('useMergeRegions', () => {
       const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: encounterWith3Regions,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
+        useMergeRegions(createHookParams({ encounter: encounterWith3Regions })),
       );
 
       const mergedVertices: Point[] = [
@@ -705,23 +617,24 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       const mockEditCommand = {
         execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
 
       const deleteCommandSpy = vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       await act(async () => {
@@ -740,7 +653,13 @@ describe('useMergeRegions', () => {
         expect.objectContaining({
           encounterId: 'encounter-1',
           regionIndex: 2,
-          region: regionToDelete,
+          region: expect.objectContaining({
+            encounterId: 'encounter-1',
+            index: regionToDelete.index,
+            name: regionToDelete.name,
+            type: String(regionToDelete.type),
+            vertices: regionToDelete.vertices,
+          }),
           onAdd: expect.any(Function),
           onRemove: expect.any(Function),
           onRefetch: expect.any(Function),
@@ -750,7 +669,13 @@ describe('useMergeRegions', () => {
         expect.objectContaining({
           encounterId: 'encounter-1',
           regionIndex: 3,
-          region: region3,
+          region: expect.objectContaining({
+            encounterId: 'encounter-1',
+            index: region3.index,
+            name: region3.name,
+            type: String(region3.type),
+            vertices: region3.vertices,
+          }),
           onAdd: expect.any(Function),
           onRemove: expect.any(Function),
           onRefetch: expect.any(Function),
@@ -759,19 +684,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should create BatchCommand wrapping all commands', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -780,22 +693,22 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       const mockEditCommand = {
         execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
       const mockDeleteCommand = {
         execute: vi.fn().mockResolvedValue(undefined),
+        undo: vi.fn(),
+        description: 'Delete region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () => mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand,
+        function () { return mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand; },
       );
 
       await act(async () => {
@@ -817,44 +730,33 @@ describe('useMergeRegions', () => {
 
   describe('executeMerge - Optimistic State Updates', () => {
     it('should update encounter state with merged region vertices', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
         { x: 150, y: 0 },
         { x: 100, y: 100 },
       ];
-
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       await act(async () => {
@@ -887,17 +789,7 @@ describe('useMergeRegions', () => {
       const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: encounterWith3Regions,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
+        useMergeRegions(createHookParams({ encounter: encounterWith3Regions })),
       );
 
       const mergedVertices: Point[] = [
@@ -907,21 +799,23 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       await act(async () => {
@@ -940,19 +834,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should remove temporary regions from encounter state', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -961,21 +843,23 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       await act(async () => {
@@ -993,19 +877,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should call setEncounter with final optimistic state', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -1014,21 +886,23 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       const finalEncounter = createMockEncounter([{ ...targetRegion, vertices: mergedVertices }]);
@@ -1051,19 +925,7 @@ describe('useMergeRegions', () => {
 
   describe('executeMerge - Callback Invocations', () => {
     it('should call recordAction with BatchCommand after successful execution', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -1072,21 +934,23 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       const mockBatchCommand: Command = {
@@ -1112,19 +976,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should call onSuccess after successful merge', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -1133,21 +985,23 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.DeleteRegionCommand,
+            undo: vi.fn(),
+            description: 'Delete region',
+          } as unknown as regionCommands.DeleteRegionCommand;
+        },
       );
 
       await act(async () => {
@@ -1166,19 +1020,7 @@ describe('useMergeRegions', () => {
     });
 
     it('should call onError after failed merge', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -1188,10 +1030,13 @@ describe('useMergeRegions', () => {
       const onError = vi.fn();
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockRejectedValue(new Error('Failed')),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
 
       await act(async () => {
@@ -1212,19 +1057,7 @@ describe('useMergeRegions', () => {
 
   describe('executeMerge - Command Execution Order', () => {
     it('should execute EditRegionCommand before DeleteRegionCommand', async () => {
-      const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: testEncounter,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
-      );
+      const { result } = renderHook(() => useMergeRegions(createHookParams()));
 
       const mergedVertices: Point[] = [
         { x: 0, y: 0 },
@@ -1233,28 +1066,28 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       const executionOrder: string[] = [];
 
       const mockEditCommand = {
         execute: vi.fn().mockImplementation(async () => {
           executionOrder.push('edit');
         }),
+        undo: vi.fn(),
+        description: 'Edit region',
       };
       const mockDeleteCommand = {
         execute: vi.fn().mockImplementation(async () => {
           executionOrder.push('delete');
         }),
+        undo: vi.fn(),
+        description: 'Delete region',
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () => mockEditCommand as unknown as regionCommands.EditRegionCommand,
+        function () { return mockEditCommand as unknown as regionCommands.EditRegionCommand; },
       );
       vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(
-        () => mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand,
+        function () { return mockDeleteCommand as unknown as regionCommands.DeleteRegionCommand; },
       );
 
       await act(async () => {
@@ -1283,17 +1116,7 @@ describe('useMergeRegions', () => {
       const encounterWith3Regions = createMockEncounter([targetRegion, regionToDelete, region3]);
 
       const { result } = renderHook(() =>
-        useMergeRegions({
-          encounterId: 'encounter-1',
-          encounter: encounterWith3Regions,
-          addRegion: mockAddEncounterRegion,
-          updateRegion: mockUpdateEncounterRegion,
-          deleteRegion: mockRemoveEncounterRegion,
-          setEncounter: mockSetEncounter,
-          setErrorMessage: mockSetErrorMessage,
-          recordAction: mockRecordAction,
-          refetch: mockRefetch,
-        }),
+        useMergeRegions(createHookParams({ encounter: encounterWith3Regions })),
       );
 
       const mergedVertices: Point[] = [
@@ -1303,26 +1126,27 @@ describe('useMergeRegions', () => {
       const onSuccess = vi.fn();
       const onError = vi.fn();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-
       const executionOrder: string[] = [];
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
-        () =>
-          ({
+        function () {
+          return {
             execute: vi.fn().mockResolvedValue(undefined),
-          }) as unknown as regionCommands.EditRegionCommand,
+            undo: vi.fn(),
+            description: 'Edit region',
+          } as unknown as regionCommands.EditRegionCommand;
+        },
       );
 
       let deleteCallCount = 0;
-      vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(() => {
+      vi.spyOn(regionCommands, 'DeleteRegionCommand').mockImplementation(function () {
         const callNum = deleteCallCount++;
         return {
           execute: vi.fn().mockImplementation(async () => {
             executionOrder.push(`delete${callNum + 1}`);
           }),
+          undo: vi.fn(),
+          description: `Delete region ${callNum + 1}`,
         } as unknown as regionCommands.DeleteRegionCommand;
       });
 

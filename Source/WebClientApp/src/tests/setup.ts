@@ -50,11 +50,15 @@ global.ResizeObserver = MockResizeObserver;
 
 // Mock IntersectionObserver for lazy loading components
 class MockIntersectionObserver {
+    root: Element | Document | null = null;
+    rootMargin: string = '';
+    thresholds: ReadonlyArray<number> = [];
     observe = vi.fn<(target: Element) => void>();
     unobserve = vi.fn<(target: Element) => void>();
     disconnect = vi.fn<() => void>();
+    takeRecords = vi.fn<() => IntersectionObserverEntry[]>(() => []);
 }
-global.IntersectionObserver = MockIntersectionObserver;
+global.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
 
 // Mock URL.createObjectURL for file/blob handling
 global.URL.createObjectURL = vi.fn<(obj: Blob | MediaSource) => string>(() => 'blob:mock-url');

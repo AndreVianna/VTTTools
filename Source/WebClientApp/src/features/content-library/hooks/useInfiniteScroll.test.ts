@@ -1,35 +1,45 @@
 import { renderHook, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useInfiniteScroll, UseInfiniteScrollOptions } from './useInfiniteScroll';
+import { useInfiniteScroll, type UseInfiniteScrollOptions } from './useInfiniteScroll';
 
 describe('useInfiniteScroll', () => {
-    let mockObserve: ReturnType<typeof vi.fn<(target: Element) => void>>;
-    let mockDisconnect: ReturnType<typeof vi.fn<() => void>>;
-    let mockIntersectionObserver: ReturnType<typeof vi.fn<(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => IntersectionObserver>>;
-    let observerCallback: IntersectionObserverCallback;
+    let mockObserve: ReturnType<typeof vi.fn>;
+    let mockDisconnect: ReturnType<typeof vi.fn>;
+    let mockIntersectionObserver: ReturnType<typeof vi.fn>;
+    let observerCallback: IntersectionObserverCallback | null = null;
     let observerOptions: IntersectionObserverInit | undefined;
 
     beforeEach(() => {
-        mockObserve = vi.fn<(target: Element) => void>();
-        mockDisconnect = vi.fn<() => void>();
-        mockIntersectionObserver = vi.fn<(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => IntersectionObserver>((callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => {
+        mockObserve = vi.fn();
+        mockDisconnect = vi.fn();
+        observerCallback = null;
+        observerOptions = undefined;
+
+        // Create a mock IntersectionObserver constructor function
+        mockIntersectionObserver = vi.fn(function(
+            this: IntersectionObserver,
+            callback: IntersectionObserverCallback,
+            options?: IntersectionObserverInit
+        ) {
             observerCallback = callback;
             observerOptions = options;
             return {
-                observe: mockObserve,
-                disconnect: mockDisconnect,
-                unobserve: vi.fn(),
                 root: null,
                 rootMargin: options?.rootMargin ?? '',
                 thresholds: [],
-                takeRecords: vi.fn(),
-            };
+                observe: mockObserve,
+                disconnect: mockDisconnect,
+                unobserve: vi.fn(),
+                takeRecords: vi.fn(() => []),
+            } as IntersectionObserver;
         });
+
+        // Override the global IntersectionObserver
         vi.stubGlobal('IntersectionObserver', mockIntersectionObserver);
     });
 
     afterEach(() => {
-        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
     });
 
     describe('Return Value', () => {

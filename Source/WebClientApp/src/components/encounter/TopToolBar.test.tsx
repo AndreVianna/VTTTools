@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { TopToolBar, type TopToolBarProps, type LayerVisibilityType, type SelectionCategory } from './TopToolBar';
+import { TopToolBar, type TopToolBarProps, type LayerVisibilityType } from './TopToolBar';
 
 // Mock MUI icons to avoid file handle exhaustion
 vi.mock('@mui/icons-material', () => ({

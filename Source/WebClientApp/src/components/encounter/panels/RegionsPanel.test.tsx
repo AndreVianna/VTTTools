@@ -7,8 +7,8 @@ import { RegionsPanel, type RegionsPanelProps } from './RegionsPanel';
 import type { RegionPreset } from './regionsPanelTypes';
 
 // Arrange: Mock RTK Query mutation
-const mockUpdateRegionMutation = vi.fn<[], { unwrap: () => Promise<undefined> }>().mockReturnValue({
-    unwrap: vi.fn<[], Promise<undefined>>().mockResolvedValue(undefined),
+const mockUpdateRegionMutation = vi.fn<() => { unwrap: () => Promise<void> }>().mockReturnValue({
+    unwrap: vi.fn<() => Promise<void>>().mockResolvedValue(),
 });
 
 vi.mock('@/services/stageApi', () => ({
@@ -65,12 +65,12 @@ describe('RegionsPanel', () => {
         encounterRegions: [],
         selectedRegionIndex: null,
         placementMode: null,
-        onPresetSelect: vi.fn<[preset: RegionPreset], void>(),
-        onPlaceRegion: vi.fn<[properties: { name: string; type: string; value: number }], void>(),
-        onBucketFillRegion: vi.fn<[properties: { name: string; type: string; value: number }], void>(),
-        onRegionSelect: vi.fn<[regionIndex: number], void>(),
-        onRegionDelete: vi.fn<[regionIndex: number], void>(),
-        onEditVertices: vi.fn<[regionIndex: number], void>(),
+        onPresetSelect: vi.fn<(preset: RegionPreset) => void>(),
+        onPlaceRegion: vi.fn<(properties: { name: string; type: string; value: number }) => void>(),
+        onBucketFillRegion: vi.fn<(properties: { name: string; type: string; value: number }) => void>(),
+        onRegionSelect: vi.fn<(regionIndex: number) => void>(),
+        onRegionDelete: vi.fn<(regionIndex: number) => void>(),
+        onEditVertices: vi.fn<(regionIndex: number) => void>(),
     };
 
     const renderComponent = (props: Partial<RegionsPanelProps> = {}, theme = lightTheme) => {
@@ -378,9 +378,8 @@ describe('RegionsPanel', () => {
             expect(screen.queryByText('Dark Corner')).not.toBeInTheDocument();
         });
 
-        it('should show region count in header', async () => {
+        it('should show region count in header', () => {
             // Arrange
-            const _user = userEvent.setup();
             const multipleElevationRegions: PlacedRegion[] = [
                 mockElevationRegion,
                 { ...mockElevationRegion, id: 'region-4', index: 3, name: 'Valley' },
@@ -509,10 +508,6 @@ describe('RegionsPanel', () => {
             renderComponent({ encounterRegions: [mockElevationRegion] });
 
             // Act - Click the expand button
-            const _expandButton = screen.getAllByRole('button').find(
-                (b) => b.querySelector('[data-testid="ExpandMoreIcon"]') !== null
-                    || b.getAttribute('aria-label')?.includes('expand'),
-            );
             // Find by icon type instead
             const listItem = screen.getByText('Hill').closest('li');
             const expandIcon = listItem?.querySelector('button');
@@ -666,8 +661,8 @@ describe('RegionsPanel', () => {
 
     describe('Edge Cases', () => {
         it('should handle undefined encounterRegions', () => {
-            // Arrange & Act
-            renderComponent({ encounterRegions: undefined });
+            // Arrange & Act - Pass empty object to test default value behavior
+            renderComponent({});
 
             // Assert
             expect(screen.getByText(/no elevation regions placed/i)).toBeInTheDocument();
@@ -688,10 +683,13 @@ describe('RegionsPanel', () => {
         it('should handle missing encounterId gracefully when updating', async () => {
             // Arrange
             const user = userEvent.setup();
-            renderComponent({
-                encounterRegions: [mockElevationRegion],
-                encounterId: undefined,
-            });
+            // Create props without encounterId using destructuring to omit it
+            const { encounterId: _, ...propsWithoutEncounterId } = defaultProps;
+            render(
+                <ThemeProvider theme={lightTheme}>
+                    <RegionsPanel {...propsWithoutEncounterId} encounterRegions={[mockElevationRegion]} />
+                </ThemeProvider>,
+            );
 
             // Act - Try to expand and update
             const listItem = screen.getByText('Hill').closest('li');
@@ -717,11 +715,13 @@ describe('RegionsPanel', () => {
         it('should not call callbacks when they are undefined', async () => {
             // Arrange
             const user = userEvent.setup();
-            renderComponent({
-                encounterRegions: [mockElevationRegion],
-                onRegionSelect: undefined,
-                onPresetSelect: undefined,
-            });
+            // Create props without onRegionSelect and onPresetSelect using destructuring
+            const { onRegionSelect: _1, onPresetSelect: _2, ...propsWithoutCallbacks } = defaultProps;
+            render(
+                <ThemeProvider theme={lightTheme}>
+                    <RegionsPanel {...propsWithoutCallbacks} encounterRegions={[mockElevationRegion]} />
+                </ThemeProvider>,
+            );
 
             // Act - Try to select preset (this switches to Terrain which has no regions)
             await user.click(screen.getByRole('button', { name: 'Elevation' }));

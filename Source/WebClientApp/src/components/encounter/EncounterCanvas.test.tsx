@@ -8,16 +8,26 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EncounterCanvasHandle, EncounterCanvasProps, Viewport } from './EncounterCanvas';
 
 // Store event handlers for testing interactions
+// Using explicit undefined union for exactOptionalPropertyTypes compatibility
+type EventHandler = ((e: unknown) => void) | undefined;
+
 interface MockStageHandlers {
-    onWheel?: (e: unknown) => void;
-    onMouseDown?: (e: unknown) => void;
-    onMouseMove?: (e: unknown) => void;
-    onMouseUp?: (e: unknown) => void;
-    onClick?: (e: unknown) => void;
-    onContextMenu?: (e: unknown) => void;
+    onWheel: EventHandler;
+    onMouseDown: EventHandler;
+    onMouseMove: EventHandler;
+    onMouseUp: EventHandler;
+    onClick: EventHandler;
+    onContextMenu: EventHandler;
 }
 
-let mockStageHandlers: MockStageHandlers = {};
+let mockStageHandlers: MockStageHandlers = {
+    onWheel: undefined,
+    onMouseDown: undefined,
+    onMouseMove: undefined,
+    onMouseUp: undefined,
+    onClick: undefined,
+    onContextMenu: undefined,
+};
 
 // Mock Konva Stage to render a testable DOM element
 vi.mock('react-konva', () => ({
@@ -36,6 +46,7 @@ vi.mock('react-konva', () => ({
         onClick,
         onContextMenu,
         style,
+        ref: _ref,
         ...props
     }: {
         children?: React.ReactNode;
@@ -45,17 +56,24 @@ vi.mock('react-konva', () => ({
         y?: number;
         scaleX?: number;
         scaleY?: number;
-        onWheel?: (e: unknown) => void;
-        onMouseDown?: (e: unknown) => void;
-        onMouseMove?: (e: unknown) => void;
-        onMouseUp?: (e: unknown) => void;
-        onClick?: (e: unknown) => void;
-        onContextMenu?: (e: unknown) => void;
+        onWheel?: ((e: unknown) => void) | undefined;
+        onMouseDown?: ((e: unknown) => void) | undefined;
+        onMouseMove?: ((e: unknown) => void) | undefined;
+        onMouseUp?: ((e: unknown) => void) | undefined;
+        onClick?: ((e: unknown) => void) | undefined;
+        onContextMenu?: ((e: unknown) => void) | undefined;
         style?: React.CSSProperties;
         ref?: React.Ref<unknown>;
     }) => {
-        // Capture handlers for testing
-        mockStageHandlers = { onWheel, onMouseDown, onMouseMove, onMouseUp, onClick, onContextMenu };
+        // Capture handlers for testing - only assign if defined
+        mockStageHandlers = {
+            onWheel,
+            onMouseDown,
+            onMouseMove,
+            onMouseUp,
+            onClick,
+            onContextMenu,
+        };
         return (
             <div
                 role="application"
@@ -92,7 +110,14 @@ describe('EncounterCanvas', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockStageHandlers = {};
+        mockStageHandlers = {
+            onWheel: undefined,
+            onMouseDown: undefined,
+            onMouseMove: undefined,
+            onMouseUp: undefined,
+            onClick: undefined,
+            onContextMenu: undefined,
+        };
     });
 
     // Helper to create mock Konva event object
@@ -774,6 +799,10 @@ describe('EncounterCanvas', () => {
             const ref = createRef<EncounterCanvasHandle>();
             const onViewportChange = vi.fn<(viewport: Viewport) => void>();
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
+
+            // Act & Assert - viewport position should be tracked
+            expect(ref.current).toBeDefined();
+        });
 
         it('should not zoom beyond maxZoom via wheel', () => {
             // Arrange

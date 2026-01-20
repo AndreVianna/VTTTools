@@ -10,7 +10,6 @@ import { RegionTransformer } from './RegionTransformer';
 describe('RegionTransformer', () => {
     // Arrange - Default test fixtures
     const mockEncounterId = 'encounter-123';
-    const _mockRegionIndex = 0;
     const mockGridConfig: GridConfig = {
         type: GridType.Square,
         cellSize: { width: 50, height: 50 },
@@ -350,13 +349,14 @@ describe('RegionTransformer', () => {
 
         it('should clear selections on background click', () => {
             // Arrange
-            const _selectedVertices = new Set<number>([0, 1, 2]);
+            const selectedVertices = new Set<number>([0, 1, 2]);
+            expect(selectedVertices.size).toBe(3); // Verify initial state
 
             // Act - Simulate clearing selections
-            const clearedVertices = new Set<number>();
+            selectedVertices.clear();
 
             // Assert
-            expect(clearedVertices.size).toBe(0);
+            expect(selectedVertices.size).toBe(0);
         });
     });
 
@@ -568,11 +568,15 @@ describe('RegionTransformer', () => {
         it('should project click point to line segment', () => {
             // Arrange - Line from (0,0) to (100,0)
             const lineStart = { x: 0, y: 0 };
-            const _lineEnd = { x: 100, y: 0 };
+            const lineEnd = { x: 100, y: 0 };
             const clickPoint = { x: 50, y: 10 }; // Point 10 units above the line
 
-            // Act - Project to line (simplified)
-            const projected = { x: clickPoint.x, y: lineStart.y }; // For horizontal line
+            // Act - Project to line (simplified for horizontal line)
+            // For horizontal line, project y to line's y coordinate
+            const projected = {
+                x: Math.max(lineStart.x, Math.min(lineEnd.x, clickPoint.x)),
+                y: lineStart.y,
+            };
 
             // Assert
             expect(projected.x).toBe(50);
@@ -732,7 +736,7 @@ describe('RegionTransformer', () => {
     describe('region switching', () => {
         it('should allow switching to another region on click', () => {
             // Arrange
-            const _allRegions: PlacedRegion[] = [
+            const allRegions: PlacedRegion[] = [
                 createMockPlacedRegion({ index: 0 }),
                 createMockPlacedRegion({
                     index: 1,
@@ -744,6 +748,7 @@ describe('RegionTransformer', () => {
                     ],
                 }),
             ];
+            expect(allRegions.length).toBe(2);
 
             // Act - Simulate clicking on region 1
             const clickedRegionIndex = 1;
@@ -884,15 +889,11 @@ describe('RegionTransformer', () => {
             expect(segment.regionIndex).toBeNull();
         });
 
-        it('should handle segment with optional properties', () => {
-            // Arrange
-            const segment = createMockSegment({
-                value: undefined,
-                label: undefined,
-                color: undefined,
-            });
+        it('should handle segment with optional properties omitted', () => {
+            // Arrange - Create segment without optional properties
+            const segment = createMockSegment({});
 
-            // Assert
+            // Assert - Optional properties should not be present
             expect(segment.value).toBeUndefined();
             expect(segment.label).toBeUndefined();
             expect(segment.color).toBeUndefined();
@@ -916,7 +917,7 @@ describe('RegionTransformer', () => {
     describe('point in polygon detection', () => {
         it('should detect point inside polygon', () => {
             // Arrange
-            const _vertices: Point[] = [
+            const vertices: Point[] = [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
                 { x: 100, y: 100 },
@@ -924,8 +925,12 @@ describe('RegionTransformer', () => {
             ];
             const point = { x: 50, y: 50 };
 
-            // Act - Simplified ray casting
-            const isInside = point.x > 0 && point.x < 100 && point.y > 0 && point.y < 100;
+            // Act - Simplified bounding box check (approximates ray casting for axis-aligned rectangle)
+            const minX = Math.min(...vertices.map((v) => v.x));
+            const maxX = Math.max(...vertices.map((v) => v.x));
+            const minY = Math.min(...vertices.map((v) => v.y));
+            const maxY = Math.max(...vertices.map((v) => v.y));
+            const isInside = point.x > minX && point.x < maxX && point.y > minY && point.y < maxY;
 
             // Assert
             expect(isInside).toBe(true);
@@ -933,7 +938,7 @@ describe('RegionTransformer', () => {
 
         it('should detect point outside polygon', () => {
             // Arrange
-            const _vertices: Point[] = [
+            const vertices: Point[] = [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
                 { x: 100, y: 100 },
@@ -941,8 +946,12 @@ describe('RegionTransformer', () => {
             ];
             const point = { x: 150, y: 50 };
 
-            // Act
-            const isInside = point.x > 0 && point.x < 100 && point.y > 0 && point.y < 100;
+            // Act - Simplified bounding box check
+            const minX = Math.min(...vertices.map((v) => v.x));
+            const maxX = Math.max(...vertices.map((v) => v.x));
+            const minY = Math.min(...vertices.map((v) => v.y));
+            const maxY = Math.max(...vertices.map((v) => v.y));
+            const isInside = point.x > minX && point.x < maxX && point.y > minY && point.y < maxY;
 
             // Assert
             expect(isInside).toBe(false);

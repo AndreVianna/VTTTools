@@ -9,26 +9,22 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useViewportControls } from './useViewportControls';
 import type { EncounterCanvasHandle, Viewport } from '@components/encounter';
 
-// Mock canvas handle factory - returns ref with guaranteed non-null current
-interface MockCanvasRef {
-    current: {
-        zoomIn: ReturnType<typeof vi.fn<() => void>>;
-        zoomOut: ReturnType<typeof vi.fn<() => void>>;
-        resetView: ReturnType<typeof vi.fn<() => void>>;
-        setViewport: ReturnType<typeof vi.fn<(viewport: Viewport) => void>>;
-    };
-}
-
-const createMockCanvasRef = (): MockCanvasRef => ({
+// Mock canvas handle factory - returns ref with all required EncounterCanvasHandle methods
+const createMockCanvasRef = (): React.RefObject<EncounterCanvasHandle> => ({
     current: {
         zoomIn: vi.fn<() => void>(),
         zoomOut: vi.fn<() => void>(),
         resetView: vi.fn<() => void>(),
         setViewport: vi.fn<(viewport: Viewport) => void>(),
+        getViewport: vi.fn<() => Viewport>().mockReturnValue({ x: 0, y: 0, scale: 1 }),
+        getStage: vi.fn<() => null>().mockReturnValue(null),
     },
 });
 
 const defaultViewport: Viewport = { x: 0, y: 0, scale: 1 };
+
+// Helper to cast mock ref for testing - all tests use the same pattern
+const useMockRef = (ref: React.RefObject<EncounterCanvasHandle>) => ref;
 
 describe('useViewportControls', () => {
     let sessionStorageGetSpy: ReturnType<typeof vi.spyOn>;
@@ -60,7 +56,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -77,7 +73,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -96,7 +92,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -114,7 +110,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'new-encounter',
                 })
             );
@@ -131,7 +127,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -152,7 +148,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -176,7 +172,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: undefined,
                 })
             );
@@ -200,7 +196,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -220,7 +216,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -241,7 +237,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: { x: 500, y: 400, scale: 2 },
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                     stageSize,
                 })
@@ -263,9 +259,8 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
-                    stageSize: undefined,
                 })
             );
 
@@ -275,7 +270,7 @@ describe('useViewportControls', () => {
             });
 
             // Assert
-            expect(canvasRef.current.resetView).toHaveBeenCalledTimes(1);
+            expect(canvasRef.current?.resetView).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -287,7 +282,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -315,7 +310,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -350,7 +345,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -368,7 +363,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -390,7 +385,7 @@ describe('useViewportControls', () => {
             const { result, rerender } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                 })
             );
@@ -411,7 +406,7 @@ describe('useViewportControls', () => {
             const { result, rerender } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'test-encounter',
                     stageSize,
                 })
@@ -438,7 +433,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'center-test',
                     backgroundSize,
                 })
@@ -469,7 +464,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport: defaultViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'session-restore-test',
                     backgroundSize,
                 })
@@ -489,7 +484,7 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'zero-size-test',
                     backgroundSize,
                 })
@@ -508,9 +503,8 @@ describe('useViewportControls', () => {
             const { result } = renderHook(() =>
                 useViewportControls({
                     initialViewport,
-                    canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
+                    canvasRef: useMockRef(canvasRef),
                     encounterId: 'undefined-bg-test',
-                    backgroundSize: undefined,
                 })
             );
 
