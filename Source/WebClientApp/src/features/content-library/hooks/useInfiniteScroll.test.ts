@@ -168,10 +168,12 @@ describe('useInfiniteScroll', () => {
 
             // Act
             act(() => {
-                observerCallback(
-                    [{ isIntersecting: true } as IntersectionObserverEntry],
-                    {} as IntersectionObserver,
-                );
+                if (observerCallback) {
+                    observerCallback(
+                        [{ isIntersecting: true } as IntersectionObserverEntry],
+                        {} as IntersectionObserver,
+                    );
+                }
             });
 
             // Assert
@@ -190,10 +192,12 @@ describe('useInfiniteScroll', () => {
 
             // Act
             act(() => {
-                observerCallback(
-                    [{ isIntersecting: false } as IntersectionObserverEntry],
-                    {} as IntersectionObserver,
-                );
+                if (observerCallback) {
+                    observerCallback(
+                        [{ isIntersecting: false } as IntersectionObserverEntry],
+                        {} as IntersectionObserver,
+                    );
+                }
             });
 
             // Assert
@@ -248,7 +252,9 @@ describe('useInfiniteScroll', () => {
 
             // Act
             act(() => {
-                observerCallback([], {} as IntersectionObserver);
+                if (observerCallback) {
+                    observerCallback([], {} as IntersectionObserver);
+                }
             });
 
             // Assert
@@ -267,13 +273,15 @@ describe('useInfiniteScroll', () => {
 
             // Act
             act(() => {
-                observerCallback(
-                    [
-                        { isIntersecting: true } as IntersectionObserverEntry,
-                        { isIntersecting: true } as IntersectionObserverEntry,
-                    ],
-                    {} as IntersectionObserver,
-                );
+                if (observerCallback) {
+                    observerCallback(
+                        [
+                            { isIntersecting: true } as IntersectionObserverEntry,
+                            { isIntersecting: true } as IntersectionObserverEntry,
+                        ],
+                        {} as IntersectionObserver,
+                    );
+                }
             });
 
             // Assert

@@ -378,7 +378,7 @@ describe('AdventureDetailPage', () => {
 
             // Act
             const openButtons = screen.getAllByRole('button', { name: /^open$/i });
-            await user.click(openButtons[0]);
+            await user.click(openButtons[0]!);
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledWith('/encounters/encounter-1/edit');
@@ -481,7 +481,7 @@ describe('AdventureDetailPage', () => {
 
             // Act
             const duplicateButtons = screen.getAllByRole('button', { name: /duplicate/i });
-            await user.click(duplicateButtons[0]);
+            await user.click(duplicateButtons[0]!);
 
             // Assert
             await waitFor(() => {
@@ -504,7 +504,7 @@ describe('AdventureDetailPage', () => {
 
             // Act
             const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i });
-            await user.click(deleteButtons[0]);
+            await user.click(deleteButtons[0]!);
 
             // Assert
             expect(screen.getByText('Delete Encounter')).toBeInTheDocument();
@@ -523,7 +523,7 @@ describe('AdventureDetailPage', () => {
 
             // Act - open dialog
             const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i });
-            await user.click(deleteButtons[0]);
+            await user.click(deleteButtons[0]!);
 
             // Act - confirm delete
             const confirmButton = screen.getByRole('button', { name: /confirm/i });
@@ -550,7 +550,7 @@ describe('AdventureDetailPage', () => {
 
             // Act - open dialog
             const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i });
-            await user.click(deleteButtons[0]);
+            await user.click(deleteButtons[0]!);
 
             // Act - cancel
             const cancelButton = screen.getByRole('button', { name: /cancel/i });

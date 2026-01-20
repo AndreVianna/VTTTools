@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
 import type { Stage } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import { EncounterListView } from './EncounterListView';
 
 // Mock react-router-dom
@@ -38,7 +38,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 TestWrapper.displayName = 'TestWrapper';
 
-const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
+const _createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
     id: 'stage-1',
     ownerId: 'owner-1',
     name: 'Test Stage',
@@ -48,10 +48,12 @@ const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
     settings: {
         mainBackground: null,
         alternateBackground: null,
+        useAlternateBackground: false,
         zoomLevel: 1,
         panning: { x: 0, y: 0 },
         ambientLight: AmbientLight.Default,
         ambientSound: null,
+        ambientSoundSource: AmbientSoundSource.NotSet,
         ambientSoundVolume: 1,
         ambientSoundLoop: false,
         ambientSoundIsPlaying: false,
@@ -68,21 +70,6 @@ const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
     lights: [],
     elements: [],
     sounds: [],
-    ...overrides,
-});
-
-const _createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => ({
-    id: 'encounter-123',
-    ownerId: 'owner-1',
-    name: 'Dragon Lair',
-    description: 'A dangerous encounter',
-    isPublished: false,
-    isPublic: false,
-    adventure: null,
-    stage: createMockStage(),
-    actors: [],
-    objects: [],
-    effects: [],
     ...overrides,
 });
 

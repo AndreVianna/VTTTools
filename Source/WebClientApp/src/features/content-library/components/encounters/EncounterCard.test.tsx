@@ -3,10 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Encounter } from '@/types/domain';
-import { GridType, Weather } from '@/types/domain';
-import type { Stage } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import type { EncounterCard as EncounterCardType } from '@/types/domain';
 import { EncounterCard, type EncounterCardProps } from './EncounterCard';
 
 vi.mock('@/config/development', () => ({
@@ -41,57 +38,19 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 TestWrapper.displayName = 'TestWrapper';
 
-const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
-    id: 'stage-1',
-    ownerId: 'owner-1',
-    name: 'Test Stage',
-    description: 'A test stage',
-    isPublished: false,
-    isPublic: false,
-    settings: {
-        mainBackground: null,
-        alternateBackground: null,
-        zoomLevel: 1,
-        panning: { x: 0, y: 0 },
-        ambientLight: AmbientLight.Default,
-        ambientSound: null,
-        ambientSoundVolume: 1,
-        ambientSoundLoop: false,
-        ambientSoundIsPlaying: false,
-        weather: Weather.Clear,
-    },
-    grid: {
-        type: GridType.Square,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        scale: 1,
-    },
-    walls: [],
-    regions: [],
-    lights: [],
-    elements: [],
-    sounds: [],
-    ...overrides,
-});
-
 describe('EncounterCard', () => {
-    const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => ({
+    const createMockEncounterCard = (overrides: Partial<EncounterCardType> = {}): EncounterCardType => ({
         id: 'encounter-123',
-        ownerId: 'owner-1',
         name: 'Dragon Lair',
         description: 'A dangerous encounter',
         isPublished: false,
         isPublic: false,
-        adventure: null,
-        stage: createMockStage(),
-        actors: [],
-        objects: [],
-        effects: [],
+        backgroundId: null,
         ...overrides,
     });
 
     const defaultProps: EncounterCardProps = {
-        encounter: createMockEncounter(),
+        encounter: createMockEncounterCard(),
         onOpen: vi.fn<(id: string) => void>(),
         onDuplicate: vi.fn<(id: string) => void>(),
         onDelete: vi.fn<(id: string) => void>(),
@@ -104,7 +63,7 @@ describe('EncounterCard', () => {
     describe('rendering', () => {
         it('should render encounter name', () => {
             // Arrange
-            const encounter = createMockEncounter({ name: 'Goblin Ambush' });
+            const encounter = createMockEncounterCard({ name: 'Goblin Ambush' });
 
             // Act
             render(
@@ -119,7 +78,7 @@ describe('EncounterCard', () => {
 
         it('should show Published badge when encounter.isPublished is true', () => {
             // Arrange
-            const encounter = createMockEncounter({ isPublished: true });
+            const encounter = createMockEncounterCard({ isPublished: true });
 
             // Act
             render(
@@ -134,7 +93,7 @@ describe('EncounterCard', () => {
 
         it('should not show Published badge when encounter.isPublished is false', () => {
             // Arrange
-            const encounter = createMockEncounter({ isPublished: false });
+            const encounter = createMockEncounterCard({ isPublished: false });
 
             // Act
             render(
@@ -153,7 +112,7 @@ describe('EncounterCard', () => {
             // Arrange
             const user = userEvent.setup();
             const onOpen = vi.fn<(id: string) => void>();
-            const encounter = createMockEncounter({ id: 'encounter-456' });
+            const encounter = createMockEncounterCard({ id: 'encounter-456' });
 
             render(
                 <TestWrapper>
@@ -175,7 +134,7 @@ describe('EncounterCard', () => {
             const user = userEvent.setup();
             const onDuplicate = vi.fn<(id: string) => void>();
             const onOpen = vi.fn<(id: string) => void>();
-            const encounter = createMockEncounter({ id: 'encounter-789' });
+            const encounter = createMockEncounterCard({ id: 'encounter-789' });
 
             render(
                 <TestWrapper>
@@ -203,7 +162,7 @@ describe('EncounterCard', () => {
             const user = userEvent.setup();
             const onDelete = vi.fn<(id: string) => void>();
             const onOpen = vi.fn<(id: string) => void>();
-            const encounter = createMockEncounter({ id: 'encounter-abc' });
+            const encounter = createMockEncounterCard({ id: 'encounter-abc' });
 
             render(
                 <TestWrapper>
@@ -227,32 +186,25 @@ describe('EncounterCard', () => {
         });
     });
 
-    describe('stage background', () => {
-        it('should handle encounter with stage background', () => {
+    describe('background', () => {
+        it('should handle encounter with backgroundId', () => {
             // Arrange
-            const stageWithBackground = createMockStage({
-                settings: {
-                    mainBackground: {
-                        id: 'bg-resource-1',
-                        contentType: 'image/png',
-                        path: '/media/backgrounds/dungeon.png',
-                        fileName: 'dungeon.png',
-                        fileSize: 1024,
-                        dimensions: { width: 800, height: 600 },
-                        duration: '',
-                    },
-                    alternateBackground: null,
-                    zoomLevel: 1,
-                    panning: { x: 0, y: 0 },
-                    ambientLight: AmbientLight.Default,
-                    ambientSound: null,
-                    ambientSoundVolume: 1,
-                    ambientSoundLoop: false,
-                    ambientSoundIsPlaying: false,
-                    weather: Weather.Clear,
-                },
-            });
-            const encounter = createMockEncounter({ stage: stageWithBackground });
+            const encounter = createMockEncounterCard({ backgroundId: 'bg-resource-1' });
+
+            // Act
+            render(
+                <TestWrapper>
+                    <EncounterCard {...defaultProps} encounter={encounter} />
+                </TestWrapper>,
+            );
+
+            // Assert
+            expect(screen.getByText('Dragon Lair')).toBeInTheDocument();
+        });
+
+        it('should handle encounter without backgroundId', () => {
+            // Arrange
+            const encounter = createMockEncounterCard({ backgroundId: null });
 
             // Act
             render(

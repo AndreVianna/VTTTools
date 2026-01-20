@@ -6,16 +6,16 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useKeyboardState } from './useKeyboardState';
-import type { GridConfig } from '@/utils/gridCalculator';
+import { GridType, type GridConfig } from '@/utils/gridCalculator';
 import { SnapMode } from '@/utils/snapping';
 
 // Mock grid configuration factory
 const createMockGridConfig = (overrides: Partial<GridConfig> = {}): GridConfig => ({
-    type: 'square',
+    type: GridType.Square,
     cellSize: { width: 50, height: 50 },
-    offset: { x: 0, y: 0 },
+    offset: { left: 0, top: 0 },
     snap: true,
-    visible: true,
+    scale: 1.0,
     ...overrides,
 });
 
@@ -480,14 +480,14 @@ describe('useKeyboardState', () => {
             // Arrange
             const { result, rerender } = renderHook(
                 ({ gridConfig }) => useKeyboardState({ gridConfig }),
-                { initialProps: { gridConfig: createMockGridConfig({ type: 'square' }) } }
+                { initialProps: { gridConfig: createMockGridConfig({ type: GridType.Square }) } }
             );
 
             // Initial state
             expect(result.current.assetSnapMode).toBe(SnapMode.Free);
 
             // Act - Change grid type (snap modes should still work)
-            rerender({ gridConfig: createMockGridConfig({ type: 'hex', snap: true }) });
+            rerender({ gridConfig: createMockGridConfig({ type: GridType.HexV, snap: true }) });
 
             // Press Ctrl
             act(() => {

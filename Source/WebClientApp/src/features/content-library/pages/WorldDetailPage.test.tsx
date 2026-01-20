@@ -533,7 +533,7 @@ describe('WorldDetailPage', () => {
 
             // Open dialog
             const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-            await user.click(deleteButtons[0]);
+            await user.click(deleteButtons[0]!);
 
             // Act
             const cancelButton = screen.getByRole('button', { name: /cancel/i });
@@ -558,7 +558,7 @@ describe('WorldDetailPage', () => {
 
             // Open dialog
             const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-            await user.click(deleteButtons[0]);
+            await user.click(deleteButtons[0]!);
 
             // Act
             const confirmButton = screen.getByRole('button', { name: /confirm/i });
@@ -738,7 +738,7 @@ describe('WorldDetailPage', () => {
             expect(addButtons.length).toBe(2); // Header button + empty state button
 
             // Act - click the empty state button (second one)
-            await user.click(addButtons[1]);
+            await user.click(addButtons[1]!);
 
             // Assert
             await waitFor(() => {

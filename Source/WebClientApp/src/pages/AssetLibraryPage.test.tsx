@@ -9,7 +9,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Asset } from '@/types/domain';
+import type { Asset, AssetKind } from '@/types/domain';
+import type { UseAssetBrowserReturn } from '@/hooks/useAssetBrowser';
 import { AssetLibraryPage } from './AssetLibraryPage';
 
 // Mock react-router-dom
@@ -19,39 +20,39 @@ vi.mock('react-router-dom', () => ({
 }));
 
 // Mock useAssetBrowser hook
-const mockBrowser = {
-    selectedPath: [] as string[],
+const mockBrowser: UseAssetBrowserReturn = {
+    selectedPath: [],
     searchQuery: '',
-    attributeFilters: {} as Record<string, [number, number]>,
-    tagFilters: [] as string[],
-    letterFilter: null as string | null,
-    ownershipFilter: 'all' as const,
-    statusFilter: 'all' as const,
-    viewMode: 'grid-large' as const,
-    sortField: 'name' as const,
-    sortDirection: 'asc' as const,
-    selectedAssetId: null as string | null,
-    selectedAssetIds: [] as string[],
-    expandedTreeNodes: [] as string[],
+    attributeFilters: {},
+    tagFilters: [],
+    letterFilter: null,
+    ownershipFilter: 'all',
+    statusFilter: 'all',
+    viewMode: 'grid-large',
+    sortField: 'name',
+    sortDirection: 'asc',
+    selectedAssetId: null,
+    selectedAssetIds: [],
+    expandedTreeNodes: [],
     inspectorOpen: false,
     isMultiSelectMode: false,
     queryParams: {},
-    setSelectedPath: vi.fn<(path: string[]) => void>(),
-    setSearchQuery: vi.fn<(query: string) => void>(),
-    setAttributeFilter: vi.fn<(attr: string, range: [number, number]) => void>(),
-    setTagFilters: vi.fn<(tags: string[]) => void>(),
-    setLetterFilter: vi.fn<(letter: string | null) => void>(),
-    setOwnershipFilter: vi.fn<(filter: 'all' | 'mine' | 'others') => void>(),
-    setStatusFilter: vi.fn<(filter: 'all' | 'published' | 'draft') => void>(),
-    setViewMode: vi.fn<(mode: 'grid-large' | 'grid-small' | 'table') => void>(),
-    setSort: vi.fn<(field: string, direction: 'asc' | 'desc') => void>(),
-    setSelectedAssetId: vi.fn<(id: string | null) => void>(),
-    setSelectedAssetIds: vi.fn<(ids: string[]) => void>(),
-    toggleAssetSelection: vi.fn<(id: string) => void>(),
-    clearSelection: vi.fn<() => void>(),
-    setExpandedTreeNodes: vi.fn<(nodes: string[]) => void>(),
-    resetFilters: vi.fn<() => void>(),
-    filterAssets: vi.fn<(assets: Asset[]) => Asset[]>((assets: Asset[]) => assets),
+    setSelectedPath: vi.fn(),
+    setSearchQuery: vi.fn(),
+    setAttributeFilter: vi.fn(),
+    setTagFilters: vi.fn(),
+    setLetterFilter: vi.fn(),
+    setOwnershipFilter: vi.fn(),
+    setStatusFilter: vi.fn(),
+    setViewMode: vi.fn(),
+    setSort: vi.fn(),
+    setSelectedAssetId: vi.fn(),
+    setSelectedAssetIds: vi.fn(),
+    toggleAssetSelection: vi.fn(),
+    clearSelection: vi.fn(),
+    setExpandedTreeNodes: vi.fn(),
+    resetFilters: vi.fn(),
+    filterAssets: vi.fn((assets: Asset[]) => assets),
 };
 
 vi.mock('@/hooks/useAssetBrowser', () => ({
@@ -146,19 +147,22 @@ TestWrapper.displayName = 'TestWrapper';
 const createMockAsset = (overrides: Partial<Asset> = {}): Asset => ({
     id: overrides.id ?? 'asset-1',
     name: overrides.name ?? 'Test Asset',
-    kind: overrides.kind ?? 'Creature',
     classification: overrides.classification ?? {
+        kind: 'Creature' as AssetKind,
         category: 'Monster',
         type: 'Beast',
         subtype: 'Wolf',
     },
     description: overrides.description ?? 'A test asset',
     isPublished: overrides.isPublished ?? true,
+    isPublic: overrides.isPublic ?? false,
     ownerId: overrides.ownerId ?? 'owner-1',
     tags: overrides.tags ?? [],
-    statBlocks: overrides.statBlocks ?? [],
-    createdAt: overrides.createdAt ?? '2024-01-01T00:00:00Z',
-    updatedAt: overrides.updatedAt ?? '2024-01-01T00:00:00Z',
+    statBlocks: overrides.statBlocks ?? {},
+    thumbnail: overrides.thumbnail ?? null,
+    portrait: overrides.portrait ?? null,
+    size: overrides.size ?? { width: 1, height: 1 },
+    tokens: overrides.tokens ?? [],
 });
 
 describe('AssetLibraryPage', () => {
@@ -194,7 +198,7 @@ describe('AssetLibraryPage', () => {
             isLoading: false,
             error: null,
             refetch: mockRefetch,
-        } as ReturnType<typeof useGetAssetsQuery>);
+        } as unknown as ReturnType<typeof useGetAssetsQuery>);
     });
 
     describe('rendering', () => {
@@ -279,7 +283,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: true,
                 error: null,
                 refetch: mockRefetch,
-            } as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as ReturnType<typeof useGetAssetsQuery>);
 
             // Act
             render(
@@ -302,7 +306,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: { status: 500, data: 'Server error' },
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
 
             // Act
             render(
@@ -334,7 +338,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => []);
 
             // Act
@@ -358,7 +362,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => []);
 
             render(
@@ -390,7 +394,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
             mockBrowser.viewMode = 'grid-large';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
@@ -415,7 +419,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
             mockBrowser.viewMode = 'table';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
@@ -460,7 +464,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
             mockBrowser.viewMode = 'grid-large';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
@@ -488,7 +492,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
             mockBrowser.viewMode = 'table';
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
@@ -517,7 +521,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
             mockBrowser.selectedAssetId = 'selected-asset';
             mockBrowser.inspectorOpen = true;
@@ -546,7 +550,7 @@ describe('AssetLibraryPage', () => {
                 isLoading: false,
                 error: null,
                 refetch: mockRefetch,
-            } as unknown as ReturnType<typeof useGetAssetsQuery>);
+            } as unknown as unknown as ReturnType<typeof useGetAssetsQuery>);
             mockBrowser.filterAssets = vi.fn(() => mockAssets);
             vi.mocked(useAssetBrowser).mockReturnValue(mockBrowser);
 

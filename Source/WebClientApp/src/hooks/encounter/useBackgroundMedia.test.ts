@@ -7,7 +7,7 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useBackgroundMedia } from './useBackgroundMedia';
 import type { Encounter, GridType, Weather } from '@/types/domain';
-import type { ResourceMetadata, StageSettings, AmbientLight, AmbientSoundSource } from '@/types/stage';
+import type { StageSettings, AmbientLight, AmbientSoundSource } from '@/types/stage';
 
 // Mock the config to provide consistent API endpoint
 vi.mock('@/config/development', () => ({
@@ -111,15 +111,11 @@ describe('useBackgroundMedia', () => {
                 mainBackground: {
                     id: 'bg-123',
                     contentType: 'image/png',
-                    role: 'Background',
                     path: '/media/bg-123',
                     fileName: 'background.png',
                     fileSize: 1000,
                     dimensions: { width: 1920, height: 1080 },
                     duration: '00:00:00',
-                    name: 'Background',
-                    description: null,
-                    tags: [],
                 },
             });
 
@@ -139,15 +135,11 @@ describe('useBackgroundMedia', () => {
                 mainBackground: {
                     id: 'video-456',
                     contentType: 'video/mp4',
-                    role: 'Background',
                     path: '/media/video-456',
                     fileName: 'background.mp4',
                     fileSize: 50000,
                     dimensions: { width: 1920, height: 1080 },
                     duration: '00:01:00',
-                    name: 'Video Background',
-                    description: null,
-                    tags: [],
                 },
             });
 
@@ -169,15 +161,11 @@ describe('useBackgroundMedia', () => {
                 mainBackground: {
                     id: 'bg-123',
                     contentType: 'image/png',
-                    role: 'Background',
                     path: '/media/bg-123',
                     fileName: 'background.png',
                     fileSize: 1000,
                     dimensions: { width: 1920, height: 1080 },
                     duration: '00:00:00',
-                    name: 'Background',
-                    description: null,
-                    tags: [],
                 },
                 alternateBackground: null,
             });
@@ -198,28 +186,20 @@ describe('useBackgroundMedia', () => {
                 mainBackground: {
                     id: 'bg-123',
                     contentType: 'image/png',
-                    role: 'Background',
                     path: '/media/bg-123',
                     fileName: 'background.png',
                     fileSize: 1000,
                     dimensions: { width: 1920, height: 1080 },
                     duration: '00:00:00',
-                    name: 'Background',
-                    description: null,
-                    tags: [],
                 },
                 alternateBackground: {
                     id: 'alt-789',
                     contentType: 'image/jpeg',
-                    role: 'Background',
                     path: '/media/alt-789',
                     fileName: 'alt-background.jpg',
                     fileSize: 2000,
                     dimensions: { width: 1920, height: 1080 },
                     duration: '00:00:00',
-                    name: 'Alternate Background',
-                    description: null,
-                    tags: [],
                 },
             });
 
@@ -241,15 +221,11 @@ describe('useBackgroundMedia', () => {
                 mainBackground: {
                     id: 'bg-123',
                     contentType: 'image/png',
-                    role: 'Background',
                     path: '/media/bg-123',
                     fileName: 'background.png',
                     fileSize: 1000,
                     dimensions: { width: 1920, height: 1080 },
                     duration: '00:00:00',
-                    name: 'Background',
-                    description: null,
-                    tags: [],
                 },
             });
 

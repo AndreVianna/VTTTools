@@ -12,7 +12,7 @@ import type { AppDispatch } from '@/store';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
 import { AssetKind, GridType, LabelPosition, LabelVisibility, ResourceRole, Weather } from '@/types/domain';
 import type { Stage } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import {
   clearEncounterMappings,
@@ -33,9 +33,11 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 1,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
+    useAlternateBackground: false,
     weather: Weather.Clear,
   },
   grid: {
@@ -127,6 +129,9 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           fileSize: 1024,
           dimensions: { width: 100, height: 100 },
           duration: '',
+          name: 'Test Token',
+          description: null,
+          tags: [],
         },
       ],
       thumbnail: null,
@@ -295,6 +300,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
             await mockRemoveEncounterAsset({
               encounterId: testEncounterId,
               assetNumber: retrievedIndex,
+              kind: AssetKind.Object,
             }).unwrap();
             removeEntityMapping(testEncounterId, 'assets', tempDomId);
           }
@@ -332,6 +338,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           await mockRemoveEncounterAsset({
             encounterId: testEncounterId,
             assetNumber: retrievedIndex1,
+            kind: AssetKind.Object,
           }).unwrap();
         }
 
@@ -340,6 +347,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           await mockRemoveEncounterAsset({
             encounterId: testEncounterId,
             assetNumber: retrievedIndex2,
+            kind: AssetKind.Object,
           }).unwrap();
         }
       });
@@ -384,6 +392,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           await mockRemoveEncounterAsset({
             encounterId: testEncounterId,
             assetNumber: index2,
+            kind: AssetKind.Object,
           }).unwrap();
           removeEntityMapping(testEncounterId, 'assets', asset2Id);
         }
@@ -395,6 +404,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           await mockRemoveEncounterAsset({
             encounterId: testEncounterId,
             assetNumber: index1,
+            kind: AssetKind.Object,
           }).unwrap();
           removeEntityMapping(testEncounterId, 'assets', asset1Id);
         }
@@ -434,6 +444,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           await mockRemoveEncounterAsset({
             encounterId: testEncounterId,
             assetNumber: retrievedIndex,
+            kind: AssetKind.Object,
           }).unwrap();
           removeEntityMapping(testEncounterId, 'assets', assetId);
         }
@@ -442,6 +453,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       expect(mockRemoveEncounterAsset).toHaveBeenCalledWith({
         encounterId: testEncounterId,
         assetNumber: backendIndex,
+        kind: AssetKind.Object,
       });
 
       const storedIndexRemoved = getIndexByDomId(testEncounterId, 'assets', assetId);
@@ -531,6 +543,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
         await mockRemoveEncounterAsset({
           encounterId: testEncounterId,
           assetNumber: backendIndex,
+          kind: AssetKind.Object,
         }).unwrap();
         removeEntityMapping(testEncounterId, 'assets', tempDomId);
       });
@@ -538,6 +551,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       expect(mockRemoveEncounterAsset).toHaveBeenCalledWith({
         encounterId: testEncounterId,
         assetNumber: backendIndex,
+        kind: AssetKind.Object,
       });
 
       const afterRemovalIndex = getIndexByDomId(testEncounterId, 'assets', tempDomId);
@@ -561,6 +575,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
           await mockRemoveEncounterAsset({
             encounterId: testEncounterId,
             assetNumber: index2,
+            kind: AssetKind.Object,
           }).unwrap();
           removeEntityMapping(testEncounterId, 'assets', asset2Id);
         }
@@ -569,6 +584,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
       expect(mockRemoveEncounterAsset).toHaveBeenCalledWith({
         encounterId: testEncounterId,
         assetNumber: 1,
+        kind: AssetKind.Object,
       });
 
       expect(getIndexByDomId(testEncounterId, 'assets', asset1Id)).toBe(0);

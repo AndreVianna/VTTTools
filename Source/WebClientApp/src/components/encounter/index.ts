@@ -49,6 +49,7 @@ export type { EncounterPropertiesPanelProps } from './EncounterPropertiesPanel';
 export { EncounterPropertiesPanel } from './EncounterPropertiesPanel';
 export type {
   RegionTransformerProps,
+  WallBreakData,
   WallTransformerProps,
 } from './editing';
 // Editing components

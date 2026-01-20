@@ -7,7 +7,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { useEncounterEditor } from './useEncounterEditor';
-import { Weather, GridType, RegionType, LightSourceType, type Encounter } from '@/types/domain';
+import { Weather, GridType, RegionType, LightSourceType, AssetKind, type Encounter } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { Stage } from '@/types/stage';
 
 // Mock encounterApi hooks
@@ -80,7 +81,9 @@ const createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
     settings: {
         zoomLevel: 1,
         panning: { x: 0, y: 0 },
-        ambientLight: 0,
+        useAlternateBackground: false,
+        ambientLight: AmbientLight.Default,
+        ambientSoundSource: AmbientSoundSource.NotSet,
         ambientSoundVolume: 50,
         ambientSoundLoop: false,
         ambientSoundIsPlaying: false,
@@ -560,7 +563,7 @@ describe('useEncounterEditor', () => {
             );
             const settingsData = {
                 zoomLevel: 1.5,
-                ambientLight: 3,
+                ambientLight: AmbientLight.Dim,
             };
 
             // Act
@@ -608,6 +611,7 @@ describe('useEncounterEditor', () => {
             );
             const assetParams = {
                 libraryAssetId: 'asset-789',
+                kind: AssetKind.Character,
                 position: { x: 100, y: 200 },
                 size: { width: 50, height: 50 },
                 rotation: 45,
@@ -633,9 +637,9 @@ describe('useEncounterEditor', () => {
             );
             const updateParams = {
                 assetNumber: 3,
+                kind: AssetKind.Character,
                 position: { x: 150, y: 250 },
                 rotation: 90,
-                visible: true,
             };
 
             // Act
@@ -659,7 +663,7 @@ describe('useEncounterEditor', () => {
 
             // Act
             await act(async () => {
-                await result.current.removeAsset(5);
+                await result.current.removeAsset(5, AssetKind.Character);
             });
 
             // Assert
@@ -667,6 +671,7 @@ describe('useEncounterEditor', () => {
             expect(mockRemoveAsset).toHaveBeenCalledWith({
                 encounterId: 'encounter-456',
                 assetNumber: 5,
+                kind: AssetKind.Character,
             });
         });
 

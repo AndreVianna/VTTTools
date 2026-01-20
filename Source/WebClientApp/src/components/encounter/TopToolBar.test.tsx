@@ -177,11 +177,11 @@ describe('TopToolBar', () => {
 
         it('should not throw when onZoomIn is not provided', async () => {
             // Arrange
-            const props = createDefaultProps({ onZoomIn: undefined });
+            const { onZoomIn: _, ...propsWithoutZoomIn } = createDefaultProps();
             const user = userEvent.setup();
 
             // Act
-            render(<TopToolBar {...props} />);
+            render(<TopToolBar {...propsWithoutZoomIn} />);
 
             // Assert - should not throw
             await expect(user.click(screen.getByLabelText('Zoom In'))).resolves.not.toThrow();
@@ -220,11 +220,11 @@ describe('TopToolBar', () => {
 
         it('should not throw when onZoomOut is not provided', async () => {
             // Arrange
-            const props = createDefaultProps({ onZoomOut: undefined });
+            const { onZoomOut: _, ...propsWithoutZoomOut } = createDefaultProps();
             const user = userEvent.setup();
 
             // Act
-            render(<TopToolBar {...props} />);
+            render(<TopToolBar {...propsWithoutZoomOut} />);
 
             // Assert - should not throw
             await expect(user.click(screen.getByLabelText('Zoom Out'))).resolves.not.toThrow();
@@ -248,11 +248,11 @@ describe('TopToolBar', () => {
 
         it('should not throw when onZoomReset is not provided', async () => {
             // Arrange
-            const props = createDefaultProps({ onZoomReset: undefined });
+            const { onZoomReset: _, ...propsWithoutZoomReset } = createDefaultProps();
             const user = userEvent.setup();
 
             // Act
-            render(<TopToolBar {...props} />);
+            render(<TopToolBar {...propsWithoutZoomReset} />);
 
             // Assert - should not throw
             await expect(user.click(screen.getByLabelText('Reset View'))).resolves.not.toThrow();
@@ -685,10 +685,10 @@ describe('TopToolBar', () => {
 
         it('should not render preview button when onPreviewClick is not provided', () => {
             // Arrange
-            const props = createDefaultProps({ onPreviewClick: undefined });
+            const { onPreviewClick: _, ...propsWithoutPreviewClick } = createDefaultProps();
 
             // Act
-            render(<TopToolBar {...props} />);
+            render(<TopToolBar {...propsWithoutPreviewClick} />);
 
             // Assert
             expect(screen.queryByLabelText('Preview Encounter')).not.toBeInTheDocument();
@@ -752,10 +752,10 @@ describe('TopToolBar', () => {
 
         it('should not render starting view buttons when onSaveStartingView is not provided', () => {
             // Arrange
-            const props = createDefaultProps({ onSaveStartingView: undefined });
+            const { onSaveStartingView: _, ...propsWithoutSaveStartingView } = createDefaultProps();
 
             // Act
-            render(<TopToolBar {...props} />);
+            render(<TopToolBar {...propsWithoutSaveStartingView} />);
 
             // Assert
             expect(screen.queryByLabelText('Save Starting View')).not.toBeInTheDocument();

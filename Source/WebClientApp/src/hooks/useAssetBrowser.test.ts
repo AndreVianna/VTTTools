@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { AssetKind, type Asset } from '@/types/domain';
+import { AssetKind, StatValueType, type Asset, type StatBlockValue } from '@/types/domain';
 import { useAssetBrowser } from './useAssetBrowser';
 
 // Mock getFirstLetter
@@ -175,10 +175,10 @@ describe('useAssetBrowser', () => {
             const { result } = renderHook(() => useAssetBrowser());
 
             act(() => {
-                result.current.setViewMode('list');
+                result.current.setViewMode('table');
             });
 
-            expect(result.current.viewMode).toBe('list');
+            expect(result.current.viewMode).toBe('table');
         });
 
         it('should set sort field and direction', () => {
@@ -301,7 +301,7 @@ describe('useAssetBrowser', () => {
             const { result } = renderHook(() => useAssetBrowser());
 
             act(() => {
-                result.current.setViewMode('list');
+                result.current.setViewMode('table');
                 result.current.setSort('category', 'desc');
                 result.current.setSelectedAssetId('asset-123');
             });
@@ -310,7 +310,7 @@ describe('useAssetBrowser', () => {
                 result.current.resetFilters();
             });
 
-            expect(result.current.viewMode).toBe('list');
+            expect(result.current.viewMode).toBe('table');
             expect(result.current.sortField).toBe('category');
             expect(result.current.sortDirection).toBe('desc');
             expect(result.current.selectedAssetId).toBe('asset-123');
@@ -396,22 +396,23 @@ describe('useAssetBrowser', () => {
             options: {
                 isPublished?: boolean;
                 tags?: string[];
-                statBlocks?: Record<string, { value: string }>[];
-                classification?: { kind: AssetKind; category?: string; type?: string };
+                statBlocks?: Record<number, Record<string, StatBlockValue>>;
+                classification?: { kind: AssetKind; category: string; type: string; subtype: string | null };
             } = {}
         ): Asset => ({
             id,
             name,
             description: '',
             isPublished: options.isPublished ?? true,
+            isPublic: false,
             tags: options.tags ?? [],
-            statBlocks: options.statBlocks ?? [],
-            classification: options.classification ?? { kind: AssetKind.Creature },
-            tokenId: null,
-            tokenSize: 1,
-            source: null,
-            createdAt: new Date().toISOString(),
-            modifiedAt: new Date().toISOString(),
+            statBlocks: options.statBlocks ?? {},
+            classification: options.classification ?? { kind: AssetKind.Creature, category: '', type: '', subtype: null },
+            thumbnail: null,
+            portrait: null,
+            size: { width: 1, height: 1 },
+            tokens: [],
+            ownerId: 'test-owner',
         });
 
         it('should filter by published status', () => {
@@ -458,9 +459,9 @@ describe('useAssetBrowser', () => {
             });
 
             const assets: Asset[] = [
-                createMockAsset('1', 'Low HP', { statBlocks: [{ hitPoints: { value: '25' } }] }),
-                createMockAsset('2', 'Medium HP', { statBlocks: [{ hitPoints: { value: '75' } }] }),
-                createMockAsset('3', 'High HP', { statBlocks: [{ hitPoints: { value: '150' } }] }),
+                createMockAsset('1', 'Low HP', { statBlocks: { 0: { hitPoints: { key: 'hitPoints', value: '25', type: StatValueType.Number } } } }),
+                createMockAsset('2', 'Medium HP', { statBlocks: { 0: { hitPoints: { key: 'hitPoints', value: '75', type: StatValueType.Number } } } }),
+                createMockAsset('3', 'High HP', { statBlocks: { 0: { hitPoints: { key: 'hitPoints', value: '150', type: StatValueType.Number } } } }),
             ];
 
             const filtered = result.current.filterAssets(assets);
@@ -551,9 +552,9 @@ describe('useAssetBrowser', () => {
             });
 
             const assets: Asset[] = [
-                createMockAsset('1', 'Asset1', { classification: { kind: AssetKind.Creature, category: 'Monster' } }),
-                createMockAsset('2', 'Asset2', { classification: { kind: AssetKind.Creature, category: 'Beast' } }),
-                createMockAsset('3', 'Asset3', { classification: { kind: AssetKind.Creature, category: 'Humanoid' } }),
+                createMockAsset('1', 'Asset1', { classification: { kind: AssetKind.Creature, category: 'Monster', type: '', subtype: null } }),
+                createMockAsset('2', 'Asset2', { classification: { kind: AssetKind.Creature, category: 'Beast', type: '', subtype: null } }),
+                createMockAsset('3', 'Asset3', { classification: { kind: AssetKind.Creature, category: 'Humanoid', type: '', subtype: null } }),
             ];
 
             const filtered = result.current.filterAssets(assets);
@@ -571,8 +572,8 @@ describe('useAssetBrowser', () => {
             });
 
             const assets: Asset[] = [
-                createMockAsset('1', 'Asset1', { classification: { kind: AssetKind.Creature, type: 'Dragon' } }),
-                createMockAsset('2', 'Asset2', { classification: { kind: AssetKind.Creature, type: 'Aberration' } }),
+                createMockAsset('1', 'Asset1', { classification: { kind: AssetKind.Creature, category: '', type: 'Dragon', subtype: null } }),
+                createMockAsset('2', 'Asset2', { classification: { kind: AssetKind.Creature, category: '', type: 'Aberration', subtype: null } }),
             ];
 
             const filtered = result.current.filterAssets(assets);

@@ -193,7 +193,7 @@ export function EncounterListView() {
               description: encounter.description,
               isPublished: encounter.isPublished,
               isPublic: encounter.isPublic,
-              backgroundId: encounter.stage.background?.id ?? null,
+              backgroundId: encounter.stage.settings.mainBackground?.id ?? null,
             };
             return (
               <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={encounter.id}>
