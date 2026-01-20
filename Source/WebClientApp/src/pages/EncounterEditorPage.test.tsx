@@ -29,7 +29,7 @@ describe('EncounterEditorPage Integration', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: true,
       lastSync: new Date(),
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<boolean>>(),
     });
   });
 
@@ -43,7 +43,7 @@ describe('EncounterEditorPage Integration', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: new Date(),
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<boolean>>(),
     });
 
     render(<EncounterEditorPage />);
@@ -60,7 +60,7 @@ describe('EncounterEditorPage Integration', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<boolean>>(),
     });
 
     render(<EncounterEditorPage />);
@@ -140,7 +140,7 @@ describe('EncounterEditorPage Integration', () => {
     mockUseConnectionStatus.mockReturnValue({
       isOnline: false,
       lastSync: null,
-      checkConnection: vi.fn(),
+      checkConnection: vi.fn<() => Promise<boolean>>(),
     });
 
     render(<EncounterEditorPage />);

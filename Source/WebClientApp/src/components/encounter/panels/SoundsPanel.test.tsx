@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type StageSound } from '@/types/stage';
-import { SoundsPanel, type SoundsPanelProps } from './SoundsPanel';
+import { SoundsPanel, type SoundsPanelProps, type SoundPlacementProperties } from './SoundsPanel';
 
 // Mock the stageApi
 const mockUpdateSound = vi.fn().mockReturnValue({
@@ -101,8 +101,8 @@ const renderComponent = (props: Partial<SoundsPanelProps> = {}, mode: 'light' | 
         encounterId: 'encounter-1',
         soundSources: [],
         selectedSourceIndex: null,
-        onSourceSelect: vi.fn(),
-        onPlaceSound: vi.fn(),
+        onSourceSelect: vi.fn<(index: number) => void>(),
+        onPlaceSound: vi.fn<(properties: SoundPlacementProperties) => void>(),
     };
 
     return renderWithTheme(<SoundsPanel {...defaultProps} {...props} />, mode);
@@ -755,8 +755,8 @@ describe('SoundsPanel', () => {
                 encounterId: 'encounter-1',
                 soundSources: undefined as unknown as StageSound[],
                 selectedSourceIndex: null,
-                onSourceSelect: vi.fn(),
-                onPlaceSound: vi.fn(),
+                onSourceSelect: vi.fn<(index: number) => void>(),
+                onPlaceSound: vi.fn<(properties: SoundPlacementProperties) => void>(),
             };
             renderWithTheme(<SoundsPanel {...defaultProps} />);
 

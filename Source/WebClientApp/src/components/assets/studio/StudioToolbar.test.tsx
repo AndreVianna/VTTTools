@@ -12,18 +12,20 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('StudioToolbar', () => {
-  let mockOnBack: ReturnType<typeof vi.fn>;
-  let mockOnSave: ReturnType<typeof vi.fn>;
-  let mockOnDelete: ReturnType<typeof vi.fn>;
-  let mockOnPublish: ReturnType<typeof vi.fn>;
-  let mockOnUnpublish: ReturnType<typeof vi.fn>;
+  type ActionFn = () => void;
+
+  let mockOnBack: ReturnType<typeof vi.fn<ActionFn>>;
+  let mockOnSave: ReturnType<typeof vi.fn<ActionFn>>;
+  let mockOnDelete: ReturnType<typeof vi.fn<ActionFn>>;
+  let mockOnPublish: ReturnType<typeof vi.fn<ActionFn>>;
+  let mockOnUnpublish: ReturnType<typeof vi.fn<ActionFn>>;
 
   beforeEach(() => {
-    mockOnBack = vi.fn<() => void>();
-    mockOnSave = vi.fn<() => void>();
-    mockOnDelete = vi.fn<() => void>();
-    mockOnPublish = vi.fn<() => void>();
-    mockOnUnpublish = vi.fn<() => void>();
+    mockOnBack = vi.fn<ActionFn>();
+    mockOnSave = vi.fn<ActionFn>();
+    mockOnDelete = vi.fn<ActionFn>();
+    mockOnPublish = vi.fn<ActionFn>();
+    mockOnUnpublish = vi.fn<ActionFn>();
   });
 
   describe('rendering', () => {

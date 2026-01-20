@@ -95,16 +95,17 @@ export const EncounterPage: React.FC = () => {
      * Secret walls are hidden from player view during gameplay.
      * Filter rule: Hide segments where segment.state === SegmentState.Secret
      */
+    const stageWalls = encounter?.stage?.walls;
     const visibleWalls = useMemo((): PlacedWall[] => {
-        if (!encounter?.stage?.walls || !encounterId) return [];
-        const hydrated = hydratePlacedWalls(encounter.stage.walls, encounterId);
+        if (!stageWalls || !encounterId) return [];
+        const hydrated = hydratePlacedWalls(stageWalls, encounterId);
         return hydrated
             .map(wall => ({
                 ...wall,
                 segments: wall.segments.filter(s => s.state !== SegmentState.Secret),
             }))
             .filter(wall => wall.segments.length > 0);
-    }, [encounter?.stage?.walls, encounterId]);
+    }, [stageWalls, encounterId]);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.13 HANDLERS

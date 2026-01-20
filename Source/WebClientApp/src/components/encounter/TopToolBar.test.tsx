@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { TopToolBar, type TopToolBarProps, type LayerVisibilityType } from './TopToolBar';
+import { TopToolBar, type TopToolBarProps, type LayerVisibilityType, type SelectionCategory } from './TopToolBar';
 
 // Mock MUI icons to avoid file handle exhaustion
 vi.mock('@mui/icons-material', () => ({
@@ -41,21 +41,21 @@ describe('TopToolBar', () => {
     });
 
     const createDefaultProps = (overrides: Partial<TopToolBarProps> = {}): TopToolBarProps => ({
-        onUndoClick: vi.fn(),
-        onRedoClick: vi.fn(),
-        onZoomIn: vi.fn(),
-        onZoomOut: vi.fn(),
-        onZoomReset: vi.fn(),
-        onGridToggle: vi.fn(),
-        onClearSelection: vi.fn(),
+        onUndoClick: vi.fn<() => void>(),
+        onRedoClick: vi.fn<() => void>(),
+        onZoomIn: vi.fn<() => void>(),
+        onZoomOut: vi.fn<() => void>(),
+        onZoomReset: vi.fn<() => void>(),
+        onGridToggle: vi.fn<() => void>(),
+        onClearSelection: vi.fn<() => void>(),
         canUndo: false,
         canRedo: false,
         hasGrid: false,
         gridVisible: true,
         layerVisibility: createDefaultLayerVisibility(),
-        onLayerVisibilityToggle: vi.fn(),
-        onShowAllLayers: vi.fn(),
-        onHideAllLayers: vi.fn(),
+        onLayerVisibilityToggle: vi.fn<(layer: LayerVisibilityType) => void>(),
+        onShowAllLayers: vi.fn<() => void>(),
+        onHideAllLayers: vi.fn<() => void>(),
         ...overrides,
     });
 
@@ -150,7 +150,7 @@ describe('TopToolBar', () => {
     describe('Zoom In Button Functionality', () => {
         it('should call onZoomIn when zoom in button is clicked', async () => {
             // Arrange
-            const onZoomIn = vi.fn();
+            const onZoomIn = vi.fn<() => void>();
             const props = createDefaultProps({ onZoomIn });
             const user = userEvent.setup();
 
@@ -164,7 +164,7 @@ describe('TopToolBar', () => {
 
         it('should call onZoomIn multiple times when clicked multiple times', async () => {
             // Arrange
-            const onZoomIn = vi.fn();
+            const onZoomIn = vi.fn<() => void>();
             const props = createDefaultProps({ onZoomIn });
             const user = userEvent.setup();
 
@@ -194,7 +194,7 @@ describe('TopToolBar', () => {
     describe('Zoom Out Button Functionality', () => {
         it('should call onZoomOut when zoom out button is clicked', async () => {
             // Arrange
-            const onZoomOut = vi.fn();
+            const onZoomOut = vi.fn<() => void>();
             const props = createDefaultProps({ onZoomOut });
             const user = userEvent.setup();
 
@@ -208,7 +208,7 @@ describe('TopToolBar', () => {
 
         it('should call onZoomOut multiple times when clicked multiple times', async () => {
             // Arrange
-            const onZoomOut = vi.fn();
+            const onZoomOut = vi.fn<() => void>();
             const props = createDefaultProps({ onZoomOut });
             const user = userEvent.setup();
 
@@ -237,7 +237,7 @@ describe('TopToolBar', () => {
     describe('Reset View Button Functionality', () => {
         it('should call onZoomReset when reset zoom button is clicked', async () => {
             // Arrange
-            const onZoomReset = vi.fn();
+            const onZoomReset = vi.fn<() => void>();
             const props = createDefaultProps({ onZoomReset });
             const user = userEvent.setup();
 
@@ -313,7 +313,7 @@ describe('TopToolBar', () => {
 
         it('should not call onUndoClick when undo button is disabled and clicked', async () => {
             // Arrange
-            const onUndoClick = vi.fn();
+            const onUndoClick = vi.fn<() => void>();
             const props = createDefaultProps({ onUndoClick, canUndo: false });
             const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -328,7 +328,7 @@ describe('TopToolBar', () => {
 
         it('should call onUndoClick when undo button is enabled and clicked', async () => {
             // Arrange
-            const onUndoClick = vi.fn();
+            const onUndoClick = vi.fn<() => void>();
             const props = createDefaultProps({ onUndoClick, canUndo: true });
             const user = userEvent.setup();
 
@@ -344,7 +344,7 @@ describe('TopToolBar', () => {
     describe('Grid Toggle Functionality', () => {
         it('should call onGridToggle when grid button is clicked', async () => {
             // Arrange
-            const onGridToggle = vi.fn();
+            const onGridToggle = vi.fn<() => void>();
             const props = createDefaultProps({ onGridToggle, hasGrid: true });
             const user = userEvent.setup();
 
@@ -406,7 +406,7 @@ describe('TopToolBar', () => {
     describe('Clear Selection Functionality', () => {
         it('should call onClearSelection when clear selection button is clicked', async () => {
             // Arrange
-            const onClearSelection = vi.fn();
+            const onClearSelection = vi.fn<() => void>();
             const props = createDefaultProps({ onClearSelection });
             const user = userEvent.setup();
 
@@ -422,7 +422,7 @@ describe('TopToolBar', () => {
     describe('Layer Visibility Toggle', () => {
         it('should call onLayerVisibilityToggle with walls when walls button clicked', async () => {
             // Arrange
-            const onLayerVisibilityToggle = vi.fn();
+            const onLayerVisibilityToggle = vi.fn<(layer: LayerVisibilityType) => void>();
             const props = createDefaultProps({ onLayerVisibilityToggle });
             const user = userEvent.setup();
 

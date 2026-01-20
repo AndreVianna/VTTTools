@@ -64,7 +64,7 @@ export const useAssetManagement = ({
   isOnline,
   setEncounter,
   execute,
-  dispatch,
+  dispatch: _dispatch,
   copyAssets,
   cutAssets,
   canPaste,
@@ -493,7 +493,6 @@ export const useAssetManagement = ({
     bulkAddEncounterAssets,
     refetch,
     execute,
-    dispatch,
     setEncounter,
   ]);
 
@@ -593,7 +592,6 @@ export const useAssetManagement = ({
     bulkAddEncounterAssets,
     refetch,
     execute,
-    dispatch,
     placedAssets,
     setEncounter,
   ]);
@@ -701,7 +699,6 @@ export const useAssetManagement = ({
     bulkDeleteEncounterAssets,
     refetch,
     execute,
-    dispatch,
     setEncounter,
   ]);
 

@@ -341,7 +341,7 @@ describe('ResourcePickerPreview', () => {
 
         it('should show collapse button when onToggleCollapse is provided and expanded', () => {
             const resource = createMockResource();
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview
@@ -356,7 +356,7 @@ describe('ResourcePickerPreview', () => {
 
         it('should show expand button when collapsed', () => {
             const resource = createMockResource();
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview
@@ -371,7 +371,7 @@ describe('ResourcePickerPreview', () => {
 
         it('should show vertical PREVIEW text when collapsed', () => {
             const resource = createMockResource();
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview
@@ -387,7 +387,7 @@ describe('ResourcePickerPreview', () => {
         it('should call onToggleCollapse when collapse button is clicked', async () => {
             const user = userEvent.setup();
             const resource = createMockResource();
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview
@@ -407,7 +407,7 @@ describe('ResourcePickerPreview', () => {
         it('should call onToggleCollapse when expand button is clicked', async () => {
             const user = userEvent.setup();
             const resource = createMockResource();
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview
@@ -425,7 +425,7 @@ describe('ResourcePickerPreview', () => {
         });
 
         it('should show collapse button in empty state when onToggleCollapse is provided', () => {
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview
@@ -439,7 +439,7 @@ describe('ResourcePickerPreview', () => {
         });
 
         it('should show collapsed view in empty state when isCollapsed is true', () => {
-            const onToggleCollapse = vi.fn();
+            const onToggleCollapse = vi.fn<() => void>();
 
             renderWithProviders(
                 <ResourcePickerPreview

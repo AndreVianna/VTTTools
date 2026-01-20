@@ -60,12 +60,12 @@ describe('RegionRenderer', () => {
         });
 
         it('should accept onSelect callback', () => {
-            const onSelect = vi.fn();
+            const onSelect = vi.fn<(index: number) => void>();
             expect(typeof onSelect).toBe('function');
         });
 
         it('should accept onContextMenu callback', () => {
-            const onContextMenu = vi.fn();
+            const onContextMenu = vi.fn<(index: number, position: { x: number; y: number }) => void>();
             expect(typeof onContextMenu).toBe('function');
         });
 

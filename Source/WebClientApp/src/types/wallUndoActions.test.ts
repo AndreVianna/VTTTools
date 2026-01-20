@@ -14,16 +14,16 @@ import {
 describe('wallUndoActions', () => {
     describe('createPlacePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+        let mockGetCurrentPoles: ReturnType<typeof vi.fn<() => Pole[]>>;
 
         beforeEach(() => {
             mockPoles = [
                 { x: 0, y: 0, h: 10 },
                 { x: 10, y: 0, h: 10 },
             ];
-            mockOnPolesChange = vi.fn();
-            mockGetCurrentPoles = vi.fn(() => mockPoles);
+            mockOnPolesChange = vi.fn<(poles: Pole[]) => void>();
+            mockGetCurrentPoles = vi.fn<() => Pole[]>(() => mockPoles);
         });
 
         it('should create action with correct type and description', () => {
@@ -138,7 +138,7 @@ describe('wallUndoActions', () => {
 
         it('should call onSegmentsUpdate when provided', () => {
             const pole: Pole = { x: 5, y: 5, h: 10 };
-            const mockOnSegmentsUpdate = vi.fn();
+            const mockOnSegmentsUpdate = vi.fn<(segments: EncounterWallSegment[]) => void>();
             const action = createPlacePoleAction(
                 1,
                 pole,
@@ -155,8 +155,8 @@ describe('wallUndoActions', () => {
 
     describe('createMovePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+        let mockGetCurrentPoles: ReturnType<typeof vi.fn<() => Pole[]>>;
 
         beforeEach(() => {
             mockPoles = [
@@ -164,8 +164,8 @@ describe('wallUndoActions', () => {
                 { x: 10, y: 0, h: 10 },
                 { x: 10, y: 10, h: 10 },
             ];
-            mockOnPolesChange = vi.fn();
-            mockGetCurrentPoles = vi.fn(() => mockPoles);
+            mockOnPolesChange = vi.fn<(poles: Pole[]) => void>();
+            mockGetCurrentPoles = vi.fn<() => Pole[]>(() => mockPoles);
         });
 
         it('should create action with correct type and description', () => {
@@ -234,8 +234,8 @@ describe('wallUndoActions', () => {
 
     describe('createInsertPoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+        let mockGetCurrentPoles: ReturnType<typeof vi.fn<() => Pole[]>>;
 
         beforeEach(() => {
             mockPoles = [
@@ -243,8 +243,8 @@ describe('wallUndoActions', () => {
                 { x: 10, y: 0, h: 10 },
                 { x: 10, y: 10, h: 10 },
             ];
-            mockOnPolesChange = vi.fn();
-            mockGetCurrentPoles = vi.fn(() => mockPoles);
+            mockOnPolesChange = vi.fn<(poles: Pole[]) => void>();
+            mockGetCurrentPoles = vi.fn<() => Pole[]>(() => mockPoles);
         });
 
         it('should create action with correct type and description', () => {
@@ -329,8 +329,8 @@ describe('wallUndoActions', () => {
 
     describe('createDeletePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+        let mockGetCurrentPoles: ReturnType<typeof vi.fn<() => Pole[]>>;
 
         beforeEach(() => {
             mockPoles = [
@@ -339,8 +339,8 @@ describe('wallUndoActions', () => {
                 { x: 10, y: 10, h: 10 },
                 { x: 0, y: 10, h: 10 },
             ];
-            mockOnPolesChange = vi.fn();
-            mockGetCurrentPoles = vi.fn(() => mockPoles);
+            mockOnPolesChange = vi.fn<(poles: Pole[]) => void>();
+            mockGetCurrentPoles = vi.fn<() => Pole[]>(() => mockPoles);
         });
 
         it('should create action with correct type and description', () => {
@@ -488,8 +488,8 @@ describe('wallUndoActions', () => {
 
     describe('createMultiMovePoleAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+        let mockGetCurrentPoles: ReturnType<typeof vi.fn<() => Pole[]>>;
 
         beforeEach(() => {
             mockPoles = [
@@ -498,8 +498,8 @@ describe('wallUndoActions', () => {
                 { x: 10, y: 10, h: 10 },
                 { x: 0, y: 10, h: 10 },
             ];
-            mockOnPolesChange = vi.fn();
-            mockGetCurrentPoles = vi.fn(() => mockPoles);
+            mockOnPolesChange = vi.fn<(poles: Pole[]) => void>();
+            mockGetCurrentPoles = vi.fn<() => Pole[]>(() => mockPoles);
         });
 
         it('should create action with correct type and description', () => {
@@ -599,8 +599,8 @@ describe('wallUndoActions', () => {
 
     describe('createMoveLineAction', () => {
         let mockPoles: Pole[];
-        let mockOnPolesChange: ReturnType<typeof vi.fn>;
-        let mockGetCurrentPoles: ReturnType<typeof vi.fn>;
+        let mockOnPolesChange: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+        let mockGetCurrentPoles: ReturnType<typeof vi.fn<() => Pole[]>>;
 
         beforeEach(() => {
             mockPoles = [
@@ -608,8 +608,8 @@ describe('wallUndoActions', () => {
                 { x: 10, y: 0, h: 10 },
                 { x: 10, y: 10, h: 10 },
             ];
-            mockOnPolesChange = vi.fn();
-            mockGetCurrentPoles = vi.fn(() => mockPoles);
+            mockOnPolesChange = vi.fn<(poles: Pole[]) => void>();
+            mockGetCurrentPoles = vi.fn<() => Pole[]>(() => mockPoles);
         });
 
         it('should create action with correct type and description', () => {
@@ -719,9 +719,13 @@ describe('wallUndoActions', () => {
     });
 
     describe('createBreakWallAction', () => {
-        let mockOnRemoveSegment: ReturnType<typeof vi.fn>;
-        let mockOnUpdateSegment: ReturnType<typeof vi.fn>;
-        let mockOnAddSegment: ReturnType<typeof vi.fn>;
+        type OnRemoveSegmentFn = (tempId: number) => void;
+        type OnUpdateSegmentFn = (tempId: number, changes: { wallIndex: number; segments: EncounterWallSegment[] }) => void;
+        type OnAddSegmentFn = (segment: { wallIndex: number | null; name: string; segments: EncounterWallSegment[] }) => number;
+
+        let mockOnRemoveSegment: ReturnType<typeof vi.fn<OnRemoveSegmentFn>>;
+        let mockOnUpdateSegment: ReturnType<typeof vi.fn<OnUpdateSegmentFn>>;
+        let mockOnAddSegment: ReturnType<typeof vi.fn<OnAddSegmentFn>>;
         let tempIdCounter: number;
 
         const createMockSegment = (index: number, startX: number, endX: number): EncounterWallSegment => ({
@@ -735,9 +739,9 @@ describe('wallUndoActions', () => {
 
         beforeEach(() => {
             tempIdCounter = 100;
-            mockOnRemoveSegment = vi.fn();
-            mockOnUpdateSegment = vi.fn();
-            mockOnAddSegment = vi.fn(() => tempIdCounter++);
+            mockOnRemoveSegment = vi.fn<OnRemoveSegmentFn>();
+            mockOnUpdateSegment = vi.fn<OnUpdateSegmentFn>();
+            mockOnAddSegment = vi.fn<OnAddSegmentFn>(() => tempIdCounter++);
         });
 
         it('should create action with correct type and description', () => {

@@ -3,7 +3,7 @@ import type Konva from 'konva';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Group, Line, Rect } from 'react-konva';
 import { InsertPreviewMarker, MarqueeRect } from '@/components/encounter/konva';
-import type { useWallTransaction } from '@/hooks/useWallTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
 import type { EncounterWall, Pole } from '@/types/domain';
 import {
   createDeletePoleAction,
@@ -44,7 +44,7 @@ export interface WallTransformerProps {
   wall?: EncounterWall | undefined;
   onWallBreak?: (breakData: WallBreakData) => void | Promise<void>;
   enableBackgroundRect?: boolean | undefined;
-  wallTransaction?: ReturnType<typeof useWallTransaction> | undefined;
+  wallTransaction?: UseWallTransactionReturn | undefined;
   onPoleInserted?: (insertedAtIndex: number) => void;
   onPoleDeleted?: (deletedIndices: number[]) => void;
   defaultHeight?: number;

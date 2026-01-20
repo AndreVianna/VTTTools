@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { EncounterRegion, EncounterLightSource, EncounterWall, Point, Pole } from '@/types/domain';
 import type { StageSound, ResourceMetadata } from '@/types/stage';
 import { LightSourceType, SegmentType, SegmentState } from '@/types/domain';
@@ -19,10 +19,20 @@ import {
     type UpdateWallVerticesCommandParams,
 } from './structureCommands';
 
+// Type aliases for mock functions
+type PlaceWallFn = (encounterId: string, id: number, vertices: Point[]) => Promise<EncounterWall>;
+type RemoveWallFn = (encounterId: string, id: number) => Promise<void>;
+type PlaceRegionFn = (encounterId: string, id: number, vertices: Point[], value: number) => Promise<EncounterRegion>;
+type PlaceRegionWithOptionalValueFn = (encounterId: string, id: number, vertices: Point[], value: number | undefined) => Promise<EncounterRegion>;
+type RemoveRegionFn = (encounterId: string, id: number) => Promise<void>;
+type PlaceSourceFn = (encounterId: string, id: number, position: Point, range?: number, intensity?: number, hasGradient?: boolean) => Promise<EncounterLightSource | StageSound>;
+type RemoveSourceFn = (encounterId: string, id: number) => Promise<void>;
+type UpdateWallFn = (encounterId: string, encounterWallId: string, vertices: Point[]) => Promise<void>;
+
 const createMockPole = (x: number, y: number): Pole => ({
     x,
     y,
-    isLocked: false,
+    h: 10,
 });
 
 const createMockEncounterWall = (overrides: Partial<EncounterWall> = {}): EncounterWall => ({
@@ -93,12 +103,12 @@ const createMockSoundSource = (overrides: Partial<StageSound> = {}): StageSound 
 });
 
 describe('PlaceWallCommand', () => {
-    let mockPlaceWallFn: ReturnType<typeof vi.fn>;
-    let mockRemoveWallFn: ReturnType<typeof vi.fn>;
+    let mockPlaceWallFn: Mock<PlaceWallFn>;
+    let mockRemoveWallFn: Mock<RemoveWallFn>;
 
     beforeEach(() => {
-        mockPlaceWallFn = vi.fn().mockResolvedValue(createMockEncounterWall({ index: 10 }));
-        mockRemoveWallFn = vi.fn().mockResolvedValue(undefined);
+        mockPlaceWallFn = vi.fn<PlaceWallFn>().mockResolvedValue(createMockEncounterWall({ index: 10 }));
+        mockRemoveWallFn = vi.fn<RemoveWallFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Place Wall"', () => {
@@ -166,7 +176,7 @@ describe('PlaceWallCommand', () => {
     });
 
     it('should not call removeWallFn if id is undefined', async () => {
-        mockPlaceWallFn.mockResolvedValue({ index: undefined });
+        mockPlaceWallFn.mockResolvedValue({ index: undefined } as unknown as EncounterWall);
         const params: PlaceWallCommandParams = {
             encounterId: 'encounter-1',
             id: 1,
@@ -184,12 +194,12 @@ describe('PlaceWallCommand', () => {
 });
 
 describe('RemoveWallCommand', () => {
-    let mockPlaceWallFn: ReturnType<typeof vi.fn>;
-    let mockRemoveWallFn: ReturnType<typeof vi.fn>;
+    let mockPlaceWallFn: Mock<PlaceWallFn>;
+    let mockRemoveWallFn: Mock<RemoveWallFn>;
 
     beforeEach(() => {
-        mockPlaceWallFn = vi.fn().mockResolvedValue(createMockEncounterWall());
-        mockRemoveWallFn = vi.fn().mockResolvedValue(undefined);
+        mockPlaceWallFn = vi.fn<PlaceWallFn>().mockResolvedValue(createMockEncounterWall());
+        mockRemoveWallFn = vi.fn<RemoveWallFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Remove Wall"', () => {
@@ -262,12 +272,12 @@ describe('RemoveWallCommand', () => {
 });
 
 describe('PlaceRegionCommand', () => {
-    let mockPlaceRegionFn: ReturnType<typeof vi.fn>;
-    let mockRemoveRegionFn: ReturnType<typeof vi.fn>;
+    let mockPlaceRegionFn: Mock<PlaceRegionFn>;
+    let mockRemoveRegionFn: Mock<RemoveRegionFn>;
 
     beforeEach(() => {
-        mockPlaceRegionFn = vi.fn().mockResolvedValue(createMockEncounterRegion({ index: 10 }));
-        mockRemoveRegionFn = vi.fn().mockResolvedValue(undefined);
+        mockPlaceRegionFn = vi.fn<PlaceRegionFn>().mockResolvedValue(createMockEncounterRegion({ index: 10 }));
+        mockRemoveRegionFn = vi.fn<RemoveRegionFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Place Region"', () => {
@@ -339,7 +349,7 @@ describe('PlaceRegionCommand', () => {
     });
 
     it('should not call removeRegionFn if id is falsy', async () => {
-        mockPlaceRegionFn.mockResolvedValue({ index: 0 });
+        mockPlaceRegionFn.mockResolvedValue({ index: 0 } as unknown as EncounterRegion);
         const params: PlaceRegionCommandParams = {
             encounterId: 'encounter-1',
             id: 1,
@@ -359,12 +369,12 @@ describe('PlaceRegionCommand', () => {
 });
 
 describe('RemoveRegionCommand', () => {
-    let mockPlaceRegionFn: ReturnType<typeof vi.fn>;
-    let mockRemoveRegionFn: ReturnType<typeof vi.fn>;
+    let mockPlaceRegionFn: Mock<PlaceRegionWithOptionalValueFn>;
+    let mockRemoveRegionFn: Mock<RemoveRegionFn>;
 
     beforeEach(() => {
-        mockPlaceRegionFn = vi.fn().mockResolvedValue(createMockEncounterRegion());
-        mockRemoveRegionFn = vi.fn().mockResolvedValue(undefined);
+        mockPlaceRegionFn = vi.fn<PlaceRegionWithOptionalValueFn>().mockResolvedValue(createMockEncounterRegion());
+        mockRemoveRegionFn = vi.fn<RemoveRegionFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Remove Region"', () => {
@@ -443,12 +453,12 @@ describe('RemoveRegionCommand', () => {
 });
 
 describe('PlaceSourceCommand', () => {
-    let mockPlaceSourceFn: ReturnType<typeof vi.fn>;
-    let mockRemoveSourceFn: ReturnType<typeof vi.fn>;
+    let mockPlaceSourceFn: Mock<PlaceSourceFn>;
+    let mockRemoveSourceFn: Mock<RemoveSourceFn>;
 
     beforeEach(() => {
-        mockPlaceSourceFn = vi.fn().mockResolvedValue(createMockLightSource({ index: 10 }));
-        mockRemoveSourceFn = vi.fn().mockResolvedValue(undefined);
+        mockPlaceSourceFn = vi.fn<PlaceSourceFn>().mockResolvedValue(createMockLightSource({ index: 10 }));
+        mockRemoveSourceFn = vi.fn<RemoveSourceFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Place Source"', () => {
@@ -532,7 +542,7 @@ describe('PlaceSourceCommand', () => {
     });
 
     it('should not call removeSourceFn if id is falsy', async () => {
-        mockPlaceSourceFn.mockResolvedValue({ index: 0 });
+        mockPlaceSourceFn.mockResolvedValue({ index: 0 } as unknown as EncounterLightSource);
         const params: PlaceSourceCommandParams = {
             encounterId: 'encounter-1',
             id: 1,
@@ -550,12 +560,12 @@ describe('PlaceSourceCommand', () => {
 });
 
 describe('RemoveSourceCommand', () => {
-    let mockPlaceSourceFn: ReturnType<typeof vi.fn>;
-    let mockRemoveSourceFn: ReturnType<typeof vi.fn>;
+    let mockPlaceSourceFn: Mock<PlaceSourceFn>;
+    let mockRemoveSourceFn: Mock<RemoveSourceFn>;
 
     beforeEach(() => {
-        mockPlaceSourceFn = vi.fn().mockResolvedValue(createMockLightSource());
-        mockRemoveSourceFn = vi.fn().mockResolvedValue(undefined);
+        mockPlaceSourceFn = vi.fn<PlaceSourceFn>().mockResolvedValue(createMockLightSource());
+        mockRemoveSourceFn = vi.fn<RemoveSourceFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Remove Source"', () => {
@@ -642,10 +652,10 @@ describe('RemoveSourceCommand', () => {
 });
 
 describe('UpdateWallVerticesCommand', () => {
-    let mockUpdateWallFn: ReturnType<typeof vi.fn>;
+    let mockUpdateWallFn: Mock<UpdateWallFn>;
 
     beforeEach(() => {
-        mockUpdateWallFn = vi.fn().mockResolvedValue(undefined);
+        mockUpdateWallFn = vi.fn<UpdateWallFn>().mockResolvedValue(undefined);
     });
 
     it('should set description to "Update Wall Vertices"', () => {

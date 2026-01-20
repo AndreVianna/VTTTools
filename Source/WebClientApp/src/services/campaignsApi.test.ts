@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { campaignsApi } from './campaignsApi';
 
 vi.mock('./enhancedBaseQuery', () => ({
-    createEnhancedBaseQuery: vi.fn(() => vi.fn()),
+    createEnhancedBaseQuery: vi.fn<() => () => unknown>(() => vi.fn<() => unknown>()),
 }));
 
 describe('campaignsApi', () => {

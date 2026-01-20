@@ -3,11 +3,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Campaign } from '@/types/domain';
+import type { CampaignCard as CampaignCardType } from '@/types/domain';
 import { CampaignCard, type CampaignCardProps } from './CampaignCard';
 
 vi.mock('../shared', () => ({
-    ContentCard: vi.fn(({ item, onClick, badges, metadata, actions }) => (
+    ContentCard: vi.fn<(props: {
+        item: { id: string; name: string };
+        onClick: (id: string) => void;
+        badges: React.ReactNode;
+        metadata: React.ReactNode;
+        actions: React.ReactNode;
+    }) => React.ReactNode>(({ item, onClick, badges, metadata, actions }) => (
         <div
             data-item-id={item.id}
             data-item-name={item.name}
@@ -21,11 +27,15 @@ vi.mock('../shared', () => ({
             <div data-mock="actions">{actions}</div>
         </div>
     )),
-    PublishedBadge: vi.fn(() => <span>Published</span>),
+    PublishedBadge: vi.fn<() => React.ReactNode>(() => <span>Published</span>),
 }));
 
 vi.mock('@/hooks/useAuthenticatedImageUrl', () => ({
-    useAuthenticatedImageUrl: vi.fn(() => ({
+    useAuthenticatedImageUrl: vi.fn<(url: string | null | undefined) => {
+        blobUrl: string | null;
+        isLoading: boolean;
+        error: Error | null;
+    }>(() => ({
         blobUrl: null,
         isLoading: false,
         error: null,
@@ -33,7 +43,7 @@ vi.mock('@/hooks/useAuthenticatedImageUrl', () => ({
 }));
 
 vi.mock('@/config/development', () => ({
-    getApiEndpoints: vi.fn(() => ({
+    getApiEndpoints: vi.fn<() => { media: string; auth: string; assets: string }>(() => ({
         media: '/api/media',
         auth: '/api/auth',
         assets: '/api/assets',
@@ -47,22 +57,22 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('CampaignCard', () => {
-    const createMockCampaign = (overrides: Partial<Campaign> = {}): Campaign => ({
+    const createMockCampaign = (overrides: Partial<CampaignCardType> = {}): CampaignCardType => ({
         id: 'campaign-1',
-        ownerId: 'owner-1',
         name: 'Dragon Campaign',
         description: 'An epic adventure',
         isPublished: false,
         isPublic: false,
-        adventures: [],
+        adventureCount: 0,
+        backgroundId: null,
         ...overrides,
     });
 
     const defaultProps: CampaignCardProps = {
         campaign: createMockCampaign(),
-        onOpen: vi.fn(),
-        onDuplicate: vi.fn(),
-        onDelete: vi.fn(),
+        onOpen: vi.fn<(id: string) => void>(),
+        onDuplicate: vi.fn<(id: string) => void>(),
+        onDelete: vi.fn<(id: string) => void>(),
     };
 
     beforeEach(() => {
@@ -119,18 +129,7 @@ describe('CampaignCard', () => {
     describe('metadata', () => {
         it('should show singular adventure count when campaign has 1 adventure', () => {
             // Arrange
-            const campaign = createMockCampaign({
-                adventures: [
-                    {
-                        id: 'adv-1',
-                        name: 'Adventure 1',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                ],
-            });
+            const campaign = createMockCampaign({ adventureCount: 1 });
 
             // Act
             render(
@@ -145,34 +144,7 @@ describe('CampaignCard', () => {
 
         it('should show plural adventure count when campaign has multiple adventures', () => {
             // Arrange
-            const campaign = createMockCampaign({
-                adventures: [
-                    {
-                        id: 'adv-1',
-                        name: 'Adventure 1',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                    {
-                        id: 'adv-2',
-                        name: 'Adventure 2',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                    {
-                        id: 'adv-3',
-                        name: 'Adventure 3',
-                        type: 0,
-                        description: '',
-                        isPublished: false,
-                        ownerId: 'owner-1',
-                    },
-                ],
-            });
+            const campaign = createMockCampaign({ adventureCount: 3 });
 
             // Act
             render(
@@ -187,22 +159,7 @@ describe('CampaignCard', () => {
 
         it('should show 0 adventures when campaign has no adventures', () => {
             // Arrange
-            const campaign = createMockCampaign({ adventures: [] });
-
-            // Act
-            render(
-                <TestWrapper>
-                    <CampaignCard {...defaultProps} campaign={campaign} />
-                </TestWrapper>,
-            );
-
-            // Assert
-            expect(screen.getByText('0 adventures')).toBeInTheDocument();
-        });
-
-        it('should show 0 adventures when adventures is undefined', () => {
-            // Arrange
-            const campaign = createMockCampaign({ adventures: undefined });
+            const campaign = createMockCampaign({ adventureCount: 0 });
 
             // Act
             render(
@@ -220,7 +177,7 @@ describe('CampaignCard', () => {
         it('should call onOpen when card is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onOpen = vi.fn();
+            const onOpen = vi.fn<(id: string) => void>();
             const campaign = createMockCampaign({ id: 'campaign-123' });
 
             render(
@@ -241,8 +198,8 @@ describe('CampaignCard', () => {
         it('should call onDuplicate with stopPropagation when Clone button is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onDuplicate = vi.fn();
-            const onOpen = vi.fn();
+            const onDuplicate = vi.fn<(id: string) => void>();
+            const onOpen = vi.fn<(id: string) => void>();
             const campaign = createMockCampaign({ id: 'campaign-456' });
 
             render(
@@ -269,8 +226,8 @@ describe('CampaignCard', () => {
         it('should call onDelete with stopPropagation when Delete button is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onDelete = vi.fn();
-            const onOpen = vi.fn();
+            const onDelete = vi.fn<(id: string) => void>();
+            const onOpen = vi.fn<(id: string) => void>();
             const campaign = createMockCampaign({ id: 'campaign-789' });
 
             render(

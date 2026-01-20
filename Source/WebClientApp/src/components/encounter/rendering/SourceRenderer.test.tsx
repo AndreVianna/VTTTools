@@ -321,22 +321,22 @@ describe('LightSourceRenderer', () => {
 
     describe('callback handlers', () => {
         it('should accept onSelect callback', () => {
-            const onSelect = vi.fn();
+            const onSelect = vi.fn<(index: number) => void>();
             renderWithTheme(<LightSourceRenderer {...defaultProps} onSelect={onSelect} />);
         });
 
         it('should accept onContextMenu callback', () => {
-            const onContextMenu = vi.fn();
+            const onContextMenu = vi.fn<(sourceIndex: number, position: { x: number; y: number }) => void>();
             renderWithTheme(<LightSourceRenderer {...defaultProps} onContextMenu={onContextMenu} />);
         });
 
         it('should accept onPositionChange callback', () => {
-            const onPositionChange = vi.fn();
+            const onPositionChange = vi.fn<(sourceIndex: number, position: { x: number; y: number }) => void>();
             renderWithTheme(<LightSourceRenderer {...defaultProps} onPositionChange={onPositionChange} />);
         });
 
         it('should accept onDirectionChange callback', () => {
-            const onDirectionChange = vi.fn();
+            const onDirectionChange = vi.fn<(sourceIndex: number, direction: number) => void>();
             renderWithTheme(<LightSourceRenderer {...defaultProps} onDirectionChange={onDirectionChange} />);
         });
     });

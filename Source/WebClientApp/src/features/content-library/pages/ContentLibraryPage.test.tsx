@@ -6,13 +6,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ContentLibraryPage } from './ContentLibraryPage';
 
 // Mock react-router-dom
-const mockNavigate = vi.fn();
-const mockUseLocation = vi.fn();
+const mockNavigate = vi.fn<(to: string) => void>();
+const mockUseLocation = vi.fn<() => { pathname: string }>();
 
 vi.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate,
     useLocation: () => mockUseLocation(),
-    Outlet: vi.fn(() => <div data-mock="Outlet">Outlet Content</div>),
+    Outlet: vi.fn<() => React.ReactElement>(() => <div data-mock="Outlet">Outlet Content</div>),
 }));
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {

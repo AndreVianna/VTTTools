@@ -2,7 +2,7 @@ import React from 'react';
 import { AssetPicker } from '@components/common';
 import { SoundPickerDialog } from '@/components/sounds';
 import { LightContextMenu, SoundContextMenu, type SoundSourceUpdatePayload } from '@components/encounter';
-import type { LightPlacementProperties, SoundPlacementProperties } from '@components/encounter/panels';
+import type { SoundPlacementProperties } from '@components/encounter/panels';
 import type { EncounterLightSource, PlacedLightSource, PlacedSoundSource } from '@/types/domain';
 import type { AssetKind } from '@/types/domain';
 

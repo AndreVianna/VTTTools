@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 
 // Mock MUI icon component - returns an empty SVG with semantic attributes

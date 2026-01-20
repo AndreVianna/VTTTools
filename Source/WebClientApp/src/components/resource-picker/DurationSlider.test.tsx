@@ -13,7 +13,7 @@ const renderWithTheme = (ui: React.ReactElement) => {
 describe('DurationSlider', () => {
     const defaultProps: DurationSliderProps = {
         value: [0, 60000],
-        onChange: vi.fn(),
+        onChange: vi.fn<(range: [number, number]) => void>(),
         maxDurationMs: 60000,
     };
 
@@ -190,7 +190,7 @@ describe('DurationSlider', () => {
 
     describe('onChange behavior', () => {
         it('should call onChange with [min, max] milliseconds when slider changes', () => {
-            const onChange = vi.fn();
+            const onChange = vi.fn<(range: [number, number]) => void>();
             renderWithTheme(
                 <DurationSlider {...defaultProps} onChange={onChange} />
             );

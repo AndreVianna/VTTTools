@@ -3,13 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { adventuresApi } from './adventuresApi';
 
 vi.mock('./enhancedBaseQuery', () => ({
-    createEnhancedBaseQuery: vi.fn(() => vi.fn()),
+    createEnhancedBaseQuery: vi.fn<() => () => unknown>(() => vi.fn<() => unknown>()),
 }));
 
 vi.mock('./contentApi', () => ({
     contentApi: {
         util: {
-            invalidateTags: vi.fn(),
+            invalidateTags: vi.fn<(tags: string[]) => void>(),
         },
     },
 }));

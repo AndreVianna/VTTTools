@@ -26,20 +26,20 @@ const createMockMedia = (overrides: Partial<MediaResource> = {}): MediaResource 
 });
 
 // Mock functions
-const mockSetSelectedCategory = vi.fn();
-const mockSetSearchQuery = vi.fn();
-const mockSetOwnershipFilter = vi.fn();
-const mockSetStatusFilter = vi.fn();
-const mockSetViewMode = vi.fn();
-const mockSetSort = vi.fn();
-const mockSetSelectedMediaId = vi.fn();
-const mockToggleMediaSelection = vi.fn();
-const mockClearSelection = vi.fn();
-const mockLoadMore = vi.fn();
-const mockResetFilters = vi.fn();
-const mockFilterMedia = vi.fn((media: MediaResource[]) => media);
-const mockDeleteResource = vi.fn();
-const mockRefetch = vi.fn();
+const mockSetSelectedCategory = vi.fn<(category: ResourceRole) => void>();
+const mockSetSearchQuery = vi.fn<(query: string) => void>();
+const mockSetOwnershipFilter = vi.fn<(filter: 'all' | 'mine' | 'others') => void>();
+const mockSetStatusFilter = vi.fn<(filter: 'all' | 'published' | 'draft') => void>();
+const mockSetViewMode = vi.fn<(mode: 'grid-large' | 'grid-small' | 'table') => void>();
+const mockSetSort = vi.fn<(field: string, direction: 'asc' | 'desc') => void>();
+const mockSetSelectedMediaId = vi.fn<(id: string | null) => void>();
+const mockToggleMediaSelection = vi.fn<(id: string) => void>();
+const mockClearSelection = vi.fn<() => void>();
+const mockLoadMore = vi.fn<() => void>();
+const mockResetFilters = vi.fn<() => void>();
+const mockFilterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>((media: MediaResource[]) => media);
+const mockDeleteResource = vi.fn<(id: string) => Promise<void>>();
+const mockRefetch = vi.fn<() => void>();
 
 // Mutable mock state objects - referenced by vi.fn() in mocks
 const mockBrowserState = {
@@ -66,10 +66,10 @@ const mockBrowserState = {
     setViewMode: mockSetViewMode,
     setSort: mockSetSort,
     setSelectedMediaId: mockSetSelectedMediaId,
-    setSelectedMediaIds: vi.fn(),
+    setSelectedMediaIds: vi.fn<(ids: string[]) => void>() as (ids: string[]) => void,
     toggleMediaSelection: mockToggleMediaSelection,
     clearSelection: mockClearSelection,
-    setPagination: vi.fn(),
+    setPagination: vi.fn<(skip: number, take: number) => void>() as (skip: number, take: number) => void,
     loadMore: mockLoadMore,
     resetFilters: mockResetFilters,
     filterMedia: mockFilterMedia,
@@ -84,32 +84,32 @@ const mockQueryState = {
 };
 
 vi.mock('@/hooks/useMediaBrowser', () => ({
-    useMediaBrowser: vi.fn(() => mockBrowserState),
+    useMediaBrowser: vi.fn<() => typeof mockBrowserState>(() => mockBrowserState),
 }));
 
 vi.mock('@/services/mediaApi', () => ({
-    useFilterResourcesQuery: vi.fn(() => mockQueryState),
-    useDeleteResourceMutation: vi.fn(() => [mockDeleteResource, { isLoading: false }]),
+    useFilterResourcesQuery: vi.fn<() => typeof mockQueryState>(() => mockQueryState),
+    useDeleteResourceMutation: vi.fn<() => [typeof mockDeleteResource, { isLoading: boolean }]>(() => [mockDeleteResource, { isLoading: false }]),
 }));
 
 // Mock child components
 vi.mock('@/components/assets/browser', () => ({
-    AssetBrowserLayout: vi.fn(({ leftSidebar, mainContent, rightSidebar }) => (
+    AssetBrowserLayout: vi.fn<(props: { leftSidebar: React.ReactNode; mainContent: React.ReactNode; rightSidebar: React.ReactNode }) => React.ReactElement>(({ leftSidebar, mainContent, rightSidebar }) => (
         <div data-mock="AssetBrowserLayout">
             <div data-mock="leftSidebar">{leftSidebar}</div>
             <div data-mock="mainContent">{mainContent}</div>
             <div data-mock="rightSidebar">{rightSidebar}</div>
         </div>
     )),
-    BrowserToolbar: vi.fn(() => <div data-mock="BrowserToolbar" />),
+    BrowserToolbar: vi.fn<() => React.ReactElement>(() => <div data-mock="BrowserToolbar" />),
 }));
 
 vi.mock('@/components/media/MediaGrid', () => ({
-    MediaGrid: vi.fn(() => <div data-mock="MediaGrid" />),
+    MediaGrid: vi.fn<() => React.ReactElement>(() => <div data-mock="MediaGrid" />),
 }));
 
 vi.mock('@/components/media/MediaList', () => ({
-    MediaList: vi.fn(() => <div data-mock="MediaList" />),
+    MediaList: vi.fn<() => React.ReactElement>(() => <div data-mock="MediaList" />),
 }));
 
 // Import component after mocks are set up
@@ -280,7 +280,7 @@ describe('MediaLibraryPage', () => {
             const mockMedia = [createMockMedia()];
             // Do NOT change selectedCategory - just test with default viewMode and data
             mockBrowserState.viewMode = 'grid-large';
-            mockBrowserState.filterMedia = vi.fn(() => mockMedia);
+            mockBrowserState.filterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>(() => mockMedia);
             mockQueryState.data = { items: mockMedia, totalCount: 1, skip: 0, take: 50 };
 
             // Act
@@ -300,7 +300,7 @@ describe('MediaLibraryPage', () => {
             const mockMedia = [createMockMedia({ role: ResourceRole.SoundEffect })];
             mockBrowserState.selectedCategory = ResourceRole.SoundEffect;
             mockBrowserState.viewMode = 'grid-large'; // Even with grid view, audio uses list
-            mockBrowserState.filterMedia = vi.fn(() => mockMedia);
+            mockBrowserState.filterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>(() => mockMedia);
             mockQueryState.data = { items: mockMedia, totalCount: 1, skip: 0, take: 50 };
 
             // Act
@@ -318,7 +318,7 @@ describe('MediaLibraryPage', () => {
             // Arrange - table view mode forces MediaList regardless of category
             const mockMedia = [createMockMedia()];
             mockBrowserState.viewMode = 'table';
-            mockBrowserState.filterMedia = vi.fn(() => mockMedia);
+            mockBrowserState.filterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>(() => mockMedia);
             mockQueryState.data = { items: mockMedia, totalCount: 1, skip: 0, take: 50 };
 
             // Act
@@ -339,7 +339,7 @@ describe('MediaLibraryPage', () => {
             const mockMedia = createMockMedia({ id: 'media-123', fileName: 'goblin.png', fileSize: 51200 });
             mockBrowserState.selectedMediaId = 'media-123';
             mockBrowserState.inspectorOpen = true;
-            mockBrowserState.filterMedia = vi.fn(() => [mockMedia]);
+            mockBrowserState.filterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>(() => [mockMedia]);
             mockQueryState.data = { items: [mockMedia], totalCount: 1, skip: 0, take: 50 };
 
             // Act
@@ -363,7 +363,7 @@ describe('MediaLibraryPage', () => {
             });
             mockBrowserState.selectedMediaId = 'media-456';
             mockBrowserState.inspectorOpen = true;
-            mockBrowserState.filterMedia = vi.fn(() => [mockMedia]);
+            mockBrowserState.filterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>(() => [mockMedia]);
             mockQueryState.data = { items: [mockMedia], totalCount: 1, skip: 0, take: 50 };
 
             // Act
@@ -384,7 +384,7 @@ describe('MediaLibraryPage', () => {
             const mockMedia = createMockMedia({ id: 'media-789' });
             mockBrowserState.selectedMediaId = 'media-789';
             mockBrowserState.inspectorOpen = true;
-            mockBrowserState.filterMedia = vi.fn(() => [mockMedia]);
+            mockBrowserState.filterMedia = vi.fn<(media: MediaResource[]) => MediaResource[]>(() => [mockMedia]);
             mockQueryState.data = { items: [mockMedia], totalCount: 1, skip: 0, take: 50 };
 
             // Act

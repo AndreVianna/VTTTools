@@ -29,10 +29,10 @@ import uiReducer, {
 
 // Mock localStorage
 const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+    getItem: vi.fn<(key: string) => string | null>(),
+    setItem: vi.fn<(key: string, value: string) => void>(),
+    removeItem: vi.fn<(key: string) => void>(),
+    clear: vi.fn<() => void>(),
 };
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 

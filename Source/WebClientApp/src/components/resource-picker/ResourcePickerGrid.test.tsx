@@ -57,7 +57,7 @@ describe('ResourcePickerGrid', () => {
         resources: [] as MediaResource[],
         isLoading: false,
         selectedResourceId: null,
-        onSelect: vi.fn(),
+        onSelect: vi.fn<(resource: MediaResource) => void>(),
         viewMode: 'grid' as const,
     };
 
@@ -106,7 +106,7 @@ describe('ResourcePickerGrid', () => {
 
         it('should call onSelect when clicking a card', async () => {
             const user = userEvent.setup();
-            const onSelect = vi.fn();
+            const onSelect = vi.fn<(resource: MediaResource) => void>();
             const resource = createMockResource({ id: '1', fileName: 'clickable.png' });
 
             renderWithProviders(
@@ -207,7 +207,7 @@ describe('ResourcePickerGrid', () => {
 
         it('should call onSelect when clicking a row', async () => {
             const user = userEvent.setup();
-            const onSelect = vi.fn();
+            const onSelect = vi.fn<(resource: MediaResource) => void>();
             const resource = createMockResource({
                 id: 'audio-1',
                 fileName: 'click-me.mp3',

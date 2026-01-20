@@ -11,8 +11,8 @@ import type { LightPlacementProperties, SoundPlacementProperties } from '@compon
 import { LayerName } from '@services/layerManager';
 import type { GridConfig } from '@utils/gridCalculator';
 import type { Encounter, PlacedWall, Point, SegmentState, SegmentType } from '@/types/domain';
-import type { RegionTransaction } from '@/hooks/useRegionTransaction';
-import type { WallTransaction } from '@/hooks/useWallTransaction';
+import type { UseRegionTransactionReturn } from '@/hooks/useRegionTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
 import { polesToSegments } from '@/utils/wallUtils';
 import { updateWallOptimistic, updateRegionOptimistic } from '@/utils/encounterStateUtils';
 import {
@@ -40,8 +40,8 @@ export interface DrawingToolsLayerProps {
     gridConfig: GridConfig;
 
     // Transactions
-    wallTransaction: WallTransaction;
-    regionTransaction: RegionTransaction;
+    wallTransaction: UseWallTransactionReturn;
+    regionTransaction: UseRegionTransactionReturn;
 
     // Encounter state setter
     setEncounter: React.Dispatch<React.SetStateAction<Encounter | null>>;

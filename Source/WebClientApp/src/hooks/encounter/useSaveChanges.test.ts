@@ -30,12 +30,12 @@ describe('useSaveChanges', () => {
             snap: true,
             scale: 1,
         },
-        patchEncounter: vi.fn(() => ({
-            unwrap: vi.fn().mockResolvedValue(createMockEncounter()),
+        patchEncounter: vi.fn<() => { unwrap: () => Promise<unknown> }>(() => ({
+            unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue(createMockEncounter()),
         })),
-        refetch: vi.fn().mockResolvedValue(undefined),
-        setSaveStatus: vi.fn(),
-        setEncounter: vi.fn(),
+        refetch: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        setSaveStatus: vi.fn<(status: string) => void>(),
+        setEncounter: vi.fn<(encounter: unknown) => void>(),
     });
 
     it('should not save when encounterId is empty', async () => {
@@ -167,8 +167,8 @@ describe('useSaveChanges', () => {
 
     it('should call refetch when patchEncounter returns undefined', async () => {
         const props = createMockProps();
-        props.patchEncounter = vi.fn(() => ({
-            unwrap: vi.fn().mockResolvedValue(undefined),
+        props.patchEncounter = vi.fn<() => { unwrap: () => Promise<unknown> }>(() => ({
+            unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue(undefined),
         }));
         const { result } = renderHook(() => useSaveChanges(props));
 
@@ -181,8 +181,8 @@ describe('useSaveChanges', () => {
 
     it('should set error status on save failure', async () => {
         const props = createMockProps();
-        props.patchEncounter = vi.fn(() => ({
-            unwrap: vi.fn().mockRejectedValue(new Error('Save failed')),
+        props.patchEncounter = vi.fn<() => { unwrap: () => Promise<unknown> }>(() => ({
+            unwrap: vi.fn<() => Promise<unknown>>().mockRejectedValue(new Error('Save failed')),
         }));
         const { result } = renderHook(() => useSaveChanges(props));
 

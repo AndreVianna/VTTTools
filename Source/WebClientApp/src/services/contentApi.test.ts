@@ -4,7 +4,7 @@ import { contentApi } from './contentApi';
 import type { ContentFilters, PagedContentResponse } from './contentApi';
 
 vi.mock('./enhancedBaseQuery', () => ({
-    createEnhancedBaseQuery: vi.fn(() => vi.fn()),
+    createEnhancedBaseQuery: vi.fn<() => () => unknown>(() => vi.fn<() => unknown>()),
 }));
 
 describe('contentApi', () => {

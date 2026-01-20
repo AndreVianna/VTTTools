@@ -15,7 +15,7 @@ import authReducer from '@/store/slices/authSlice';
 import { EncounterPage } from './EncounterPage';
 
 // Mock react-router-dom hooks
-const mockNavigate = vi.fn();
+const mockNavigate = vi.fn<(to: string | number) => void>();
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom');
     return {
@@ -25,7 +25,7 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock useAudioUnlock hook
-const mockUnlockAudio = vi.fn();
+const mockUnlockAudio = vi.fn<() => void>();
 let mockIsAudioUnlocked = false;
 vi.mock('@/hooks/useAudioUnlock', () => ({
     useAudioUnlock: () => ({
@@ -36,7 +36,7 @@ vi.mock('@/hooks/useAudioUnlock', () => ({
 }));
 
 // Mock RTK Query hooks
-const mockUseGetEncounterQuery = vi.fn();
+const mockUseGetEncounterQuery = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock('@/services/encounterApi', () => ({
     useGetEncounterQuery: (...args: unknown[]) => mockUseGetEncounterQuery(...args),
 }));

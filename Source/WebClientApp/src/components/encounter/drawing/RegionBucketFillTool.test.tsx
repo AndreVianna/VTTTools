@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PlacedWall, Point } from '@/types/domain';
-import { SegmentType } from '@/types/domain';
+import { SegmentState, SegmentType } from '@/types/domain';
 import { GridType } from '@/utils/gridCalculator';
 import type { GridConfig } from '@/utils/gridCalculator';
 import * as regionBoundaryUtils from '@/utils/regionBoundaryUtils';
@@ -10,7 +10,7 @@ import { RegionBucketFillTool } from './RegionBucketFillTool';
 
 // Mock regionBoundaryUtils
 vi.mock('@/utils/regionBoundaryUtils', () => ({
-    traceBoundary: vi.fn(),
+    traceBoundary: vi.fn<() => void>(),
 }));
 
 // Mock customCursors
@@ -39,38 +39,38 @@ describe('RegionBucketFillTool', () => {
             segment: null,
             isActive: false,
         },
-        startTransaction: vi.fn(),
-        addVertex: vi.fn(),
-        updateVertices: vi.fn(),
-        updateSegmentProperties: vi.fn(),
-        commitTransaction: vi.fn(),
-        rollbackTransaction: vi.fn(),
-        clearTransaction: vi.fn(),
-        getActiveSegment: vi.fn(),
-        pushLocalAction: vi.fn(),
-        undoLocal: vi.fn(),
-        redoLocal: vi.fn(),
-        canUndoLocal: vi.fn(),
-        canRedoLocal: vi.fn(),
-        clearLocalStacks: vi.fn(),
+        startTransaction: vi.fn<() => void>(),
+        addVertex: vi.fn<() => void>(),
+        updateVertices: vi.fn<() => void>(),
+        updateSegmentProperties: vi.fn<() => void>(),
+        commitTransaction: vi.fn<() => void>(),
+        rollbackTransaction: vi.fn<() => void>(),
+        clearTransaction: vi.fn<() => void>(),
+        getActiveSegment: vi.fn<() => void>(),
+        pushLocalAction: vi.fn<() => void>(),
+        undoLocal: vi.fn<() => void>(),
+        redoLocal: vi.fn<() => void>(),
+        canUndoLocal: vi.fn<() => boolean>(),
+        canRedoLocal: vi.fn<() => boolean>(),
+        clearLocalStacks: vi.fn<() => void>(),
         history: {
             canUndo: false,
             canRedo: false,
-            push: vi.fn(),
-            undo: vi.fn(),
-            redo: vi.fn(),
-            clear: vi.fn(),
+            push: vi.fn<() => void>(),
+            undo: vi.fn<() => void>(),
+            redo: vi.fn<() => void>(),
+            clear: vi.fn<() => void>(),
         },
     });
 
-    let onCancel: ReturnType<typeof vi.fn>;
-    let onFinish: ReturnType<typeof vi.fn>;
+    let onCancel: ReturnType<typeof vi.fn<() => void>>;
+    let onFinish: ReturnType<typeof vi.fn<(vertices: Point[]) => void>>;
     let mockRegionTransaction: ReturnType<typeof createMockRegionTransaction>;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        onCancel = vi.fn();
-        onFinish = vi.fn();
+        onCancel = vi.fn<() => void>();
+        onFinish = vi.fn<(vertices: Point[]) => void>();
         mockRegionTransaction = createMockRegionTransaction();
     });
 
@@ -413,10 +413,11 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -434,10 +435,11 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -447,10 +449,11 @@ describe('RegionBucketFillTool', () => {
                     index: 1,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 200, y: 100, h: 10 },
                             endPole: { x: 200, y: 200, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -467,10 +470,11 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 150, y: 100, h: 10 },
                             type: SegmentType.Door,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],
@@ -487,10 +491,11 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 150, y: 100, h: 10 },
                             type: SegmentType.Window,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: false,
                         },
                     ],
@@ -659,10 +664,11 @@ describe('RegionBucketFillTool', () => {
                     index: 0,
                     segments: [
                         {
+                            index: 0,
                             startPole: { x: 100, y: 100, h: 10 },
                             endPole: { x: 200, y: 100, h: 10 },
                             type: SegmentType.Wall,
-                            state: 'Closed' as const,
+                            state: SegmentState.Closed,
                             isOpaque: true,
                         },
                     ],

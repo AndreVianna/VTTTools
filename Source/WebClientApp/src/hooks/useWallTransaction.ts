@@ -67,6 +67,12 @@ function generateBrokenWallNames(originalName: string, segmentCount: number): st
   return names;
 }
 
+/**
+ * Return type of the useWallTransaction hook.
+ * Contains transaction state and all mutation/query functions.
+ */
+export type UseWallTransactionReturn = ReturnType<typeof useWallTransaction>;
+
 export const useWallTransaction = () => {
   const [transaction, setTransaction] = useState<WallTransaction>(INITIAL_TRANSACTION);
   const segmentsRef = useRef<WallSegment[]>([]);

@@ -3,16 +3,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useInfiniteScroll, UseInfiniteScrollOptions } from './useInfiniteScroll';
 
 describe('useInfiniteScroll', () => {
-    let mockObserve: ReturnType<typeof vi.fn>;
-    let mockDisconnect: ReturnType<typeof vi.fn>;
-    let mockIntersectionObserver: ReturnType<typeof vi.fn>;
+    let mockObserve: ReturnType<typeof vi.fn<(target: Element) => void>>;
+    let mockDisconnect: ReturnType<typeof vi.fn<() => void>>;
+    let mockIntersectionObserver: ReturnType<typeof vi.fn<(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => IntersectionObserver>>;
     let observerCallback: IntersectionObserverCallback;
     let observerOptions: IntersectionObserverInit | undefined;
 
     beforeEach(() => {
-        mockObserve = vi.fn();
-        mockDisconnect = vi.fn();
-        mockIntersectionObserver = vi.fn((callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => {
+        mockObserve = vi.fn<(target: Element) => void>();
+        mockDisconnect = vi.fn<() => void>();
+        mockIntersectionObserver = vi.fn<(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => IntersectionObserver>((callback: IntersectionObserverCallback, options?: IntersectionObserverInit) => {
             observerCallback = callback;
             observerOptions = options;
             return {

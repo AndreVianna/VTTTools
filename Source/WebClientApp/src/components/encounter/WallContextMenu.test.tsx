@@ -26,10 +26,10 @@ describe('WallContextMenu', () => {
     const defaultProps = {
         anchorPosition: { left: 100, top: 100 },
         open: true,
-        onClose: vi.fn(),
+        onClose: vi.fn<() => void>(),
         encounterWall: createMockWall(),
         segmentIndex: 0,
-        onSegmentUpdate: vi.fn(),
+        onSegmentUpdate: vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>(),
     };
 
     beforeEach(() => {
@@ -190,7 +190,7 @@ describe('WallContextMenu', () => {
         it('should call onSegmentUpdate when visual type is changed to Door', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
@@ -212,7 +212,7 @@ describe('WallContextMenu', () => {
         it('should call onSegmentUpdate with isOpaque false when Fence is selected', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
@@ -234,7 +234,7 @@ describe('WallContextMenu', () => {
         it('should normalize state when changing from Door to Wall type', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             const wall = createMockWall([
                 createMockSegment({
                     type: SegmentType.Door,
@@ -334,7 +334,7 @@ describe('WallContextMenu', () => {
         it('should call onSegmentUpdate when state is changed', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             const wall = createMockWall([
                 createMockSegment({ type: SegmentType.Door, isOpaque: true }),
             ]);
@@ -355,7 +355,7 @@ describe('WallContextMenu', () => {
         it('should call onSegmentUpdate with Secret state for Wall type', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
@@ -372,8 +372,8 @@ describe('WallContextMenu', () => {
 
         it('should not call onSegmentUpdate when segmentIndex is null', async () => {
             // Arrange
-            const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const _user = userEvent.setup();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             const wall = createMockWall([createMockSegment()]);
             // Force render with valid wall but null segmentIndex - segment won't render
             render(<WallContextMenu {...defaultProps} encounterWall={wall} segmentIndex={null} onSegmentUpdate={onSegmentUpdate} />);
@@ -401,7 +401,7 @@ describe('WallContextMenu', () => {
         it('should pass correct wall and segment indices to onSegmentUpdate', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onSegmentUpdate = vi.fn();
+            const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             const wall: EncounterWall = {
                 index: 5,
                 name: 'Wall Five',
@@ -429,7 +429,7 @@ describe('WallContextMenu', () => {
         it('should call onClose when clicking outside menu', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onClose = vi.fn();
+            const onClose = vi.fn<() => void>();
             render(
                 <div>
                     <div>Outside Element</div>

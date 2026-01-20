@@ -92,9 +92,9 @@ describe('EncounterCard', () => {
 
     const defaultProps: EncounterCardProps = {
         encounter: createMockEncounter(),
-        onOpen: vi.fn(),
-        onDuplicate: vi.fn(),
-        onDelete: vi.fn(),
+        onOpen: vi.fn<(id: string) => void>(),
+        onDuplicate: vi.fn<(id: string) => void>(),
+        onDelete: vi.fn<(id: string) => void>(),
     };
 
     beforeEach(() => {
@@ -152,7 +152,7 @@ describe('EncounterCard', () => {
         it('should call onOpen when card is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onOpen = vi.fn();
+            const onOpen = vi.fn<(id: string) => void>();
             const encounter = createMockEncounter({ id: 'encounter-456' });
 
             render(
@@ -173,8 +173,8 @@ describe('EncounterCard', () => {
         it('should call onDuplicate when Clone button is clicked with stopPropagation', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onDuplicate = vi.fn();
-            const onOpen = vi.fn();
+            const onDuplicate = vi.fn<(id: string) => void>();
+            const onOpen = vi.fn<(id: string) => void>();
             const encounter = createMockEncounter({ id: 'encounter-789' });
 
             render(
@@ -201,8 +201,8 @@ describe('EncounterCard', () => {
         it('should call onDelete when Delete button is clicked with stopPropagation', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onDelete = vi.fn();
-            const onOpen = vi.fn();
+            const onDelete = vi.fn<(id: string) => void>();
+            const onOpen = vi.fn<(id: string) => void>();
             const encounter = createMockEncounter({ id: 'encounter-abc' });
 
             render(

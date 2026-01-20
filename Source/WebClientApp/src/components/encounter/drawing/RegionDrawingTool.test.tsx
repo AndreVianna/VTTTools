@@ -130,12 +130,12 @@ describe('RegionDrawingTool', () => {
     });
 
     describe('keyboard shortcuts', () => {
-        let onCancel: ReturnType<typeof vi.fn>;
-        let onFinish: ReturnType<typeof vi.fn>;
+        let onCancel: ReturnType<typeof vi.fn<() => void>>;
+        let onFinish: ReturnType<typeof vi.fn<() => void>>;
 
         beforeEach(() => {
-            onCancel = vi.fn();
-            onFinish = vi.fn();
+            onCancel = vi.fn<() => void>();
+            onFinish = vi.fn<() => void>();
         });
 
         afterEach(() => {

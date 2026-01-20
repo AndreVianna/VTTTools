@@ -1,5 +1,6 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { render } from '@testing-library/react';
+import type Konva from 'konva';
 import React from 'react';
 import { Stage, Layer } from 'react-konva';
 import { describe, expect, it, vi } from 'vitest';
@@ -23,7 +24,7 @@ describe('RotationHandle', () => {
         rotation: 0,
         assetSize: { width: 64, height: 64 },
         scale: 1,
-        onMouseDown: vi.fn(),
+        onMouseDown: vi.fn<(e: Konva.KonvaEventObject<MouseEvent>) => void>(),
     };
 
     it('should render without crashing', () => {

@@ -13,7 +13,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 
 // Mock dependencies
 vi.mock('@/utils/displayHelpers', () => ({
-    getEffectiveLabelVisibility: vi.fn((asset: PlacedAsset) => {
+    getEffectiveLabelVisibility: vi.fn<(asset: PlacedAsset) => LabelVisibility>((asset: PlacedAsset) => {
         if (asset.labelVisibility !== LabelVisibility.Default) {
             return asset.labelVisibility;
         }
@@ -23,19 +23,19 @@ vi.mock('@/utils/displayHelpers', () => ({
         }
         return LabelVisibility.OnHover;
     }),
-    getEffectiveLabelPosition: vi.fn((asset: PlacedAsset) =>
+    getEffectiveLabelPosition: vi.fn<(asset: PlacedAsset) => LabelPosition>((asset: PlacedAsset) =>
         asset.labelPosition === LabelPosition.Default ? LabelPosition.Bottom : asset.labelPosition
     ),
 }));
 
 vi.mock('@/components/encounter/tokenPlacementUtils', () => ({
-    getAssetSize: vi.fn((asset: Asset) => {
+    getAssetSize: vi.fn<(asset: Asset) => { width: number; height: number }>((asset: Asset) => {
         if (asset.size?.width && asset.size?.height) {
             return { width: asset.size.width, height: asset.size.height };
         }
         return { width: 1, height: 1 };
     }),
-    formatMonsterLabel: vi.fn((name: string, maxWidth: number) => ({
+    formatMonsterLabel: vi.fn<(name: string, maxWidth: number) => { displayText: string; fullText: string; isTruncated: boolean; displayWidth: number; fullWidth: number; displayHeight: number }>((name: string, maxWidth: number) => ({
         displayText: name.length > 10 ? name.slice(0, 10) + '...' : name,
         fullText: name,
         isTruncated: name.length > 10,
@@ -46,7 +46,7 @@ vi.mock('@/components/encounter/tokenPlacementUtils', () => ({
 }));
 
 vi.mock('@/types/placement', () => ({
-    getPlacementBehavior: vi.fn((kind: AssetKind, objectData?: unknown, monsterData?: unknown) => {
+    getPlacementBehavior: vi.fn<(kind: AssetKind, objectData?: unknown, monsterData?: unknown) => { allowOverlap: boolean }>((kind: AssetKind, objectData?: unknown, monsterData?: unknown) => {
         if (kind === AssetKind.Object && objectData) {
             return { allowOverlap: false };
         }

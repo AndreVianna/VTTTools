@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StatValueType } from '@/types/domain';
-import { DataPanel } from './DataPanel';
+import { DataPanel, type DataPanelProps } from './DataPanel';
 import type { StatBlockValue } from '@/types/domain';
 import type { PropertyGridSection } from './PropertyGrid';
 
@@ -35,10 +35,15 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('DataPanel', () => {
-  let mockOnChange: ReturnType<typeof vi.fn>;
+  const mockOnChange = vi.fn();
+
+  const defaultProps: DataPanelProps = {
+    statBlocks: { 0: {} },
+    onChange: mockOnChange as (statBlocks: Record<number, Record<string, StatBlockValue>>) => void,
+  };
 
   beforeEach(() => {
-    mockOnChange = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {
@@ -49,7 +54,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -63,7 +68,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -79,7 +84,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -101,7 +106,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -124,7 +129,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -145,7 +150,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -165,7 +170,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -181,7 +186,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -199,7 +204,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -224,7 +229,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -248,7 +253,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -270,7 +275,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -293,14 +298,14 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
       const addButton = screen.getByText('Add Section');
       await user.click(addButton);
 
-      expect(mockOnChange).toHaveBeenCalled();
+      expect(defaultProps.onChange).toHaveBeenCalled();
     });
 
     it('should preserve other levels when updating one level', async () => {
@@ -317,14 +322,14 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
       const addButton = screen.getByText('Add Section');
       await user.click(addButton);
 
-      expect(mockOnChange).toHaveBeenCalled();
+      expect(defaultProps.onChange).toHaveBeenCalled();
       const updatedStatBlocks = mockOnChange.mock.calls[0]?.[0];
       expect(updatedStatBlocks).toBeDefined();
       expect(updatedStatBlocks[5]).toBeDefined();
@@ -337,7 +342,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -350,7 +355,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -370,7 +375,7 @@ describe('DataPanel', () => {
 
       render(
         <ThemeProvider theme={darkTheme}>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </ThemeProvider>,
       );
 
@@ -388,7 +393,7 @@ describe('DataPanel', () => {
 
       render(
         <ThemeProvider theme={lightTheme}>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </ThemeProvider>,
       );
 
@@ -406,7 +411,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -422,7 +427,7 @@ describe('DataPanel', () => {
 
       render(
         <TestWrapper>
-          <DataPanel statBlocks={statBlocks} onChange={mockOnChange} />
+          <DataPanel statBlocks={statBlocks} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 

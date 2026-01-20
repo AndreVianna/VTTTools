@@ -2,13 +2,15 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
-import type { Stage, StageRegion } from '@/types/stage';
+import type { LocalAction } from '@/types/regionUndoActions';
+import type { CreateRegionRequest, Stage, StageRegion, UpdateRegionRequest } from '@/types/stage';
 import { AmbientLight } from '@/types/stage';
 import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
 import { useRegionTransaction } from './useRegionTransaction';
 
-import type { LocalAction } from '@/types/regionUndoActions';
+type AddRegionFn = (data: CreateRegionRequest) => Promise<void>;
+type UpdateRegionFn = (index: number, data: UpdateRegionRequest) => Promise<void>;
 
 const createMockStage = (overrides?: Partial<Stage>): Stage => ({
   id: 'stage-1',
@@ -384,8 +386,8 @@ describe('useRegionTransaction', () => {
           result.current.addVertex({ x: 50, y: 100 });
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction(
@@ -443,8 +445,8 @@ describe('useRegionTransaction', () => {
           ]);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction(
@@ -508,8 +510,8 @@ describe('useRegionTransaction', () => {
           ]);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction(
@@ -562,8 +564,8 @@ describe('useRegionTransaction', () => {
           ]);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           await result.current.commitTransaction(
@@ -594,8 +596,8 @@ describe('useRegionTransaction', () => {
           result.current.addVertex({ x: 100, y: 0 });
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue({ unwrap: vi.fn() });
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -632,8 +634,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(duplicateVertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -667,8 +669,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(validVertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -704,8 +706,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-123', {
@@ -757,8 +759,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(updatedVertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-456', {
@@ -796,8 +798,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockRejectedValue(new Error('Network error'));
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockRejectedValue(new Error('Network error'));
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -828,8 +830,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           await result.current.commitTransaction('encounter-1', {
@@ -869,8 +871,8 @@ describe('useRegionTransaction', () => {
           result.current.updateVertices(vertices);
         });
 
-        const mockAddEncounterRegion = vi.fn().mockResolvedValue(undefined);
-        const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+        const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockResolvedValue(undefined);
+        const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
         await act(async () => {
           await result.current.commitTransaction('encounter-1', {
@@ -893,8 +895,8 @@ describe('useRegionTransaction', () => {
     it('should fail when no segment exists', async () => {
       const { result } = renderHook(() => useRegionTransaction());
 
-      const mockAddEncounterRegion = vi.fn();
-      const mockUpdateEncounterRegion = vi.fn();
+      const mockAddEncounterRegion = vi.fn<AddRegionFn>();
+      const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>();
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -926,8 +928,8 @@ describe('useRegionTransaction', () => {
       });
 
       // Mock rejects with a non-Error value (string)
-      const mockAddEncounterRegion = vi.fn().mockRejectedValue('String error');
-      const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+      const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockRejectedValue('String error');
+      const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
       await act(async () => {
         const commitResult = await result.current.commitTransaction('encounter-1', {
@@ -958,8 +960,8 @@ describe('useRegionTransaction', () => {
       });
 
       // Mock rejects with an Error
-      const mockAddEncounterRegion = vi.fn().mockRejectedValue(new Error('Failed'));
-      const mockUpdateEncounterRegion = vi.fn().mockResolvedValue(undefined);
+      const mockAddEncounterRegion = vi.fn<AddRegionFn>().mockRejectedValue(new Error('Failed'));
+      const mockUpdateEncounterRegion = vi.fn<UpdateRegionFn>().mockResolvedValue(undefined);
 
       await act(async () => {
         await result.current.commitTransaction('encounter-1', {
@@ -1016,7 +1018,7 @@ describe('useRegionTransaction', () => {
 
     it('should clear stacks when transaction is rolled back', () => {
       const { result } = renderHook(() => useRegionTransaction());
-      const mockAction: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+      const mockAction: LocalAction = { type: 'test', description: 'test', undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
 
       act(() => {
         result.current.startTransaction('placement');
@@ -1096,8 +1098,8 @@ describe('useRegionTransaction', () => {
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
-          redo: vi.fn(),
+          undo: vi.fn<() => void>(),
+          redo: vi.fn<() => void>(),
         };
 
         act(() => {
@@ -1113,9 +1115,9 @@ describe('useRegionTransaction', () => {
 
       it('should clear redo stack when new action is pushed', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const action1: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
-        const action2: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
-        const action3: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+        const action1: LocalAction = { type: 'test', description: 'test', undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
+        const action2: LocalAction = { type: 'test', description: 'test', undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
+        const action3: LocalAction = { type: 'test', description: 'test', undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
 
         act(() => {
           result.current.startTransaction('placement');
@@ -1141,12 +1143,12 @@ describe('useRegionTransaction', () => {
     describe('undoLocal', () => {
       it('should call undo function on last action', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const undoFn = vi.fn();
+        const undoFn = vi.fn<() => void>();
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
           undo: undoFn,
-          redo: vi.fn(),
+          redo: vi.fn<() => void>(),
         };
 
         act(() => {
@@ -1166,8 +1168,8 @@ describe('useRegionTransaction', () => {
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
-          redo: vi.fn(),
+          undo: vi.fn<() => void>(),
+          redo: vi.fn<() => void>(),
         };
 
         act(() => {
@@ -1208,19 +1210,19 @@ describe('useRegionTransaction', () => {
           type: 'test',
           description: 'test',
           undo: () => callOrder.push('undo1'),
-          redo: vi.fn(),
+          redo: vi.fn<() => void>(),
         };
         const action2: LocalAction = {
           type: 'test',
           description: 'test',
           undo: () => callOrder.push('undo2'),
-          redo: vi.fn(),
+          redo: vi.fn<() => void>(),
         };
         const action3: LocalAction = {
           type: 'test',
           description: 'test',
           undo: () => callOrder.push('undo3'),
-          redo: vi.fn(),
+          redo: vi.fn<() => void>(),
         };
 
         act(() => {
@@ -1243,11 +1245,11 @@ describe('useRegionTransaction', () => {
     describe('redoLocal', () => {
       it('should call redo function on last undone action', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const redoFn = vi.fn();
+        const redoFn = vi.fn<() => void>();
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
+          undo: vi.fn<() => void>(),
           redo: redoFn,
         };
 
@@ -1269,8 +1271,8 @@ describe('useRegionTransaction', () => {
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
-          redo: vi.fn(),
+          undo: vi.fn<() => void>(),
+          redo: vi.fn<() => void>(),
         };
 
         act(() => {
@@ -1311,19 +1313,19 @@ describe('useRegionTransaction', () => {
         const action1: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
+          undo: vi.fn<() => void>(),
           redo: () => callOrder.push('redo1'),
         };
         const action2: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
+          undo: vi.fn<() => void>(),
           redo: () => callOrder.push('redo2'),
         };
         const action3: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
+          undo: vi.fn<() => void>(),
           redo: () => callOrder.push('redo3'),
         };
 
@@ -1361,8 +1363,8 @@ describe('useRegionTransaction', () => {
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
-          redo: vi.fn(),
+          undo: vi.fn<() => void>(),
+          redo: vi.fn<() => void>(),
         };
         act(() => {
           result.current.startTransaction('placement');
@@ -1386,8 +1388,8 @@ describe('useRegionTransaction', () => {
         const mockAction: LocalAction = {
           type: 'test',
           description: 'test',
-          undo: vi.fn(),
-          redo: vi.fn(),
+          undo: vi.fn<() => void>(),
+          redo: vi.fn<() => void>(),
         };
         act(() => {
           result.current.startTransaction('placement');
@@ -1401,8 +1403,8 @@ describe('useRegionTransaction', () => {
     describe('clearLocalStacks', () => {
       it('should clear both undo and redo stacks', () => {
         const { result } = renderHook(() => useRegionTransaction());
-        const action1: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
-        const action2: LocalAction = { type: 'test', description: 'test', undo: vi.fn(), redo: vi.fn() };
+        const action1: LocalAction = { type: 'test', description: 'test', undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
+        const action2: LocalAction = { type: 'test', description: 'test', undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
 
         act(() => {
           result.current.startTransaction('placement');

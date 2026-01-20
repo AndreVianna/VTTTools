@@ -290,6 +290,7 @@ export interface Adventure {
   name: string;
   description: string;
   isPublished: boolean;
+  isPublic?: boolean;
   ownerId: string;
   style?: AdventureStyle | null;
   isOneShot?: boolean | null;

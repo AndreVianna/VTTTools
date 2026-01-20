@@ -12,19 +12,19 @@ import type { EncounterCanvasHandle, Viewport } from '@components/encounter';
 // Mock canvas handle factory - returns ref with guaranteed non-null current
 interface MockCanvasRef {
     current: {
-        zoomIn: ReturnType<typeof vi.fn>;
-        zoomOut: ReturnType<typeof vi.fn>;
-        resetView: ReturnType<typeof vi.fn>;
-        setViewport: ReturnType<typeof vi.fn>;
+        zoomIn: ReturnType<typeof vi.fn<() => void>>;
+        zoomOut: ReturnType<typeof vi.fn<() => void>>;
+        resetView: ReturnType<typeof vi.fn<() => void>>;
+        setViewport: ReturnType<typeof vi.fn<(viewport: Viewport) => void>>;
     };
 }
 
 const createMockCanvasRef = (): MockCanvasRef => ({
     current: {
-        zoomIn: vi.fn(),
-        zoomOut: vi.fn(),
-        resetView: vi.fn(),
-        setViewport: vi.fn(),
+        zoomIn: vi.fn<() => void>(),
+        zoomOut: vi.fn<() => void>(),
+        resetView: vi.fn<() => void>(),
+        setViewport: vi.fn<(viewport: Viewport) => void>(),
     },
 });
 

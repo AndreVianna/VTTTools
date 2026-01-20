@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Encounter, EncounterRegion, EncounterWall } from '@/types/domain';
 import { Weather } from '@/types/domain';
 import type { Stage, StageWall, StageRegion } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import {
     addRegionOptimistic,
     addWallOptimistic,
@@ -27,10 +27,12 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
         zoomLevel: 1,
         panning: { x: 0, y: 0 },
         ambientLight: AmbientLight.Default,
+        ambientSoundSource: AmbientSoundSource.NotSet,
         ambientSoundVolume: 1,
         ambientSoundLoop: false,
         ambientSoundIsPlaying: false,
         weather: Weather.Clear,
+        useAlternateBackground: false,
     },
     grid: {
         type: 0 as never,

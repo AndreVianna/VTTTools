@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
-import type { Stage, StageRegion } from '@/types/stage';
+import type { CreateRegionRequest, Stage, StageRegion, UpdateRegionRequest } from '@/types/stage';
 import { AmbientLight } from '@/types/stage';
 import type { Command } from '@/utils/commands';
 import * as commands from '@/utils/commands';
@@ -64,13 +64,13 @@ const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
 });
 
 describe('useMergeRegions', () => {
-  let mockAddEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockSetEncounter: ReturnType<typeof vi.fn>;
-  let mockSetErrorMessage: ReturnType<typeof vi.fn>;
-  let mockRecordAction: ReturnType<typeof vi.fn>;
-  let mockRefetch: ReturnType<typeof vi.fn>;
+  let mockAddEncounterRegion: ReturnType<typeof vi.fn<(data: CreateRegionRequest) => Promise<void>>>;
+  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>>;
+  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn<(index: number) => Promise<void>>>;
+  let mockSetEncounter: ReturnType<typeof vi.fn<(encounter: Encounter) => void>>;
+  let mockSetErrorMessage: ReturnType<typeof vi.fn<(message: string | null) => void>>;
+  let mockRecordAction: ReturnType<typeof vi.fn<(command: Command) => void>>;
+  let mockRefetch: ReturnType<typeof vi.fn<() => Promise<{ data?: Encounter }>>>;
 
   let testEncounter: Encounter;
   let targetRegion: StageRegion;
@@ -79,13 +79,13 @@ describe('useMergeRegions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockAddEncounterRegion = vi.fn();
-    mockUpdateEncounterRegion = vi.fn();
-    mockRemoveEncounterRegion = vi.fn();
-    mockSetEncounter = vi.fn();
-    mockSetErrorMessage = vi.fn();
-    mockRecordAction = vi.fn();
-    mockRefetch = vi.fn().mockResolvedValue({ data: {} as Encounter });
+    mockAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<void>>();
+    mockUpdateEncounterRegion = vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>();
+    mockRemoveEncounterRegion = vi.fn<(index: number) => Promise<void>>();
+    mockSetEncounter = vi.fn<(encounter: Encounter) => void>();
+    mockSetErrorMessage = vi.fn<(message: string | null) => void>();
+    mockRecordAction = vi.fn<(command: Command) => void>();
+    mockRefetch = vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: {} as Encounter });
 
     targetRegion = {
       index: 1,
@@ -139,8 +139,8 @@ describe('useMergeRegions', () => {
 
     mockCreateBatchCommand.mockImplementation(({ commands: cmds }) => ({
       description: `Batch (${cmds.length} operations)`,
-      execute: vi.fn(),
-      undo: vi.fn(),
+      execute: vi.fn<() => Promise<void>>(),
+      undo: vi.fn<() => Promise<void>>(),
     }));
   });
 
@@ -167,18 +167,17 @@ describe('useMergeRegions', () => {
         { x: 50, y: 100 },
       ];
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
+      mockUpdateEncounterRegion.mockResolvedValue(undefined);
+      mockRemoveEncounterRegion.mockResolvedValue(undefined);
 
       const mockEditCommand = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
       const mockDeleteCommand = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
@@ -246,21 +245,20 @@ describe('useMergeRegions', () => {
         { x: 125, y: 150 },
       ];
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
-      mockRemoveEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
+      mockUpdateEncounterRegion.mockResolvedValue(undefined);
+      mockRemoveEncounterRegion.mockResolvedValue(undefined);
 
       const mockEditCommand = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
       const mockDeleteCommand1 = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
       const mockDeleteCommand2 = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
@@ -316,14 +314,13 @@ describe('useMergeRegions', () => {
         { x: 0, y: 100 },
       ];
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
-      const mockUnwrap = vi.fn().mockResolvedValue(undefined);
-      mockUpdateEncounterRegion.mockReturnValue({ unwrap: mockUnwrap });
+      mockUpdateEncounterRegion.mockResolvedValue(undefined);
 
       const mockEditCommand = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
@@ -364,8 +361,8 @@ describe('useMergeRegions', () => {
         }),
       );
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await result.current.executeMerge({
@@ -398,8 +395,8 @@ describe('useMergeRegions', () => {
         }),
       );
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await result.current.executeMerge({
@@ -432,8 +429,8 @@ describe('useMergeRegions', () => {
         }),
       );
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await result.current.executeMerge({
@@ -472,11 +469,11 @@ describe('useMergeRegions', () => {
         { x: 100, y: 0 },
         { x: 50, y: 100 },
       ];
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       const mockEditCommand = {
-        execute: vi.fn().mockRejectedValue(new Error('Update failed')),
+        execute: vi.fn<() => Promise<void>>().mockRejectedValue(new Error('Update failed')),
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(
@@ -521,14 +518,14 @@ describe('useMergeRegions', () => {
         { x: 100, y: 0 },
         { x: 50, y: 100 },
       ];
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       const mockEditCommand = {
-        execute: vi.fn().mockResolvedValue(undefined),
+        execute: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
       const mockDeleteCommand = {
-        execute: vi.fn().mockRejectedValue(new Error('Delete failed')),
+        execute: vi.fn<() => Promise<void>>().mockRejectedValue(new Error('Delete failed')),
       };
 
       vi.spyOn(regionCommands, 'EditRegionCommand').mockImplementation(

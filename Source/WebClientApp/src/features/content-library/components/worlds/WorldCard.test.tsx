@@ -54,9 +54,9 @@ describe('WorldCard', () => {
 
     const defaultProps: WorldCardProps = {
         world: createMockWorld(),
-        onOpen: vi.fn(),
-        onDuplicate: vi.fn(),
-        onDelete: vi.fn(),
+        onOpen: vi.fn<(id: string) => void>(),
+        onDuplicate: vi.fn<(id: string) => void>(),
+        onDelete: vi.fn<(id: string) => void>(),
     };
 
     beforeEach(() => {

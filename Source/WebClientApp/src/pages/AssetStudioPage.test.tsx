@@ -13,18 +13,23 @@ import { AssetKind, type Asset } from '@/types/domain';
 import { AssetStudioPage } from './AssetStudioPage';
 
 // Mock react-router-dom
-const mockNavigate = vi.fn();
-const mockUseParams = vi.fn();
+const mockNavigate = vi.fn<(to: string, options?: { replace?: boolean }) => void>();
+const mockUseParams = vi.fn<() => { id?: string }>();
 vi.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate,
     useParams: () => mockUseParams(),
 }));
 
 // Mock RTK Query hooks
-const mockUseGetAssetQuery = vi.fn();
-const mockCreateAsset = vi.fn();
-const mockUpdateAsset = vi.fn();
-const mockDeleteAsset = vi.fn();
+interface QueryResult {
+    data: Asset | undefined;
+    isLoading: boolean;
+    error: unknown;
+}
+const mockUseGetAssetQuery = vi.fn<(id: string, options?: { skip: boolean }) => QueryResult>();
+const mockCreateAsset = vi.fn<() => { unwrap: () => Promise<{ id: string }> }>();
+const mockUpdateAsset = vi.fn<() => { unwrap: () => Promise<void> }>();
+const mockDeleteAsset = vi.fn<(id: string) => Promise<void>>();
 
 vi.mock('@/services/assetsApi', () => ({
     useGetAssetQuery: (id: string, options?: { skip: boolean }) => mockUseGetAssetQuery(id, options),
@@ -34,8 +39,26 @@ vi.mock('@/services/assetsApi', () => ({
 }));
 
 // Mock studio components
+interface LayoutProps {
+    toolbar: React.ReactNode;
+    visualPanel: React.ReactNode;
+    dataPanel: React.ReactNode;
+    metadataPanel: React.ReactNode;
+}
+interface ToolbarProps {
+    title: string;
+    isNew: boolean;
+    isDirty: boolean;
+    onBack: () => void;
+    onSave: () => void;
+    onDelete?: () => void;
+}
+interface MetadataPanelProps {
+    name: string;
+    onNameChange: (value: string) => void;
+}
 vi.mock('@/components/assets/studio', () => ({
-    AssetStudioLayout: vi.fn(({ toolbar, visualPanel, dataPanel, metadataPanel }) => (
+    AssetStudioLayout: vi.fn<(props: LayoutProps) => React.ReactElement>(({ toolbar, visualPanel, dataPanel, metadataPanel }) => (
         <div data-mock="layout">
             <div data-mock="toolbar">{toolbar}</div>
             <div data-mock="visual-panel">{visualPanel}</div>
@@ -43,7 +66,7 @@ vi.mock('@/components/assets/studio', () => ({
             <div data-mock="metadata-panel">{metadataPanel}</div>
         </div>
     )),
-    StudioToolbar: vi.fn(({ title, isNew, isDirty, onBack, onSave, onDelete }) => (
+    StudioToolbar: vi.fn<(props: ToolbarProps) => React.ReactElement>(({ title, isNew, isDirty, onBack, onSave, onDelete }) => (
         <div data-mock="studio-toolbar">
             <h1>{title}</h1>
             {isNew && <span>New Asset</span>}
@@ -53,9 +76,9 @@ vi.mock('@/components/assets/studio', () => ({
             {onDelete && <button onClick={onDelete} aria-label="Delete">Delete</button>}
         </div>
     )),
-    VisualIdentityPanel: vi.fn(() => <div data-mock="visual-identity-panel" />),
-    DataPanel: vi.fn(() => <div data-mock="data-panel-content" />),
-    MetadataPanel: vi.fn(({ name, onNameChange }) => (
+    VisualIdentityPanel: vi.fn<() => React.ReactElement>(() => <div data-mock="visual-identity-panel" />),
+    DataPanel: vi.fn<() => React.ReactElement>(() => <div data-mock="data-panel-content" />),
+    MetadataPanel: vi.fn<(props: MetadataPanelProps) => React.ReactElement>(({ name, onNameChange }) => (
         <div data-mock="metadata-panel-content">
             <input
                 value={name}
@@ -366,7 +389,7 @@ describe('AssetStudioPage', () => {
                 error: undefined,
             });
             mockUpdateAsset.mockReturnValue({
-                unwrap: vi.fn().mockResolvedValue(undefined),
+                unwrap: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
             });
 
             render(
@@ -390,7 +413,7 @@ describe('AssetStudioPage', () => {
             const user = userEvent.setup();
             mockUseParams.mockReturnValue({ id: 'new' });
             mockCreateAsset.mockReturnValue({
-                unwrap: vi.fn().mockResolvedValue({ id: 'new-asset-id' }),
+                unwrap: vi.fn<() => Promise<{ id: string }>>().mockResolvedValue({ id: 'new-asset-id' }),
             });
 
             render(

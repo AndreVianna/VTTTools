@@ -13,7 +13,7 @@ const renderWithTheme = (ui: React.ReactElement) => {
 describe('DimensionSlider', () => {
     const defaultProps: DimensionSliderProps = {
         value: [720, 65535],
-        onChange: vi.fn(),
+        onChange: vi.fn<(range: [number, number]) => void>(),
     };
 
     beforeEach(() => {
@@ -96,7 +96,7 @@ describe('DimensionSlider', () => {
 
     describe('onChange behavior', () => {
         it('should call onChange with [minWidth, maxWidth] tuple when slider changes', () => {
-            const onChange = vi.fn();
+            const onChange = vi.fn<(range: [number, number]) => void>();
             renderWithTheme(
                 <DimensionSlider {...defaultProps} onChange={onChange} />
             );
@@ -112,7 +112,7 @@ describe('DimensionSlider', () => {
         });
 
         it('should not call onChange if newValue is not an array', () => {
-            const onChange = vi.fn();
+            const onChange = vi.fn<(range: [number, number]) => void>();
             renderWithTheme(
                 <DimensionSlider {...defaultProps} onChange={onChange} />
             );
@@ -140,7 +140,7 @@ describe('DimensionSlider', () => {
         });
 
         it('should not call onChange when disabled and slider interaction attempted', () => {
-            const onChange = vi.fn();
+            const onChange = vi.fn<(range: [number, number]) => void>();
             renderWithTheme(
                 <DimensionSlider
                     {...defaultProps}

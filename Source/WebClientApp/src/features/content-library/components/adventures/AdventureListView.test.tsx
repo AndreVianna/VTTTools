@@ -18,18 +18,18 @@ import { AdventureListView } from './AdventureListView';
 
 // Mock dependencies
 vi.mock('react-router-dom', () => ({
-    useNavigate: vi.fn(),
+    useNavigate: vi.fn<() => (to: string) => void>(),
 }));
 
 vi.mock('@/services/adventuresApi', () => ({
-    useCreateAdventureMutation: vi.fn(),
-    useCreateEncounterMutation: vi.fn(),
-    useDeleteAdventureMutation: vi.fn(),
-    useCloneAdventureMutation: vi.fn(),
+    useCreateAdventureMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
+    useCreateEncounterMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
+    useDeleteAdventureMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
+    useCloneAdventureMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
 }));
 
 vi.mock('@/services/contentApi', () => ({
-    useGetContentQuery: vi.fn(),
+    useGetContentQuery: vi.fn<() => unknown>(),
 }));
 
 vi.mock('../../hooks', () => ({
@@ -55,10 +55,10 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('AdventureListView', () => {
-    const mockNavigate = vi.fn();
-    const mockCreateAdventure = vi.fn();
-    const mockDeleteAdventure = vi.fn();
-    const mockCloneAdventure = vi.fn();
+    const mockNavigate = vi.fn<(to: string) => void>();
+    const mockCreateAdventure = vi.fn<() => Promise<unknown>>();
+    const mockDeleteAdventure = vi.fn<(id: string) => Promise<unknown>>();
+    const mockCloneAdventure = vi.fn<(id: string) => Promise<unknown>>();
 
     const mockAdventures: Adventure[] = [
         {

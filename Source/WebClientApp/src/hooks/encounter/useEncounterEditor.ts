@@ -82,6 +82,7 @@ export interface UseEncounterEditorResult {
   // Game element mutations (→ Encounter API)
   addAsset: (params: {
     libraryAssetId: string;
+    kind: import('@/types/domain').AssetKind;
     position: Point;
     size: { width: number; height: number };
     rotation?: number;
@@ -92,6 +93,7 @@ export interface UseEncounterEditorResult {
   }) => Promise<void>;
   updateAsset: (params: {
     assetNumber: number;
+    kind: import('@/types/domain').AssetKind;
     position?: Point;
     size?: { width: number; height: number };
     rotation?: number;
@@ -102,7 +104,7 @@ export interface UseEncounterEditorResult {
     visible?: boolean;
     locked?: boolean;
   }) => Promise<void>;
-  removeAsset: (assetNumber: number) => Promise<void>;
+  removeAsset: (assetNumber: number, kind: import('@/types/domain').AssetKind) => Promise<void>;
   bulkAddAssets: (assets: Array<{
     assetId: string;
     position: Point;
@@ -301,21 +303,23 @@ export const useEncounterEditor = ({
   // Asset mutations
   const addAsset = useCallback(
     async (params: Parameters<UseEncounterEditorResult['addAsset']>[0]) => {
-      await addAssetMutation({ encounterId, ...params }).unwrap();
+      const { kind, ...rest } = params;
+      await addAssetMutation({ encounterId, kind, ...rest }).unwrap();
     },
     [addAssetMutation, encounterId]
   );
 
   const updateAsset = useCallback(
     async (params: Parameters<UseEncounterEditorResult['updateAsset']>[0]) => {
-      await updateAssetMutation({ encounterId, ...params }).unwrap();
+      const { kind, ...rest } = params;
+      await updateAssetMutation({ encounterId, kind, ...rest }).unwrap();
     },
     [updateAssetMutation, encounterId]
   );
 
   const removeAsset = useCallback(
-    async (assetNumber: number) => {
-      await removeAssetMutation({ encounterId, assetNumber }).unwrap();
+    async (assetNumber: number, kind: import('@/types/domain').AssetKind) => {
+      await removeAssetMutation({ encounterId, assetNumber, kind }).unwrap();
     },
     [removeAssetMutation, encounterId]
   );

@@ -28,35 +28,37 @@ afterAll(() => {
 // Mock window.matchMedia for MUI components
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: vi.fn().mockImplementation((query: string) => ({
+    value: vi.fn<(query: string) => MediaQueryList>().mockImplementation((query: string) => ({
         matches: false,
         media: query,
         onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
+        addListener: vi.fn<(callback: ((this: MediaQueryList, ev: MediaQueryListEvent) => unknown) | null) => void>(),
+        removeListener: vi.fn<(callback: ((this: MediaQueryList, ev: MediaQueryListEvent) => unknown) | null) => void>(),
+        addEventListener: vi.fn<(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => void>(),
+        removeEventListener: vi.fn<(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions) => void>(),
+        dispatchEvent: vi.fn<(event: Event) => boolean>(),
     })),
 });
 
 // Mock ResizeObserver for components that use it
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-}));
+class MockResizeObserver {
+    observe = vi.fn<(target: Element, options?: ResizeObserverOptions) => void>();
+    unobserve = vi.fn<(target: Element) => void>();
+    disconnect = vi.fn<() => void>();
+}
+global.ResizeObserver = MockResizeObserver;
 
 // Mock IntersectionObserver for lazy loading components
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-}));
+class MockIntersectionObserver {
+    observe = vi.fn<(target: Element) => void>();
+    unobserve = vi.fn<(target: Element) => void>();
+    disconnect = vi.fn<() => void>();
+}
+global.IntersectionObserver = MockIntersectionObserver;
 
 // Mock URL.createObjectURL for file/blob handling
-global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
-global.URL.revokeObjectURL = vi.fn();
+global.URL.createObjectURL = vi.fn<(obj: Blob | MediaSource) => string>(() => 'blob:mock-url');
+global.URL.revokeObjectURL = vi.fn<(url: string) => void>();
 
 // Suppress known console noise during tests
 // Set VITEST_VERBOSE_CONSOLE=1 to see all console output for debugging

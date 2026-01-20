@@ -3,8 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PropertyGrid } from './PropertyGrid';
-import type { PropertyGridSection } from './PropertyGrid';
+import { PropertyGrid, type PropertyGridProps, type PropertyGridSection } from './PropertyGrid';
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const theme = createTheme({ palette: { mode: 'light' } });
@@ -30,17 +29,22 @@ describe('PropertyGrid', () => {
     },
   ];
 
-  let mockOnChange: ReturnType<typeof vi.fn>;
+  const mockOnChange = vi.fn();
+
+  const defaultProps: PropertyGridProps = {
+    sections: mockSections,
+    onChange: mockOnChange as (sections: PropertyGridSection[]) => void,
+  };
 
   beforeEach(() => {
-    mockOnChange = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {
     it('should render all sections', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -52,7 +56,7 @@ describe('PropertyGrid', () => {
     it('should render all properties in sections', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -65,7 +69,7 @@ describe('PropertyGrid', () => {
     it('should render property values in text fields', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -79,7 +83,7 @@ describe('PropertyGrid', () => {
     it('should render sections as expanded by default', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -97,7 +101,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={emptySections} onChange={mockOnChange} />
+          <PropertyGrid sections={emptySections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -111,7 +115,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -126,7 +130,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -143,7 +147,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -161,7 +165,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -169,7 +173,7 @@ describe('PropertyGrid', () => {
       await user.clear(hpField);
       await user.type(hpField, '150');
 
-      expect(mockOnChange).toHaveBeenCalled();
+      expect(defaultProps.onChange).toHaveBeenCalled();
       const updatedSections = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1]?.[0];
       expect(updatedSections[0]?.properties[0]?.value).toBe('150');
     });
@@ -179,7 +183,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -196,7 +200,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -211,7 +215,7 @@ describe('PropertyGrid', () => {
     it('should render number input for number type properties', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -229,7 +233,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={textSections} onChange={mockOnChange} />
+          <PropertyGrid sections={textSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -242,7 +246,7 @@ describe('PropertyGrid', () => {
     it('should show add button when allowAddProperty is true', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty />
         </TestWrapper>,
       );
 
@@ -253,7 +257,7 @@ describe('PropertyGrid', () => {
     it('should not show add button when allowAddProperty is false', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty={false} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty={false} />
         </TestWrapper>,
       );
 
@@ -266,14 +270,14 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty />
         </TestWrapper>,
       );
 
       const addButtons = screen.getAllByRole('button');
       await user.click(addButtons[0]!);
 
-      expect(mockOnChange).toHaveBeenCalled();
+      expect(defaultProps.onChange).toHaveBeenCalled();
       const updatedSections = mockOnChange.mock.calls[0]?.[0];
       expect(updatedSections[0]?.properties).toHaveLength(3);
       expect(updatedSections[0]?.properties[2]?.key).toBe('New Property');
@@ -284,7 +288,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty />
         </TestWrapper>,
       );
 
@@ -300,7 +304,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty />
         </TestWrapper>,
       );
 
@@ -317,7 +321,7 @@ describe('PropertyGrid', () => {
     it('should show delete button when allowRemoveProperty is true', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowRemoveProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowRemoveProperty />
         </TestWrapper>,
       );
 
@@ -328,7 +332,7 @@ describe('PropertyGrid', () => {
     it('should not show delete button when allowRemoveProperty is false', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowRemoveProperty={false} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowRemoveProperty={false} />
         </TestWrapper>,
       );
 
@@ -341,14 +345,14 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowRemoveProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowRemoveProperty />
         </TestWrapper>,
       );
 
       const deleteButtons = screen.getAllByRole('button');
       await user.click(deleteButtons[0]!);
 
-      expect(mockOnChange).toHaveBeenCalled();
+      expect(defaultProps.onChange).toHaveBeenCalled();
       const updatedSections = mockOnChange.mock.calls[0]?.[0];
       expect(updatedSections[0]?.properties).toHaveLength(1);
       expect(updatedSections[0]?.properties[0]?.key).toBe('AC');
@@ -359,7 +363,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowRemoveProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowRemoveProperty />
         </TestWrapper>,
       );
 
@@ -375,7 +379,7 @@ describe('PropertyGrid', () => {
     it('should show both add and delete buttons when both flags are true', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty allowRemoveProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty allowRemoveProperty />
         </TestWrapper>,
       );
 
@@ -388,7 +392,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} allowAddProperty allowRemoveProperty />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} allowAddProperty allowRemoveProperty />
         </TestWrapper>,
       );
 
@@ -400,7 +404,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={updatedSections} onChange={mockOnChange} allowAddProperty allowRemoveProperty />
+          <PropertyGrid sections={updatedSections} onChange={defaultProps.onChange} allowAddProperty allowRemoveProperty />
         </TestWrapper>,
       );
 
@@ -418,7 +422,7 @@ describe('PropertyGrid', () => {
 
       render(
         <ThemeProvider theme={darkTheme}>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </ThemeProvider>,
       );
 
@@ -430,7 +434,7 @@ describe('PropertyGrid', () => {
 
       render(
         <ThemeProvider theme={lightTheme}>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </ThemeProvider>,
       );
 
@@ -442,7 +446,7 @@ describe('PropertyGrid', () => {
     it('should handle empty sections array', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={[]} onChange={mockOnChange} />
+          <PropertyGrid sections={[]} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -459,7 +463,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={singlePropertySection} onChange={mockOnChange} />
+          <PropertyGrid sections={singlePropertySection} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -476,7 +480,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={emptyValueSection} onChange={mockOnChange} />
+          <PropertyGrid sections={emptyValueSection} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -496,7 +500,7 @@ describe('PropertyGrid', () => {
 
       render(
         <TestWrapper>
-          <PropertyGrid sections={singlePropertySection} onChange={mockOnChange} allowRemoveProperty />
+          <PropertyGrid sections={singlePropertySection} onChange={defaultProps.onChange} allowRemoveProperty />
         </TestWrapper>,
       );
 
@@ -512,7 +516,7 @@ describe('PropertyGrid', () => {
     it('should have border around the grid', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 
@@ -524,7 +528,7 @@ describe('PropertyGrid', () => {
     it('should uppercase section titles via CSS', () => {
       render(
         <TestWrapper>
-          <PropertyGrid sections={mockSections} onChange={mockOnChange} />
+          <PropertyGrid sections={mockSections} onChange={defaultProps.onChange} />
         </TestWrapper>,
       );
 

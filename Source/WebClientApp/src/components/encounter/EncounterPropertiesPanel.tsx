@@ -20,7 +20,7 @@ import { useTheme } from '@mui/material/styles';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Encounter } from '@/types/domain';
-import type { GridConfig, GridType } from '@/utils/gridCalculator';
+import { GridType, type GridConfig } from '@/utils/gridCalculator';
 
 const ENCOUNTER_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
@@ -166,9 +166,9 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
     }
   };
 
-  const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
+  const handleGridTypeChange = (e: SelectChangeEvent<GridType>) => {
     if (!encounter?.stage.grid || !onGridChange) return;
-    const newType = Number.parseInt(e.target.value, 10) as GridType;
+    const newType = e.target.value;
 
     onGridChange({
       type: newType,

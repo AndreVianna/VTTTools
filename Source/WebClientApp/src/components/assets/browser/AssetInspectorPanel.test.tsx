@@ -47,6 +47,9 @@ describe('AssetInspectorPanel', () => {
       fileSize: 2048,
       dimensions: { width: 512, height: 512 },
       duration: '0',
+      name: 'goblin.png',
+      description: null,
+      tags: [],
     },
     size: { width: 1, height: 1 },
     tokens: [
@@ -59,6 +62,9 @@ describe('AssetInspectorPanel', () => {
         fileSize: 1024,
         dimensions: { width: 128, height: 128 },
         duration: '0',
+        name: 'goblin.png',
+        description: null,
+        tags: [],
       },
     ],
     statBlocks: {
@@ -79,10 +85,14 @@ describe('AssetInspectorPanel', () => {
 
   const defaultProps: AssetInspectorPanelProps = {
     asset: mockAsset,
-    onEdit: vi.fn(),
-    onDelete: vi.fn(),
-    onClone: vi.fn(),
+    onEdit: vi.fn<() => void>(),
+    onDelete: vi.fn<() => void>(),
+    onClone: vi.fn<() => void>(),
   };
+
+  type OnEditFn = () => void;
+  type OnDeleteFn = () => void;
+  type OnCloneFn = () => void;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -373,7 +383,7 @@ describe('AssetInspectorPanel', () => {
 
     it('should call onEdit when Edit Asset button is clicked', async () => {
       const user = userEvent.setup();
-      const onEdit = vi.fn();
+      const onEdit = vi.fn<OnEditFn>();
 
       render(
         <TestWrapper>
@@ -389,7 +399,7 @@ describe('AssetInspectorPanel', () => {
 
     it('should call onDelete when delete button is clicked', async () => {
       const user = userEvent.setup();
-      const onDelete = vi.fn();
+      const onDelete = vi.fn<OnDeleteFn>();
 
       render(
         <TestWrapper>
@@ -404,7 +414,7 @@ describe('AssetInspectorPanel', () => {
 
     it('should call onClone when clone button is clicked', async () => {
       const user = userEvent.setup();
-      const onClone = vi.fn();
+      const onClone = vi.fn<OnCloneFn>();
 
       render(
         <TestWrapper>

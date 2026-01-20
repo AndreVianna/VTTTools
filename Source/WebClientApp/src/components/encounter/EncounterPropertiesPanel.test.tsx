@@ -90,10 +90,10 @@ const createDefaultProps = (overrides: Partial<EncounterPropertiesPanelProps> = 
     open: true,
     encounter: createMockEncounter(),
     gridConfig: createMockGridConfig(),
-    onDescriptionChange: vi.fn(),
-    onPublishedChange: vi.fn(),
-    onBackgroundUpload: vi.fn(),
-    onGridChange: vi.fn(),
+    onDescriptionChange: vi.fn<(description: string) => void>(),
+    onPublishedChange: vi.fn<(published: boolean) => void>(),
+    onBackgroundUpload: vi.fn<(file: File) => void>(),
+    onGridChange: vi.fn<(grid: GridConfig) => void>(),
     backgroundUrl: undefined,
     isUploadingBackground: false,
     ...overrides,
@@ -232,7 +232,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onDescriptionChange when description is changed and field loses focus', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onDescriptionChange = vi.fn();
+            const onDescriptionChange = vi.fn<(description: string) => void>();
             const encounter = createMockEncounter({ description: 'Original description' });
 
             // Act
@@ -250,7 +250,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should not call onDescriptionChange when description is unchanged on blur', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onDescriptionChange = vi.fn();
+            const onDescriptionChange = vi.fn<(description: string) => void>();
             const encounter = createMockEncounter({ description: 'Same description' });
 
             // Act
@@ -293,7 +293,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onPublishedChange when published switch is toggled', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPublishedChange = vi.fn();
+            const onPublishedChange = vi.fn<(published: boolean) => void>();
             const encounter = createMockEncounter({ isPublished: false });
 
             // Act
@@ -351,7 +351,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onGridChange when cell width is changed', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig();
 
             // Act
@@ -370,7 +370,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onGridChange when cell height is changed', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig();
 
             // Act
@@ -389,7 +389,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onGridChange when offset X is changed', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig();
 
             // Act
@@ -408,7 +408,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onGridChange when offset Y is changed', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig();
 
             // Act
@@ -427,7 +427,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should call onGridChange when snap to grid is toggled', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig({ snap: true });
 
             // Act
@@ -470,7 +470,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should not call onGridChange for cell width below minimum (10)', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig();
 
             // Act
@@ -494,7 +494,7 @@ describe('EncounterPropertiesPanel', () => {
         it('should not call onGridChange for cell height below minimum (10)', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onGridChange = vi.fn();
+            const onGridChange = vi.fn<(grid: GridConfig) => void>();
             const gridConfig = createMockGridConfig();
 
             // Act

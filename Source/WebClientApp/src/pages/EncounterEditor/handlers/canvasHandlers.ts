@@ -1,7 +1,7 @@
 import type React from 'react';
 import type { EncounterCanvasHandle } from '@/components/encounter';
-import type { WallTransaction } from '@/hooks/useWallTransaction';
-import type { RegionTransaction } from '@/hooks/useRegionTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
+import type { UseRegionTransactionReturn } from '@/hooks/useRegionTransaction';
 
 export interface CanvasHandlerDeps {
     encounterId: string | undefined;
@@ -13,8 +13,8 @@ export interface CanvasHandlerDeps {
     assetManagement: {
         handleAssetSelected: (ids: string[]) => void;
     };
-    wallTransaction: WallTransaction;
-    regionTransaction: RegionTransaction;
+    wallTransaction: UseWallTransactionReturn;
+    regionTransaction: UseRegionTransactionReturn;
     setSelectedWallIndex: (index: number | null) => void;
     setSelectedRegionIndex: (index: number | null) => void;
     setSelectedLightSourceIndex: (index: number | null) => void;

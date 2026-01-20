@@ -77,6 +77,9 @@ describe('AssetTableView', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'dragon.png',
+        description: null,
+        tags: [],
       },
       {
         id: 'token-2',
@@ -87,6 +90,9 @@ describe('AssetTableView', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'dragon2.png',
+        description: null,
+        tags: [],
       },
     ],
     statBlocks: {
@@ -121,12 +127,16 @@ describe('AssetTableView', () => {
     isPublic: false,
   };
 
+  type OnSelectionChangeFn = (ids: string[]) => void;
+  type OnRowClickFn = (asset: Asset) => void;
+  type OnRowDoubleClickFn = (asset: Asset) => void;
+
   const defaultProps: AssetTableViewProps = {
     assets: [mockAsset1, mockAsset2, mockAsset3],
     selectedIds: [],
-    onSelectionChange: vi.fn(),
-    onRowClick: vi.fn(),
-    onRowDoubleClick: vi.fn(),
+    onSelectionChange: vi.fn<OnSelectionChangeFn>(),
+    onRowClick: vi.fn<OnRowClickFn>(),
+    onRowDoubleClick: vi.fn<OnRowDoubleClickFn>(),
     isLoading: false,
   };
 
@@ -300,7 +310,7 @@ describe('AssetTableView', () => {
 
     it('should call onSelectionChange when row checkbox is clicked', async () => {
       const user = userEvent.setup();
-      const onSelectionChange = vi.fn();
+      const onSelectionChange = vi.fn<OnSelectionChangeFn>();
 
       render(
         <TestWrapper>
@@ -331,7 +341,7 @@ describe('AssetTableView', () => {
   describe('row interactions', () => {
     it('should call onRowClick when row is clicked', async () => {
       const user = userEvent.setup();
-      const onRowClick = vi.fn();
+      const onRowClick = vi.fn<OnRowClickFn>();
 
       render(
         <TestWrapper>
@@ -348,7 +358,7 @@ describe('AssetTableView', () => {
 
     it('should call onRowDoubleClick when row is double-clicked', async () => {
       const user = userEvent.setup();
-      const onRowDoubleClick = vi.fn();
+      const onRowDoubleClick = vi.fn<OnRowDoubleClickFn>();
 
       render(
         <TestWrapper>

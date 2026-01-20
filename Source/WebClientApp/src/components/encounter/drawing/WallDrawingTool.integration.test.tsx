@@ -8,13 +8,16 @@ import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { encounterApi } from '@/services/encounterApi';
 import type { Encounter, EncounterWall, Pole } from '@/types/domain';
 import { GridType as DomainGridType, Weather } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
+import type { CommitResult, WallMutationHooks, WallSegment as TransactionWallSegment } from '@/hooks/useWallTransaction';
+import type { LocalAction } from '@/types/wallUndoActions';
 import { type GridConfig, GridType } from '@/utils/gridCalculator';
 import { WallDrawingTool } from './WallDrawingTool';
 
 vi.mock('konva', () => ({
   default: {
-    Group: vi.fn(),
-    Rect: vi.fn(),
+    Group: vi.fn<() => void>(),
+    Rect: vi.fn<() => void>(),
   },
 }));
 
@@ -75,9 +78,9 @@ vi.mock('@/utils/snapping', () => ({
 }));
 
 describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
-  let onPolesChangeSpy: ReturnType<typeof vi.fn>;
-  let onCancelSpy: ReturnType<typeof vi.fn>;
-  let onFinishSpy: ReturnType<typeof vi.fn>;
+  let onPolesChangeSpy: ReturnType<typeof vi.fn<(poles: Pole[]) => void>>;
+  let onCancelSpy: ReturnType<typeof vi.fn<() => void>>;
+  let onFinishSpy: ReturnType<typeof vi.fn<() => void>>;
 
   const defaultGridConfig: GridConfig = {
     type: GridType.Square,
@@ -100,11 +103,13 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       settings: {
         zoomLevel: 1,
         panning: { x: 0, y: 0 },
-        ambientLight: 0,
+        ambientLight: AmbientLight.Default,
+        ambientSoundSource: AmbientSoundSource.NotSet,
         ambientSoundVolume: 1,
         ambientSoundLoop: false,
         ambientSoundIsPlaying: false,
         weather: Weather.Clear,
+        useAlternateBackground: false,
       },
       grid: {
         type: DomainGridType.Square,
@@ -129,9 +134,9 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
   ]);
 
   beforeEach(() => {
-    onPolesChangeSpy = vi.fn();
-    onCancelSpy = vi.fn();
-    onFinishSpy = vi.fn();
+    onPolesChangeSpy = vi.fn<(poles: Pole[]) => void>();
+    onCancelSpy = vi.fn<() => void>();
+    onFinishSpy = vi.fn<() => void>();
   });
 
   const createStoreWithEncounter = (encounter: Partial<Encounter>) => {
@@ -370,13 +375,13 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
       let isClosedCalled = false;
 
       const mockTransaction: ReturnType<typeof useWallTransaction> = {
-        startTransaction: vi.fn(),
-        updateSegment: vi.fn((_index, updates) => {
-          if (updates.isClosed) {
+        startTransaction: vi.fn<typeof useWallTransaction extends () => { startTransaction: infer T } ? T : never>(),
+        updateSegment: vi.fn<(tempId: number, changes: Partial<TransactionWallSegment>) => void>().mockImplementation((_index, updates) => {
+          if ((updates as { isClosed?: boolean }).isClosed) {
             isClosedCalled = true;
           }
         }),
-        pushLocalAction: vi.fn(),
+        pushLocalAction: vi.fn<(action: LocalAction) => void>(),
         transaction: {
           isActive: true,
           type: 'placement',
@@ -384,26 +389,26 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
           segments: [],
         },
         history: {
-          push: vi.fn(),
-          undo: vi.fn(),
-          redo: vi.fn(),
+          push: vi.fn<(action: LocalAction) => void>(),
+          undo: vi.fn<() => void>(),
+          redo: vi.fn<() => void>(),
           canUndo: false,
           canRedo: false,
-          clear: vi.fn(),
+          clear: vi.fn<() => void>(),
           undoStackSize: 0,
           redoStackSize: 0,
         },
         canUndoLocal: () => false,
         canRedoLocal: () => false,
-        undoLocal: vi.fn(),
-        redoLocal: vi.fn(),
-        rollbackTransaction: vi.fn(),
-        commitTransaction: vi.fn(),
-        getActiveSegments: vi.fn(() => []),
-        addSegment: vi.fn(),
-        addSegments: vi.fn(),
-        setAllSegments: vi.fn(),
-        removeSegment: vi.fn(),
+        undoLocal: vi.fn<() => void>(),
+        redoLocal: vi.fn<() => void>(),
+        rollbackTransaction: vi.fn<() => void>(),
+        commitTransaction: vi.fn<(encounterId: string, wallMutations: WallMutationHooks, segmentsOverride?: TransactionWallSegment[]) => Promise<CommitResult>>().mockResolvedValue({ success: true, segmentResults: [] }),
+        getActiveSegments: vi.fn<() => TransactionWallSegment[]>().mockReturnValue([]),
+        addSegment: vi.fn<(segment: Omit<TransactionWallSegment, 'tempId'>) => number>().mockReturnValue(-1),
+        addSegments: vi.fn<(segments: Array<Omit<TransactionWallSegment, 'tempId'>>) => void>(),
+        setAllSegments: vi.fn<(segments: TransactionWallSegment[]) => void>(),
+        removeSegment: vi.fn<(tempId: number) => void>(),
       };
 
       const { container } = render(

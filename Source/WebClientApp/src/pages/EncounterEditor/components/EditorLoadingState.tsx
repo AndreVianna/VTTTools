@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 import { Alert, Box, CircularProgress, Typography } from '@mui/material';
 import { EditorLayout } from '@components/layout';

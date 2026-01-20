@@ -173,7 +173,11 @@ export function useSourceSelection({
                 source,
                 onAdd: async (eid, sourceData) => {
                     const result = await addLight({ stageId: eid, data: sourceData }).unwrap();
-                    return result;
+                    // Construct full light source from input and result
+                    return {
+                        ...sourceData,
+                        index: result.index,
+                    };
                 },
                 onRemove: async (eid, sourceIndex) => {
                     await deleteLight({ stageId: eid, index: sourceIndex }).unwrap();
@@ -204,7 +208,11 @@ export function useSourceSelection({
                 onAdd: async (eid, sourceData) => {
                     const request = toCreateSoundRequest(sourceData);
                     const result = await addSound({ stageId: eid, data: request }).unwrap();
-                    return result;
+                    // Construct full sound source from input and result
+                    return {
+                        ...sourceData,
+                        index: result.index,
+                    };
                 },
                 onRemove: async (eid, sourceIndex) => {
                     await deleteSound({ stageId: eid, index: sourceIndex }).unwrap();

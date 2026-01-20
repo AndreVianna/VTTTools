@@ -8,8 +8,10 @@ vi.mock('@/utils/uploadWithProgress', () => ({
   uploadFileWithProgress: vi.fn(),
 }));
 
+type UploadFn = typeof import('@/utils/uploadWithProgress').uploadFileWithProgress;
+
 describe('useFileUpload', () => {
-  const mockUploadFileWithProgress = vi.fn();
+  const mockUploadFileWithProgress = vi.fn<UploadFn>();
 
   const mockResource: MediaResource = {
     id: 'resource-123',
@@ -146,7 +148,7 @@ describe('useFileUpload', () => {
     });
 
     it('should call onSuccess callback when upload succeeds', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = vi.fn<(resource: MediaResource) => void>();
       const { result } = renderHook(() => useFileUpload({ onSuccess }));
 
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
@@ -191,7 +193,7 @@ describe('useFileUpload', () => {
 
   describe('error handling', () => {
     it('should call onError callback when upload fails', async () => {
-      const onError = vi.fn();
+      const onError = vi.fn<(error: string) => void>();
       const { result } = renderHook(() => useFileUpload({ onError }));
 
       mockUploadFileWithProgress.mockRejectedValue(new Error('Upload failed'));
@@ -300,7 +302,7 @@ describe('useFileUpload', () => {
     });
 
     it('should not call onSuccess when upload is aborted', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = vi.fn<(resource: MediaResource) => void>();
 
       mockUploadFileWithProgress.mockResolvedValue({
         resource: null,

@@ -16,7 +16,7 @@ import type { User } from '@/types/domain';
 import { LandingPage } from './LandingPage';
 
 // Mock useAuth hook
-const mockNavigate = vi.fn();
+const mockNavigate = vi.fn<(to: string) => void>();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {

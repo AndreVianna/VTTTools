@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetKind } from '@/types/domain';
-import { MetadataPanel } from './MetadataPanel';
+import { MetadataPanel, type MetadataPanelProps } from './MetadataPanel';
 import type { AssetClassification, NamedSize } from '@/types/domain';
 
 vi.mock('./BreadcrumbTaxonomyInput', () => ({
@@ -37,37 +37,29 @@ describe('MetadataPanel', () => {
     height: 1,
   };
 
-  let mockOnNameChange: ReturnType<typeof vi.fn>;
-  let mockOnDescriptionChange: ReturnType<typeof vi.fn>;
-  let mockOnClassificationChange: ReturnType<typeof vi.fn>;
-  let mockOnTokenSizeChange: ReturnType<typeof vi.fn>;
-  let mockOnIsPublicChange: ReturnType<typeof vi.fn>;
+  const defaultProps: MetadataPanelProps = {
+    name: 'Test Asset',
+    description: '',
+    classification: mockClassification,
+    tokenSize: mockTokenSize,
+    isPublic: false,
+    isPublished: false,
+    onNameChange: vi.fn<(name: string) => void>(),
+    onDescriptionChange: vi.fn<(description: string) => void>(),
+    onClassificationChange: vi.fn<(classification: AssetClassification) => void>(),
+    onTokenSizeChange: vi.fn<(size: NamedSize) => void>(),
+    onIsPublicChange: vi.fn<(isPublic: boolean) => void>(),
+  };
 
   beforeEach(() => {
-    mockOnNameChange = vi.fn();
-    mockOnDescriptionChange = vi.fn();
-    mockOnClassificationChange = vi.fn();
-    mockOnTokenSizeChange = vi.fn();
-    mockOnIsPublicChange = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {
     it('should render name field with value', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -78,19 +70,7 @@ describe('MetadataPanel', () => {
     it('should render description field with value', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description="Test description"
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} description="Test description" />
         </TestWrapper>,
       );
 
@@ -101,19 +81,7 @@ describe('MetadataPanel', () => {
     it('should render BreadcrumbTaxonomyInput component', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -124,19 +92,7 @@ describe('MetadataPanel', () => {
     it('should render token size slider with correct value', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -148,19 +104,7 @@ describe('MetadataPanel', () => {
     it('should render public checkbox', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -172,19 +116,7 @@ describe('MetadataPanel', () => {
     it('should render visibility section', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -196,105 +128,60 @@ describe('MetadataPanel', () => {
   describe('name field interactions', () => {
     it('should call onNameChange when name is updated', async () => {
       const user = userEvent.setup();
+      const onNameChange = vi.fn<(name: string) => void>();
 
       render(
         <TestWrapper>
-          <MetadataPanel
-            name=""
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} name="" onNameChange={onNameChange} />
         </TestWrapper>,
       );
 
       const nameField = screen.getByLabelText('Name');
       await user.type(nameField, 'Test');
 
-      expect(mockOnNameChange).toHaveBeenCalled();
-      expect(mockOnNameChange.mock.calls.length).toBeGreaterThan(0);
+      expect(onNameChange).toHaveBeenCalled();
+      expect(onNameChange.mock.calls.length).toBeGreaterThan(0);
     });
 
     it('should handle empty name input', async () => {
       const user = userEvent.setup();
+      const onNameChange = vi.fn<(name: string) => void>();
 
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Original Name"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} name="Original Name" onNameChange={onNameChange} />
         </TestWrapper>,
       );
 
       const nameField = screen.getByLabelText('Name');
       await user.clear(nameField);
 
-      expect(mockOnNameChange).toHaveBeenCalledWith('');
+      expect(onNameChange).toHaveBeenCalledWith('');
     });
   });
 
   describe('description field interactions', () => {
     it('should call onDescriptionChange when description is updated', async () => {
       const user = userEvent.setup();
+      const onDescriptionChange = vi.fn<(description: string) => void>();
 
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} onDescriptionChange={onDescriptionChange} />
         </TestWrapper>,
       );
 
       const descriptionField = screen.getByLabelText('Description');
       await user.type(descriptionField, 'New');
 
-      expect(mockOnDescriptionChange).toHaveBeenCalled();
-      expect(mockOnDescriptionChange.mock.calls.length).toBeGreaterThan(0);
+      expect(onDescriptionChange).toHaveBeenCalled();
+      expect(onDescriptionChange.mock.calls.length).toBeGreaterThan(0);
     });
 
     it('should render multiline description field', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -306,29 +193,18 @@ describe('MetadataPanel', () => {
   describe('classification interactions', () => {
     it('should call onClassificationChange when classification is updated', async () => {
       const user = userEvent.setup();
+      const onClassificationChange = vi.fn<(classification: AssetClassification) => void>();
 
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} onClassificationChange={onClassificationChange} />
         </TestWrapper>,
       );
 
       const changeButton = screen.getByText('Change Classification');
       await user.click(changeButton);
 
-      expect(mockOnClassificationChange).toHaveBeenCalledWith({
+      expect(onClassificationChange).toHaveBeenCalledWith({
         kind: AssetKind.Character,
         category: 'Humanoid',
         type: 'Goblin',
@@ -341,19 +217,7 @@ describe('MetadataPanel', () => {
     it('should display correct token size label for different sizes', () => {
       const { rerender } = render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={{ width: 2, height: 2 }}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} tokenSize={{ width: 2, height: 2 }} />
         </TestWrapper>,
       );
 
@@ -361,19 +225,7 @@ describe('MetadataPanel', () => {
 
       rerender(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={{ width: 4, height: 4 }}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} tokenSize={{ width: 4, height: 4 }} />
         </TestWrapper>,
       );
 
@@ -384,47 +236,24 @@ describe('MetadataPanel', () => {
   describe('visibility interactions', () => {
     it('should call onIsPublicChange when public checkbox is toggled', async () => {
       const user = userEvent.setup();
+      const onIsPublicChange = vi.fn<(isPublic: boolean) => void>();
 
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} onIsPublicChange={onIsPublicChange} />
         </TestWrapper>,
       );
 
       const publicCheckbox = screen.getByRole('checkbox', { name: /public/i });
       await user.click(publicCheckbox);
 
-      expect(mockOnIsPublicChange).toHaveBeenCalledWith(true);
+      expect(onIsPublicChange).toHaveBeenCalledWith(true);
     });
 
     it('should reflect checked state when isPublic is true', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={true}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} isPublic={true} />
         </TestWrapper>,
       );
 
@@ -439,19 +268,7 @@ describe('MetadataPanel', () => {
 
       render(
         <ThemeProvider theme={darkTheme}>
-          <MetadataPanel
-            name="Test Asset"
-            description="Test description"
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} description="Test description" />
         </ThemeProvider>,
       );
 
@@ -464,19 +281,7 @@ describe('MetadataPanel', () => {
 
       render(
         <ThemeProvider theme={lightTheme}>
-          <MetadataPanel
-            name="Test Asset"
-            description="Test description"
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} description="Test description" />
         </ThemeProvider>,
       );
 
@@ -489,19 +294,7 @@ describe('MetadataPanel', () => {
     it('should render name field as small size', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -512,19 +305,7 @@ describe('MetadataPanel', () => {
     it('should render description field as small size', () => {
       render(
         <TestWrapper>
-          <MetadataPanel
-            name="Test Asset"
-            description=""
-            classification={mockClassification}
-            tokenSize={mockTokenSize}
-            isPublic={false}
-            isPublished={false}
-            onNameChange={mockOnNameChange}
-            onDescriptionChange={mockOnDescriptionChange}
-            onClassificationChange={mockOnClassificationChange}
-            onTokenSizeChange={mockOnTokenSizeChange}
-            onIsPublicChange={mockOnIsPublicChange}
-          />
+          <MetadataPanel {...defaultProps} />
         </TestWrapper>,
       );
 

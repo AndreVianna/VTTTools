@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     recoveryCodesApi,
@@ -100,7 +100,7 @@ describe('recoveryCodesApi', () => {
             // Arrange - store is already set up
 
             // Act
-            await store.dispatch(recoveryCodesApi.endpoints.getRecoveryCodesStatus.initiate());
+            await store.dispatch(recoveryCodesApi.endpoints.getRecoveryCodesStatus.initiate() as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/recovery-codes/status');
@@ -142,7 +142,7 @@ describe('recoveryCodesApi', () => {
             };
 
             // Act
-            await store.dispatch(recoveryCodesApi.endpoints.generateNewRecoveryCodes.initiate(requestData));
+            await store.dispatch(recoveryCodesApi.endpoints.generateNewRecoveryCodes.initiate(requestData) as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/recovery-codes');
@@ -157,7 +157,7 @@ describe('recoveryCodesApi', () => {
             };
 
             // Act
-            await store.dispatch(recoveryCodesApi.endpoints.generateNewRecoveryCodes.initiate(requestData));
+            await store.dispatch(recoveryCodesApi.endpoints.generateNewRecoveryCodes.initiate(requestData) as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.body).toEqual({ password: 'SecureP@ssw0rd' });

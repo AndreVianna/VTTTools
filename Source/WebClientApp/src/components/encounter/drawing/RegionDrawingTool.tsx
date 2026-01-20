@@ -2,7 +2,7 @@ import type Konva from 'konva';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
-import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
+import type { UseRegionTransactionReturn } from '@/hooks/useRegionTransaction';
 import type { Point } from '@/types/domain';
 import { createPlaceVertexAction } from '@/types/regionUndoActions';
 import { getCrosshairPlusCursor } from '@/utils/customCursors';
@@ -23,7 +23,7 @@ export interface RegionDrawingToolProps {
   onVerticesChange?: (vertices: Point[]) => void;
   regionType: string;
   regionColor?: string;
-  regionTransaction?: ReturnType<typeof useRegionTransaction>;
+  regionTransaction?: UseRegionTransactionReturn;
   cursor?: string;
 }
 

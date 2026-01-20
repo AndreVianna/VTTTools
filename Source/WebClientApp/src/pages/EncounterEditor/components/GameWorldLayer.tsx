@@ -23,8 +23,8 @@ import type {
     Pole,
 } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
-import type { RegionTransaction } from '@/hooks/useRegionTransaction';
-import type { WallTransaction } from '@/hooks/useWallTransaction';
+import type { UseRegionTransactionReturn } from '@/hooks/useRegionTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
 import { isWallClosed } from '@/utils/wallUtils';
 import { segmentsToPoles } from '@/utils/wallSegmentUtils';
 
@@ -66,8 +66,8 @@ export interface GameWorldLayerProps {
     viewport: { x: number; y: number; scale: number };
 
     // Transactions
-    wallTransaction: WallTransaction;
-    regionTransaction: RegionTransaction;
+    wallTransaction: UseWallTransactionReturn;
+    regionTransaction: UseRegionTransactionReturn;
 
     // Keyboard state
     isAltPressed: boolean;

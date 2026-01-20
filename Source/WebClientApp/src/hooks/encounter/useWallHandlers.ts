@@ -1,6 +1,6 @@
 import type { WallBreakData } from '@components/encounter/editing/WallTransformer';
 import { useCallback } from 'react';
-import type { useWallTransaction } from '@/hooks/useWallTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
 import type { Encounter, EncounterWall, EncounterWallSegment, PlacedWall, Pole } from '@/types/domain';
 import type { CreateWallRequest, UpdateWallRequest, StageWall, StageWallSegment } from '@/types/stage';
 import { createBreakWallAction } from '@/types/wallUndoActions';
@@ -33,7 +33,7 @@ export interface WallMutations {
 interface UseWallHandlersProps {
   encounterId: string | undefined;
   encounter: Encounter | null;
-  wallTransaction: ReturnType<typeof useWallTransaction>;
+  wallTransaction: UseWallTransactionReturn;
   selectedWallIndex: number | null;
   drawingMode: 'wall' | 'region' | 'bucketFill' | null;
   drawingWallIndex: number | null;

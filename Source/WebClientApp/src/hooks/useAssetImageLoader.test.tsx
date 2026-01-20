@@ -15,7 +15,7 @@ import {
 
 // Mock dependencies
 vi.mock('@/config/development', () => ({
-    getApiEndpoints: vi.fn(() => ({
+    getApiEndpoints: vi.fn<() => { media: string; api: string }>(() => ({
         media: 'https://api.test.com/media',
         api: 'https://api.test.com',
     })),
@@ -90,11 +90,13 @@ const createMockStore = (isAuthenticated = true) => configureStore({
 });
 
 // Wrapper factory
-const createWrapper = (isAuthenticated = true) => {
+const createWrapper = (isAuthenticated = true): React.FC<{ children: React.ReactNode }> => {
     const store = createMockStore(isAuthenticated);
-    return ({ children }: { children: React.ReactNode }) => (
+    const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
         <Provider store={store}>{children}</Provider>
     );
+    Wrapper.displayName = 'TestWrapper';
+    return Wrapper;
 };
 
 // Mock Image and fetch
@@ -136,18 +138,18 @@ describe('useAssetImageLoader', () => {
         (window as unknown as { Image: typeof MockImage }).Image = MockImage;
 
         // Mock fetch
-        global.fetch = vi.fn().mockResolvedValue({
+        global.fetch = vi.fn<typeof fetch>().mockResolvedValue({
             ok: true,
             blob: () => Promise.resolve(new Blob(['test'])),
-        });
+        } as Response);
 
         // Mock URL APIs
-        URL.createObjectURL = vi.fn(() => {
+        URL.createObjectURL = vi.fn<typeof URL.createObjectURL>(() => {
             blobUrlCounter++;
             return `blob:test-url-${blobUrlCounter}`;
         });
 
-        URL.revokeObjectURL = vi.fn((url: string) => {
+        URL.revokeObjectURL = vi.fn<typeof URL.revokeObjectURL>((url: string) => {
             revokedUrls.push(url);
         });
     });
@@ -392,7 +394,7 @@ describe('useAssetImageLoader', () => {
         });
 
         it('should call onImagesLoaded when all images load successfully', async () => {
-            const onImagesLoaded = vi.fn();
+            const onImagesLoaded = vi.fn<() => void>();
             const placedAsset = createMockPlacedAsset();
 
             renderHook(
@@ -418,7 +420,7 @@ describe('useAssetImageLoader', () => {
         });
 
         it('should call onImagesLoaded for empty assets array', async () => {
-            const onImagesLoaded = vi.fn();
+            const onImagesLoaded = vi.fn<() => void>();
 
             renderHook(
                 () => useAssetImageLoader({
@@ -437,7 +439,7 @@ describe('useAssetImageLoader', () => {
 
     describe('image loading - errors', () => {
         it('should handle fetch error gracefully', async () => {
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn<typeof console.error>());
             vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
 
             const placedAsset = createMockPlacedAsset();
@@ -461,7 +463,7 @@ describe('useAssetImageLoader', () => {
         });
 
         it('should handle non-ok response', async () => {
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn<typeof console.error>());
             vi.mocked(fetch).mockResolvedValueOnce({
                 ok: false,
                 status: 404,
@@ -487,7 +489,7 @@ describe('useAssetImageLoader', () => {
         });
 
         it('should handle image decode error', async () => {
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn<typeof console.error>());
             const placedAsset = createMockPlacedAsset();
 
             renderHook(
@@ -517,7 +519,7 @@ describe('useAssetImageLoader', () => {
         });
 
         it('should revoke blob URL on image decode error', async () => {
-            vi.spyOn(console, 'error').mockImplementation(() => {});
+            vi.spyOn(console, 'error').mockImplementation(vi.fn<typeof console.error>());
             const placedAsset = createMockPlacedAsset();
 
             renderHook(
@@ -542,7 +544,7 @@ describe('useAssetImageLoader', () => {
         });
 
         it('should continue loading other assets when one fails', async () => {
-            vi.spyOn(console, 'error').mockImplementation(() => {});
+            vi.spyOn(console, 'error').mockImplementation(vi.fn<typeof console.error>());
 
             // First asset fails, second succeeds
             vi.mocked(fetch)
@@ -729,8 +731,8 @@ describe('useAssetImageLoader', () => {
 
     describe('onImagesLoaded callback', () => {
         it('should use latest callback reference', async () => {
-            const callback1 = vi.fn();
-            const callback2 = vi.fn();
+            const callback1 = vi.fn<() => void>();
+            const callback2 = vi.fn<() => void>();
 
             const { rerender } = renderHook(
                 ({ onImagesLoaded }) => useAssetImageLoader({
@@ -812,7 +814,7 @@ describe('useAssetImageLoader', () => {
             const placedAsset = createMockPlacedAsset();
 
             // Start unauthenticated
-            const { rerender } = renderHook(
+            const { rerender: _rerender } = renderHook(
                 () => useAssetImageLoader({
                     placedAssets: [placedAsset],
                     draggedAsset: null,

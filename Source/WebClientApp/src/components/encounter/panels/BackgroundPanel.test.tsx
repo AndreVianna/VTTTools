@@ -17,8 +17,8 @@ vi.mock('@mui/icons-material', () => ({
 
 // Mock video element methods
 beforeEach(() => {
-  window.HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
-  window.HTMLMediaElement.prototype.pause = vi.fn();
+  window.HTMLMediaElement.prototype.play = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+  window.HTMLMediaElement.prototype.pause = vi.fn<() => void>();
 });
 
 const TestWrapper: React.FC<{ children: React.ReactNode; mode?: 'light' | 'dark' }> = ({
@@ -31,11 +31,11 @@ const TestWrapper: React.FC<{ children: React.ReactNode; mode?: 'light' | 'dark'
 TestWrapper.displayName = 'TestWrapper';
 
 describe('BackgroundPanel', () => {
-  let mockOnBackgroundUpload: ReturnType<typeof vi.fn>;
+  let mockOnBackgroundUpload: ReturnType<typeof vi.fn<(file: File) => void>>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOnBackgroundUpload = vi.fn();
+    mockOnBackgroundUpload = vi.fn<(file: File) => void>();
   });
 
   const renderComponent = (props: Partial<BackgroundPanelProps> = {}) => {

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { InteractionScope } from '@utils/scopeFiltering';
 import type { Pole } from '@/types/domain';
-import type { WallTransaction } from '@/hooks/useWallTransaction';
-import type { RegionTransaction } from '@/hooks/useRegionTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
+import type { UseRegionTransactionReturn } from '@/hooks/useRegionTransaction';
 
 export interface UseScopeChangeHandlerProps {
     /** Current active scope */
@@ -24,9 +24,9 @@ export interface UseScopeChangeHandlerProps {
     /** Setter for preview wall poles */
     setPreviewWallPoles: (value: Pole[] | null) => void;
     /** Wall transaction hook */
-    wallTransaction: WallTransaction;
+    wallTransaction: UseWallTransactionReturn;
     /** Region transaction hook */
-    regionTransaction: RegionTransaction;
+    regionTransaction: UseRegionTransactionReturn;
     /** Setter for editing region vertices state */
     setIsEditingRegionVertices: (value: boolean) => void;
     /** Setter for editing region index */

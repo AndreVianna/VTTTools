@@ -14,9 +14,9 @@ import {
 
 vi.mock('@/utils/storage', () => ({
   storage: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
+    getItem: vi.fn<(key: string) => unknown>(),
+    setItem: vi.fn<(key: string, value: unknown) => void>(),
+    removeItem: vi.fn<(key: string) => void>(),
   },
 }));
 
@@ -28,15 +28,15 @@ describe('offlineSync', () => {
   describe('persistMiddleware', () => {
     it('should persist cache on fulfilled actions', () => {
       const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
-        getState: vi.fn().mockReturnValue({
+        getState: vi.fn<() => RootState>().mockReturnValue({
           encounterApi: {
             queries: { test: 'data' },
             mutations: {},
           },
         }),
-        dispatch: vi.fn(),
+        dispatch: vi.fn<Dispatch<UnknownAction>>(),
       };
-      const next = vi.fn((action) => action);
+      const next = vi.fn<(action: UnknownAction) => UnknownAction>((action) => action);
       const action = { type: 'encounterApi/getEncounter/fulfilled' };
 
       const middleware = persistMiddleware(api);
@@ -54,15 +54,15 @@ describe('offlineSync', () => {
 
     it('should persist cache on rejected actions', () => {
       const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
-        getState: vi.fn().mockReturnValue({
+        getState: vi.fn<() => RootState>().mockReturnValue({
           encounterApi: {
             queries: {},
             mutations: { test: 'mutation' },
           },
         }),
-        dispatch: vi.fn(),
+        dispatch: vi.fn<Dispatch<UnknownAction>>(),
       };
-      const next = vi.fn((action) => action);
+      const next = vi.fn<(action: UnknownAction) => UnknownAction>((action) => action);
       const action = { type: 'encounterApi/updateEncounter/rejected' };
 
       const middleware = persistMiddleware(api);
@@ -73,15 +73,15 @@ describe('offlineSync', () => {
 
     it('should not persist on non-RTK actions', () => {
       const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
-        getState: vi.fn().mockReturnValue({
+        getState: vi.fn<() => RootState>().mockReturnValue({
           encounterApi: {
             queries: {},
             mutations: {},
           },
         }),
-        dispatch: vi.fn(),
+        dispatch: vi.fn<Dispatch<UnknownAction>>(),
       };
-      const next = vi.fn((action) => action);
+      const next = vi.fn<(action: UnknownAction) => UnknownAction>((action) => action);
       const action = { type: 'some/other/action' };
 
       const middleware = persistMiddleware(api);
@@ -92,12 +92,12 @@ describe('offlineSync', () => {
 
     it('should queue offline mutations on network errors', () => {
       const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
-        getState: vi.fn().mockReturnValue({
+        getState: vi.fn<() => RootState>().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),
-        dispatch: vi.fn(),
+        dispatch: vi.fn<Dispatch<UnknownAction>>(),
       };
-      const next = vi.fn((action) => action);
+      const next = vi.fn<(action: UnknownAction) => UnknownAction>((action) => action);
       const action = {
         type: 'encounterApi/updateEncounter/rejected',
         meta: {
@@ -137,12 +137,12 @@ describe('offlineSync', () => {
       ];
 
       const api: MiddlewareAPI<Dispatch<UnknownAction>, RootState> = {
-        getState: vi.fn().mockReturnValue({
+        getState: vi.fn<() => RootState>().mockReturnValue({
           encounterApi: { queries: {}, mutations: {} },
         }),
-        dispatch: vi.fn(),
+        dispatch: vi.fn<Dispatch<UnknownAction>>(),
       };
-      const next = vi.fn((action) => action);
+      const next = vi.fn<(action: UnknownAction) => UnknownAction>((action) => action);
       const action = {
         type: 'encounterApi/updateEncounter/rejected',
         meta: {
@@ -313,8 +313,8 @@ describe('offlineSync', () => {
 
       const mockApi = {
         endpoints: {
-          updateEncounter: { initiate: vi.fn().mockResolvedValue({}) },
-          addEncounterAsset: { initiate: vi.fn().mockResolvedValue({}) },
+          updateEncounter: { initiate: vi.fn<(args: unknown) => Promise<unknown>>().mockResolvedValue({}) },
+          addEncounterAsset: { initiate: vi.fn<(args: unknown) => Promise<unknown>>().mockResolvedValue({}) },
         },
       };
 
@@ -340,7 +340,7 @@ describe('offlineSync', () => {
 
       const mockApi = {
         endpoints: {
-          updateEncounter: { initiate: vi.fn().mockResolvedValue({}) },
+          updateEncounter: { initiate: vi.fn<(args: unknown) => Promise<unknown>>().mockResolvedValue({}) },
         },
       };
 
@@ -365,7 +365,7 @@ describe('offlineSync', () => {
       const mockApi = {
         endpoints: {
           updateEncounter: {
-            initiate: vi.fn().mockRejectedValue(new Error('Sync failed')),
+            initiate: vi.fn<(args: unknown) => Promise<unknown>>().mockRejectedValue(new Error('Sync failed')),
           },
         },
       };

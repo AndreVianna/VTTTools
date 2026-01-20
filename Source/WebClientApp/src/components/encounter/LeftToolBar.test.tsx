@@ -2,6 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import type { InteractionScope } from '@/utils/scopeFiltering';
 import { LeftToolBar, type LeftToolBarProps, type PanelType } from './LeftToolBar';
 
 // Mock MUI icons to avoid file handle exhaustion
@@ -38,8 +39,8 @@ const theme = createTheme();
 
 const defaultProps: Partial<LeftToolBarProps> = {
     activeScope: null,
-    onScopeChange: vi.fn(),
-    onPanelChange: vi.fn(),
+    onScopeChange: vi.fn<(scope: InteractionScope | null) => void>(),
+    onPanelChange: vi.fn<(panel: PanelType | null) => void>(),
 };
 
 const renderComponent = (props: Partial<LeftToolBarProps> = {}) => {
@@ -92,7 +93,7 @@ describe('LeftToolBar', () => {
     describe('Scope Selection', () => {
         it('should call onScopeChange when clicking a scope button', async () => {
             // Arrange
-            const onScopeChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
             const user = userEvent.setup();
             renderComponent({ onScopeChange });
 
@@ -105,7 +106,7 @@ describe('LeftToolBar', () => {
 
         it('should call onScopeChange with null when clicking active scope', async () => {
             // Arrange
-            const onScopeChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
             const user = userEvent.setup();
             renderComponent({ activeScope: 'walls', onScopeChange });
 
@@ -118,7 +119,7 @@ describe('LeftToolBar', () => {
 
         it('should call onPanelChange when scope changes', async () => {
             // Arrange
-            const onPanelChange = vi.fn();
+            const onPanelChange = vi.fn<(panel: PanelType | null) => void>();
             const user = userEvent.setup();
             renderComponent({ onPanelChange });
 
@@ -131,7 +132,7 @@ describe('LeftToolBar', () => {
 
         it('should switch scope when clicking different scope button', async () => {
             // Arrange
-            const onScopeChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
             const user = userEvent.setup();
             renderComponent({ activeScope: 'walls', onScopeChange });
 
@@ -200,7 +201,7 @@ describe('LeftToolBar', () => {
 
         it('should keep panel visible when locked and scope deactivated', async () => {
             // Arrange
-            const onScopeChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
             const user = userEvent.setup();
             const { rerender } = renderComponent({
                 activeScope: 'walls',
@@ -299,7 +300,7 @@ describe('LeftToolBar', () => {
 
         it.each(scopes)('should handle %s scope correctly', async (scope) => {
             // Arrange
-            const onScopeChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
             const user = userEvent.setup();
             renderComponent({ onScopeChange });
 
@@ -333,7 +334,7 @@ describe('LeftToolBar', () => {
 
         it('should call onPanelChange with null when deactivating scope', async () => {
             // Arrange
-            const onPanelChange = vi.fn();
+            const onPanelChange = vi.fn<(panel: PanelType | null) => void>();
             const user = userEvent.setup();
             renderComponent({
                 activeScope: 'walls',
@@ -352,7 +353,7 @@ describe('LeftToolBar', () => {
     describe('Click Outside Behavior', () => {
         it('should register mousedown event listener for click outside detection', () => {
             // Arrange
-            const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+            const addEventListenerSpy = vi.spyOn(document, 'addEventListener') as ReturnType<typeof vi.spyOn>;
 
             // Act
             renderComponent({
@@ -369,7 +370,7 @@ describe('LeftToolBar', () => {
 
         it('should not deselect when clicking inside toolbar', async () => {
             // Arrange
-            const onWallSelect = vi.fn();
+            const onWallSelect = vi.fn<(index: number | null) => void>();
             const user = userEvent.setup();
             renderComponent({
                 activeScope: 'walls',
@@ -390,7 +391,7 @@ describe('LeftToolBar', () => {
     describe('Internal State Management', () => {
         it('should manage internal panel state when activePanel prop is undefined', async () => {
             // Arrange
-            const onScopeChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
             const user = userEvent.setup();
             renderComponent({
                 activePanel: undefined,
@@ -444,8 +445,8 @@ describe('LeftToolBar', () => {
 
         it('should switch panels when different scope is selected', async () => {
             // Arrange
-            const onScopeChange = vi.fn();
-            const onPanelChange = vi.fn();
+            const onScopeChange = vi.fn<(scope: InteractionScope | null) => void>();
+            const onPanelChange = vi.fn<(panel: PanelType | null) => void>();
             const user = userEvent.setup();
             const { rerender } = renderComponent({
                 activeScope: 'walls',

@@ -3,14 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAudioUnlock } from './useAudioUnlock';
 
 // Mock AudioContext
-const mockResume = vi.fn().mockResolvedValue(undefined);
-const mockClose = vi.fn().mockResolvedValue(undefined);
-const mockCreateBuffer = vi.fn().mockReturnValue({});
-const mockCreateBufferSource = vi.fn().mockReturnValue({
+const mockResume = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+const mockClose = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+const mockCreateBuffer = vi.fn<(numberOfChannels: number, length: number, sampleRate: number) => AudioBuffer>().mockReturnValue({} as AudioBuffer);
+const mockCreateBufferSource = vi.fn<() => AudioBufferSourceNode>().mockReturnValue({
     buffer: null,
-    connect: vi.fn(),
-    start: vi.fn(),
-});
+    connect: vi.fn<(destination: AudioNode) => AudioNode>().mockReturnValue({} as AudioNode),
+    start: vi.fn<() => void>(),
+} as unknown as AudioBufferSourceNode);
 
 class MockAudioContext {
     state = 'suspended';
@@ -117,7 +117,7 @@ describe('useAudioUnlock', () => {
         // @ts-expect-error - Setting AudioContext to undefined
         window.AudioContext = undefined;
 
-        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(vi.fn<typeof console.warn>());
 
         const { result } = renderHook(() => useAudioUnlock());
 
@@ -132,7 +132,7 @@ describe('useAudioUnlock', () => {
 
     it('should handle errors during unlock', async () => {
         mockResume.mockRejectedValueOnce(new Error('Failed to resume'));
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn<typeof console.error>());
 
         const { result } = renderHook(() => useAudioUnlock());
 

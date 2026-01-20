@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { BrowserToolbar, type BrowserToolbarProps } from './BrowserToolbar';
+import { BrowserToolbar, type BrowserToolbarProps, type SortField, type SortDirection, type ViewMode } from './BrowserToolbar';
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const theme = createTheme({ palette: { mode: 'light' } });
@@ -14,12 +14,12 @@ TestWrapper.displayName = 'TestWrapper';
 describe('BrowserToolbar', () => {
   const defaultProps: BrowserToolbarProps = {
     searchQuery: '',
-    onSearchChange: vi.fn(),
+    onSearchChange: vi.fn<(query: string) => void>(),
     sortField: 'name',
     sortDirection: 'asc',
-    onSortChange: vi.fn(),
+    onSortChange: vi.fn<(field: SortField, direction: SortDirection) => void>(),
     viewMode: 'grid-large',
-    onViewModeChange: vi.fn(),
+    onViewModeChange: vi.fn<(mode: ViewMode) => void>(),
     selectedCount: 0,
     totalCount: 10,
   };
@@ -88,7 +88,7 @@ describe('BrowserToolbar', () => {
   describe('search interactions', () => {
     it('should call onSearchChange when typing in search field', async () => {
       const user = userEvent.setup();
-      const onSearchChange = vi.fn();
+      const onSearchChange = vi.fn<(query: string) => void>();
 
       render(
         <TestWrapper>
@@ -127,7 +127,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onSearchChange with empty string when clear button is clicked', async () => {
       const user = userEvent.setup();
-      const onSearchChange = vi.fn();
+      const onSearchChange = vi.fn<(query: string) => void>();
 
       render(
         <TestWrapper>
@@ -169,7 +169,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onSortChange when sort field is changed', async () => {
       const user = userEvent.setup();
-      const onSortChange = vi.fn();
+      const onSortChange = vi.fn<(field: SortField, direction: SortDirection) => void>();
 
       render(
         <TestWrapper>
@@ -188,7 +188,7 @@ describe('BrowserToolbar', () => {
 
     it('should toggle sort direction when direction button is clicked', async () => {
       const user = userEvent.setup();
-      const onSortChange = vi.fn();
+      const onSortChange = vi.fn<(field: SortField, direction: SortDirection) => void>();
 
       render(
         <TestWrapper>
@@ -207,7 +207,7 @@ describe('BrowserToolbar', () => {
 
     it('should toggle from desc to asc when direction button is clicked', async () => {
       const user = userEvent.setup();
-      const onSortChange = vi.fn();
+      const onSortChange = vi.fn<(field: SortField, direction: SortDirection) => void>();
 
       render(
         <TestWrapper>
@@ -239,7 +239,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onViewModeChange when grid-large is clicked', async () => {
       const user = userEvent.setup();
-      const onViewModeChange = vi.fn();
+      const onViewModeChange = vi.fn<(mode: ViewMode) => void>();
 
       render(
         <TestWrapper>
@@ -258,7 +258,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onViewModeChange when grid-small is clicked', async () => {
       const user = userEvent.setup();
-      const onViewModeChange = vi.fn();
+      const onViewModeChange = vi.fn<(mode: ViewMode) => void>();
 
       render(
         <TestWrapper>
@@ -277,7 +277,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onViewModeChange when table is clicked', async () => {
       const user = userEvent.setup();
-      const onViewModeChange = vi.fn();
+      const onViewModeChange = vi.fn<(mode: ViewMode) => void>();
 
       render(
         <TestWrapper>
@@ -331,7 +331,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onBulkDelete when delete button is clicked', async () => {
       const user = userEvent.setup();
-      const onBulkDelete = vi.fn();
+      const onBulkDelete = vi.fn<() => void>();
 
       render(
         <TestWrapper>
@@ -350,7 +350,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onBulkPublish when publish button is clicked', async () => {
       const user = userEvent.setup();
-      const onBulkPublish = vi.fn();
+      const onBulkPublish = vi.fn<() => void>();
 
       render(
         <TestWrapper>
@@ -369,7 +369,7 @@ describe('BrowserToolbar', () => {
 
     it('should call onBulkTags when tags button is clicked', async () => {
       const user = userEvent.setup();
-      const onBulkTags = vi.fn();
+      const onBulkTags = vi.fn<() => void>();
 
       render(
         <TestWrapper>

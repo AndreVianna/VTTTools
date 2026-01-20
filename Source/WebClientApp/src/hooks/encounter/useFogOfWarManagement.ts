@@ -9,6 +9,8 @@ import { hydratePlacedRegions } from '@/utils/encounterMappers';
 export interface UseFogOfWarManagementProps {
     /** Current encounter ID */
     encounterId: string;
+    /** Current stage ID for stage API calls */
+    stageId: string | undefined;
     /** Current placed regions */
     placedRegions: PlacedRegion[];
     /** Stage dimensions for full-stage fog operations */
@@ -73,6 +75,7 @@ export interface UseFogOfWarManagementReturn {
  */
 export function useFogOfWarManagement({
     encounterId,
+    stageId,
     placedRegions,
     stageSize,
     setPlacedRegions,
@@ -95,30 +98,43 @@ export function useFogOfWarManagement({
 
     // Use the fog of war placement hook
     const { handlePolygonComplete, handleBucketFillComplete } = useFogOfWarPlacement({
-        encounterId: encounterId || '',
+        encounterId: encounterId,
         existingRegions: placedRegions || [],
         mode: fogMode,
         onRegionCreated: async (region) => {
+            if (!stageId) {
+                setErrorMessage('Stage not loaded. Please try again.');
+                return;
+            }
             try {
                 const command = new CreateFogOfWarRegionCommand({
-                    encounterId: encounterId || '',
+                    encounterId: encounterId,
                     region,
-                    onAdd: async (encId, regionData) => {
+                    onAdd: async (_encId, regionData) => {
                         const result = await addRegion({
-                            stageId: encId,
+                            stageId: stageId,
                             data: {
                                 type: toRegionType(regionData.type),
-                                name: regionData.name,
+                                name: regionData.name ?? '',
                                 ...(regionData.label !== undefined && { label: regionData.label }),
                                 ...(regionData.value !== undefined && { value: regionData.value }),
                                 vertices: regionData.vertices,
                             },
                         }).unwrap();
-                        return result;
+                        // Construct EncounterRegion from the result and input data
+                        return {
+                            encounterId: encounterId,
+                            index: result.index,
+                            name: regionData.name,
+                            type: regionData.type,
+                            vertices: regionData.vertices,
+                            value: regionData.value,
+                            label: regionData.label,
+                        };
                     },
-                    onRemove: async (encId, regionIndex) => {
+                    onRemove: async (_encId, regionIndex) => {
                         await deleteRegion({
-                            stageId: encId,
+                            stageId: stageId,
                             index: regionIndex,
                         }).unwrap();
                     },
@@ -126,7 +142,7 @@ export function useFogOfWarManagement({
                         const { data } = await refetch();
                         if (data) {
                             setEncounter(data);
-                            const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
+                            const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId);
                             setPlacedRegions(hydratedRegions);
                         }
                     },
@@ -140,17 +156,21 @@ export function useFogOfWarManagement({
             }
         },
         onRegionsDeleted: async (regionIndices) => {
+            if (!stageId) {
+                setErrorMessage('Stage not loaded. Please try again.');
+                return;
+            }
             try {
                 for (const regionIndex of regionIndices) {
                     await deleteRegion({
-                        stageId: encounterId || '',
+                        stageId: stageId,
                         index: regionIndex,
                     }).unwrap();
                 }
                 const { data } = await refetch();
                 if (data) {
                     setEncounter(data);
-                    const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
+                    const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId);
                     setPlacedRegions(hydratedRegions);
                 }
             } catch (error) {
@@ -195,6 +215,10 @@ export function useFogOfWarManagement({
     }, [fogMode, stageSize, handlePolygonComplete, setErrorMessage]);
 
     const handleFogRevealAll = useCallback(async () => {
+        if (!stageId) {
+            setErrorMessage('Stage not loaded. Please try again.');
+            return;
+        }
         try {
             const fowRegionsToReveal = (placedRegions || [])
                 .filter((region) => region.type === 'FogOfWar')
@@ -213,24 +237,33 @@ export function useFogOfWarManagement({
             }
 
             const command = new RevealAllFogOfWarCommand({
-                encounterId: encounterId || '',
+                encounterId: encounterId,
                 fogRegions: fowRegionsToReveal,
-                onAdd: async (encId, regionData) => {
+                onAdd: async (_encId, regionData) => {
                     const result = await addRegion({
-                        stageId: encId,
+                        stageId: stageId,
                         data: {
                             type: toRegionType(regionData.type),
-                            name: regionData.name,
+                            name: regionData.name ?? '',
                             ...(regionData.label !== undefined && { label: regionData.label }),
                             ...(regionData.value !== undefined && { value: regionData.value }),
                             vertices: regionData.vertices,
                         },
                     }).unwrap();
-                    return result;
+                    // Construct EncounterRegion from the result and input data
+                    return {
+                        encounterId: encounterId,
+                        index: result.index,
+                        name: regionData.name,
+                        type: regionData.type,
+                        vertices: regionData.vertices,
+                        value: regionData.value,
+                        label: regionData.label,
+                    };
                 },
-                onRemove: async (encId, regionIndex) => {
+                onRemove: async (_encId, regionIndex) => {
                     await deleteRegion({
-                        stageId: encId,
+                        stageId: stageId,
                         index: regionIndex,
                     }).unwrap();
                 },
@@ -238,7 +271,7 @@ export function useFogOfWarManagement({
                     const { data } = await refetch();
                     if (data) {
                         setEncounter(data);
-                        const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId || '');
+                        const hydratedRegions = hydratePlacedRegions(data.stage.regions || [], encounterId);
                         setPlacedRegions(hydratedRegions);
                     }
                 },
@@ -249,7 +282,7 @@ export function useFogOfWarManagement({
             console.error('Failed to reveal all areas:', error);
             setErrorMessage('Failed to reveal all areas. Please try again.');
         }
-    }, [placedRegions, encounterId, addRegion, deleteRegion, refetch, execute, setEncounter, setPlacedRegions, setErrorMessage]);
+    }, [placedRegions, encounterId, stageId, addRegion, deleteRegion, refetch, execute, setEncounter, setPlacedRegions, setErrorMessage]);
 
     return {
         fogMode,

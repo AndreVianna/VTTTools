@@ -39,8 +39,8 @@ const renderComponent = (props: Partial<LightsPanelProps> = {}, mode: 'light' | 
         encounterId: 'encounter-1',
         lightSources: [],
         selectedSourceIndex: null,
-        onSourceSelect: vi.fn(),
-        onPlaceLight: vi.fn(),
+        onSourceSelect: vi.fn<(index: number) => void>(),
+        onPlaceLight: vi.fn<(properties: LightPlacementProperties) => void>(),
         gridScale: 5,
     };
 
@@ -757,8 +757,8 @@ describe('LightsPanel', () => {
                 encounterId: 'encounter-1',
                 lightSources: lights,
                 selectedSourceIndex: null,
-                onSourceSelect: vi.fn(),
-                onPlaceLight: vi.fn(),
+                onSourceSelect: vi.fn<(index: number) => void>(),
+                onPlaceLight: vi.fn<(properties: LightPlacementProperties) => void>(),
                 // gridScale not provided - should default to 5
             };
             renderWithTheme(<LightsPanel {...defaultProps} />);

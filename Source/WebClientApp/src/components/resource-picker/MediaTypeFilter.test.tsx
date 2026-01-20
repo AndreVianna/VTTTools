@@ -14,7 +14,7 @@ const renderWithTheme = (ui: React.ReactElement) => {
 describe('MediaTypeFilter', () => {
     const defaultProps: MediaTypeFilterProps = {
         value: [],
-        onChange: vi.fn(),
+        onChange: vi.fn<(types: string[]) => void>(),
     };
 
     beforeEach(() => {
@@ -97,7 +97,7 @@ describe('MediaTypeFilter', () => {
     describe('onChange behavior', () => {
         it('should call onChange with [image] when Image is selected from empty state', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter {...defaultProps} value={[]} onChange={onChange} />
@@ -111,7 +111,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with [video] when Video is selected from empty state', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter {...defaultProps} value={[]} onChange={onChange} />
@@ -125,7 +125,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with [image, video] when Video is added to image selection', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -143,7 +143,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with [image, video] when Image is added to video selection', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -161,7 +161,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with [video] when Image is deselected from both selected', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -179,7 +179,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with [image] when Video is deselected from both selected', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -197,7 +197,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with empty array when only Image is deselected', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -215,7 +215,7 @@ describe('MediaTypeFilter', () => {
 
         it('should call onChange with empty array when only Video is deselected', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -256,7 +256,7 @@ describe('MediaTypeFilter', () => {
         });
 
         it('should not call onChange when disabled', () => {
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter
@@ -316,7 +316,7 @@ describe('MediaTypeFilter', () => {
 
         it('should be keyboard navigable', async () => {
             const user = userEvent.setup();
-            const onChange = vi.fn();
+            const onChange = vi.fn<(types: string[]) => void>();
 
             renderWithTheme(
                 <MediaTypeFilter {...defaultProps} value={[]} onChange={onChange} />

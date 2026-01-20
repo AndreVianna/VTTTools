@@ -11,14 +11,14 @@ import { Weather, GridType, RegionType, LightSourceType, type Encounter } from '
 import type { Stage } from '@/types/stage';
 
 // Mock encounterApi hooks
-const mockUseGetEncounterQuery = vi.fn();
-const mockUsePatchEncounterMutation = vi.fn();
-const mockUseAddEncounterAssetMutation = vi.fn();
-const mockUseUpdateEncounterAssetMutation = vi.fn();
-const mockUseRemoveEncounterAssetMutation = vi.fn();
-const mockUseBulkAddEncounterAssetsMutation = vi.fn();
-const mockUseBulkUpdateEncounterAssetsMutation = vi.fn();
-const mockUseBulkDeleteEncounterAssetsMutation = vi.fn();
+const mockUseGetEncounterQuery = vi.fn<(...args: unknown[]) => unknown>();
+const mockUsePatchEncounterMutation = vi.fn<() => unknown>();
+const mockUseAddEncounterAssetMutation = vi.fn<() => unknown>();
+const mockUseUpdateEncounterAssetMutation = vi.fn<() => unknown>();
+const mockUseRemoveEncounterAssetMutation = vi.fn<() => unknown>();
+const mockUseBulkAddEncounterAssetsMutation = vi.fn<() => unknown>();
+const mockUseBulkUpdateEncounterAssetsMutation = vi.fn<() => unknown>();
+const mockUseBulkDeleteEncounterAssetsMutation = vi.fn<() => unknown>();
 
 vi.mock('@/services/encounterApi', () => ({
     useGetEncounterQuery: (...args: unknown[]) => mockUseGetEncounterQuery(...args),
@@ -32,19 +32,19 @@ vi.mock('@/services/encounterApi', () => ({
 }));
 
 // Mock stageApi hooks
-const mockUseAddWallMutation = vi.fn();
-const mockUseUpdateWallMutation = vi.fn();
-const mockUseDeleteWallMutation = vi.fn();
-const mockUseAddRegionMutation = vi.fn();
-const mockUseUpdateRegionMutation = vi.fn();
-const mockUseDeleteRegionMutation = vi.fn();
-const mockUseAddLightMutation = vi.fn();
-const mockUseUpdateLightMutation = vi.fn();
-const mockUseDeleteLightMutation = vi.fn();
-const mockUseAddSoundMutation = vi.fn();
-const mockUseUpdateSoundMutation = vi.fn();
-const mockUseDeleteSoundMutation = vi.fn();
-const mockUseUpdateStageMutation = vi.fn();
+const mockUseAddWallMutation = vi.fn<() => unknown>();
+const mockUseUpdateWallMutation = vi.fn<() => unknown>();
+const mockUseDeleteWallMutation = vi.fn<() => unknown>();
+const mockUseAddRegionMutation = vi.fn<() => unknown>();
+const mockUseUpdateRegionMutation = vi.fn<() => unknown>();
+const mockUseDeleteRegionMutation = vi.fn<() => unknown>();
+const mockUseAddLightMutation = vi.fn<() => unknown>();
+const mockUseUpdateLightMutation = vi.fn<() => unknown>();
+const mockUseDeleteLightMutation = vi.fn<() => unknown>();
+const mockUseAddSoundMutation = vi.fn<() => unknown>();
+const mockUseUpdateSoundMutation = vi.fn<() => unknown>();
+const mockUseDeleteSoundMutation = vi.fn<() => unknown>();
+const mockUseUpdateStageMutation = vi.fn<() => unknown>();
 
 vi.mock('@/services/stageApi', () => ({
     useAddWallMutation: () => mockUseAddWallMutation(),
@@ -64,7 +64,8 @@ vi.mock('@/services/stageApi', () => ({
 
 // Helper to create mock mutation tuple
 const createMockMutation = (): [Mock, { isLoading: boolean }] => {
-    const mockFn = vi.fn().mockReturnValue({ unwrap: vi.fn().mockResolvedValue(undefined) });
+    const mockFn = vi.fn<(args: unknown) => { unwrap: () => Promise<undefined> }>()
+        .mockReturnValue({ unwrap: vi.fn<() => Promise<undefined>>().mockResolvedValue(undefined) });
     return [mockFn, { isLoading: false }];
 };
 
@@ -136,7 +137,7 @@ describe('useEncounterEditor', () => {
     let mockUpdateSound: Mock;
     let mockDeleteSound: Mock;
     let mockUpdateStage: Mock;
-    const mockRefetch = vi.fn();
+    const mockRefetch = vi.fn<() => void>();
 
     beforeEach(() => {
         vi.clearAllMocks();

@@ -7,9 +7,10 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Encounter, EncounterRegion, PlacedRegion, Point } from '@/types/domain';
 import { RegionType } from '@/types/domain';
-import type { StageRegion } from '@/types/stage';
+import type { StageRegion, CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import { useRegionHandlers } from './useRegionHandlers';
-import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
+import type { UseRegionTransactionReturn, RegionSegment, CommitResult } from '@/hooks/useRegionTransaction';
+import type { Command } from '@/utils/commands';
 import {
     createMockEncounter,
     createMockRegion,
@@ -54,19 +55,37 @@ vi.mock('./useClipRegions', () => ({
 }));
 
 // Mock region transaction factory
-const createMockRegionTransaction = (): ReturnType<typeof useRegionTransaction> => ({
+const createMockRegionTransaction = (): UseRegionTransactionReturn => ({
     transaction: {
         type: null,
         originalRegion: null,
         segment: null,
         isActive: false,
     },
-    startTransaction: vi.fn(),
-    updateSegment: vi.fn(),
-    commitTransaction: vi.fn().mockResolvedValue({ success: true, regionIndex: 0 }),
-    rollbackTransaction: vi.fn(),
-    clearTransaction: vi.fn(),
-    getActiveSegment: vi.fn().mockReturnValue(null),
+    startTransaction: vi.fn<(type: string, region?: EncounterRegion, placementProperties?: { name?: string; type?: string; value?: number; label?: string; color?: string }) => void>(),
+    addVertex: vi.fn<(vertex: Point) => void>(),
+    updateVertices: vi.fn<(vertices: Point[]) => void>(),
+    updateSegmentProperties: vi.fn<(changes: Partial<Omit<RegionSegment, 'tempId' | 'regionIndex'>>) => void>(),
+    commitTransaction: vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({ success: true, regionIndex: 0 }),
+    rollbackTransaction: vi.fn<() => void>(),
+    clearTransaction: vi.fn<() => void>(),
+    getActiveSegment: vi.fn<() => RegionSegment | null>().mockReturnValue(null),
+    pushLocalAction: vi.fn<(action: unknown) => void>(),
+    undoLocal: vi.fn<(onSyncEncounter?: (segment: RegionSegment | null) => void) => void>(),
+    redoLocal: vi.fn<(onSyncEncounter?: (segment: RegionSegment | null) => void) => void>(),
+    canUndoLocal: vi.fn<() => boolean>().mockReturnValue(false),
+    canRedoLocal: vi.fn<() => boolean>().mockReturnValue(false),
+    clearLocalStacks: vi.fn<() => void>(),
+    history: {
+        past: [],
+        future: [],
+        canUndo: false,
+        canRedo: false,
+        push: vi.fn<(action: unknown) => void>(),
+        undo: vi.fn<() => void>(),
+        redo: vi.fn<() => void>(),
+        clear: vi.fn<() => void>(),
+    },
 });
 
 // Create mock props factory
@@ -88,20 +107,20 @@ const createMockProps = (overrides: Partial<Parameters<typeof useRegionHandlers>
         originalRegionVertices: null as Point[] | null,
         drawingMode: null as 'region' | 'wall' | 'bucketFill' | null,
         drawingRegionIndex: null as number | null,
-        addRegion: vi.fn().mockResolvedValue(undefined),
-        updateRegion: vi.fn().mockResolvedValue(undefined),
-        deleteRegion: vi.fn().mockResolvedValue(undefined),
-        setEncounter: vi.fn(),
-        setPlacedRegions: vi.fn(),
-        setSelectedRegionIndex: vi.fn(),
-        setEditingRegionIndex: vi.fn(),
-        setIsEditingRegionVertices: vi.fn(),
-        setOriginalRegionVertices: vi.fn(),
-        setDrawingRegionIndex: vi.fn(),
-        setRegionPlacementMode: vi.fn(),
-        setErrorMessage: vi.fn(),
-        recordAction: vi.fn(),
-        refetch: vi.fn().mockResolvedValue({ data: encounter }),
+        addRegion: vi.fn<(data: CreateRegionRequest) => Promise<void>>().mockResolvedValue(undefined),
+        updateRegion: vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>().mockResolvedValue(undefined),
+        deleteRegion: vi.fn<(index: number) => Promise<void>>().mockResolvedValue(undefined),
+        setEncounter: vi.fn<(encounter: Encounter) => void>(),
+        setPlacedRegions: vi.fn<(regions: PlacedRegion[]) => void>(),
+        setSelectedRegionIndex: vi.fn<(index: number | null) => void>(),
+        setEditingRegionIndex: vi.fn<(index: number | null) => void>(),
+        setIsEditingRegionVertices: vi.fn<(editing: boolean) => void>(),
+        setOriginalRegionVertices: vi.fn<(vertices: Point[] | null) => void>(),
+        setDrawingRegionIndex: vi.fn<(index: number | null) => void>(),
+        setRegionPlacementMode: vi.fn<(mode: 'polygon' | 'bucketFill' | null) => void>(),
+        setErrorMessage: vi.fn<(message: string | null) => void>(),
+        recordAction: vi.fn<(command: Command) => void>(),
+        refetch: vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: encounter }),
         ...overrides,
     };
 };
@@ -144,7 +163,7 @@ describe('useRegionHandlers', () => {
             // Arrange
             const updatedEncounter = createMockEncounter({ name: 'Updated' });
             const props = createMockProps({
-                refetch: vi.fn().mockResolvedValue({ data: updatedEncounter }),
+                refetch: vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: updatedEncounter }),
             });
             const { result } = renderHook(() => useRegionHandlers(props));
 
@@ -740,7 +759,7 @@ describe('useRegionHandlers', () => {
         it('should refetch on update failure', async () => {
             // Arrange
             const props = createMockProps({
-                updateRegion: vi.fn().mockRejectedValue(new Error('Update failed')),
+                updateRegion: vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>().mockRejectedValue(new Error('Update failed')),
             });
             const { result } = renderHook(() => useRegionHandlers(props));
 
@@ -789,7 +808,7 @@ describe('useRegionHandlers', () => {
         it('should commit transaction when in region drawing mode', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: true,
                 regionIndex: 0,
             });
@@ -812,7 +831,7 @@ describe('useRegionHandlers', () => {
         it('should clear drawing index after successful placement', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: true,
                 regionIndex: 0,
             });
@@ -835,7 +854,7 @@ describe('useRegionHandlers', () => {
         it('should show error on placement failure', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: false,
             });
             const props = createMockProps({
@@ -953,7 +972,7 @@ describe('useRegionHandlers', () => {
         it('should commit transaction when finishing edit', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: true,
                 regionIndex: 0,
             });
@@ -986,7 +1005,7 @@ describe('useRegionHandlers', () => {
         it('should create EditRegionCommand on successful commit', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: true,
                 regionIndex: 0,
             });
@@ -1019,7 +1038,7 @@ describe('useRegionHandlers', () => {
         it('should clear editing state after successful commit', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: true,
                 regionIndex: 0,
             });
@@ -1050,7 +1069,7 @@ describe('useRegionHandlers', () => {
         it('should show error on commit failure', async () => {
             // Arrange
             const regionTransaction = createMockRegionTransaction();
-            regionTransaction.commitTransaction = vi.fn().mockResolvedValue({
+            regionTransaction.commitTransaction = vi.fn<(encounterId: string, apiHooks: { addRegion: (data: CreateRegionRequest) => Promise<void>; updateRegion: (index: number, data: UpdateRegionRequest) => Promise<void> }, currentEncounter?: Encounter) => Promise<CommitResult>>().mockResolvedValue({
                 success: false,
             });
             const props = createMockProps({

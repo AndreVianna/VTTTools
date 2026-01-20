@@ -1,5 +1,5 @@
 import type { MediaResource } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
+import { type GridConfig, GridType } from '@/utils/gridCalculator';
 
 export interface Point {
   x: number;
@@ -74,7 +74,7 @@ export interface EncounterMetadata {
 }
 
 export const getDefaultGrid = (): GridConfig => ({
-  type: 1,
+  type: GridType.Square,
   cellSize: { width: 50, height: 50 },
   offset: { left: 0, top: 0 },
   snap: true,

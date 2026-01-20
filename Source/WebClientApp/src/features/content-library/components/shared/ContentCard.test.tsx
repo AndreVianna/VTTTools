@@ -32,7 +32,7 @@ describe('ContentCard', () => {
 
     const defaultProps: ContentCardProps = {
         item: mockItem,
-        onClick: vi.fn(),
+        onClick: vi.fn<(id: string) => void>(),
     };
 
     beforeEach(() => {

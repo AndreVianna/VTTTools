@@ -3,12 +3,12 @@ import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('EncounterEditorPage - Keyboard Routing', () => {
-  const mockUndoLocal = vi.fn();
-  const mockRedoLocal = vi.fn();
-  const mockCanUndoLocal = vi.fn();
-  const mockCanRedoLocal = vi.fn();
-  const mockUndo = vi.fn();
-  const mockRedo = vi.fn();
+  const mockUndoLocal = vi.fn<() => void>();
+  const mockRedoLocal = vi.fn<() => void>();
+  const mockCanUndoLocal = vi.fn<() => boolean>();
+  const mockCanRedoLocal = vi.fn<() => boolean>();
+  const mockUndo = vi.fn<() => Promise<void>>();
+  const mockRedo = vi.fn<() => void>();
 
   const mockWallTransaction = {
     transaction: {

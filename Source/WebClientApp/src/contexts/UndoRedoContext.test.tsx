@@ -21,12 +21,12 @@ const ContextCapture = ({ contextRef }: { contextRef: React.MutableRefObject<Und
 };
 
 describe('UndoRedoContext', () => {
-  let mockExecute: ReturnType<typeof vi.fn>;
-  let mockUndo: ReturnType<typeof vi.fn>;
+  let mockExecute: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
+  let mockUndo: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
 
   beforeEach(() => {
-    mockExecute = vi.fn();
-    mockUndo = vi.fn();
+    mockExecute = vi.fn<() => void | Promise<void>>();
+    mockUndo = vi.fn<() => void | Promise<void>>();
   });
 
   const createMockCommand = (id: string): Command => ({
@@ -95,7 +95,7 @@ describe('UndoRedoContext', () => {
     );
 
     // Track if undo was called on the command
-    const undoSpy = vi.fn().mockResolvedValue(undefined);
+    const undoSpy = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const command: Command = {
       description: 'Test command',
       execute: mockExecute,
@@ -143,11 +143,11 @@ describe('UndoRedoContext', () => {
       </UndoRedoProvider>,
     );
 
-    const executeSpy = vi.fn();
+    const executeSpy = vi.fn<() => void | Promise<void>>();
     const command: Command = {
       description: 'Test command',
       execute: executeSpy,
-      undo: vi.fn().mockResolvedValue(undefined),
+      undo: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     };
 
     await act(async () => {
@@ -356,12 +356,12 @@ describe('UndoRedoContext', () => {
 });
 
 describe('UndoRedoContext keyboard shortcuts', () => {
-  let mockExecute: ReturnType<typeof vi.fn>;
-  let _mockUndo: ReturnType<typeof vi.fn>;
+  let mockExecute: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
+  let _mockUndo: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
 
   beforeEach(() => {
-    mockExecute = vi.fn();
-    _mockUndo = vi.fn();
+    mockExecute = vi.fn<() => void | Promise<void>>();
+    _mockUndo = vi.fn<() => void | Promise<void>>();
     Object.defineProperty(navigator, 'platform', {
       writable: true,
       value: 'Win32',
@@ -378,7 +378,7 @@ describe('UndoRedoContext keyboard shortcuts', () => {
   it('handles Ctrl+Z for undo on Windows', async () => {
     const contextRef = { current: null as UndoRedoContextValue | null };
 
-    const undoSpy = vi.fn().mockResolvedValue(undefined);
+    const undoSpy = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const command: Command = {
       description: 'Test command',
       execute: mockExecute,
@@ -423,11 +423,11 @@ describe('UndoRedoContext keyboard shortcuts', () => {
   it('handles Ctrl+Y for redo on Windows', async () => {
     const contextRef = { current: null as UndoRedoContextValue | null };
 
-    const executeSpy = vi.fn();
+    const executeSpy = vi.fn<() => void | Promise<void>>();
     const command: Command = {
       description: 'Test command',
       execute: executeSpy,
-      undo: vi.fn().mockResolvedValue(undefined),
+      undo: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     };
 
     const { rerender } = render(

@@ -13,7 +13,7 @@ import type { Asset } from '@/types/domain';
 import { AssetLibraryPage } from './AssetLibraryPage';
 
 // Mock react-router-dom
-const mockNavigate = vi.fn();
+const mockNavigate = vi.fn<(to: string) => void>();
 vi.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate,
 }));
@@ -36,22 +36,22 @@ const mockBrowser = {
     inspectorOpen: false,
     isMultiSelectMode: false,
     queryParams: {},
-    setSelectedPath: vi.fn(),
-    setSearchQuery: vi.fn(),
-    setAttributeFilter: vi.fn(),
-    setTagFilters: vi.fn(),
-    setLetterFilter: vi.fn(),
-    setOwnershipFilter: vi.fn(),
-    setStatusFilter: vi.fn(),
-    setViewMode: vi.fn(),
-    setSort: vi.fn(),
-    setSelectedAssetId: vi.fn(),
-    setSelectedAssetIds: vi.fn(),
-    toggleAssetSelection: vi.fn(),
-    clearSelection: vi.fn(),
-    setExpandedTreeNodes: vi.fn(),
-    resetFilters: vi.fn(),
-    filterAssets: vi.fn((assets: Asset[]) => assets),
+    setSelectedPath: vi.fn<(path: string[]) => void>(),
+    setSearchQuery: vi.fn<(query: string) => void>(),
+    setAttributeFilter: vi.fn<(attr: string, range: [number, number]) => void>(),
+    setTagFilters: vi.fn<(tags: string[]) => void>(),
+    setLetterFilter: vi.fn<(letter: string | null) => void>(),
+    setOwnershipFilter: vi.fn<(filter: 'all' | 'mine' | 'others') => void>(),
+    setStatusFilter: vi.fn<(filter: 'all' | 'published' | 'draft') => void>(),
+    setViewMode: vi.fn<(mode: 'grid-large' | 'grid-small' | 'table') => void>(),
+    setSort: vi.fn<(field: string, direction: 'asc' | 'desc') => void>(),
+    setSelectedAssetId: vi.fn<(id: string | null) => void>(),
+    setSelectedAssetIds: vi.fn<(ids: string[]) => void>(),
+    toggleAssetSelection: vi.fn<(id: string) => void>(),
+    clearSelection: vi.fn<() => void>(),
+    setExpandedTreeNodes: vi.fn<(nodes: string[]) => void>(),
+    resetFilters: vi.fn<() => void>(),
+    filterAssets: vi.fn<(assets: Asset[]) => Asset[]>((assets: Asset[]) => assets),
 };
 
 vi.mock('@/hooks/useAssetBrowser', () => ({
@@ -64,9 +64,9 @@ vi.mock('@/hooks/useLetterFilter', () => ({
 }));
 
 // Mock RTK Query hooks
-const mockDeleteAsset = vi.fn();
-const mockCloneAsset = vi.fn();
-const mockRefetch = vi.fn();
+const mockDeleteAsset = vi.fn<(id: string) => Promise<void>>();
+const mockCloneAsset = vi.fn<(id: string) => Promise<void>>();
+const mockRefetch = vi.fn<() => void>();
 
 vi.mock('@/services/assetsApi', () => ({
     useGetAssetsQuery: vi.fn(() => ({

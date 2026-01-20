@@ -48,6 +48,9 @@ describe('AssetCardCompact', () => {
         fileSize: 1024,
         dimensions: { width: 128, height: 128 },
         duration: '0',
+        name: 'goblin.png',
+        description: null,
+        tags: [],
       },
     ],
     statBlocks: {
@@ -76,6 +79,9 @@ describe('AssetCardCompact', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'dragon1.png',
+        description: null,
+        tags: [],
       },
       {
         id: 'token-2',
@@ -86,6 +92,9 @@ describe('AssetCardCompact', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'dragon2.png',
+        description: null,
+        tags: [],
       },
       {
         id: 'token-3',
@@ -96,6 +105,9 @@ describe('AssetCardCompact', () => {
         fileSize: 1024,
         dimensions: { width: 256, height: 256 },
         duration: '0',
+        name: 'dragon3.png',
+        description: null,
+        tags: [],
       },
     ],
   };
@@ -105,9 +117,9 @@ describe('AssetCardCompact', () => {
     isSelected: false,
     isMultiSelectMode: false,
     isChecked: false,
-    onClick: vi.fn<(asset: Asset) => void>(),
-    onDoubleClick: vi.fn<(asset: Asset) => void>(),
-    onCheckChange: vi.fn<(assetId: string, checked: boolean) => void>(),
+    onClick: vi.fn<() => void>(),
+    onDoubleClick: vi.fn<() => void>(),
+    onCheckChange: vi.fn<(checked: boolean) => void>(),
     size: 'small',
   };
 
@@ -316,7 +328,7 @@ describe('AssetCardCompact', () => {
   describe('interactions', () => {
     it('should call onClick when card is clicked', async () => {
       const user = userEvent.setup({ delay: null });
-      const onClick = vi.fn<(asset: Asset) => void>();
+      const onClick = vi.fn<() => void>();
 
       render(
         <TestWrapper>
@@ -333,7 +345,7 @@ describe('AssetCardCompact', () => {
 
     it('should call onDoubleClick when card is double-clicked', async () => {
       const user = userEvent.setup({ delay: null });
-      const onDoubleClick = vi.fn<(asset: Asset) => void>();
+      const onDoubleClick = vi.fn<() => void>();
 
       render(
         <TestWrapper>

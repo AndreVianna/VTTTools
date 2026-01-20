@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useEffect, useState } from 'react';
 import { type GridConfig, GridType, getDefaultGrid } from '@/utils/gridCalculator';
 import type { Encounter } from '@/types/domain';
@@ -35,12 +36,14 @@ export const useGridConfigSync = ({ encounter }: UseGridConfigSyncProps): UseGri
             const gridType = typeof stageGrid.type === 'string'
                 ? GridType[stageGrid.type as keyof typeof GridType]
                 : stageGrid.type;
-            setGridConfig({
-                type: gridType,
-                cellSize: stageGrid.cellSize,
-                offset: stageGrid.offset,
-                snap: gridType !== GridType.NoGrid, // snap is UI-only
-                scale: stageGrid.scale ?? 1,
+            queueMicrotask(() => {
+                setGridConfig({
+                    type: gridType,
+                    cellSize: stageGrid.cellSize,
+                    offset: stageGrid.offset,
+                    snap: gridType !== GridType.NoGrid, // snap is UI-only
+                    scale: stageGrid.scale ?? 1,
+                });
             });
         }
     }, [encounter]);

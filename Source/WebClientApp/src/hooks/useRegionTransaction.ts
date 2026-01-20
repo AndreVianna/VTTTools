@@ -80,6 +80,12 @@ const INITIAL_TRANSACTION: RegionTransaction = {
  *
  * @returns Transaction state and mutation functions for region operations
  */
+/**
+ * Return type of the useRegionTransaction hook.
+ * Contains transaction state and all mutation/query functions.
+ */
+export type UseRegionTransactionReturn = ReturnType<typeof useRegionTransaction>;
+
 export const useRegionTransaction = () => {
   const [transaction, setTransaction] = useState<RegionTransaction>(INITIAL_TRANSACTION);
   const [_nextTempId, setNextTempId] = useState<number>(0);

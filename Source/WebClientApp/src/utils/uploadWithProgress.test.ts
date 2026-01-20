@@ -5,16 +5,16 @@ import { uploadFileWithProgress, type UploadOptions } from './uploadWithProgress
 
 // Type for mutable XHR mock
 interface MockXHR {
-  open: ReturnType<typeof vi.fn>;
-  send: ReturnType<typeof vi.fn>;
-  abort: ReturnType<typeof vi.fn>;
-  setRequestHeader: ReturnType<typeof vi.fn>;
+  open: ReturnType<typeof vi.fn<(method: string, url: string) => void>>;
+  send: ReturnType<typeof vi.fn<(data?: FormData) => void>>;
+  abort: ReturnType<typeof vi.fn<() => void>>;
+  setRequestHeader: ReturnType<typeof vi.fn<(name: string, value: string) => void>>;
   status: number;
   responseText: string;
   withCredentials: boolean;
   upload: XMLHttpRequestUpload;
-  addEventListener: ReturnType<typeof vi.fn>;
-  removeEventListener: ReturnType<typeof vi.fn>;
+  addEventListener: ReturnType<typeof vi.fn<(type: string, listener: EventListener) => void>>;
+  removeEventListener: ReturnType<typeof vi.fn<(type: string, listener: EventListener) => void>>;
 }
 
 describe('uploadWithProgress', () => {
@@ -31,6 +31,9 @@ describe('uploadWithProgress', () => {
     path: 'resource-123',
     dimensions: { width: 256, height: 256 },
     duration: '',
+    name: 'test.png',
+    description: null,
+    tags: [],
   };
 
   beforeEach(() => {
@@ -38,26 +41,29 @@ describe('uploadWithProgress', () => {
     xhrUploadEventListeners = {};
 
     mockXhr = {
-      open: vi.fn(),
-      send: vi.fn(),
-      abort: vi.fn(),
-      setRequestHeader: vi.fn(),
+      open: vi.fn<(method: string, url: string) => void>(),
+      send: vi.fn<(data?: FormData) => void>(),
+      abort: vi.fn<() => void>(),
+      setRequestHeader: vi.fn<(name: string, value: string) => void>(),
       status: 200,
       responseText: JSON.stringify(mockResource),
       withCredentials: false,
       upload: {
-        addEventListener: vi.fn((event: string, listener: EventListener) => {
+        addEventListener: vi.fn<(type: string, listener: EventListener) => void>((event: string, listener: EventListener) => {
           xhrUploadEventListeners[event] = listener;
         }),
-        removeEventListener: vi.fn(),
+        removeEventListener: vi.fn<(type: string, listener: EventListener) => void>(),
       } as unknown as XMLHttpRequestUpload,
-      addEventListener: vi.fn((event: string, listener: EventListener) => {
+      addEventListener: vi.fn<(type: string, listener: EventListener) => void>((event: string, listener: EventListener) => {
         xhrEventListeners[event] = listener;
       }),
-      removeEventListener: vi.fn(),
+      removeEventListener: vi.fn<(type: string, listener: EventListener) => void>(),
     };
 
-    global.XMLHttpRequest = vi.fn(() => mockXhr) as unknown as typeof XMLHttpRequest;
+    // Use a real function constructor instead of vi.fn() to avoid constructor issues
+    global.XMLHttpRequest = function () {
+      return mockXhr;
+    } as unknown as typeof XMLHttpRequest;
   });
 
   describe('successful upload', () => {
@@ -80,7 +86,7 @@ describe('uploadWithProgress', () => {
 
     it('should call onProgress callback during upload', async () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
-      const onProgress = vi.fn();
+      const onProgress = vi.fn<(progress: { loaded: number; total: number; percent: number }) => void>();
       const options: UploadOptions = {
         file,
         role: 'token',
@@ -149,7 +155,7 @@ describe('uploadWithProgress', () => {
 
     it('should calculate progress percentage correctly', async () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
-      const onProgress = vi.fn();
+      const onProgress = vi.fn<(progress: { loaded: number; total: number; percent: number }) => void>();
       const options: UploadOptions = {
         file,
         onProgress,
@@ -180,7 +186,7 @@ describe('uploadWithProgress', () => {
     it('should handle abort signal', async () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
       const abortController = new AbortController();
-      const onAbort = vi.fn();
+      const onAbort = vi.fn<() => void>();
 
       const options: UploadOptions = {
         file,
@@ -302,7 +308,7 @@ describe('uploadWithProgress', () => {
   describe('progress events', () => {
     it('should not call onProgress when lengthComputable is false', async () => {
       const file = new File(['test content'], 'test.png', { type: 'image/png' });
-      const onProgress = vi.fn();
+      const onProgress = vi.fn<(progress: { loaded: number; total: number; percent: number }) => void>();
       const options: UploadOptions = {
         file,
         onProgress,

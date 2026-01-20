@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { profileApi } from './profileApi';
 import type { UpdateProfileRequest } from './profileApi';
@@ -88,7 +88,7 @@ describe('profileApi', () => {
             // Arrange - store is already set up
 
             // Act
-            await store.dispatch(profileApi.endpoints.getProfile.initiate());
+            await store.dispatch(profileApi.endpoints.getProfile.initiate() as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/profile');
@@ -126,7 +126,7 @@ describe('profileApi', () => {
             };
 
             // Act
-            await store.dispatch(profileApi.endpoints.updateProfile.initiate(updateData));
+            await store.dispatch(profileApi.endpoints.updateProfile.initiate(updateData) as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/profile');
@@ -141,7 +141,7 @@ describe('profileApi', () => {
             };
 
             // Act
-            await store.dispatch(profileApi.endpoints.updateProfile.initiate(partialData));
+            await store.dispatch(profileApi.endpoints.updateProfile.initiate(partialData) as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/profile');
@@ -174,7 +174,7 @@ describe('profileApi', () => {
             const testFile = new File(['test content'], 'avatar.png', { type: 'image/png' });
 
             // Act
-            await store.dispatch(profileApi.endpoints.uploadAvatar.initiate(testFile));
+            await store.dispatch(profileApi.endpoints.uploadAvatar.initiate(testFile) as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/profile/avatar');
@@ -187,7 +187,7 @@ describe('profileApi', () => {
             const testFile = new File(['test content'], 'avatar.jpg', { type: 'image/jpeg' });
 
             // Act
-            await store.dispatch(profileApi.endpoints.uploadAvatar.initiate(testFile));
+            await store.dispatch(profileApi.endpoints.uploadAvatar.initiate(testFile) as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.body).toBeInstanceOf(FormData);
@@ -221,7 +221,7 @@ describe('profileApi', () => {
             // Arrange - store is already set up
 
             // Act
-            await store.dispatch(profileApi.endpoints.deleteAvatar.initiate());
+            await store.dispatch(profileApi.endpoints.deleteAvatar.initiate() as unknown as UnknownAction);
 
             // Assert
             expect(capturedRequest?.url).toBe('/profile/avatar');
@@ -232,7 +232,7 @@ describe('profileApi', () => {
             // Arrange - store is already set up
 
             // Act
-            await store.dispatch(profileApi.endpoints.deleteAvatar.initiate());
+            await store.dispatch(profileApi.endpoints.deleteAvatar.initiate() as unknown as UnknownAction);
 
             // Assert - body is null or undefined (no payload sent)
             expect(capturedRequest?.body).toBeFalsy();

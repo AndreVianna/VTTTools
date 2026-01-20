@@ -159,10 +159,10 @@ const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
 });
 
 describe('EntityPlacement', () => {
-  let mockOnAssetPlaced: ReturnType<typeof vi.fn>;
-  let mockOnAssetMoved: ReturnType<typeof vi.fn>;
-  let mockOnAssetDeleted: ReturnType<typeof vi.fn>;
-  let mockOnDragComplete: ReturnType<typeof vi.fn>;
+  let mockOnAssetPlaced: ReturnType<typeof vi.fn<(asset: PlacedAsset) => void>>;
+  let mockOnAssetMoved: ReturnType<typeof vi.fn<(moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => void>>;
+  let mockOnAssetDeleted: ReturnType<typeof vi.fn<(assetId: string) => void>>;
+  let mockOnDragComplete: ReturnType<typeof vi.fn<() => void>>;
   const mockEncounter: Encounter = {
     id: 'encounter-1',
     ownerId: 'owner-1',
@@ -178,10 +178,10 @@ describe('EntityPlacement', () => {
   };
 
   beforeEach(() => {
-    mockOnAssetPlaced = vi.fn();
-    mockOnAssetMoved = vi.fn();
-    mockOnAssetDeleted = vi.fn();
-    mockOnDragComplete = vi.fn();
+    mockOnAssetPlaced = vi.fn<(asset: PlacedAsset) => void>();
+    mockOnAssetMoved = vi.fn<(moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => void>();
+    mockOnAssetDeleted = vi.fn<(assetId: string) => void>();
+    mockOnDragComplete = vi.fn<() => void>();
 
     class MockImage {
       onload: (() => void) | null = null;
@@ -201,14 +201,14 @@ describe('EntityPlacement', () => {
     global.Image = MockImage as unknown as typeof Image;
 
     const mockCanvas = {
-      getContext: vi.fn((contextId: string) => {
+      getContext: vi.fn<(contextId: string, options?: CanvasRenderingContext2DSettings) => CanvasRenderingContext2D | null>((contextId: string) => {
         if (contextId === '2d') {
           return {
-            measureText: vi.fn((text: string) => ({ width: text.length * 7 })),
+            measureText: vi.fn<(text: string) => TextMetrics>((text: string) => ({ width: text.length * 7 }) as TextMetrics),
             font: '',
-            fillText: vi.fn(),
-            strokeText: vi.fn(),
-          };
+            fillText: vi.fn<(text: string, x: number, y: number, maxWidth?: number) => void>(),
+            strokeText: vi.fn<(text: string, x: number, y: number, maxWidth?: number) => void>(),
+          } as unknown as CanvasRenderingContext2D;
         }
         return null;
       }),
@@ -270,7 +270,7 @@ describe('EntityPlacement', () => {
   it('loads images for placed assets without infinite loop', async () => {
     const placedAssets = [createMockPlacedAsset('placed-1', 'asset-1'), createMockPlacedAsset('placed-2', 'asset-2')];
 
-    const imageLoadSpy = vi.fn();
+    const imageLoadSpy = vi.fn<() => void>();
     const originalImage = global.Image;
 
     let imageLoadCount = 0;

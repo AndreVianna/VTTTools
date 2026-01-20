@@ -57,9 +57,9 @@ describe('RegionContextMenu', () => {
     const defaultProps: RegionContextMenuProps = {
         anchorPosition: { left: 100, top: 100 },
         open: true,
-        onClose: vi.fn(),
+        onClose: vi.fn<() => void>(),
         encounterRegion: mockTerrainRegion,
-        onRegionUpdate: vi.fn(),
+        onRegionUpdate: vi.fn<(regionIndex: number, updates: Partial<EncounterRegion>) => void>(),
     };
 
     const renderComponent = (props: Partial<RegionContextMenuProps> = {}) => {

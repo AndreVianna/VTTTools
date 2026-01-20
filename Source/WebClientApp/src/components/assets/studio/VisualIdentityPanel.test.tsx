@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { VisualIdentityPanel } from './VisualIdentityPanel';
+import { VisualIdentityPanel, type VisualIdentityPanelProps } from './VisualIdentityPanel';
 import { ResourceRole, type MediaResource } from '@/types/domain';
 
 vi.mock('@/components/common/ResourceImage', () => ({
@@ -28,6 +28,9 @@ describe('VisualIdentityPanel', () => {
     fileSize: 1024,
     dimensions: { width: 512, height: 512 },
     duration: '',
+    name: 'portrait.png',
+    description: null,
+    tags: [],
   };
 
   const mockTokens: MediaResource[] = [
@@ -40,6 +43,9 @@ describe('VisualIdentityPanel', () => {
       fileSize: 512,
       dimensions: { width: 256, height: 256 },
       duration: '',
+      name: 'token1.png',
+      description: null,
+      tags: [],
     },
     {
       id: 'token-2',
@@ -50,33 +56,34 @@ describe('VisualIdentityPanel', () => {
       fileSize: 512,
       dimensions: { width: 256, height: 256 },
       duration: '',
+      name: 'token2.png',
+      description: null,
+      tags: [],
     },
   ];
 
-  let mockOnPortraitChange: ReturnType<typeof vi.fn>;
-  let mockOnTokensChange: ReturnType<typeof vi.fn>;
-  let mockOnSelectPortrait: ReturnType<typeof vi.fn>;
-  let mockOnSelectToken: ReturnType<typeof vi.fn>;
+  type OnPortraitChangeFn = (resource: MediaResource | null) => void;
+  type OnTokensChangeFn = (tokens: MediaResource[]) => void;
+  type OnSelectFn = () => void;
+
+  const defaultProps: VisualIdentityPanelProps = {
+    portrait: null,
+    tokens: [],
+    onPortraitChange: vi.fn<OnPortraitChangeFn>(),
+    onTokensChange: vi.fn<OnTokensChangeFn>(),
+    onSelectPortrait: vi.fn<OnSelectFn>(),
+    onSelectToken: vi.fn<OnSelectFn>(),
+  };
 
   beforeEach(() => {
-    mockOnPortraitChange = vi.fn();
-    mockOnTokensChange = vi.fn();
-    mockOnSelectPortrait = vi.fn();
-    mockOnSelectToken = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {
     it('should render Portrait section header', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -86,14 +93,7 @@ describe('VisualIdentityPanel', () => {
     it('should render Tokens section header with count', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} />
         </TestWrapper>,
       );
 
@@ -103,14 +103,7 @@ describe('VisualIdentityPanel', () => {
     it('should render Add Token button', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -123,14 +116,7 @@ describe('VisualIdentityPanel', () => {
     it('should show placeholder when no portrait is set', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -140,14 +126,7 @@ describe('VisualIdentityPanel', () => {
     it('should render portrait image when portrait is set', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} />
         </TestWrapper>,
       );
 
@@ -158,14 +137,7 @@ describe('VisualIdentityPanel', () => {
     it('should show Remove Portrait button when portrait is set', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} />
         </TestWrapper>,
       );
 
@@ -175,14 +147,7 @@ describe('VisualIdentityPanel', () => {
     it('should not show Remove Portrait button when no portrait is set', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -193,70 +158,52 @@ describe('VisualIdentityPanel', () => {
   describe('portrait interactions', () => {
     it('should call onSelectPortrait when portrait placeholder is clicked', async () => {
       const user = userEvent.setup();
+      const onSelectPortrait = vi.fn<OnSelectFn>();
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} onSelectPortrait={onSelectPortrait} />
         </TestWrapper>,
       );
 
       const placeholder = screen.getByText('Click to add portrait').parentElement?.parentElement;
       if (placeholder) {
         await user.click(placeholder);
-        expect(mockOnSelectPortrait).toHaveBeenCalled();
+        expect(onSelectPortrait).toHaveBeenCalled();
       }
     });
 
     it('should call onSelectPortrait when existing portrait is clicked', async () => {
       const user = userEvent.setup();
+      const onSelectPortrait = vi.fn<OnSelectFn>();
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} onSelectPortrait={onSelectPortrait} />
         </TestWrapper>,
       );
 
       const portraitContainer = screen.getByAltText('Portrait').parentElement?.parentElement;
       if (portraitContainer) {
         await user.click(portraitContainer);
-        expect(mockOnSelectPortrait).toHaveBeenCalled();
+        expect(onSelectPortrait).toHaveBeenCalled();
       }
     });
 
     it('should call onPortraitChange with null when Remove Portrait button is clicked', async () => {
       const user = userEvent.setup();
+      const onPortraitChange = vi.fn<OnPortraitChangeFn>();
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} onPortraitChange={onPortraitChange} />
         </TestWrapper>,
       );
 
       const removeButton = screen.getByRole('button', { name: /remove portrait/i });
       await user.click(removeButton);
 
-      expect(mockOnPortraitChange).toHaveBeenCalledWith(null);
+      expect(onPortraitChange).toHaveBeenCalledWith(null);
     });
   });
 
@@ -264,14 +211,7 @@ describe('VisualIdentityPanel', () => {
     it('should render all token images', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} />
         </TestWrapper>,
       );
 
@@ -282,14 +222,7 @@ describe('VisualIdentityPanel', () => {
     it('should render token images with correct alt text', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} />
         </TestWrapper>,
       );
 
@@ -300,14 +233,7 @@ describe('VisualIdentityPanel', () => {
     it('should render remove button for each token', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} />
         </TestWrapper>,
       );
 
@@ -318,14 +244,7 @@ describe('VisualIdentityPanel', () => {
     it('should display empty tokens list correctly', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -336,92 +255,68 @@ describe('VisualIdentityPanel', () => {
   describe('token interactions', () => {
     it('should call onSelectToken when Add Token button is clicked', async () => {
       const user = userEvent.setup();
+      const onSelectToken = vi.fn<OnSelectFn>();
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} onSelectToken={onSelectToken} />
         </TestWrapper>,
       );
 
       const addButton = screen.getByRole('button', { name: '' });
       await user.click(addButton);
 
-      expect(mockOnSelectToken).toHaveBeenCalled();
+      expect(onSelectToken).toHaveBeenCalled();
     });
 
     it('should call onTokensChange when token is removed', async () => {
       const user = userEvent.setup();
+      const onTokensChange = vi.fn<OnTokensChangeFn>();
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} onTokensChange={onTokensChange} />
         </TestWrapper>,
       );
 
       const removeButtons = screen.getAllByRole('button', { name: /remove token/i });
       await user.click(removeButtons[0]!);
 
-      expect(mockOnTokensChange).toHaveBeenCalledWith([mockTokens[1]]);
+      expect(onTokensChange).toHaveBeenCalledWith([mockTokens[1]]);
     });
 
     it('should remove correct token when multiple tokens exist', async () => {
       const user = userEvent.setup();
+      const onTokensChange = vi.fn<OnTokensChangeFn>();
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} onTokensChange={onTokensChange} />
         </TestWrapper>,
       );
 
       const removeButtons = screen.getAllByRole('button', { name: /remove token/i });
       await user.click(removeButtons[1]!);
 
-      expect(mockOnTokensChange).toHaveBeenCalledWith([mockTokens[0]]);
+      expect(onTokensChange).toHaveBeenCalledWith([mockTokens[0]]);
     });
 
     it('should call onTokensChange with empty array when last token is removed', async () => {
       const user = userEvent.setup();
+      const onTokensChange = vi.fn<OnTokensChangeFn>();
 
       const singleToken = [mockTokens[0]!];
 
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={singleToken}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={singleToken} onTokensChange={onTokensChange} />
         </TestWrapper>,
       );
 
       const removeButton = screen.getByRole('button', { name: /remove token/i });
       await user.click(removeButton);
 
-      expect(mockOnTokensChange).toHaveBeenCalledWith([]);
+      expect(onTokensChange).toHaveBeenCalledWith([]);
     });
   });
 
@@ -431,14 +326,7 @@ describe('VisualIdentityPanel', () => {
 
       render(
         <ThemeProvider theme={darkTheme}>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} tokens={mockTokens} />
         </ThemeProvider>,
       );
 
@@ -451,14 +339,7 @@ describe('VisualIdentityPanel', () => {
 
       render(
         <ThemeProvider theme={lightTheme}>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} tokens={mockTokens} />
         </ThemeProvider>,
       );
 
@@ -471,14 +352,7 @@ describe('VisualIdentityPanel', () => {
     it('should render tokens in grid layout', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} />
         </TestWrapper>,
       );
 
@@ -492,14 +366,7 @@ describe('VisualIdentityPanel', () => {
     it('should maintain aspect ratio for portrait', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} />
         </TestWrapper>,
       );
 
@@ -515,14 +382,7 @@ describe('VisualIdentityPanel', () => {
     it('should have accessible tooltip for remove token buttons', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={null}
-            tokens={mockTokens}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} tokens={mockTokens} />
         </TestWrapper>,
       );
 
@@ -533,14 +393,7 @@ describe('VisualIdentityPanel', () => {
     it('should have accessible button for Remove Portrait', () => {
       render(
         <TestWrapper>
-          <VisualIdentityPanel
-            portrait={mockPortrait}
-            tokens={[]}
-            onPortraitChange={mockOnPortraitChange}
-            onTokensChange={mockOnTokensChange}
-            onSelectPortrait={mockOnSelectPortrait}
-            onSelectToken={mockOnSelectToken}
-          />
+          <VisualIdentityPanel {...defaultProps} portrait={mockPortrait} />
         </TestWrapper>,
       );
 

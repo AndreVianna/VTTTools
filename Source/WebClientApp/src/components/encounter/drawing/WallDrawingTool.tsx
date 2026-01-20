@@ -2,7 +2,7 @@ import type Konva from 'konva';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Rect } from 'react-konva';
-import type { useWallTransaction } from '@/hooks/useWallTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
 import { useGetEncounterQuery } from '@/services/encounterApi';
 import { type EncounterWallSegment, type Point, type Pole, SegmentState, SegmentType } from '@/types/domain';
 import { createPlacePoleAction } from '@/types/wallUndoActions';
@@ -28,7 +28,7 @@ export interface WallDrawingToolProps {
   onCancel: () => void;
   onFinish: () => void;
   onPolesChange?: (poles: Pole[]) => void;
-  wallTransaction: ReturnType<typeof useWallTransaction>;
+  wallTransaction: UseWallTransactionReturn;
 }
 
 export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({

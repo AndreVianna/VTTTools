@@ -1,11 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import type { Pole } from '../domain';
+import { SegmentType, SegmentState } from '../domain';
 import type {
     StageWall,
     StageWallSegment,
-    Pole,
-} from '../stage';
-import { SegmentType, SegmentState } from '../domain';
-import type {
     CreateWallRequest,
     UpdateWallRequest,
     CreateWallSegmentRequest,

@@ -5,9 +5,10 @@ import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { GridType, Weather } from '@/types/domain';
-import type { Stage, StageRegion } from '@/types/stage';
+import type { Stage, StageRegion, CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import { AmbientLight } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
+import type { Command } from '@/utils/commands';
 import { useMergeRegions } from '../useMergeRegions';
 import { useRegionHandlers } from '../useRegionHandlers';
 
@@ -57,19 +58,19 @@ const createMockEncounter = (regions: StageRegion[] = []): Encounter => ({
 
 describe('Region Workflows - Integration Tests', () => {
   let mockEncounter: Encounter;
-  let mockSetEncounter: ReturnType<typeof vi.fn>;
-  let mockSetPlacedRegions: ReturnType<typeof vi.fn>;
-  let mockSetSelectedRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetEditingRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetIsEditingRegionVertices: ReturnType<typeof vi.fn>;
-  let mockSetOriginalRegionVertices: ReturnType<typeof vi.fn>;
-  let mockSetDrawingRegionIndex: ReturnType<typeof vi.fn>;
-  let mockSetErrorMessage: ReturnType<typeof vi.fn>;
-  let mockRecordAction: ReturnType<typeof vi.fn>;
-  let mockRefetch: ReturnType<typeof vi.fn>;
-  let mockAddEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn>;
-  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn>;
+  let mockSetEncounter: ReturnType<typeof vi.fn<(encounter: Encounter) => void>>;
+  let mockSetPlacedRegions: ReturnType<typeof vi.fn<() => void>>;
+  let mockSetSelectedRegionIndex: ReturnType<typeof vi.fn<(index: number | null) => void>>;
+  let mockSetEditingRegionIndex: ReturnType<typeof vi.fn<(index: number | null) => void>>;
+  let mockSetIsEditingRegionVertices: ReturnType<typeof vi.fn<(editing: boolean) => void>>;
+  let mockSetOriginalRegionVertices: ReturnType<typeof vi.fn<(vertices: Point[] | null) => void>>;
+  let mockSetDrawingRegionIndex: ReturnType<typeof vi.fn<(index: number | null) => void>>;
+  let mockSetErrorMessage: ReturnType<typeof vi.fn<(message: string | null) => void>>;
+  let mockRecordAction: ReturnType<typeof vi.fn<(action: Command) => void>>;
+  let mockRefetch: ReturnType<typeof vi.fn<() => Promise<{ data?: Encounter }>>>;
+  let mockAddEncounterRegion: ReturnType<typeof vi.fn<(data: CreateRegionRequest) => Promise<void>>>;
+  let mockUpdateEncounterRegion: ReturnType<typeof vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>>;
+  let mockRemoveEncounterRegion: ReturnType<typeof vi.fn<(index: number) => Promise<void>>>;
   let gridConfig: GridConfig;
 
   const encounterId = 'test-encounter-123';
@@ -87,25 +88,19 @@ describe('Region Workflows - Integration Tests', () => {
       scale: 1,
     };
 
-    mockSetEncounter = vi.fn();
-    mockSetPlacedRegions = vi.fn();
-    mockSetSelectedRegionIndex = vi.fn();
-    mockSetEditingRegionIndex = vi.fn();
-    mockSetIsEditingRegionVertices = vi.fn();
-    mockSetOriginalRegionVertices = vi.fn();
-    mockSetDrawingRegionIndex = vi.fn();
-    mockSetErrorMessage = vi.fn();
-    mockRecordAction = vi.fn();
-    mockRefetch = vi.fn().mockResolvedValue({ data: mockEncounter });
-    mockAddEncounterRegion = vi.fn().mockImplementation(() => ({
-      unwrap: vi.fn().mockResolvedValue({ index: 1 }),
-    }));
-    mockUpdateEncounterRegion = vi.fn().mockImplementation(() => ({
-      unwrap: vi.fn().mockResolvedValue({}),
-    }));
-    mockRemoveEncounterRegion = vi.fn().mockImplementation(() => ({
-      unwrap: vi.fn().mockResolvedValue({}),
-    }));
+    mockSetEncounter = vi.fn<(encounter: Encounter) => void>();
+    mockSetPlacedRegions = vi.fn<() => void>();
+    mockSetSelectedRegionIndex = vi.fn<(index: number | null) => void>();
+    mockSetEditingRegionIndex = vi.fn<(index: number | null) => void>();
+    mockSetIsEditingRegionVertices = vi.fn<(editing: boolean) => void>();
+    mockSetOriginalRegionVertices = vi.fn<(vertices: Point[] | null) => void>();
+    mockSetDrawingRegionIndex = vi.fn<(index: number | null) => void>();
+    mockSetErrorMessage = vi.fn<(message: string | null) => void>();
+    mockRecordAction = vi.fn<(action: Command) => void>();
+    mockRefetch = vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: mockEncounter });
+    mockAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<void>>().mockResolvedValue();
+    mockUpdateEncounterRegion = vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>().mockResolvedValue();
+    mockRemoveEncounterRegion = vi.fn<(index: number) => Promise<void>>().mockResolvedValue();
   });
 
   describe('1. Region Placement Workflow', () => {
@@ -132,12 +127,16 @@ describe('Region Workflows - Integration Tests', () => {
 
       expect(transactionResult.current.transaction.segment?.vertices).toHaveLength(3);
 
+      // Create wrapper functions that match the expected signature for commitTransaction
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 1 });
+
       let commitResult!: CommitResult;
       await act(async () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addRegion: mockAddEncounterRegion,
+            addRegion: addRegionWrapper,
             updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
@@ -147,13 +146,11 @@ describe('Region Workflows - Integration Tests', () => {
       expect(commitResult.success).toBe(true);
       expect(commitResult.action).toBe('create');
       expect(commitResult.regionIndex).toBe(1);
-      expect(mockAddEncounterRegion).toHaveBeenCalledWith(
+      expect(addRegionWrapper).toHaveBeenCalledWith(
         expect.objectContaining({
-          encounterId,
           name: 'Danger Zone',
           type: 'Elevation',
           value: 10,
-          color: '#FF0000',
         }),
       );
 
@@ -242,9 +239,12 @@ describe('Region Workflows - Integration Tests', () => {
 
       expect(mockVertices).toHaveLength(3);
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 1 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: mockUpdateEncounterRegion,
         });
         expect(result.success).toBe(true);
@@ -260,9 +260,12 @@ describe('Region Workflows - Integration Tests', () => {
         transactionResult.current.addVertex({ x: 100, y: 0 });
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 1 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: mockUpdateEncounterRegion,
         });
 
@@ -270,7 +273,7 @@ describe('Region Workflows - Integration Tests', () => {
         expect(result.error).toBe('Region requires minimum 3 vertices');
       });
 
-      expect(mockAddEncounterRegion).not.toHaveBeenCalled();
+      expect(addRegionWrapper).not.toHaveBeenCalled();
     });
   });
 
@@ -309,9 +312,12 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 5 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: mockUpdateEncounterRegion,
         });
 
@@ -321,9 +327,8 @@ describe('Region Workflows - Integration Tests', () => {
       });
 
       expect(mockUpdateEncounterRegion).toHaveBeenCalledWith(
+        5,
         expect.objectContaining({
-          encounterId,
-          regionIndex: 5,
           vertices: expect.arrayContaining([
             expect.objectContaining({ x: 0, y: 0 }),
             expect.objectContaining({ x: 150, y: 0 }),
@@ -441,9 +446,12 @@ describe('Region Workflows - Integration Tests', () => {
         });
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 7 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: mockUpdateEncounterRegion,
         });
 
@@ -451,14 +459,11 @@ describe('Region Workflows - Integration Tests', () => {
       });
 
       expect(mockUpdateEncounterRegion).toHaveBeenCalledWith(
+        7,
         expect.objectContaining({
-          encounterId,
-          regionIndex: 7,
           name: 'Updated Name',
-          type: 'Difficult',
+          type: 'Terrain',
           value: 10,
-          label: 'Dense Forest',
-          color: '#008800',
         }),
       );
     });
@@ -498,11 +503,14 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 2 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addRegion: mockAddEncounterRegion,
+            addRegion: addRegionWrapper,
             updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
@@ -548,11 +556,14 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 2 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addRegion: mockAddEncounterRegion,
+            addRegion: addRegionWrapper,
             updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
@@ -596,11 +607,14 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 2 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addRegion: mockAddEncounterRegion,
+            addRegion: addRegionWrapper,
             updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
@@ -657,11 +671,14 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 6 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addRegion: mockAddEncounterRegion,
+            addRegion: addRegionWrapper,
             updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
@@ -725,8 +742,8 @@ describe('Region Workflows - Integration Tests', () => {
         { x: 0, y: 100 },
       ];
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await mergeResult.current.executeMerge({
@@ -740,17 +757,13 @@ describe('Region Workflows - Integration Tests', () => {
       });
 
       expect(mockUpdateEncounterRegion).toHaveBeenCalledWith(
+        1,
         expect.objectContaining({
-          encounterId,
-          regionIndex: 1,
           vertices: mergedVertices,
         }),
       );
 
-      expect(mockRemoveEncounterRegion).toHaveBeenCalledWith({
-        encounterId,
-        regionIndex: 2,
-      });
+      expect(mockRemoveEncounterRegion).toHaveBeenCalledWith(2);
 
       expect(mockRecordAction).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalled();
@@ -775,16 +788,10 @@ describe('Region Workflows - Integration Tests', () => {
       mockEncounter.stage.regions = [regionToDelete];
 
       await act(async () => {
-        await mockRemoveEncounterRegion({
-          encounterId,
-          regionIndex: 5,
-        }).unwrap();
+        await mockRemoveEncounterRegion(5);
       });
 
-      expect(mockRemoveEncounterRegion).toHaveBeenCalledWith({
-        encounterId,
-        regionIndex: 5,
-      });
+      expect(mockRemoveEncounterRegion).toHaveBeenCalledWith(5);
     });
 
     it('should not delete region if region not found', async () => {
@@ -814,7 +821,7 @@ describe('Region Workflows - Integration Tests', () => {
           setIsEditingRegionVertices: mockSetIsEditingRegionVertices,
           setOriginalRegionVertices: mockSetOriginalRegionVertices,
           setDrawingRegionIndex: mockSetDrawingRegionIndex,
-          setRegionPlacementMode: vi.fn(),
+          setRegionPlacementMode: vi.fn<(mode: 'polygon' | 'bucketFill' | null) => void>(),
           setErrorMessage: mockSetErrorMessage,
           recordAction: mockRecordAction,
           refetch: mockRefetch,
@@ -833,9 +840,8 @@ describe('Region Workflows - Integration Tests', () => {
     it('should handle backend API failure during placement', async () => {
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
-      const failingAddEncounterRegion = vi.fn().mockImplementation(() => ({
-        unwrap: vi.fn().mockRejectedValue(new Error('Network error')),
-      }));
+      const failingAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockRejectedValue(new Error('Network error'));
 
       act(() => {
         transactionResult.current.startTransaction('placement', undefined, {
@@ -878,9 +884,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
-      const failingUpdateEncounterRegion = vi.fn().mockImplementation(() => ({
-        unwrap: vi.fn().mockRejectedValue(new Error('Update failed')),
-      }));
+      const failingUpdateEncounterRegion = vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>()
+        .mockRejectedValue(new Error('Update failed'));
 
       act(() => {
         transactionResult.current.startTransaction('editing', existingRegion);
@@ -891,9 +896,12 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 5 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: failingUpdateEncounterRegion,
         });
 
@@ -917,9 +925,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       mockEncounter.stage.regions = [targetRegion];
 
-      const failingUpdateEncounterRegion = vi.fn().mockImplementation(() => ({
-        unwrap: vi.fn().mockRejectedValue(new Error('Merge failed')),
-      }));
+      const failingUpdateEncounterRegion = vi.fn<(index: number, data: UpdateRegionRequest) => Promise<void>>()
+        .mockRejectedValue(new Error('Merge failed'));
 
       const { result: mergeResult } = renderHook(() =>
         useMergeRegions({
@@ -935,8 +942,8 @@ describe('Region Workflows - Integration Tests', () => {
         }),
       );
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await mergeResult.current.executeMerge({
@@ -967,9 +974,12 @@ describe('Region Workflows - Integration Tests', () => {
         transactionResult.current.addVertex({ x: 100, y: 0 });
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 1 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: mockUpdateEncounterRegion,
         });
 
@@ -977,7 +987,7 @@ describe('Region Workflows - Integration Tests', () => {
         expect(result.error).toBe('Region requires minimum 3 vertices');
       });
 
-      expect(mockAddEncounterRegion).not.toHaveBeenCalled();
+      expect(addRegionWrapper).not.toHaveBeenCalled();
     });
 
     it('should handle merge when target region not found', async () => {
@@ -997,8 +1007,8 @@ describe('Region Workflows - Integration Tests', () => {
         }),
       );
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await mergeResult.current.executeMerge({
@@ -1074,12 +1084,15 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 2 });
+
       let commitResult!: CommitResult;
       await act(async () => {
         commitResult = await transactionResult.current.commitTransaction(
           encounterId,
           {
-            addRegion: mockAddEncounterRegion,
+            addRegion: addRegionWrapper,
             updateRegion: mockUpdateEncounterRegion,
           },
           mockEncounter,
@@ -1090,8 +1103,8 @@ describe('Region Workflows - Integration Tests', () => {
       expect(commitResult.targetRegionIndex).toBe(1);
       expect(commitResult.mergedVertices).toBeDefined();
 
-      const onSuccess = vi.fn();
-      const onError = vi.fn();
+      const onSuccess = vi.fn<() => void>();
+      const onError = vi.fn<() => void>();
 
       await act(async () => {
         await mergeResult.current.executeMerge({
@@ -1143,9 +1156,12 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+        .mockResolvedValue({ index: 7 });
+
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
-          addRegion: mockAddEncounterRegion,
+          addRegion: addRegionWrapper,
           updateRegion: mockUpdateEncounterRegion,
         });
 
@@ -1155,14 +1171,11 @@ describe('Region Workflows - Integration Tests', () => {
       });
 
       expect(mockUpdateEncounterRegion).toHaveBeenCalledWith(
+        7,
         expect.objectContaining({
-          encounterId,
-          regionIndex: 7,
           name: 'Updated Name',
-          type: 'Difficult',
+          type: 'Terrain',
           value: 10,
-          label: 'Dense Forest',
-          color: '#008800',
         }),
       );
     });

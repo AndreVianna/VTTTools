@@ -36,13 +36,16 @@ describe('AssetResourceManager', () => {
   const mockCancelUpload = vi.fn();
   const mockResetState = vi.fn();
 
-  const defaultProps = {
-    onPortraitChange: vi.fn(),
-    onTokenChange: vi.fn(),
+  type OnPortraitChangeFn = (resourceId: string | undefined) => void;
+  type OnTokenChangeFn = (resourceId: string | undefined) => void;
+
+  const defaultProps: AssetResourceManagerProps = {
+    onPortraitChange: vi.fn<OnPortraitChangeFn>(),
+    onTokenChange: vi.fn<OnTokenChangeFn>(),
     tokenSize: { width: 1, height: 1 },
     readOnly: false,
     ownerId: 'test-entity-id',
-  } satisfies Partial<AssetResourceManagerProps>;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -341,6 +344,9 @@ describe('AssetResourceManager', () => {
         path: 'new-portrait-id',
         dimensions: { width: 256, height: 256 },
         duration: '',
+        name: 'portrait.png',
+        description: null,
+        tags: [],
       };
 
       let onSuccessCallback: ((resource: MediaResource) => void) | undefined;

@@ -7,11 +7,11 @@ const theme = createTheme();
 
 const renderComponent = (props = {}) => {
   const defaultProps = {
-    onHideAll: vi.fn(),
-    onRevealAll: vi.fn(),
-    onModeChange: vi.fn(),
-    onDrawPolygon: vi.fn(),
-    onBucketFill: vi.fn(),
+    onHideAll: vi.fn<() => void>(),
+    onRevealAll: vi.fn<() => void>(),
+    onModeChange: vi.fn<(mode: 'add' | 'subtract') => void>(),
+    onDrawPolygon: vi.fn<() => void>(),
+    onBucketFill: vi.fn<() => void>(),
     currentMode: 'add' as 'add' | 'subtract',
   };
 
@@ -48,7 +48,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('calls onHideAll when Hide All button is clicked', () => {
-    const onHideAll = vi.fn();
+    const onHideAll = vi.fn<() => void>();
     renderComponent({ onHideAll });
 
     const hideAllButton = screen.getByText('Hide All');
@@ -58,7 +58,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('calls onRevealAll when Reveal All button is clicked', () => {
-    const onRevealAll = vi.fn();
+    const onRevealAll = vi.fn<() => void>();
     renderComponent({ onRevealAll });
 
     const revealAllButton = screen.getByText('Reveal All');
@@ -68,7 +68,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('calls onDrawPolygon when Draw Polygon button is clicked', () => {
-    const onDrawPolygon = vi.fn();
+    const onDrawPolygon = vi.fn<() => void>();
     renderComponent({ onDrawPolygon });
 
     const drawPolygonButton = screen.getByText('Draw Polygon');
@@ -78,7 +78,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('calls onBucketFill when Bucket Fill button is clicked', () => {
-    const onBucketFill = vi.fn();
+    const onBucketFill = vi.fn<() => void>();
     renderComponent({ onBucketFill });
 
     const bucketFillButton = screen.getByText('Bucket Fill');
@@ -88,7 +88,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('calls onModeChange with "add" when Add button is clicked', () => {
-    const onModeChange = vi.fn();
+    const onModeChange = vi.fn<(mode: 'add' | 'subtract') => void>();
     renderComponent({ currentMode: 'subtract', onModeChange });
 
     const addButton = screen.getByRole('button', { name: /add fog/i });
@@ -98,7 +98,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('calls onModeChange with "subtract" when Subtract button is clicked', () => {
-    const onModeChange = vi.fn();
+    const onModeChange = vi.fn<(mode: 'add' | 'subtract') => void>();
     renderComponent({ currentMode: 'add', onModeChange });
 
     const subtractButton = screen.getByRole('button', { name: /subtract fog/i });
@@ -122,7 +122,7 @@ describe('FogOfWarPanel', () => {
   });
 
   it('does not call onModeChange when clicking already selected mode', () => {
-    const onModeChange = vi.fn();
+    const onModeChange = vi.fn<(mode: 'add' | 'subtract') => void>();
     renderComponent({ currentMode: 'add', onModeChange });
 
     const addButton = screen.getByRole('button', { name: /add fog/i });

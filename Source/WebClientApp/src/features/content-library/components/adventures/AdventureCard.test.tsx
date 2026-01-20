@@ -47,9 +47,9 @@ describe('AdventureCard', () => {
 
     const defaultProps: AdventureCardProps = {
         adventure: mockAdventure,
-        onOpen: vi.fn(),
-        onDuplicate: vi.fn(),
-        onDelete: vi.fn(),
+        onOpen: vi.fn<(id: string) => void>(),
+        onDuplicate: vi.fn<(id: string) => void>(),
+        onDelete: vi.fn<(id: string) => void>(),
     };
 
     beforeEach(() => {
@@ -254,7 +254,7 @@ describe('AdventureCard', () => {
     describe('user interactions', () => {
         it('should call onDuplicate when Clone button is clicked', () => {
             // Arrange
-            const onDuplicate = vi.fn();
+            const onDuplicate = vi.fn<(id: string) => void>();
 
             render(
                 <TestWrapper>
@@ -273,8 +273,8 @@ describe('AdventureCard', () => {
 
         it('should call stopPropagation when Clone button is clicked', () => {
             // Arrange
-            const onDuplicate = vi.fn();
-            const mockStopPropagation = vi.fn();
+            const onDuplicate = vi.fn<(id: string) => void>();
+            const mockStopPropagation = vi.fn<() => void>();
 
             render(
                 <TestWrapper>
@@ -294,7 +294,7 @@ describe('AdventureCard', () => {
 
         it('should call onDelete when Delete button is clicked', () => {
             // Arrange
-            const onDelete = vi.fn();
+            const onDelete = vi.fn<(id: string) => void>();
 
             render(
                 <TestWrapper>
@@ -313,8 +313,8 @@ describe('AdventureCard', () => {
 
         it('should call stopPropagation when Delete button is clicked', () => {
             // Arrange
-            const onDelete = vi.fn();
-            const mockStopPropagation = vi.fn();
+            const onDelete = vi.fn<(id: string) => void>();
+            const mockStopPropagation = vi.fn<() => void>();
 
             render(
                 <TestWrapper>
@@ -334,7 +334,7 @@ describe('AdventureCard', () => {
 
         it('should call onOpen when card is clicked', () => {
             // Arrange
-            const onOpen = vi.fn();
+            const onOpen = vi.fn<(id: string) => void>();
 
             render(
                 <TestWrapper>

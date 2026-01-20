@@ -29,6 +29,7 @@ import {
   useDeleteAdventureMutation,
 } from '@/services/adventuresApi';
 import { useGetContentQuery } from '@/services/contentApi';
+import type { AdventureCard as AdventureCardType } from '@/types/domain';
 import { useDebounce, useInfiniteScroll } from '../../hooks';
 import type { Adventure } from '../../types';
 import { AdventureStyle } from '../../types';
@@ -313,16 +314,29 @@ export function AdventureListView() {
 
       {!isLoading && adventures.length > 0 && (
         <Grid id='adventure-list-grid' container spacing={3}>
-          {adventures.map((adventure) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={adventure.id}>
-              <AdventureCard
-                adventure={adventure}
-                onOpen={handleOpenAdventure}
-                onDuplicate={handleDuplicateAdventure}
-                onDelete={handleDeleteAdventure}
-              />
-            </Grid>
-          ))}
+          {adventures.map((adventure) => {
+            const cardData: AdventureCardType = {
+              id: adventure.id,
+              name: adventure.name,
+              description: adventure.description,
+              style: adventure.style ?? AdventureStyle.Generic,
+              isOneShot: adventure.isOneShot ?? false,
+              isPublished: adventure.isPublished,
+              isPublic: adventure.isPublic ?? false,
+              encounterCount: adventure.encounterCount ?? 0,
+              backgroundId: adventure.background?.id ?? null,
+            };
+            return (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={adventure.id}>
+                <AdventureCard
+                  adventure={cardData}
+                  onOpen={handleOpenAdventure}
+                  onDuplicate={handleDuplicateAdventure}
+                  onDelete={handleDeleteAdventure}
+                />
+              </Grid>
+            );
+          })}
         </Grid>
       )}
 

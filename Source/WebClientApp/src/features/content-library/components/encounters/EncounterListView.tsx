@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Encounter, GridType } from '@/types/domain';
+import { type Encounter, type EncounterCard as EncounterCardType, GridType } from '@/types/domain';
 import { EncounterCard } from './EncounterCard';
 
 export function EncounterListView() {
@@ -186,16 +186,26 @@ export function EncounterListView() {
 
       {!isLoading && filteredEncounters.length > 0 && (
         <Grid id='encounter-list-grid' container spacing={3}>
-          {filteredEncounters.map((encounter) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={encounter.id}>
-              <EncounterCard
-                encounter={encounter}
-                onOpen={handleOpenEncounter}
-                onDuplicate={handleDuplicateEncounter}
-                onDelete={handleDeleteEncounter}
-              />
-            </Grid>
-          ))}
+          {filteredEncounters.map((encounter) => {
+            const cardData: EncounterCardType = {
+              id: encounter.id,
+              name: encounter.name,
+              description: encounter.description,
+              isPublished: encounter.isPublished,
+              isPublic: encounter.isPublic,
+              backgroundId: encounter.stage.background?.id ?? null,
+            };
+            return (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={encounter.id}>
+                <EncounterCard
+                  encounter={cardData}
+                  onOpen={handleOpenEncounter}
+                  onDuplicate={handleDuplicateEncounter}
+                  onDelete={handleDeleteEncounter}
+                />
+              </Grid>
+            );
+          })}
         </Grid>
       )}
 

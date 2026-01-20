@@ -28,7 +28,7 @@ const mockUser = {
     displayName: 'Test User',
     emailConfirmed: true,
 };
-const mockAuthReturnValue = {
+const mockAuthReturnValue: { user: typeof mockUser | null; error: string | null } = {
     user: mockUser,
     error: null,
 };
@@ -659,7 +659,6 @@ describe('ProfileSettings', () => {
         it('should display auth error when present', async () => {
             // Arrange
             mockAuthReturnValue.error = 'Authentication error occurred';
-            (mockAuthReturnValue as unknown as { error: string }).error = 'Authentication error occurred';
 
             // Act
             render(<ProfileSettings />);

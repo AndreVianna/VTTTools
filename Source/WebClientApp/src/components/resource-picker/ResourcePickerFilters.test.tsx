@@ -48,10 +48,10 @@ const renderWithProviders = (ui: React.ReactElement) => {
 describe('ResourcePickerFilters', () => {
     const defaultProps = {
         searchQuery: '',
-        onSearchChange: vi.fn(),
+        onSearchChange: vi.fn<(query: string) => void>(),
         ownershipFilter: 'mine' as const,
-        onOwnershipChange: vi.fn(),
-        onUploadComplete: vi.fn(),
+        onOwnershipChange: vi.fn<(filter: 'mine' | 'all') => void>(),
+        onUploadComplete: vi.fn<() => void>(),
     };
 
     beforeEach(() => {
@@ -79,7 +79,7 @@ describe('ResourcePickerFilters', () => {
 
     it('should call onSearchChange with debounce', async () => {
         const user = userEvent.setup();
-        const onSearchChange = vi.fn();
+        const onSearchChange = vi.fn<(query: string) => void>();
 
         renderWithProviders(
             <ResourcePickerFilters {...defaultProps} onSearchChange={onSearchChange} />
@@ -99,7 +99,7 @@ describe('ResourcePickerFilters', () => {
 
     it('should call onOwnershipChange when toggling ownership filter', async () => {
         const user = userEvent.setup();
-        const onOwnershipChange = vi.fn();
+        const onOwnershipChange = vi.fn<(filter: 'mine' | 'all') => void>();
 
         renderWithProviders(
             <ResourcePickerFilters {...defaultProps} onOwnershipChange={onOwnershipChange} />
@@ -165,10 +165,10 @@ describe('ResourcePickerFilters', () => {
 describe('ResourcePickerFilters upload states', () => {
     const defaultProps = {
         searchQuery: '',
-        onSearchChange: vi.fn(),
+        onSearchChange: vi.fn<(query: string) => void>(),
         ownershipFilter: 'mine' as const,
-        onOwnershipChange: vi.fn(),
-        onUploadComplete: vi.fn(),
+        onOwnershipChange: vi.fn<(filter: 'mine' | 'all') => void>(),
+        onUploadComplete: vi.fn<() => void>(),
     };
 
     beforeEach(() => {

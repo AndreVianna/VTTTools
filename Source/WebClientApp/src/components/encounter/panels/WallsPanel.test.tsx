@@ -9,7 +9,7 @@ import { WALL_PRESETS, type WallPreset } from './wallsPanelTypes';
 
 // Mock the stageApi
 vi.mock('@/services/stageApi', () => ({
-    useUpdateWallMutation: () => [vi.fn().mockResolvedValue({ unwrap: () => Promise.resolve() })],
+    useUpdateWallMutation: () => [vi.fn<() => Promise<{ unwrap: () => Promise<void> }>>().mockResolvedValue({ unwrap: () => Promise.resolve() })],
 }));
 
 const createMockWall = (overrides: Partial<PlacedWall> = {}): PlacedWall => ({
@@ -41,12 +41,12 @@ const renderComponent = (props: Partial<WallsPanelProps> = {}, mode: 'light' | '
         selectedWallIndex: null,
         isEditingVertices: false,
         originalWallPoles: null,
-        onPresetSelect: vi.fn(),
-        onPlaceWall: vi.fn(),
-        onWallSelect: vi.fn(),
-        onWallDelete: vi.fn(),
-        onEditVertices: vi.fn(),
-        onCancelEditing: vi.fn(),
+        onPresetSelect: vi.fn<(preset: WallPreset) => void>(),
+        onPlaceWall: vi.fn<(properties: { type: SegmentType; isOpaque: boolean; state: SegmentState; defaultHeight: number }) => void>(),
+        onWallSelect: vi.fn<(wallIndex: number) => void>(),
+        onWallDelete: vi.fn<(wallIndex: number) => void>(),
+        onEditVertices: vi.fn<(wallIndex: number) => void>(),
+        onCancelEditing: vi.fn<() => void>(),
     };
 
     return renderWithTheme(<WallsPanel {...defaultProps} {...props} />, mode);
@@ -135,7 +135,7 @@ describe('WallsPanel', () => {
         it('should call onPresetSelect when preset is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPresetSelect = vi.fn();
+            const onPresetSelect = vi.fn<(preset: WallPreset) => void>();
             renderComponent({ onPresetSelect });
 
             // Act
@@ -169,7 +169,7 @@ describe('WallsPanel', () => {
         it('should call onPresetSelect with correct preset properties for each type', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPresetSelect = vi.fn();
+            const onPresetSelect = vi.fn<(preset: WallPreset) => void>();
             renderComponent({ onPresetSelect });
 
             // Act & Assert - Test each preset
@@ -216,7 +216,7 @@ describe('WallsPanel', () => {
         it('should pass updated height to onPlaceWall', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPlaceWall = vi.fn();
+            const onPlaceWall = vi.fn<(properties: { type: SegmentType; isOpaque: boolean; state: SegmentState; defaultHeight: number }) => void>();
             renderComponent({ onPlaceWall });
 
             // Act
@@ -251,7 +251,7 @@ describe('WallsPanel', () => {
         it('should call onPlaceWall when place wall button is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPlaceWall = vi.fn();
+            const onPlaceWall = vi.fn<(properties: { type: SegmentType; isOpaque: boolean; state: SegmentState; defaultHeight: number }) => void>();
             renderComponent({ onPlaceWall });
 
             // Act
@@ -265,7 +265,7 @@ describe('WallsPanel', () => {
         it('should pass selected preset properties to onPlaceWall', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPlaceWall = vi.fn();
+            const onPlaceWall = vi.fn<(properties: { type: SegmentType; isOpaque: boolean; state: SegmentState; defaultHeight: number }) => void>();
             renderComponent({ onPlaceWall });
 
             // Act - Select Door preset then place
@@ -288,7 +288,7 @@ describe('WallsPanel', () => {
         it('should show edit conflict dialog when placing wall while editing with changes', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPlaceWall = vi.fn();
+            const onPlaceWall = vi.fn<(properties: { type: SegmentType; isOpaque: boolean; state: SegmentState; defaultHeight: number }) => void>();
             const originalPoles = [
                 { x: 0, y: 0, h: 2.0 },
                 { x: 50, y: 0, h: 2.0 },
@@ -327,8 +327,8 @@ describe('WallsPanel', () => {
         it('should skip edit confirmation and place wall when no changes were made', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onPlaceWall = vi.fn();
-            const onCancelEditing = vi.fn();
+            const onPlaceWall = vi.fn<(properties: { type: SegmentType; isOpaque: boolean; state: SegmentState; defaultHeight: number }) => void>();
+            const onCancelEditing = vi.fn<() => void>();
             const wall = createMockWall();
             const originalPoles = [
                 { x: 0, y: 0, h: 2.0 },
@@ -382,7 +382,7 @@ describe('WallsPanel', () => {
         it('should call onWallSelect when wall list item is clicked', async () => {
             // Arrange
             const user = userEvent.setup();
-            const onWallSelect = vi.fn();
+            const onWallSelect = vi.fn<(wallIndex: number) => void>();
             const walls = [createMockWall()];
             renderComponent({ encounterWalls: walls, onWallSelect });
 
@@ -418,7 +418,7 @@ describe('WallsPanel', () => {
             expect(listItem).toBeInTheDocument();
 
             // Get all IconButtons (excludes the ListItemButton)
-            const iconButtons = within(listItem!).getAllByRole('button').filter((btn) =>
+            const _iconButtons = within(listItem!).getAllByRole('button').filter((btn) =>
                 btn.classList.contains('MuiIconButton-root'),
             );
 

@@ -27,6 +27,7 @@ import {
   useDeleteCampaignMutation,
   useGetCampaignsQuery,
 } from '@/services/campaignsApi';
+import type { CampaignCard as CampaignCardType } from '@/types/domain';
 import { useDebounce } from '../../hooks';
 import { CampaignCard } from './CampaignCard';
 
@@ -213,16 +214,27 @@ export function CampaignListView() {
 
       {!isLoading && filteredCampaigns.length > 0 && (
         <Grid id='campaign-list-grid' container spacing={3}>
-          {filteredCampaigns.map((campaign) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={campaign.id}>
-              <CampaignCard
-                campaign={campaign}
-                onOpen={handleOpenCampaign}
-                onDuplicate={handleDuplicateCampaign}
-                onDelete={handleDeleteCampaign}
-              />
-            </Grid>
-          ))}
+          {filteredCampaigns.map((campaign) => {
+            const cardData: CampaignCardType = {
+              id: campaign.id,
+              name: campaign.name,
+              description: campaign.description,
+              isPublished: campaign.isPublished,
+              isPublic: campaign.isPublic,
+              adventureCount: campaign.adventures?.length ?? 0,
+              backgroundId: campaign.background?.id ?? null,
+            };
+            return (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={campaign.id}>
+                <CampaignCard
+                  campaign={cardData}
+                  onOpen={handleOpenCampaign}
+                  onDuplicate={handleDuplicateCampaign}
+                  onDelete={handleDeleteCampaign}
+                />
+              </Grid>
+            );
+          })}
         </Grid>
       )}
 

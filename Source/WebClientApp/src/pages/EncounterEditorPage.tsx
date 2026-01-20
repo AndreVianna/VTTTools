@@ -592,7 +592,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     ],
   );
 
-  // eslint-disable-next-line react-hooks/refs -- canvasRef.current is accessed in event handlers, not during render
+  /* eslint-disable react-hooks/refs -- canvasRef.current is accessed in event handlers, not during render */
   const canvasHandlers = useMemo(
     () => createCanvasHandlers({
       encounterId,
@@ -622,6 +622,7 @@ const EncounterEditorPageInternal: React.FC = () => {
       setIsEditingRegionVertices, setEditingRegionIndex, navigate,
     ],
   );
+  /* eslint-enable react-hooks/refs */
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4.11 DERIVED STATE

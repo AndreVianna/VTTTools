@@ -1,15 +1,15 @@
 import type React from 'react';
 import type { Encounter, EncounterWall, Point, Pole, SegmentState, SegmentType } from '@/types/domain';
-import type { WallTransaction } from '@/hooks/useWallTransaction';
-import type { RegionTransaction } from '@/hooks/useRegionTransaction';
+import type { UseWallTransactionReturn } from '@/hooks/useWallTransaction';
+import type { UseRegionTransactionReturn } from '@/hooks/useRegionTransaction';
 import { polesToSegments, isWallClosed } from '@/utils/wallUtils';
 import { addWallOptimistic, removeWallOptimistic, removeRegionOptimistic, updateWallOptimistic, updateRegionOptimistic } from '@/utils/encounterStateUtils';
 
 export interface StructureHandlerDeps {
     encounterId: string | undefined;
     encounter: Encounter | null;
-    wallTransaction: WallTransaction;
-    regionTransaction: RegionTransaction;
+    wallTransaction: UseWallTransactionReturn;
+    regionTransaction: UseRegionTransactionReturn;
     setEncounter: React.Dispatch<React.SetStateAction<Encounter | null>>;
     setDrawingWallIndex: React.Dispatch<React.SetStateAction<number | null>>;
     setDrawingWallDefaultHeight: React.Dispatch<React.SetStateAction<number>>;

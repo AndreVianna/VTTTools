@@ -1,27 +1,46 @@
 import { act, renderHook } from '@testing-library/react';
+import type { SetStateAction } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import type { Encounter, PlacedRegion, Point, RegionType } from '@/types/domain';
 import { useFogOfWarManagement } from './useFogOfWarManagement';
 
 // Mock the useFogOfWarPlacement hook
 vi.mock('@/hooks/useFogOfWarPlacement', () => ({
     useFogOfWarPlacement: vi.fn(() => ({
-        handlePolygonComplete: vi.fn(),
-        handleBucketFillComplete: vi.fn(),
+        handlePolygonComplete: vi.fn<(vertices: Point[]) => Promise<void>>(),
+        handleBucketFillComplete: vi.fn<(cellsToFill: Point[][]) => Promise<void>>(),
     })),
 }));
+
+// Type definitions for mock functions
+type AddRegionParams = {
+    stageId: string;
+    data: {
+        type: RegionType;
+        name: string;
+        label?: string;
+        value?: number;
+        vertices: Point[];
+    };
+};
+
+type DeleteRegionParams = { stageId: string; index: number };
 
 describe('useFogOfWarManagement', () => {
     const defaultProps = {
         encounterId: 'test-encounter-id',
-        placedRegions: [],
+        stageId: 'test-stage-id',
+        placedRegions: [] as PlacedRegion[],
         stageSize: { width: 1000, height: 800 },
-        setPlacedRegions: vi.fn(),
-        setEncounter: vi.fn(),
-        setErrorMessage: vi.fn(),
-        refetch: vi.fn().mockResolvedValue({ data: null }),
-        execute: vi.fn().mockResolvedValue(undefined),
-        addRegion: vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue({ index: 0 }) })),
-        deleteRegion: vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(undefined) })),
+        setPlacedRegions: vi.fn<(value: SetStateAction<PlacedRegion[]>) => void>(),
+        setEncounter: vi.fn<(value: SetStateAction<Encounter | null>) => void>(),
+        setErrorMessage: vi.fn<(message: string | null) => void>(),
+        refetch: vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: undefined }),
+        execute: vi.fn<(command: unknown) => Promise<void>>().mockResolvedValue(undefined),
+        addRegion: vi.fn<(params: AddRegionParams) => { unwrap: () => Promise<{ index: number }> }>()
+            .mockReturnValue({ unwrap: vi.fn<() => Promise<{ index: number }>>().mockResolvedValue({ index: 0 }) }),
+        deleteRegion: vi.fn<(params: DeleteRegionParams) => { unwrap: () => Promise<void> }>()
+            .mockReturnValue({ unwrap: vi.fn<() => Promise<void>>().mockResolvedValue(undefined) }),
     };
 
     it('should initialize with default fog mode as add', () => {

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { assetsApi } from './assetsApi';
 
 vi.mock('./enhancedBaseQuery', () => ({
-  createEnhancedBaseQuery: vi.fn(() => vi.fn()),
+  createEnhancedBaseQuery: vi.fn<() => () => unknown>(() => vi.fn<() => unknown>()),
 }));
 
 describe('assetsApi', () => {

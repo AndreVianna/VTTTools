@@ -108,20 +108,27 @@ npm outdated
 ### Build & Run
 
 ```bash
-# Start development server (with hot reload)
-npm run dev
+# Always precede the following commands with:
+pwsh -Command "Set-Location '{project folder}'; 
+
+# List typescript errors
+npm run type-check"
+
+# Lint code
+npm run lint"
+
+# Fix linting issues
+npm run lint:fix
 
 # Build for production
 npm run build
 
+# Start development server (with hot reload)
+npm run dev
+
 # Preview production build
 npm run preview
 
-# Lint code
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
 ```
 
 ---

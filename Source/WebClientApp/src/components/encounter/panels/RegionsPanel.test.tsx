@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PlacedRegion } from '@/types/domain';
 import { RegionsPanel, type RegionsPanelProps } from './RegionsPanel';
+import type { RegionPreset } from './regionsPanelTypes';
 
 // Arrange: Mock RTK Query mutation
-const mockUpdateRegionMutation = vi.fn().mockReturnValue({
-    unwrap: vi.fn().mockResolvedValue(undefined),
+const mockUpdateRegionMutation = vi.fn<[], { unwrap: () => Promise<undefined> }>().mockReturnValue({
+    unwrap: vi.fn<[], Promise<undefined>>().mockResolvedValue(undefined),
 });
 
 vi.mock('@/services/stageApi', () => ({
@@ -64,12 +65,12 @@ describe('RegionsPanel', () => {
         encounterRegions: [],
         selectedRegionIndex: null,
         placementMode: null,
-        onPresetSelect: vi.fn(),
-        onPlaceRegion: vi.fn(),
-        onBucketFillRegion: vi.fn(),
-        onRegionSelect: vi.fn(),
-        onRegionDelete: vi.fn(),
-        onEditVertices: vi.fn(),
+        onPresetSelect: vi.fn<[preset: RegionPreset], void>(),
+        onPlaceRegion: vi.fn<[properties: { name: string; type: string; value: number }], void>(),
+        onBucketFillRegion: vi.fn<[properties: { name: string; type: string; value: number }], void>(),
+        onRegionSelect: vi.fn<[regionIndex: number], void>(),
+        onRegionDelete: vi.fn<[regionIndex: number], void>(),
+        onEditVertices: vi.fn<[regionIndex: number], void>(),
     };
 
     const renderComponent = (props: Partial<RegionsPanelProps> = {}, theme = lightTheme) => {
@@ -379,7 +380,7 @@ describe('RegionsPanel', () => {
 
         it('should show region count in header', async () => {
             // Arrange
-            const user = userEvent.setup();
+            const _user = userEvent.setup();
             const multipleElevationRegions: PlacedRegion[] = [
                 mockElevationRegion,
                 { ...mockElevationRegion, id: 'region-4', index: 3, name: 'Valley' },
@@ -508,7 +509,7 @@ describe('RegionsPanel', () => {
             renderComponent({ encounterRegions: [mockElevationRegion] });
 
             // Act - Click the expand button
-            const expandButton = screen.getAllByRole('button').find(
+            const _expandButton = screen.getAllByRole('button').find(
                 (b) => b.querySelector('[data-testid="ExpandMoreIcon"]') !== null
                     || b.getAttribute('aria-label')?.includes('expand'),
             );

@@ -38,15 +38,19 @@ const createMockEncounterRegion = (name: string, index: number, value: number): 
   ],
 });
 
+type OnAddFn = (encounterId: string, region: Omit<EncounterRegion, 'index' | 'encounterId'>) => Promise<EncounterRegion>;
+type OnRemoveFn = (encounterId: string, regionIndex: number) => Promise<void>;
+type OnRefetchFn = () => Promise<void>;
+
 describe('CreateFogOfWarRegionCommand', () => {
-  let mockOnAdd: ReturnType<typeof vi.fn>;
-  let mockOnRemove: ReturnType<typeof vi.fn>;
-  let mockOnRefetch: ReturnType<typeof vi.fn>;
+  let mockOnAdd: ReturnType<typeof vi.fn<OnAddFn>>;
+  let mockOnRemove: ReturnType<typeof vi.fn<OnRemoveFn>>;
+  let mockOnRefetch: ReturnType<typeof vi.fn<OnRefetchFn>>;
 
   beforeEach(() => {
-    mockOnAdd = vi.fn().mockResolvedValue(createMockEncounterRegion('1', 5, 1));
-    mockOnRemove = vi.fn().mockResolvedValue(undefined);
-    mockOnRefetch = vi.fn().mockResolvedValue(undefined);
+    mockOnAdd = vi.fn<OnAddFn>().mockResolvedValue(createMockEncounterRegion('1', 5, 1));
+    mockOnRemove = vi.fn<OnRemoveFn>().mockResolvedValue(undefined);
+    mockOnRefetch = vi.fn<OnRefetchFn>().mockResolvedValue(undefined);
   });
 
   it('should set description property correctly', () => {
@@ -184,14 +188,14 @@ describe('CreateFogOfWarRegionCommand', () => {
 });
 
 describe('DeleteFogOfWarRegionCommand', () => {
-  let mockOnAdd: ReturnType<typeof vi.fn>;
-  let mockOnRemove: ReturnType<typeof vi.fn>;
-  let mockOnRefetch: ReturnType<typeof vi.fn>;
+  let mockOnAdd: ReturnType<typeof vi.fn<OnAddFn>>;
+  let mockOnRemove: ReturnType<typeof vi.fn<OnRemoveFn>>;
+  let mockOnRefetch: ReturnType<typeof vi.fn<OnRefetchFn>>;
 
   beforeEach(() => {
-    mockOnAdd = vi.fn().mockResolvedValue(createMockEncounterRegion('1', 10, 1));
-    mockOnRemove = vi.fn().mockResolvedValue(undefined);
-    mockOnRefetch = vi.fn().mockResolvedValue(undefined);
+    mockOnAdd = vi.fn<OnAddFn>().mockResolvedValue(createMockEncounterRegion('1', 10, 1));
+    mockOnRemove = vi.fn<OnRemoveFn>().mockResolvedValue(undefined);
+    mockOnRefetch = vi.fn<OnRefetchFn>().mockResolvedValue(undefined);
   });
 
   it('should set description property correctly', () => {
@@ -274,14 +278,14 @@ describe('DeleteFogOfWarRegionCommand', () => {
 });
 
 describe('RevealAllFogOfWarCommand', () => {
-  let mockOnAdd: ReturnType<typeof vi.fn>;
-  let mockOnRemove: ReturnType<typeof vi.fn>;
-  let mockOnRefetch: ReturnType<typeof vi.fn>;
+  let mockOnAdd: ReturnType<typeof vi.fn<OnAddFn>>;
+  let mockOnRemove: ReturnType<typeof vi.fn<OnRemoveFn>>;
+  let mockOnRefetch: ReturnType<typeof vi.fn<OnRefetchFn>>;
 
   beforeEach(() => {
-    mockOnAdd = vi.fn();
-    mockOnRemove = vi.fn().mockResolvedValue(undefined);
-    mockOnRefetch = vi.fn().mockResolvedValue(undefined);
+    mockOnAdd = vi.fn<OnAddFn>();
+    mockOnRemove = vi.fn<OnRemoveFn>().mockResolvedValue(undefined);
+    mockOnRefetch = vi.fn<OnRefetchFn>().mockResolvedValue(undefined);
   });
 
   it('should set description property correctly', () => {

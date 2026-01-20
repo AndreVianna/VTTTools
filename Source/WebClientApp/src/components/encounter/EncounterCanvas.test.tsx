@@ -101,7 +101,7 @@ describe('EncounterCanvas', () => {
         stageOverrides?: Partial<{ x: () => number; y: () => number; scaleX: () => number }>
     ) => ({
         evt: {
-            preventDefault: vi.fn(),
+            preventDefault: vi.fn<() => void>(),
             ...nativeEvent,
         },
         target: {
@@ -267,7 +267,7 @@ describe('EncounterCanvas', () => {
         it('should zoom in when zoomIn is called', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
 
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
@@ -285,7 +285,7 @@ describe('EncounterCanvas', () => {
         it('should zoom out when zoomOut is called', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
 
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
@@ -381,7 +381,7 @@ describe('EncounterCanvas', () => {
             const ref = createRef<EncounterCanvasHandle>();
             const initialPosition = { x: 100, y: 200 };
             const initialScale = 1.5;
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
 
             render(
                 <EncounterCanvas
@@ -412,7 +412,7 @@ describe('EncounterCanvas', () => {
         it('should notify viewport change on reset', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
             const initialPosition = { x: 50, y: 50 };
             const initialScale = 2;
 
@@ -448,7 +448,7 @@ describe('EncounterCanvas', () => {
         it('should set viewport position and scale programmatically', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
             const newViewport: Viewport = { x: 300, y: 400, scale: 2.5 };
 
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
@@ -505,7 +505,7 @@ describe('EncounterCanvas', () => {
     describe('Stage Callback Ref', () => {
         it('should call stageCallbackRef when provided', () => {
             // Arrange
-            const stageCallbackRef = vi.fn();
+            const stageCallbackRef = vi.fn<(stage: unknown) => void>();
 
             // Act
             render(<EncounterCanvas {...defaultProps} stageCallbackRef={stageCallbackRef} />);
@@ -520,7 +520,7 @@ describe('EncounterCanvas', () => {
         it('should call onViewportChange when zoom changes', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
 
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
@@ -543,7 +543,7 @@ describe('EncounterCanvas', () => {
         it('should not call onViewportChange when callback is not provided', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation((() => {}) as typeof console.error);
 
             // Act & Assert - should not throw
             render(<EncounterCanvas {...defaultProps} ref={ref} />);
@@ -571,7 +571,7 @@ describe('EncounterCanvas', () => {
 
         it('should accept onClick callback prop', () => {
             // Arrange
-            const onClick = vi.fn();
+            const onClick = vi.fn<(position: { x: number; y: number }) => void>();
 
             // Act
             render(<EncounterCanvas {...defaultProps} onClick={onClick} />);
@@ -669,8 +669,8 @@ describe('EncounterCanvas', () => {
         it('should cleanup without errors on unmount', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation((() => {}) as typeof console.error);
 
             const { unmount } = render(
                 <EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />
@@ -687,15 +687,15 @@ describe('EncounterCanvas', () => {
         it('should not update state after unmount', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation((() => {}) as typeof console.error);
 
             const { unmount } = render(
                 <EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />
             );
 
-            // Keep ref before unmount
-            const handle = ref.current;
+            // Keep ref before unmount (verify it exists)
+            const _handle = ref.current;
 
             // Act
             unmount();
@@ -720,7 +720,7 @@ describe('EncounterCanvas', () => {
         it('should zoom in when wheel scrolls up (negative deltaY)', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
             const wheelEvent = createMockKonvaEvent({ deltaY: -100 });
@@ -739,7 +739,7 @@ describe('EncounterCanvas', () => {
         it('should zoom out when wheel scrolls down (positive deltaY)', () => {
             // Arrange
             const ref = createRef<EncounterCanvasHandle>();
-            const onViewportChange = vi.fn();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
             render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
             const wheelEvent = createMockKonvaEvent({ deltaY: 100 });
@@ -768,6 +768,12 @@ describe('EncounterCanvas', () => {
             // Assert
             expect(wheelEvent.evt.preventDefault).toHaveBeenCalled();
         });
+
+        it('should update viewport position during pan', () => {
+            // Arrange
+            const ref = createRef<EncounterCanvasHandle>();
+            const onViewportChange = vi.fn<(viewport: Viewport) => void>();
+            render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
         it('should not zoom beyond maxZoom via wheel', () => {
             // Arrange
@@ -859,7 +865,7 @@ describe('EncounterCanvas', () => {
             });
 
             // Move mouse - need to re-render to get the onMouseMove handler
-            const { rerender } = render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
+            const { rerender: _rerender } = render(<EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />);
 
             // Check if onMouseMove is now available (after panning started)
             if (mockStageHandlers.onMouseMove) {
