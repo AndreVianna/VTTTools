@@ -2,38 +2,37 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { useNavigate } from 'react-router-dom';
-import {
-    useCloneAdventureMutation,
-    useCreateAdventureMutation,
-    useCreateEncounterMutation,
-    useDeleteAdventureMutation,
-} from '@/services/adventuresApi';
-import { useGetContentQuery } from '@/services/contentApi';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useDebounce, useInfiniteScroll } from '../../hooks';
 import type { Adventure } from '../../types';
 import { AdventureStyle, ContentType } from '../../types';
 import { AdventureListView } from './AdventureListView';
 
 // Mock dependencies
+const mockNavigate = vi.fn();
 vi.mock('react-router-dom', () => ({
-    useNavigate: vi.fn<() => (to: string) => void>(),
+    useNavigate: () => mockNavigate,
 }));
+
+const mockCreateAdventure = vi.fn();
+const mockDeleteAdventure = vi.fn();
+const mockCloneAdventure = vi.fn();
+const mockCreateEncounter = vi.fn();
 
 vi.mock('@/services/adventuresApi', () => ({
-    useCreateAdventureMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
-    useCreateEncounterMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
-    useDeleteAdventureMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
-    useCloneAdventureMutation: vi.fn<() => [() => Promise<unknown>, { isLoading: boolean }]>(),
+    useCreateAdventureMutation: () => [mockCreateAdventure, { isLoading: false }],
+    useCreateEncounterMutation: () => [mockCreateEncounter, { isLoading: false }],
+    useDeleteAdventureMutation: () => [mockDeleteAdventure, { isLoading: false }],
+    useCloneAdventureMutation: () => [mockCloneAdventure, { isLoading: false }],
 }));
 
+const mockUseGetContentQuery = vi.fn();
 vi.mock('@/services/contentApi', () => ({
-    useGetContentQuery: vi.fn<() => unknown>(),
+    useGetContentQuery: () => mockUseGetContentQuery(),
 }));
 
 vi.mock('../../hooks', () => ({
-    useDebounce: vi.fn((value) => value),
+    useDebounce: vi.fn((value: string) => value),
     useInfiniteScroll: vi.fn(() => ({ sentinelRef: { current: null } })),
 }));
 
@@ -55,11 +54,6 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 TestWrapper.displayName = 'TestWrapper';
 
 describe('AdventureListView', () => {
-    const mockNavigate = vi.fn<(to: string) => void>();
-    const mockCreateAdventure = vi.fn<() => Promise<unknown>>();
-    const mockDeleteAdventure = vi.fn<(id: string) => Promise<unknown>>();
-    const mockCloneAdventure = vi.fn<(id: string) => Promise<unknown>>();
-
     const mockAdventures: Adventure[] = [
         {
             id: 'adventure-1',
@@ -90,38 +84,32 @@ describe('AdventureListView', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        // Setup default mocks
-        (useNavigate as Mock).mockReturnValue(mockNavigate);
-
-        (useCreateAdventureMutation as Mock).mockReturnValue([
-            mockCreateAdventure,
-            { isLoading: false },
-        ]);
-
-        (useCreateEncounterMutation as Mock).mockReturnValue([
-            vi.fn(),
-            { isLoading: false },
-        ]);
-
-        (useDeleteAdventureMutation as Mock).mockReturnValue([
-            mockDeleteAdventure,
-            { isLoading: false },
-        ]);
-
-        (useCloneAdventureMutation as Mock).mockReturnValue([
-            mockCloneAdventure,
-            { isLoading: false },
-        ]);
-
-        (useGetContentQuery as Mock).mockReturnValue({
+        // Default mock returns
+        mockUseGetContentQuery.mockReturnValue({
             data: { data: mockAdventures, hasMore: false, nextCursor: null },
             isLoading: false,
             isFetching: false,
             error: null,
         });
 
-        (useDebounce as Mock).mockImplementation((value) => value);
-        (useInfiniteScroll as Mock).mockReturnValue({ sentinelRef: { current: null } });
+        mockCreateAdventure.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue({ id: 'new-adventure-id' }),
+        });
+
+        mockDeleteAdventure.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue(undefined),
+        });
+
+        mockCloneAdventure.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue({ id: 'cloned-adventure-id' }),
+        });
+
+        mockCreateEncounter.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue({ id: 'new-encounter-id' }),
+        });
+
+        vi.mocked(useDebounce).mockImplementation(<T,>(value: T) => value);
+        vi.mocked(useInfiniteScroll).mockReturnValue({ sentinelRef: { current: null } });
     });
 
     describe('rendering', () => {
@@ -170,7 +158,7 @@ describe('AdventureListView', () => {
     describe('loading state', () => {
         it('should show loading message when isLoading is true', () => {
             // Arrange
-            (useGetContentQuery as Mock).mockReturnValue({
+            mockUseGetContentQuery.mockReturnValue({
                 data: null,
                 isLoading: true,
                 isFetching: false,
@@ -192,7 +180,7 @@ describe('AdventureListView', () => {
     describe('empty states', () => {
         it('should show empty state when no adventures and no search query', () => {
             // Arrange
-            (useGetContentQuery as Mock).mockReturnValue({
+            mockUseGetContentQuery.mockReturnValue({
                 data: { data: [], hasMore: false, nextCursor: null },
                 isLoading: false,
                 isFetching: false,
@@ -215,7 +203,7 @@ describe('AdventureListView', () => {
         it('should show no results state when no adventures but search query exists', async () => {
             // Arrange
             const user = userEvent.setup();
-            (useGetContentQuery as Mock).mockReturnValue({
+            mockUseGetContentQuery.mockReturnValue({
                 data: { data: [], hasMore: false, nextCursor: null },
                 isLoading: false,
                 isFetching: false,
@@ -259,7 +247,7 @@ describe('AdventureListView', () => {
             const user = userEvent.setup();
             const createdAdventure = { id: 'new-adventure-id' };
             mockCreateAdventure.mockReturnValue({
-                unwrap: () => Promise.resolve(createdAdventure),
+                unwrap: vi.fn().mockResolvedValue(createdAdventure),
             });
 
             // Act
@@ -294,7 +282,7 @@ describe('AdventureListView', () => {
                 resolveCreate = resolve;
             });
             mockCreateAdventure.mockReturnValue({
-                unwrap: () => createPromise,
+                unwrap: vi.fn().mockImplementation(() => createPromise),
             });
 
             // Act
@@ -321,7 +309,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockCreateAdventure.mockReturnValue({
-                unwrap: () => Promise.reject(new Error('Create failed')),
+                unwrap: vi.fn().mockRejectedValue(new Error('Create failed')),
             });
 
             // Act
@@ -354,7 +342,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            if (!firstDeleteButton) throw new Error('Delete button not found');
+            await user.click(firstDeleteButton);
 
             // Assert
             expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -366,7 +356,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockDeleteAdventure.mockReturnValue({
-                unwrap: () => Promise.resolve(),
+                unwrap: vi.fn().mockResolvedValue(undefined),
             });
 
             // Act
@@ -377,7 +367,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            if (!firstDeleteButton) throw new Error('Delete button not found');
+            await user.click(firstDeleteButton);
 
             const confirmButton = screen.getByRole('button', { name: /^delete$/i });
             await user.click(confirmButton);
@@ -400,7 +392,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            if (!firstDeleteButton) throw new Error('Delete button not found');
+            await user.click(firstDeleteButton);
 
             const cancelButton = screen.getByRole('button', { name: /cancel/i });
             await user.click(cancelButton);
@@ -415,7 +409,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockDeleteAdventure.mockReturnValue({
-                unwrap: () => Promise.resolve(),
+                unwrap: vi.fn().mockResolvedValue(undefined),
             });
 
             // Act
@@ -426,7 +420,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            if (!firstDeleteButton) throw new Error('Delete button not found');
+            await user.click(firstDeleteButton);
 
             const confirmButton = screen.getByRole('button', { name: /^delete$/i });
             await user.click(confirmButton);
@@ -441,7 +437,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockDeleteAdventure.mockReturnValue({
-                unwrap: () => Promise.reject(new Error('Delete failed')),
+                unwrap: vi.fn().mockRejectedValue(new Error('Delete failed')),
             });
 
             // Act
@@ -452,7 +448,9 @@ describe('AdventureListView', () => {
             );
 
             const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-            await user.click(deleteButtons[0]);
+            const firstDeleteButton = deleteButtons[0];
+            if (!firstDeleteButton) throw new Error('Delete button not found');
+            await user.click(firstDeleteButton);
 
             const confirmButton = screen.getByRole('button', { name: /^delete$/i });
             await user.click(confirmButton);
@@ -469,7 +467,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockCloneAdventure.mockReturnValue({
-                unwrap: () => Promise.resolve(),
+                unwrap: vi.fn().mockResolvedValue({ id: 'cloned-adventure-id' }),
             });
 
             // Act
@@ -480,7 +478,9 @@ describe('AdventureListView', () => {
             );
 
             const duplicateButtons = screen.getAllByRole('button', { name: 'Duplicate' });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            if (!firstDuplicateButton) throw new Error('Duplicate button not found');
+            await user.click(firstDuplicateButton);
 
             // Assert
             await waitFor(() => {
@@ -492,7 +492,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockCloneAdventure.mockReturnValue({
-                unwrap: () => Promise.resolve(),
+                unwrap: vi.fn().mockResolvedValue({ id: 'cloned-adventure-id' }),
             });
 
             // Act
@@ -503,7 +503,9 @@ describe('AdventureListView', () => {
             );
 
             const duplicateButtons = screen.getAllByRole('button', { name: 'Duplicate' });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            if (!firstDuplicateButton) throw new Error('Duplicate button not found');
+            await user.click(firstDuplicateButton);
 
             // Assert
             await waitFor(() => {
@@ -515,7 +517,7 @@ describe('AdventureListView', () => {
             // Arrange
             const user = userEvent.setup();
             mockCloneAdventure.mockReturnValue({
-                unwrap: () => Promise.reject(new Error('Clone failed')),
+                unwrap: vi.fn().mockRejectedValue(new Error('Clone failed')),
             });
 
             // Act
@@ -526,7 +528,9 @@ describe('AdventureListView', () => {
             );
 
             const duplicateButtons = screen.getAllByRole('button', { name: 'Duplicate' });
-            await user.click(duplicateButtons[0]);
+            const firstDuplicateButton = duplicateButtons[0];
+            if (!firstDuplicateButton) throw new Error('Duplicate button not found');
+            await user.click(firstDuplicateButton);
 
             // Assert
             await waitFor(() => {
@@ -548,7 +552,9 @@ describe('AdventureListView', () => {
             );
 
             const openButtons = screen.getAllByRole('button', { name: 'Open' });
-            await user.click(openButtons[0]);
+            const firstOpenButton = openButtons[0];
+            if (!firstOpenButton) throw new Error('Open button not found');
+            await user.click(firstOpenButton);
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledWith('/adventures/adventure-1');
@@ -558,7 +564,7 @@ describe('AdventureListView', () => {
     describe('error handling', () => {
         it('should show error alert when query fails', () => {
             // Arrange
-            (useGetContentQuery as Mock).mockReturnValue({
+            mockUseGetContentQuery.mockReturnValue({
                 data: null,
                 isLoading: false,
                 isFetching: false,

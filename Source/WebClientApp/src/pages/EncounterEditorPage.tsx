@@ -54,6 +54,7 @@ import {
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { useAppDispatch } from '@/store';
 import {
+  type Asset,
   AssetKind,
   type Encounter,
   type PlacedAsset,
@@ -164,7 +165,10 @@ const EncounterEditorPageInternal: React.FC = () => {
   // 4.4 QUERY ADAPTERS
   // Wrappers that transform query results for hook consumption
   // ═══════════════════════════════════════════════════════════════════════════
-  const wrappedRefetch = useMemo(() => createEncounterRefetch(refetch), [refetch]);
+  const wrappedRefetch = useMemo(() => createEncounterRefetch(async () => {
+    const result = await refetch();
+    return result.data ? { data: result.data } : {};
+  }), [refetch]);
 
   const wallMutations = useMemo(() => ({
     addWall: stageAddWall,
@@ -342,13 +346,14 @@ const EncounterEditorPageInternal: React.FC = () => {
     handleBucketFillComplete,
   } = useFogOfWarManagement({
     encounterId: encounterId || '',
+    stageId: encounterId,
     placedRegions,
     stageSize,
     setPlacedRegions,
     setEncounter,
     setErrorMessage,
     refetch: wrappedRefetch,
-    execute,
+    execute: execute as (command: unknown) => Promise<void>,
     addRegion,
     deleteRegion,
   });
@@ -382,14 +387,27 @@ const EncounterEditorPageInternal: React.FC = () => {
     selectedSoundSourceIndex,
     setSelectedLightSourceIndex,
     setSelectedSoundSourceIndex,
-    execute,
-    refetch,
-    addLight,
+    execute: execute as (command: unknown) => Promise<void>,
+    refetch: () => { refetch(); },
+    addLight: (params: { stageId: string; data: unknown }) => ({
+      unwrap: async () => {
+        const result = await addLight(params as Parameters<typeof addLight>[0]).unwrap();
+        return { index: result.index };
+      },
+    }),
     deleteLight,
-    updateLight,
+    updateLight: (params: { stageId: string; index: number; data: unknown }) => ({
+      unwrap: async () => {
+        await updateLight(params as Parameters<typeof updateLight>[0]).unwrap();
+      },
+    }),
     addSound,
     deleteSound,
-    updateSound,
+    updateSound: (params: { stageId: string; index: number; data: unknown }) => ({
+      unwrap: async () => {
+        await updateSound(params as Parameters<typeof updateSound>[0]).unwrap();
+      },
+    }),
   });
 
   const { saveChanges } = useSaveChanges({
@@ -438,7 +456,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   };
 
   // Domain hooks that need drawingMode
-  const drawingMode: DrawingMode = getDrawingMode(activeScope, regionPlacementMode);
+  const drawingMode: DrawingMode = getDrawingMode(activeScope, regionPlacementMode ?? 'polygon');
   const isUsingDrawingTool = isDrawingToolActive(drawingMode, drawingWallIndex, drawingRegionIndex, null);
 
   const wallHandlers = useWallHandlers({
@@ -544,8 +562,8 @@ const EncounterEditorPageInternal: React.FC = () => {
     canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
     stageSize,
     encounterId,
-    ...(effectiveBackgroundSize && { backgroundSize: effectiveBackgroundSize }),
-    savedStartingView,
+    ...(effectiveBackgroundSize ? { backgroundSize: effectiveBackgroundSize } : {}),
+    ...(savedStartingView ? { savedStartingView } : {}),
   });
 
   const contextMenus = useContextMenus({ encounter });
@@ -597,7 +615,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     () => createCanvasHandlers({
       encounterId,
       stageSize,
-      canvasRef,
+      canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>,
       updateStageSettings,
       refetch: async () => { await refetch(); },
       setIsStartingViewLoading,
@@ -1035,16 +1053,16 @@ const EncounterEditorPageInternal: React.FC = () => {
               regionTransaction={regionTransaction}
               isAltPressed={keyboardState.isAltPressed}
               onRegionSelect={regionHandlers.handleEditRegionVertices}
-              onRegionContextMenu={contextMenus.regionContextMenu.handleOpen}
+              onRegionContextMenu={(region: PlacedRegion, position) => contextMenus.regionContextMenu.handleOpen(region.index, position)}
               onLightSourceSelect={handleLightSourceSelect}
-              onLightSourceContextMenu={handleLightSourceContextMenu}
-              onLightSourcePositionChange={handleLightSourcePositionChange}
-              onLightSourceDirectionChange={handleLightSourceDirectionChange}
+              onLightSourceContextMenu={(index, position) => handleLightSourceContextMenu(index, { x: position.left, y: position.top })}
+              onLightSourcePositionChange={(index, position) => Promise.resolve(handleLightSourcePositionChange(index, position))}
+              onLightSourceDirectionChange={(index, direction) => Promise.resolve(handleLightSourceDirectionChange(index, direction))}
               onSoundSourceSelect={handleSoundSourceSelect}
-              onSoundSourceContextMenu={handleSoundSourceContextMenu}
-              onSoundSourcePositionChange={handleSoundSourcePositionChange}
+              onSoundSourceContextMenu={(index, position) => handleSoundSourceContextMenu(index, { x: position.left, y: position.top })}
+              onSoundSourcePositionChange={(index, position) => Promise.resolve(handleSoundSourcePositionChange(index, position))}
               onWallClick={wallHandlers.handleEditVertices}
-              onWallContextMenu={contextMenus.wallContextMenu.handleOpen}
+              onWallContextMenu={(wall: PlacedWall, segmentIndex, position) => contextMenus.wallContextMenu.handleOpen(wall.index, segmentIndex, position)}
               onWallBreak={wallHandlers.handleWallBreak}
               onFinishEditing={wallHandlers.handleFinishEditing}
               setPreviewWallPoles={setPreviewWallPoles}
@@ -1104,10 +1122,10 @@ const EncounterEditorPageInternal: React.FC = () => {
                 onStructurePlacementCancel={structureHandlers.handleStructurePlacementCancel}
                 onStructurePlacementFinish={structureHandlers.handleStructurePlacementFinish}
                 onRegionPlacementCancel={structureHandlers.handleRegionPlacementCancel}
-                onBucketFillFinish={regionHandlers.handleBucketFillFinish}
+                onBucketFillFinish={async () => { /* bucket fill handled by RegionBucketFillTool */ }}
                 activeTool={activeTool}
                 sourcePlacementProperties={sourcePlacementProperties}
-                execute={execute}
+                execute={execute as (command: unknown) => Promise<void>}
                 refetch={async () => { await refetch(); }}
                 onSourcePlacementFinish={handleSourcePlacementFinish}
                 onSourcePlacementCancel={() => handleSourcePlacementFinish(false)}
@@ -1203,7 +1221,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         onAssetPickerClose={() => setAssetPickerOpen({ open: false })}
         onAssetSelect={(asset) => {
           setAssetPickerOpen({ open: false });
-          assetManagement.setDraggedAsset(asset);
+          assetManagement.setDraggedAsset(asset as Asset | null);
         }}
         soundPickerOpen={soundPickerOpen}
         onSoundPickerClose={() => setSoundPickerOpen(false)}

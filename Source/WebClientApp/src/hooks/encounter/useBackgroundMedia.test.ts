@@ -6,7 +6,8 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useBackgroundMedia } from './useBackgroundMedia';
-import type { Encounter } from '@/types/domain';
+import type { Encounter, GridType, Weather } from '@/types/domain';
+import type { ResourceMetadata, StageSettings, AmbientLight, AmbientSoundSource } from '@/types/stage';
 
 // Mock the config to provide consistent API endpoint
 vi.mock('@/config/development', () => ({
@@ -15,7 +16,19 @@ vi.mock('@/config/development', () => ({
     }),
 }));
 
-const createMockEncounter = (settingsOverrides?: Partial<NonNullable<Encounter['stage']['settings']>>): Encounter => ({
+const createDefaultSettings = (): StageSettings => ({
+    useAlternateBackground: false,
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: 'Default' as AmbientLight,
+    ambientSoundSource: 'NotSet' as AmbientSoundSource,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: 'Clear' as Weather,
+});
+
+const createMockEncounter = (settingsOverrides?: Partial<StageSettings>): Encounter => ({
     id: 'test-encounter-id',
     ownerId: 'test-owner-id',
     name: 'Test Encounter',
@@ -28,23 +41,25 @@ const createMockEncounter = (settingsOverrides?: Partial<NonNullable<Encounter['
     effects: [],
     stage: {
         id: 'test-stage-id',
-        encounterId: 'test-encounter-id',
+        ownerId: 'test-owner-id',
+        name: 'Test Stage',
+        description: '',
+        isPublished: false,
+        isPublic: false,
         grid: {
-            type: 'Square',
-            cellSize: 50,
-            offset: { x: 0, y: 0 },
+            type: 'Square' as GridType,
+            cellSize: { width: 50, height: 50 },
+            offset: { left: 0, top: 0 },
             scale: 1,
         },
-        settings: settingsOverrides ? {
-            mainBackground: null,
-            alternateBackground: null,
-            zoomLevel: 1,
-            panning: { x: 0, y: 0 },
+        settings: {
+            ...createDefaultSettings(),
             ...settingsOverrides,
-        } : null,
+        },
         walls: [],
         regions: [],
         lights: [],
+        elements: [],
         sounds: [],
     },
 });
@@ -62,7 +77,7 @@ describe('useBackgroundMedia', () => {
             expect(result.current.backgroundContentType).toBeUndefined();
         });
 
-        it('should return undefined backgroundUrl when settings is null', () => {
+        it('should return undefined backgroundUrl when mainBackground is not set', () => {
             // Arrange
             const encounter = createMockEncounter();
 

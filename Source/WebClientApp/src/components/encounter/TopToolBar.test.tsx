@@ -115,13 +115,10 @@ describe('TopToolBar', () => {
 
         it('should not render visibility controls when layer visibility is not provided', () => {
             // Arrange
-            const props = createDefaultProps({
-                layerVisibility: undefined,
-                onLayerVisibilityToggle: undefined,
-            });
+            const { layerVisibility: _, onLayerVisibilityToggle: __, ...propsWithoutVisibility } = createDefaultProps();
 
             // Act
-            render(<TopToolBar {...props} />);
+            render(<TopToolBar {...propsWithoutVisibility} />);
 
             // Assert
             expect(screen.queryByLabelText('Show All')).not.toBeInTheDocument();

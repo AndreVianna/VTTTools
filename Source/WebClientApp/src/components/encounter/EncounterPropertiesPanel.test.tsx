@@ -7,7 +7,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Encounter } from '@/types/domain';
+import { AdventureStyle, ContentType, type Encounter, Weather } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { EncounterPropertiesPanel, type EncounterPropertiesPanelProps } from './EncounterPropertiesPanel';
@@ -27,14 +28,12 @@ const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => (
     isPublic: false,
     adventure: {
         id: 'adventure-1',
+        type: ContentType.Adventure,
         ownerId: 'user-1',
         name: 'Test Adventure',
         description: 'Adventure description',
-        style: 'Fantasy',
+        style: AdventureStyle.Generic,
         isOneShot: false,
-        campaignId: null,
-        campaign: null,
-        cover: null,
         isPublished: false,
         isPublic: false,
         encounters: [],
@@ -49,16 +48,18 @@ const createMockEncounter = (overrides: Partial<Encounter> = {}): Encounter => (
         settings: {
             mainBackground: null,
             alternateBackground: null,
+            useAlternateBackground: false,
             zoomLevel: 1,
             panning: { x: 0, y: 0 },
-            ambientLight: 0,
+            ambientLight: AmbientLight.Default,
+            ambientSoundSource: AmbientSoundSource.NotSet,
             ambientSoundVolume: 0.5,
             ambientSoundLoop: true,
             ambientSoundIsPlaying: false,
-            weather: 'Clear',
+            weather: Weather.Clear,
         },
         grid: {
-            type: 'Square',
+            type: GridType.Square,
             cellSize: { width: 50, height: 50 },
             offset: { left: 0, top: 0 },
             scale: 1,
@@ -86,18 +87,19 @@ const createMockGridConfig = (overrides: Partial<GridConfig> = {}): GridConfig =
 });
 
 // Default props factory
-const createDefaultProps = (overrides: Partial<EncounterPropertiesPanelProps> = {}): EncounterPropertiesPanelProps => ({
-    open: true,
-    encounter: createMockEncounter(),
-    gridConfig: createMockGridConfig(),
-    onDescriptionChange: vi.fn<(description: string) => void>(),
-    onPublishedChange: vi.fn<(published: boolean) => void>(),
-    onBackgroundUpload: vi.fn<(file: File) => void>(),
-    onGridChange: vi.fn<(grid: GridConfig) => void>(),
-    backgroundUrl: undefined,
-    isUploadingBackground: false,
-    ...overrides,
-});
+const createDefaultProps = (overrides: Partial<EncounterPropertiesPanelProps> = {}): EncounterPropertiesPanelProps => {
+    const baseProps: EncounterPropertiesPanelProps = {
+        open: true,
+        encounter: createMockEncounter(),
+        gridConfig: createMockGridConfig(),
+        onDescriptionChange: vi.fn<(description: string) => void>(),
+        onPublishedChange: vi.fn<(published: boolean) => void>(),
+        onBackgroundUpload: vi.fn<(file: File) => void>(),
+        onGridChange: vi.fn<(grid: GridConfig) => void>(),
+        isUploadingBackground: false,
+    };
+    return { ...baseProps, ...overrides };
+};
 
 // Render helper with required providers
 const renderComponent = (props: Partial<EncounterPropertiesPanelProps> = {}) => {
@@ -158,14 +160,12 @@ describe('EncounterPropertiesPanel', () => {
             const encounter = createMockEncounter({
                 adventure: {
                     id: 'adventure-1',
+                    type: ContentType.Adventure,
                     ownerId: 'user-1',
                     name: 'Epic Quest',
                     description: '',
-                    style: 'Fantasy',
+                    style: AdventureStyle.Generic,
                     isOneShot: false,
-                    campaignId: null,
-                    campaign: null,
-                    cover: null,
                     isPublished: false,
                     isPublic: false,
                     encounters: [],
@@ -200,8 +200,8 @@ describe('EncounterPropertiesPanel', () => {
         });
 
         it('should display "Default" badge when no custom background', () => {
-            // Arrange & Act
-            renderComponent({ backgroundUrl: undefined });
+            // Arrange & Act - omit backgroundUrl to test default behavior
+            renderComponent({});
 
             // Assert
             expect(screen.getByText('Default')).toBeInTheDocument();
@@ -604,14 +604,12 @@ describe('EncounterPropertiesPanel', () => {
             const encounter = createMockEncounter({
                 adventure: {
                     id: 'adventure-123',
+                    type: ContentType.Adventure,
                     ownerId: 'user-1',
                     name: 'Navigate Adventure',
                     description: '',
-                    style: 'Fantasy',
+                    style: AdventureStyle.Generic,
                     isOneShot: false,
-                    campaignId: null,
-                    campaign: null,
-                    cover: null,
                     isPublished: false,
                     isPublic: false,
                     encounters: [],
@@ -735,14 +733,12 @@ describe('EncounterPropertiesPanel', () => {
             const encounter = createMockEncounter({
                 adventure: {
                     id: 'adventure-theme-test',
+                    type: ContentType.Adventure,
                     ownerId: 'user-1',
                     name: 'Theme Test Adventure',
                     description: '',
-                    style: 'Fantasy',
+                    style: AdventureStyle.Generic,
                     isOneShot: false,
-                    campaignId: null,
-                    campaign: null,
-                    cover: null,
                     isPublished: false,
                     isPublic: false,
                     encounters: [],
@@ -779,9 +775,18 @@ describe('EncounterPropertiesPanel', () => {
         it('should handle missing onGridChange gracefully', async () => {
             // Arrange
             const user = userEvent.setup();
+            // Create props without onGridChange by deleting it from the result
+            const propsWithoutGridChange = createDefaultProps({});
+            delete propsWithoutGridChange.onGridChange;
 
             // Act - Render without onGridChange callback
-            renderComponent({ onGridChange: undefined });
+            render(
+                <MemoryRouter>
+                    <ThemeProvider theme={theme}>
+                        <EncounterPropertiesPanel {...propsWithoutGridChange} />
+                    </ThemeProvider>
+                </MemoryRouter>,
+            );
             const widthInput = screen.getByLabelText('W');
 
             // Assert - No crash when changing value
@@ -791,8 +796,17 @@ describe('EncounterPropertiesPanel', () => {
         });
 
         it('should handle missing onBackgroundUpload gracefully', async () => {
-            // Arrange
-            const { container } = renderComponent({ onBackgroundUpload: undefined });
+            // Arrange - Create props without onBackgroundUpload by deleting it from the result
+            const propsWithoutBackgroundUpload = createDefaultProps({});
+            delete propsWithoutBackgroundUpload.onBackgroundUpload;
+
+            const { container } = render(
+                <MemoryRouter>
+                    <ThemeProvider theme={theme}>
+                        <EncounterPropertiesPanel {...propsWithoutBackgroundUpload} />
+                    </ThemeProvider>
+                </MemoryRouter>,
+            );
 
             // Act
             const file = new File(['test'], 'background.png', { type: 'image/png' });

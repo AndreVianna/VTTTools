@@ -166,9 +166,9 @@ export const EncounterPropertiesPanel: React.FC<EncounterPropertiesPanelProps> =
     }
   };
 
-  const handleGridTypeChange = (e: SelectChangeEvent<GridType>) => {
+  const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
     if (!encounter?.stage.grid || !onGridChange) return;
-    const newType = e.target.value;
+    const newType = e.target.value as GridType;
 
     onGridChange({
       type: newType,

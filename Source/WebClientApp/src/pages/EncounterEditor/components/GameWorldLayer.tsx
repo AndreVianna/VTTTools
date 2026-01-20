@@ -6,6 +6,7 @@ import {
     RegionTransformer,
     WallRenderer,
     WallTransformer,
+    type WallBreakData,
 } from '@components/encounter';
 import { SoundSourceRenderer } from '@components/encounter';
 import { GroupName, LayerName } from '@services/layerManager';
@@ -90,7 +91,7 @@ export interface GameWorldLayerProps {
     // Callbacks for walls
     onWallClick: (wallIndex: number) => void;
     onWallContextMenu: (wall: PlacedWall, segmentIndex: number, position: { x: number; y: number }) => void;
-    onWallBreak: (wallIndex: number, poleIndex: number) => Promise<void>;
+    onWallBreak: (breakData: WallBreakData) => void | Promise<void>;
     onFinishEditing: () => void;
     setPreviewWallPoles: (poles: Pole[] | null) => void;
 

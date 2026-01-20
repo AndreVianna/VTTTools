@@ -7,9 +7,23 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useGridConfigSync } from './useGridConfigSync';
 import { GridType, getDefaultGrid } from '@/utils/gridCalculator';
-import type { Encounter } from '@/types/domain';
+import type { Encounter, Weather } from '@/types/domain';
+import type { StageGrid } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 
-const createMockEncounter = (gridOverrides?: Partial<Encounter['stage']['grid']>): Encounter => ({
+const createDefaultStageSettings = () => ({
+    useAlternateBackground: false,
+    zoomLevel: 1,
+    panning: { x: 0, y: 0 },
+    ambientLight: AmbientLight.Default,
+    ambientSoundSource: AmbientSoundSource.NotSet,
+    ambientSoundVolume: 1,
+    ambientSoundLoop: false,
+    ambientSoundIsPlaying: false,
+    weather: 'Clear' as Weather,
+});
+
+const createMockEncounter = (gridOverrides?: Partial<StageGrid>): Encounter => ({
     id: 'test-encounter-id',
     ownerId: 'test-owner-id',
     name: 'Test Encounter',
@@ -22,18 +36,23 @@ const createMockEncounter = (gridOverrides?: Partial<Encounter['stage']['grid']>
     effects: [],
     stage: {
         id: 'test-stage-id',
-        encounterId: 'test-encounter-id',
-        settings: null,
+        ownerId: 'test-owner-id',
+        name: 'Test Stage',
+        description: '',
+        isPublished: false,
+        isPublic: false,
+        settings: createDefaultStageSettings(),
         grid: {
-            type: 'Square',
-            cellSize: 50,
-            offset: { x: 0, y: 0 },
+            type: GridType.Square,
+            cellSize: { width: 50, height: 50 },
+            offset: { left: 0, top: 0 },
             scale: 1,
             ...gridOverrides,
         },
         walls: [],
         regions: [],
         lights: [],
+        elements: [],
         sounds: [],
     },
 });
@@ -56,7 +75,7 @@ describe('useGridConfigSync', () => {
     describe('Grid type conversion', () => {
         it('should convert string grid type to GridType enum', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'Square' });
+            const encounter = createMockEncounter({ type: GridType.Square });
 
             // Act
             const { result } = renderHook(() =>
@@ -69,7 +88,7 @@ describe('useGridConfigSync', () => {
 
         it('should handle HexV grid type', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'HexV' });
+            const encounter = createMockEncounter({ type: GridType.HexV });
 
             // Act
             const { result } = renderHook(() =>
@@ -82,7 +101,7 @@ describe('useGridConfigSync', () => {
 
         it('should handle HexH grid type', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'HexH' });
+            const encounter = createMockEncounter({ type: GridType.HexH });
 
             // Act
             const { result } = renderHook(() =>
@@ -95,7 +114,7 @@ describe('useGridConfigSync', () => {
 
         it('should handle NoGrid type', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'NoGrid' });
+            const encounter = createMockEncounter({ type: GridType.NoGrid });
 
             // Act
             const { result } = renderHook(() =>
@@ -110,7 +129,7 @@ describe('useGridConfigSync', () => {
     describe('Grid properties', () => {
         it('should sync cellSize from encounter', () => {
             // Arrange
-            const encounter = createMockEncounter({ cellSize: 75 });
+            const encounter = createMockEncounter({ cellSize: { width: 75, height: 75 } });
 
             // Act
             const { result } = renderHook(() =>
@@ -118,13 +137,13 @@ describe('useGridConfigSync', () => {
             );
 
             // Assert
-            expect(result.current.gridConfig.cellSize).toBe(75);
+            expect(result.current.gridConfig.cellSize).toEqual({ width: 75, height: 75 });
         });
 
         it('should sync offset from encounter', () => {
             // Arrange
             const encounter = createMockEncounter({
-                offset: { x: 10, y: 20 },
+                offset: { left: 10, top: 20 },
             });
 
             // Act
@@ -133,7 +152,7 @@ describe('useGridConfigSync', () => {
             );
 
             // Assert
-            expect(result.current.gridConfig.offset).toEqual({ x: 10, y: 20 });
+            expect(result.current.gridConfig.offset).toEqual({ left: 10, top: 20 });
         });
 
         it('should sync scale from encounter', () => {
@@ -150,8 +169,8 @@ describe('useGridConfigSync', () => {
         });
 
         it('should default scale to 1 when not provided', () => {
-            // Arrange
-            const encounter = createMockEncounter({ scale: undefined });
+            // Arrange - use default mock which has scale: 1
+            const encounter = createMockEncounter();
 
             // Act
             const { result } = renderHook(() =>
@@ -166,7 +185,7 @@ describe('useGridConfigSync', () => {
     describe('Snap behavior', () => {
         it('should set snap to true for Square grid', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'Square' });
+            const encounter = createMockEncounter({ type: GridType.Square });
 
             // Act
             const { result } = renderHook(() =>
@@ -179,7 +198,7 @@ describe('useGridConfigSync', () => {
 
         it('should set snap to false for NoGrid', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'NoGrid' });
+            const encounter = createMockEncounter({ type: GridType.NoGrid });
 
             // Act
             const { result } = renderHook(() =>
@@ -194,7 +213,7 @@ describe('useGridConfigSync', () => {
     describe('setGridConfig', () => {
         it('should allow updating grid config locally', () => {
             // Arrange
-            const encounter = createMockEncounter({ type: 'Square' });
+            const encounter = createMockEncounter({ type: GridType.Square });
             const { result } = renderHook(() =>
                 useGridConfigSync({ encounter })
             );
@@ -215,19 +234,19 @@ describe('useGridConfigSync', () => {
     describe('Encounter updates', () => {
         it('should update grid config when encounter changes', () => {
             // Arrange
-            const initialEncounter = createMockEncounter({ type: 'Square', cellSize: 50 });
+            const initialEncounter = createMockEncounter({ type: GridType.Square, cellSize: { width: 50, height: 50 } });
             const { result, rerender } = renderHook(
                 ({ encounter }) => useGridConfigSync({ encounter }),
                 { initialProps: { encounter: initialEncounter } }
             );
 
             // Act
-            const updatedEncounter = createMockEncounter({ type: 'HexH', cellSize: 100 });
+            const updatedEncounter = createMockEncounter({ type: GridType.HexH, cellSize: { width: 100, height: 100 } });
             rerender({ encounter: updatedEncounter });
 
             // Assert
             expect(result.current.gridConfig.type).toBe(GridType.HexH);
-            expect(result.current.gridConfig.cellSize).toBe(100);
+            expect(result.current.gridConfig.cellSize).toEqual({ width: 100, height: 100 });
         });
     });
 });

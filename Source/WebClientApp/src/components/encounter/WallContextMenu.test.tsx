@@ -174,7 +174,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
 
             // Assert
@@ -194,7 +194,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Door' }));
@@ -216,7 +216,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Fence' }));
@@ -245,7 +245,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Wall' }));
@@ -263,10 +263,11 @@ describe('WallContextMenu', () => {
         it('should not call onSegmentUpdate when onSegmentUpdate is undefined', async () => {
             // Arrange
             const user = userEvent.setup();
-            render(<WallContextMenu {...defaultProps} onSegmentUpdate={undefined} />);
+            const { onSegmentUpdate: _, ...propsWithoutOnSegmentUpdate } = defaultProps;
+            render(<WallContextMenu {...propsWithoutOnSegmentUpdate} />);
 
             // Act
-            const typeCombobox = screen.getAllByRole('combobox')[0];
+            const typeCombobox = screen.getAllByRole('combobox')[0]!;
             await user.click(typeCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Door' }));
@@ -298,7 +299,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
 
             // Assert - Wall only allows Closed and Secret
@@ -318,7 +319,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
 
             // Assert - Door allows all states
@@ -341,7 +342,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Locked' }));
@@ -359,7 +360,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Secret' }));
@@ -370,9 +371,8 @@ describe('WallContextMenu', () => {
             });
         });
 
-        it('should not call onSegmentUpdate when segmentIndex is null', async () => {
+        it('should not call onSegmentUpdate when segmentIndex is null', () => {
             // Arrange
-            const _user = userEvent.setup();
             const onSegmentUpdate = vi.fn<(wallIndex: number, segmentIndex: number, updates: Partial<EncounterWallSegment>) => void>();
             const wall = createMockWall([createMockSegment()]);
             // Force render with valid wall but null segmentIndex - segment won't render
@@ -413,7 +413,7 @@ describe('WallContextMenu', () => {
             render(<WallContextMenu {...defaultProps} encounterWall={wall} segmentIndex={3} onSegmentUpdate={onSegmentUpdate} />);
 
             // Act
-            const stateCombobox = screen.getAllByRole('combobox')[1];
+            const stateCombobox = screen.getAllByRole('combobox')[1]!;
             await user.click(stateCombobox);
             const listbox = await screen.findByRole('listbox');
             await user.click(within(listbox).getByRole('option', { name: 'Open' }));

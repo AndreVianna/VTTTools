@@ -158,7 +158,7 @@ describe('WorldDetailPage', () => {
         vi.mocked(useRemoveCampaignMutation).mockReturnValue([
             mockRemoveCampaign,
             { isLoading: false },
-        ] as ReturnType<typeof useRemoveCampaignMutation>);
+        ] as unknown as ReturnType<typeof useRemoveCampaignMutation>);
 
         mockCreateCampaign.mockReturnValue({ unwrap: () => Promise.resolve({ id: 'new-campaign-id' }) });
         mockUpdateWorld.mockReturnValue({ unwrap: () => Promise.resolve({}) });
@@ -424,7 +424,7 @@ describe('WorldDetailPage', () => {
 
             // Act
             const openButtons = screen.getAllByRole('button', { name: /^open$/i });
-            await user.click(openButtons[0]);
+            await user.click(openButtons[0]!);
 
             // Assert
             expect(mockNavigate).toHaveBeenCalledWith('/campaigns/campaign-1');
@@ -491,7 +491,7 @@ describe('WorldDetailPage', () => {
 
             // Act
             const duplicateButtons = screen.getAllByRole('button', { name: /duplicate/i });
-            await user.click(duplicateButtons[0]);
+            await user.click(duplicateButtons[0]!);
 
             // Assert
             await waitFor(() => {

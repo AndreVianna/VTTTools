@@ -5,6 +5,7 @@ import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import { GridType, Weather } from '@/types/domain';
+import { AmbientSoundSource } from '@/types/stage';
 import type { Stage, StageRegion, CreateRegionRequest, UpdateRegionRequest } from '@/types/stage';
 import { AmbientLight } from '@/types/stage';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -23,9 +24,11 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 1,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
+    useAlternateBackground: false,
     weather: Weather.Clear,
   },
   grid: {
@@ -81,7 +84,7 @@ describe('Region Workflows - Integration Tests', () => {
     mockEncounter = createMockEncounter();
 
     gridConfig = {
-      type: 1,
+      type: GridType.Square,
       cellSize: { width: 50, height: 50 },
       offset: { left: 0, top: 0 },
       snap: true,
@@ -128,8 +131,8 @@ describe('Region Workflows - Integration Tests', () => {
       expect(transactionResult.current.transaction.segment?.vertices).toHaveLength(3);
 
       // Create wrapper functions that match the expected signature for commitTransaction
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 1 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       let commitResult!: CommitResult;
       await act(async () => {
@@ -239,8 +242,8 @@ describe('Region Workflows - Integration Tests', () => {
 
       expect(mockVertices).toHaveLength(3);
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 1 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
@@ -260,8 +263,8 @@ describe('Region Workflows - Integration Tests', () => {
         transactionResult.current.addVertex({ x: 100, y: 0 });
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 1 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
@@ -312,8 +315,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 5 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
@@ -446,8 +449,8 @@ describe('Region Workflows - Integration Tests', () => {
         });
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 7 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
@@ -503,8 +506,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 2 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
@@ -556,8 +559,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 2 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
@@ -607,8 +610,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 2 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
@@ -671,8 +674,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 6 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(
@@ -840,7 +843,7 @@ describe('Region Workflows - Integration Tests', () => {
     it('should handle backend API failure during placement', async () => {
       const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
-      const failingAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
+      const failingAddEncounterRegion = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
         .mockRejectedValue(new Error('Network error'));
 
       act(() => {
@@ -896,8 +899,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 5 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
@@ -974,8 +977,8 @@ describe('Region Workflows - Integration Tests', () => {
         transactionResult.current.addVertex({ x: 100, y: 0 });
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 1 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {
@@ -1084,8 +1087,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 2 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       let commitResult!: CommitResult;
       await act(async () => {
@@ -1156,8 +1159,8 @@ describe('Region Workflows - Integration Tests', () => {
         ]);
       });
 
-      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<{ index: number }>>()
-        .mockResolvedValue({ index: 7 });
+      const addRegionWrapper = vi.fn<(data: CreateRegionRequest) => Promise<void>>()
+        .mockResolvedValue(undefined);
 
       await act(async () => {
         const result = await transactionResult.current.commitTransaction(encounterId, {

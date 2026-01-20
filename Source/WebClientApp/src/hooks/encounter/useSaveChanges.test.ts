@@ -1,27 +1,67 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import type { Encounter } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource, type Stage, type StageSettings, type StageGrid } from '@/types/stage';
 import { GridType } from '@/utils/gridCalculator';
+import type { UseSaveChangesProps } from './useSaveChanges';
 import { useSaveChanges } from './useSaveChanges';
 
 describe('useSaveChanges', () => {
-    const createMockEncounter = () => ({
+    const createMockStageSettings = (): StageSettings => ({
+        mainBackground: null,
+        alternateBackground: null,
+        useAlternateBackground: false,
+        zoomLevel: 1,
+        panning: { x: 0, y: 0 },
+        ambientLight: AmbientLight.Default,
+        ambientSound: null,
+        ambientSoundSource: AmbientSoundSource.NotSet,
+        ambientSoundVolume: 0.5,
+        ambientSoundLoop: false,
+        ambientSoundIsPlaying: false,
+        weather: 'Clear' as never,
+    });
+
+    const createMockStageGrid = (): StageGrid => ({
+        type: GridType.Square as never,
+        cellSize: { width: 70, height: 70 },
+        offset: { left: 0, top: 0 },
+        scale: 1,
+    });
+
+    const createMockStage = (): Stage => ({
+        id: 'test-stage-id',
+        ownerId: 'test-owner-id',
+        name: 'Test Stage',
+        description: 'Test Stage Description',
+        isPublished: false,
+        isPublic: false,
+        settings: createMockStageSettings(),
+        grid: createMockStageGrid(),
+        walls: [],
+        regions: [],
+        lights: [],
+        elements: [],
+        sounds: [],
+    });
+
+    const createMockEncounter = (): Encounter => ({
         id: 'test-encounter-id',
+        ownerId: 'test-owner-id',
+        adventure: null,
         name: 'Test Encounter',
         description: 'Test Description',
         isPublished: false,
-        stage: {
-            grid: {
-                type: GridType.Square,
-                cellSize: { width: 70, height: 70 },
-                offset: { left: 0, top: 0 },
-                scale: 1,
-            },
-        },
+        isPublic: false,
+        stage: createMockStage(),
+        actors: [],
+        objects: [],
+        effects: [],
     });
 
-    const createMockProps = () => ({
+    const createMockProps = (): UseSaveChangesProps => ({
         encounterId: 'test-encounter-id',
-        encounter: createMockEncounter() as never,
+        encounter: createMockEncounter(),
         isInitialized: true,
         gridConfig: {
             type: GridType.Square,
@@ -30,16 +70,17 @@ describe('useSaveChanges', () => {
             snap: true,
             scale: 1,
         },
-        patchEncounter: vi.fn<() => { unwrap: () => Promise<unknown> }>(() => ({
-            unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue(createMockEncounter()),
+        patchEncounter: vi.fn(() => ({
+            unwrap: vi.fn().mockResolvedValue(createMockEncounter()),
         })),
-        refetch: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        setSaveStatus: vi.fn<(status: string) => void>(),
-        setEncounter: vi.fn<(encounter: unknown) => void>(),
+        refetch: vi.fn().mockResolvedValue(undefined),
+        setSaveStatus: vi.fn(),
+        setEncounter: vi.fn(),
     });
 
     it('should not save when encounterId is empty', async () => {
-        const props = { ...createMockProps(), encounterId: undefined };
+        const baseProps = createMockProps();
+        const props: UseSaveChangesProps = { ...baseProps, encounterId: undefined };
         const { result } = renderHook(() => useSaveChanges(props));
 
         await act(async () => {
@@ -51,7 +92,8 @@ describe('useSaveChanges', () => {
     });
 
     it('should not save when encounter is null', async () => {
-        const props = { ...createMockProps(), encounter: null };
+        const baseProps = createMockProps();
+        const props: UseSaveChangesProps = { ...baseProps, encounter: null };
         const { result } = renderHook(() => useSaveChanges(props));
 
         await act(async () => {
@@ -62,7 +104,8 @@ describe('useSaveChanges', () => {
     });
 
     it('should not save when not initialized', async () => {
-        const props = { ...createMockProps(), isInitialized: false };
+        const baseProps = createMockProps();
+        const props: UseSaveChangesProps = { ...baseProps, isInitialized: false };
         const { result } = renderHook(() => useSaveChanges(props));
 
         await act(async () => {
@@ -135,7 +178,7 @@ describe('useSaveChanges', () => {
         await act(async () => {
             await result.current.saveChanges({
                 grid: {
-                    type: GridType.Hex,
+                    type: GridType.HexV,
                     cellSize: { width: 60, height: 60 },
                     offset: { left: 10, top: 10 },
                 },
@@ -146,7 +189,7 @@ describe('useSaveChanges', () => {
             id: 'test-encounter-id',
             request: {
                 grid: {
-                    type: GridType.Hex,
+                    type: GridType.HexV,
                     cellSize: { width: 60, height: 60 },
                     offset: { left: 10, top: 10 },
                 },
@@ -167,8 +210,8 @@ describe('useSaveChanges', () => {
 
     it('should call refetch when patchEncounter returns undefined', async () => {
         const props = createMockProps();
-        props.patchEncounter = vi.fn<() => { unwrap: () => Promise<unknown> }>(() => ({
-            unwrap: vi.fn<() => Promise<unknown>>().mockResolvedValue(undefined),
+        props.patchEncounter = vi.fn(() => ({
+            unwrap: vi.fn().mockResolvedValue(undefined),
         }));
         const { result } = renderHook(() => useSaveChanges(props));
 
@@ -181,8 +224,8 @@ describe('useSaveChanges', () => {
 
     it('should set error status on save failure', async () => {
         const props = createMockProps();
-        props.patchEncounter = vi.fn<() => { unwrap: () => Promise<unknown> }>(() => ({
-            unwrap: vi.fn<() => Promise<unknown>>().mockRejectedValue(new Error('Save failed')),
+        props.patchEncounter = vi.fn(() => ({
+            unwrap: vi.fn().mockRejectedValue(new Error('Save failed')),
         }));
         const { result } = renderHook(() => useSaveChanges(props));
 

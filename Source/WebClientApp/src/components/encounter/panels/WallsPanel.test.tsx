@@ -672,7 +672,7 @@ describe('WallsPanel', () => {
             // Act - Delete Wall 2 and confirm discard
             const wall2ListItem = screen.getByText('Wall 2').closest('li');
             const buttons = within(wall2ListItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1];
+            const deleteButton = buttons[buttons.length - 1]!;
             await user.click(deleteButton);
 
             // Discard changes
