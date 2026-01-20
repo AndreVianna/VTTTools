@@ -725,7 +725,7 @@ describe('WallsPanel', () => {
             // Act - Delete Wall 2 and cancel
             const wall2ListItem = screen.getByText('Wall 2').closest('li');
             const buttons = within(wall2ListItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1];
+            const deleteButton = buttons[buttons.length - 1]!;
             await user.click(deleteButton);
 
             // Keep editing
@@ -756,7 +756,7 @@ describe('WallsPanel', () => {
             // Act - Delete the same wall being edited
             const listItem = screen.getByText('Stone Wall').closest('li');
             const buttons = within(listItem!).getAllByRole('button');
-            const deleteButton = buttons[buttons.length - 1];
+            const deleteButton = buttons[buttons.length - 1]!;
             await user.click(deleteButton);
 
             // Assert - Should go directly to delete confirmation, not edit conflict

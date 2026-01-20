@@ -514,7 +514,7 @@ describe('WorldDetailPage', () => {
 
             // Act
             const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-            await user.click(deleteButtons[0]);
+            await user.click(deleteButtons[0]!);
 
             // Assert
             expect(screen.getByText('Delete Campaign')).toBeInTheDocument();
