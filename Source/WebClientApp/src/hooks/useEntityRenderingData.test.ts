@@ -147,6 +147,7 @@ const createMockTheme = (overrides?: Partial<Theme['palette']>): Theme => ({
         text: {
             primary: '#212121',
             secondary: '#757575',
+            disabled: '#9e9e9e',
         },
         ...overrides,
     },
@@ -189,7 +190,7 @@ describe('useEntityRenderingData', () => {
             const theme1 = createMockTheme();
             const theme2 = createMockTheme({
                 background: { paper: '#1e1e1e', default: '#121212' },
-                text: { primary: '#ffffff', secondary: '#bbbbbb' },
+                text: { primary: '#ffffff', secondary: '#bbbbbb', disabled: '#666666' },
             });
 
             const { result, rerender } = renderHook(
@@ -892,7 +893,7 @@ describe('useEntityRenderingData', () => {
             const firstRenderData = result.current.assetRenderData;
 
             // Change only theme, keep same assets and gridConfig references
-            rerender({ assets, gridConfig, theme: createMockTheme({ text: { primary: '#333333', secondary: '#999999' } }) });
+            rerender({ assets, gridConfig, theme: createMockTheme({ text: { primary: '#333333', secondary: '#999999', disabled: '#cccccc' } }) });
 
             expect(result.current.assetRenderData).toBe(firstRenderData);
         });

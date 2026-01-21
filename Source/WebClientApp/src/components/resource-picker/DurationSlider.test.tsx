@@ -199,8 +199,9 @@ describe('DurationSlider', () => {
             expect(slider).toBeInTheDocument();
 
             const sliderInputs = slider?.querySelectorAll('input[type="range"]');
-            if (sliderInputs && sliderInputs.length > 0) {
-                fireEvent.change(sliderInputs[0], { target: { value: 30000 } });
+            const firstInput = sliderInputs?.[0];
+            if (firstInput) {
+                fireEvent.change(firstInput, { target: { value: 30000 } });
             }
         });
     });

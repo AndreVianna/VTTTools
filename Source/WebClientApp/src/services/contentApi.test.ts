@@ -206,7 +206,7 @@ describe('contentApi', () => {
             };
 
             // Assert
-            expect(Object.keys(state[contentApi.reducerPath]?.queries)).toHaveLength(0);
+            expect(Object.keys(state[contentApi.reducerPath]?.queries ?? {})).toHaveLength(0);
         });
     });
 

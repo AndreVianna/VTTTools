@@ -3,7 +3,7 @@
  * Tests loading/error state rendering for encounter pages
  */
 
-import type React from 'react';
+import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';

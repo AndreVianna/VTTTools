@@ -79,9 +79,9 @@ describe('ContentCard', () => {
 
         it('should render placeholder when no thumbnail', () => {
             // Arrange
+            const { thumbnailUrl: _, ...mockItemWithoutThumbnail } = mockItem;
             const itemWithoutThumbnail: ContentCardProps['item'] = {
-                ...mockItem,
-                thumbnailUrl: undefined,
+                ...mockItemWithoutThumbnail,
                 resourceUrl: null,
             };
 
@@ -98,9 +98,9 @@ describe('ContentCard', () => {
 
         it('should render loading indicator while image loads', () => {
             // Arrange
+            const { thumbnailUrl: _, ...mockItemWithoutThumbnail } = mockItem;
             const itemWithResourceUrl: ContentCardProps['item'] = {
-                ...mockItem,
-                thumbnailUrl: undefined,
+                ...mockItemWithoutThumbnail,
                 resourceUrl: '/api/resources/123',
             };
             mockUseAuthenticatedImageUrl.mockReturnValue({

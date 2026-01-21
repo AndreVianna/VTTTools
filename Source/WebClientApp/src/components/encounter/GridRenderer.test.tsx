@@ -14,7 +14,7 @@ interface MockLineProps {
     points: number[];
     stroke: string;
     strokeWidth: number;
-    closed?: boolean;
+    closed?: boolean | undefined;
     listening: boolean;
 }
 
@@ -22,31 +22,12 @@ let renderedLines: MockLineProps[] = [];
 
 // Mock react-konva components to render testable DOM elements
 vi.mock('react-konva', () => ({
-    Group: ({
-        children,
-        name,
-        ...props
-    }: {
-        children?: React.ReactNode;
-        name?: string;
-    }) => (
-        <div
-            role="group"
-            aria-label={name === GroupName.Grid ? 'Grid Overlay' : name}
-            data-group-name={name}
-            {...props}
-        >
+    Group: ({ children, name }: { children?: React.ReactNode; name?: string }) => (
+        <div role="group" aria-label={name === GroupName.Grid ? 'Grid Overlay' : name} data-group-name={name}>
             {children}
         </div>
     ),
-    Line: ({
-        points,
-        stroke,
-        strokeWidth,
-        closed,
-        listening,
-        ...props
-    }: MockLineProps) => {
+    Line: ({ points, stroke, strokeWidth, closed, listening }: MockLineProps) => {
         // Track rendered lines for assertions
         renderedLines.push({ points, stroke, strokeWidth, closed, listening });
         return (
@@ -58,7 +39,6 @@ vi.mock('react-konva', () => ({
                 data-stroke-width={strokeWidth}
                 data-closed={closed}
                 data-listening={listening}
-                {...props}
             />
         );
     },
@@ -613,7 +593,7 @@ describe('GridRenderer', () => {
             const verticalLines = renderedLines.filter((line) => line.points[0] === line.points[2]);
             expect(verticalLines.length).toBeGreaterThan(0);
             // Lines should not be at multiples of 100 exactly (due to offset)
-            const linePositions = verticalLines.map((line) => line.points[0]);
+            const linePositions = verticalLines.map((line) => line.points[0]).filter((pos): pos is number => pos !== undefined);
             const hasOffset = linePositions.some((pos) => pos % 100 !== 0);
             expect(hasOffset).toBe(true);
         });

@@ -22,6 +22,9 @@ describe('useFileUpload', () => {
     path: 'resource-123',
     dimensions: { width: 256, height: 256 },
     duration: '',
+    name: 'test',
+    description: null,
+    tags: [],
   };
 
   beforeEach(async () => {

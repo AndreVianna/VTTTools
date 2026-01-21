@@ -67,7 +67,7 @@ export interface DrawingToolsLayerProps {
     setFogDrawingVertices: React.Dispatch<React.SetStateAction<Point[]>>;
     setFogDrawingTool: React.Dispatch<React.SetStateAction<'polygon' | 'bucketFill' | null>>;
     onPolygonComplete: (vertices: Point[]) => Promise<void>;
-    onBucketFillComplete: (cellsToFill: Point[][]) => Promise<void>;
+    onBucketFillComplete: (vertices: Point[]) => Promise<void>;
 
     // Stage data
     placedWalls: PlacedWall[];

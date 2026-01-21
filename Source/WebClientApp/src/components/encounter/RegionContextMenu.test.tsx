@@ -417,10 +417,19 @@ describe('RegionContextMenu', () => {
             expect(screen.getByRole('combobox')).toBeInTheDocument();
         });
 
-        it('should not call onRegionUpdate when onRegionUpdate is undefined', async () => {
+        it('should not call onRegionUpdate when onRegionUpdate is not provided', async () => {
             // Arrange
             const user = userEvent.setup();
-            renderComponent({ onRegionUpdate: undefined });
+            // Create a mock without onRegionUpdate by omitting it
+            const onClose = vi.fn<() => void>();
+            render(
+                <RegionContextMenu
+                    anchorPosition={{ left: 100, top: 100 }}
+                    open={true}
+                    onClose={onClose}
+                    encounterRegion={mockTerrainRegion}
+                />,
+            );
 
             // Act - should not throw
             await user.click(screen.getByRole('combobox'));

@@ -222,7 +222,7 @@ describe('useSourceSelection', () => {
         const { result } = renderHook(() => useSourceSelection(props));
 
         await act(async () => {
-            await result.current.handleLightSourceUpdate(0, { radius: 100 });
+            await result.current.handleLightSourceUpdate(0, { range: 100 });
         });
 
         expect(props.execute).toHaveBeenCalled();

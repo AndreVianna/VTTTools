@@ -8,7 +8,7 @@ import { useFogOfWarManagement } from './useFogOfWarManagement';
 vi.mock('@/hooks/useFogOfWarPlacement', () => ({
     useFogOfWarPlacement: vi.fn(() => ({
         handlePolygonComplete: vi.fn<(vertices: Point[]) => Promise<void>>(),
-        handleBucketFillComplete: vi.fn<(cellsToFill: Point[][]) => Promise<void>>(),
+        handleBucketFillComplete: vi.fn<(vertices: Point[]) => Promise<void>>(),
     })),
 }));
 
@@ -35,7 +35,7 @@ describe('useFogOfWarManagement', () => {
         setPlacedRegions: vi.fn<(value: SetStateAction<PlacedRegion[]>) => void>(),
         setEncounter: vi.fn<(value: SetStateAction<Encounter | null>) => void>(),
         setErrorMessage: vi.fn<(message: string | null) => void>(),
-        refetch: vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({ data: undefined }),
+        refetch: vi.fn<() => Promise<{ data?: Encounter }>>().mockResolvedValue({}),
         execute: vi.fn<(command: unknown) => Promise<void>>().mockResolvedValue(undefined),
         addRegion: vi.fn<(params: AddRegionParams) => { unwrap: () => Promise<{ index: number }> }>()
             .mockReturnValue({ unwrap: vi.fn<() => Promise<{ index: number }>>().mockResolvedValue({ index: 0 }) }),

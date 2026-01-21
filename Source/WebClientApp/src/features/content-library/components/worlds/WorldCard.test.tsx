@@ -196,7 +196,8 @@ describe('WorldCard', () => {
 
         it('should show 0 campaigns when campaigns is undefined', () => {
             // Arrange
-            const world = createMockWorld({ campaigns: undefined });
+            const { campaigns: _, ...baseWorld } = createMockWorld();
+            const world: World = baseWorld;
 
             // Act
             render(

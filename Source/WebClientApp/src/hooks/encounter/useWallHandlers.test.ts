@@ -82,6 +82,8 @@ const createMockWallTransaction = (): ReturnType<typeof useWallTransaction> => (
         clear: vi.fn(),
         canUndo: false,
         canRedo: false,
+        undoStackSize: 0,
+        redoStackSize: 0,
     },
 });
 

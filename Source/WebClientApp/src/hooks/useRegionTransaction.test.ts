@@ -4,7 +4,7 @@ import type { Encounter, EncounterRegion, Point } from '@/types/domain';
 import { GridType, Weather } from '@/types/domain';
 import type { LocalAction } from '@/types/regionUndoActions';
 import type { CreateRegionRequest, Stage, StageRegion, UpdateRegionRequest } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import * as polygonUtils from '@/utils/polygonUtils';
 import * as regionMergeUtils from '@/utils/regionMergeUtils';
 import { useRegionTransaction } from './useRegionTransaction';
@@ -23,10 +23,12 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     zoomLevel: 1,
     panning: { x: 0, y: 0 },
     ambientLight: AmbientLight.Default,
+    ambientSoundSource: AmbientSoundSource.NotSet,
     ambientSoundVolume: 1,
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    useAlternateBackground: false,
   },
   grid: {
     type: GridType.Square,

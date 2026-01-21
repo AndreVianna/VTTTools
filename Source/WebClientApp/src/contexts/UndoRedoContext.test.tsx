@@ -357,11 +357,9 @@ describe('UndoRedoContext', () => {
 
 describe('UndoRedoContext keyboard shortcuts', () => {
   let mockExecute: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
-  let _mockUndo: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
 
   beforeEach(() => {
     mockExecute = vi.fn<() => void | Promise<void>>();
-    _mockUndo = vi.fn<() => void | Promise<void>>();
     Object.defineProperty(navigator, 'platform', {
       writable: true,
       value: 'Win32',

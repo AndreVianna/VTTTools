@@ -1053,16 +1053,16 @@ const EncounterEditorPageInternal: React.FC = () => {
               regionTransaction={regionTransaction}
               isAltPressed={keyboardState.isAltPressed}
               onRegionSelect={regionHandlers.handleEditRegionVertices}
-              onRegionContextMenu={(region: PlacedRegion, position) => contextMenus.regionContextMenu.handleOpen(region.index, position)}
+              onRegionContextMenu={(regionIndex, position) => contextMenus.regionContextMenu.handleOpen(regionIndex, position)}
               onLightSourceSelect={handleLightSourceSelect}
-              onLightSourceContextMenu={(index, position) => handleLightSourceContextMenu(index, { x: position.left, y: position.top })}
+              onLightSourceContextMenu={(index, position) => handleLightSourceContextMenu(index, position)}
               onLightSourcePositionChange={(index, position) => Promise.resolve(handleLightSourcePositionChange(index, position))}
               onLightSourceDirectionChange={(index, direction) => Promise.resolve(handleLightSourceDirectionChange(index, direction))}
               onSoundSourceSelect={handleSoundSourceSelect}
-              onSoundSourceContextMenu={(index, position) => handleSoundSourceContextMenu(index, { x: position.left, y: position.top })}
+              onSoundSourceContextMenu={(index, position) => handleSoundSourceContextMenu(index, position)}
               onSoundSourcePositionChange={(index, position) => Promise.resolve(handleSoundSourcePositionChange(index, position))}
               onWallClick={wallHandlers.handleEditVertices}
-              onWallContextMenu={(wall: PlacedWall, segmentIndex, position) => contextMenus.wallContextMenu.handleOpen(wall.index, segmentIndex, position)}
+              onWallContextMenu={(wallIndex, segmentIndex, position) => contextMenus.wallContextMenu.handleOpen(wallIndex, segmentIndex, position)}
               onWallBreak={wallHandlers.handleWallBreak}
               onFinishEditing={wallHandlers.handleFinishEditing}
               setPreviewWallPoles={setPreviewWallPoles}

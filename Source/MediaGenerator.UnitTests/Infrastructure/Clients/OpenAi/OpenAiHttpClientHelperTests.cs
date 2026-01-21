@@ -31,7 +31,7 @@ public class OpenAiHttpClientHelperTests {
         _config["Providers:OpenAI:BaseUrl"].Returns((string?)null);
         _httpClientFactory.CreateClient().Returns(new HttpClient());
 
-        var act = () => _helper.CreateAuthenticatedClient();
+        var act = _helper.CreateAuthenticatedClient;
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*base url not configured*");
@@ -43,7 +43,7 @@ public class OpenAiHttpClientHelperTests {
         _config["Providers:OpenAI:ApiKey"].Returns((string?)null);
         _httpClientFactory.CreateClient().Returns(new HttpClient());
 
-        var act = () => _helper.CreateAuthenticatedClient();
+        var act = _helper.CreateAuthenticatedClient;
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*API key is not configured*");

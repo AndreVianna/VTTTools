@@ -48,20 +48,20 @@ describe('RegionTransformer', () => {
         ...overrides,
     });
 
-    let onVerticesChange: ReturnType<typeof vi.fn>;
-    let onClearSelections: ReturnType<typeof vi.fn>;
-    let onSwitchToRegion: ReturnType<typeof vi.fn>;
-    let onFinish: ReturnType<typeof vi.fn>;
-    let onCancel: ReturnType<typeof vi.fn>;
-    let onLocalAction: ReturnType<typeof vi.fn>;
+    let onVerticesChange: ReturnType<typeof vi.fn<(vertices: Point[]) => void>>;
+    let onClearSelections: ReturnType<typeof vi.fn<() => void>>;
+    let onSwitchToRegion: ReturnType<typeof vi.fn<(regionIndex: number) => void>>;
+    let onFinish: ReturnType<typeof vi.fn<() => void>>;
+    let onCancel: ReturnType<typeof vi.fn<() => void>>;
+    let onLocalAction: ReturnType<typeof vi.fn<(action: LocalAction) => void>>;
 
     beforeEach(() => {
-        onVerticesChange = vi.fn();
-        onClearSelections = vi.fn();
-        onSwitchToRegion = vi.fn();
-        onFinish = vi.fn();
-        onCancel = vi.fn();
-        onLocalAction = vi.fn();
+        onVerticesChange = vi.fn<(vertices: Point[]) => void>();
+        onClearSelections = vi.fn<() => void>();
+        onSwitchToRegion = vi.fn<(regionIndex: number) => void>();
+        onFinish = vi.fn<() => void>();
+        onCancel = vi.fn<() => void>();
+        onLocalAction = vi.fn<(action: LocalAction) => void>();
     });
 
     afterEach(() => {

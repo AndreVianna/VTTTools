@@ -109,10 +109,10 @@ describe('useMediaBrowser', () => {
             });
 
             act(() => {
-                result.current.setViewMode('list');
+                result.current.setViewMode('table');
             });
 
-            expect(result.current.viewMode).toBe('list');
+            expect(result.current.viewMode).toBe('table');
             expect(result.current.skip).toBe(20);
         });
 
@@ -266,7 +266,7 @@ describe('useMediaBrowser', () => {
             const { result } = renderHook(() => useMediaBrowser());
 
             act(() => {
-                result.current.setViewMode('list');
+                result.current.setViewMode('table');
                 result.current.setSort('type', 'desc');
             });
 
@@ -274,7 +274,7 @@ describe('useMediaBrowser', () => {
                 result.current.resetFilters();
             });
 
-            expect(result.current.viewMode).toBe('list');
+            expect(result.current.viewMode).toBe('table');
             expect(result.current.sortField).toBe('type');
             expect(result.current.sortDirection).toBe('desc');
         });
@@ -333,6 +333,9 @@ describe('useMediaBrowser', () => {
             fileSize: 1000,
             dimensions: { width: 100, height: 100 },
             duration: '',
+            name: fileName.replace('.png', ''),
+            description: null,
+            tags: [],
         });
 
         it('should sort media by name ascending', () => {

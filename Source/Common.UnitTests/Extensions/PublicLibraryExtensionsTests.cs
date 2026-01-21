@@ -25,7 +25,7 @@ public class PublicLibraryExtensionsTests {
     public void AddPublicLibrary_DoesNotThrow() {
         var builder = new HostApplicationBuilder();
 
-        var act = () => builder.AddPublicLibrary();
+        var act = builder.AddPublicLibrary;
 
         act.Should().NotThrow();
     }

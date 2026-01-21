@@ -719,8 +719,8 @@ describe('EncounterCanvas', () => {
                 <EncounterCanvas {...defaultProps} ref={ref} onViewportChange={onViewportChange} />
             );
 
-            // Keep ref before unmount (verify it exists)
-            const _handle = ref.current;
+            // Verify ref exists before unmount
+            expect(ref.current).not.toBeNull();
 
             // Act
             unmount();

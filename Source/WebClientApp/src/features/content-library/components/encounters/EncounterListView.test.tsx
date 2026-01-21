@@ -1,12 +1,8 @@
-import type React from 'react';
+import React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Encounter } from '@/types/domain';
-import { GridType, Weather } from '@/types/domain';
-import type { Stage } from '@/types/stage';
-import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import { EncounterListView } from './EncounterListView';
 
 // Mock react-router-dom
@@ -37,41 +33,6 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 };
 TestWrapper.displayName = 'TestWrapper';
-
-const _createMockStage = (overrides: Partial<Stage> = {}): Stage => ({
-    id: 'stage-1',
-    ownerId: 'owner-1',
-    name: 'Test Stage',
-    description: 'A test stage',
-    isPublished: false,
-    isPublic: false,
-    settings: {
-        mainBackground: null,
-        alternateBackground: null,
-        useAlternateBackground: false,
-        zoomLevel: 1,
-        panning: { x: 0, y: 0 },
-        ambientLight: AmbientLight.Default,
-        ambientSound: null,
-        ambientSoundSource: AmbientSoundSource.NotSet,
-        ambientSoundVolume: 1,
-        ambientSoundLoop: false,
-        ambientSoundIsPlaying: false,
-        weather: Weather.Clear,
-    },
-    grid: {
-        type: GridType.Square,
-        cellSize: { width: 50, height: 50 },
-        offset: { left: 0, top: 0 },
-        scale: 1,
-    },
-    walls: [],
-    regions: [],
-    lights: [],
-    elements: [],
-    sounds: [],
-    ...overrides,
-});
 
 describe('EncounterListView', () => {
     beforeEach(() => {

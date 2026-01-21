@@ -8,6 +8,7 @@ import {
     AssetKind,
     LabelVisibility,
     LabelPosition,
+    ResourceRole,
     type PlacedAsset,
     type Asset,
     type MediaResource,
@@ -26,10 +27,14 @@ const createMockMediaResource = (id: string): MediaResource => ({
     id,
     name: `media-${id}`,
     path: `/media/${id}`,
-    mimeType: 'image/png',
-    size: 1000,
-    width: 100,
-    height: 100,
+    contentType: 'image/png',
+    fileSize: 1000,
+    dimensions: { width: 100, height: 100 },
+    role: ResourceRole.Token,
+    fileName: `media-${id}.png`,
+    duration: '',
+    description: null,
+    tags: [],
 });
 
 const createMockAsset = (overrides?: Partial<Asset>): Asset => ({

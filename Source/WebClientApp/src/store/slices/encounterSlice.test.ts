@@ -5,7 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AssetKind, GridType, type Encounter, type EncounterActor, type Point } from '@/types/domain';
+import { AssetKind, GridType, Weather, type Encounter, type EncounterActor, type Point } from '@/types/domain';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import encounterReducer, {
     type EncounterState,
     clearEncounter,
@@ -121,17 +122,31 @@ describe('encounterSlice', () => {
             isPublic: false,
             stage: {
                 id: 'stage-1',
-                background: null,
-                grid: { type: GridType.Square, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true, scale: 1 },
+                ownerId: 'user-1',
+                name: 'Test Stage',
+                description: '',
+                isPublished: false,
+                isPublic: false,
+                settings: {
+                    mainBackground: null,
+                    alternateBackground: null,
+                    useAlternateBackground: false,
+                    zoomLevel: 1,
+                    panning: { x: 0, y: 0 },
+                    ambientLight: AmbientLight.Default,
+                    ambientSound: null,
+                    ambientSoundSource: AmbientSoundSource.NotSet,
+                    ambientSoundVolume: 1,
+                    ambientSoundLoop: false,
+                    ambientSoundIsPlaying: false,
+                    weather: Weather.Clear,
+                },
+                grid: { type: GridType.Square, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, scale: 1 },
                 walls: [],
                 regions: [],
                 lights: [],
                 sounds: [],
                 elements: [],
-                weather: 'Clear',
-                light: 0,
-                zoomLevel: 1,
-                panning: { x: 0, y: 0 },
             },
             actors: [mockActor],
             objects: [],

@@ -72,7 +72,7 @@ import { mockMediaResource } from '@/test-utils/assetMocks';
 import type { Asset, Encounter, PlacedAsset } from '@/types/domain';
 import { AssetKind, GridType, LabelVisibility as DisplayNameEnum, LabelPosition as LabelPositionEnum, Weather } from '@/types/domain';
 import type { Stage } from '@/types/stage';
-import { AmbientLight } from '@/types/stage';
+import { AmbientLight, AmbientSoundSource } from '@/types/stage';
 import { GridType as GridCalcType, type GridConfig } from '@/utils/gridCalculator';
 import { SnapMode } from '@/utils/snapping';
 import { EntityPlacement } from './EntityPlacement';
@@ -93,6 +93,8 @@ const createMockStage = (overrides?: Partial<Stage>): Stage => ({
     ambientSoundLoop: false,
     ambientSoundIsPlaying: false,
     weather: Weather.Clear,
+    useAlternateBackground: false,
+    ambientSoundSource: AmbientSoundSource.NotSet,
   },
   grid: {
     type: GridType.Square,

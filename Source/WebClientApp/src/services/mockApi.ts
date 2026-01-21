@@ -119,6 +119,9 @@ export class MockApiService {
       fileSize: Math.floor(Math.random() * 50000) + 10000,
       dimensions: { width: 256, height: 256 },
       duration: '',
+      name,
+      description: null,
+      tags: [],
     });
 
     const assets: Asset[] = [

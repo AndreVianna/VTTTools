@@ -7,7 +7,7 @@ public class ConfigurationEndpointsMapperTests {
         builder.AddRequiredServices();
         var app = builder.Build();
 
-        var action = () => app.MapConfigurationEndpoints();
+        var action = app.MapConfigurationEndpoints;
         action.Should().NotThrow();
     }
 }

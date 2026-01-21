@@ -58,7 +58,7 @@ describe('BackgroundPanel', () => {
     });
 
     it('should display DEFAULT badge when no background URL is provided', () => {
-      renderComponent({ backgroundUrl: undefined });
+      renderComponent();
 
       expect(screen.getByText('DEFAULT')).toBeInTheDocument();
     });

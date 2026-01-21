@@ -58,10 +58,10 @@ export const MediaLibraryPage: React.FC = () => {
     const paginationInfo = useMemo(() => {
         if (!data) return { hasMore: false, totalCount: 0 };
         return {
-            hasMore: data.skip + data.items.length < data.totalCount,
+            hasMore: browser.skip + data.items.length < data.totalCount,
             totalCount: data.totalCount,
         };
-    }, [data]);
+    }, [data, browser.skip]);
 
     const selectedMedia = useMemo(() => {
         if (!browser.selectedMediaId || !displayItems) return null;

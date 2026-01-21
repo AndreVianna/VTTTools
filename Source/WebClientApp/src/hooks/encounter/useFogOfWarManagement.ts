@@ -66,7 +66,7 @@ export interface UseFogOfWarManagementReturn {
     /** Handler for polygon completion from drawing tool */
     handlePolygonComplete: (vertices: Point[]) => Promise<void>;
     /** Handler for bucket fill completion */
-    handleBucketFillComplete: (cellsToFill: Point[][]) => Promise<void>;
+    handleBucketFillComplete: (vertices: Point[]) => Promise<void>;
 }
 
 /**

@@ -228,7 +228,7 @@ export const EncounterPage: React.FC = () => {
                         <WallRenderer
                             key={`wall-${wall.index}`}
                             encounterWall={wall}
-                            activeScope="none"
+                            activeScope={null}
                         />
                     ))}
                 </Layer>

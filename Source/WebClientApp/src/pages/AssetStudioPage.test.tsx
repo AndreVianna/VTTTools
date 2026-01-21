@@ -126,9 +126,13 @@ describe('AssetStudioPage', () => {
             isLoading: false,
             error: undefined,
         });
-        mockCreateAsset.mockResolvedValue({ data: { id: 'new-asset-id' } });
-        mockUpdateAsset.mockResolvedValue({ data: undefined });
-        mockDeleteAsset.mockResolvedValue({ data: undefined });
+        mockCreateAsset.mockReturnValue({
+            unwrap: () => Promise.resolve({ id: 'new-asset-id' }),
+        });
+        mockUpdateAsset.mockReturnValue({
+            unwrap: () => Promise.resolve(),
+        });
+        mockDeleteAsset.mockResolvedValue(undefined);
 
         // Mock window.confirm
         vi.spyOn(window, 'confirm').mockReturnValue(true);
