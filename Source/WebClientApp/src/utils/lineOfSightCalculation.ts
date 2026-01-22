@@ -90,6 +90,54 @@ export function extractOpaqueSegments(encounterWalls: EncounterWall[]): LineSegm
   return segments;
 }
 
+/**
+ * Collect all unique wall vertices (endpoints) from segments.
+ * These are used for precise shadow casting.
+ */
+function collectWallVertices(segments: LineSegment[]): Point[] {
+  const vertexMap = new Map<string, Point>();
+
+  for (const segment of segments) {
+    const startKey = `${segment.start.x},${segment.start.y}`;
+    const endKey = `${segment.end.x},${segment.end.y}`;
+    vertexMap.set(startKey, segment.start);
+    vertexMap.set(endKey, segment.end);
+  }
+
+  return Array.from(vertexMap.values());
+}
+
+/**
+ * Calculate angle from source to a target point.
+ */
+function angleToPoint(source: Point, target: Point): number {
+  return Math.atan2(target.y - source.y, target.x - source.x);
+}
+
+/**
+ * Normalize angle to [0, 2π) range.
+ */
+function normalizeAngle(angle: number): number {
+  while (angle < 0) angle += 2 * Math.PI;
+  while (angle >= 2 * Math.PI) angle -= 2 * Math.PI;
+  return angle;
+}
+
+/**
+ * Check if an angle is within a directional arc.
+ */
+function isAngleInArc(angle: number, startAngle: number, endAngle: number): boolean {
+  const normAngle = normalizeAngle(angle);
+  const normStart = normalizeAngle(startAngle);
+  const normEnd = normalizeAngle(endAngle);
+
+  if (normStart <= normEnd) {
+    return normAngle >= normStart && normAngle <= normEnd;
+  }
+  // Arc crosses 0
+  return normAngle >= normStart || normAngle <= normEnd;
+}
+
 export function calculateLineOfSight(
   source: EncounterLightSource,
   range: number,
@@ -98,8 +146,15 @@ export function calculateLineOfSight(
 ): Point[] {
   const rangeInPixels = range * gridConfig.cellSize.width;
   const segments = extractOpaqueSegments(encounterWalls);
+  const vertices = collectWallVertices(segments);
 
   const isDirectional = source.direction != null && source.arc != null;
+
+  // Small angle offset for casting rays just past wall corners
+  const EPSILON = 0.0001;
+
+  // Collect all angles to cast rays
+  const angles: number[] = [];
 
   if (isDirectional) {
     const directionRadians = (source.direction! * Math.PI) / 180;
@@ -108,44 +163,84 @@ export function calculateLineOfSight(
     const startAngle = directionRadians - halfArcRadians;
     const endAngle = directionRadians + halfArcRadians;
 
+    // Add fixed interval rays within the arc
     const rayCount = Math.max(12, Math.ceil((source.arc! / 360) * 72));
     const angleStep = (endAngle - startAngle) / Math.max(1, rayCount - 1);
 
-    const losPoints: Point[] = [];
+    for (let i = 0; i < rayCount; i++) {
+      angles.push(startAngle + i * angleStep);
+    }
 
+    // Add rays toward wall vertices within the arc (with slight offsets)
+    for (const vertex of vertices) {
+      const dist = distanceBetweenPoints(source.position, vertex);
+      if (dist > rangeInPixels || dist < 1) continue;
+
+      const angle = angleToPoint(source.position, vertex);
+      if (isAngleInArc(angle, startAngle, endAngle)) {
+        angles.push(angle - EPSILON);
+        angles.push(angle);
+        angles.push(angle + EPSILON);
+      }
+    }
+
+    // Sort angles and remove duplicates
+    angles.sort((a, b) => a - b);
+    const uniqueAngles = angles.filter((angle, i) =>
+      i === 0 || Math.abs(angle - angles[i - 1]!) > EPSILON / 2
+    );
+
+    const losPoints: Point[] = [];
     losPoints.push(source.position);
 
-    for (let i = 0; i < rayCount; i++) {
-      const angle = startAngle + i * angleStep;
+    for (const angle of uniqueAngles) {
       const ray: Ray = {
         origin: source.position,
         angle,
         maxDistance: rangeInPixels,
       };
-
-      const rayEnd = castRay(ray, segments);
-      losPoints.push(rayEnd);
+      losPoints.push(castRay(ray, segments));
     }
 
     losPoints.push(source.position);
-
     return losPoints;
   }
 
+  // Non-directional (360°) light source
+
+  // Add fixed interval rays (base coverage)
   const rayCount = 72;
   const angleStep = (2 * Math.PI) / rayCount;
 
-  const losPoints: Point[] = [];
   for (let i = 0; i < rayCount; i++) {
-    const angle = i * angleStep;
+    angles.push(i * angleStep);
+  }
+
+  // Add rays toward wall vertices (with slight offsets for corner precision)
+  for (const vertex of vertices) {
+    const dist = distanceBetweenPoints(source.position, vertex);
+    if (dist > rangeInPixels || dist < 1) continue;
+
+    const angle = angleToPoint(source.position, vertex);
+    angles.push(angle - EPSILON);
+    angles.push(angle);
+    angles.push(angle + EPSILON);
+  }
+
+  // Sort angles and remove near-duplicates
+  angles.sort((a, b) => normalizeAngle(a) - normalizeAngle(b));
+  const uniqueAngles = angles.filter((angle, i) =>
+    i === 0 || Math.abs(normalizeAngle(angle) - normalizeAngle(angles[i - 1]!)) > EPSILON / 2
+  );
+
+  const losPoints: Point[] = [];
+  for (const angle of uniqueAngles) {
     const ray: Ray = {
       origin: source.position,
       angle,
       maxDistance: rangeInPixels,
     };
-
-    const rayEnd = castRay(ray, segments);
-    losPoints.push(rayEnd);
+    losPoints.push(castRay(ray, segments));
   }
 
   return losPoints;

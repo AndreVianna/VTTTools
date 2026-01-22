@@ -33,7 +33,7 @@ import {
 import { LightSourceType, type EncounterLightSource } from '@/types/domain';
 
 export interface LightsPanelProps {
-  encounterId: string;
+  stageId?: string;
   lightSources: EncounterLightSource[];
   selectedSourceIndex: number | null;
   onSourceSelect: (index: number) => void;
@@ -70,7 +70,7 @@ const DIRECTIONAL_OPTIONS = [
 
 export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
   ({
-    encounterId,
+    stageId,
     lightSources = [],
     selectedSourceIndex,
     onSourceSelect,
@@ -187,11 +187,11 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
         range?: number;
       },
     ) => {
-      if (!encounterId) return;
+      if (!stageId) return;
 
       try {
         await updateLight({
-          stageId: encounterId,
+          stageId,
           index: sourceIndex,
           data: updates,
         }).unwrap();
@@ -201,11 +201,11 @@ export const LightsPanel: React.FC<LightsPanelProps> = React.memo(
     };
 
     const handleDeleteSource = async (sourceIndex: number) => {
-      if (!encounterId) return;
+      if (!stageId) return;
 
       try {
         await deleteLight({
-          stageId: encounterId,
+          stageId,
           index: sourceIndex,
         }).unwrap();
       } catch (_error) {

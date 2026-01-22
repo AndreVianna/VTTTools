@@ -36,7 +36,7 @@ const renderWithTheme = (component: React.ReactElement, mode: 'light' | 'dark' =
 
 const renderComponent = (props: Partial<LightsPanelProps> = {}, mode: 'light' | 'dark' = 'light') => {
     const defaultProps: LightsPanelProps = {
-        encounterId: 'encounter-1',
+        stageId: 'test-stage-id',
         lightSources: [],
         selectedSourceIndex: null,
         onSourceSelect: vi.fn<(index: number) => void>(),
@@ -381,7 +381,7 @@ describe('LightsPanel', () => {
             // Arrange
             const user = userEvent.setup();
             const lights = [createMockLightSource({ index: 0, name: 'Torch' })];
-            renderComponent({ lightSources: lights, encounterId: 'enc-123' });
+            renderComponent({ lightSources: lights, });
 
             // Act - Click delete button by its aria label
             const deleteButton = screen.getByRole('button', { name: /Delete/i });
@@ -393,7 +393,7 @@ describe('LightsPanel', () => {
 
             // Assert
             expect(mockDeleteLight).toHaveBeenCalledWith({
-                stageId: 'enc-123',
+                stageId: 'test-stage-id',
                 index: 0,
             });
         });
@@ -470,7 +470,7 @@ describe('LightsPanel', () => {
             // Arrange
             const user = userEvent.setup();
             const lights = [createMockLightSource({ index: 0, name: 'Torch', isOn: true })];
-            renderComponent({ lightSources: lights, encounterId: 'enc-123' });
+            renderComponent({ lightSources: lights, });
 
             // Act - Expand the light
             const listItem = screen.getByText('Torch').closest('li');
@@ -492,7 +492,7 @@ describe('LightsPanel', () => {
 
             // Assert
             expect(mockUpdateLight).toHaveBeenCalledWith({
-                stageId: 'enc-123',
+                stageId: 'test-stage-id',
                 index: 0,
                 data: { isOn: false },
             });
@@ -715,7 +715,7 @@ describe('LightsPanel', () => {
             // Arrange
             const user = userEvent.setup();
             const lights = [createMockLightSource({ index: 0, name: 'Torch' })];
-            renderComponent({ lightSources: lights, encounterId: 'enc-123' });
+            renderComponent({ lightSources: lights, });
 
             // Act - Expand the light
             const listItem = screen.getByText('Torch').closest('li');
@@ -741,7 +741,7 @@ describe('LightsPanel', () => {
             // Assert
             await waitFor(() => {
                 expect(mockUpdateLight).toHaveBeenCalledWith({
-                    stageId: 'enc-123',
+                    stageId: 'test-stage-id',
                     index: 0,
                     data: { name: 'Campfire' },
                 });
@@ -754,7 +754,7 @@ describe('LightsPanel', () => {
             // Arrange
             const lights = [createMockLightSource({ index: 0, name: 'Torch', range: 4 })];
             const defaultProps: LightsPanelProps = {
-                encounterId: 'encounter-1',
+                
                 lightSources: lights,
                 selectedSourceIndex: null,
                 onSourceSelect: vi.fn<(index: number) => void>(),

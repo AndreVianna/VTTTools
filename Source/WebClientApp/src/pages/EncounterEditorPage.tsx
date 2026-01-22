@@ -176,21 +176,6 @@ const EncounterEditorPageInternal: React.FC = () => {
     deleteWall: stageDeleteWall,
   }), [stageAddWall, stageUpdateWall, stageDeleteWall]);
 
-  const regionMutations = useMemo(() => ({
-    addRegion: async (data: Parameters<typeof addRegion>[0]['data']) => {
-      if (!encounterId) throw new Error('No encounter ID');
-      await addRegion({ stageId: encounterId, data }).unwrap();
-    },
-    updateRegion: async (index: number, data: Parameters<typeof updateRegion>[0]['data']) => {
-      if (!encounterId) throw new Error('No encounter ID');
-      await updateRegion({ stageId: encounterId, index, data }).unwrap();
-    },
-    deleteRegion: async (index: number) => {
-      if (!encounterId) throw new Error('No encounter ID');
-      await deleteRegion({ stageId: encounterId, index }).unwrap();
-    },
-  }), [encounterId, addRegion, updateRegion, deleteRegion]);
-
   // ═══════════════════════════════════════════════════════════════════════════
   // 4.5 CONTEXT HOOKS
   // App-level context: useUndoRedoContext, useClipboard, useConnectionStatus
@@ -238,6 +223,7 @@ const EncounterEditorPageInternal: React.FC = () => {
   const [activePanel, setActivePanel] = useState<string | null>(() => activeScope);
   const [assetPickerOpen, setAssetPickerOpen] = useState<{ open: boolean; kind?: AssetKind }>({ open: false });
   const [soundPickerOpen, setSoundPickerOpen] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4.8 REFS
@@ -248,6 +234,28 @@ const EncounterEditorPageInternal: React.FC = () => {
   const subscribedResourcesRef = useRef<Set<string>>(new Set());
   const encounterRef = useRef<Encounter | null>(null);
   const assetsLoadedForEncounterRef = useRef<string | null>(null);
+
+  // Derived value for stage API calls - defined here so domain hooks can access it
+  const stageId = encounter?.stage?.id;
+
+  // Region mutations - callbacks use stageId at execution time
+  const regionMutations = useMemo(() => ({
+    addRegion: async (data: Parameters<typeof addRegion>[0]['data']) => {
+      const sid = encounterRef.current?.stage?.id;
+      if (!sid) throw new Error('No stage ID');
+      await addRegion({ stageId: sid, data }).unwrap();
+    },
+    updateRegion: async (index: number, data: Parameters<typeof updateRegion>[0]['data']) => {
+      const sid = encounterRef.current?.stage?.id;
+      if (!sid) throw new Error('No stage ID');
+      await updateRegion({ stageId: sid, index, data }).unwrap();
+    },
+    deleteRegion: async (index: number) => {
+      const sid = encounterRef.current?.stage?.id;
+      if (!sid) throw new Error('No stage ID');
+      await deleteRegion({ stageId: sid, index }).unwrap();
+    },
+  }), [addRegion, updateRegion, deleteRegion]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4.9 DOMAIN HOOKS
@@ -346,7 +354,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     handleBucketFillComplete,
   } = useFogOfWarManagement({
     encounterId: encounterId || '',
-    stageId: encounterId,
+    stageId,
     placedRegions,
     stageSize,
     setPlacedRegions,
@@ -381,6 +389,7 @@ const EncounterEditorPageInternal: React.FC = () => {
     handleSoundSourcePositionChange,
   } = useSourceSelection({
     encounterId,
+    stageId,
     placedLightSources,
     placedSoundSources,
     selectedLightSourceIndex,
@@ -659,6 +668,15 @@ const EncounterEditorPageInternal: React.FC = () => {
   // 4.12 EFFECTS
   // Side effects: useEffect
   // ═══════════════════════════════════════════════════════════════════════════
+  // Handle window resize to update canvas dimensions
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     encounterRef.current = encounter;
   }, [encounter]);
@@ -950,7 +968,6 @@ const EncounterEditorPageInternal: React.FC = () => {
 
         <Box
           id='canvas-container'
-          onMouseMove={viewportControls.handleCanvasMouseMove}
           sx={{ flexGrow: 1, overflow: 'hidden', bgcolor: 'background.default', position: 'relative', width: '100%', height: '100%' }}
         >
           <LeftToolBar
@@ -958,7 +975,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             onScopeChange={setActiveScope}
             activePanel={activePanel}
             onPanelChange={setActivePanel}
-            encounterId={encounterId}
+            {...(stageId && { stageId })}
             gridConfig={gridConfig}
             encounterWalls={placedWalls}
             selectedWallIndex={selectedWallIndex}
@@ -1008,8 +1025,8 @@ const EncounterEditorPageInternal: React.FC = () => {
 
           <EncounterCanvas
             ref={canvasRef}
-            width={window.innerWidth}
-            height={window.innerHeight}
+            width={windowSize.width}
+            height={windowSize.height}
             initialPosition={{ x: viewportControls.viewport.x, y: viewportControls.viewport.y }}
             initialScale={viewportControls.viewport.scale}
             backgroundColor={theme.palette.background.default}
@@ -1108,6 +1125,7 @@ const EncounterEditorPageInternal: React.FC = () => {
               <DrawingToolsLayer
                 encounter={encounter}
                 encounterId={encounterId}
+                {...(stageId && { stageId })}
                 drawingMode={drawingMode}
                 drawingWallIndex={drawingWallIndex}
                 drawingWallDefaultHeight={drawingWallDefaultHeight}
@@ -1166,7 +1184,6 @@ const EncounterEditorPageInternal: React.FC = () => {
         </Box>
 
         <EditorStatusBar
-          {...(viewportControls.cursorPosition && { cursorPosition: viewportControls.cursorPosition })}
           totalAssets={assetManagement.placedAssets.length}
           selectedCount={assetManagement.selectedAssetIds.length}
           zoomPercentage={viewportControls.viewport.scale * 100}

@@ -26,6 +26,8 @@ export interface SoundSourceUpdatePayload {
 export interface UseSourceSelectionProps {
     /** Current encounter ID */
     encounterId: string | undefined;
+    /** Stage ID for API calls */
+    stageId: string | undefined;
     /** Placed light sources on the stage */
     placedLightSources: PlacedLightSource[];
     /** Placed sound sources on the stage */
@@ -124,6 +126,7 @@ function toCreateSoundRequest(source: Omit<StageSound, 'index'>): CreateSoundReq
  */
 export function useSourceSelection({
     encounterId,
+    stageId,
     placedLightSources,
     placedSoundSources,
     selectedLightSourceIndex,
@@ -163,7 +166,7 @@ export function useSourceSelection({
     // Delete handlers
     const handleLightSourceDelete = useCallback(
         async (index: number) => {
-            if (!encounterId) return;
+            if (!encounterId || !stageId) return;
             const source = placedLightSources.find((s) => s.index === index);
             if (!source) return;
 
@@ -171,16 +174,16 @@ export function useSourceSelection({
                 encounterId,
                 sourceIndex: index,
                 source,
-                onAdd: async (eid, sourceData) => {
-                    const result = await addLight({ stageId: eid, data: sourceData }).unwrap();
+                onAdd: async (_eid, sourceData) => {
+                    const result = await addLight({ stageId: stageId!, data: sourceData }).unwrap();
                     // Construct full light source from input and result
                     return {
                         ...sourceData,
                         index: result.index,
                     };
                 },
-                onRemove: async (eid, sourceIndex) => {
-                    await deleteLight({ stageId: eid, index: sourceIndex }).unwrap();
+                onRemove: async (_eid, sourceIndex) => {
+                    await deleteLight({ stageId: stageId!, index: sourceIndex }).unwrap();
                 },
                 onRefetch: async () => {
                     refetch();
@@ -192,12 +195,12 @@ export function useSourceSelection({
                 setSelectedLightSourceIndex(null);
             }
         },
-        [encounterId, placedLightSources, execute, addLight, deleteLight, selectedLightSourceIndex, setSelectedLightSourceIndex, refetch],
+        [encounterId, stageId, placedLightSources, execute, addLight, deleteLight, selectedLightSourceIndex, setSelectedLightSourceIndex, refetch],
     );
 
     const handleSoundSourceDelete = useCallback(
         async (index: number) => {
-            if (!encounterId) return;
+            if (!encounterId || !stageId) return;
             const source = placedSoundSources.find((s) => s.index === index);
             if (!source) return;
 
@@ -205,17 +208,17 @@ export function useSourceSelection({
                 encounterId,
                 sourceIndex: index,
                 source,
-                onAdd: async (eid, sourceData) => {
+                onAdd: async (_eid, sourceData) => {
                     const request = toCreateSoundRequest(sourceData);
-                    const result = await addSound({ stageId: eid, data: request }).unwrap();
+                    const result = await addSound({ stageId: stageId!, data: request }).unwrap();
                     // Construct full sound source from input and result
                     return {
                         ...sourceData,
                         index: result.index,
                     };
                 },
-                onRemove: async (eid, sourceIndex) => {
-                    await deleteSound({ stageId: eid, index: sourceIndex }).unwrap();
+                onRemove: async (_eid, sourceIndex) => {
+                    await deleteSound({ stageId: stageId!, index: sourceIndex }).unwrap();
                 },
                 onRefetch: async () => {
                     refetch();
@@ -227,7 +230,7 @@ export function useSourceSelection({
                 setSelectedSoundSourceIndex(null);
             }
         },
-        [encounterId, placedSoundSources, execute, addSound, deleteSound, selectedSoundSourceIndex, setSelectedSoundSourceIndex, refetch],
+        [encounterId, stageId, placedSoundSources, execute, addSound, deleteSound, selectedSoundSourceIndex, setSelectedSoundSourceIndex, refetch],
     );
 
     // Keyboard delete handler
@@ -300,7 +303,7 @@ export function useSourceSelection({
     // Update handlers
     const handleLightSourceUpdate = useCallback(
         async (sourceIndex: number, updates: Partial<EncounterLightSource>) => {
-            if (!encounterId) return;
+            if (!encounterId || !stageId) return;
             const oldSource = placedLightSources.find((s) => s.index === sourceIndex);
             if (!oldSource) return;
 
@@ -311,8 +314,8 @@ export function useSourceSelection({
                 sourceIndex,
                 oldSource,
                 newSource,
-                onUpdate: async (eid, idx, upd) => {
-                    await updateLight({ stageId: eid, index: idx, data: upd }).unwrap();
+                onUpdate: async (_eid, idx, upd) => {
+                    await updateLight({ stageId: stageId!, index: idx, data: upd }).unwrap();
                 },
                 onRefetch: async () => {
                     refetch();
@@ -321,7 +324,7 @@ export function useSourceSelection({
 
             await execute(command);
         },
-        [encounterId, placedLightSources, execute, updateLight, refetch],
+        [encounterId, stageId, placedLightSources, execute, updateLight, refetch],
     );
 
     const handleLightSourcePositionChange = useCallback(
@@ -340,7 +343,7 @@ export function useSourceSelection({
 
     const handleSoundSourceUpdate = useCallback(
         async (sourceIndex: number, updates: SoundSourceUpdatePayload) => {
-            if (!encounterId) return;
+            if (!encounterId || !stageId) return;
             const oldSource = placedSoundSources.find((s) => s.index === sourceIndex);
             if (!oldSource) return;
 
@@ -356,7 +359,7 @@ export function useSourceSelection({
                 sourceIndex,
                 oldSource,
                 newSource,
-                onUpdate: async (eid, idx, upd) => {
+                onUpdate: async (_eid, idx, upd) => {
                     const updatePayload: {
                         encounterId: string;
                         sourceIndex: number;
@@ -367,7 +370,7 @@ export function useSourceSelection({
                         loop?: boolean;
                         mediaId?: string;
                     } = {
-                        encounterId: eid,
+                        encounterId: encounterId!,
                         sourceIndex: idx,
                         ...(upd.name !== undefined && { name: upd.name }),
                         ...(upd.position !== undefined && { position: upd.position }),
@@ -380,7 +383,7 @@ export function useSourceSelection({
                         updatePayload.mediaId = upd.media?.id ?? '';
                     }
 
-                    await updateSound({ stageId: eid, index: idx, data: updatePayload }).unwrap();
+                    await updateSound({ stageId: stageId!, index: idx, data: updatePayload }).unwrap();
                 },
                 onRefetch: async () => {
                     refetch();
@@ -389,7 +392,7 @@ export function useSourceSelection({
 
             await execute(command);
         },
-        [encounterId, placedSoundSources, execute, updateSound, refetch],
+        [encounterId, stageId, placedSoundSources, execute, updateSound, refetch],
     );
 
     const handleSoundSourcePositionChange = useCallback(

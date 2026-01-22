@@ -26,6 +26,7 @@ export interface DrawingToolsLayerProps {
     // Encounter data
     encounter: Encounter | null;
     encounterId: string | undefined;
+    stageId?: string;
 
     // Drawing mode state
     drawingMode: DrawingMode | null;
@@ -77,6 +78,7 @@ export interface DrawingToolsLayerProps {
 export const DrawingToolsLayer: React.FC<DrawingToolsLayerProps> = ({
     encounter,
     encounterId,
+    stageId,
     drawingMode,
     drawingWallIndex,
     drawingWallDefaultHeight,
@@ -179,6 +181,7 @@ export const DrawingToolsLayer: React.FC<DrawingToolsLayerProps> = ({
             {activeTool === 'sourceDrawing' && sourcePlacementProperties && (
                 <SourceDrawingTool
                     encounterId={encounterId}
+                    {...(stageId && { stageId })}
                     source={
                         sourcePlacementProperties.sourceType === 'light'
                             ? {

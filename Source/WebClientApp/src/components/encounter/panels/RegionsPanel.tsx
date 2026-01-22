@@ -40,6 +40,7 @@ import { REGION_PRESETS, type RegionPreset } from './regionsPanelTypes';
 
 export interface RegionsPanelProps {
   encounterId?: string;
+  stageId?: string;
   encounterRegions?: PlacedRegion[];
   selectedRegionIndex?: number | null;
   placementMode?: 'polygon' | 'bucketFill' | null;
@@ -64,7 +65,7 @@ const getSuggestedRegionName = (regions: PlacedRegion[]): string => {
 
 export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
   ({
-    encounterId,
+    stageId,
     encounterRegions = [],
     selectedRegionIndex,
     onPresetSelect,
@@ -203,7 +204,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
         value?: number;
       },
     ) => {
-      if (!encounterId) return;
+      if (!stageId) return;
 
       try {
         const requestData: UpdateRegionRequest = {
@@ -212,7 +213,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(
           ...(updates.value !== undefined && { value: updates.value }),
         };
         await updateRegion({
-          stageId: encounterId,
+          stageId,
           index: regionIndex,
           data: requestData,
         }).unwrap();

@@ -1,10 +1,11 @@
 import { Box, Button, useTheme } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import type React from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { Layer } from 'react-konva';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Group, Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BackgroundLayer, EncounterCanvas, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
+import { BackgroundLayer, EncounterCanvas, EntityPlacement, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
+import { LightSourceRenderer } from '@/components/encounter/rendering/SourceRenderer';
 import { WallRenderer } from '@/components/encounter/rendering/WallRenderer';
 import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
 import { useAudioUnlock } from '@/hooks/useAudioUnlock';
@@ -14,9 +15,10 @@ import {
     useGridConfigSync,
 } from '@/hooks/encounter';
 import { useGetEncounterQuery } from '@/services/encounterApi';
-import { LayerName } from '@/services/layerManager';
-import { type PlacedWall, SegmentState } from '@/types/domain';
-import { hydratePlacedWalls } from '@/utils/encounterMappers';
+import { GroupName, LayerName } from '@/services/layerManager';
+import { type PlacedAsset, type PlacedLightSource, type PlacedWall, SegmentState } from '@/types/domain';
+import { hydrateGameElements, hydratePlacedLightSources, hydratePlacedWalls } from '@/utils/encounterMappers';
+import { SnapMode } from '@/utils/snapping';
 import { GridType } from '@/utils/gridCalculator';
 
 /**
@@ -72,6 +74,7 @@ export const EncounterPage: React.FC = () => {
     // ═══════════════════════════════════════════════════════════════════════════
     const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
     const [stageSize, setStageSize] = useState({ width: 1920, height: 1080 });
+    const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.8 REFS
@@ -106,6 +109,38 @@ export const EncounterPage: React.FC = () => {
             }))
             .filter(wall => wall.segments.length > 0);
     }, [stageWalls, encounterId]);
+
+    /**
+     * Hydrate and filter assets to only show non-hidden ones.
+     * Hidden assets (isHidden === true) are not shown in player view during gameplay.
+     */
+    const visibleAssets = useMemo((): PlacedAsset[] => {
+        if (!encounter || !encounterId) return [];
+
+        const hydratedAssets = hydrateGameElements(
+            encounter.actors ?? [],
+            encounter.objects ?? [],
+            encounter.effects ?? [],
+            encounterId,
+        );
+
+        return hydratedAssets.filter(asset => !asset.isHidden);
+    }, [encounter, encounterId]);
+
+    /**
+     * Hydrate and filter light sources to only show ones that are turned on.
+     * Light sources with isOn === false are not rendered in player view.
+     */
+    const visibleLightSources = useMemo((): PlacedLightSource[] => {
+        if (!encounter || !encounterId) return [];
+
+        const hydratedLightSources = hydratePlacedLightSources(
+            encounter.stage?.lights ?? [],
+            encounterId,
+        );
+
+        return hydratedLightSources.filter(light => light.isOn);
+    }, [encounter, encounterId]);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.13 HANDLERS
@@ -142,6 +177,20 @@ export const EncounterPage: React.FC = () => {
     const handleGoBack = useCallback(() => {
         navigate(-1);
     }, [navigate]);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.12 EFFECTS
+    // Side effects: useEffect
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Handle window resize to update canvas dimensions
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.14 RENDER
@@ -195,8 +244,8 @@ export const EncounterPage: React.FC = () => {
             {/* Main Canvas */}
             <EncounterCanvas
                 ref={canvasRef}
-                width={window.innerWidth}
-                height={window.innerHeight}
+                width={windowSize.width}
+                height={windowSize.height}
                 initialPosition={{ x: viewport.x, y: viewport.y }}
                 initialScale={viewport.scale}
                 backgroundColor={theme.palette.background.default}
@@ -222,7 +271,7 @@ export const EncounterPage: React.FC = () => {
                     />
                 </Layer>
 
-                {/* GameWorld Layer - Walls, tokens, etc. */}
+                {/* GameWorld Layer - Walls, Light Sources */}
                 <Layer name={LayerName.GameWorld} listening={false}>
                     {visibleWalls.map(wall => (
                         <WallRenderer
@@ -231,7 +280,38 @@ export const EncounterPage: React.FC = () => {
                             activeScope={null}
                         />
                     ))}
+
+                    {visibleLightSources.length > 0 && (
+                        <Group name={GroupName.Structure} globalCompositeOperation="lighten">
+                            {visibleLightSources.map((lightSource) => (
+                                <LightSourceRenderer
+                                    key={lightSource.id}
+                                    encounterLightSource={lightSource}
+                                    walls={encounter?.stage?.walls ?? []}
+                                    gridConfig={gridConfig}
+                                    activeScope={null}
+                                    isSelected={false}
+                                />
+                            ))}
+                        </Group>
+                    )}
                 </Layer>
+
+                {/* EntityPlacement has its own Layer - must be a direct child of EncounterCanvas */}
+                {encounter && (
+                    <EntityPlacement
+                        placedAssets={visibleAssets}
+                        onAssetPlaced={() => {}}
+                        onAssetMoved={() => {}}
+                        onAssetDeleted={() => {}}
+                        gridConfig={gridConfig}
+                        draggedAsset={null}
+                        onDragComplete={() => {}}
+                        snapMode={SnapMode.Full}
+                        encounter={encounter}
+                        activeScope={null}
+                    />
+                )}
             </EncounterCanvas>
         </Box>
     );

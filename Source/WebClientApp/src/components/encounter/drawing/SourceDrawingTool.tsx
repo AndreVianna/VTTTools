@@ -46,6 +46,7 @@ export type SourceDrawingConfig = LightSourceDrawingProps | SoundSourceDrawingPr
 
 export interface SourceDrawingToolProps {
   encounterId: string;
+  stageId?: string;
   source: SourceDrawingConfig;
   walls: EncounterWall[];
   gridConfig: GridConfig;
@@ -57,6 +58,7 @@ export interface SourceDrawingToolProps {
 
 export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
   encounterId,
+  stageId,
   source,
   walls,
   gridConfig,
@@ -124,12 +126,12 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           const command = new CreateLightSourceCommand({
             encounterId,
             source: sourceData,
-            onCreate: async (eid, data) => {
-              const result = await addLight({ stageId: eid, data }).unwrap();
+            onCreate: async (_eid, data) => {
+              const result = await addLight({ stageId: stageId!, data }).unwrap();
               return result;
             },
-            onRemove: async (eid, sourceIndex) => {
-              await deleteLight({ stageId: eid, index: sourceIndex }).unwrap();
+            onRemove: async (_eid, sourceIndex) => {
+              await deleteLight({ stageId: stageId!, index: sourceIndex }).unwrap();
             },
             onRefetch,
           });
@@ -151,7 +153,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
           const command = new CreateSoundSourceCommand({
             encounterId,
             source: sourceData,
-            onCreate: async (eid, data) => {
+            onCreate: async (_eid, data) => {
               const requestData: CreateSoundRequest = {
                 position: data.position,
                 radius: data.radius,
@@ -160,11 +162,11 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
                 ...(data.name !== undefined && { name: data.name }),
                 ...(data.loop !== undefined && { loop: data.loop }),
               };
-              const result = await addSound({ stageId: eid, data: requestData }).unwrap();
+              const result = await addSound({ stageId: stageId!, data: requestData }).unwrap();
               return result;
             },
-            onRemove: async (eid, sourceIndex) => {
-              await deleteSound({ stageId: eid, index: sourceIndex }).unwrap();
+            onRemove: async (_eid, sourceIndex) => {
+              await deleteSound({ stageId: stageId!, index: sourceIndex }).unwrap();
             },
             onRefetch,
           });
@@ -190,6 +192,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
       currentDirection,
       currentArc,
       encounterId,
+      stageId,
       source,
       isLight,
       isDirectional,

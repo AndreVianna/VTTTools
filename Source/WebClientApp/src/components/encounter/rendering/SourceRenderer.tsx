@@ -107,7 +107,8 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
   const getDefaultColorForType = (type: LightSourceType): string => {
     switch (type) {
       case LightSourceType.Natural:
-        return '#FF9900';
+        // Warm amber/fire color for torches and fireplaces
+        return '#FF6B1A';
       case LightSourceType.Artificial:
         return '#FFFFFF';
       case LightSourceType.Supernatural:
@@ -115,6 +116,26 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
       default:
         return '#FFFFFF';
     }
+  };
+
+  /**
+   * Get gradient configuration based on light source type.
+   * Natural lights (fire) have a warmer, more organic falloff.
+   */
+  const getGradientConfig = (type: LightSourceType, baseColor: string) => {
+    if (type === LightSourceType.Natural) {
+      // Fire-like gradient: bright warm center, orange mid-range, fades to transparent
+      // More transparent overall to blend naturally
+      const innerColor = `${baseColor}B3`; // 70% opacity - bright core
+      const midColor = `${baseColor}66`;   // 40% opacity - warm glow
+      const outerColor = `${baseColor}1A`; // 10% opacity - subtle edge
+      const transparentColor = `${baseColor}00`;
+      return [0, innerColor, 0.3, midColor, 0.7, outerColor, 1, transparentColor];
+    }
+    // Default gradient for Artificial and Supernatural
+    const centerColor = `${baseColor}99`; // 60% opacity
+    const transparentColor = `${baseColor}00`;
+    return [0, centerColor, 1, transparentColor];
   };
 
   const effectiveRange = encounterLightSource.range;
@@ -143,8 +164,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
 
   const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
   const color = encounterLightSource.color || getDefaultColorForType(encounterLightSource.type);
-  const centerColor = `${color}99`; // 60% opacity (0x99 = 153 = 60% of 255)
-  const transparentColor = `${color}00`;
+  const gradientColorStops = getGradientConfig(encounterLightSource.type, color);
 
   const isLightOn = encounterLightSource.isOn;
   const effectiveOpacity = isLightOn ? 1.0 : 0.0;
@@ -156,7 +176,7 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
     fillRadialGradientEndPoint: { x: 0, y: 0 },
     fillRadialGradientStartRadius: 0,
     fillRadialGradientEndRadius: rangeInPixels,
-    fillRadialGradientColorStops: [0, centerColor, 1, transparentColor],
+    fillRadialGradientColorStops: gradientColorStops,
   };
 
   const ROTATION_HANDLE_LENGTH = 50;
@@ -375,8 +395,12 @@ export const LightSourceRenderer: React.FC<LightSourceRendererProps> = ({
             rangeInPixels,
           );
 
-          gradient.addColorStop(0, centerColor);
-          gradient.addColorStop(1, transparentColor);
+          // Apply gradient color stops (array of [position, color] pairs)
+          for (let i = 0; i < gradientColorStops.length; i += 2) {
+            const position = gradientColorStops[i] as number;
+            const stopColor = gradientColorStops[i + 1] as string;
+            gradient.addColorStop(position, stopColor);
+          }
 
           context.globalCompositeOperation = 'lighten';
           context.fillStyle = gradient;

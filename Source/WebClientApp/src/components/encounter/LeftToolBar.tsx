@@ -37,7 +37,7 @@ export interface LeftToolBarProps {
   onScopeChange?: (scope: InteractionScope) => void;
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
-  encounterId?: string | undefined;
+  stageId?: string | undefined;
   gridConfig?: GridConfig;
   encounterWalls?: PlacedWall[] | undefined;
   selectedWallIndex?: number | null | undefined;
@@ -90,7 +90,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onScopeChange,
   activePanel: externalActivePanel,
   onPanelChange,
-  encounterId,
+  stageId,
   gridConfig,
   encounterWalls,
   selectedWallIndex,
@@ -368,7 +368,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'regions' && (
             <RegionsPanel
-              encounterId={encounterId || ''}
+              {...(stageId && { stageId })}
               encounterRegions={encounterRegions || []}
               selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
               {...(onPlaceRegion ? { onPlaceRegion } : {})}
@@ -381,7 +381,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'walls' && (
             <WallsPanel
-              encounterId={encounterId || ''}
+              {...(stageId && { stageId })}
               encounterWalls={encounterWalls || []}
               selectedWallIndex={selectedWallIndex !== undefined ? selectedWallIndex : null}
               isEditingVertices={isEditingVertices || false}
@@ -431,7 +431,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'lights' && (
             <LightsPanel
-              encounterId={encounterId || ''}
+              {...(stageId && { stageId })}
               lightSources={encounterLightSources || []}
               selectedSourceIndex={selectedLightSourceIndex ?? null}
               onSourceSelect={onLightSourceSelect || (() => {})}
@@ -441,7 +441,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'sounds' && (
             <SoundsPanel
-              encounterId={encounterId || ''}
+              {...(stageId && { stageId })}
               soundSources={encounterSoundSources || []}
               selectedSourceIndex={selectedSoundSourceIndex ?? null}
               onSourceSelect={onSoundSourceSelect || (() => {})}

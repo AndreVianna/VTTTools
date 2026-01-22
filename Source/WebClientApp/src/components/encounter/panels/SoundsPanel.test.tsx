@@ -98,7 +98,7 @@ const renderWithTheme = (component: React.ReactElement, mode: 'light' | 'dark' =
 
 const renderComponent = (props: Partial<SoundsPanelProps> = {}, mode: 'light' | 'dark' = 'light') => {
     const defaultProps: SoundsPanelProps = {
-        encounterId: 'encounter-1',
+        stageId: 'test-stage-id',
         soundSources: [],
         selectedSourceIndex: null,
         onSourceSelect: vi.fn<(index: number) => void>(),
@@ -353,7 +353,7 @@ describe('SoundsPanel', () => {
             // Arrange
             const user = userEvent.setup();
             const sounds = [createMockSound({ index: 2 })];
-            renderComponent({ soundSources: sounds, encounterId: 'enc-123' });
+            renderComponent({ soundSources: sounds, });
 
             // Act - Click delete button (has aria-label from Delete icon)
             const listItem = screen.getByText('Ambient Forest').closest('li');
@@ -366,7 +366,7 @@ describe('SoundsPanel', () => {
 
             // Assert
             expect(mockDeleteSound).toHaveBeenCalledWith({
-                stageId: 'enc-123',
+                stageId: 'test-stage-id',
                 index: 2,
             });
         });
@@ -526,7 +526,7 @@ describe('SoundsPanel', () => {
         it('should toggle isPlaying when checkbox is clicked', async () => {
             // Arrange
             const sounds = [createMockSound({ isPlaying: true, index: 5 })];
-            renderComponent({ soundSources: sounds, encounterId: 'enc-456' });
+            renderComponent({ soundSources: sounds, });
 
             // Act - Expand the sound
             const listItem = screen.getByText('Ambient Forest').closest('li');
@@ -549,7 +549,7 @@ describe('SoundsPanel', () => {
 
             // Assert
             expect(mockUpdateSound).toHaveBeenCalledWith({
-                stageId: 'enc-456',
+                stageId: 'test-stage-id',
                 index: 5,
                 data: { isPlaying: false },
             });
@@ -649,7 +649,7 @@ describe('SoundsPanel', () => {
         it('should clear sound resource when Clear button is clicked', async () => {
             // Arrange
             const sounds = [createMockSound({ index: 3 })];
-            renderComponent({ soundSources: sounds, encounterId: 'enc-789' });
+            renderComponent({ soundSources: sounds, });
 
             // Act - Expand the sound
             const listItem = screen.getByText('Ambient Forest').closest('li');
@@ -672,7 +672,7 @@ describe('SoundsPanel', () => {
 
             // Assert
             expect(mockUpdateSound).toHaveBeenCalledWith({
-                stageId: 'enc-789',
+                stageId: 'test-stage-id',
                 index: 3,
                 data: { mediaId: '' },
             });
@@ -722,10 +722,10 @@ describe('SoundsPanel', () => {
     });
 
     describe('Edge cases', () => {
-        it('should handle empty encounterId gracefully', async () => {
+        it('should handle empty stageId gracefully', async () => {
             // Arrange
             const sounds = [createMockSound({ index: 1 })];
-            renderComponent({ soundSources: sounds, encounterId: '' });
+            renderComponent({ soundSources: sounds, stageId: undefined as unknown as string });
 
             // Act - Expand and try to toggle playing
             const listItem = screen.getByText('Ambient Forest').closest('li');
@@ -745,14 +745,14 @@ describe('SoundsPanel', () => {
             const playingCheckbox = screen.getByRole('checkbox', { name: /Playing/i });
             fireEvent.click(playingCheckbox);
 
-            // Assert - Should not call update without valid encounterId
+            // Assert - Should not call update without valid stageId
             expect(mockUpdateSound).not.toHaveBeenCalled();
         });
 
         it('should handle undefined soundSources gracefully', () => {
             // Arrange & Act - Provide undefined to test default value
             const defaultProps: SoundsPanelProps = {
-                encounterId: 'encounter-1',
+                
                 soundSources: undefined as unknown as StageSound[],
                 selectedSourceIndex: null,
                 onSourceSelect: vi.fn<(index: number) => void>(),

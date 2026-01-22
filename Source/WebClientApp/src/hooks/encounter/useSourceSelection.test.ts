@@ -5,6 +5,7 @@ import { useSourceSelection } from './useSourceSelection';
 describe('useSourceSelection', () => {
     const createMockProps = () => ({
         encounterId: 'test-encounter-id',
+        stageId: 'test-stage-id',
         placedLightSources: [
             { index: 0, position: { x: 100, y: 100 }, radius: 50 },
             { index: 1, position: { x: 200, y: 200 }, radius: 60 },
@@ -207,7 +208,7 @@ describe('useSourceSelection', () => {
     });
 
     it('should not delete light source without encounterId', async () => {
-        const props = { ...createMockProps(), encounterId: undefined };
+        const props = { ...createMockProps(), encounterId: undefined, stageId: undefined };
         const { result } = renderHook(() => useSourceSelection(props));
 
         await act(async () => {

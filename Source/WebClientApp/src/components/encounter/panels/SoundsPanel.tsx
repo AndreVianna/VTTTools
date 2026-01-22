@@ -33,7 +33,7 @@ import { useGetMediaResourceQuery } from '@/services/mediaApi';
 import { type StageSound } from '@/types/stage';
 
 export interface SoundsPanelProps {
-  encounterId: string;
+  stageId?: string;
   soundSources: StageSound[];
   selectedSourceIndex: number | null;
   onSourceSelect: (index: number) => void;
@@ -76,7 +76,7 @@ const SoundResourceInfo: React.FC<{ resourceId: string }> = ({ resourceId }) => 
 
 export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
   ({
-    encounterId,
+    stageId,
     soundSources = [],
     selectedSourceIndex,
     onSourceSelect,
@@ -173,11 +173,11 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
         isPlaying?: boolean;
       },
     ) => {
-      if (!encounterId) return;
+      if (!stageId) return;
 
       try {
         await updateSound({
-          stageId: encounterId,
+          stageId,
           index: sourceIndex,
           data: updates,
         }).unwrap();
@@ -187,11 +187,11 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     };
 
     const handleDeleteSource = async (sourceIndex: number) => {
-      if (!encounterId) return;
+      if (!stageId) return;
 
       try {
         await deleteSound({
-          stageId: encounterId,
+          stageId,
           index: sourceIndex,
         }).unwrap();
       } catch (_error) {
@@ -205,10 +205,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     };
 
     const handleSoundSelected = async (resourceId: string) => {
-      if (soundPickerSourceIndex !== null && encounterId) {
+      if (soundPickerSourceIndex !== null && stageId) {
         try {
           await updateSound({
-            stageId: encounterId,
+            stageId,
             index: soundPickerSourceIndex,
             data: { mediaId: resourceId },
           }).unwrap();
@@ -221,10 +221,10 @@ export const SoundsPanel: React.FC<SoundsPanelProps> = React.memo(
     };
 
     const handleClearSound = async (sourceIndex: number) => {
-      if (!encounterId) return;
+      if (!stageId) return;
       try {
         await updateSound({
-          stageId: encounterId,
+          stageId,
           index: sourceIndex,
           data: { mediaId: '' },
         }).unwrap();

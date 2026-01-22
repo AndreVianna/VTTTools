@@ -1,5 +1,5 @@
 import type { EncounterCanvasHandle, Viewport } from '@components/encounter';
-import { type MouseEvent, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
 interface SavedStartingView {
   zoomLevel: number;
@@ -51,7 +51,6 @@ export const useViewportControls = ({ initialViewport, canvasRef, stageSize, con
 
   // Initialize viewport state
   const [viewport, setViewport] = useState<Viewport>(() => storedViewport ?? initialViewport);
-  const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const hasAppliedCenteringRef = useRef(false);
 
   // Effect to apply centering when background size becomes known
@@ -122,22 +121,11 @@ export const useViewportControls = ({ initialViewport, canvasRef, stageSize, con
     }
   }, [stageSize, offsetLeft, offsetTop, savedStartingView, canvasRef]);
 
-  const handleCanvasMouseMove = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
-      const canvasY = Math.round((e.clientY - viewport.y) / viewport.scale);
-      setCursorPosition({ x: canvasX, y: canvasY });
-    },
-    [viewport],
-  );
-
   return {
     viewport,
-    cursorPosition,
     handleViewportChange,
     handleZoomIn,
     handleZoomOut,
     handleZoomReset,
-    handleCanvasMouseMove,
   };
 };

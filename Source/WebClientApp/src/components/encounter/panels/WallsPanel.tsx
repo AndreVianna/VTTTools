@@ -28,6 +28,7 @@ import { WALL_PRESETS, type WallPreset } from './wallsPanelTypes';
 
 export interface WallsPanelProps {
   encounterId?: string;
+  stageId?: string;
   encounterWalls?: PlacedWall[];
   selectedWallIndex?: number | null;
   isEditingVertices?: boolean;
@@ -47,7 +48,7 @@ export interface WallsPanelProps {
 
 export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
   ({
-    encounterId,
+    stageId,
     encounterWalls = [],
     selectedWallIndex,
     isEditingVertices = false,
@@ -250,11 +251,11 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(
         segments?: typeof encounterWalls[0]['segments'];
       },
     ) => {
-      if (!encounterId) return;
+      if (!stageId) return;
 
       try {
         await updateWall({
-          stageId: encounterId,
+          stageId,
           index: wallIndex,
           data: updates,
         }).unwrap();

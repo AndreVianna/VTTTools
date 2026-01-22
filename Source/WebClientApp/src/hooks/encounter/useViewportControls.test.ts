@@ -3,14 +3,14 @@
  * Tests viewport state management, zoom controls, and session storage persistence
  */
 
-import type React from 'react';
+import type { RefObject } from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useViewportControls } from './useViewportControls';
 import type { EncounterCanvasHandle, Viewport } from '@components/encounter';
 
 // Mock canvas handle factory - returns ref with all required EncounterCanvasHandle methods
-const createMockCanvasRef = (): React.RefObject<EncounterCanvasHandle> => ({
+const createMockCanvasRef = (): RefObject<EncounterCanvasHandle> => ({
     current: {
         zoomIn: vi.fn<() => void>(),
         zoomOut: vi.fn<() => void>(),
@@ -24,7 +24,7 @@ const createMockCanvasRef = (): React.RefObject<EncounterCanvasHandle> => ({
 const defaultViewport: Viewport = { x: 0, y: 0, scale: 1 };
 
 // Helper to cast mock ref for testing - all tests use the same pattern
-const useMockRef = (ref: React.RefObject<EncounterCanvasHandle>) => ref;
+const useMockRef = (ref: RefObject<EncounterCanvasHandle>) => ref;
 
 describe('useViewportControls', () => {
     let sessionStorageGetSpy: ReturnType<typeof vi.spyOn>;
@@ -63,23 +63,6 @@ describe('useViewportControls', () => {
 
             // Assert
             expect(result.current.viewport).toEqual(initialViewport);
-        });
-
-        it('should initialize cursorPosition as undefined', () => {
-            // Arrange
-            const canvasRef = createMockCanvasRef();
-
-            // Act
-            const { result } = renderHook(() =>
-                useViewportControls({
-                    initialViewport: defaultViewport,
-                    canvasRef: useMockRef(canvasRef),
-                    encounterId: 'test-encounter',
-                })
-            );
-
-            // Assert
-            expect(result.current.cursorPosition).toBeUndefined();
         });
 
         it('should restore viewport from session storage if available', () => {
@@ -271,64 +254,6 @@ describe('useViewportControls', () => {
 
             // Assert
             expect(canvasRef.current?.resetView).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('cursor position tracking', () => {
-        it('should calculate canvas-relative position from mouse event', () => {
-            // Arrange
-            const canvasRef = createMockCanvasRef();
-            const initialViewport: Viewport = { x: 100, y: 50, scale: 1 };
-            const { result } = renderHook(() =>
-                useViewportControls({
-                    initialViewport,
-                    canvasRef: useMockRef(canvasRef),
-                    encounterId: 'test-encounter',
-                })
-            );
-
-            // Create mock mouse event
-            const mockEvent = {
-                clientX: 300,
-                clientY: 200,
-            } as React.MouseEvent<HTMLDivElement>;
-
-            // Act
-            act(() => {
-                result.current.handleCanvasMouseMove(mockEvent);
-            });
-
-            // Assert - position calculated as (clientX - viewport.x) / scale
-            // (300 - 100) / 1 = 200, (200 - 50) / 1 = 150
-            expect(result.current.cursorPosition).toEqual({ x: 200, y: 150 });
-        });
-
-        it('should account for scale when calculating cursor position', () => {
-            // Arrange
-            const canvasRef = createMockCanvasRef();
-            const initialViewport: Viewport = { x: 0, y: 0, scale: 2 };
-            const { result } = renderHook(() =>
-                useViewportControls({
-                    initialViewport,
-                    canvasRef: useMockRef(canvasRef),
-                    encounterId: 'test-encounter',
-                })
-            );
-
-            // Create mock mouse event
-            const mockEvent = {
-                clientX: 400,
-                clientY: 200,
-            } as React.MouseEvent<HTMLDivElement>;
-
-            // Act
-            act(() => {
-                result.current.handleCanvasMouseMove(mockEvent);
-            });
-
-            // Assert - position calculated with scale 2
-            // (400 - 0) / 2 = 200, (200 - 0) / 2 = 100
-            expect(result.current.cursorPosition).toEqual({ x: 200, y: 100 });
         });
     });
 
