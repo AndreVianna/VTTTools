@@ -160,6 +160,10 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AiPrompt")
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -169,6 +173,12 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasMaxLength(4096)
                         .HasColumnType("character varying(4096)");
+
+                    b.Property<string>("IngestStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("None");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -217,6 +227,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IngestStatus")
+                        .HasDatabaseName("IX_Assets_IngestStatus");
 
                     b.HasIndex("OwnerId")
                         .HasDatabaseName("IX_Assets_OwnerId");
@@ -847,6 +860,9 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<int>("Index")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("AssetId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -867,6 +883,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("JobId", "Index");
+
+                    b.HasIndex("AssetId")
+                        .HasDatabaseName("IX_JobItems_AssetId");
 
                     b.HasIndex("Status");
 
@@ -1952,8 +1971,6 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name");
-
                     b.HasIndex("Role");
 
                     b.HasIndex("Tags");
@@ -2245,11 +2262,18 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Jobs.Entities.JobItem", b =>
                 {
+                    b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("VttTools.Data.Jobs.Entities.Job", "Job")
                         .WithMany("Items")
                         .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Asset");
 
                     b.Navigation("Job");
                 });

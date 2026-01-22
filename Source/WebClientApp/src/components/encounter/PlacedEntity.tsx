@@ -1,3 +1,4 @@
+import type { KonvaEventObject } from 'konva/lib/Node';
 import React from 'react';
 import { Group, Image as KonvaImage, Rect, Text } from 'react-konva';
 import type { PlacedAsset } from '@/types/domain';
@@ -23,6 +24,7 @@ export interface PlacedEntityProps {
     onExpandStart: (id: string) => void;
     onExpandEnd: () => void;
     onContextMenu?: ((id: string, position: { x: number; y: number }) => void) | undefined;
+    onClick?: ((id: string) => void) | undefined;
 }
 
 const LABEL_PADDING = 4;
@@ -48,19 +50,26 @@ export const PlacedEntity: React.FC<PlacedEntityProps> = ({
     onExpandStart,
     onExpandEnd,
     onContextMenu,
+    onClick,
 }) => {
     const { pixelWidth, pixelHeight, formattedLabel } = renderData;
     const isMonster = placedAsset.asset.classification.kind === AssetKind.Creature;
     const showLabel =
         labelVisibility === DisplayNameEnum.Always || (labelVisibility === DisplayNameEnum.OnHover && isHovered);
 
-    const handleContextMenu = (e: any) => {
+    const handleContextMenu = (e: KonvaEventObject<MouseEvent>) => {
         e.evt.preventDefault();
         if (onContextMenu) {
             onContextMenu(placedAsset.id, {
                 x: e.evt.clientX,
                 y: e.evt.clientY,
             });
+        }
+    };
+
+    const handleClick = () => {
+        if (onClick) {
+            onClick(placedAsset.id);
         }
     };
 
@@ -90,6 +99,7 @@ export const PlacedEntity: React.FC<PlacedEntityProps> = ({
                     onMouseEnter={() => onHoverStart(placedAsset.id)}
                     onMouseLeave={() => onHoverEnd()}
                     onContextMenu={handleContextMenu}
+                    onClick={handleClick}
                 />
             </Group>
         );
@@ -120,6 +130,7 @@ export const PlacedEntity: React.FC<PlacedEntityProps> = ({
                     onMouseEnter={() => onHoverStart(placedAsset.id)}
                     onMouseLeave={() => onHoverEnd()}
                     onContextMenu={handleContextMenu}
+                    onClick={handleClick}
                 />
             </Group>
         );
@@ -194,6 +205,7 @@ export const PlacedEntity: React.FC<PlacedEntityProps> = ({
                 onMouseEnter={() => onHoverStart(placedAsset.id)}
                 onMouseLeave={() => onHoverEnd()}
                 onContextMenu={handleContextMenu}
+                onClick={handleClick}
             />
             <Rect
                 x={labelLocalX}

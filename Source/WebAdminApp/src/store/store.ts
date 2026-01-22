@@ -4,12 +4,14 @@ import { authApi } from '@services/authApi';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 import jobsReducer from './slices/jobsSlice';
+import ingestReducer from './slices/ingestSlice';
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         ui: uiReducer,
         jobs: jobsReducer,
+        ingest: ingestReducer,
         [authApi.reducerPath]: authApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>

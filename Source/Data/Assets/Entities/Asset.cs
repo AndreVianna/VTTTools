@@ -29,6 +29,10 @@ public class Asset {
     public bool IsPublic { get; set; }
     public bool IsDeleted { get; set; }
 
+    public IngestStatus IngestStatus { get; set; } = IngestStatus.None;
+    [MaxLength(4096)]
+    public string? AiPrompt { get; set; }
+
     public Guid? ThumbnailId { get; set; }
     public Resource? Thumbnail { get; set; }
 

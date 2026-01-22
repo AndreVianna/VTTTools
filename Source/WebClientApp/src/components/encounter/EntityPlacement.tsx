@@ -48,6 +48,8 @@ export interface EntityPlacementProps {
   snapMode: SnapMode;
   /** Callback when context menu is requested */
   onContextMenu?: (assetId: string, position: { x: number; y: number }) => void;
+  /** Callback when an asset is clicked (for selection in play mode) */
+  onAssetClick?: (assetId: string) => void;
   /** Current encounter for display settings */
   encounter: Encounter;
   /** Active interaction scope for filtering interactions */
@@ -132,6 +134,7 @@ export const EntityPlacement: React.FC<EntityPlacementProps> = ({
   onImagesLoaded,
   snapMode,
   onContextMenu,
+  onAssetClick,
   activeScope,
 }) => {
   const theme = useTheme();
@@ -206,6 +209,7 @@ export const EntityPlacement: React.FC<EntityPlacementProps> = ({
             onExpandStart={setExpandedAssetId}
             onExpandEnd={() => setExpandedAssetId(null)}
             onContextMenu={onContextMenu}
+            onClick={onAssetClick}
           />
         );
       });

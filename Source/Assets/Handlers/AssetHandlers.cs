@@ -113,6 +113,7 @@ internal static class AssetHandlers {
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] IAssetService assetService) {
         var userId = context.User.GetUserId();
+        var isInternal = context.IsInternalService();
 
         var data = new UpdateAssetData {
             Kind = request.Kind,
@@ -125,9 +126,13 @@ internal static class AssetHandlers {
             TokenSize = request.TokenSize,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
+            IngestStatus = request.IngestStatus,
+            AiPrompt = request.AiPrompt,
         };
 
-        var result = await assetService.UpdateAssetAsync(userId, id, data);
+        var result = isInternal
+            ? await assetService.UpdateAssetInternalAsync(id, data)
+            : await assetService.UpdateAssetAsync(userId, id, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

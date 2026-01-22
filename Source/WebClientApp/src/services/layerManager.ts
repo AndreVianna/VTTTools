@@ -13,13 +13,14 @@
 import type Konva from 'konva';
 
 /**
- * Layer names for 5-layer architecture
+ * Layer names for 6-layer architecture
  * Reduced from 6+ layers for performance optimization
  */
 export enum LayerName {
   Static = 'static',
   GameWorld = 'game-world',
   Assets = 'assets',
+  DMTools = 'dm-tools',
   DrawingTools = 'drawing-tools',
   SelectionHandles = 'selection-handles',
 }
@@ -52,8 +53,9 @@ export const LayerZIndex = {
   STATIC: 0,
   GAME_WORLD: 1,
   ASSETS: 2,
-  DRAWING_TOOLS: 3,
-  SELECTION_HANDLES: 4,
+  DM_TOOLS: 3,
+  DRAWING_TOOLS: 4,
+  SELECTION_HANDLES: 5,
 } as const;
 
 /**
@@ -62,13 +64,15 @@ export const LayerZIndex = {
  * 0: Static (background + grid)
  * 1: GameWorld (structures: walls, regions, sources, openings, transformers)
  * 2: Assets (tokens: objects, monsters, characters)
- * 3: DrawingTools (wall/region/source/opening placement tools with preview cursors)
- * 4: SelectionHandles (token selection boxes, rotation handles, marquee)
+ * 3: DMTools (DM test character for player perspective testing)
+ * 4: DrawingTools (wall/region/source/opening placement tools with preview cursors)
+ * 5: SelectionHandles (token selection boxes, rotation handles, marquee)
  */
 export const LAYER_Z_INDEX = {
   [LayerName.Static]: LayerZIndex.STATIC,
   [LayerName.GameWorld]: LayerZIndex.GAME_WORLD,
   [LayerName.Assets]: LayerZIndex.ASSETS,
+  [LayerName.DMTools]: LayerZIndex.DM_TOOLS,
   [LayerName.DrawingTools]: LayerZIndex.DRAWING_TOOLS,
   [LayerName.SelectionHandles]: LayerZIndex.SELECTION_HANDLES,
 } as const;

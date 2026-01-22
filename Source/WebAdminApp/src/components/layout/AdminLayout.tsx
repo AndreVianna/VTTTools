@@ -25,7 +25,7 @@ import {
     Settings as SettingsIcon,
     LibraryBooks as LibraryIcon,
     Build as BuildIcon,
-    AutoAwesome as AiIcon,
+    Inbox as IngestIcon,
     Image as ImageIcon,
     AccountCircle,
     LightMode,
@@ -46,7 +46,7 @@ const menuItems = [
     { text: 'System Config', icon: <SettingsIcon />, path: '/admin/config', id: 'menu-item-config' },
     { text: 'Public Library', icon: <LibraryIcon />, path: '/admin/library', id: 'menu-item-library' },
     { text: 'Resources', icon: <ImageIcon />, path: '/admin/resources', id: 'menu-item-resources' },
-    { text: 'AI Generation', icon: <AiIcon />, path: '/admin/ai-generation', id: 'menu-item-ai-generation' },
+    { text: 'Asset Ingest', icon: <IngestIcon />, path: '/admin/asset-ingest', id: 'menu-item-asset-ingest' },
 ];
 
 export function AdminLayout() {

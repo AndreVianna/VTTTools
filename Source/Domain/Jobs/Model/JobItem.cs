@@ -9,4 +9,5 @@ public record JobItem {
     public string? Result { get; init; }
     public DateTime? StartedAt { get; init; }
     public DateTime? CompletedAt { get; init; }
+    public Guid? AssetId { get; init; }
 }

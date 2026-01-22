@@ -17,6 +17,9 @@ public record UpdateAssetData
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 
+    public Optional<IngestStatus> IngestStatus { get; init; }
+    public Optional<string> AiPrompt { get; init; }
+
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
         if (Category.IsSet && string.IsNullOrWhiteSpace(Category.Value))

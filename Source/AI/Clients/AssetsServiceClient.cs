@@ -42,6 +42,11 @@ public class AssetsServiceClient(IHttpClientFactory httpClientFactory,
         return Result.Success();
     }
 
+    public async Task<Result> UpdateIngestStatusAsync(Guid assetId, IngestStatus status, CancellationToken ct = default) {
+        var request = new UpdateAssetRequest { IngestStatus = status };
+        return await UpdateAssetAsync(assetId, request, ct);
+    }
+
     public async Task<Result> AddTokenAsync(Guid assetId, AddTokenRequest request, CancellationToken ct = default) {
         var httpClient = httpClientFactory.CreateClient("AssetsService");
         var response = await httpClient.PostAsJsonAsync($"/api/assets/{assetId}/tokens", request, ct);

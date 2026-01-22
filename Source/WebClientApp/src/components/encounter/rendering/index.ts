@@ -1,3 +1,5 @@
+export type { ActiveCharacterIndicatorProps } from './ActiveCharacterIndicator';
+export { ActiveCharacterIndicator } from './ActiveCharacterIndicator';
 export type { FogOfWarRendererProps } from './FogOfWarRenderer';
 export { FogOfWarRenderer } from './FogOfWarRenderer';
 export type { RegionLabelDisplayProps } from './RegionLabelDisplay';

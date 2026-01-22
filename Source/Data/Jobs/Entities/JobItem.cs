@@ -1,3 +1,5 @@
+using Asset = VttTools.Data.Assets.Entities.Asset;
+
 namespace VttTools.Data.Jobs.Entities;
 
 public class JobItem {
@@ -11,4 +13,6 @@ public class JobItem {
     public string? Result { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    public Guid? AssetId { get; set; }
+    public Asset? Asset { get; set; }
 }

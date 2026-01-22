@@ -1,3 +1,4 @@
+using Asset = VttTools.Data.Assets.Entities.Asset;
 using Job = VttTools.Data.Jobs.Entities.Job;
 using JobItem = VttTools.Data.Jobs.Entities.JobItem;
 
@@ -41,7 +42,14 @@ internal static class JobSchemaBuilder {
         entity.Property(e => e.Result).HasColumnType("text");
         entity.Property(e => e.StartedAt);
         entity.Property(e => e.CompletedAt);
+        entity.Property(e => e.AssetId);
+
+        entity.HasOne(e => e.Asset)
+            .WithMany()
+            .HasForeignKey(e => e.AssetId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         entity.HasIndex(e => e.Status);
+        entity.HasIndex(e => e.AssetId).HasDatabaseName("IX_JobItems_AssetId");
     });
 }

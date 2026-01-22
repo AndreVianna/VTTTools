@@ -65,6 +65,20 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             return Result.Failure("NotFound");
         if (asset.OwnerId != userId)
             return Result.Failure("NotAllowed");
+
+        return await ApplyAssetUpdateAsync(asset, data, ct);
+    }
+
+    public async Task<Result<Asset>> UpdateAssetInternalAsync(Guid id, UpdateAssetData data, CancellationToken ct = default) {
+        var assets = await assetStorage.GetAllAsync(ct);
+        var asset = assets.FirstOrDefault(a => a.Id == id);
+        if (asset is null)
+            return Result.Failure("NotFound");
+
+        return await ApplyAssetUpdateAsync(asset, data, ct);
+    }
+
+    private async Task<Result<Asset>> ApplyAssetUpdateAsync(Asset asset, UpdateAssetData data, CancellationToken ct) {
         var result = data.Validate();
         if (result.HasErrors)
             return result;
@@ -89,6 +103,8 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             Tags = data.Tags.IsSet ? data.Tags.Value.Apply(asset.Tags) : asset.Tags,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : asset.IsPublished,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : asset.IsPublic,
+            IngestStatus = data.IngestStatus.IsSet ? data.IngestStatus.Value : asset.IngestStatus,
+            AiPrompt = data.AiPrompt.IsSet ? data.AiPrompt.Value : asset.AiPrompt,
         };
 
         await assetStorage.UpdateAsync(asset, ct);

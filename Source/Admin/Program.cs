@@ -123,6 +123,8 @@ internal static class Program {
             builder.Services.AddScoped<IAssetsServiceClient, AssetsServiceClient>();
             builder.Services.AddScoped<IAiServiceClient, AiServiceClient>();
             builder.Services.AddScoped<IResourceApprovalService, ResourceApprovalService>();
+            builder.Services.AddScoped<IJobStorage, JobStorage>();
+            builder.Services.AddScoped<IAssetIngestService, AssetIngestService>();
 
             builder.Services.AddTransient<InternalApiKeyHandler>();
 
@@ -160,6 +162,7 @@ internal static class Program {
         app.MapConfigurationEndpoints();
         app.MapLibraryAdminEndpoints();
         app.MapResourceApprovalEndpoints();
+        app.MapAssetIngestEndpoints();
         app.MapHub<AuditLogHub>("/hubs/audit");
     }
 }

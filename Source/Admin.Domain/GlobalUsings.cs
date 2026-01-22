@@ -11,6 +11,8 @@ global using VttTools.Admin.Configuration.ApiContracts;
 global using VttTools.Admin.Configuration.Model;
 global using VttTools.Admin.Dashboard.ApiContracts;
 global using VttTools.Admin.Dashboard.Model;
+global using VttTools.Admin.Ingest.ApiContracts;
+global using VttTools.Admin.Ingest.Services;
 global using VttTools.Admin.Library.ApiContracts;
 global using VttTools.Admin.Resources.ServiceContracts;
 global using VttTools.Admin.Users.ApiContracts;

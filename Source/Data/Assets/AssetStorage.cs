@@ -179,4 +179,35 @@ public class AssetStorage(ApplicationDbContext context)
             .ExecuteUpdateAsync(setters => setters.SetProperty(a => a.IsDeleted, true), ct);
         return result > 0;
     }
+
+    public async Task<(Asset[] assets, int totalCount)> SearchByIngestStatusAsync(
+        Guid ownerId,
+        IngestStatus[] statuses,
+        int skip,
+        int take,
+        CancellationToken ct = default) {
+        var query = context.Assets
+            .Include(a => a.Thumbnail)
+            .Include(a => a.Portrait)
+            .Include(a => a.Tokens)
+                .ThenInclude(r => r.Token)
+            .Include(a => a.StatBlockEntries)
+                .ThenInclude(se => se.GameSystem)
+            .IgnoreQueryFilters()
+            .Where(a => a.OwnerId == ownerId && statuses.Contains(a.IngestStatus))
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        var totalCount = await query.CountAsync(ct);
+
+        var entities = await query
+            .OrderByDescending(a => a.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToArrayAsync(ct);
+
+        var assets = entities.Select(e => e.ToModel()).ToArray();
+
+        return (assets, totalCount);
+    }
 }

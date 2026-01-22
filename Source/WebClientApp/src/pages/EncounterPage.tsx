@@ -5,19 +5,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Group, Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BackgroundLayer, EncounterCanvas, EntityPlacement, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
+import { DMTestCharacter } from '@/components/encounter/DMTestCharacter';
 import { LightSourceRenderer } from '@/components/encounter/rendering/SourceRenderer';
 import { WallRenderer } from '@/components/encounter/rendering/WallRenderer';
 import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
+import { useAuth } from '@/hooks/useAuth';
 import { useAudioUnlock } from '@/hooks/useAudioUnlock';
 import {
+    useActiveCharacter,
     useBackgroundMedia,
+    useDMTestCharacter,
     useEncounterLoadingState,
     useGridConfigSync,
+    usePreviewModeAccess,
+    useSpatialAudio,
 } from '@/hooks/encounter';
 import { useGetEncounterQuery } from '@/services/encounterApi';
 import { GroupName, LayerName } from '@/services/layerManager';
-import { type PlacedAsset, type PlacedLightSource, type PlacedWall, SegmentState } from '@/types/domain';
-import { hydrateGameElements, hydratePlacedLightSources, hydratePlacedWalls } from '@/utils/encounterMappers';
+import { AssetKind, type EncounterWall, type PlacedAsset, type PlacedLightSource, type PlacedSoundSource, type PlacedWall, SegmentState } from '@/types/domain';
+import { hydrateGameElements, hydratePlacedLightSources, hydratePlacedSoundSources, hydratePlacedWalls } from '@/utils/encounterMappers';
 import { SnapMode } from '@/utils/snapping';
 import { GridType } from '@/utils/gridCalculator';
 
@@ -66,7 +72,20 @@ export const EncounterPage: React.FC = () => {
     // App-level context: useUndoRedoContext, useClipboard, useConnectionStatus
     // ═══════════════════════════════════════════════════════════════════════════
     // Audio unlock state - unlocks on first user interaction (mousedown, touchstart, pointerdown, keydown)
-    const { isUnlocked: isAudioUnlocked } = useAudioUnlock();
+    const { isUnlocked: isAudioUnlocked, audioContext } = useAudioUnlock();
+
+    // Get current user for DM check
+    const { user } = useAuth();
+
+    // Preview mode access check (Phase A: simple ownership validation)
+    // Phase A: Validate ownership (Phase B will add redirect on access denied)
+    usePreviewModeAccess(encounterId, encounter);
+
+    // Determine if current user is the DM (owner) of the encounter
+    const isDM = useMemo(() => {
+        if (!user || !encounter) return false;
+        return encounter.ownerId === user.id;
+    }, [user, encounter]);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.7 STATE
@@ -142,10 +161,100 @@ export const EncounterPage: React.FC = () => {
         return hydratedLightSources.filter(light => light.isOn);
     }, [encounter, encounterId]);
 
+    /**
+     * Hydrate and filter sound sources to only show ones that are playing.
+     * Sound sources with isPlaying === false are not played in player view.
+     */
+    const visibleSoundSources = useMemo((): PlacedSoundSource[] => {
+        if (!encounter || !encounterId) return [];
+
+        const hydratedSoundSources = hydratePlacedSoundSources(
+            encounter.stage?.sounds ?? [],
+            encounterId,
+        );
+
+        return hydratedSoundSources.filter(sound => sound.isPlaying);
+    }, [encounter, encounterId]);
+
+    /**
+     * Encounter walls for sound propagation calculations.
+     * Includes all wall segments (sound blocking is calculated per-segment).
+     */
+    const encounterWalls = useMemo((): EncounterWall[] => {
+        return encounter?.stage?.walls ?? [];
+    }, [encounter?.stage?.walls]);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 4.9b DOMAIN HOOKS (depends on derived state above)
+    // These hooks require visibleAssets/visibleSoundSources/encounterWalls
+    // ═══════════════════════════════════════════════════════════════════════════
+    const {
+        activeCharacterId,
+        activeCharacterPosition,
+        setActiveCharacter,
+        isActiveCharacter,
+    } = useActiveCharacter({
+        encounterId,
+        visibleAssets,
+    });
+
+    // DM test character for testing player-perspective features
+    const {
+        position: dmTestPosition,
+        setPosition: setDMTestPosition,
+        isSelected: isDMTestSelected,
+        select: selectDMTest,
+    } = useDMTestCharacter({
+        encounterId,
+        isDM,
+        gridConfig,
+        stageSize,
+        activeCharacterId,
+        setActiveCharacter,
+    });
+
+    // Effective listener position: DM test character when selected, else active creature
+    const effectiveListenerPosition = useMemo(() => {
+        if (isDMTestSelected) {
+            return dmTestPosition;
+        }
+        return activeCharacterPosition;
+    }, [isDMTestSelected, dmTestPosition, activeCharacterPosition]);
+
+    // Spatial audio playback for sound sources
+    useSpatialAudio({
+        soundSources: visibleSoundSources,
+        walls: encounterWalls,
+        listenerPosition: effectiveListenerPosition,
+        gridConfig,
+        audioContext,
+        isAudioUnlocked,
+    });
+
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.13 HANDLERS
     // Event handlers: useCallback (including callback refs)
     // ═══════════════════════════════════════════════════════════════════════════
+    /**
+     * Handle creature click for active character selection.
+     * Only creatures (Characters and Creatures) can be selected as the listener.
+     */
+    const handleAssetClick = useCallback((assetId: string) => {
+        const asset = visibleAssets.find(a => a.id === assetId);
+        if (!asset) return;
+
+        // Only allow selecting creatures (Characters and Creatures)
+        const kind = asset.asset?.classification?.kind;
+        if (kind === AssetKind.Character || kind === AssetKind.Creature) {
+            // Toggle selection: click again to deselect
+            if (isActiveCharacter(assetId)) {
+                setActiveCharacter(null);
+            } else {
+                setActiveCharacter(assetId);
+            }
+        }
+    }, [visibleAssets, isActiveCharacter, setActiveCharacter]);
+
     const handleExitToEditor = useCallback(() => {
         navigate(`/encounters/${encounterId}/edit`);
     }, [encounterId, navigate]);
@@ -310,8 +419,23 @@ export const EncounterPage: React.FC = () => {
                         snapMode={SnapMode.Full}
                         encounter={encounter}
                         activeScope={null}
+                        onAssetClick={handleAssetClick}
                     />
                 )}
+
+                {/* DMTools Layer - DM test character for testing player perspective */}
+                {isDM && (
+                    <Layer name={LayerName.DMTools} listening={true}>
+                        <DMTestCharacter
+                            position={dmTestPosition}
+                            gridConfig={gridConfig}
+                            isSelected={isDMTestSelected}
+                            onDragEnd={setDMTestPosition}
+                            onClick={selectDMTest}
+                        />
+                    </Layer>
+                )}
+
             </EncounterCanvas>
         </Box>
     );

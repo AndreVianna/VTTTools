@@ -39,6 +39,8 @@ internal static class Mapper {
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             IsDeleted = entity.IsDeleted,
+            IngestStatus = entity.IngestStatus,
+            AiPrompt = entity.AiPrompt,
             Tags = entity.Tags,
             Thumbnail = entity.Thumbnail.ToModel(),
             Portrait = entity.Portrait == null ? null : entity.Portrait.ToModel(),
@@ -58,6 +60,8 @@ internal static class Mapper {
                IsPublic = entity.IsPublic,
                IsPublished = entity.IsPublished,
                IsDeleted = entity.IsDeleted,
+               IngestStatus = entity.IngestStatus,
+               AiPrompt = entity.AiPrompt,
                Tags = entity.Tags,
                Size = entity.Size,
                StatBlockEntries = entity.StatBlockEntries.GroupBy(e => e.GameSystemId)
@@ -108,6 +112,8 @@ internal static class Mapper {
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
             IsDeleted = model.IsDeleted,
+            IngestStatus = model.IngestStatus,
+            AiPrompt = model.AiPrompt,
             Tags = model.Tags,
             Size = model.Size,
             ThumbnailId = model.Thumbnail?.Id,
@@ -131,6 +137,8 @@ internal static class Mapper {
         entity.Description = model.Description;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
+        entity.IngestStatus = model.IngestStatus;
+        entity.AiPrompt = model.AiPrompt;
         entity.ThumbnailId = model.Thumbnail?.Id;
         entity.PortraitId = model.Portrait?.Id;
         entity.Tokens = [.. model.Tokens.Select((t, i) => new AssetResourceEntity {

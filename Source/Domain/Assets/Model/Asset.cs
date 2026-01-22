@@ -21,4 +21,7 @@ public record Asset {
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
     public bool IsDeleted { get; init; }
+
+    public IngestStatus IngestStatus { get; init; } = IngestStatus.None;
+    public string? AiPrompt { get; init; }
 }

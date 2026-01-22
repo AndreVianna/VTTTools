@@ -9,6 +9,7 @@ import { MaintenanceModePage } from '@pages/MaintenanceModePage';
 import { ConfigurationPage } from '@pages/ConfigurationPage';
 import { PublicLibraryPage } from '@pages/PublicLibraryPage';
 import { BulkAssetGenerationPage } from '@pages/BulkAssetGenerationPage';
+import { AssetIngestPage } from '@pages/AssetIngestPage';
 import { ResourcesPage } from '@pages/ResourcesPage';
 import {
   WorldEditorPage,
@@ -39,6 +40,7 @@ function App() {
         <Route path="library" element={<PublicLibraryPage />} />
         <Route path="resources" element={<ResourcesPage />} />
         <Route path="ai-generation" element={<BulkAssetGenerationPage />} />
+        <Route path="asset-ingest" element={<AssetIngestPage />} />
         <Route path="library/worlds/:id" element={<WorldEditorPage />} />
         <Route path="library/campaigns/:id" element={<CampaignEditorPage />} />
         <Route path="library/adventures/:id" element={<AdventureEditorPage />} />

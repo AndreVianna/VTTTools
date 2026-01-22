@@ -24,6 +24,8 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.IsPublished).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.IsPublic).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.IngestStatus).IsRequired().HasDefaultValue(IngestStatus.None).HasConversion<string>();
+            entity.Property(e => e.AiPrompt).HasMaxLength(4096);
             entity.Property(e => e.Tags)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
@@ -42,6 +44,7 @@ internal static class AssetSchemaBuilder {
             entity.HasIndex(e => e.OwnerId).HasDatabaseName("IX_Assets_OwnerId");
             entity.HasIndex(e => new { e.IsPublic, e.IsPublished }).HasDatabaseName("IX_Assets_IsPublic_IsPublished");
             entity.HasIndex(e => new { e.Kind, e.Category, e.Type }).HasDatabaseName("IX_Assets_Taxonomy");
+            entity.HasIndex(e => e.IngestStatus).HasDatabaseName("IX_Assets_IngestStatus");
             entity.HasQueryFilter(e => !e.IsDeleted);
         });
 

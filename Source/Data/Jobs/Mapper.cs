@@ -27,6 +27,7 @@ internal static class Mapper {
             Result = entity.Result,
             StartedAt = entity.StartedAt,
             CompletedAt = entity.CompletedAt,
+            AssetId = entity.AssetId,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -57,6 +58,7 @@ internal static class Mapper {
                Result = entity.Result,
                StartedAt = entity.StartedAt,
                CompletedAt = entity.CompletedAt,
+               AssetId = entity.AssetId,
            };
 
     public static JobEntity ToEntity(this Job model)
@@ -81,6 +83,7 @@ internal static class Mapper {
             Result = model.Result,
             StartedAt = model.StartedAt,
             CompletedAt = model.CompletedAt,
+            AssetId = model.AssetId,
         };
 
     public static void UpdateFrom(this JobEntity entity, Job model) {

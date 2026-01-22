@@ -1,4 +1,6 @@
+export { useActiveCharacter, type UseActiveCharacterProps, type UseActiveCharacterResult } from './useActiveCharacter';
 export { useAssetManagement } from './useAssetManagement';
+export { useDMTestCharacter, type UseDMTestCharacterConfig, type UseDMTestCharacterResult } from './useDMTestCharacter';
 export { useBackgroundMedia, type UseBackgroundMediaProps, type UseBackgroundMediaResult } from './useBackgroundMedia';
 export { useCanvasReadyState } from './useCanvasReadyState';
 export { useDrawingRegionState } from './useDrawingRegionState';
@@ -23,11 +25,13 @@ export {
 } from './useMarqueeSelection';
 export { useMediaManagement } from './useMediaManagement';
 export { useMergeRegions } from './useMergeRegions';
+export { usePreviewModeAccess, type UsePreviewModeAccessResult } from './usePreviewModeAccess';
 export { useRegionHandlers } from './useRegionHandlers';
 export { useSaveChanges } from './useSaveChanges';
 export { useScopeChangeHandler } from './useScopeChangeHandler';
 export { useSelectionHandlers } from './useSelectionHandlers';
 export { useSourceSelection } from './useSourceSelection';
+export { useSpatialAudio, type UseSpatialAudioConfig, type UseSpatialAudioResult } from './useSpatialAudio';
 export { useStageDoubleClick } from './useStageDoubleClick';
 export { useVideoControls } from './useVideoControls';
 export { useViewportControls } from './useViewportControls';

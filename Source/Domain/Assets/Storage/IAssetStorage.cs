@@ -23,4 +23,11 @@ public interface IAssetStorage {
     Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
     Task<bool> SoftDeleteAsync(Guid id, CancellationToken ct = default);
+
+    Task<(Asset[] assets, int totalCount)> SearchByIngestStatusAsync(
+        Guid ownerId,
+        IngestStatus[] statuses,
+        int skip,
+        int take,
+        CancellationToken ct = default);
 }
