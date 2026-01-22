@@ -115,8 +115,7 @@ export const DMTestCharacter: React.FC<DMTestCharacterProps> = ({
                 radius={radius}
                 fill={isSelected ? DM_COLOR_SELECTED : DM_COLOR}
                 opacity={FILL_OPACITY}
-                stroke={isSelected ? LABEL_COLOR : undefined}
-                strokeWidth={isSelected ? 2 : 0}
+                {...(isSelected && { stroke: LABEL_COLOR, strokeWidth: 2 })}
             />
 
             {/* "DM" label */}

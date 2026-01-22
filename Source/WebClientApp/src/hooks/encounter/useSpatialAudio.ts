@@ -273,13 +273,13 @@ export function useSpatialAudio({
         setIsReady(true);
 
         // Get currently playing sound sources
-        // Warn about sources that are playing but have no media path
+        // Warn about sources that are playing but have no media id
         const playingSources = soundSources.filter((s) => {
-            if (s.isPlaying && !s.media?.path) {
-                console.warn(`[useSpatialAudio] Sound source at index ${s.index} has no media path`);
+            if (s.isPlaying && !s.media?.id) {
+                console.warn(`[useSpatialAudio] Sound source at index ${s.index} has no media id`);
                 return false;
             }
-            return s.isPlaying && s.media?.path;
+            return s.isPlaying && s.media?.id;
         });
 
         // Find sources that need to be added
