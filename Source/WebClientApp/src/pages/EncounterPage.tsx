@@ -213,13 +213,18 @@ export const EncounterPage: React.FC = () => {
         setActiveCharacter,
     });
 
-    // Effective listener position: DM test character when selected, else active creature
+    // Effective listener position: creature if selected, else DM test character (for DM)
     const effectiveListenerPosition = useMemo(() => {
-        if (isDMTestSelected) {
+        // If a creature is selected, use its position
+        if (activeCharacterPosition) {
+            return activeCharacterPosition;
+        }
+        // For DM, fall back to DM test character position
+        if (isDM) {
             return dmTestPosition;
         }
-        return activeCharacterPosition;
-    }, [isDMTestSelected, dmTestPosition, activeCharacterPosition]);
+        return null;
+    }, [activeCharacterPosition, isDM, dmTestPosition]);
 
     // Spatial audio playback for sound sources
     useSpatialAudio({

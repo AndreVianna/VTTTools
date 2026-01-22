@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getApiEndpoints } from '@/config/development';
 import type { EncounterWall, PlacedSoundSource, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { calculateEffectiveVolume } from '@/utils/soundPropagation';
@@ -49,13 +50,12 @@ export interface UseSpatialAudioResult {
 
 /**
  * Fetch an authenticated resource and return a blob URL.
+ * Uses the resource ID (not path) to construct the API URL.
  */
-async function fetchAuthenticatedAudioUrl(resourcePath: string): Promise<string | null> {
+async function fetchAuthenticatedAudioUrl(resourceId: string): Promise<string | null> {
     try {
-        // Normalize path - add /api/resources/ prefix if needed
-        const fullUrl = resourcePath.startsWith('/api/')
-            ? resourcePath
-            : `/api/resources/${resourcePath}`;
+        // Use getApiEndpoints().media to match useBackgroundMedia pattern
+        const fullUrl = `${getApiEndpoints().media}/${resourceId}`;
 
         const response = await fetch(fullUrl, {
             credentials: 'include',
@@ -167,13 +167,13 @@ export function useSpatialAudio({
             }
 
             // Safety check - should not reach here due to effect filter
-            if (!soundSource.media?.path) {
+            if (!soundSource.media?.id) {
                 return null;
             }
 
             try {
-                // Fetch authenticated audio URL
-                const blobUrl = await fetchAuthenticatedAudioUrl(soundSource.media.path);
+                // Fetch authenticated audio URL using media.id (not path)
+                const blobUrl = await fetchAuthenticatedAudioUrl(soundSource.media.id);
                 if (!blobUrl) {
                     return null;
                 }
