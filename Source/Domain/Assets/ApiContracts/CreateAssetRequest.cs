@@ -32,7 +32,6 @@ public record CreateAssetRequest
 
     public string[] Tags { get; init; } = [];
 
-    public Guid? PortraitId { get; init; }
     public NamedSize TokenSize { get; init; } = NamedSize.Default;
     public Guid? TokenId { get; init; }
 }

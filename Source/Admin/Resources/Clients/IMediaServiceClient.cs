@@ -6,4 +6,5 @@ public interface IMediaServiceClient {
     Task<Result> DeleteResourceAsync(Guid resourceId, CancellationToken ct = default);
     Task<Result<ResourceListResponse>> ListUnpublishedResourcesAsync(VttTools.Admin.Resources.ApiContracts.ResourceFilterRequest request, CancellationToken ct = default);
     Task<Result<(byte[] Data, string ContentType)>> GetResourceDataAsync(Guid resourceId, CancellationToken ct = default);
+    Task<Result<VttTools.Media.Ingest.IngestJobResponse>> StartIngestAsync(Guid ownerId, VttTools.Media.Ingest.StartIngestRequest request, CancellationToken ct = default);
 }

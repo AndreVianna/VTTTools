@@ -17,12 +17,7 @@ public class ImageGenerationServiceTests {
         _providerFactory.GetProviderAndModel(Arg.Any<GeneratedContentType>())
             .Returns(("OpenAI", "gpt-image-1"));
 
-        var options = Substitute.For<IOptions<JobProcessingOptions>>();
-        var client = Substitute.For<IJobsServiceClient>();
-        var channel = Substitute.For<System.Threading.Channels.Channel<JobQueueItem>>();
-        var logger = NullLogger<ImageGenerationService>.Instance;
-
-        _service = new ImageGenerationService(_providerFactory, options, client, channel, logger);
+        _service = new ImageGenerationService(_providerFactory);
         _ct = TestContext.Current.CancellationToken;
     }
 

@@ -5,7 +5,6 @@ global using System.Net.Http.Json;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
-global using System.Threading.Channels;
 
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
@@ -20,7 +19,6 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 
 global using VttTools.AI.ApiContracts;
-global using VttTools.AI.Clients;
 global using VttTools.AI.EndpointMappers;
 global using VttTools.AI.Extensions;
 global using VttTools.AI.Factory;
@@ -51,8 +49,6 @@ global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.Http;
-global using VttTools.Jobs.ApiContracts;
-global using VttTools.Jobs.Model;
 global using VttTools.Json;
 global using VttTools.Media.Model;
 global using VttTools.Media.Storage;

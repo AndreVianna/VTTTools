@@ -7,8 +7,6 @@ public class AssetStorage(ApplicationDbContext context)
     : IAssetStorage {
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
         var entities = await context.Assets
-                    .Include(a => a.Thumbnail)
-                    .Include(a => a.Portrait)
                     .Include(a => a.Tokens)
                         .ThenInclude(r => r.Token)
                     .Include(a => a.StatBlockEntries)
@@ -35,8 +33,6 @@ public class AssetStorage(ApplicationDbContext context)
         CancellationToken ct = default) {
 
         var query = context.Assets
-                    .Include(a => a.Thumbnail)
-                    .Include(a => a.Portrait)
                     .Include(a => a.Tokens)
                         .ThenInclude(r => r.Token)
                     .Include(a => a.StatBlockEntries)
@@ -127,8 +123,6 @@ public class AssetStorage(ApplicationDbContext context)
 
     public async Task<Asset?> FindByIdAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Thumbnail)
-                    .Include(a => a.Portrait)
                     .Include(a => a.Tokens)
                         .ThenInclude(r => r.Token)
                     .Include(a => a.StatBlockEntries)
@@ -148,8 +142,6 @@ public class AssetStorage(ApplicationDbContext context)
 
     public async Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Thumbnail)
-                    .Include(a => a.Portrait)
                     .Include(a => a.Tokens)
                         .ThenInclude(r => r.Token)
                     .Include(a => a.StatBlockEntries)
@@ -187,8 +179,6 @@ public class AssetStorage(ApplicationDbContext context)
         int take,
         CancellationToken ct = default) {
         var query = context.Assets
-            .Include(a => a.Thumbnail)
-            .Include(a => a.Portrait)
             .Include(a => a.Tokens)
                 .ThenInclude(r => r.Token)
             .Include(a => a.StatBlockEntries)

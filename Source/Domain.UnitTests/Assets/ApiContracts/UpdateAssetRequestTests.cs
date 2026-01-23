@@ -3,26 +3,22 @@ namespace VttTools.Assets.ApiContracts;
 public class UpdateAssetRequestTests {
     [Fact]
     public void WithClause_ObjectAsset_UpdatesProperties() {
-        var originalPortraitId = Guid.CreateVersion7();
         var original = new UpdateAssetRequest {
             Kind = AssetKind.Object,
             Category = "Furniture",
             Type = "Container",
             Name = "Table",
             Description = "A table",
-            PortraitId = originalPortraitId,
             TokenSize = new NamedSize { Width = 1, Height = 1 },
             Tags = new ListPatcher<string>(["furniture"])
         };
         const string newName = "Large Table";
-        var newPortraitId = Guid.CreateVersion7();
 
         var updated = original with {
             Name = newName,
             Category = "Furniture",
             Type = "Table",
             Subtype = "Dining",
-            PortraitId = newPortraitId,
             TokenSize = new NamedSize { Width = 2, Height = 2 },
             Tags = new ListPatcher<string>(["furniture", "indoor"])
         };
@@ -32,7 +28,6 @@ public class UpdateAssetRequestTests {
         updated.Category.Value.Should().Be("Furniture");
         updated.Type.Value.Should().Be("Table");
         updated.Subtype.Value.Should().Be("Dining");
-        updated.PortraitId.Value.Should().Be(newPortraitId);
         updated.TokenSize.Value.Width.Should().Be(2);
         updated.TokenSize.Value.Height.Should().Be(2);
         updated.Tags.Value.Items.Should().HaveCount(2);
@@ -89,7 +84,6 @@ public class UpdateAssetRequestTests {
         request.Category.IsSet.Should().BeFalse();
         request.Type.IsSet.Should().BeFalse();
         request.Subtype.IsSet.Should().BeFalse();
-        request.PortraitId.IsSet.Should().BeFalse();
         request.TokenSize.IsSet.Should().BeFalse();
         request.Tags.IsSet.Should().BeFalse();
         request.IsPublished.IsSet.Should().BeFalse();
@@ -97,12 +91,13 @@ public class UpdateAssetRequestTests {
     }
 
     [Fact]
-    public void PortraitId_CanBeSetToNull() {
+    public void TokenSize_CanBeSet() {
         var request = new UpdateAssetRequest {
-            PortraitId = null
+            TokenSize = new NamedSize { Width = 2, Height = 2 }
         };
 
-        request.PortraitId.IsSet.Should().BeTrue();
-        request.PortraitId.Value.Should().BeNull();
+        request.TokenSize.IsSet.Should().BeTrue();
+        request.TokenSize.Value.Width.Should().Be(2);
+        request.TokenSize.Value.Height.Should().Be(2);
     }
 }

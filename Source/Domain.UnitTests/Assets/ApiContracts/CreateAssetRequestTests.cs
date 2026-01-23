@@ -10,7 +10,6 @@ public class CreateAssetRequestTests {
             Subtype = "Chest",
             Name = "Table",
             Description = "A table",
-            PortraitId = Guid.CreateVersion7(),
             TokenId = Guid.CreateVersion7(),
             TokenSize = new NamedSize { Width = 1, Height = 1 },
             Tags = ["furniture", "indoor"]

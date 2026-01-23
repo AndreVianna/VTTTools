@@ -9,6 +9,7 @@ export type InteractionScope =
   | 'lights'
   | 'sounds'
   | 'fogOfWar'
+  | 'all'  // All assets are interactive (for play mode)
   | null;
 
 export function isAssetInScope(asset: PlacedAsset | undefined, scope: InteractionScope | undefined): boolean {
@@ -18,6 +19,11 @@ export function isAssetInScope(asset: PlacedAsset | undefined, scope: Interactio
 
   if (scope === null || scope === undefined) {
     return false;
+  }
+
+  // 'all' scope makes all assets interactive (used in play mode)
+  if (scope === 'all') {
+    return true;
   }
 
   const assetKind = asset.asset.classification.kind;

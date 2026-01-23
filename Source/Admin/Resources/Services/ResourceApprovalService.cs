@@ -17,6 +17,7 @@ public class ResourceApprovalService(
 
         if (data.AssetId is null) {
             // Create new asset with the resource
+            // Note: Portraits are now stored at derived paths from asset ID, not as PortraitId
             var createRequest = new CreateAssetRequest {
                 OwnerId = _masterUserId,
                 Kind = data.Kind,
@@ -26,21 +27,15 @@ public class ResourceApprovalService(
                 Name = data.AssetName,
                 Description = data.Description ?? string.Empty,
                 Tags = data.Tags,
-                PortraitId = isPortrait ? data.ResourceId : null,
                 TokenId = isPortrait ? null : data.ResourceId,
             };
             return await assetsClient.CreateAssetAsync(createRequest, ct);
         }
 
-        // Update existing asset
+        // For portraits on existing assets, no update needed - portrait is stored at derived blob path
         if (isPortrait) {
-            var assetUpdateRequest = new UpdateAssetRequest {
-                PortraitId = data.ResourceId,
-            };
-            var result = await assetsClient.UpdateAssetAsync(data.AssetId.Value, assetUpdateRequest, ct);
-            return result.IsSuccessful
-                ? data.AssetId.Value
-                : Result.Failure(result.Errors).WithNo<Guid>();
+            // Portrait already uploaded to blob storage at derived path
+            return data.AssetId.Value;
         }
 
         // Add token to existing asset

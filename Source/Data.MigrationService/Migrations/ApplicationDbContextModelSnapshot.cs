@@ -207,9 +207,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("PortraitId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Subtype")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -217,9 +214,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<string>("Tags")
                         .IsRequired()
                         .HasColumnType("jsonb");
-
-                    b.Property<Guid>("ThumbnailId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -233,10 +227,6 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("OwnerId")
                         .HasDatabaseName("IX_Assets_OwnerId");
-
-                    b.HasIndex("PortraitId");
-
-                    b.HasIndex("ThumbnailId");
 
                     b.HasIndex("IsPublic", "IsPublished")
                         .HasDatabaseName("IX_Assets_IsPublic_IsPublished");
@@ -2005,17 +1995,6 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Portrait")
-                        .WithMany()
-                        .HasForeignKey("PortraitId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Thumbnail")
-                        .WithMany()
-                        .HasForeignKey("ThumbnailId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.OwnsOne("VttTools.Common.Model.NamedSize", "Size", b1 =>
                         {
                             b1.Property<Guid>("AssetId")
@@ -2041,12 +2020,8 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasForeignKey("AssetId");
                         });
 
-                    b.Navigation("Portrait");
-
                     b.Navigation("Size")
                         .IsRequired();
-
-                    b.Navigation("Thumbnail");
                 });
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetStatEntry", b =>

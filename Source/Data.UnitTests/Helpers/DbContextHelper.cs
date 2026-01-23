@@ -34,26 +34,12 @@ internal static class DbContextHelper {
         => context.Dispose();
 
     private static void SeedAssets(ApplicationDbContext context, Guid currentUserId) {
-        // First add Resources that will be referenced by Assets
-        var resources = new[] {
-            CreateTestResourceEntity("Asset 1 Thumbnail"),
-            CreateTestResourceEntity("Asset 2 Thumbnail"),
-            CreateTestResourceEntity("Asset 3 Thumbnail"),
-            CreateTestResourceEntity("Asset 4 Thumbnail"),
-            CreateTestResourceEntity("Asset 1 Portrait"),
-            CreateTestResourceEntity("Asset 2 Portrait"),
-            CreateTestResourceEntity("Asset 3 Portrait"),
-            CreateTestResourceEntity("Asset 4 Portrait"),
-        };
-        context.Resources.AddRange(resources);
-        context.SaveChanges();
-
-        // Then add Assets that reference the Resources
+        // Create Assets - portraits and thumbnails are now stored at derived blob paths
         var assets = new[] {
-            CreateTestAssetEntity("Asset 1", isPublished: true, isPublic: true, ownerId: currentUserId, thumbnailId: resources[0].Id, portraitId: resources[4].Id),
-            CreateTestAssetEntity("Asset 2", ownerId: currentUserId, thumbnailId: resources[1].Id, portraitId: resources[5].Id),
-            CreateTestAssetEntity("Asset 3", isPublished: true, isPublic: true, ownerId: currentUserId, thumbnailId: resources[2].Id, portraitId: resources[6].Id),
-            CreateTestAssetEntity("Asset 4", isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), thumbnailId: resources[3].Id, portraitId: resources[7].Id),
+            CreateTestAssetEntity("Asset 1", isPublished: true, isPublic: true, ownerId: currentUserId),
+            CreateTestAssetEntity("Asset 2", ownerId: currentUserId),
+            CreateTestAssetEntity("Asset 3", isPublished: true, isPublic: true, ownerId: currentUserId),
+            CreateTestAssetEntity("Asset 4", isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7()),
         };
 
         context.Assets.AddRange(assets);
@@ -177,7 +163,7 @@ internal static class DbContextHelper {
         return entity;
     }
 
-    public static AssetEntity CreateTestAssetEntity(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? thumbnailId = null, Guid? portraitId = null) {
+    public static AssetEntity CreateTestAssetEntity(Guid id, string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
         var entity = new AssetEntity {
             Id = id,
             Name = name,
@@ -189,16 +175,14 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
-            ThumbnailId = thumbnailId ?? Guid.CreateVersion7(),
-            PortraitId = portraitId,
             Tokens = [],
         };
 
         return entity;
     }
 
-    public static AssetEntity CreateTestAssetEntity(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? thumbnailId = null, Guid? portraitId = null)
-        => CreateTestAssetEntity(Guid.CreateVersion7(), name, isPublished, isPublic, ownerId, thumbnailId, portraitId);
+    public static AssetEntity CreateTestAssetEntity(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
+        => CreateTestAssetEntity(Guid.CreateVersion7(), name, isPublished, isPublic, ownerId);
 
     public static GameSessionEntity CreateTestGameSessionEntity(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {
@@ -254,24 +238,6 @@ internal static class DbContextHelper {
         IsPublic = isPublic,
         IsPublished = isPublished,
         OwnerId = ownerId ?? Guid.CreateVersion7(),
-        Thumbnail = new() {
-            Id = Guid.CreateVersion7(),
-            Path = "test/thumbnail",
-            FileName = $"{name}_thumbnail.png",
-            ContentType = "image/png",
-            FileSize = 500,
-            Dimensions = new(64, 64),
-            Duration = TimeSpan.Zero,
-        },
-        Portrait = new() {
-            Id = Guid.CreateVersion7(),
-            Path = "test/portrait",
-            FileName = $"{name}_portrait.png",
-            ContentType = "image/png",
-            FileSize = 1000,
-            Dimensions = new(100, 100),
-            Duration = TimeSpan.Zero,
-        },
         Tokens = [
             new() {
                 Id = Guid.CreateVersion7(),
@@ -281,8 +247,8 @@ internal static class DbContextHelper {
                 FileSize = 1000,
                 Dimensions = new(100, 100),
                 Duration = TimeSpan.Zero,
-                },
-            ],
+            },
+        ],
     };
 
     public static Asset CreateTestAsset(string name, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)

@@ -2,7 +2,7 @@ namespace VttTools.AssetImageManager.Mocks;
 
 public sealed class MockImageGenerationService
     : IImageGenerationService {
-    private readonly Queue<object> _responses = new();
+    private readonly Queue<Result<ImageGenerationResponse>> _responses = new();
     public List<string> ReceivedRequests { get; } = [];
 
     public void EnqueueImage(byte[]? imageData = null) {
@@ -17,13 +17,6 @@ public sealed class MockImageGenerationService
         _responses.Enqueue(Result.Success(response));
     }
 
-    public void EnqueueJob() {
-        var response = new Job {
-            Id = Guid.CreateVersion7(),
-        };
-        _responses.Enqueue(Result.Success(response));
-    }
-
     public void EnqueueFailure(string errorMessage)
         => _responses.Enqueue(Result.Failure<ImageGenerationResponse>(null!, errorMessage));
 
@@ -33,14 +26,7 @@ public sealed class MockImageGenerationService
         ReceivedRequests.Add(nameof(GenerateAsync));
         if (_responses.Count == 0)
             EnqueueImage();
-        return Task.FromResult((Result<ImageGenerationResponse>)_responses.Dequeue());
-    }
-
-    public Task<Result<Job>> GenerateManyAsync(Guid ownerId, GenerateManyAssetsData data, CancellationToken ct = default) {
-        ReceivedRequests.Add(nameof(GenerateManyAsync));
-        if (_responses.Count == 0)
-            EnqueueJob();
-        return Task.FromResult((Result<Job>)_responses.Dequeue());
+        return Task.FromResult(_responses.Dequeue());
     }
 
     public void Reset() {

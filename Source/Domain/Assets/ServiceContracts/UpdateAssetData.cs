@@ -11,7 +11,6 @@ public record UpdateAssetData
     public Optional<string> Description { get; init; }
     public Optional<ListPatcher<string>> Tags { get; init; }
 
-    public Optional<Guid?> PortraitId { get; init; }
     public Optional<NamedSize> TokenSize { get; init; }
 
     public Optional<bool> IsPublished { get; set; }

@@ -1,4 +1,11 @@
 using VttTools.Media.Authorization;
+using VttTools.Media.Ingest.Clients;
+using VttTools.Media.Ingest.EndpointMappers;
+using VttTools.Media.Ingest.Services;
+using IAiGenerationClient = VttTools.Media.Ingest.Clients.IAiGenerationClient;
+using AiGenerationClient = VttTools.Media.Ingest.Clients.AiGenerationClient;
+using IJobsServiceClient = VttTools.Media.Ingest.Clients.IJobsServiceClient;
+using JobsServiceClient = VttTools.Media.Ingest.Clients.JobsServiceClient;
 using VttTools.Utilities;
 
 namespace VttTools.Media;
@@ -41,6 +48,14 @@ internal static class Program {
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddSingleton<MediaProcessingQueue>();
         builder.Services.AddHostedService<MediaProcessingWorker>();
+
+        // Ingest services
+        builder.Services.AddSingleton<IngestProcessingQueue>();
+        builder.Services.AddHostedService<IngestProcessingWorker>();
+        builder.Services.AddScoped<IIngestService, IngestService>();
+        builder.Services.AddScoped<IAiGenerationClient, AiGenerationClient>();
+        builder.Services.AddScoped<IJobsServiceClient, JobsServiceClient>();
+        builder.Services.AddScoped<VttTools.Media.Ingest.Clients.IAssetsServiceClient, VttTools.Media.Ingest.Clients.AssetsServiceClient>();
         builder.Services.AddSingleton(sp => {
             var config = sp.GetRequiredService<IConfiguration>();
             return config is not IConfigurationRoot root
@@ -54,6 +69,7 @@ internal static class Program {
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
         app.MapResourcesEndpoints();
         app.MapConfigurationEndpoints();
+        app.MapIngestEndpoints();
         app.MapHub<MediaHub>("/hubs/media");
     }
 }

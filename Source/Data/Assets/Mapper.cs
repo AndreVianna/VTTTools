@@ -42,8 +42,6 @@ internal static class Mapper {
             IngestStatus = entity.IngestStatus,
             AiPrompt = entity.AiPrompt,
             Tags = entity.Tags,
-            Thumbnail = entity.Thumbnail.ToModel(),
-            Portrait = entity.Portrait == null ? null : entity.Portrait.ToModel(),
             Tokens = entity.Tokens.AsQueryable().OrderBy(r => r.Index).Select(AsResourceToken!).ToList(),
         };
 
@@ -83,8 +81,6 @@ internal static class Mapper {
                                         Description = e.Description,
                                         Modifiers = DeserializeModifiers(e.Modifiers),
                                     })))),
-               Thumbnail = entity.Thumbnail.ToModel(),
-               Portrait = entity.Portrait?.ToModel(),
                Tokens = [.. entity.Tokens.OrderBy(r => r.Index).Select(r => r.Token.ToModel())],
            };
 
@@ -116,8 +112,6 @@ internal static class Mapper {
             AiPrompt = model.AiPrompt,
             Tags = model.Tags,
             Size = model.Size,
-            ThumbnailId = model.Thumbnail?.Id,
-            PortraitId = model.Portrait?.Id,
             Tokens = [.. model.Tokens.Select((t, i) => new AssetResourceEntity {
                 AssetId = model.Id,
                 TokenId = t.Id,
@@ -139,8 +133,6 @@ internal static class Mapper {
         entity.IsPublished = model.IsPublished;
         entity.IngestStatus = model.IngestStatus;
         entity.AiPrompt = model.AiPrompt;
-        entity.ThumbnailId = model.Thumbnail?.Id;
-        entity.PortraitId = model.Portrait?.Id;
         entity.Tokens = [.. model.Tokens.Select((t, i) => new AssetResourceEntity {
             AssetId = model.Id,
             TokenId = t.Id,

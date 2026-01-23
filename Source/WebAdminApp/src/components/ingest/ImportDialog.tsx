@@ -14,7 +14,8 @@ import {
     ListItemText,
     Chip,
 } from '@mui/material';
-import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import { CloudUpload as CloudUploadIcon, Download as DownloadIcon } from '@mui/icons-material';
+import { downloadIngestTemplate } from '@/utils/ingestTemplate';
 import { AssetKind, type IngestAssetsRequest, type IngestAssetItem } from '@/types/ingest';
 
 interface ImportDialogProps {
@@ -61,11 +62,16 @@ export function ImportDialog({ open, onClose, onImport, isSubmitting }: ImportDi
         if (!obj.type || typeof obj.type !== 'string') {
             errors.push(`Item ${index + 1}: Missing or invalid 'type'`);
         }
+        if (!obj.description || typeof obj.description !== 'string') {
+            errors.push(`Item ${index + 1}: Missing or invalid 'description'`);
+        }
 
-        // Validate AssetKind
+        // Validate AssetKind (required)
         const validKinds = Object.values(AssetKind).filter(k => k !== AssetKind.Undefined);
         const kindValue = obj.kind as string | undefined;
-        if (kindValue && !validKinds.includes(kindValue as AssetKind)) {
+        if (!kindValue) {
+            errors.push(`Item ${index + 1}: Missing required 'kind'. Valid values: ${validKinds.join(', ')}`);
+        } else if (!validKinds.includes(kindValue as AssetKind)) {
             errors.push(`Item ${index + 1}: Invalid 'kind' value '${kindValue}'. Valid values: ${validKinds.join(', ')}`);
         }
 
@@ -76,15 +82,13 @@ export function ImportDialog({ open, onClose, onImport, isSubmitting }: ImportDi
         return {
             valid: {
                 name: obj.name as string,
-                kind: kindValue && validKinds.includes(kindValue as AssetKind)
-                    ? (kindValue as AssetKind)
-                    : undefined,
+                kind: kindValue as AssetKind,
                 category: obj.category as string,
                 type: obj.type as string,
                 subtype: obj.subtype as string | undefined,
                 size: (obj.size as string) ?? 'medium',
                 environment: obj.environment as string | undefined,
-                description: (obj.description as string) ?? '',
+                description: obj.description as string,
                 tags: Array.isArray(obj.tags) ? obj.tags.filter((t): t is string => typeof t === 'string') : [],
             },
             errors: [],
@@ -213,6 +217,21 @@ export function ImportDialog({ open, onClose, onImport, isSubmitting }: ImportDi
                     <Typography variant="body1" color="text.secondary">
                         Drag and drop a JSON file here, or click to browse
                     </Typography>
+                </Box>
+
+                <Box sx={{ mt: 1, textAlign: 'center' }}>
+                    <Typography variant="body2" component="span" color="text.secondary">
+                        Need a template?{' '}
+                    </Typography>
+                    <Button
+                        id="btn-download-template"
+                        size="small"
+                        startIcon={<DownloadIcon />}
+                        onClick={downloadIngestTemplate}
+                        sx={{ textTransform: 'none' }}
+                    >
+                        Download Sample JSON
+                    </Button>
                 </Box>
 
                 {parseError && (

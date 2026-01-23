@@ -5,11 +5,19 @@ global using Azure.Storage.Blobs.Models;
 
 global using DotNetToolbox.Results;
 
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Http;
+global using Microsoft.Extensions.Logging;
+
+global using System.Net.Http.Json;
+
 global using FFMpegCore;
 
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.SignalR;
+global using Microsoft.Extensions.DependencyInjection;
 
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Formats.Png;
@@ -29,6 +37,13 @@ global using VttTools.Media.Hubs;
 global using VttTools.Media.Model;
 global using VttTools.Media.Options;
 global using VttTools.Media.ServiceContracts;
+global using VttTools.AI.ApiContracts;
+global using VttTools.AI.Model;
+global using VttTools.Assets.Model;
+global using VttTools.Jobs.ApiContracts;
+global using VttTools.Jobs.Model;
+global using VttTools.Jobs.ServiceContracts;
+global using VttTools.Media.Ingest;
 global using VttTools.Media.Services;
 global using VttTools.Media.Storage;
 global using VttTools.Services;

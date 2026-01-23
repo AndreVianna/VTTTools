@@ -47,51 +47,6 @@ public class ClonerTests {
     }
 
     [Fact]
-    public void Clone_WithPortrait_ClonesPortrait() {
-        var portraitId = Guid.CreateVersion7();
-        var portrait = new ResourceMetadata {
-            Id = portraitId,
-            Path = "/path/to/portrait.jpg",
-            ContentType = "image/jpeg",
-            FileName = "portrait.jpg",
-            FileSize = 1024,
-            Dimensions = new(256, 256),
-        };
-        var original = new Asset {
-            Id = Guid.CreateVersion7(),
-            Name = "Asset with Portrait",
-            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            Portrait = portrait,
-            OwnerId = Guid.CreateVersion7()
-        };
-
-        var clone = original.Clone();
-
-        clone.Portrait.Should().NotBeNull();
-        clone.Portrait!.Id.Should().Be(portrait.Id);
-        clone.Portrait.Path.Should().Be(portrait.Path);
-        clone.Portrait.ContentType.Should().Be(portrait.ContentType);
-        clone.Portrait.FileName.Should().Be(portrait.FileName);
-        clone.Portrait.FileSize.Should().Be(portrait.FileSize);
-        clone.Portrait.Dimensions.Should().Be(portrait.Dimensions);
-    }
-
-    [Fact]
-    public void Clone_WithNullPortrait_ClonesWithoutPortrait() {
-        var original = new Asset {
-            Id = Guid.CreateVersion7(),
-            Name = "Asset without Portrait",
-            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            Portrait = null,
-            OwnerId = Guid.CreateVersion7()
-        };
-
-        var clone = original.Clone();
-
-        clone.Portrait.Should().BeNull();
-    }
-
-    [Fact]
     public void Clone_WithTokens_ClonesAllTokens() {
         var token1Id = Guid.CreateVersion7();
         var token2Id = Guid.CreateVersion7();

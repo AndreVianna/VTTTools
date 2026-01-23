@@ -62,7 +62,6 @@ public sealed class ResourceApprovalServiceTests {
                 r.Kind == AssetKind.Character &&
                 r.Category == "Fantasy" &&
                 r.Type == "Dragon" &&
-                r.PortraitId == resourceId &&
                 r.TokenId == null),
             Arg.Any<CancellationToken>());
     }
@@ -94,8 +93,7 @@ public sealed class ResourceApprovalServiceTests {
 
         await _mockAssetsClient.Received(1).CreateAssetAsync(
             Arg.Is<CreateAssetRequest>(r =>
-                r.TokenId == resourceId &&
-                r.PortraitId == null),
+                r.TokenId == resourceId),
             Arg.Any<CancellationToken>());
     }
 
@@ -127,8 +125,10 @@ public sealed class ResourceApprovalServiceTests {
     #region ApproveAsync Tests - Update Existing Asset
 
     [Fact]
-    public async Task ApproveAsync_WithExistingAssetAndPortrait_UpdatesPortrait() {
+    public async Task ApproveAsync_WithExistingAssetAndPortrait_ReturnsAssetId() {
         // Arrange
+        // With asset-centric storage, portraits are stored at derived blob paths,
+        // so approving a portrait for an existing asset just returns the asset ID
         var resourceId = Guid.CreateVersion7();
         var existingAssetId = Guid.CreateVersion7();
         var data = new ApproveResourceData {
@@ -139,9 +139,6 @@ public sealed class ResourceApprovalServiceTests {
             AssetId = existingAssetId,
         };
 
-        _mockAssetsClient.UpdateAssetAsync(existingAssetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
         // Act
         var result = await _service.ApproveAsync(data, TestContext.Current.CancellationToken);
 
@@ -149,11 +146,8 @@ public sealed class ResourceApprovalServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().Be(existingAssetId);
 
-        await _mockAssetsClient.Received(1).UpdateAssetAsync(
-            existingAssetId,
-            Arg.Is<UpdateAssetRequest>(r => r.PortraitId == resourceId),
-            Arg.Any<CancellationToken>());
-
+        // No API calls needed - portrait is already at the derived blob path
+        await _mockAssetsClient.DidNotReceive().UpdateAssetAsync(Arg.Any<Guid>(), Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>());
         await _mockAssetsClient.DidNotReceive().CreateAssetAsync(Arg.Any<CreateAssetRequest>(), Arg.Any<CancellationToken>());
         await _mockAssetsClient.DidNotReceive().AddTokenAsync(Arg.Any<Guid>(), Arg.Any<AddTokenRequest>(), Arg.Any<CancellationToken>());
     }
@@ -188,30 +182,6 @@ public sealed class ResourceApprovalServiceTests {
 
         await _mockAssetsClient.DidNotReceive().CreateAssetAsync(Arg.Any<CreateAssetRequest>(), Arg.Any<CancellationToken>());
         await _mockAssetsClient.DidNotReceive().UpdateAssetAsync(Arg.Any<Guid>(), Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task ApproveAsync_WhenUpdateAssetFails_ReturnsFailure() {
-        // Arrange
-        var resourceId = Guid.CreateVersion7();
-        var existingAssetId = Guid.CreateVersion7();
-        var data = new ApproveResourceData {
-            ResourceId = resourceId,
-            AssetName = "Dragon",
-            GenerationType = "Portrait",
-            Kind = AssetKind.Character,
-            AssetId = existingAssetId,
-        };
-
-        _mockAssetsClient.UpdateAssetAsync(existingAssetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Asset update failed"));
-
-        // Act
-        var result = await _service.ApproveAsync(data, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        result.Errors.Should().Contain("Asset update failed");
     }
 
     [Fact]

@@ -139,4 +139,22 @@ public class MediaServiceClient(
         int TotalCount,
         int Skip,
         int Take);
+
+    public async Task<Result<VttTools.Media.Ingest.IngestJobResponse>> StartIngestAsync(Guid ownerId, VttTools.Media.Ingest.StartIngestRequest request, CancellationToken ct = default) {
+        var httpClient = httpClientFactory.CreateClient("MediaService");
+        httpClient.DefaultRequestHeaders.Add("X-User-Id", ownerId.ToString());
+
+        var response = await httpClient.PostAsJsonAsync("/api/resources/ingest", request, JsonDefaults.Options, ct);
+        if (!response.IsSuccessStatusCode) {
+            var errorBody = await response.Content.ReadAsStringAsync(ct);
+            logger.LogError(
+                "Ingest start failed with status {StatusCode}: {ErrorBody}",
+                response.StatusCode,
+                errorBody);
+            return Result.Failure(errorBody).WithNo<VttTools.Media.Ingest.IngestJobResponse>();
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<VttTools.Media.Ingest.IngestJobResponse>(JsonDefaults.Options, ct);
+        return result ?? Result.Failure("Failed to parse ingest response").WithNo<VttTools.Media.Ingest.IngestJobResponse>();
+    }
 }

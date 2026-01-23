@@ -32,14 +32,11 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (found.Length > 0)
             return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
 
-        var portrait = !data.PortraitId.HasValue ? null : await mediaStorage.FindByIdAsync(data.PortraitId.Value, ct);
-
         var asset = new Asset {
             OwnerId = userId,
             Name = data.Name,
             Classification = new(data.Kind, data.Category, data.Type, data.Subtype),
             Description = data.Description,
-            Portrait = portrait,
             Size = data.TokenSize,
             Tags = data.Tags,
         };
@@ -83,12 +80,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        var portrait = data.PortraitId.IsSet
-                        ? !data.PortraitId.Value.HasValue
-                            ? null
-                            : await mediaStorage.FindByIdAsync(data.PortraitId.Value.Value, ct)
-                        : asset.Portrait;
-
         asset = asset with {
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,
             Description = data.Description.IsSet ? data.Description.Value : asset.Description,
@@ -98,7 +89,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 data.Type.IsSet ? data.Type.Value : asset.Classification.Type,
                 data.Subtype.IsSet ? data.Subtype.Value : asset.Classification.Subtype
             ),
-            Portrait = portrait,
             Size = data.TokenSize.IsSet ? data.TokenSize.Value : asset.Size,
             Tags = data.Tags.IsSet ? data.Tags.Value.Apply(asset.Tags) : asset.Tags,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : asset.IsPublished,

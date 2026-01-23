@@ -32,15 +32,6 @@ internal static class AssetSchemaBuilder {
                     v => JsonSerializer.Deserialize<string[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<string>())
                 .HasColumnType("jsonb");
 
-            entity.HasOne(e => e.Thumbnail)
-                .WithMany().IsRequired()
-                .HasForeignKey(e => e.ThumbnailId)
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(e => e.Portrait)
-                .WithMany()
-                .HasForeignKey(e => e.PortraitId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             entity.HasIndex(e => e.OwnerId).HasDatabaseName("IX_Assets_OwnerId");
             entity.HasIndex(e => new { e.IsPublic, e.IsPublished }).HasDatabaseName("IX_Assets_IsPublic_IsPublished");
             entity.HasIndex(e => new { e.Kind, e.Category, e.Type }).HasDatabaseName("IX_Assets_Taxonomy");

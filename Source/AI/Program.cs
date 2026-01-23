@@ -1,5 +1,3 @@
-using VttTools.AI.Workers;
-
 namespace VttTools.AI;
 
 [ExcludeFromCodeCoverage]
@@ -48,31 +46,9 @@ internal static class Program {
         });
         builder.Services.AddSingleton<InternalConfigurationService>();
         builder.AddAuditLogging();
-
-        builder.Services.Configure<JobProcessingOptions>(
-            builder.Configuration.GetSection(JobProcessingOptions.SectionName));
-        builder.Services.AddSingleton(Channel.CreateUnbounded<JobQueueItem>());
-        builder.Services.AddScoped<BulkAssetGenerationHandler>();
-        builder.Services.AddHostedService<JobProcessingWorker>();
-
-        builder.Services.AddTransient<InternalApiKeyHandler>();
-
-        builder.Services.AddScoped<IJobsServiceClient, JobsServiceClient>();
-        builder.Services.AddScoped<IResourceServiceClient, ResourceServiceClient>();
-        builder.Services.AddScoped<IAssetsServiceClient, AssetsServiceClient>();
-        builder.Services.AddHttpClient("JobsService", c => c.BaseAddress = new Uri("https+http://jobs-api"))
-            .AddHttpMessageHandler<InternalApiKeyHandler>()
-            .AddStandardResilienceHandler();
-        builder.Services.AddHttpClient("ResourcesService", c => c.BaseAddress = new Uri("https+http://resources-api"))
-            .AddHttpMessageHandler<InternalApiKeyHandler>()
-            .AddStandardResilienceHandler();
-        builder.Services.AddHttpClient("AssetsService", c => c.BaseAddress = new Uri("https+http://assets-api"))
-            .AddHttpMessageHandler<InternalApiKeyHandler>()
-            .AddStandardResilienceHandler();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
         app.MapAiEndpoints();
-        app.MapAiJobEndpoints();
     }
 }

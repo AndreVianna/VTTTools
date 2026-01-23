@@ -34,6 +34,7 @@ export interface SnapConfig {
   default: SnapMode;
   ctrl: SnapMode;
   alt: SnapMode;
+  ctrlAlt: SnapMode;
 }
 
 /**
@@ -41,20 +42,23 @@ export interface SnapConfig {
  * - No key pressed: Free (no snap)
  * - Ctrl pressed: Standard snap for the scope
  * - Alt pressed: Half of standard snap for the scope
+ * - Ctrl+Alt pressed: Even finer snap for the scope
  *
- * Assets: Ctrl = Full (center), Alt = Half (corners + edges)
- * Walls: Ctrl = Half (corners + edges), Alt = Quarter
+ * Assets: Ctrl = Full (center), Alt = Half (corners + edges), Ctrl+Alt = Quarter
+ * Walls: Ctrl = Half (corners + edges), Alt = Quarter, Ctrl+Alt = Micro
  */
 export const AssetSnapConfig: SnapConfig = {
   default: SnapMode.Free,
   ctrl: SnapMode.Full,
   alt: SnapMode.Half,
+  ctrlAlt: SnapMode.Quarter,
 };
 
 export const WallSnapConfig: SnapConfig = {
   default: SnapMode.Free,
   ctrl: SnapMode.Half,
   alt: SnapMode.Quarter,
+  ctrlAlt: SnapMode.Micro,
 };
 
 /**
@@ -62,8 +66,12 @@ export const WallSnapConfig: SnapConfig = {
  * - No modifier: Free (no snap)
  * - Ctrl: Standard snap for the scope
  * - Alt: Half of standard snap for the scope
+ * - Ctrl+Alt: Even finer snap for the scope
  */
 export function resolveSnapMode(modifiers: KeyModifiers, config: SnapConfig): SnapMode {
+  if (modifiers.ctrlKey && modifiers.altKey) {
+    return config.ctrlAlt;
+  }
   if (modifiers.ctrlKey) {
     return config.ctrl;
   }

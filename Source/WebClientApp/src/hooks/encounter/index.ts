@@ -1,6 +1,7 @@
 export { useActiveCharacter, type UseActiveCharacterProps, type UseActiveCharacterResult } from './useActiveCharacter';
 export { useAssetManagement } from './useAssetManagement';
-export { useDMTestCharacter, type UseDMTestCharacterConfig, type UseDMTestCharacterResult } from './useDMTestCharacter';
+export { useDMAssetSelection, type UseDMAssetSelectionConfig, type UseDMAssetSelectionResult } from './useDMAssetSelection';
+export { useDMTestCharacter, getDMTestCharacterId, DM_TEST_CHARACTER_ID_PREFIX, type UseDMTestCharacterConfig, type UseDMTestCharacterResult } from './useDMTestCharacter';
 export { useBackgroundMedia, type UseBackgroundMediaProps, type UseBackgroundMediaResult } from './useBackgroundMedia';
 export { useCanvasReadyState } from './useCanvasReadyState';
 export { useDrawingRegionState } from './useDrawingRegionState';

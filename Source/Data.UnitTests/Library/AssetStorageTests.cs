@@ -72,45 +72,9 @@ public class AssetStorageTests
 
     [Fact]
     public async Task UpdateAsync_WithExistingAsset_UpdatesInDatabase() {
-        // Create Resources first
-        var originalThumbnailId = Guid.CreateVersion7();
-        var originalThumbnail = new Media.Entities.Resource {
-            Id = originalThumbnailId,
-            Path = "test/original-thumbnail",
-            ContentType = "image/png",
-            FileName = "original_thumbnail.png",
-            FileSize = 500,
-            Dimensions = new(64, 64),
-        };
-        await _context.Resources.AddAsync(originalThumbnail, _ct);
-        await _context.SaveChangesAsync(_ct);
-
-        // Create Asset with proper ThumbnailId
-        var entity = DbContextHelper.CreateTestAssetEntity("Asset To Update", thumbnailId: originalThumbnailId);
+        // Create Asset
+        var entity = DbContextHelper.CreateTestAssetEntity("Asset To Update");
         await _context.Assets.AddAsync(entity, _ct);
-        await _context.SaveChangesAsync(_ct);
-        _context.ChangeTracker.Clear();
-
-        // Create new Resources for update
-        var newThumbnailId = Guid.CreateVersion7();
-        var newPortraitId = Guid.CreateVersion7();
-        var newThumbnail = new Media.Entities.Resource {
-            Id = newThumbnailId,
-            Path = "assets/updated-thumbnail",
-            ContentType = "image/png",
-            FileName = "updated_thumbnail.png",
-            FileSize = 500,
-            Dimensions = new(64, 64),
-        };
-        var newPortrait = new Media.Entities.Resource {
-            Id = newPortraitId,
-            Path = "assets/updated-portrait",
-            ContentType = "image/png",
-            FileName = "updated_portrait.png",
-            FileSize = 1500,
-            Dimensions = new(100, 100),
-        };
-        await _context.Resources.AddRangeAsync([newThumbnail, newPortrait], _ct);
         await _context.SaveChangesAsync(_ct);
         _context.ChangeTracker.Clear();
 
@@ -120,24 +84,6 @@ public class AssetStorageTests
             Classification = new(AssetKind.Creature, "test-category", "test-type", null),
             Name = "Updated Asset",
             Description = "Updated description",
-            Thumbnail = new() {
-                Id = newThumbnailId,
-                Path = "assets/updated-thumbnail",
-                FileName = "updated_thumbnail.png",
-                ContentType = "image/png",
-                FileSize = 500,
-                Dimensions = new(64, 64),
-                Duration = TimeSpan.Zero,
-            },
-            Portrait = new() {
-                Id = newPortraitId,
-                Path = "assets/updated-portrait",
-                FileName = "updated_portrait.png",
-                ContentType = "image/png",
-                FileSize = 1500,
-                Dimensions = new(100, 100),
-                Duration = TimeSpan.Zero,
-            },
             Tokens = [],
             IsPublished = true,
             IsPublic = true,
@@ -159,28 +105,19 @@ public class AssetStorageTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WithChangedImages_UpdatesImagesInDatabase() {
-        var thumbnailId = Guid.CreateVersion7();
-        var portraitId = Guid.CreateVersion7();
+    public async Task UpdateAsync_WithChangedTokens_UpdatesTokensInDatabase() {
         var assetId = Guid.CreateVersion7();
+        var tokenId = Guid.CreateVersion7();
 
-        var thumbnailResource = new Media.Entities.Resource {
-            Id = thumbnailId,
-            Path = "assets/thumbnail",
+        var tokenResource = new Media.Entities.Resource {
+            Id = tokenId,
+            Path = "assets/token",
             ContentType = "image/png",
-            FileName = "thumbnail.png",
+            FileName = "token.png",
             FileSize = 500,
             Dimensions = new(64, 64),
         };
-        var portraitResource = new Media.Entities.Resource {
-            Id = portraitId,
-            Path = "assets/portrait",
-            ContentType = "image/png",
-            FileName = "portrait.png",
-            FileSize = 1000,
-            Dimensions = new(100, 100),
-        };
-        await _context.Resources.AddRangeAsync([thumbnailResource, portraitResource], _ct);
+        await _context.Resources.AddAsync(tokenResource, _ct);
 
         var entity = new Assets.Entities.Asset {
             Id = assetId,
@@ -189,15 +126,11 @@ public class AssetStorageTests
             Category = "test-category",
             Type = "test-type",
             Subtype = null,
-            Name = "Asset With Images",
+            Name = "Asset With Tokens",
             Description = "Test description",
             IsPublished = false,
             IsPublic = false,
             Size = new(SizeName.Medium),
-            ThumbnailId = thumbnailId,
-            Thumbnail = thumbnailResource,
-            PortraitId = portraitId,
-            Portrait = portraitResource,
             Tokens = [],
         };
 
@@ -205,32 +138,23 @@ public class AssetStorageTests
         await _context.SaveChangesAsync(_ct);
         _context.ChangeTracker.Clear();
 
-        var newPortraitId = Guid.CreateVersion7();
         var updatedAsset = new Asset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Classification = new(AssetKind.Character, "test-category", "test-type", null),
             Name = entity.Name,
             Description = entity.Description,
-            Thumbnail = new() {
-                Id = thumbnailId,
-                Path = "assets/thumbnail",
-                FileName = "thumbnail.png",
-                ContentType = "image/png",
-                FileSize = 500,
-                Dimensions = new(64, 64),
-                Duration = TimeSpan.Zero,
-            },
-            Portrait = new() {
-                Id = newPortraitId,
-                Path = "assets/new-portrait",
-                FileName = "new_portrait.png",
-                ContentType = "image/png",
-                FileSize = 1000,
-                Dimensions = new(100, 100),
-                Duration = TimeSpan.Zero,
-            },
-            Tokens = [],
+            Tokens = [
+                new() {
+                    Id = tokenId,
+                    Path = "assets/token",
+                    FileName = "token.png",
+                    ContentType = "image/png",
+                    FileSize = 500,
+                    Dimensions = new(64, 64),
+                    Duration = TimeSpan.Zero,
+                },
+            ],
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Size = new(SizeName.Medium),
@@ -241,11 +165,11 @@ public class AssetStorageTests
         result.Should().BeTrue();
         _context.ChangeTracker.Clear();
         var dbAsset = await _context.Assets
-            .Include(a => a.Portrait)
+            .Include(a => a.Tokens)
             .AsNoTracking()
             .FirstAsync(a => a.Id == entity.Id, _ct);
         dbAsset.Should().NotBeNull();
-        dbAsset.PortraitId.Should().Be(newPortraitId);
+        dbAsset.Tokens.Should().HaveCount(1);
     }
 
     [Fact]

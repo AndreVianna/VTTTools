@@ -1,5 +1,3 @@
-using Resource = VttTools.Data.Media.Entities.Resource;
-
 namespace VttTools.Data.Assets.Entities;
 
 public class Asset {
@@ -32,12 +30,6 @@ public class Asset {
     public IngestStatus IngestStatus { get; set; } = IngestStatus.None;
     [MaxLength(4096)]
     public string? AiPrompt { get; set; }
-
-    public Guid? ThumbnailId { get; set; }
-    public Resource? Thumbnail { get; set; }
-
-    public Guid? PortraitId { get; set; }
-    public Resource? Portrait { get; set; }
 
     public ICollection<AssetToken> Tokens { get; set; } = [];
 }

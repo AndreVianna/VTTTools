@@ -743,37 +743,6 @@ public class AssetHandlersTests {
     }
 
     [Fact]
-    public async Task CreateAssetHandler_WithPortraitId_CreatesAssetWithPortrait() {
-        var context = CreateHttpContext();
-        var portraitId = Guid.CreateVersion7();
-        var request = new CreateAssetRequest {
-            Kind = AssetKind.Creature,
-            Category = "Humanoid",
-            Type = "Goblinoid",
-            Name = "Asset with Portrait",
-            Description = "Description",
-            PortraitId = portraitId
-        };
-        var createdAsset = new Asset {
-            Id = Guid.CreateVersion7(),
-            Name = request.Name,
-            Description = request.Description,
-            Classification = new(request.Kind, request.Category, request.Type, null),
-            OwnerId = _userId,
-            Portrait = new() { Id = portraitId, Path = "/path/to/portrait.jpg", ContentType = "image/jpeg" }
-        };
-        _assetService.CreateAssetAsync(_userId, Arg.Is<CreateAssetData>(d => d.PortraitId == portraitId), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(createdAsset));
-
-        var result = await AssetHandlers.CreateAssetHandler(context, request, _assetService);
-
-        result.Should().BeOfType<Created<Asset>>();
-        var createdResult = (Created<Asset>)result;
-        createdResult.Value!.Portrait.Should().NotBeNull();
-        createdResult.Value!.Portrait!.Id.Should().Be(portraitId);
-    }
-
-    [Fact]
     public async Task CloneAssetHandler_WithValidationErrors_ReturnsValidationProblem() {
         var context = CreateHttpContext();
         var templateId = Guid.CreateVersion7();

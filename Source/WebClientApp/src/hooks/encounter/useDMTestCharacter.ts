@@ -10,6 +10,23 @@ import { snap, SnapMode } from '@/utils/snapping';
 const STORAGE_KEY_PREFIX = 'vtt:dmTestCharacter:';
 
 /**
+ * ID prefix for DM test character.
+ * Full ID is: dm-test-character-{encounterId}
+ */
+export const DM_TEST_CHARACTER_ID_PREFIX = 'dm-test-character-';
+
+/**
+ * Get the DM test character ID for an encounter.
+ * Used to exclude DM test character from asset selection.
+ *
+ * @param encounterId - The encounter ID
+ * @returns The DM test character ID, or empty string if no encounter ID
+ */
+export function getDMTestCharacterId(encounterId: string | undefined): string {
+    return encounterId ? `${DM_TEST_CHARACTER_ID_PREFIX}${encounterId}` : '';
+}
+
+/**
  * Get the storage key for an encounter.
  */
 function getStorageKey(encounterId: string): string {
@@ -46,6 +63,8 @@ export interface UseDMTestCharacterResult {
     isSelected: boolean;
     /** Select the DM test character as the active listener */
     select: () => void;
+    /** Deselect the DM test character */
+    deselect: () => void;
 }
 
 /**
@@ -177,6 +196,13 @@ export function useDMTestCharacter({
         setActiveCharacter(null);
     }, [isDM, setActiveCharacter]);
 
+    /**
+     * Deselect the DM test character.
+     */
+    const deselect = useCallback(() => {
+        setIsSelected(false);
+    }, []);
+
     // ═══════════════════════════════════════════════════════════════════════════
     // EFFECTS
     // ═══════════════════════════════════════════════════════════════════════════
@@ -228,7 +254,8 @@ export function useDMTestCharacter({
             setPosition,
             isSelected,
             select,
+            deselect,
         }),
-        [position, setPosition, isSelected, select]
+        [position, setPosition, isSelected, select, deselect]
     );
 }

@@ -29,7 +29,6 @@ public record CreateAssetData
         init => field = value.Trim();
     } = string.Empty;
 
-    public Guid? PortraitId { get; init; }
     public NamedSize TokenSize { get; init; } = NamedSize.Default;
     public Guid? TokenId { get; init; }
 

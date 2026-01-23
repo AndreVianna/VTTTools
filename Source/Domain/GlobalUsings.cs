@@ -38,6 +38,7 @@ global using VttTools.Library.Stages.ServiceContracts;
 global using VttTools.Library.Worlds.Model;
 global using VttTools.Library.Worlds.ServiceContracts;
 global using VttTools.Maintenance.Model;
+global using VttTools.Media.Ingest;
 global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Utilities;

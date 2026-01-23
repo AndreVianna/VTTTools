@@ -9,6 +9,10 @@ public static class AiEndpointsMapper {
             .RequireAuthorization()
             .WithName("GenerateImage")
             .WithSummary("Generate an image using AI");
+        images.MapPost("/generate-bytes", ImageGenerationHandlers.GenerateImageBytesHandler)
+            .RequireAuthorization()
+            .WithName("GenerateImageBytes")
+            .WithSummary("Generate raw image bytes without side effects (service-to-service)");
         images.MapGet("/providers", ImageGenerationHandlers.GetImageProvidersHandler)
             .RequireAuthorization()
             .WithName("GetImageProviders")
@@ -85,18 +89,5 @@ public static class AiEndpointsMapper {
             .WithName("DeleteTemplate")
             .WithSummary("Delete a prompt template");
 
-        var jobs = ai.MapGroup("/jobs");
-        jobs.MapPost("", AiJobHandlers.StartBulkGenerationHandler)
-            .RequireAuthorization()
-            .WithName("StartJob")
-            .WithSummary("Start an AI job");
-        jobs.MapDelete("{id:guid}", AiJobHandlers.CancelJobHandler)
-            .RequireAuthorization()
-            .WithName("CancelJob")
-            .WithSummary("Cancel an AI job");
-        jobs.MapPost("{id:guid}/retry", AiJobHandlers.RetryJobHandler)
-            .RequireAuthorization()
-            .WithName("RetryJob")
-            .WithSummary("Retry failed items in an AI job");
     }
 }

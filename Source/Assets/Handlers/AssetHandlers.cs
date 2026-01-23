@@ -99,7 +99,6 @@ internal static class AssetHandlers {
             Subtype = request.Subtype,
             Name = request.Name,
             Description = request.Description,
-            PortraitId = request.PortraitId,
             TokenSize = request.TokenSize,
             TokenId = request.TokenId,
         };
@@ -122,7 +121,6 @@ internal static class AssetHandlers {
             Subtype = request.Subtype,
             Name = request.Name,
             Description = request.Description,
-            PortraitId = request.PortraitId,
             TokenSize = request.TokenSize,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,

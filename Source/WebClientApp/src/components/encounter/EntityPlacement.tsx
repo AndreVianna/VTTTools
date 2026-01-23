@@ -54,6 +54,12 @@ export interface EntityPlacementProps {
   encounter: Encounter;
   /** Active interaction scope for filtering interactions */
   activeScope?: InteractionScope;
+  /** Set of selected asset IDs (for drag support) */
+  selectedAssetIds?: string[];
+  /** Callback during asset drag (for real-time selection border updates) */
+  onAssetDrag?: (assetId: string, position: { x: number; y: number }) => void;
+  /** Callback when an asset drag ends (for moving selected assets) */
+  onAssetDragEnd?: (assetId: string, position: { x: number; y: number }) => void;
 }
 
 
@@ -136,6 +142,9 @@ export const EntityPlacement: React.FC<EntityPlacementProps> = ({
   onContextMenu,
   onAssetClick,
   activeScope,
+  selectedAssetIds = [],
+  onAssetDrag,
+  onAssetDragEnd,
 }) => {
   const theme = useTheme();
   const [tooltip, _setTooltip] = useState<{
@@ -191,6 +200,7 @@ export const EntityPlacement: React.FC<EntityPlacementProps> = ({
         if (!renderData) return null;
 
         const isInteractive = isAssetInScope(placedAsset, activeScope);
+        const isSelected = selectedAssetIds.includes(placedAsset.id);
 
         return (
           <PlacedEntity
@@ -204,12 +214,17 @@ export const EntityPlacement: React.FC<EntityPlacementProps> = ({
             isInteractive={isInteractive}
             isHovered={hoveredAssetId === placedAsset.id}
             isExpanded={expandedAssetId === placedAsset.id}
+            isDraggable={isSelected}
+            gridConfig={gridConfig}
+            snapMode={snapMode}
             onHoverStart={setHoveredAssetId}
             onHoverEnd={() => setHoveredAssetId(null)}
             onExpandStart={setExpandedAssetId}
             onExpandEnd={() => setExpandedAssetId(null)}
             onContextMenu={onContextMenu}
             onClick={onAssetClick}
+            onDrag={onAssetDrag}
+            onDragEnd={onAssetDragEnd}
           />
         );
       });

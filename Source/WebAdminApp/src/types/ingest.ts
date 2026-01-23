@@ -50,13 +50,13 @@ export interface IngestJobResponse {
 
 export interface IngestAssetItem {
     name: string;
-    kind?: AssetKind;
+    kind: AssetKind;
     category: string;
     type: string;
     subtype?: string;
     size?: string;
     environment?: string;
-    description?: string;
+    description: string;
     tags?: string[];
 }
 

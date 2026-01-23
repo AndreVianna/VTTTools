@@ -306,8 +306,6 @@ public sealed class OpenAiPromptEnhancerTests : IDisposable {
                              "Dragon",
                              null
                             ),
-        Portrait = new() {
-        },
         Tokens = [new() { }],
     };
 

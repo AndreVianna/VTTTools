@@ -1,14 +1,13 @@
-using System.Text.Json;
 using VttTools.Admin.Resources.Clients;
 using AssetModel = VttTools.Assets.Model.Asset;
+using MediaIngestRequest = VttTools.Media.Ingest.StartIngestRequest;
+using MediaIngestItemRequest = VttTools.Media.Ingest.IngestItemRequest;
 
 namespace VttTools.Admin.Ingest.Services;
 
 public sealed class AssetIngestService(
     IOptions<PublicLibraryOptions> options,
     IAssetStorage assetStorage,
-    IJobStorage jobStorage,
-    IAiServiceClient aiServiceClient,
     IMediaServiceClient mediaServiceClient,
     ILogger<AssetIngestService> logger)
     : IAssetIngestService {
@@ -21,22 +20,24 @@ public sealed class AssetIngestService(
                 return Result.Failure("At least one item is required.").WithNo<IngestJobResponse>();
 
             var assets = new List<AssetModel>();
-            var jobItems = new List<BulkAssetGenerationListItem>();
+            var ingestItems = new List<MediaIngestItemRequest>();
 
             foreach (var item in request.Items) {
                 var asset = CreateDraftAsset(item);
                 assets.Add(asset);
 
-                jobItems.Add(new BulkAssetGenerationListItem {
+                ingestItems.Add(new MediaIngestItemRequest {
+                    AssetId = asset.Id,
                     Name = item.Name,
                     Kind = item.Kind,
                     Category = item.Category,
                     Type = item.Type,
                     Subtype = item.Subtype,
-                    Size = item.Size,
                     Environment = item.Environment,
                     Description = item.Description,
                     Tags = item.Tags,
+                    GeneratePortrait = true,
+                    GenerateToken = true,
                 });
             }
 
@@ -46,28 +47,20 @@ public sealed class AssetIngestService(
 
             logger.LogInformation("Created {Count} draft assets for ingest", assets.Count);
 
-            var bulkRequest = new BulkAssetGenerationRequest {
-                GeneratePortrait = true,
-                GenerateToken = true,
-                Items = jobItems,
+            var ingestRequest = new MediaIngestRequest {
+                Items = ingestItems,
             };
 
-            var jobResult = await aiServiceClient.StartBulkGenerationAsync(MasterUserId, bulkRequest, ct);
-            if (jobResult is null) {
-                logger.LogError("Failed to start AI generation job");
-                return Result.Failure("Failed to start AI generation job").WithNo<IngestJobResponse>();
+            var jobResult = await mediaServiceClient.StartIngestAsync(MasterUserId, ingestRequest, ct);
+            if (!jobResult.IsSuccessful) {
+                logger.LogError("Failed to start ingest job: {Errors}", string.Join(", ", jobResult.Errors.Select(e => e.Message)));
+                return Result.Failure("Failed to start ingest job").WithNo<IngestJobResponse>();
             }
 
-            await LinkJobItemsToAssetsAsync(jobResult.Id, assets, ct);
-
             logger.LogInformation("Started ingest job {JobId} with {ItemCount} items for {AssetCount} assets",
-                jobResult.Id, jobResult.Items.Count, assets.Count);
+                jobResult.Value.JobId, jobResult.Value.ItemCount, assets.Count);
 
-            return new IngestJobResponse {
-                JobId = jobResult.Id,
-                ItemCount = jobResult.Items.Count,
-                AssetIds = assets.Select(a => a.Id).ToList(),
-            };
+            return ToAdminResponse(jobResult.Value);
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error ingesting assets");
@@ -118,7 +111,7 @@ public sealed class AssetIngestService(
     public async Task<Result<IngestJobResponse>> RejectAssetsAsync(RejectAssetsRequest request, CancellationToken ct = default) {
         try {
             var assets = new List<AssetModel>();
-            var jobItems = new List<BulkAssetGenerationListItem>();
+            var ingestItems = new List<MediaIngestItemRequest>();
 
             foreach (var item in request.Items) {
                 var asset = await assetStorage.FindByIdAsync(MasterUserId, item.AssetId, ct);
@@ -138,46 +131,39 @@ public sealed class AssetIngestService(
                 var updated = asset with {
                     IngestStatus = IngestStatus.Pending,
                     AiPrompt = item.AiPrompt,
-                    Portrait = null,
                     Tokens = [],
                 };
                 await assetStorage.UpdateAsync(updated, ct);
                 assets.Add(updated);
 
-                jobItems.Add(new BulkAssetGenerationListItem {
+                ingestItems.Add(new MediaIngestItemRequest {
+                    AssetId = asset.Id,
                     Name = asset.Name,
                     Kind = asset.Classification.Kind,
                     Category = asset.Classification.Category,
                     Type = asset.Classification.Type,
                     Subtype = asset.Classification.Subtype,
-                    Size = asset.Size.Name.ToString().ToLowerInvariant(),
                     Description = item.AiPrompt,
                     Tags = asset.Tags,
+                    GeneratePortrait = true,
+                    GenerateToken = true,
                 });
             }
 
             if (assets.Count == 0)
                 return Result.Failure("No valid assets found to reject").WithNo<IngestJobResponse>();
 
-            var bulkRequest = new BulkAssetGenerationRequest {
-                GeneratePortrait = true,
-                GenerateToken = true,
-                Items = jobItems,
+            var ingestRequest = new MediaIngestRequest {
+                Items = ingestItems,
             };
 
-            var jobResult = await aiServiceClient.StartBulkGenerationAsync(MasterUserId, bulkRequest, ct);
-            if (jobResult is null)
+            var jobResult = await mediaServiceClient.StartIngestAsync(MasterUserId, ingestRequest, ct);
+            if (!jobResult.IsSuccessful)
                 return Result.Failure("Failed to start regeneration job").WithNo<IngestJobResponse>();
 
-            await LinkJobItemsToAssetsAsync(jobResult.Id, assets, ct);
+            logger.LogInformation("Started regeneration job {JobId} for {Count} rejected assets", jobResult.Value.JobId, assets.Count);
 
-            logger.LogInformation("Started regeneration job {JobId} for {Count} rejected assets", jobResult.Id, assets.Count);
-
-            return new IngestJobResponse {
-                JobId = jobResult.Id,
-                ItemCount = jobResult.Items.Count,
-                AssetIds = assets.Select(a => a.Id).ToList(),
-            };
+            return ToAdminResponse(jobResult.Value);
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error rejecting assets");
@@ -204,7 +190,6 @@ public sealed class AssetIngestService(
                 var updated = asset with {
                     IngestStatus = IngestStatus.Discarded,
                     IsDeleted = true,
-                    Portrait = null,
                     Tokens = [],
                 };
                 await assetStorage.UpdateAsync(updated, ct);
@@ -226,8 +211,8 @@ public sealed class AssetIngestService(
 
     public async Task<Result<IngestJobResponse>> RetryFailedAsync(RetryFailedRequest request, CancellationToken ct = default) {
         try {
-            var assetsWithFlags = new List<(AssetModel Asset, bool NeedsPortrait, bool NeedsToken)>();
-            var jobItems = new List<BulkAssetGenerationListItem>();
+            var assets = new List<AssetModel>();
+            var ingestItems = new List<MediaIngestItemRequest>();
 
             foreach (var assetId in request.AssetIds) {
                 var asset = await assetStorage.FindByIdAsync(MasterUserId, assetId, ct);
@@ -241,8 +226,10 @@ public sealed class AssetIngestService(
                     continue;
                 }
 
-                var needsPortrait = asset.Portrait is null;
+                // For failed/partial failure assets, regenerate based on tokens
+                // Portrait existence is determined by blob storage (derived from asset path)
                 var needsToken = asset.Tokens.Count == 0;
+                var needsPortrait = needsToken; // If no token, assume portrait also needs regeneration
 
                 if (!needsPortrait && !needsToken) {
                     logger.LogWarning("Asset {AssetId} has all resources", assetId);
@@ -253,16 +240,16 @@ public sealed class AssetIngestService(
                     IngestStatus = IngestStatus.Processing,
                 };
                 await assetStorage.UpdateAsync(updated, ct);
-                assetsWithFlags.Add((updated, needsPortrait, needsToken));
+                assets.Add(updated);
 
                 // Use per-item flags to only regenerate what's needed
-                jobItems.Add(new BulkAssetGenerationListItem {
+                ingestItems.Add(new MediaIngestItemRequest {
+                    AssetId = asset.Id,
                     Name = asset.Name,
                     Kind = asset.Classification.Kind,
                     Category = asset.Classification.Category,
                     Type = asset.Classification.Type,
                     Subtype = asset.Classification.Subtype,
-                    Size = asset.Size.Name.ToString().ToLowerInvariant(),
                     Description = asset.AiPrompt ?? asset.Description,
                     Tags = asset.Tags,
                     GeneratePortrait = needsPortrait,
@@ -270,29 +257,20 @@ public sealed class AssetIngestService(
                 });
             }
 
-            if (assetsWithFlags.Count == 0)
+            if (assets.Count == 0)
                 return Result.Failure("No valid assets found to retry").WithNo<IngestJobResponse>();
 
-            var bulkRequest = new BulkAssetGenerationRequest {
-                GeneratePortrait = true, // Allow per-item overrides
-                GenerateToken = true,
-                Items = jobItems,
+            var ingestRequest = new MediaIngestRequest {
+                Items = ingestItems,
             };
 
-            var jobResult = await aiServiceClient.StartBulkGenerationAsync(MasterUserId, bulkRequest, ct);
-            if (jobResult is null)
+            var jobResult = await mediaServiceClient.StartIngestAsync(MasterUserId, ingestRequest, ct);
+            if (!jobResult.IsSuccessful)
                 return Result.Failure("Failed to start retry job").WithNo<IngestJobResponse>();
 
-            var assets = assetsWithFlags.Select(x => x.Asset).ToList();
-            await LinkJobItemsToAssetsAsync(jobResult.Id, assets, ct);
+            logger.LogInformation("Started retry job {JobId} for {Count} failed assets", jobResult.Value.JobId, assets.Count);
 
-            logger.LogInformation("Started retry job {JobId} for {Count} failed assets", jobResult.Id, assets.Count);
-
-            return new IngestJobResponse {
-                JobId = jobResult.Id,
-                ItemCount = jobResult.Items.Count,
-                AssetIds = assets.Select(a => a.Id).ToList(),
-            };
+            return ToAdminResponse(jobResult.Value);
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error retrying failed assets");
@@ -349,40 +327,11 @@ public sealed class AssetIngestService(
         };
     }
 
-    private async Task LinkJobItemsToAssetsAsync(Guid jobId, List<AssetModel> assets, CancellationToken ct) {
-        var job = await jobStorage.GetByIdAsync(jobId, ct);
-        if (job is null) {
-            logger.LogWarning("Job {JobId} not found for linking", jobId);
-            return;
-        }
-
-        var itemIndex = 0;
-        foreach (var asset in assets) {
-            if (itemIndex < job.Items.Count) {
-                var portraitItem = job.Items[itemIndex] with { AssetId = asset.Id };
-                job.Items[itemIndex] = portraitItem;
-                itemIndex++;
-            }
-            if (itemIndex < job.Items.Count) {
-                var tokenItem = job.Items[itemIndex] with { AssetId = asset.Id };
-                job.Items[itemIndex] = tokenItem;
-                itemIndex++;
-            }
-        }
-
-        await jobStorage.UpdateAsync(job, ct);
-        logger.LogDebug("Linked job items to {Count} assets", assets.Count);
-    }
-
     private async Task DeleteAssetResourcesAsync(AssetModel asset, CancellationToken ct) {
-        // Delete portrait
-        if (asset.Portrait is not null) {
-            var result = await mediaServiceClient.DeleteResourceAsync(asset.Portrait.Id, ct);
-            if (!result.IsSuccessful)
-                logger.LogWarning("Failed to delete portrait {ResourceId} for asset {AssetId}", asset.Portrait.Id, asset.Id);
-        }
+        // Note: Portraits are stored in blob storage at derived paths (resources/{suffix}/{assetId})
+        // They will be overwritten during regeneration, no explicit deletion needed
 
-        // Delete tokens
+        // Delete tokens (tokens have ResourceMetadata records)
         foreach (var token in asset.Tokens) {
             var result = await mediaServiceClient.DeleteResourceAsync(token.Id, ct);
             if (!result.IsSuccessful)
@@ -390,27 +339,44 @@ public sealed class AssetIngestService(
         }
     }
 
-    private static IngestAssetResponse MapToResponse(AssetModel asset) => new() {
-        Id = asset.Id,
-        Name = asset.Name,
-        Description = asset.Description,
-        Kind = asset.Classification.Kind,
-        Category = asset.Classification.Category,
-        Type = asset.Classification.Type,
-        Subtype = asset.Classification.Subtype,
-        IngestStatus = asset.IngestStatus,
-        AiPrompt = asset.AiPrompt,
-        Portrait = asset.Portrait is not null ? new IngestResourceInfo {
-            Id = asset.Portrait.Id,
-            Path = asset.Portrait.Path,
-            FileName = asset.Portrait.FileName,
-            ContentType = asset.Portrait.ContentType,
-        } : null,
-        Tokens = asset.Tokens.Select(t => new IngestResourceInfo {
-            Id = t.Id,
-            Path = t.Path,
-            FileName = t.FileName,
-            ContentType = t.ContentType,
-        }).ToList(),
+    private static IngestAssetResponse MapToResponse(AssetModel asset) {
+        // Portrait path is derived from asset ID: {suffix}/{assetId}
+        var assetIdString = asset.Id.ToString();
+        var suffix = assetIdString[^4..];
+        var portraitPath = $"{suffix}/{asset.Id}";
+
+        return new IngestAssetResponse {
+            Id = asset.Id,
+            Name = asset.Name,
+            Description = asset.Description,
+            Kind = asset.Classification.Kind,
+            Category = asset.Classification.Category,
+            Type = asset.Classification.Type,
+            Subtype = asset.Classification.Subtype,
+            IngestStatus = asset.IngestStatus,
+            AiPrompt = asset.AiPrompt,
+            // Portrait info is derived from blob storage path
+            // Existence is checked via the GET /api/assets/{id}/portrait endpoint
+            Portrait = asset.IngestStatus is IngestStatus.PendingReview or IngestStatus.Approved
+                ? new IngestResourceInfo {
+                    Id = asset.Id, // Use asset ID as portrait identifier
+                    Path = portraitPath,
+                    FileName = $"{asset.Name}_portrait.png",
+                    ContentType = "image/png",
+                }
+                : null,
+            Tokens = asset.Tokens.Select(t => new IngestResourceInfo {
+                Id = t.Id,
+                Path = t.Path,
+                FileName = t.FileName,
+                ContentType = t.ContentType,
+            }).ToList(),
+        };
+    }
+
+    private static IngestJobResponse ToAdminResponse(VttTools.Media.Ingest.IngestJobResponse mediaResponse) => new() {
+        JobId = mediaResponse.JobId,
+        ItemCount = mediaResponse.ItemCount,
+        AssetIds = mediaResponse.AssetIds,
     };
 }

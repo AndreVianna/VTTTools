@@ -8,7 +8,6 @@ public static class Cloner {
 
             Classification = original.Classification,
 
-            Portrait = original.Portrait?.Clone(),
             Size = original.Size,
             Tokens = original.Tokens.ConvertAll(v => v.Clone()),
 

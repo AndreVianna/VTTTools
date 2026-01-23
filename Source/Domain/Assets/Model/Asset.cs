@@ -13,8 +13,6 @@ public record Asset {
     public string[] Tags { get; init; } = [];
     public NamedSize Size { get; init; } = NamedSize.Default;
 
-    public ResourceMetadata? Thumbnail { get; init; }
-    public ResourceMetadata? Portrait { get; init; }
     public List<ResourceMetadata> Tokens { get; init; } = [];
 
     public Guid OwnerId { get; init; }

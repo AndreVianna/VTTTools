@@ -6,25 +6,29 @@ import { Group, Layer } from 'react-konva';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BackgroundLayer, EncounterCanvas, EntityPlacement, GridRenderer, type EncounterCanvasHandle } from '@/components/encounter';
 import { DMTestCharacter } from '@/components/encounter/DMTestCharacter';
+import { SelectionBorder, type SelectionVariant } from '@/components/encounter/konva/SelectionBorder';
 import { LightSourceRenderer } from '@/components/encounter/rendering/SourceRenderer';
 import { WallRenderer } from '@/components/encounter/rendering/WallRenderer';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { DEFAULT_BACKGROUNDS } from '@/config/defaults';
 import { useAuth } from '@/hooks/useAuth';
 import { useAudioUnlock } from '@/hooks/useAudioUnlock';
 import {
     useActiveCharacter,
     useBackgroundMedia,
+    useDMAssetSelection,
     useDMTestCharacter,
+    getDMTestCharacterId,
     useEncounterLoadingState,
     useGridConfigSync,
+    useKeyboardState,
     usePreviewModeAccess,
     useSpatialAudio,
 } from '@/hooks/encounter';
-import { useGetEncounterQuery } from '@/services/encounterApi';
+import { useGetEncounterQuery, useRemoveEncounterAssetMutation, useUpdateEncounterAssetMutation } from '@/services/encounterApi';
 import { GroupName, LayerName } from '@/services/layerManager';
-import { AssetKind, type EncounterWall, type PlacedAsset, type PlacedLightSource, type PlacedSoundSource, type PlacedWall, SegmentState } from '@/types/domain';
+import { type EncounterWall, type PlacedAsset, type PlacedLightSource, type PlacedSoundSource, type PlacedWall, SegmentState } from '@/types/domain';
 import { hydrateGameElements, hydratePlacedLightSources, hydratePlacedSoundSources, hydratePlacedWalls } from '@/utils/encounterMappers';
-import { SnapMode } from '@/utils/snapping';
 import { GridType } from '@/utils/gridCalculator';
 
 /**
@@ -39,6 +43,8 @@ import { GridType } from '@/utils/gridCalculator';
  * - Clean view without editor toolbars
  * - DM can exit back to editor
  * - Walls rendered with secret walls hidden from view
+ * - DM full selection capabilities (click, Ctrl+click, marquee)
+ * - Keyboard actions (Delete, H for visibility, Escape to clear)
  */
 export const EncounterPage: React.FC = () => {
     // ═══════════════════════════════════════════════════════════════════════════
@@ -67,6 +73,9 @@ export const EncounterPage: React.FC = () => {
         skip: !encounterId || encounterId === '',
     });
 
+    const [removeEncounterAsset, { isLoading: isDeleting }] = useRemoveEncounterAssetMutation();
+    const [updateEncounterAsset] = useUpdateEncounterAssetMutation();
+
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.5 CONTEXT HOOKS
     // App-level context: useUndoRedoContext, useClipboard, useConnectionStatus
@@ -94,6 +103,9 @@ export const EncounterPage: React.FC = () => {
     const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
     const [stageSize, setStageSize] = useState({ width: 1920, height: 1080 });
     const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    // Track asset positions during drag (for selection border to follow in real-time)
+    const [draggingPositions, setDraggingPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.8 REFS
@@ -143,8 +155,10 @@ export const EncounterPage: React.FC = () => {
             encounterId,
         );
 
-        return hydratedAssets.filter(asset => !asset.isHidden);
-    }, [encounter, encounterId]);
+        // For DM, show all assets (including hidden with reduced opacity)
+        // For players, only show non-hidden
+        return isDM ? hydratedAssets : hydratedAssets.filter(asset => !asset.isHidden);
+    }, [encounter, encounterId, isDM]);
 
     /**
      * Hydrate and filter light sources to only show ones that are turned on.
@@ -184,10 +198,43 @@ export const EncounterPage: React.FC = () => {
         return encounter?.stage?.walls ?? [];
     }, [encounter?.stage?.walls]);
 
+    /**
+     * Get the DM test character ID for exclusion from selection.
+     */
+    const dmTestCharacterId = useMemo(
+        () => getDMTestCharacterId(encounterId),
+        [encounterId]
+    );
+
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.9b DOMAIN HOOKS (depends on derived state above)
     // These hooks require visibleAssets/visibleSoundSources/encounterWalls
     // ═══════════════════════════════════════════════════════════════════════════
+
+    // Keyboard state for Ctrl modifier and key handlers
+    const handleEscapeKey = useCallback(() => {
+        // Will be connected to clearSelection below
+    }, []);
+
+    const { isCtrlPressed, assetSnapMode } = useKeyboardState({
+        gridConfig,
+        onEscapeKey: handleEscapeKey,
+    });
+
+    // DM asset selection state
+    const {
+        selectedAssetIds,
+        handleAssetClick: handleSelectionClick,
+        clearSelection,
+        hasSelection,
+    } = useDMAssetSelection({
+        encounterId,
+        isDM,
+        excludeIds: [dmTestCharacterId],
+        userId: user?.id,
+        visibleAssets,
+    });
+
     const {
         activeCharacterId,
         activeCharacterPosition,
@@ -204,6 +251,7 @@ export const EncounterPage: React.FC = () => {
         setPosition: setDMTestPosition,
         isSelected: isDMTestSelected,
         select: selectDMTest,
+        deselect: deselectDMTest,
     } = useDMTestCharacter({
         encounterId,
         isDM,
@@ -237,32 +285,151 @@ export const EncounterPage: React.FC = () => {
     });
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // 4.11b DERIVED STATE (depends on domain hooks)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Get selection variant for an asset based on selection order.
+     * First selected = anchor (teal), others = secondary (purple).
+     * Single selection = primary (blue).
+     */
+    const getSelectionVariant = useCallback((assetId: string): SelectionVariant => {
+        if (selectedAssetIds.length === 1) return 'primary';
+        const index = selectedAssetIds.indexOf(assetId);
+        return index === 0 ? 'anchor' : 'secondary';
+    }, [selectedAssetIds]);
+
+    /**
+     * Selected assets with their details for rendering selection borders.
+     */
+    const selectedAssetsDetails = useMemo(() => {
+        return selectedAssetIds
+            .map(id => visibleAssets.find(a => a.id === id))
+            .filter((a): a is PlacedAsset => a !== undefined);
+    }, [selectedAssetIds, visibleAssets]);
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // 4.13 HANDLERS
     // Event handlers: useCallback (including callback refs)
     // ═══════════════════════════════════════════════════════════════════════════
+
     /**
-     * Handle creature click for active character selection.
-     * Only creatures (Characters and Creatures) can be selected as the listener.
+     * Handle asset click for selection.
+     * For DM: Select any asset.
+     * For Players: Select only controlled assets.
      */
     const handleAssetClick = useCallback((assetId: string) => {
-        const asset = visibleAssets.find(a => a.id === assetId);
-        if (!asset) return;
+        // Deselect DM marker when selecting an asset
+        deselectDMTest();
 
-        // Only allow selecting creatures (Characters and Creatures)
-        const kind = asset.asset?.classification?.kind;
-        if (kind === AssetKind.Character || kind === AssetKind.Creature) {
-            // Toggle selection: click again to deselect
-            if (isActiveCharacter(assetId)) {
-                setActiveCharacter(null);
-            } else {
-                setActiveCharacter(assetId);
+        // Handle selection
+        handleSelectionClick(assetId, isCtrlPressed);
+
+        // Also handle active character for audio listener (Characters only - they can "hear")
+        const asset = visibleAssets.find(a => a.id === assetId);
+        if (asset) {
+            const kind = asset.asset?.classification?.kind;
+            if (kind === 'Character') {
+                if (isActiveCharacter(assetId)) {
+                    setActiveCharacter(null);
+                } else {
+                    setActiveCharacter(assetId);
+                }
             }
         }
-    }, [visibleAssets, isActiveCharacter, setActiveCharacter]);
+    }, [deselectDMTest, handleSelectionClick, isCtrlPressed, visibleAssets, isActiveCharacter, setActiveCharacter]);
+
+    /**
+     * Handle delete request - open confirmation dialog.
+     */
+    const handleDeleteRequest = useCallback(() => {
+        if (hasSelection && isDM) {
+            setDeleteDialogOpen(true);
+        }
+    }, [hasSelection, isDM]);
+
+    /**
+     * Handle delete confirmation - delete all selected assets.
+     * NOTE: Deletion disabled for safety during development.
+     */
+    const handleDeleteConfirm = useCallback(async () => {
+        // TODO: Re-enable deletion when ready
+        console.debug('[EncounterPage] Delete confirmed for', selectedAssetIds.length, 'assets - DISABLED for safety');
+
+        clearSelection();
+        setDeleteDialogOpen(false);
+    }, [selectedAssetIds, clearSelection]);
+
+    /**
+     * Handle cancel delete.
+     */
+    const handleDeleteCancel = useCallback(() => {
+        setDeleteDialogOpen(false);
+    }, []);
+
+    /**
+     * Handle toggle visibility for selected assets.
+     */
+    const handleToggleVisibility = useCallback(async () => {
+        if (!encounterId || !hasSelection || !isDM) return;
+
+        for (const assetId of selectedAssetIds) {
+            const asset = visibleAssets.find(a => a.id === assetId);
+            if (asset) {
+                try {
+                    await updateEncounterAsset({
+                        encounterId,
+                        assetNumber: asset.index,
+                        kind: asset.asset.classification.kind,
+                        visible: asset.isHidden, // Toggle: if hidden, make visible; if visible, make hidden
+                    }).unwrap();
+                } catch (err) {
+                    console.error('Failed to toggle visibility:', err);
+                }
+            }
+        }
+    }, [encounterId, hasSelection, isDM, selectedAssetIds, visibleAssets, updateEncounterAsset]);
 
     const handleExitToEditor = useCallback(() => {
         navigate(`/encounters/${encounterId}/edit`);
     }, [encounterId, navigate]);
+
+    /**
+     * Handle DM marker click - clears asset selection and selects DM marker.
+     */
+    const handleDMMarkerClick = useCallback(() => {
+        clearSelection(); // Clear any selected assets
+        selectDMTest(); // Select the DM marker
+    }, [clearSelection, selectDMTest]);
+
+    /**
+     * Handle asset drag move - update local position for real-time selection border.
+     */
+    const handleAssetDrag = useCallback((assetId: string, position: { x: number; y: number }) => {
+        setDraggingPositions(prev => new Map(prev).set(assetId, position));
+    }, []);
+
+    /**
+     * Handle asset drag end - update position via API.
+     * Note: draggingPositions is cleared by effect when selection changes.
+     */
+    const handleAssetDragEnd = useCallback(async (assetId: string, position: { x: number; y: number }) => {
+        if (!encounterId || !isDM) return;
+
+        const asset = visibleAssets.find(a => a.id === assetId);
+        if (!asset) return;
+
+        try {
+            await updateEncounterAsset({
+                encounterId,
+                assetNumber: asset.index,
+                kind: asset.asset.classification.kind,
+                position,
+            }).unwrap();
+        } catch (err) {
+            console.error('Failed to move asset:', err);
+        }
+    }, [encounterId, isDM, visibleAssets, updateEncounterAsset]);
 
     const handleBackgroundImageLoaded = useCallback((dimensions: { width: number; height: number }) => {
         setStageSize(dimensions);
@@ -296,6 +463,25 @@ export const EncounterPage: React.FC = () => {
     // 4.12 EFFECTS
     // Side effects: useEffect
     // ═══════════════════════════════════════════════════════════════════════════
+
+    // Clear dragging positions when selection changes (prevents flicker on drop)
+    useEffect(() => {
+        if (draggingPositions.size === 0) return;
+
+        // Only keep dragging positions for assets that are still selected
+        setDraggingPositions(prev => {
+            let changed = false;
+            const next = new Map(prev);
+            for (const assetId of prev.keys()) {
+                if (!selectedAssetIds.includes(assetId)) {
+                    next.delete(assetId);
+                    changed = true;
+                }
+            }
+            return changed ? next : prev;
+        });
+    }, [selectedAssetIds, draggingPositions.size]);
+
     // Handle window resize to update canvas dimensions
     useEffect(() => {
         const handleResize = () => {
@@ -305,6 +491,53 @@ export const EncounterPage: React.FC = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Keyboard shortcuts for selection actions
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if typing in input
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            // Only handle if DM
+            if (!isDM) return;
+
+            // Debug logging for keyboard shortcuts
+            if (['Delete', 'Backspace', 'h', 'H', 'Escape'].includes(e.key)) {
+                console.debug('[EncounterPage] Key pressed:', e.key, 'hasSelection:', hasSelection, 'selectedIds:', selectedAssetIds);
+            }
+
+            switch (e.key) {
+                case 'Delete':
+                case 'Backspace':
+                    if (hasSelection) {
+                        e.preventDefault();
+                        console.debug('[EncounterPage] Delete requested for', selectedAssetIds.length, 'assets');
+                        handleDeleteRequest();
+                    }
+                    break;
+                case 'h':
+                case 'H':
+                    if (hasSelection) {
+                        e.preventDefault();
+                        console.debug('[EncounterPage] Toggle visibility for', selectedAssetIds.length, 'assets');
+                        handleToggleVisibility();
+                    }
+                    break;
+                case 'Escape':
+                    if (hasSelection) {
+                        e.preventDefault();
+                        console.debug('[EncounterPage] Clearing selection');
+                        clearSelection();
+                    }
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isDM, hasSelection, selectedAssetIds, handleDeleteRequest, handleToggleVisibility, clearSelection]);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 4.14 RENDER
@@ -355,6 +588,7 @@ export const EncounterPage: React.FC = () => {
                 </Button>
             </Box>
 
+
             {/* Main Canvas */}
             <EncounterCanvas
                 ref={canvasRef}
@@ -391,7 +625,7 @@ export const EncounterPage: React.FC = () => {
                         <WallRenderer
                             key={`wall-${wall.index}`}
                             encounterWall={wall}
-                            activeScope={null}
+                            activeScope="all"
                         />
                     ))}
 
@@ -403,7 +637,7 @@ export const EncounterPage: React.FC = () => {
                                     encounterLightSource={lightSource}
                                     walls={encounter?.stage?.walls ?? []}
                                     gridConfig={gridConfig}
-                                    activeScope={null}
+                                    activeScope="all"
                                     isSelected={false}
                                 />
                             ))}
@@ -421,11 +655,39 @@ export const EncounterPage: React.FC = () => {
                         gridConfig={gridConfig}
                         draggedAsset={null}
                         onDragComplete={() => {}}
-                        snapMode={SnapMode.Full}
+                        snapMode={assetSnapMode}
                         encounter={encounter}
-                        activeScope={null}
+                        activeScope="all"
                         onAssetClick={handleAssetClick}
+                        selectedAssetIds={selectedAssetIds}
+                        onAssetDrag={handleAssetDrag}
+                        onAssetDragEnd={handleAssetDragEnd}
                     />
+                )}
+
+                {/* Selection Layer - Selection borders and marquee (listening=false, just for rendering) */}
+                {isDM && (
+                    <Layer name={LayerName.SelectionHandles} listening={false}>
+                        {/* Selection borders for selected assets */}
+                        {selectedAssetsDetails.map(asset => {
+                            // Use dragging position if asset is being dragged, otherwise use state position
+                            const position = draggingPositions.get(asset.id) ?? asset.position;
+                            return (
+                                <SelectionBorder
+                                    key={`sel-${asset.id}`}
+                                    bounds={{
+                                        x: position.x - asset.size.width / 2,
+                                        y: position.y - asset.size.height / 2,
+                                        width: asset.size.width,
+                                        height: asset.size.height,
+                                    }}
+                                    scale={viewport.scale}
+                                    variant={getSelectionVariant(asset.id)}
+                                    showCornerHandles={selectedAssetIds.length === 1}
+                                />
+                            );
+                        })}
+                    </Layer>
                 )}
 
                 {/* DMTools Layer - DM test character for testing player perspective */}
@@ -436,12 +698,25 @@ export const EncounterPage: React.FC = () => {
                             gridConfig={gridConfig}
                             isSelected={isDMTestSelected}
                             onDragEnd={setDMTestPosition}
-                            onClick={selectDMTest}
+                            onClick={handleDMMarkerClick}
                         />
                     </Layer>
                 )}
 
             </EncounterCanvas>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Assets"
+                message={`Are you sure you want to delete ${selectedAssetIds.length} selected asset${selectedAssetIds.length === 1 ? '' : 's'}? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                severity="error"
+                isLoading={isDeleting}
+            />
         </Box>
     );
 };

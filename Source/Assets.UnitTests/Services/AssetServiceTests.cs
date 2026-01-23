@@ -55,7 +55,6 @@ public class AssetServiceTests {
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
         var service = CreateServiceForTests();
-        var portraitId = Guid.CreateVersion7();
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
@@ -63,7 +62,6 @@ public class AssetServiceTests {
             Category = "Humanoid",
             Type = "Goblinoid",
             Subtype = "Goblin",
-            PortraitId = portraitId,
             TokenSize = new(SizeName.Medium),
             Tags = ["hostile"]
         };
@@ -96,11 +94,9 @@ public class AssetServiceTests {
             OwnerId = _userId,
         };
 
-        var portraitId = Guid.CreateVersion7();
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
-            PortraitId = Optional<Guid?>.Some(portraitId),
             IsPublished = true,
             IsPublic = true,
         };
@@ -432,60 +428,6 @@ public class AssetServiceTests {
     }
 
     [Fact]
-    public async Task CreateAssetAsync_WithPortraitId_IncludesPortraitMetadata() {
-        var service = CreateServiceForTests();
-        var portraitId = Guid.CreateVersion7();
-        var portrait = new ResourceMetadata {
-            Id = portraitId,
-            Path = "/path/to/portrait.jpg",
-            ContentType = "image/jpeg"
-        };
-        var data = new CreateAssetData {
-            Name = "Asset with Portrait",
-            Description = "Description",
-            Kind = AssetKind.Creature,
-            Category = "Humanoid",
-            Type = "Goblinoid",
-            PortraitId = portraitId
-        };
-
-        _assetStorage.SearchAsync(_userId, search: data.Name, ct: Arg.Any<CancellationToken>())
-            .Returns(([], 0));
-        _mediaStorage.FindByIdAsync(portraitId, Arg.Any<CancellationToken>()).Returns(portrait);
-
-        var result = await service.CreateAssetAsync(_userId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Portrait.Should().NotBeNull();
-        result.Value.Portrait!.Id.Should().Be(portraitId);
-        await _mediaStorage.Received(1).FindByIdAsync(portraitId, Arg.Any<CancellationToken>());
-        await _assetStorage.Received(1).AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task CreateAssetAsync_WithNullPortraitId_DoesNotIncludePortrait() {
-        var service = CreateServiceForTests();
-        var data = new CreateAssetData {
-            Name = "Asset without Portrait",
-            Description = "Description",
-            Kind = AssetKind.Creature,
-            Category = "Humanoid",
-            Type = "Goblinoid",
-            PortraitId = null
-        };
-
-        _assetStorage.SearchAsync(_userId, search: data.Name, ct: Arg.Any<CancellationToken>())
-            .Returns(([], 0));
-
-        var result = await service.CreateAssetAsync(_userId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Portrait.Should().BeNull();
-        await _mediaStorage.DidNotReceive().FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
-        await _assetStorage.Received(1).AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public async Task UpdateAssetAsync_WithValidationErrors_ReturnsErrors() {
         var service = CreateServiceForTests();
         var assetId = Guid.CreateVersion7();
@@ -506,99 +448,6 @@ public class AssetServiceTests {
         result.IsSuccessful.Should().BeFalse();
         result.HasErrors.Should().BeTrue();
         await _assetStorage.DidNotReceive().UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithPortraitId_UpdatesPortrait() {
-        var service = CreateServiceForTests();
-        var assetId = Guid.CreateVersion7();
-        var portraitId = Guid.CreateVersion7();
-        var portrait = new ResourceMetadata {
-            Id = portraitId,
-            Path = "/path/to/portrait.jpg",
-            ContentType = "image/jpeg"
-        };
-        var asset = new Asset {
-            Id = assetId,
-            Name = "Asset",
-            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            OwnerId = _userId,
-            Portrait = null
-        };
-        var data = new UpdateAssetData {
-            PortraitId = Optional<Guid?>.Some(portraitId)
-        };
-
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _mediaStorage.FindByIdAsync(portraitId, Arg.Any<CancellationToken>()).Returns(portrait);
-
-        var result = await service.UpdateAssetAsync(_userId, assetId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Portrait.Should().NotBeNull();
-        result.Value.Portrait!.Id.Should().Be(portraitId);
-        await _mediaStorage.Received(1).FindByIdAsync(portraitId, Arg.Any<CancellationToken>());
-        await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithNullPortraitId_RemovesPortrait() {
-        var service = CreateServiceForTests();
-        var assetId = Guid.CreateVersion7();
-        var existingPortrait = new ResourceMetadata {
-            Id = Guid.CreateVersion7(),
-            Path = "/path/to/portrait.jpg",
-            ContentType = "image/jpeg"
-        };
-        var asset = new Asset {
-            Id = assetId,
-            Name = "Asset",
-            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            OwnerId = _userId,
-            Portrait = existingPortrait
-        };
-        var data = new UpdateAssetData {
-            PortraitId = Optional<Guid?>.Some(null)
-        };
-
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-
-        var result = await service.UpdateAssetAsync(_userId, assetId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Portrait.Should().BeNull();
-        await _mediaStorage.DidNotReceive().FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
-        await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithUnsetPortraitId_KeepsExistingPortrait() {
-        var service = CreateServiceForTests();
-        var assetId = Guid.CreateVersion7();
-        var existingPortrait = new ResourceMetadata {
-            Id = Guid.CreateVersion7(),
-            Path = "/path/to/portrait.jpg",
-            ContentType = "image/jpeg"
-        };
-        var asset = new Asset {
-            Id = assetId,
-            Name = "Asset",
-            Classification = new(AssetKind.Creature, "Humanoid", "Goblinoid", "Goblin"),
-            OwnerId = _userId,
-            Portrait = existingPortrait
-        };
-        var data = new UpdateAssetData {
-            Name = "Updated Name"
-        };
-
-        _assetStorage.FindByIdAsync(_userId, assetId, Arg.Any<CancellationToken>()).Returns(asset);
-
-        var result = await service.UpdateAssetAsync(_userId, assetId, data, _ct);
-
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Portrait.Should().BeEquivalentTo(existingPortrait);
-        await _mediaStorage.DidNotReceive().FindByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
-        await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
