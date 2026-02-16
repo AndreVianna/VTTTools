@@ -39,7 +39,7 @@
     "@microsoft/signalr": "^10.0.0",
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
-    "@mui/x-data-grid": "^8.25.0",
+    "@mui/x-data-grid": "^8.27.1",
     "@mui/x-date-pickers": "^8.25.0",
     "@reduxjs/toolkit": "^2.9.0",
     "@types/react": "^19.1.13",
